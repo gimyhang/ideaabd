@@ -9,13 +9,13 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAnalyticsCSV()" title="Export Analytics to CSV">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print Analytics Report">
-            <i class="fas fa-print me-1"></i> Print Report
+            <i class="fa-solid fa-print me-1"></i> Print Report
         </button>
         <a href="{{ route('admin.visitor-reports') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-rotate me-1"></i> Refresh Live
+            <i class="fa-solid fa-rotate me-1"></i> Refresh Live
         </a>
     </div>
 @endsection
@@ -30,14 +30,14 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="position-relative d-flex align-items-center justify-content-center" 
                      style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.1); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.15);">
-                    <i class="fas fa-globe text-info fs-3"></i>
+                    <i class="fa-solid fa-globe text-info fs-3"></i>
                     <span class="position-absolute top-0 start-100 translate-middle p-1.5 bg-success border border-light rounded-circle animate-pulse" 
                           style="box-shadow: 0 0 12px #22c55e;" title="Real-time Stream Online"></span>
                 </div>
                 <div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
-                            <i class="fas fa-circle-dot me-1 fa-beat-fade" style="--fa-beat-fade-scale: 1.3;"></i> REAL-TIME ACTIVE
+                            <i class="fa-solid fa-circle-dot me-1 fa-beat-fade" style="--fa-beat-fade-scale: 1.3;"></i> REAL-TIME ACTIVE
                         </span>
                         <span class="text-white-50 small">Worldwide Traffic & Hardware Intelligence</span>
                     </div>
@@ -101,7 +101,7 @@
                 </div>
                 <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
                     <span>Weekly Momentum:</span>
-                    <strong class="text-success"><i class="fas fa-arrow-trend-up"></i> Active</strong>
+                    <strong class="text-success"><i class="fa-solid fa-arrow-trend-up"></i> Active</strong>
                 </div>
             </div>
         </div>
@@ -150,7 +150,7 @@
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h6 class="fw-bold text-dark mb-0">
-                    <i class="fas fa-chart-area text-primary me-1.5"></i> 14-Day Traffic & Engagement Trend
+                    <i class="fa-solid fa-chart-area text-primary me-1.5"></i> 14-Day Traffic & Engagement Trend
                 </h6>
                 <span class="text-muted small">Daily pageviews and unique user volume graph</span>
             </div>
@@ -179,7 +179,7 @@
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-earth-americas text-primary me-1.5"></i> Worldwide Geographic Reach</h6>
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-earth-americas text-primary me-1.5"></i> Worldwide Geographic Reach</h6>
                         <span class="text-muted small" style="font-size: 11px;">Visitors classified by Country & Region</span>
                     </div>
                     <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1 fw-bold">Global Scale</span>
@@ -207,7 +207,7 @@
                             </div>
                         @empty
                             <div class="text-center py-4 text-muted small">
-                                <i class="fas fa-globe fs-2 mb-2 text-secondary opacity-50 d-block"></i>
+                                <i class="fa-solid fa-globe fs-2 mb-2 text-secondary opacity-50 d-block"></i>
                                 No geographic visitor data recorded yet.
                             </div>
                         @endforelse
@@ -221,7 +221,7 @@
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold text-dark mb-0"><i class="fas fa-arrows-split-up-and-left text-info me-1.5"></i> Traffic Acquisition Channels</h6>
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-arrows-split-up-and-left text-info me-1.5"></i> Traffic Acquisition Channels</h6>
                         <span class="text-muted small" style="font-size: 11px;">Search Engines, Social Media, WhatsApp, Direct & Referrals</span>
                     </div>
                     <span class="badge bg-info-subtle text-info rounded-pill px-2.5 py-1 fw-bold">Acquisition</span>
@@ -262,7 +262,7 @@
                                         @elseif($isTelegram)
                                             <i class="fab fa-telegram text-info"></i>
                                         @else
-                                            <i class="fas fa-compass text-secondary"></i>
+                                            <i class="fa-solid fa-compass text-secondary"></i>
                                         @endif
                                         <span>{{ $chanName }}</span>
                                     </span>
@@ -279,7 +279,7 @@
                             </div>
                         @empty
                             <div class="text-center py-4 text-muted small">
-                                <i class="fas fa-compass fs-2 mb-2 text-secondary opacity-50 d-block"></i>
+                                <i class="fa-solid fa-compass fs-2 mb-2 text-secondary opacity-50 d-block"></i>
                                 Direct & Organic visitor tracking active.
                             </div>
                         @endforelse
@@ -295,7 +295,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-book-bookmark text-primary me-1.5"></i> Top Performing Books</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-book-bookmark text-primary me-1.5"></i> Top Performing Books</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush" style="font-size: 12.5px;">
@@ -325,7 +325,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-fire text-danger me-1.5"></i> Top Pages & Articles</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-1.5"></i> Top Pages & Articles</h6>
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush" style="font-size: 12.5px;">
@@ -355,7 +355,7 @@
         <div class="col-lg-4">
             <div class="card border-0 shadow-xs rounded-4 bg-white h-100 overflow-hidden">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-laptop-code text-success me-1.5"></i> Device Hardware & Tech</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-laptop-code text-success me-1.5"></i> Device Hardware & Tech</h6>
                     <span class="badge bg-success-subtle text-success rounded-pill px-2 py-0.5 small">Models</span>
                 </div>
                 <div class="card-body p-3">
@@ -372,9 +372,9 @@
                     <!-- Device Category Ratio -->
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1 small fw-semibold">
-                            <span><i class="fas fa-mobile-screen text-primary me-1"></i> Mobile ({{ $mPct }}%)</span>
-                            <span><i class="fas fa-laptop text-info me-1"></i> Desktop ({{ $dPct }}%)</span>
-                            <span><i class="fas fa-tablet-screen-button text-success me-1"></i> Tablet ({{ $tPct }}%)</span>
+                            <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i> Mobile ({{ $mPct }}%)</span>
+                            <span><i class="fa-solid fa-laptop text-info me-1"></i> Desktop ({{ $dPct }}%)</span>
+                            <span><i class="fa-solid fa-tablet-screen-button text-success me-1"></i> Tablet ({{ $tPct }}%)</span>
                         </div>
                         <div class="progress" style="height: 8px;">
                             <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $mPct }}%"></div>
@@ -387,7 +387,7 @@
                     @if(isset($deviceModels) && $deviceModels->isNotEmpty())
                     <div class="border-top pt-2.5 mt-2.5">
                         <span class="small fw-bold text-muted d-block mb-1.5 text-uppercase" style="font-size: 10px;">
-                            <i class="fas fa-microchip me-1 text-primary"></i> Device Hardware & Brands
+                            <i class="fa-solid fa-microchip me-1 text-primary"></i> Device Hardware & Brands
                         </span>
                         <div class="d-flex flex-wrap gap-1.5">
                             @foreach($deviceModels as $dm)
@@ -398,9 +398,9 @@
                                 @endphp
                                 <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">
                                     @if($isApple) <i class="fab fa-apple me-1 text-dark"></i>
-                                    @elseif($isSamsung) <i class="fas fa-mobile me-1 text-primary"></i>
-                                    @elseif($isXiaomi) <i class="fas fa-mobile-screen-button me-1 text-warning"></i>
-                                    @else <i class="fas fa-computer me-1 text-info"></i>
+                                    @elseif($isSamsung) <i class="fa-solid fa-mobile me-1 text-primary"></i>
+                                    @elseif($isXiaomi) <i class="fa-solid fa-mobile-screen-button me-1 text-warning"></i>
+                                    @else <i class="fa-solid fa-computer me-1 text-info"></i>
                                     @endif
                                     {{ $dm->device_name }}: <strong>{{ number_format($dm->total) }}</strong>
                                 </span>
@@ -442,7 +442,7 @@
     <div class="card border-0 shadow-xs rounded-4 bg-white overflow-hidden">
         <div class="card-header bg-white border-bottom py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div>
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-tower-broadcast text-primary me-1.5"></i> Live Real-Time Activity Stream</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-tower-broadcast text-primary me-1.5"></i> Live Real-Time Activity Stream</h6>
                 <span class="text-muted small">Chronological stream of visitor clicks, device models, locations & referral sources</span>
             </div>
 
@@ -456,11 +456,11 @@
                     <option value="tablet" @selected(request('device') === 'tablet')>Tablet</option>
                 </select>
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">
-                    <i class="fas fa-filter me-1"></i> Filter
+                    <i class="fa-solid fa-filter me-1"></i> Filter
                 </button>
                 @if(request()->hasAny(['search', 'device', 'country_code', 'traffic_source']))
                     <a href="{{ route('admin.visitor-reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" title="Clear Filters">
-                        <i class="fas fa-times"></i>
+                        <i class="fa-solid fa-times"></i>
                     </a>
                 @endif
             </form>
@@ -488,7 +488,7 @@
                                         <div>
                                             <span class="fw-semibold text-dark d-block">{{ $log->country ?: 'Bangladesh' }}</span>
                                             @if($log->city)
-                                                <small class="text-muted" style="font-size: 10.5px;"><i class="fas fa-location-dot me-0.5 text-danger"></i> {{ $log->city }}</small>
+                                                <small class="text-muted" style="font-size: 10.5px;"><i class="fa-solid fa-location-dot me-0.5 text-danger"></i> {{ $log->city }}</small>
                                             @endif
                                         </div>
                                     </div>
@@ -498,7 +498,7 @@
                                         <span class="font-monospace text-muted">{{ $log->ip_address }}</span>
                                         @if($log->user_id)
                                             <span class="badge bg-success-subtle text-success border rounded-circle p-1" title="Logged in user: {{ $log->user?->name }}">
-                                                <i class="fas fa-user-check" style="font-size: 9px;"></i>
+                                                <i class="fa-solid fa-user-check" style="font-size: 9px;"></i>
                                             </span>
                                         @endif
                                     </div>
@@ -508,15 +508,15 @@
                                         <div class="d-flex align-items-center gap-1 mb-0.5">
                                             @if($log->device === 'mobile')
                                                 <span class="badge bg-primary-subtle text-primary border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
-                                                    <i class="fas fa-mobile-screen me-1"></i> {{ $log->device_name ?: 'Mobile' }}
+                                                    <i class="fa-solid fa-mobile-screen me-1"></i> {{ $log->device_name ?: 'Mobile' }}
                                                 </span>
                                             @elseif($log->device === 'tablet')
                                                 <span class="badge bg-success-subtle text-success border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
-                                                    <i class="fas fa-tablet-screen-button me-1"></i> {{ $log->device_name ?: 'Tablet' }}
+                                                    <i class="fa-solid fa-tablet-screen-button me-1"></i> {{ $log->device_name ?: 'Tablet' }}
                                                 </span>
                                             @else
                                                 <span class="badge bg-info-subtle text-info border rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
-                                                    <i class="fas fa-laptop me-1"></i> {{ $log->device_name ?: 'Desktop PC' }}
+                                                    <i class="fa-solid fa-laptop me-1"></i> {{ $log->device_name ?: 'Desktop PC' }}
                                                 </span>
                                             @endif
                                         </div>
@@ -529,7 +529,7 @@
                                             {{ $log->page_title ?: 'Page View' }}
                                         </span>
                                         <a href="{{ $log->url }}" target="_blank" rel="noopener" class="text-muted text-decoration-none small text-truncate d-block" style="max-width: 300px; font-size: 11px;">
-                                            <i class="fas fa-link me-1 text-secondary opacity-75"></i> {{ $log->url }}
+                                            <i class="fa-solid fa-link me-1 text-secondary opacity-75"></i> {{ $log->url }}
                                         </a>
                                     </div>
                                 </td>
@@ -545,13 +545,13 @@
                                             @if($isG) <i class="fab fa-google text-danger"></i>
                                             @elseif($isFB) <i class="fab fa-facebook text-primary"></i>
                                             @elseif($isWA) <i class="fab fa-whatsapp text-success"></i>
-                                            @else <i class="fas fa-compass text-secondary"></i>
+                                            @else <i class="fa-solid fa-compass text-secondary"></i>
                                             @endif
                                             {{ $src }}
                                         </span>
                                         @if($log->utm_source)
                                             <small class="d-block text-primary fw-semibold mt-0.5" style="font-size: 10.5px;">
-                                                <i class="fas fa-tag me-0.5"></i> {{ $log->utm_source }}
+                                                <i class="fa-solid fa-tag me-0.5"></i> {{ $log->utm_source }}
                                             </small>
                                         @endif
                                     </div>
@@ -563,12 +563,12 @@
                                     <div class="d-flex align-items-center justify-content-end gap-2 mt-1">
                                         <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none text-primary fw-semibold" 
                                                 onclick='openSessionDetailModal(@json($log))'>
-                                            <i class="fas fa-circle-info me-0.5"></i> Inspect
+                                            <i class="fa-solid fa-circle-info me-0.5"></i> Inspect
                                         </button>
                                         <span class="text-muted">|</span>
                                         <button type="button" class="btn btn-link btn-xs p-0 text-decoration-none text-danger fw-semibold" 
                                                 onclick="quickBlockVisitorIp('{{ $log->ip_address }}')">
-                                            <i class="fas fa-shield-halved me-0.5"></i> Block IP
+                                            <i class="fa-solid fa-shield-halved me-0.5"></i> Block IP
                                         </button>
                                     </div>
                                 </td>
@@ -576,7 +576,7 @@
                         @empty
                             <tr>
                                 <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fas fa-chart-simple fs-1 mb-2 text-secondary opacity-50 d-block"></i>
+                                    <i class="fa-solid fa-chart-simple fs-1 mb-2 text-secondary opacity-50 d-block"></i>
                                     No visitor logs recorded for this criteria.
                                 </td>
                             </tr>
@@ -606,7 +606,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="visitorDetailModalLabel">
-                    <i class="fas fa-user-gear me-1.5"></i> Visitor Session Intelligence
+                    <i class="fa-solid fa-user-gear me-1.5"></i> Visitor Session Intelligence
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -819,8 +819,8 @@ function quickBlockVisitorIp(ip) {
         title: 'আইপি ব্লক নিশ্চিতকরণ',
         text: `নিরাপত্তা সতর্কতা! আপনি কি নিশ্চিত আইপি '${ip}' চিরতরে ব্লক করতে চান?`,
         icon: 'warning',
-        confirmButtonText: '<i class="fas fa-ban me-1"></i> হ্যাঁ, ব্লক করুন',
-        cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+        confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> হ্যাঁ, ব্লক করুন',
+        cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
     }).then(function(result) {
         if (!result.isConfirmed) return;
 

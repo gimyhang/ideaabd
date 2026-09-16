@@ -10,7 +10,7 @@
 
 @section('actions')
     <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addTranslationModal">
-        <i class="fas fa-plus me-1"></i> Add Translation Key
+        <i class="fa-solid fa-plus me-1"></i> Add Translation Key
     </button>
 @endsection
 
@@ -21,7 +21,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fas fa-language"></i></div>
+                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fa-solid fa-language"></i></div>
                 <p class="kpi__label">Total Translation Strings</p>
                 <h3 class="kpi__value text-dark">{{ number_format($totalKeysCount) }}</h3>
                 <p class="kpi__foot text-muted">Across all UI groups</p>
@@ -29,7 +29,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #16a34a;">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fas fa-circle-check"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <p class="kpi__label">English Translated</p>
                 <h3 class="kpi__value text-dark">{{ number_format($translatedEnCount) }}</h3>
                 <p class="kpi__foot text-muted">Global audience ready</p>
@@ -37,7 +37,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-percent"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-percent"></i></div>
                 <p class="kpi__label">Localization Completion</p>
                 <h3 class="kpi__value text-dark">{{ $completionRate }}%</h3>
                 <p class="kpi__foot text-muted">Translation coverage</p>
@@ -58,13 +58,13 @@
             </div>
             <div class="col-12 col-md-6">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fas fa-search text-muted"></i></span>
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="search" value="{{ $search }}" class="form-control" placeholder="Search string key or translation text...">
                 </div>
             </div>
             <div class="col-12 col-md-2 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary flex-fill fw-semibold">Filter</button>
-                <a href="{{ route('admin.translations.index') }}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-rotate-left"></i></a>
+                <a href="{{ route('admin.translations.index') }}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-rotate-left"></i></a>
             </div>
         </form>
     </div>
@@ -72,7 +72,7 @@
     <!-- Translations Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-font me-2 text-primary"></i> Site Interface Strings</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-font me-2 text-primary"></i> Site Interface Strings</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -98,7 +98,7 @@
                                 <td class="text-end pe-3">
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5"
                                             onclick="openEditTranslationModal({{ $tr->id }}, '{{ $tr->key }}', '{{ addslashes($tr->text_bn ?? '') }}', '{{ addslashes($tr->text_en ?? '') }}', '{{ addslashes($tr->text_ar ?? '') }}')">
-                                        <i class="fas fa-pen"></i> Edit
+                                        <i class="fa-solid fa-pen"></i> Edit
                                     </button>
                                 </td>
                             </tr>
@@ -121,7 +121,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-plus-circle me-1.5"></i> Add Translation Key</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Add Translation Key</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.translations.store') }}" method="POST">
@@ -145,7 +145,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-semibold mb-0">English (Global)</label>
                             <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="triggerAiTranslate('addTextBn', 'addTextEn')">
-                                <i class="fas fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
                             </button>
                         </div>
                         <input type="text" id="addTextEn" name="text_en" class="form-control" placeholder="e.g. Buy Now">
@@ -169,7 +169,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-edit me-1.5"></i> Edit Translation Text</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Translation Text</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="editTranslationForm" method="POST">
@@ -188,7 +188,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-semibold mb-0">English (Global)</label>
                             <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="triggerAiTranslate('editTextBn', 'editTextEn')">
-                                <i class="fas fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI Auto-Translate
                             </button>
                         </div>
                         <input type="text" id="editTextEn" name="text_en" class="form-control">

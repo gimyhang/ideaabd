@@ -124,26 +124,32 @@
 
                     {{-- Profile Action Buttons --}}
                     <div class="row g-1.5 g-md-2">
-                        <div class="col-4">
-                            <button type="button" class="btn btn-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-bold text-dark shadow-xs d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openPhotoStudioModal()">
+                        <div class="col-6 col-md-3">
+                            <button type="button" class="btn btn-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-bold text-dark shadow-xs d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openPhotoStudioModal()">
                                 <i class="fas fa-camera"></i>
                                 <span>Photo</span>
                             </button>
                         </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-light btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openBioEditModal()">
+                        <div class="col-6 col-md-3">
+                            <button type="button" class="btn btn-outline-light btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold d-flex align-items-center justify-content-center gap-1 text-truncate" onclick="openBioEditModal()">
                                 <i class="fas fa-user-pen"></i>
                                 <span>Edit Bio</span>
                             </button>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6 col-md-3">
+                            <a href="{{ route('my-account') }}" class="btn btn-outline-warning btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate" title="মাই একাউন্ট">
+                                <i class="fas fa-user-gear text-warning"></i>
+                                <span>মাই একাউন্ট</span>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
                             @if($author && $author->slug)
-                                <a href="{{ route('authors.show', $author->slug) }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
+                                <a href="{{ route('authors.show', $author->slug) }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
                                     <i class="fas fa-arrow-up-right-from-square"></i>
                                     <span>Profile</span>
                                 </a>
                             @else
-                                <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-3 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
+                                <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-info btn-sm w-100 rounded-pill py-1.5 px-1 px-md-2 fw-semibold text-white d-flex align-items-center justify-content-center gap-1 text-truncate">
                                     <i class="fas fa-store"></i>
                                     <span>Store</span>
                                 </a>

@@ -16,19 +16,19 @@
                 $authorRec = $user->getAuthorRecord();
             @endphp
             <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs" id="btnHeaderSyncAuthor" onclick="syncThisAuthor()">
-                <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+                <i class="fa-solid fa-arrows-rotate me-1"></i> Sync to Directory
             </button>
             @if($authorRec && $authorRec->slug)
                 <a href="{{ route('authors.show', $authorRec->slug) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Directory View
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Directory View
                 </a>
             @endif
         @endif
         <a href="{{ route('admin.registrations.show', $user) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> Back
+            <i class="fa-solid fa-arrow-left me-1"></i> Back
         </a>
         <a href="{{ route('admin.registrations.index') }}" class="btn btn-light border btn-sm rounded-pill px-3">
-            <i class="fas fa-list me-1"></i> All Requests
+            <i class="fa-solid fa-list me-1"></i> All Requests
         </a>
     </div>
 @endsection
@@ -39,7 +39,7 @@
         <div class="card-header bg-light border-0 py-3.5 px-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h5 class="fw-bold mb-0 text-dark">
-                    <i class="fas fa-user-pen text-primary me-2"></i> Edit Applicant & Profile Information
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i> Edit Applicant & Profile Information
                 </h5>
                 <small class="text-muted">User ID: #{{ $user->id }} • Submitted: {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}</small>
             </div>
@@ -57,7 +57,7 @@
             @if(isset($errors) && $errors->any())
                 <div class="alert alert-danger rounded-4 mb-4 border-0 shadow-xs">
                     <div class="fw-bold mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fas fa-circle-exclamation text-danger"></i>
+                        <i class="fa-solid fa-circle-exclamation text-danger"></i>
                         <span>Please fix the following errors:</span>
                     </div>
                     <ul class="mb-0 ps-3 small mt-2">
@@ -111,7 +111,7 @@
                                 @endif
                             </div>
                             <span class="position-absolute bottom-0 end-0 bg-warning text-dark rounded-circle p-1.5 shadow-xs border border-2 border-white d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                <i class="fas fa-camera small" style="font-size: 11px;"></i>
+                                <i class="fa-solid fa-camera small" style="font-size: 11px;"></i>
                             </span>
                         </div>
 
@@ -119,25 +119,25 @@
                         <div class="flex-grow-1 w-100">
                             <label class="form-label fw-bold text-dark mb-1.5 d-flex align-items-center justify-content-between">
                                 <span class="d-flex align-items-center gap-1.5">
-                                    <i class="fas fa-camera text-primary"></i>
+                                    <i class="fa-solid fa-camera text-primary"></i>
                                     <span>User Photo / Avatar</span>
                                 </span>
                                 <span class="badge bg-white text-success border small" id="avatarSelectedStatus" style="display: none;">
-                                    <i class="fas fa-check-circle me-1"></i>নতুন ছবি রেডি
+                                    <i class="fa-solid fa-circle-check me-1"></i>নতুন ছবি রেডি
                                 </span>
                             </label>
                             
                             {{-- Buttons for Studio & Direct File Pick --}}
                             <div class="d-flex flex-wrap gap-2 mb-1.5">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" onclick="openAdminPhotoStudio()">
-                                    <i class="fas fa-crop-simple me-1"></i> ফটো স্টুডিও ও ক্রপার
+                                    <i class="fa-solid fa-crop-simple me-1"></i> ফটো স্টুডিও ও ক্রপার
                                 </button>
                                 <label class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
-                                    <i class="fas fa-camera me-1"></i> মোবাইল ক্যামেরা
+                                    <i class="fa-solid fa-camera me-1"></i> মোবাইল ক্যামেরা
                                     <input type="file" accept="image/*" capture="user" class="d-none" onchange="handleDirectFilePick(this)">
                                 </label>
                                 <label class="btn btn-light border btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
-                                    <i class="fas fa-images me-1"></i> ফাইল বাছাই
+                                    <i class="fa-solid fa-images me-1"></i> ফাইল বাছাই
                                     <input type="file" name="avatar" id="avatarInput" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" class="d-none" onchange="handleDirectFilePick(this)">
                                 </label>
                             </div>
@@ -157,7 +157,7 @@
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-id-card-clip text-primary"></i>
+                        <i class="fa-solid fa-id-card-clip text-primary"></i>
                         <span>Account</span>
                     </h6>
 
@@ -254,7 +254,7 @@
                 {{-- ========================================================= --}}
                 <div id="authorDetailsCard" class="mb-4" style="{{ old('role', $user->role) === 'author' ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-file-lines text-success"></i>
+                        <i class="fa-solid fa-file-lines text-success"></i>
                         <span>Information</span>
                     </h6>
 
@@ -276,7 +276,7 @@
                                 <span>Nid upload:</span>
                                 @if(!empty($regData['nid_file']))
                                     <a href="{{ asset('storage/' . ltrim($regData['nid_file'], '/')) }}" target="_blank" class="badge bg-primary-subtle text-primary border text-decoration-none">
-                                        <i class="fas fa-file-arrow-down me-1"></i> View Current Document
+                                        <i class="fa-solid fa-file-arrow-down me-1"></i> View Current Document
                                     </a>
                                 @endif
                             </label>
@@ -372,7 +372,7 @@
                 {{-- ========================================================= --}}
                 <div class="mb-4">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-share-nodes text-info"></i>
+                        <i class="fa-solid fa-share-nodes text-info"></i>
                         <span>Social</span>
                     </h6>
 
@@ -402,7 +402,7 @@
                 {{-- ========================================================= --}}
                 <div id="businessDetailsCard" class="mb-4" style="{{ in_array(old('role', $user->role), ['publisher', 'seller']) ? '' : 'display:none;' }}">
                     <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
-                        <i class="fas fa-store text-warning"></i>
+                        <i class="fa-solid fa-store text-warning"></i>
                         <span>Business & Commercial Details</span>
                     </h6>
 
@@ -461,7 +461,7 @@
                         Cancel
                     </a>
                     <button type="submit" class="btn btn-primary px-4 rounded-pill fw-bold shadow-sm" id="submitBtn">
-                        <i class="fas fa-save me-1"></i> Save Changes & Photo
+                        <i class="fa-solid fa-save me-1"></i> Save Changes & Photo
                     </button>
                 </div>
             </form>
@@ -477,7 +477,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="adminAvatarStudioModalLabel">
-                    <i class="fas fa-camera text-primary"></i>
+                    <i class="fa-solid fa-camera text-primary"></i>
                     <span>ছবি এডিটর ও ফটো স্টুডিও</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -508,13 +508,13 @@
 
                         {{-- Initial placeholder when no image uploaded --}}
                         <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="display: flex; z-index: 6;">
-                            <i class="fas fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
+                            <i class="fa-solid fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
                             <span class="fw-bold text-dark small mb-1">ছবি নির্বাচন বা ড্রপ করুন</span>
                             <span class="text-muted" style="font-size: 11px;">মোবাইল ক্যামেরা ও গ্যালারি সাপোর্টেড</span>
                         </div>
                     </div>
                     <div class="text-muted small mt-1.5" style="font-size: 11.5px;">
-                        <i class="fas fa-hand-pointer text-secondary me-1"></i>মাউস বা আঙুল দিয়ে টেনে ছবির পজিশন ঠিক করুন
+                        <i class="fa-solid fa-hand-pointer text-secondary me-1"></i>মাউস বা আঙুল দিয়ে টেনে ছবির পজিশন ঠিক করুন
                     </div>
                 </div>
 
@@ -522,7 +522,7 @@
                 <div class="mb-3">
                     <div class="d-flex gap-2">
                         <label class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-semibold py-1.5" style="cursor: pointer;">
-                            <i class="fas fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
+                            <i class="fa-solid fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
                             <input type="file" id="adminModalAvatarInput" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
                                    class="d-none"
@@ -530,7 +530,7 @@
                                    onchange="loadAdminStudioImage(this)">
                         </label>
                         <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="ক্যামেরা থেকে ছবি তুলুন">
-                            <i class="fas fa-camera me-1"></i> ক্যামেরা
+                            <i class="fa-solid fa-camera me-1"></i> ক্যামেরা
                             <input type="file" accept="image/*" capture="user" class="d-none" onclick="this.value=null;" onchange="loadAdminStudioImage(this)">
                         </label>
                     </div>
@@ -539,7 +539,7 @@
                 {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
                 <div id="adminCropControls" class="p-3 bg-light rounded-3 border mb-3 d-none">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
-                        <span class="text-muted fw-semibold"><i class="fas fa-magnifying-glass-plus text-primary me-1"></i>জুম ইন/আউট:</span>
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-magnifying-glass-plus text-primary me-1"></i>জুম ইন/আউট:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="adminZoomValBadge">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -550,10 +550,10 @@
 
                     <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="rotateAdminImage(90)">
-                            <i class="fas fa-rotate-right me-1 text-primary"></i> ৯০° ঘোরান
+                            <i class="fa-solid fa-rotate-right me-1 text-primary"></i> ৯০° ঘোরান
                         </button>
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="resetAdminCrop()">
-                            <i class="fas fa-arrows-to-circle me-1 text-secondary"></i> রিসেট
+                            <i class="fa-solid fa-arrows-to-circle me-1 text-secondary"></i> রিসেট
                         </button>
                     </div>
                 </div>
@@ -562,7 +562,7 @@
             <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
                 <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
                 <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="adminApplyPhotoBtn" onclick="applyCroppedPhotoToForm()" disabled>
-                    <i class="fas fa-check me-1"></i> ছবি সেট করুন
+                    <i class="fa-solid fa-check me-1"></i> ছবি সেট করুন
                 </button>
             </div>
         </div>

@@ -7,7 +7,7 @@
     <div class="adm-card p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark">
-                <i class="fas fa-book me-1.5 text-primary"></i> Book Specifications
+                <i class="fa-solid fa-book me-1.5 text-primary"></i> Book Specifications
             </h2>
             <span class="badge bg-light text-muted border small">* Required fields</span>
         </div>
@@ -16,7 +16,7 @@
             {{-- ROW 1: Product Type * & Order Type * --}}
             <div class="col-12 col-md-6">
                 <label for="f-product_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
+                    <i class="fa-solid fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
                 </label>
                 <select id="f-product_type" name="product_type" class="form-select form-select-sm fw-semibold @error('product_type') is-invalid @enderror">
                     <option value="book" @selected($val('product_type', 'book') === 'book')>Book</option>
@@ -29,7 +29,7 @@
 
             <div class="col-12 col-md-6">
                 <label for="f-stock_status" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
+                    <i class="fa-solid fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
                 </label>
                 <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
                     <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>In Stock (Buy Now)</option>
@@ -46,14 +46,14 @@
                     <div class="row g-2">
                         <div class="col-12 col-md-6">
                             <label for="f-pre_order_release_date" class="form-label small fw-bold text-dark mb-1">
-                                <i class="fas fa-calendar-day text-warning me-1"></i> Pre-Order Estimated Delivery Date
+                                <i class="fa-solid fa-calendar-day text-warning me-1"></i> Pre-Order Estimated Delivery Date
                             </label>
                             <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" 
                                    value="{{ $val('pre_order_release_date') }}" class="form-control form-control-sm">
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="f-pre_order_note" class="form-label small fw-bold text-dark mb-1">
-                                <i class="fas fa-gift text-warning me-1"></i> Pre-Order Note / Offer
+                                <i class="fa-solid fa-gift text-warning me-1"></i> Pre-Order Note / Offer
                             </label>
                             <input type="text" id="f-pre_order_note" name="pre_order_note" 
                                    value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. Includes author autograph & bookmark">
@@ -65,7 +65,7 @@
             {{-- ROW 2: Title (BN) * & Title (EN) --}}
             <div class="col-12 col-md-6">
                 <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-book text-primary me-1"></i> Title (Bengali) <span class="text-danger">*</span>
+                    <i class="fa-solid fa-book text-primary me-1"></i> Title (Bengali) <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
                        class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
@@ -76,7 +76,7 @@
 
             <div class="col-12 col-md-6">
                 <label for="f-title_en" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-language text-secondary me-1"></i> Title (English) <span class="text-danger">*</span>
+                    <i class="fa-solid fa-language text-secondary me-1"></i> Title (English) <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? $val('subtitle')) }}"
                        class="form-control form-control-sm @error('title_en') is-invalid @enderror"
@@ -88,16 +88,16 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-pen-nib text-primary me-1"></i> Author <span class="text-danger">*</span>
+                        <i class="fa-solid fa-pen-nib text-primary me-1"></i> Author <span class="text-danger">*</span>
                     </label>
                     <div class="d-flex align-items-center gap-1.5">
                         <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                                 onclick="addAuthorField()" style="font-size: 11px;">
-                            <i class="fas fa-plus me-0.5"></i>Add
+                            <i class="fa-solid fa-plus me-0.5"></i>Add
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11px;">
-                            <i class="fas fa-user-plus me-0.5"></i>New
+                            <i class="fa-solid fa-user-plus me-0.5"></i>New
                         </button>
                     </div>
                 </div>
@@ -156,9 +156,9 @@
                             <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
                                    value="{{ $aNameEn }}" placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
                             @if($aIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fas fa-plus text-success"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fa-solid fa-plus text-success"></i></button>
                             @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();"><i class="fa-solid fa-times"></i></button>
                             @endif
                         </div>
                     @endforeach
@@ -171,11 +171,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-language text-info me-1"></i> Translator
+                        <i class="fa-solid fa-language text-info me-1"></i> Translator
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addTranslatorField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>Add
+                        <i class="fa-solid fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -197,9 +197,9 @@
                             <input type="text" name="translator_names[]" class="form-control form-control-sm" 
                                    value="{{ $tName }}" placeholder="Translator name...">
                             @if($tIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addTranslatorField()"><i class="fas fa-plus text-success"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="addTranslatorField()"><i class="fa-solid fa-plus text-success"></i></button>
                             @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
                             @endif
                         </div>
                     @endforeach
@@ -212,11 +212,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-user-pen text-secondary me-1"></i> Editor
+                        <i class="fa-solid fa-user-pen text-secondary me-1"></i> Editor
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addEditorField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>Add
+                        <i class="fa-solid fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -238,9 +238,9 @@
                             <input type="text" name="editor_names[]" class="form-control form-control-sm" 
                                    value="{{ $eName }}" placeholder="Editor name...">
                             @if($eIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addEditorField()"><i class="fas fa-plus text-success"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="addEditorField()"><i class="fa-solid fa-plus text-success"></i></button>
                             @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
                             @endif
                         </div>
                     @endforeach
@@ -252,11 +252,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-pen-fancy text-secondary me-1"></i> Rewriter / Adapter
+                        <i class="fa-solid fa-pen-fancy text-secondary me-1"></i> Rewriter / Adapter
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
                             onclick="addRewriterField()" style="font-size: 11px;">
-                        <i class="fas fa-plus me-0.5"></i>Add
+                        <i class="fa-solid fa-plus me-0.5"></i>Add
                     </button>
                 </div>
 
@@ -278,9 +278,9 @@
                             <input type="text" name="rewriter_names[]" class="form-control form-control-sm" 
                                    value="{{ $rName }}" placeholder="Rewriter name...">
                             @if($rIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addRewriterField()"><i class="fas fa-plus text-success"></i></button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="addRewriterField()"><i class="fa-solid fa-plus text-success"></i></button>
                             @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fas fa-times"></i></button>
+                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
                             @endif
                         </div>
                     @endforeach
@@ -292,7 +292,7 @@
             {{-- ROW 5: Language * & Country --}}
             <div class="col-12 col-md-6">
                 <label for="f-language" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
+                    <i class="fa-solid fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
                 </label>
                 <select id="f-language" name="language" class="form-select form-select-sm @error('language') is-invalid @enderror">
                     @foreach (['Bengali', 'English', 'Arabic', 'Urdu', 'Hindi', 'Persian', 'Other'] as $langKey)
@@ -304,7 +304,7 @@
 
             <div class="col-12 col-md-6">
                 <label for="f-country" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-flag text-danger me-1"></i> Country
+                    <i class="fa-solid fa-flag text-danger me-1"></i> Country
                 </label>
                 <select id="f-country" name="country" class="form-select form-select-sm @error('country') is-invalid @enderror">
                     @foreach (['Bangladesh', 'India', 'Saudi Arabia', 'Egypt', 'United Kingdom', 'United States', 'Other'] as $cKey)
@@ -317,7 +317,7 @@
             {{-- ROW 6: Binding * / Paper Quality / Edition * --}}
             <div class="col-12 col-md-4">
                 <label for="f-cover_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
+                    <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
                 </label>
                 <select id="f-cover_type" name="cover_type" class="form-select form-select-sm @error('cover_type') is-invalid @enderror" onchange="onCoverTypeDropdownChange(this.value)">
                     <option value="paperback" @selected($val('cover_type', 'paperback') === 'paperback')>Paperback</option>
@@ -331,7 +331,7 @@
 
             <div class="col-12 col-md-4">
                 <label for="f-paper_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-scroll text-secondary me-1"></i> Paper Quality (GSM)
+                    <i class="fa-solid fa-scroll text-secondary me-1"></i> Paper Quality (GSM)
                 </label>
                 <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
                     <optgroup label="── Off-white Paper ──">
@@ -370,7 +370,7 @@
 
             <div class="col-12 col-md-4">
                 <label for="f-edition" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-tag text-info me-1"></i> Edition
+                    <i class="fa-solid fa-tag text-info me-1"></i> Edition
                 </label>
                 <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}"
                        class="form-control form-control-sm @error('edition') is-invalid @enderror"
@@ -382,7 +382,7 @@
             <div class="col-12">
                 <div class="p-3 bg-white rounded-3 border shadow-xs" id="pricingEngineContainer">
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
-                        <span class="small fw-bold text-dark"><i class="fas fa-calculator text-primary me-1.5"></i> Pricing & Margin Calculator</span>
+                        <span class="small fw-bold text-dark"><i class="fa-solid fa-calculator text-primary me-1.5"></i> Pricing & Margin Calculator</span>
                         <span class="badge bg-light text-secondary border small" id="pricingBindingBadge">Paperback Mode</span>
                     </div>
 
@@ -390,7 +390,7 @@
                     <div id="paperbackPricingPanel" class="mb-3 {{ $val('cover_type') === 'hardcover' ? 'd-none' : '' }}">
                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                             <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fas fa-book text-muted me-1"></i> Paperback Pricing
+                                <i class="fa-solid fa-book text-muted me-1"></i> Paperback Pricing
                             </span>
                         </div>
                         <div class="row g-2">
@@ -453,7 +453,7 @@
                     <div id="hardcoverPricingPanel" class="{{ in_array($val('cover_type'), ['hardcover', 'both']) ? '' : 'd-none' }}">
                         <div class="d-flex align-items-center justify-content-between mb-1.5 pt-2 border-top">
                             <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fas fa-book-bookmark text-primary me-1"></i> Hardcover Pricing
+                                <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Hardcover Pricing
                             </span>
                         </div>
                         <div class="row g-2">
@@ -517,11 +517,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-shapes text-primary me-1"></i> Category <span class="text-danger">*</span>
+                        <i class="fa-solid fa-shapes text-primary me-1"></i> Category <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                        <i class="fas fa-plus-circle me-0.5"></i>+ Add
+                        <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
                     </button>
                 </div>
                 <select id="f-category_id" name="category_id" required 
@@ -538,11 +538,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span>
+                        <i class="fa-solid fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fas fa-plus-circle me-0.5"></i>+ Add
+                        <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
                     </button>
                 </div>
                 <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror" onchange="handlePublisherChange(this.value)">
@@ -557,7 +557,7 @@
             {{-- ROW 9: Number of Pages, Book Size, Publication Date & ISBN --}}
             <div class="col-6 col-md-3">
                 <label for="f-page_count" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-file-lines text-secondary me-1"></i> Pages
+                    <i class="fa-solid fa-file-lines text-secondary me-1"></i> Pages
                 </label>
                 <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
                        class="form-control form-control-sm @error('page_count') is-invalid @enderror"
@@ -567,7 +567,7 @@
 
             <div class="col-6 col-md-3">
                 <label class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-ruler-combined text-secondary me-1"></i> Size (H × W cm)
+                    <i class="fa-solid fa-ruler-combined text-secondary me-1"></i> Size (H × W cm)
                 </label>
                 <div class="row g-1">
                     <div class="col-6">
@@ -586,10 +586,10 @@
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-idea_serial_no" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-star text-warning me-1"></i> Idea Serial (আইডিয়া সিরিয়াল)
+                        <i class="fa-solid fa-star text-warning me-1"></i> Idea Serial (আইডিয়া সিরিয়াল)
                     </label>
                     <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea Prokashon serial number">
-                        <i class="fas fa-magic me-0.5"></i> Auto IP
+                        <i class="fa-solid fa-magic me-0.5"></i> Auto IP
                     </button>
                 </div>
                 <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
@@ -603,10 +603,10 @@
             <div class="col-12 col-md-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-sku" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-fingerprint text-primary me-1"></i> General SKU (গণ সিরিয়াল)
+                        <i class="fa-solid fa-fingerprint text-primary me-1"></i> General SKU (গণ সিরিয়াল)
                     </label>
                     <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate global catalog SKU">
-                        <i class="fas fa-wand-magic-sparkles me-0.5"></i> Auto SKU
+                        <i class="fa-solid fa-wand-magic-sparkles me-0.5"></i> Auto SKU
                     </button>
                 </div>
                 <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
@@ -618,7 +618,7 @@
 
             <div class="col-6 col-md-3">
                 <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN / EAN-13
+                    <i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / EAN-13
                 </label>
                 <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
                        class="form-control form-control-sm @error('isbn') is-invalid @enderror"
@@ -628,7 +628,7 @@
 
             <div class="col-6 col-md-3">
                 <label for="f-published_at" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-calendar-check text-warning me-1"></i> Published Date
+                    <i class="fa-solid fa-calendar-check text-warning me-1"></i> Published Date
                 </label>
                 <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
                        class="form-control form-control-sm @error('published_at') is-invalid @enderror">
@@ -640,11 +640,11 @@
                 <div class="p-3 bg-light rounded-3 border">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                         <div>
-                            <span class="small fw-bold text-dark"><i class="fas fa-qrcode text-primary me-1"></i> Live Barcode & QR Code Engine</span>
+                            <span class="small fw-bold text-dark"><i class="fa-solid fa-qrcode text-primary me-1"></i> Live Barcode & QR Code Engine</span>
                             <small class="text-muted d-block" style="font-size: 11px;">মোবাইল ক্যামেরা বা বারকোড রিডার গান দিয়ে সরাসরি রিড করা যাবে।</small>
                         </div>
                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 10px;">
-                            <i class="fas fa-check-circle me-0.5"></i> Auto-Generated
+                            <i class="fa-solid fa-circle-check me-0.5"></i> Auto-Generated
                         </span>
                     </div>
 
@@ -679,10 +679,10 @@
             <div class="col-12">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-summary" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-align-left text-primary me-1"></i> Product Summary
+                        <i class="fa-solid fa-align-left text-primary me-1"></i> Product Summary
                     </label>
                     <div class="word-counter-badge safe" id="summaryWordBadge">
-                        <i class="fas fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
+                        <i class="fa-solid fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
                     </div>
                 </div>
                 <textarea id="f-summary" name="summary" rows="5"
@@ -706,7 +706,7 @@
         <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked>
             <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck">
-                <i class="fas fa-shield-halved text-success me-1"></i> Publishing Rights & Content Quality Confirmed
+                <i class="fa-solid fa-shield-halved text-success me-1"></i> Publishing Rights & Content Quality Confirmed
             </label>
         </div>
     </div>
@@ -720,10 +720,10 @@
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
-                    <i class="fas fa-times me-1"></i> Cancel
+                    <i class="fa-solid fa-times me-1"></i> Cancel
                 </a>
                 <button type="submit" form="contentMainForm" id="btnPublishSaveBook" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
-                    <i class="fas fa-circle-check fs-5"></i>
+                    <i class="fa-solid fa-circle-check fs-5"></i>
                     <span>{{ $editing ? 'Save Changes' : 'Publish Book' }}</span>
                 </button>
             </div>
@@ -738,9 +738,9 @@
         {{-- 1. CLASSIFICATIONS & CATEGORY --}}
         <div class="adm-card p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-shapes text-primary me-1.5"></i> Categories & Tags</span>
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-shapes text-primary me-1.5"></i> Categories & Tags</span>
                 <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                    <i class="fas fa-plus-circle me-0.5"></i>+ Add New
+                    <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add New
                 </button>
             </div>
 
@@ -781,10 +781,10 @@
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-ekushey_category_select" class="form-label text-dark fw-bold mb-0" style="font-size: 11.5px;">
-                            <i class="fas fa-monument text-danger me-1"></i> 3. Boimela / Event
+                            <i class="fa-solid fa-monument text-danger me-1"></i> 3. Boimela / Event
                         </label>
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="toggleAdminCustomBoimela()">
-                            <i class="fas fa-pen-to-square me-0.5"></i>Custom
+                            <i class="fa-solid fa-pen-to-square me-0.5"></i>Custom
                         </button>
                     </div>
 
@@ -810,7 +810,7 @@
                                    placeholder="e.g. Boimela 2027 / Dhaka Lit Fest 2028"
                                    oninput="document.getElementById('f-ekushey_category').value = this.value.trim()">
                             <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="Switch back to list">
-                                <i class="fas fa-list"></i>
+                                <i class="fa-solid fa-list"></i>
                             </button>
                         </div>
                     </div>
@@ -821,7 +821,7 @@
                 {{-- Genre / Theme --}}
                 <div>
                     <label for="f-genre_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fas fa-layer-group text-info me-1"></i> 4. Genre / Subject
+                        <i class="fa-solid fa-layer-group text-info me-1"></i> 4. Genre / Subject
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm">
                         <option value="">— Select Genre —</option>
@@ -841,7 +841,7 @@
                 {{-- Target Audience --}}
                 <div>
                     <label for="f-audience_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fas fa-users text-success me-1"></i> 5. Target Audience
+                        <i class="fa-solid fa-users text-success me-1"></i> 5. Target Audience
                     </label>
                     <select id="f-audience_category" name="audience_category" class="form-select form-select-sm">
                         <option value="">— Select Audience —</option>
@@ -859,12 +859,12 @@
         <div class="adm-card p-3 mb-3 border-0 shadow-sm rounded-4">
             <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                 <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
-                    <i class="fas fa-image text-primary"></i> Cover Image <span class="text-danger">*</span>
+                    <i class="fa-solid fa-image text-primary"></i> Cover Image <span class="text-danger">*</span>
                 </span>
                 <div class="d-flex align-items-center gap-1.5">
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3 Portrait</span>
                     <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">
-                        <i class="fas fa-bolt me-0.5"></i>Auto .AVIF
+                        <i class="fa-solid fa-bolt me-0.5"></i>Auto .AVIF
                     </span>
                 </div>
             </div>
@@ -881,7 +881,7 @@
                     <img id="mockupCoverImg" src="{{ $currCoverUrl }}" 
                          alt="Cover Mockup" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
                     <div id="mockupCoverPlaceholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 text-muted {{ !empty($currCoverUrl) ? 'd-none' : '' }}" style="background: #f1f5f9;">
-                        <i class="fas fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
+                        <i class="fa-solid fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
                         <span class="small fw-semibold" style="font-size: 11px;">কভার প্রিভিউ</span>
                     </div>
                     <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 10px;">
@@ -959,7 +959,7 @@
                 <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
-                <div class="adm-dropzone__icon"><i class="fas fa-cloud-arrow-up text-primary fs-4"></i></div>
+                <div class="adm-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up text-primary fs-4"></i></div>
                 <div class="fw-bold text-dark small">কভার ফাইল আপলোড করুন</div>
                 <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP, AVIF (Max. 10MB)</div>
             </div>
@@ -971,14 +971,14 @@
                     <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                         <div class="d-flex align-items-center gap-1 mb-0.5">
                             <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: 9.5px;">
-                                <i class="fas fa-check me-0.5"></i> প্রস্তুত (.avif এ কনভার্ট হবে)
+                                <i class="fa-solid fa-check me-0.5"></i> প্রস্তুত (.avif এ কনভার্ট হবে)
                             </span>
                             <span id="preview-filesize-cover_image" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                         </div>
                         <div id="preview-filename-cover_image" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
                     </div>
                     <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove Cover">
-                        <i class="fas fa-trash-can"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </div>
@@ -988,7 +988,7 @@
         {{-- 3. LOOK INSIDE PREVIEW --}}
         <div class="adm-card p-3 mb-3 border-start border-4 border-info">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fas fa-book-open text-info me-1.5"></i> Look Inside Preview</span>
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-book-open text-info me-1.5"></i> Look Inside Preview</span>
                 <span class="badge bg-info-subtle text-info small">Sample</span>
             </div>
 
@@ -1012,7 +1012,7 @@
                     <input type="file" id="f-sample_pdf_path" name="sample_pdf_path" accept="application/pdf"
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
-                    <div class="adm-dropzone__icon"><i class="fas fa-file-pdf text-danger fs-4"></i></div>
+                    <div class="adm-dropzone__icon"><i class="fa-solid fa-file-pdf text-danger fs-4"></i></div>
                     <div class="fw-bold text-dark small">Upload Sample PDF</div>
                     <div class="text-muted small" style="font-size: 11px;">PDF Format (Max. 10MB)</div>
                 </div>
@@ -1021,7 +1021,7 @@
                 <div id="preview-container-sample_pdf_path" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center gap-2">
                         <div class="bg-danger-subtle text-danger rounded-2 p-2 text-center shadow-xs" style="width: 40px; height: 44px;">
-                            <i class="fas fa-file-pdf fs-5"></i>
+                            <i class="fa-solid fa-file-pdf fs-5"></i>
                         </div>
                         <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                             <div class="d-flex align-items-center gap-1 mb-0.5">
@@ -1031,7 +1031,7 @@
                             <div id="preview-filename-sample_pdf_path" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
                         </div>
                         <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-sample_pdf_path', 'preview-container-sample_pdf_path', null)" title="Remove PDF">
-                            <i class="fas fa-trash-can"></i>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -1046,16 +1046,16 @@
                     <input type="file" id="f-look_inside_images" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
-                    <div class="adm-dropzone__icon"><i class="fas fa-images text-info fs-4"></i></div>
+                    <div class="adm-dropzone__icon"><i class="fa-solid fa-images text-info fs-4"></i></div>
                     <div class="fw-bold text-dark small">Upload Page Images</div>
                     <div class="text-muted small" style="font-size: 11px;">Select multiple images in order</div>
                 </div>
 
                 <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold text-dark"><i class="fas fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> pages ready</span>
+                        <span class="small fw-bold text-dark"><i class="fa-solid fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> pages ready</span>
                         <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
-                            <i class="fas fa-trash-can me-1"></i> Clear All
+                            <i class="fa-solid fa-trash-can me-1"></i> Clear All
                         </button>
                     </div>
                 </div>
@@ -1065,13 +1065,13 @@
 
         {{-- 4. MODERATION & URL --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fas fa-circle-check me-1 text-muted"></i> Visibility & Status</h2>
+            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fa-solid fa-circle-check me-1 text-muted"></i> Visibility & Status</h2>
             <div class="mb-2.5 p-2 bg-success-subtle rounded-3 border border-success-subtle">
                 <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="f-is_active" name="is_active" value="1" 
                            @checked(old('is_active', $record->is_active ?? true))>
                     <label class="form-check-label small fw-bold text-success" for="f-is_active">
-                        <i class="fas fa-signal me-1"></i> Live on Website
+                        <i class="fa-solid fa-signal me-1"></i> Live on Website
                     </label>
                 </div>
             </div>

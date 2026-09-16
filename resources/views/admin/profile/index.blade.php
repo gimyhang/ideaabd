@@ -15,7 +15,7 @@
             <div class="adm-card text-center p-4 shadow-sm border-0 position-relative mb-4">
                 <div class="position-absolute top-0 end-0 p-3">
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                        <i class="fas fa-circle-check me-1"></i>সক্রিয়
+                        <i class="fa-solid fa-circle-check me-1"></i>সক্রিয়
                     </span>
                 </div>
 
@@ -36,7 +36,7 @@
 
                 <h4 class="fw-bold mb-1 text-dark">{{ $user->name }}</h4>
                 <div class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 mb-2 font-monospace">
-                    <i class="fas fa-shield-halved me-1"></i>{{ ['admin' => 'সুপার এডমিন (Super Admin)', 'sub_admin' => 'সাব-এডমিন', 'seller' => 'সেলার'][$user->role] ?? ucfirst($user->role) }}
+                    <i class="fa-solid fa-shield-halved me-1"></i>{{ ['admin' => 'সুপার এডমিন (Super Admin)', 'sub_admin' => 'সাব-এডমিন', 'seller' => 'সেলার'][$user->role] ?? ucfirst($user->role) }}
                 </div>
                 
                 @if(!empty($user->reg_data['designation']))
@@ -45,19 +45,19 @@
 
                 <div class="border-top pt-3 mt-3 text-start small">
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted"><i class="fas fa-envelope me-1.5 text-primary"></i>ইমেইল:</span>
+                        <span class="text-muted"><i class="fa-solid fa-envelope me-1.5 text-primary"></i>ইমেইল:</span>
                         <span class="fw-semibold text-dark">{{ $user->email }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted"><i class="fas fa-phone me-1.5 text-success"></i>মোবাইল:</span>
+                        <span class="text-muted"><i class="fa-solid fa-phone me-1.5 text-success"></i>মোবাইল:</span>
                         <span class="fw-semibold text-dark">{{ $user->phone ?: '—' }}</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted"><i class="fas fa-calendar-check me-1.5 text-info"></i>যুক্ত হয়েছেন:</span>
+                        <span class="text-muted"><i class="fa-solid fa-calendar-check me-1.5 text-info"></i>যুক্ত হয়েছেন:</span>
                         <span class="fw-semibold text-dark">{{ $user->created_at->format('d M Y') }}</span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span class="text-muted"><i class="fas fa-fingerprint me-1.5 text-secondary"></i>ইউজার আইডি:</span>
+                        <span class="text-muted"><i class="fa-solid fa-fingerprint me-1.5 text-secondary"></i>ইউজার আইডি:</span>
                         <span class="fw-semibold font-monospace text-dark">#ADM-{{ str_pad($user->id, 4, '0', STR_PAD_LEFT) }}</span>
                     </div>
                 </div>
@@ -67,11 +67,11 @@
                           data-confirm="আপনি কি নিশ্চিত যে প্রোফাইল ছবি মুছে ফেলতে চান?"
                           data-confirm-title="প্রোফাইল ছবি অপসারণ"
                           data-confirm-icon="warning"
-                          data-confirm-btn="<i class='fas fa-trash-can me-1'></i> হ্যাঁ, মুছে ফেলুন">
+                          data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> হ্যাঁ, মুছে ফেলুন">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
-                            <i class="fas fa-trash-can me-1"></i> ছবি মুছে ফেলুন
+                            <i class="fa-solid fa-trash-can me-1"></i> ছবি মুছে ফেলুন
                         </button>
                     </form>
                 @endif
@@ -79,23 +79,23 @@
 
             {{-- Quick System Shortcuts --}}
             <div class="adm-card p-3 shadow-sm border-0">
-                <h6 class="fw-bold mb-3 text-dark"><i class="fas fa-bolt text-warning me-2"></i>প্রয়োজনীয় লিংক</h6>
+                <h6 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bolt text-warning me-2"></i>প্রয়োজনীয় লিংক</h6>
                 <div class="d-flex flex-column gap-2">
                     <a href="{{ route('admin.roles.index') }}" class="btn btn-light text-start btn-sm py-2 d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-key text-primary me-2"></i>রোল ও পারমিশন ম্যাট্রিক্স</span>
-                        <i class="fas fa-chevron-right text-muted small"></i>
+                        <span><i class="fa-solid fa-key text-primary me-2"></i>রোল ও পারমিশন ম্যাট্রিক্স</span>
+                        <i class="fa-solid fa-chevron-right text-muted small"></i>
                     </a>
                     <a href="{{ route('admin.users.security.index') }}" class="btn btn-light text-start btn-sm py-2 d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-user-lock text-danger me-2"></i>লগইন সিকিউরিটি ও আইপি ব্লকলিস্ট</span>
-                        <i class="fas fa-chevron-right text-muted small"></i>
+                        <span><i class="fa-solid fa-user-lock text-danger me-2"></i>লগইন সিকিউরিটি ও আইপি ব্লকলিস্ট</span>
+                        <i class="fa-solid fa-chevron-right text-muted small"></i>
                     </a>
                     <a href="{{ route('admin.backup.index') }}" class="btn btn-light text-start btn-sm py-2 d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-database text-info me-2"></i>ডাটাবেজ ব্যাকআপ ও রিস্টোর</span>
-                        <i class="fas fa-chevron-right text-muted small"></i>
+                        <span><i class="fa-solid fa-database text-info me-2"></i>ডাটাবেজ ব্যাকআপ ও রিস্টোর</span>
+                        <i class="fa-solid fa-chevron-right text-muted small"></i>
                     </a>
                     <a href="{{ route('admin.cache.manage') }}" class="btn btn-light text-start btn-sm py-2 d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-broom text-success me-2"></i>সিস্টেম ক্যাশ ক্লিনার</span>
-                        <i class="fas fa-chevron-right text-muted small"></i>
+                        <span><i class="fa-solid fa-broom text-success me-2"></i>সিস্টেম ক্যাশ ক্লিনার</span>
+                        <i class="fa-solid fa-chevron-right text-muted small"></i>
                     </a>
                 </div>
             </div>
@@ -108,27 +108,27 @@
                 <ul class="nav nav-tabs nav-fill bg-light px-3 pt-3 border-bottom" id="profileTabs" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active fw-bold py-2.5" id="tab-general" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
-                            <i class="fas fa-user-gear me-1.5 text-primary"></i>সাধারণ তথ্য
+                            <i class="fa-solid fa-user-gear me-1.5 text-primary"></i>সাধারণ তথ্য
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-preferences" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab">
-                            <i class="fas fa-sliders me-1.5 text-success"></i>কাস্টমাইজেশন ও পছন্দ
+                            <i class="fa-solid fa-sliders me-1.5 text-success"></i>কাস্টমাইজেশন ও পছন্দ
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-signature" data-bs-toggle="tab" data-bs-target="#signature" type="button" role="tab">
-                            <i class="fas fa-signature me-1.5 text-info"></i>স্বাক্ষর ও সিল
+                            <i class="fa-solid fa-signature me-1.5 text-info"></i>স্বাক্ষর ও সিল
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-security" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
-                            <i class="fas fa-lock me-1.5 text-danger"></i>পাসওয়ার্ড ও সিকিউরিটি
+                            <i class="fa-solid fa-lock me-1.5 text-danger"></i>পাসওয়ার্ড ও সিকিউরিটি
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold py-2.5" id="tab-logs" data-bs-toggle="tab" data-bs-target="#logs" type="button" role="tab">
-                            <i class="fas fa-list-check me-1.5 text-warning"></i>লগইন হিস্ট্রি
+                            <i class="fa-solid fa-list-check me-1.5 text-warning"></i>লগইন হিস্ট্রি
                         </button>
                     </li>
                 </ul>
@@ -142,17 +142,17 @@
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">পুরো নাম (ডিসপ্লে নাম হিসেবে প্রদর্শিত হবে) <span class="text-danger">*</span></label>
                                     <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required placeholder="যেমন: আপনার আসল নাম বা প্রতিষ্ঠানের নাম">
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-circle-info text-primary me-1"></i>এটি সাইট ও ড্যাশবোর্ডে আপনার প্রোফাইল নাম হিসেবে প্রদর্শিত হবে।</small>
+                                    <small class="text-muted d-block mt-1"><i class="fa-solid fa-circle-info text-primary me-1"></i>এটি সাইট ও ড্যাশবোর্ডে আপনার প্রোফাইল নাম হিসেবে প্রদর্শিত হবে।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">অফিসিয়াল ইমেইল (Email) <span class="text-danger">*</span></label>
                                     <input type="email" name="email" class="form-control font-monospace" value="{{ old('email', $user->email) }}" required placeholder="adideabd@gmail.com">
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-shield-check text-success me-1"></i>লগইনের প্রধান আইডি হিসেবে ব্যবহৃত হবে।</small>
+                                    <small class="text-muted d-block mt-1"><i class="fa-solid fa-shield-check text-success me-1"></i>লগইনের প্রধান আইডি হিসেবে ব্যবহৃত হবে।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">মোবাইল নম্বর (Phone)</label>
                                     <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}" placeholder="017XXXXXXXX">
-                                    <small class="text-muted d-block mt-1"><i class="fas fa-mobile-screen text-info me-1"></i>লগইন করার সময় এই মোবাইল নম্বরটিও ব্যবহার করতে পারবেন।</small>
+                                    <small class="text-muted d-block mt-1"><i class="fa-solid fa-mobile-screen text-info me-1"></i>লগইন করার সময় এই মোবাইল নম্বরটিও ব্যবহার করতে পারবেন।</small>
                                 </div>
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">পদবী / ডেসিগনেশন (Designation)</label>
@@ -170,7 +170,7 @@
                                 </div>
                                 <div class="col-12 text-end">
                                     <button type="submit" class="btn btn-primary px-4 shadow-sm">
-                                        <i class="fas fa-floppy-disk me-1.5"></i>প্রোফাইল সংরক্ষণ করুন
+                                        <i class="fa-solid fa-floppy-disk me-1.5"></i>প্রোফাইল সংরক্ষণ করুন
                                     </button>
                                 </div>
                             </div>
@@ -183,7 +183,7 @@
                             @csrf
                             
                             {{-- 1. UI Layout & View Customization --}}
-                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-desktop me-2 text-primary"></i>ড্যাশবোর্ড ও ডিসপ্লে প্রেফারেন্স</h6>
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-desktop me-2 text-primary"></i>ড্যাশবোর্ড ও ডিসপ্লে প্রেফারেন্স</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">লগইন করার পর ডিফল্ট ল্যান্ডিং পেজ</label>
@@ -234,7 +234,7 @@
                             <hr class="my-4">
 
                             {{-- 2. Instant Alerts & External Messaging --}}
-                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-bell me-2 text-warning"></i>স্বয়ংক্রিয় নোটিফিকেশন ও মেসেজিং অ্যালার্ট</h6>
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-bell me-2 text-warning"></i>স্বয়ংক্রিয় নোটিফিকেশন ও মেসেজিং অ্যালার্ট</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-bold small text-dark">টেলিগ্রাম বট চ্যাট আইডি (Telegram Chat ID)</label>
@@ -278,13 +278,13 @@
                             <hr class="my-4">
 
                             {{-- 3. IP Whitelist Security Binding --}}
-                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-network-wired me-2 text-danger"></i>আইপি রেস্ট্রিকশন ও হোয়াইটলিস্ট (IP Whitelist)</h6>
+                            <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-network-wired me-2 text-danger"></i>আইপি রেস্ট্রিকশন ও হোয়াইটলিস্ট (IP Whitelist)</h6>
                             <p class="text-muted small mb-2">নির্দিষ্ট আইপি ছাড়া অন্য কোথাও থেকে এই এডমিন একাউন্টে লগইন ব্লক করতে কমা দিয়ে আইপি দিন (ঐচ্ছিক):</p>
                             <input type="text" name="ip_whitelist" class="form-control font-monospace mb-4" placeholder="যেমন: 103.145.12.5, 127.0.0.1 (ফাঁকা রাখলে যেকোনো আইপি থেকে লগইন করা যাবে)" value="{{ $preferences['ip_whitelist'] ?? '' }}">
 
                             <div class="text-end">
                                 <button type="submit" class="btn btn-success px-4 shadow-sm">
-                                    <i class="fas fa-check me-1.5"></i>প্রেফারেন্স সংরক্ষণ করুন
+                                    <i class="fa-solid fa-check me-1.5"></i>প্রেফারেন্স সংরক্ষণ করুন
                                 </button>
                             </div>
                         </form>
@@ -304,23 +304,23 @@
                                               data-confirm="আপনি কি ডিজিটাল স্বাক্ষর মুছে ফেলতে চান?"
                                               data-confirm-title="স্বাক্ষর অপসারণ"
                                               data-confirm-icon="warning"
-                                              data-confirm-btn="<i class='fas fa-trash-can me-1'></i> মুছে ফেলুন">
+                                              data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> মুছে ফেলুন">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-trash-can me-1"></i>স্বাক্ষর মুছে ফেলুন
+                                                <i class="fa-solid fa-trash-can me-1"></i>স্বাক্ষর মুছে ফেলুন
                                             </button>
                                         </form>
                                     @else
                                         <div class="p-4 border border-dashed rounded bg-white text-muted">
-                                            <i class="fas fa-file-signature fs-2 text-muted mb-2 d-block opacity-50"></i>
+                                            <i class="fa-solid fa-file-signature fs-2 text-muted mb-2 d-block opacity-50"></i>
                                             কোনো স্বাক্ষর যুক্ত করা নেই।
                                         </div>
                                     @endif
                                 </div>
                             </div>
                             <div class="col-12 col-md-7">
-                                <h6 class="fw-bold text-dark mb-2"><i class="fas fa-signature text-info me-2"></i>ডিজিটাল স্বাক্ষর ও সিল আপলোড</h6>
+                                <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-signature text-info me-2"></i>ডিজিটাল স্বাক্ষর ও সিল আপলোড</h6>
                                 <p class="text-muted small mb-3">
                                     এখানে আপনার স্বাক্ষর বা প্রাতিষ্ঠানিক সিল আপলোড করলে তা স্বয়ংক্রিয়ভাবে অফিসিয়াল ইনভয়েস, মানি রিসিট, চালান ও পেরোল স্যালারি ভাউচারে প্রিন্ট হবে।
                                 </p>
@@ -332,7 +332,7 @@
                                         <small class="text-muted">স্বচ্ছ ব্যাকগ্রাউন্ড (Transparent PNG/SVG) অনুমোদিত (সর্বোচ্চ ২ মেগাবাইট)</small>
                                     </div>
                                     <button type="submit" class="btn btn-info text-white px-4">
-                                        <i class="fas fa-cloud-arrow-up me-1.5"></i>স্বাক্ষর আপলোড করুন
+                                        <i class="fa-solid fa-cloud-arrow-up me-1.5"></i>স্বাক্ষর আপলোড করুন
                                     </button>
                                 </form>
                             </div>
@@ -343,7 +343,7 @@
                     <div class="tab-pane fade" id="security" role="tabpanel">
                         <form method="POST" action="{{ route('admin.profile.password') }}">
                             @csrf
-                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-key me-2 text-danger"></i>পাসওয়ার্ড পরিবর্তন</h6>
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-key me-2 text-danger"></i>পাসওয়ার্ড পরিবর্তন</h6>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label fw-bold small text-dark">বর্তমান পাসওয়ার্ড (Current Password) <span class="text-danger">*</span></label>
@@ -359,7 +359,7 @@
                                 </div>
                                 <div class="col-12 text-end">
                                     <button type="submit" class="btn btn-danger px-4">
-                                        <i class="fas fa-lock me-1.5"></i>পাসওয়ার্ড পরিবর্তন করুন
+                                        <i class="fa-solid fa-lock me-1.5"></i>পাসওয়ার্ড পরিবর্তন করুন
                                     </button>
                                 </div>
                             </div>
@@ -369,18 +369,18 @@
 
                         {{-- Logout from Other Devices --}}
                         <div class="p-3 bg-light rounded-3 border">
-                            <h6 class="fw-bold text-dark mb-1"><i class="fas fa-laptop-code me-2 text-primary"></i>অন্যান্য ডিভাইস ও ব্রাউজার থেকে লগআউট</h6>
+                            <h6 class="fw-bold text-dark mb-1"><i class="fa-solid fa-laptop-code me-2 text-primary"></i>অন্যান্য ডিভাইস ও ব্রাউজার থেকে লগআউট</h6>
                             <p class="text-muted small mb-3">আপনি যদি অন্য কোনো কম্পিউটার বা মোবাইলে লগইন করা থাকেন, তবে এখান থেকে সমস্ত সেশন বাতিল করতে পারেন।</p>
                             
                             <form method="POST" action="{{ route('admin.profile.logout-others') }}" class="d-flex flex-wrap gap-2"
                                   data-confirm="আপনি কি নিশ্চিত যে বর্তমান ডিভাইস ছাড়া অন্য সমস্ত ডিভাইস থেকে লগআউট করতে চান?"
                                   data-confirm-title="অন্যান্য ডিভাইস থেকে লগআউট"
                                   data-confirm-icon="warning"
-                                  data-confirm-btn="<i class='fas fa-right-from-bracket me-1'></i> হ্যাঁ, লগআউট অল">
+                                  data-confirm-btn="<i class='fa-solid fa-right-from-bracket me-1'></i> হ্যাঁ, লগআউট অল">
                                 @csrf
                                 <input type="password" name="password" class="form-control form-control-sm" placeholder="নিশ্চিত করতে পাসওয়ার্ড দিন" required style="max-width: 250px;">
                                 <button type="submit" class="btn btn-sm btn-outline-dark">
-                                    <i class="fas fa-right-from-bracket me-1"></i>লগআউট অল
+                                    <i class="fa-solid fa-right-from-bracket me-1"></i>লগআউট অল
                                 </button>
                             </form>
                         </div>
@@ -389,7 +389,7 @@
                     {{-- Tab 5: Login Audit Trail --}}
                     <div class="tab-pane fade" id="logs" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-clock-rotate-left me-2 text-primary"></i>সাম্প্রতিক লগইন ও সিকিউরিটি লগ</h6>
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>সাম্প্রতিক লগইন ও সিকিউরিটি লগ</h6>
                             <span class="badge bg-light text-muted border">শেষ ৮টি অ্যাক্টিভিটি</span>
                         </div>
 
@@ -422,7 +422,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="4" class="text-center py-4 text-muted">
-                                                <i class="fas fa-shield-halved fs-3 mb-2 d-block opacity-50"></i>
+                                                <i class="fa-solid fa-shield-halved fs-3 mb-2 d-block opacity-50"></i>
                                                 কোনো সন্দেহজনক লগইন পাওয়া যায়নি।
                                             </td>
                                         </tr>

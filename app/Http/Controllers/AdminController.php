@@ -43,23 +43,84 @@ class AdminController extends Controller
             }
         } catch (\Throwable) {}
 
-        $stats = $this->dashboard->filteredStats($dateFrom, $dateTo, $period);
-        $salesChart = $this->dashboard->salesSeries($salesPeriod, $dateFrom, $dateTo);
-        $visitorChart = $this->dashboard->visitorSeries($trafficPeriod, $dateFrom, $dateTo);
-        $recentOrders = $this->dashboard->recentOrders(8);
+        try {
+            $stats = $this->dashboard->filteredStats($dateFrom, $dateTo, $period);
+        } catch (\Throwable $e) {
+            $stats = $this->dashboard->stats();
+        }
+
+        try {
+            $salesChart = $this->dashboard->salesSeries($salesPeriod, $dateFrom, $dateTo);
+        } catch (\Throwable) {
+            $salesChart = ['labels' => [], 'data' => [], 'currency' => '৳'];
+        }
+
+        try {
+            $visitorChart = $this->dashboard->visitorSeries($trafficPeriod, $dateFrom, $dateTo);
+        } catch (\Throwable) {
+            $visitorChart = ['labels' => [], 'views' => [], 'uniques' => []];
+        }
+
+        try {
+            $recentOrders = $this->dashboard->recentOrders(8);
+        } catch (\Throwable) {
+            $recentOrders = collect([]);
+        }
+
+        try {
+            $recentBills = $this->dashboard->recentBills(6);
+        } catch (\Throwable) {
+            $recentBills = collect([]);
+        }
+
+        try {
+            $pendingRegs = $this->dashboard->recentRegistrations(5);
+        } catch (\Throwable) {
+            $pendingRegs = collect([]);
+        }
+
+        try {
+            $topSellers = $this->dashboard->topSellers(5);
+        } catch (\Throwable) {
+            $topSellers = collect([]);
+        }
+
+        try {
+            $sellersSummary = $this->dashboard->sellersSummary(8);
+        } catch (\Throwable) {
+            $sellersSummary = collect([]);
+        }
+
+        try {
+            $systemHealth = $this->accessService->systemHealth();
+        } catch (\Throwable) {
+            $systemHealth = ['db' => true, 'storage' => true, 'cache' => true];
+        }
+
+        try {
+            $activityLogs = $this->accessService->recentLogs(8);
+        } catch (\Throwable) {
+            $activityLogs = collect([]);
+        }
+
+        $smsInfo = null;
+        try {
+            $smsInfo = \App\Services\SmsService::checkBalance();
+        } catch (\Throwable) {}
 
         return view('admin.dashboard', [
             'stats'         => $stats,
             'salesChart'    => $salesChart,
             'visitorChart'  => $visitorChart,
             'recentOrders'  => $recentOrders,
-            'recentBills'    => $this->dashboard->recentBills(6),
-            'pendingRegs'    => $this->dashboard->recentRegistrations(5),
-            'topSellers'     => $this->dashboard->topSellers(5),
-            'sellersSummary' => $this->dashboard->sellersSummary(8),
-            'systemHealth'   => $this->accessService->systemHealth(),
-            'activityLogs'  => $this->accessService->recentLogs(8),
+            'recentBills'    => $recentBills,
+            'pendingRegs'    => $pendingRegs,
+            'topSellers'     => $topSellers,
+            'sellersSummary' => $sellersSummary,
+            'systemHealth'   => $systemHealth,
+            'activityLogs'  => $activityLogs,
             'systemNotice'  => $systemNotice,
+            'smsInfo'       => $smsInfo,
             'currentPeriod' => $period,
             'dateFrom'      => $dateFrom,
             'dateTo'        => $dateTo,

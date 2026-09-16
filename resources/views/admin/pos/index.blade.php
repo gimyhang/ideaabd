@@ -217,28 +217,28 @@
         {{-- Offline Status & Sync Trigger --}}
         <div id="offlineIndicatorBox" class="d-none">
             <button type="button" class="btn btn-sm btn-warning rounded-pill px-2.5 py-1 fw-bold shadow-xs" onclick="triggerManualOfflineSync()">
-                <i class="fas fa-wifi text-danger me-1"></i> <span id="offlineQueueCount">0</span> Offline Sync
+                <i class="fa-solid fa-wifi text-danger me-1"></i> <span id="offlineQueueCount">0</span> Offline Sync
             </button>
         </div>
 
         {{-- Sound Toggle --}}
         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 shadow-xs" id="btnToggleSound" onclick="toggleSoundFeedback()" title="Audio Beep On/Off">
-            <i class="fas fa-volume-high" id="soundIcon"></i>
+            <i class="fa-solid fa-volume-high" id="soundIcon"></i>
         </button>
 
         {{-- Held Bills --}}
         <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1 shadow-xs fw-semibold position-relative" onclick="openHeldSalesModal()" title="Held Bills (F9)">
-            <i class="fas fa-pause me-1"></i> Hold (<span id="heldSalesBadge">0</span>)
+            <i class="fa-solid fa-pause me-1"></i> Hold (<span id="heldSalesBadge">0</span>)
         </button>
 
         {{-- Z-Report --}}
         <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 shadow-xs fw-semibold" onclick="openShiftReportModal()">
-            <i class="fas fa-file-invoice-dollar me-1"></i> Z-Report
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Z-Report
         </button>
 
         {{-- Shortcuts --}}
         <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 shadow-xs" data-bs-toggle="modal" data-bs-target="#posShortcutsModal" title="Shortcuts">
-            <i class="fas fa-keyboard text-muted"></i>
+            <i class="fa-solid fa-keyboard text-muted"></i>
         </button>
     </div>
 @endsection
@@ -249,21 +249,21 @@
     {{-- Offline Notice Bar --}}
     <div id="offlineBanner" class="offline-status-bar d-none mb-2.5 d-flex align-items-center justify-content-between">
         <div>
-            <i class="fas fa-circle-exclamation me-1.5 text-danger"></i>
+            <i class="fa-solid fa-circle-exclamation me-1.5 text-danger"></i>
             <strong>Offline Mode Active:</strong> Bills will be saved locally and auto-synced when internet reconnects.
         </div>
         <button type="button" class="btn btn-dark btn-sm rounded-pill py-0 px-2.5" onclick="triggerManualOfflineSync()">
-            <i class="fas fa-rotate me-1"></i> Sync Now
+            <i class="fa-solid fa-rotate me-1"></i> Sync Now
         </button>
     </div>
 
     {{-- Mobile View Segmented Switcher (< 1200px) --}}
     <div class="pos-mobile-tabs mb-2 p-1 bg-white border rounded-pill shadow-xs">
         <button type="button" class="btn btn-sm btn-dark flex-fill rounded-pill py-1.5 fw-bold" id="btnTabBooks" onclick="switchMobileView('books')">
-            <i class="fas fa-book-open me-1"></i> 1. Books & Scan
+            <i class="fa-solid fa-book-open me-1"></i> 1. Books & Scan
         </button>
         <button type="button" class="btn btn-sm btn-light flex-fill rounded-pill py-1.5 fw-bold text-primary position-relative" id="btnTabCart" onclick="switchMobileView('cart')">
-            <i class="fas fa-shopping-cart me-1"></i> 2. Cart & Pay
+            <i class="fa-solid fa-shopping-cart me-1"></i> 2. Cart & Pay
             <span class="badge bg-danger rounded-pill ms-1" id="mobileTabCartCount">0</span>
         </button>
     </div>
@@ -283,7 +283,7 @@
                         <div class="col">
                             <div class="input-group shadow-xs">
                                 <span class="input-group-text bg-white border-end-0 text-primary py-2">
-                                    <i class="fas fa-barcode fs-5"></i>
+                                    <i class="fa-solid fa-barcode fs-5"></i>
                                 </span>
                                 <input type="search" id="posSearchInput" 
                                        class="form-control border-start-0 ps-0 fw-semibold" 
@@ -295,7 +295,7 @@
                         </div>
                         <div class="col-auto">
                             <button type="button" class="btn btn-outline-dark rounded-3 px-2.5 py-2 shadow-xs fw-bold" onclick="openCameraScannerModal()" title="Continuous Camera Scanner">
-                                <i class="fas fa-camera text-primary me-1"></i> Camera
+                                <i class="fa-solid fa-camera text-primary me-1"></i> Camera
                             </button>
                         </div>
                     </div>
@@ -329,7 +329,7 @@
                                             <img src="{{ $b['cover_url'] }}" alt="{{ $b['title'] }}" class="pos-book-thumb mb-1 shadow-xs" loading="lazy">
                                         @else
                                             <div class="pos-book-thumb d-flex align-items-center justify-content-center text-muted mb-1">
-                                                <i class="fas fa-book fs-3 opacity-25"></i>
+                                                <i class="fa-solid fa-book fs-3 opacity-25"></i>
                                             </div>
                                         @endif
                                         <div class="fw-bold small text-dark line-clamp-1 mb-0.5" title="{{ $b['title'] }}" style="font-size: 0.8rem;">
@@ -357,7 +357,7 @@
 
                     {{-- Empty Notice --}}
                     <div id="noBookMatchNotice" class="d-none text-center py-5 text-muted">
-                        <i class="fas fa-box-open fs-1 opacity-25 mb-1.5"></i>
+                        <i class="fa-solid fa-box-open fs-1 opacity-25 mb-1.5"></i>
                         <h6 class="fw-bold text-dark mb-0">No Books Found</h6>
                         <small class="text-muted">Try a different title, barcode or category.</small>
                     </div>
@@ -376,7 +376,7 @@
                 <div class="p-2.5 border-bottom d-flex justify-content-between align-items-center bg-light rounded-top-4">
                     <div class="d-flex align-items-center gap-2">
                         <span class="rounded-circle bg-primary text-white p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                            <i class="fas fa-receipt" style="font-size: 12px;"></i>
+                            <i class="fa-solid fa-receipt" style="font-size: 12px;"></i>
                         </span>
                         <div>
                             <h6 class="mb-0 fw-bold text-dark" style="font-size: 0.92rem;">Stall Cart</h6>
@@ -385,10 +385,10 @@
                     </div>
                     <div class="d-flex align-items-center gap-1">
                         <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-0.5 fw-bold" onclick="holdCurrentSale()" title="Hold Sale (F8)">
-                            <i class="fas fa-pause me-1"></i> Hold
+                            <i class="fa-solid fa-pause me-1"></i> Hold
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" onclick="clearCart(true)" title="Clear Cart (Esc)">
-                            <i class="fas fa-trash me-1"></i> Clear
+                            <i class="fa-solid fa-trash me-1"></i> Clear
                         </button>
                     </div>
                 </div>
@@ -407,7 +407,7 @@
                         <tbody id="cartTableBody">
                             <tr>
                                 <td colspan="4" class="text-center py-4 text-muted small">
-                                    <i class="fas fa-barcode fs-3 text-muted opacity-25 d-block mb-1"></i>
+                                    <i class="fa-solid fa-barcode fs-3 text-muted opacity-25 d-block mb-1"></i>
                                     Cart is empty. Scan barcode or tap books to add.
                                 </td>
                             </tr>
@@ -478,37 +478,37 @@
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="payCash" value="cash" checked onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-cash w-100 d-block" for="payCash">
-                                <i class="fas fa-money-bill-wave d-block mb-0.5"></i> Cash
+                                <i class="fa-solid fa-money-bill-wave d-block mb-0.5"></i> Cash
                             </label>
                         </div>
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="payBkash" value="bkash" onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-bkash w-100 d-block" for="payBkash">
-                                <i class="fas fa-mobile-screen d-block mb-0.5"></i> bKash
+                                <i class="fa-solid fa-mobile-screen d-block mb-0.5"></i> bKash
                             </label>
                         </div>
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="payNagad" value="nagad" onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-nagad w-100 d-block" for="payNagad">
-                                <i class="fas fa-wallet d-block mb-0.5"></i> Nagad
+                                <i class="fa-solid fa-wallet d-block mb-0.5"></i> Nagad
                             </label>
                         </div>
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="payCard" value="card" onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-card w-100 d-block" for="payCard">
-                                <i class="fas fa-credit-card d-block mb-0.5"></i> Card
+                                <i class="fa-solid fa-credit-card d-block mb-0.5"></i> Card
                             </label>
                         </div>
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="payRocket" value="rocket" onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-rocket w-100 d-block" for="payRocket">
-                                <i class="fas fa-paper-plane d-block mb-0.5"></i> Rocket
+                                <i class="fa-solid fa-paper-plane d-block mb-0.5"></i> Rocket
                             </label>
                         </div>
                         <div class="col-4">
                             <input type="radio" class="btn-check" name="posPayMethod" id="paySplit" value="split" onchange="handlePaymentMethodChange()">
                             <label class="pay-tile tile-split w-100 d-block" for="paySplit">
-                                <i class="fas fa-arrows-split-up-and-left d-block mb-0.5"></i> Split
+                                <i class="fa-solid fa-arrows-split-up-and-left d-block mb-0.5"></i> Split
                             </label>
                         </div>
                     </div>
@@ -561,7 +561,7 @@
 
                     {{-- Complete Sale Button --}}
                     <button type="button" id="btnCompleteSale" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow py-2 fs-6" onclick="handleCheckout()">
-                        <i class="fas fa-check-circle me-1.5"></i> Complete & Print (F4)
+                        <i class="fa-solid fa-circle-check me-1.5"></i> Complete & Print (F4)
                     </button>
                 </div>
 
@@ -577,7 +577,7 @@
             <div class="fw-bold font-monospace text-warning fs-5" id="lblMobileFloatingTotal">৳0.00</div>
         </div>
         <button type="button" class="btn btn-warning rounded-pill px-4 py-2 fw-bold text-dark shadow" onclick="switchMobileView('cart')">
-            View Cart & Pay <i class="fas fa-arrow-right ms-1"></i>
+            View Cart & Pay <i class="fa-solid fa-arrow-right ms-1"></i>
         </button>
     </div>
 
@@ -587,7 +587,7 @@
     <div class="adm-card bg-white mt-3 shadow-sm rounded-4 border-0">
         <div class="p-2.5 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
-                <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-clock-rotate-left text-primary me-1"></i> Today's Transactions</h6>
+                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i> Today's Transactions</h6>
                 <small class="text-muted">Total Completed: <strong>{{ $todayOrdersCount }}</strong> | Void: <strong class="text-danger">{{ $todayVoidCount }}</strong></small>
             </div>
             <div style="max-width: 240px;">
@@ -635,11 +635,11 @@
                                 </td>
                                 <td class="text-end pe-3 text-nowrap">
                                     <a href="{{ route('admin.pos.receipt', $sale->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-0.5 shadow-xs" title="Print Receipt">
-                                        <i class="fas fa-print"></i>
+                                        <i class="fa-solid fa-print"></i>
                                     </a>
                                     @if(!$sale->isVoided())
                                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 shadow-xs ms-1" onclick="voidSale({{ $sale->id }}, '{{ $sale->receipt_no }}')" title="Void Sale">
-                                            <i class="fas fa-ban"></i>
+                                            <i class="fa-solid fa-ban"></i>
                                         </button>
                                     @endif
                                 </td>
@@ -663,7 +663,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-camera text-primary"></i>
+                    <i class="fa-solid fa-camera text-primary"></i>
                     <h6 class="modal-title fw-bold mb-0">Multi-Barcode Camera Scanner</h6>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopCameraScanner()"></button>
@@ -682,7 +682,7 @@
 
                 {{-- Last Scanned Item Alert --}}
                 <div id="cameraLastScannedBox" class="alert alert-success p-2 small mb-0 d-none text-start">
-                    <i class="fas fa-check-circle me-1 text-success"></i> <span id="cameraLastScannedTitle" class="fw-bold"></span> added to cart!
+                    <i class="fa-solid fa-circle-check me-1 text-success"></i> <span id="cameraLastScannedTitle" class="fw-bold"></span> added to cart!
                 </div>
             </div>
             <div class="modal-footer bg-light p-2">
@@ -702,7 +702,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-warning text-dark py-2.5 px-3">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fas fa-pause-circle me-1"></i> Held Bills Queue (F9)
+                    <i class="fa-solid fa-pause-circle me-1"></i> Held Bills Queue (F9)
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -721,16 +721,16 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fas fa-file-invoice-dollar me-1 text-info"></i> Daily Shift Report (Z-Report)
+                    <i class="fa-solid fa-file-invoice-dollar me-1 text-info"></i> Daily Shift Report (Z-Report)
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3" id="shiftReportContent">
-                <div class="text-center py-4"><i class="fas fa-spinner fa-spin fs-3 text-primary"></i></div>
+                <div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>
             </div>
             <div class="modal-footer bg-light p-2">
                 <button type="button" class="btn btn-outline-dark rounded-pill px-3 btn-sm" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i> Print Report
+                    <i class="fa-solid fa-print me-1"></i> Print Report
                 </button>
                 <button type="button" class="btn btn-secondary rounded-pill px-3 btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
@@ -923,7 +923,7 @@ function soundError() { playTone(220, 'sawtooth', 0.2); }
 
 function toggleSoundFeedback() {
     soundEnabled = !soundEnabled;
-    document.getElementById('soundIcon').className = soundEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark text-danger';
+    document.getElementById('soundIcon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-danger';
     if (soundEnabled) soundBeep();
 }
 
@@ -1034,7 +1034,7 @@ function renderCart() {
         tbody.innerHTML = `
             <tr>
                 <td colspan="4" class="text-center py-4 text-muted small">
-                    <i class="fas fa-barcode fs-3 text-muted opacity-25 d-block mb-1"></i>
+                    <i class="fa-solid fa-barcode fs-3 text-muted opacity-25 d-block mb-1"></i>
                     Cart is empty. Scan barcode or tap books to add.
                 </td>
             </tr>`;
@@ -1061,18 +1061,18 @@ function renderCart() {
                 <td class="text-center">
                     <div class="d-inline-flex align-items-center gap-1 bg-light border rounded-pill px-1.5 py-0.5">
                         <button type="button" class="btn btn-sm btn-link p-0 text-dark text-decoration-none" style="width: 20px; height: 20px; line-height: 1;" onclick="updateQty(${item.id}, -1)">
-                            <i class="fas fa-minus" style="font-size: 9px;"></i>
+                            <i class="fa-solid fa-minus" style="font-size: 9px;"></i>
                         </button>
                         <input type="number" min="1" max="${item.maxStock}" value="${item.qty}" class="form-control form-control-sm p-0 text-center border-0 bg-transparent font-monospace fw-bold" style="width: 28px;" onchange="setQtyDirect(${item.id}, this)">
                         <button type="button" class="btn btn-sm btn-link p-0 text-dark text-decoration-none" style="width: 20px; height: 20px; line-height: 1;" onclick="updateQty(${item.id}, 1)">
-                            <i class="fas fa-plus" style="font-size: 9px;"></i>
+                            <i class="fa-solid fa-plus" style="font-size: 9px;"></i>
                         </button>
                     </div>
                 </td>
                 <td class="text-end fw-bold text-dark font-monospace">৳${itemTotal.toFixed(0)}</td>
                 <td class="text-center pe-2">
                     <button type="button" class="btn btn-sm text-danger p-0" onclick="removeItem(${item.id})" title="Remove">
-                        <i class="fas fa-times"></i>
+                        <i class="fa-solid fa-times"></i>
                     </button>
                 </td>
             </tr>
@@ -1186,7 +1186,7 @@ function handleCheckout() {
 
     const btn = document.getElementById('btnCompleteSale');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...';
 
     // Check if offline
     if (!navigator.onLine) {
@@ -1205,7 +1205,7 @@ function handleCheckout() {
             timestamp: new Date().toISOString(),
         });
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1.5"></i> Complete & Print (F4)';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Complete & Print (F4)';
         return;
     }
 
@@ -1268,7 +1268,7 @@ function handleCheckout() {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1.5"></i> Complete & Print (F4)';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5"></i> Complete & Print (F4)';
     });
 }
 
@@ -1348,7 +1348,7 @@ function renderHeldSalesList() {
                 <td class="fw-bold">৳${h.total.toFixed(0)}</td>
                 <td class="text-end">
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-bold" onclick="recallHeldSale(${h.id})">Resume</button>
-                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 ms-1" onclick="deleteHeldSale(${h.id})"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 ms-1" onclick="deleteHeldSale(${h.id})"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `;
@@ -1491,7 +1491,7 @@ function renderBookGrid(books) {
                     <div>
                         ${b.cover_url ? 
                             `<img src="${b.cover_url}" alt="${b.title}" class="pos-book-thumb mb-1 shadow-xs" loading="lazy">` : 
-                            `<div class="pos-book-thumb d-flex align-items-center justify-content-center text-muted mb-1"><i class="fas fa-book fs-3 opacity-25"></i></div>`
+                            `<div class="pos-book-thumb d-flex align-items-center justify-content-center text-muted mb-1"><i class="fa-solid fa-book fs-3 opacity-25"></i></div>`
                         }
                         <div class="fw-bold small text-dark line-clamp-1 mb-0.5" title="${b.title}" style="font-size: 0.8rem;">${b.title}</div>
                         <div class="text-muted small line-clamp-1 mb-1" style="font-size: 0.7rem;">${b.author_name}</div>
@@ -1663,7 +1663,7 @@ function voidSale(saleId, receiptNo) {
 function openShiftReportModal() {
     new bootstrap.Modal(document.getElementById('shiftReportModal')).show();
     const content = document.getElementById('shiftReportContent');
-    content.innerHTML = `<div class="text-center py-4"><i class="fas fa-spinner fa-spin fs-3 text-primary"></i></div>`;
+    content.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>`;
 
     fetch("{{ route('admin.pos.shift-report') }}", { headers: { 'Accept': 'application/json' } })
         .then(res => res.json())

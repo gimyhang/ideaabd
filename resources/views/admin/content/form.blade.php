@@ -38,43 +38,43 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         @if ($spec['key'] === 'blog')
             <button type="submit" form="contentMainForm" name="save_and_approve" value="1" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fas fa-circle-check me-1"></i> এপ্রুভ ও পাবলিশ
+                <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ ও পাবলিশ
             </button>
             <button type="submit" form="contentMainForm" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fas fa-save me-1"></i> সেভ করুন
+                <i class="fa-solid fa-save me-1"></i> সেভ করুন
             </button>
         @elseif (!in_array($spec['key'], ['books', 'ebooks'], true))
             <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fas fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
+                <i class="fa-solid fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>
         @endif
         @if ($editing)
             @if ($spec['key'] === 'webzines')
                 <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-book-open me-1"></i> Reader View
+                    <i class="fa-solid fa-book-open me-1"></i> Reader View
                 </a>
                 <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'ebooks')
                 <a href="{{ route('ebook.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-book-open me-1"></i> Reader View
+                    <i class="fa-solid fa-book-open me-1"></i> Reader View
                 </a>
                 <a href="{{ route('ebook.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'books')
                 <a href="{{ route('book.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @elseif ($spec['key'] === 'blog')
                 <a href="{{ route('blog.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Site
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
                 </a>
             @endif
         @endif
         <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 @endsection
@@ -96,7 +96,7 @@
         <div class="adm-card p-3 p-md-4">
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <h2 class="h6 fw-bold mb-0 text-dark">
-                    <i class="fas fa-{{ $spec['icon'] }} me-1.5 text-primary"></i> {{ $spec['label'] }} Details & Information
+                    <i class="fa-solid fa-{{ $spec['icon'] }} me-1.5 text-primary"></i> {{ $spec['label'] }} Details & Information
                 </h2>
                 <span class="badge bg-light text-muted border small">Fields marked * are required</span>
             </div>
@@ -113,31 +113,31 @@
                         @if ($name === 'title')
                             <div class="col-12 mt-1 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fas fa-book-bookmark"></i></span> ১. প্রাথমিক তথ্য ও লেখক/অবদানকারী (Basic Information & Contributors)
+                                    <span class="p-1.5 bg-primary-subtle text-primary rounded-circle small"><i class="fa-solid fa-book-bookmark"></i></span> ১. প্রাথমিক তথ্য ও লেখক/অবদানকারী (Basic Information & Contributors)
                                 </div>
                             </div>
                         @elseif ($name === 'published_at')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fas fa-calendar-check"></i></span> ৩. প্রকাশনা, অর্ডার টাইপ ও স্টক (Publication, Order & Stock)
+                                    <span class="p-1.5 bg-warning-subtle text-warning rounded-circle small"><i class="fa-solid fa-calendar-check"></i></span> ৩. প্রকাশনা, অর্ডার টাইপ ও স্টক (Publication, Order & Stock)
                                 </div>
                             </div>
                         @elseif ($name === 'book_size')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-secondary-subtle text-secondary rounded-circle small"><i class="fas fa-ruler-combined"></i></span> ৪. বইয়ের মাপ ও শারীরিক বিবরণ (Physical Specifications)
+                                    <span class="p-1.5 bg-secondary-subtle text-secondary rounded-circle small"><i class="fa-solid fa-ruler-combined"></i></span> ৪. বইয়ের মাপ ও শারীরিক বিবরণ (Physical Specifications)
                                 </div>
                             </div>
                         @elseif ($name === 'cover_image')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-info-subtle text-info rounded-circle small"><i class="fas fa-images"></i></span> ৫. কভার, লেখকের ছবি ও নমুনা ফাইল (স্ট্যান্ডার্ড সাইজ)
+                                    <span class="p-1.5 bg-info-subtle text-info rounded-circle small"><i class="fa-solid fa-images"></i></span> ৫. কভার, লেখকের ছবি ও নমুনা ফাইল (স্ট্যান্ডার্ড সাইজ)
                                 </div>
                             </div>
                         @elseif ($name === 'summary')
                             <div class="col-12 mt-3 mb-1">
                                 <div class="d-flex align-items-center gap-2 pb-1.5 border-bottom text-dark fw-bold" style="font-size: 0.95rem;">
-                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fas fa-align-left"></i></span> ৬. বইয়ের সংক্ষেপ (Product Summary — সর্বোচ্চ ১০০০ শব্দ)
+                                    <span class="p-1.5 bg-purple-subtle text-purple rounded-circle small" style="background-color: #f3e8ff; color: #7e22ce;"><i class="fa-solid fa-align-left"></i></span> ৬. বইয়ের সংক্ষেপ (Product Summary — সর্বোচ্চ ১০০০ শব্দ)
                                 </div>
                             </div>
                         @endif
@@ -167,11 +167,11 @@
                             <div class="p-3 bg-light rounded-3 border">
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                                     <label class="form-label small fw-bold text-dark mb-0">
-                                        <i class="fas fa-pen-nib text-primary me-1"></i> প্রধান লেখক নির্বাচন (Author Selection) <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-pen-nib text-primary me-1"></i> প্রধান লেখক নির্বাচন (Author Selection) <span class="text-danger">*</span>
                                     </label>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2.5 rounded-pill fw-semibold" 
                                             data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Author
+                                        <i class="fa-solid fa-circle-plus me-1"></i>+ Add New Author
                                     </button>
                                 </div>
 
@@ -188,7 +188,7 @@
                                         @endforeach
                                     </select>
                                     <div class="form-text mt-1 text-muted" style="font-size: 11px;">
-                                        <i class="fas fa-info-circle text-primary me-1"></i>তালিকা থেকে লেখক নির্বাচন করুন। লেখক তালিকায় না থাকলে <strong>“+ Add New Author”</strong> ক্লিক করুন।
+                                        <i class="fa-solid fa-circle-info text-primary me-1"></i>তালিকা থেকে লেখক নির্বাচন করুন। লেখক তালিকায় না থাকলে <strong>“+ Add New Author”</strong> ক্লিক করুন।
                                     </div>
                                     @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                 </div>
@@ -196,7 +196,7 @@
                                 {{-- Unlisted Author Name Fallback Input --}}
                                 <div class="mt-2 pt-2 border-top">
                                     <label for="f-author_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 11.5px;">
-                                        <i class="fas fa-keyboard text-muted me-1"></i> অথবা কাস্টম লেখক নাম (যদি তালিকায় না থাকে):
+                                        <i class="fa-solid fa-keyboard text-muted me-1"></i> অথবা কাস্টম লেখক নাম (যদি তালিকায় না থাকে):
                                     </label>
                                     <input type="text" name="author_name" id="f-author_name"
                                            value="{{ $curAuthorName }}"
@@ -220,11 +220,11 @@
                             @endphp
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-category_id" class="form-label small fw-semibold mb-0">
-                                    <i class="fas fa-shapes text-primary me-1"></i> {{ $field['label'] }}
+                                    <i class="fa-solid fa-shapes text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                         data-bs-toggle="modal" data-bs-target="#{{ $targetModalId }}">
-                                    <i class="fas fa-plus-circle me-1"></i>+ Add Category
+                                    <i class="fa-solid fa-circle-plus me-1"></i>+ Add Category
                                 </button>
                             </div>
                             
@@ -241,7 +241,7 @@
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-sub_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-folder-tree me-1 text-primary"></i>Or New Sub-Category Name:
+                                            <i class="fa-solid fa-folder-tree me-1 text-primary"></i>Or New Sub-Category Name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
@@ -251,7 +251,7 @@
                                 <div class="mt-2 p-2 bg-light rounded border">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <label for="f-new_blog_category_name" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                            <i class="fas fa-feather-pointed me-1 text-primary"></i>Or New Category Name:
+                                            <i class="fa-solid fa-feather-pointed me-1 text-primary"></i>Or New Category Name:
                                         </label>
                                     </div>
                                     <input type="text" id="f-new_blog_category_name" name="new_blog_category_name" 
@@ -287,12 +287,12 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
                                     <div>
                                         <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="fas fa-pen-fancy text-primary me-1"></i> Primary Blog Author
+                                            <i class="fa-solid fa-pen-fancy text-primary me-1"></i> Primary Blog Author
                                         </label>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 rounded-pill fw-semibold"
                                             data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Author
+                                        <i class="fa-solid fa-circle-plus me-1"></i>+ Add New Author
                                     </button>
                                 </div>
 
@@ -315,7 +315,7 @@
                                 {{-- Custom Author Display Name --}}
                                 <div>
                                     <label for="f-owner_name" class="form-label small fw-semibold text-dark mb-1" style="font-size: 12px;">
-                                        <i class="fas fa-signature text-secondary me-1"></i> Display Author Name:
+                                        <i class="fa-solid fa-signature text-secondary me-1"></i> Display Author Name:
                                     </label>
                                     <input type="text" id="f-owner_name" name="owner_name" 
                                            value="{{ $currentOwnerName }}"
@@ -333,7 +333,7 @@
                                     <div class="p-2.5 bg-white rounded-3 border" style="border-left: 3.5px solid #0284c7 !important;">
                                         <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
                                             <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
-                                                <i class="fas fa-hand-holding-dollar text-primary me-1"></i> রয়্যালটি ও পাঠক সম্মানী নিয়ন্ত্রণ (Royalty & Honorarium)
+                                                <i class="fa-solid fa-hand-holding-dollar text-primary me-1"></i> রয়্যালটি ও পাঠক সম্মানী নিয়ন্ত্রণ (Royalty & Honorarium)
                                             </label>
                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle small" style="font-size: 10px;">
                                                 আইডিয়াপত্র
@@ -348,7 +348,7 @@
                                                            id="f-is_royalty_free_blog" name="is_royalty_free" value="1" 
                                                            @checked($isBlogRoyaltyFree) onchange="toggleBlogRoyaltyInputs(this)">
                                                     <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free_blog" style="font-size: 11.5px;">
-                                                        <i class="fas fa-gift text-warning me-1"></i> রয়্যালটি ফ্রি লেখা (Royalty-Free)
+                                                        <i class="fa-solid fa-gift text-warning me-1"></i> রয়্যালটি ফ্রি লেখা (Royalty-Free)
                                                     </label>
                                                 </div>
                                                 <small class="text-muted d-block" style="font-size: 10px;">অন করলে এই লেখায় পাঠক সম্মানী লেখক ওয়ালেটে যাবে না (সম্পাদকীয়/ফ্রি পোস্ট)।</small>
@@ -382,7 +382,7 @@
                                 </label>
                                 <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                         data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal">
-                                    <i class="fas fa-plus-circle me-1"></i>+ Add Publisher
+                                    <i class="fa-solid fa-circle-plus me-1"></i>+ Add Publisher
                                 </button>
                             </div>
 
@@ -426,11 +426,11 @@
                                 <details class="border rounded-3 bg-white shadow-xs p-3.5 mb-2 overflow-hidden" open>
                                     <summary class="fw-bold text-dark cursor-pointer d-flex align-items-center justify-content-between pb-2" style="font-size: 0.95rem; user-select: none;">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fas fa-calculator"></i></span>
+                                            <span class="p-1.5 bg-success-subtle text-success rounded-circle small"><i class="fa-solid fa-calculator"></i></span>
                                             <span>২. বাঁধাই, সংস্করণ, মূল্য নির্ধারণ ও ক্রয়-বিক্রয় কমিশন হিসাব (Binding & Pricing Dropdown)</span>
                                         </div>
                                         <span class="badge bg-success-subtle text-success small rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-chevron-down me-1"></i> ড্রপডাউন টগল
+                                            <i class="fa-solid fa-chevron-down me-1"></i> ড্রপডাউন টগল
                                         </span>
                                     </summary>
 
@@ -439,10 +439,10 @@
                                         <div class="mb-3 pb-2.5 border-bottom">
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                                                 <label class="form-label fw-bold text-dark mb-0 small">
-                                                    <i class="fas fa-layer-group text-primary me-1.5"></i> Cover Binding & Edition Selection <span class="text-danger">*</span>
+                                                    <i class="fa-solid fa-layer-group text-primary me-1.5"></i> Cover Binding & Edition Selection <span class="text-danger">*</span>
                                                 </label>
                                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small">
-                                                    <i class="fas fa-calculator me-1"></i>Automatic Margin & Profit Calculation
+                                                    <i class="fa-solid fa-calculator me-1"></i>Automatic Margin & Profit Calculation
                                                 </span>
                                             </div>
 
@@ -450,19 +450,19 @@
                                                 <input type="radio" class="btn-check" name="cover_type" id="cover_hardcover" value="hardcover" 
                                                        @checked($curCoverType === 'hardcover') onchange="onCoverTypeChange()">
                                                 <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_hardcover">
-                                                    <i class="fas fa-gem me-1.5 text-warning"></i> Hardcover (Primary)
+                                                    <i class="fa-solid fa-gem me-1.5 text-warning"></i> Hardcover (Primary)
                                                 </label>
 
                                                 <input type="radio" class="btn-check" name="cover_type" id="cover_paperback" value="paperback" 
                                                        @checked($curCoverType === 'paperback') onchange="onCoverTypeChange()">
                                                 <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_paperback">
-                                                    <i class="fas fa-book-open me-1.5 text-info"></i> Paperback
+                                                    <i class="fa-solid fa-book-open me-1.5 text-info"></i> Paperback
                                                 </label>
 
                                                 <input type="radio" class="btn-check" name="cover_type" id="cover_both" value="both" 
                                                        @checked($curCoverType === 'both') onchange="onCoverTypeChange()">
                                                 <label class="btn btn-outline-primary py-2 fw-semibold" for="cover_both">
-                                                    <i class="fas fa-layer-group me-1.5 text-success"></i> Both Editions (Hardcover & Paperback)
+                                                    <i class="fa-solid fa-layer-group me-1.5 text-success"></i> Both Editions (Hardcover & Paperback)
                                                 </label>
                                             </div>
                                         </div>
@@ -473,7 +473,7 @@
                                             <div class="col-12 col-md-6" id="panelHardcoverCard">
                                                 <div class="card h-100 border rounded-3 bg-light overflow-hidden">
                                                     <div class="card-header bg-primary text-white py-2 px-3 d-flex align-items-center justify-content-between">
-                                                        <span class="fw-bold small"><i class="fas fa-gem me-1.5 text-warning"></i> Hardcover Edition</span>
+                                                        <span class="fw-bold small"><i class="fa-solid fa-gem me-1.5 text-warning"></i> Hardcover Edition</span>
                                                         <span class="badge bg-white text-primary small px-2 py-0.5 rounded-pill" id="badgeHardcoverStatus">Primary Price</span>
                                                     </div>
                                                     <div class="card-body p-3">
@@ -494,7 +494,7 @@
                                                         {{-- Selling Discount Section --}}
                                                         <div class="p-2.5 bg-white rounded-3 border mb-3">
                                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                                <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>Customer Sales Discount:</span>
+                                                                <span class="small fw-bold text-success"><i class="fa-solid fa-tags me-1"></i>Customer Sales Discount:</span>
                                                                 <span class="text-muted small" style="font-size: 10.5px;">2-Way Auto Sync</span>
                                                             </div>
                                                             <div class="row g-2">
@@ -522,7 +522,7 @@
                                                         {{-- Purchase & Cost Section --}}
                                                         <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
                                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                                <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
+                                                                <span class="small fw-bold text-dark"><i class="fa-solid fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
                                                                 <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">Purchase Commission</span>
                                                             </div>
                                                             <div class="row g-2">
@@ -554,7 +554,7 @@
                                             <div class="col-12 col-md-6" id="panelPaperbackCard">
                                                 <div class="card h-100 border rounded-3 bg-light overflow-hidden">
                                                     <div class="card-header bg-secondary text-white py-2 px-3 d-flex align-items-center justify-content-between" id="headerPaperback">
-                                                        <span class="fw-bold small"><i class="fas fa-book-open me-1.5 text-info"></i> Paperback Edition</span>
+                                                        <span class="fw-bold small"><i class="fa-solid fa-book-open me-1.5 text-info"></i> Paperback Edition</span>
                                                         <span class="badge bg-white text-secondary small px-2 py-0.5 rounded-pill" id="badgePaperbackStatus">Optional Edition</span>
                                                     </div>
                                                     <div class="card-body p-3">
@@ -575,7 +575,7 @@
                                                         {{-- Selling Discount Section --}}
                                                         <div class="p-2.5 bg-white rounded-3 border mb-3">
                                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                                <span class="small fw-bold text-success"><i class="fas fa-tags me-1"></i>Customer Sales Discount:</span>
+                                                                <span class="small fw-bold text-success"><i class="fa-solid fa-tags me-1"></i>Customer Sales Discount:</span>
                                                                 <span class="text-muted small" style="font-size: 10.5px;">2-Way Auto Sync</span>
                                                             </div>
                                                             <div class="row g-2">
@@ -603,7 +603,7 @@
                                                         {{-- Purchase & Cost Section --}}
                                                         <div class="p-2.5 bg-white rounded-3 border border-warning-subtle mb-1">
                                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                                <span class="small fw-bold text-dark"><i class="fas fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
+                                                                <span class="small fw-bold text-dark"><i class="fa-solid fa-coins me-1 text-warning"></i>Publisher Purchase / Cost:</span>
                                                                 <span class="badge bg-warning-subtle text-warning-emphasis small" style="font-size: 10px;">Purchase Commission</span>
                                                             </div>
                                                             <div class="row g-2">
@@ -652,7 +652,7 @@
                             <div class="mt-2.5 p-2 bg-light rounded border">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label for="f-discount_percent" class="form-label small fw-semibold text-dark mb-0" style="font-size: 11.5px;">
-                                        <i class="fas fa-percent me-1 text-primary"></i>Discount Percentage (%):
+                                        <i class="fa-solid fa-percent me-1 text-primary"></i>Discount Percentage (%):
                                     </label>
                                     <span class="small text-muted" style="font-size: 11px;">Auto Calculate</span>
                                 </div>
@@ -681,7 +681,7 @@
                         @elseif ($name === 'pre_order_release_date')
                             <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning">
                                 <label for="f-pre_order_release_date" class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-truck-fast text-warning-emphasis me-1"></i> {{ $field['label'] }}
+                                    <i class="fa-solid fa-truck-fast text-warning-emphasis me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" value="{{ $current }}"
                                        class="form-control form-control-sm @error('pre_order_release_date') is-invalid @enderror">
@@ -692,7 +692,7 @@
                         @elseif ($name === 'pre_order_note')
                             <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning">
                                 <label for="f-pre_order_note" class="form-label small fw-bold text-dark mb-1">
-                                    <i class="fas fa-gift text-warning-emphasis me-1"></i> {{ $field['label'] }}
+                                    <i class="fa-solid fa-gift text-warning-emphasis me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <textarea id="f-pre_order_note" name="pre_order_note" rows="2"
                                           placeholder="{{ $field['placeholder'] ?? 'Special gifts, autograph note, or pre-order bonuses...' }}"
@@ -705,10 +705,10 @@
                         @elseif ($name === 'summary')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-summary" class="form-label small fw-semibold text-dark mb-0">
-                                    <i class="fas fa-file-lines text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — ১০০০ শব্দ)
+                                    <i class="fa-solid fa-file-lines text-primary me-1"></i> Product Summary (বইয়ের সংক্ষেপ — ১০০০ শব্দ)
                                 </label>
                                 <div class="word-counter-badge safe" id="summaryWordBadge">
-                                    <i class="fas fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
+                                    <i class="fa-solid fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
                                 </div>
                             </div>
                             <textarea id="f-summary" name="summary" rows="5"
@@ -728,10 +728,10 @@
                         @elseif ($name === 'author_bio')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-author_bio" class="form-label small fw-semibold text-dark mb-0">
-                                    <i class="fas fa-address-card text-primary me-1"></i> {{ $field['label'] }}
+                                    <i class="fa-solid fa-address-card text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <div class="word-counter-badge safe" id="authorBioWordBadge">
-                                    <i class="fas fa-font me-1"></i> Words: <span id="authorBioWordCount">0</span> / 300
+                                    <i class="fa-solid fa-font me-1"></i> Words: <span id="authorBioWordCount">0</span> / 300
                                 </div>
                             </div>
                             <textarea id="f-author_bio" name="author_bio" rows="4"
@@ -753,10 +753,10 @@
                         @elseif ($name === 'description')
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label for="f-description" class="form-label small fw-semibold text-dark mb-0">
-                                    <i class="fas fa-align-left text-primary me-1"></i> {{ $field['label'] }}
+                                    <i class="fa-solid fa-align-left text-primary me-1"></i> {{ $field['label'] }}
                                 </label>
                                 <div class="word-counter-badge safe" id="descriptionWordBadge">
-                                    <i class="fas fa-font me-1"></i> Words: <span id="descriptionWordCount">0</span> / 400
+                                    <i class="fa-solid fa-font me-1"></i> Words: <span id="descriptionWordCount">0</span> / 400
                                 </div>
                             </div>
                             <textarea id="f-description" name="description" rows="7"
@@ -785,18 +785,18 @@
                                     @if (($field['lookup'] ?? '') === 'blog_categories' || $spec['key'] === 'blog')
                                         <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                                 data-bs-toggle="modal" data-bs-target="#quickAddBlogCategoryModal">
-                                            <i class="fas fa-plus-circle me-1"></i>+ Add New Category
+                                            <i class="fa-solid fa-circle-plus me-1"></i>+ Add New Category
                                         </button>
                                     @elseif (($field['lookup'] ?? '') === 'categories' || in_array($spec['key'], ['books', 'ebooks'], true))
                                         <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                                 data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal">
-                                            <i class="fas fa-plus-circle me-1"></i>+ Add New Category
+                                            <i class="fa-solid fa-circle-plus me-1"></i>+ Add New Category
                                         </button>
                                     @endif
                                 @elseif ($name === 'publisher_id' && ($field['lookup'] ?? '') === 'publishers')
                                     <button type="button" class="btn btn-link text-primary p-0 text-decoration-none small fw-semibold"
                                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal">
-                                        <i class="fas fa-plus-circle me-1"></i>+ Add New Publisher
+                                        <i class="fa-solid fa-circle-plus me-1"></i>+ Add New Publisher
                                     </button>
                                 @endif
                             </div>
@@ -863,10 +863,10 @@
                                                 <option value="2.1">Loose (2.1)</option>
                                             </select>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary fw-bold" onclick="adjustLineSpacing('f-{{ $name }}', -0.15)" title="Tighter Line Spacing">
-                                                <i class="fas fa-arrows-alt-v me-1"></i>Tighten (-)
+                                                <i class="fa-solid fa-arrows-alt-v me-1"></i>Tighten (-)
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-dark" onclick="adjustLineSpacing('f-{{ $name }}', 0.15)" title="Looser Line Spacing">
-                                                <i class="fas fa-arrows-alt-v me-1"></i>Loosen (+)
+                                                <i class="fa-solid fa-arrows-alt-v me-1"></i>Loosen (+)
                                             </button>
 
                                             <!-- Paragraph Spacing Selector -->
@@ -883,91 +883,91 @@
 
                                             <!-- Style buttons -->
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fw-bold" onclick="formatDoc('bold', null, 'f-{{ $name }}')" title="Bold (Ctrl+B)">
-                                                <i class="fas fa-bold"></i>
+                                                <i class="fa-solid fa-bold"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 fst-italic" onclick="formatDoc('italic', null, 'f-{{ $name }}')" title="Italic (Ctrl+I)">
-                                                <i class="fas fa-italic"></i>
+                                                <i class="fa-solid fa-italic"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-underline" onclick="formatDoc('underline', null, 'f-{{ $name }}')" title="Underline (Ctrl+U)">
-                                                <i class="fas fa-underline"></i>
+                                                <i class="fa-solid fa-underline"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2.5 text-decoration-line-through" onclick="formatDoc('strikeThrough', null, 'f-{{ $name }}')" title="Strikethrough">
-                                                <i class="fas fa-strikethrough"></i>
+                                                <i class="fa-solid fa-strikethrough"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Alignment -->
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyLeft', null, 'f-{{ $name }}')" title="Align Left">
-                                                <i class="fas fa-align-left"></i>
+                                                <i class="fa-solid fa-align-left"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyCenter', null, 'f-{{ $name }}')" title="Align Center">
-                                                <i class="fas fa-align-center"></i>
+                                                <i class="fa-solid fa-align-center"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyRight', null, 'f-{{ $name }}')" title="Align Right">
-                                                <i class="fas fa-align-right"></i>
+                                                <i class="fa-solid fa-align-right"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('justifyFull', null, 'f-{{ $name }}')" title="Justify">
-                                                <i class="fas fa-align-justify"></i>
+                                                <i class="fa-solid fa-align-justify"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Lists & Divider -->
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertUnorderedList', null, 'f-{{ $name }}')" title="Bullet List">
-                                                <i class="fas fa-list-ul"></i>
+                                                <i class="fa-solid fa-list-ul"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertOrderedList', null, 'f-{{ $name }}')" title="Numbered List">
-                                                <i class="fas fa-list-ol"></i>
+                                                <i class="fa-solid fa-list-ol"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('insertHorizontalRule', null, 'f-{{ $name }}')" title="Divider Line">
-                                                <i class="fas fa-minus"></i>
+                                                <i class="fa-solid fa-minus"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Link & Media -->
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-primary" onclick="insertLinkPrompt('f-{{ $name }}')" title="Insert Link">
-                                                <i class="fas fa-link"></i>
+                                                <i class="fa-solid fa-link"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-muted" onclick="formatDoc('unlink', null, 'f-{{ $name }}')" title="Remove Link">
-                                                <i class="fas fa-link-slash"></i>
+                                                <i class="fa-solid fa-link-slash"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-success" onclick="insertImagePrompt('f-{{ $name }}')" title="Insert Image">
-                                                <i class="fas fa-image"></i>
+                                                <i class="fa-solid fa-image"></i>
                                             </button>
 
                                             <div class="vr mx-1"></div>
 
                                             <!-- Literary Poetry & Prose Enhancers -->
                                             <button type="button" class="btn btn-sm btn-outline-primary border py-1 px-2.5 fw-semibold" onclick="formatPoetryMode('f-{{ $name }}')" title="Preserve Poetry Stanzas">
-                                                <i class="fas fa-feather-alt text-primary me-1"></i> Poetry Mode
+                                                <i class="fa-solid fa-feather-alt text-primary me-1"></i> Poetry Mode
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-secondary border py-1 px-2.5 fw-semibold" onclick="formatProseMode('f-{{ $name }}')" title="Prose Mode">
-                                                <i class="fas fa-align-left me-1"></i> Prose Mode
+                                                <i class="fa-solid fa-align-left me-1"></i> Prose Mode
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-info border py-1 px-2.5 fw-semibold" onclick="formatFixLineBreaks('f-{{ $name }}')" title="Auto Repair Line & Para Spacing">
-                                                <i class="fas fa-wand-magic-sparkles me-1"></i> Fix Spacing
+                                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Fix Spacing
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning border py-1 px-2.5 fw-semibold text-dark" id="spellBtn-{{ $name }}" onclick="toggleSpellChecker('{{ $name }}')" title="Spell Checker">
-                                                <i class="fas fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">Spell Check</span>
+                                                <i class="fa-solid fa-spell-check text-warning me-1"></i> <span id="spellBtnText-{{ $name }}">Spell Check</span>
                                             </button>
                                             @if($spec['key'] === 'blog')
                                                 <button type="button" class="btn btn-sm btn-outline-success border py-1 px-2.5 fw-semibold" onclick="openBlogLivePreviewModal('f-{{ $name }}')" title="Live Article Reader Preview">
-                                                    <i class="fas fa-eye me-1"></i> Reader Preview
+                                                    <i class="fa-solid fa-eye me-1"></i> Reader Preview
                                                 </button>
                                             @endif
 
                                             <div class="vr mx-1"></div>
 
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('undo', null, 'f-{{ $name }}')" title="Undo (Ctrl+Z)">
-                                                <i class="fas fa-undo"></i>
+                                                <i class="fa-solid fa-undo"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2" onclick="formatDoc('redo', null, 'f-{{ $name }}')" title="Redo (Ctrl+Y)">
-                                                <i class="fas fa-redo"></i>
+                                                <i class="fa-solid fa-redo"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border py-1 px-2 text-danger" onclick="formatDoc('removeFormat', null, 'f-{{ $name }}')" title="Clear Formatting">
-                                                <i class="fas fa-eraser"></i>
+                                                <i class="fa-solid fa-eraser"></i>
                                             </button>
                                         </div>
 
@@ -1032,7 +1032,7 @@
                                                 <i class="fa-solid fa-wand-magic-sparkles me-1"></i> অটো .avif অপ্টিমাইজড
                                             </span>
                                             <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 11.5px;" onclick="generatePhotocardCover('{{ $name }}')">
-                                                <i class="fas fa-wand-magic-sparkles me-1"></i> অটোজেনারেট কভার
+                                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> অটোজেনারেট কভার
                                             </button>
                                         </div>
                                         <input type="hidden" name="generated_cover_data" id="f-generated_cover_data_{{ $name }}" value="">
@@ -1051,13 +1051,13 @@
                                         
                                         <div class="adm-dropzone__icon">
                                             @if ($isCover)
-                                                <i class="fas fa-image"></i>
+                                                <i class="fa-solid fa-image"></i>
                                             @elseif ($isAvatar)
-                                                <i class="fas fa-camera"></i>
+                                                <i class="fa-solid fa-camera"></i>
                                             @elseif ($isPdf)
-                                                <i class="fas fa-file-pdf text-danger"></i>
+                                                <i class="fa-solid fa-file-pdf text-danger"></i>
                                             @else
-                                                <i class="fas fa-cloud-arrow-up"></i>
+                                                <i class="fa-solid fa-cloud-arrow-up"></i>
                                             @endif
                                         </div>
 
@@ -1070,7 +1070,7 @@
 
                                         @if ($guideText)
                                             <span class="badge bg-light text-primary border small fw-normal py-1 px-2">
-                                                <i class="fas fa-circle-info me-1"></i> {{ $guideText }}
+                                                <i class="fa-solid fa-circle-info me-1"></i> {{ $guideText }}
                                             </span>
                                         @endif
                                     </div>
@@ -1082,11 +1082,11 @@
                                                 <img id="preview-img-{{ $name }}" src="" alt="Preview" class="rounded border shadow-xs {{ $isAvatar ? 'rounded-circle' : '' }}" style="height: 65px; width: {{ $isAvatar ? '65px' : ($name === 'featured_image' ? '110px' : '50px') }}; object-fit: cover;">
                                             @else
                                                 <div class="rounded-3 bg-danger-subtle text-danger d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 55px; font-size: 1.5rem;">
-                                                    <i class="fas fa-file-pdf"></i>
+                                                    <i class="fa-solid fa-file-pdf"></i>
                                                 </div>
                                             @endif
                                             <div class="overflow-hidden">
-                                                <span class="badge bg-success mb-1"><i class="fas fa-check-circle me-1"></i> New file ready</span>
+                                                <span class="badge bg-success mb-1"><i class="fa-solid fa-circle-check me-1"></i> New file ready</span>
                                                 <div id="preview-filename-{{ $name }}" class="small fw-bold text-dark text-truncate" style="max-width: 250px;"></div>
                                                 <div id="preview-filesize-{{ $name }}" class="small text-muted"></div>
                                             </div>
@@ -1106,7 +1106,7 @@
                                                 <img src="{{ $fileUrl }}" alt="" class="adm-asset-card__thumb {{ $isAvatar ? 'rounded-circle' : '' }}">
                                             @else
                                                 <div class="adm-asset-card__icon text-danger">
-                                                    <i class="fas fa-file-pdf"></i>
+                                                    <i class="fa-solid fa-file-pdf"></i>
                                                 </div>
                                             @endif
                                             <div class="overflow-hidden me-auto">
@@ -1115,7 +1115,7 @@
                                                 </div>
                                                 <a href="{{ $fileUrl }}" target="_blank" rel="noopener"
                                                    class="btn btn-sm btn-outline-primary py-0.5 px-2 rounded-pill fw-semibold text-decoration-none" style="font-size: 11px;">
-                                                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View / Open File
+                                                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View / Open File
                                                 </a>
                                             </div>
                                             <div class="form-check form-switch mb-0">
@@ -1178,14 +1178,14 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                             <div>
                                 <h5 class="fw-bold mb-1 text-dark">
-                                    <i class="fas fa-list-ol text-primary me-2"></i>Table of Contents & Page Indexer
+                                    <i class="fa-solid fa-list-ol text-primary me-2"></i>Table of Contents & Page Indexer
                                 </h5>
                                 <p class="text-muted small mb-0">
                                     Add article titles, authors, and page numbers. Readers can jump directly to any page from the interactive Table of Contents.
                                 </p>
                             </div>
                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-xs" onclick="addWebzineTocRow()">
-                                <i class="fas fa-plus-circle me-1"></i>+ Add TOC Entry / Article
+                                <i class="fa-solid fa-circle-plus me-1"></i>+ Add TOC Entry / Article
                             </button>
                         </div>
 
@@ -1225,7 +1225,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
-                                                    <i class="fas fa-trash-alt"></i>
+                                                    <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -1252,7 +1252,7 @@
                                             </td>
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
-                                                    <i class="fas fa-trash-alt"></i>
+                                                    <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -1262,9 +1262,9 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="addWebzineTocRow()">
-                                <i class="fas fa-plus me-1"></i> Add Another Entry
+                                <i class="fa-solid fa-plus me-1"></i> Add Another Entry
                             </button>
-                            <span class="small text-muted"><i class="fas fa-info-circle me-1 text-primary"></i>Page number links directly to the page in the digital reader.</span>
+                            <span class="small text-muted"><i class="fa-solid fa-circle-info me-1 text-primary"></i>Page number links directly to the page in the digital reader.</span>
                         </div>
                     </div>
                 @endif
@@ -1280,7 +1280,7 @@
         @if ($isBookOrEbook)
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-eye me-1.5 text-primary"></i> Live Card Preview</span>
+                    <span><i class="fa-solid fa-eye me-1.5 text-primary"></i> Live Card Preview</span>
                     <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
@@ -1313,7 +1313,7 @@
         @if ($spec['key'] === 'blog')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-feather-pointed me-1.5 text-primary"></i> Article & Card Preview</span>
+                    <span><i class="fa-solid fa-feather-pointed me-1.5 text-primary"></i> Article & Card Preview</span>
                     <span class="badge bg-success-subtle text-success small rounded-pill">Real-Time</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-start">
@@ -1337,7 +1337,7 @@
                         {{ $editing ? ($record->subtitle ?? '') : '' }}
                     </div>
                     <div id="mockupAuthor" class="small text-muted d-flex align-items-center gap-1" style="font-size: 0.78rem;">
-                        <i class="fas fa-pen-nib text-success"></i>
+                        <i class="fa-solid fa-pen-nib text-success"></i>
                         <span>{{ $editing && $record ? ($record->author_name ?? ($record->author->name ?? 'Author Name')) : 'Author Name' }}</span>
                     </div>
                 </div>
@@ -1348,7 +1348,7 @@
         @if ($spec['key'] === 'webzines')
             <div class="adm-card p-3 mb-3">
                 <h6 class="fw-bold mb-2 text-dark d-flex align-items-center justify-content-between">
-                    <span><i class="fas fa-newspaper me-1.5 text-info"></i> Webzine Card & Reader</span>
+                    <span><i class="fa-solid fa-newspaper me-1.5 text-info"></i> Webzine Card & Reader</span>
                     <span class="badge bg-info-subtle text-info small rounded-pill">Live Status</span>
                 </h6>
                 <div class="p-3 bg-light rounded-3 border text-center">
@@ -1370,10 +1370,10 @@
                     @if ($editing)
                         <div class="d-grid gap-1.5 mt-2">
                             <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-info text-white rounded-pill fw-bold">
-                                <i class="fas fa-book-open me-1"></i> Open in Digital Reader
+                                <i class="fa-solid fa-book-open me-1"></i> Open in Digital Reader
                             </a>
                             <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
-                                <i class="fas fa-eye me-1"></i> Public Page Preview
+                                <i class="fa-solid fa-eye me-1"></i> Public Page Preview
                             </a>
                         </div>
                     @endif
@@ -1386,7 +1386,7 @@
             <div class="adm-card p-3 mb-3">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-image me-1.5 text-success"></i> Blog Cover / Photocard
+                        <i class="fa-solid fa-image me-1.5 text-success"></i> Blog Cover / Photocard
                     </h6>
                     <span class="badge bg-success-subtle text-success border border-success-subtle small rounded-pill px-2">
                         <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Auto .avif
@@ -1419,7 +1419,7 @@
 
         {{-- Posting on behalf of someone --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-3"><i class="fas fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
+            <h2 class="h6 fw-bold mb-3"><i class="fa-solid fa-user-pen me-1 text-muted"></i> On Behalf of (Contributor Credit)</h2>
 
             <div class="mb-2.5">
                 <label for="f-submitted_by" class="form-label small fw-semibold mb-1">Registered User</label>
@@ -1455,7 +1455,7 @@
 
         {{-- Moderation & Slug --}}
         <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2.5"><i class="fas fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
+            <h2 class="h6 fw-bold mb-2.5"><i class="fa-solid fa-circle-check me-1 text-muted"></i> Moderation & URL</h2>
 
             <div class="mb-3">
                 <label for="f-mod_status" class="form-label small fw-semibold mb-1">Status</label>
@@ -1485,7 +1485,7 @@
         @if ($spec['key'] === 'books')
             <div class="adm-card p-3 mb-3 border-start border-4 border-success shadow-xs">
                 <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold" style="font-size: 0.88rem;">
-                    <i class="fas fa-scale-balanced text-success"></i>
+                    <i class="fa-solid fa-scale-balanced text-success"></i>
                     <span>আইন ও প্রকাশনা নীতিমালা সম্মতি</span>
                 </div>
 
@@ -1509,11 +1509,11 @@
         <div class="d-grid gap-2">
             @if ($spec['key'] === 'blog')
                 <button type="submit" name="save_and_approve" value="1" class="btn btn-success rounded-pill py-2.5 fw-bold shadow-xs">
-                    <i class="fas fa-circle-check me-1.5"></i> এপ্রুভ ও পাবলিশ করুন
+                    <i class="fa-solid fa-circle-check me-1.5"></i> এপ্রুভ ও পাবলিশ করুন
                 </button>
             @endif
             <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-xs">
-                <i class="fas fa-floppy-disk me-1.5"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
+                <i class="fa-solid fa-floppy-disk me-1.5"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
             </button>
             <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill py-2">Cancel</a>
         </div>
@@ -1530,7 +1530,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddCatLabel">
-                    <i class="fas fa-folder-plus me-1.5"></i> Create New Category
+                    <i class="fa-solid fa-folder-plus me-1.5"></i> Create New Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1560,7 +1560,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> Save Category
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Category
                     </button>
                 </div>
             </form>
@@ -1576,7 +1576,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddBlogCatLabel">
-                    <i class="fas fa-shapes me-1.5"></i> Create New Blog Category
+                    <i class="fa-solid fa-shapes me-1.5"></i> Create New Blog Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1601,7 +1601,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickBlogCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> Save Blog Category
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Blog Category
                     </button>
                 </div>
             </form>
@@ -1617,7 +1617,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddPubLabel">
-                    <i class="fas fa-building me-1.5"></i> Add New Publisher
+                    <i class="fa-solid fa-building me-1.5"></i> Add New Publisher
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1641,7 +1641,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickPubBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> Save Publisher
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Publisher
                     </button>
                 </div>
             </form>
@@ -1657,7 +1657,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddAuthLabel">
-                    <i class="fas fa-pen-nib me-1.5"></i> Add New Author
+                    <i class="fa-solid fa-pen-nib me-1.5"></i> Add New Author
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1688,7 +1688,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickAuthBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> Save Author
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Author
                     </button>
                 </div>
             </form>
@@ -1705,7 +1705,7 @@
             <div class="modal-header bg-dark text-white py-3 px-4 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
                     <div class="rounded-circle bg-primary text-white p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-book-open"></i>
+                        <i class="fa-solid fa-book-open"></i>
                     </div>
                     <div>
                         <h6 class="modal-title fw-bold text-white mb-0" id="blogLivePreviewModalLabel">Article Reader Live Preview</h6>
@@ -1729,7 +1729,7 @@
                         <p id="prevBlogSubtitle" class="text-muted fst-italic fs-6 mb-3 d-none"></p>
 
                         <div class="d-flex flex-wrap align-items-center justify-content-center gap-3 text-muted small mt-2 pt-2 border-top">
-                            <span><i class="fas fa-pen-nib text-primary me-1"></i> <strong id="prevBlogAuthor" class="text-dark">Author</strong></span>
+                            <span><i class="fa-solid fa-pen-nib text-primary me-1"></i> <strong id="prevBlogAuthor" class="text-dark">Author</strong></span>
                             <span>•</span>
                             <span><i class="far fa-calendar-alt me-1"></i> {{ now()->format('d M, Y') }}</span>
                             <span>•</span>
@@ -1760,7 +1760,7 @@
             </div>
 
             <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between">
-                <span class="text-muted small"><i class="fas fa-check-circle text-success me-1"></i> Formats and stanzas verified live</span>
+                <span class="text-muted small"><i class="fa-solid fa-circle-check text-success me-1"></i> Formats and stanzas verified live</span>
                 <button type="button" class="btn btn-sm btn-dark px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -2008,9 +2008,9 @@ function calculateLiveHardcoverProfit() {
         const profit = sellPrice - cost;
         const margin = Math.round((profit / sellPrice) * 1000) / 10;
         if (profit >= 0) {
-            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fa-solid fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
         } else {
-            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fa-solid fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2116,9 +2116,9 @@ function calculateLivePaperbackProfit() {
         const profit = sellPrice - cost;
         const margin = Math.round((profit / sellPrice) * 1000) / 10;
         if (profit >= 0) {
-            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fas fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
+            badgeEl.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle p-1.5 w-100 d-flex align-items-center justify-content-between"><span><i class="fa-solid fa-chart-line me-1"></i>Est. Profit: <strong>৳${profit.toFixed(2)}</strong></span> <span class="badge bg-success text-white">${margin}% Net Margin</span></span>`;
         } else {
-            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fas fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
+            badgeEl.innerHTML = `<span class="badge bg-danger-subtle text-danger border border-danger-subtle p-1.5 w-100"><i class="fa-solid fa-triangle-exclamation me-1"></i>Warning: Cost exceeds selling price! Loss ৳${Math.abs(profit).toFixed(2)}</span>`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2141,13 +2141,13 @@ function calculateLiveDiscount() {
             const savings = price - discount;
             const percent = Math.round((savings / price) * 100);
             badgeEl.className = 'mt-1 small fw-semibold text-success';
-            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> ${percent}% discount on paperback! Customer saves ৳${savings.toFixed(2)}`;
+            badgeEl.innerHTML = `<i class="fa-solid fa-tags me-1"></i> ${percent}% discount on paperback! Customer saves ৳${savings.toFixed(2)}`;
         } else if (discount === price) {
             badgeEl.className = 'mt-1 small fw-semibold text-muted';
             badgeEl.innerHTML = `No discount applied.`;
         } else {
             badgeEl.className = 'mt-1 small fw-semibold text-danger';
-            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Warning: Discounted price exceeds original price!`;
+            badgeEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Warning: Discounted price exceeds original price!`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2171,13 +2171,13 @@ function calculateLiveHardcoverDiscount() {
             const savings = price - discount;
             const percent = Math.round((savings / price) * 100);
             badgeEl.className = 'mt-1 small fw-semibold text-success';
-            badgeEl.innerHTML = `<i class="fas fa-tags me-1"></i> ${percent}% discount on hardcover! Customer saves ৳${savings.toFixed(2)}`;
+            badgeEl.innerHTML = `<i class="fa-solid fa-tags me-1"></i> ${percent}% discount on hardcover! Customer saves ৳${savings.toFixed(2)}`;
         } else if (discount === price) {
             badgeEl.className = 'mt-1 small fw-semibold text-muted';
             badgeEl.innerHTML = `No discount applied.`;
         } else {
             badgeEl.className = 'mt-1 small fw-semibold text-danger';
-            badgeEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Hardcover discount price exceeds original price!`;
+            badgeEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Hardcover discount price exceeds original price!`;
         }
     } else {
         badgeEl.innerHTML = '';
@@ -2208,7 +2208,7 @@ function addAuthorField() {
         <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
                placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
         <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();">
-            <i class="fas fa-times"></i>
+            <i class="fa-solid fa-times"></i>
         </button>
     `;
     container.appendChild(div);
@@ -2257,7 +2257,7 @@ function addTranslatorField() {
     div.innerHTML = `
         <input type="text" name="translator_names[]" class="form-control form-control-sm" placeholder="অনুবাদকের নাম...">
         <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
-            <i class="fas fa-times"></i>
+            <i class="fa-solid fa-times"></i>
         </button>
     `;
     container.appendChild(div);
@@ -2271,7 +2271,7 @@ function addEditorField() {
     div.innerHTML = `
         <input type="text" name="editor_names[]" class="form-control form-control-sm" placeholder="সম্পাদকের নাম...">
         <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
-            <i class="fas fa-times"></i>
+            <i class="fa-solid fa-times"></i>
         </button>
     `;
     container.appendChild(div);
@@ -2285,7 +2285,7 @@ function addRewriterField() {
     div.innerHTML = `
         <input type="text" name="rewriter_names[]" class="form-control form-control-sm" placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম...">
         <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
-            <i class="fas fa-times"></i>
+            <i class="fa-solid fa-times"></i>
         </button>
     `;
     container.appendChild(div);
@@ -2584,7 +2584,7 @@ function updateLiveMockupCard() {
         }
     }
     if (mockAuthor) {
-        mockAuthor.innerHTML = '<i class="fas fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'Author Name') + '</span>';
+        mockAuthor.innerHTML = '<i class="fa-solid fa-pen-nib text-success me-1"></i><span>' + (authorVal || 'Author Name') + '</span>';
     }
 
     const blogMockTitle = document.getElementById('blogMockupTitle');
@@ -2737,7 +2737,7 @@ function updateGenericWordCount(textarea, maxWords, countId, badgeId, barId, war
     if (warningEl) {
         if (count > maxWords) {
             warningEl.classList.remove('d-none');
-            warningEl.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> Word limit exceeded! (${count - maxWords} words extra)`;
+            warningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation me-1"></i> Word limit exceeded! (${count - maxWords} words extra)`;
         } else {
             warningEl.classList.add('d-none');
             warningEl.innerHTML = '';
@@ -2960,7 +2960,7 @@ function updateEditorStats(fieldName) {
     const text = (editorDiv.innerText || editorDiv.textContent || '').trim();
     const words = text ? text.split(/\s+/).length : 0;
     const chars = text.length;
-    statsBox.innerHTML = `<i class="fas fa-file-alt text-primary me-1"></i>Words: ${words} | Chars: ${chars}`;
+    statsBox.innerHTML = `<i class="fa-solid fa-file-lines text-primary me-1"></i>Words: ${words} | Chars: ${chars}`;
 }
 
 function openBlogLivePreviewModal(targetTextareaId) {
@@ -3189,7 +3189,7 @@ function handleQuickCategorySubmit(e) {
     const descInput = document.getElementById('quick_cat_description');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3244,7 +3244,7 @@ function handleQuickCategorySubmit(e) {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Category';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Category';
     });
 }
 
@@ -3258,7 +3258,7 @@ function handleQuickBlogCategorySubmit(e) {
     const descInput = document.getElementById('quick_blog_cat_description');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3304,7 +3304,7 @@ function handleQuickBlogCategorySubmit(e) {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Blog Category';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Blog Category';
     });
 }
 
@@ -3318,7 +3318,7 @@ function handleQuickPublisherSubmit(e) {
     const addressInput = document.getElementById('quick_pub_address');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3362,7 +3362,7 @@ function handleQuickPublisherSubmit(e) {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Publisher';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Publisher';
     });
 }
 
@@ -3377,7 +3377,7 @@ function handleQuickAuthorSubmit(e) {
     const bioInput = document.getElementById('quick_auth_bio');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
     alertBox.innerHTML = '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -3441,7 +3441,7 @@ function handleQuickAuthorSubmit(e) {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Author';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Author';
     });
 }
 
@@ -3482,7 +3482,7 @@ function addWebzineTocRow() {
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="removeWebzineTocRow(this)" title="Delete">
-                <i class="fas fa-trash-alt"></i>
+                <i class="fa-solid fa-trash-can"></i>
             </button>
         </td>
     `;
@@ -3680,7 +3680,7 @@ function showValidationToast(msg) {
         toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#dc2626;color:#fff;padding:12px 20px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.25);font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:10px;transition:all 0.3s ease;';
         document.body.appendChild(toast);
     }
-    toast.innerHTML = `<i class="fas fa-circle-exclamation fs-5"></i> <span>${msg}</span>`;
+    toast.innerHTML = `<i class="fa-solid fa-circle-exclamation fs-5"></i> <span>${msg}</span>`;
     toast.style.opacity = '1';
     toast.style.transform = 'translateY(0)';
     setTimeout(() => {

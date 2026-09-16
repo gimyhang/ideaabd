@@ -15,14 +15,14 @@
         @endphp
         @if($partyParam)
             <a href="{{ route('admin.purchases.ledger', ['party' => $partyParam]) }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs" target="_blank">
-                <i class="fas fa-book-bookmark me-1"></i> সরবরাহকারী খতিয়ান (Ledger)
+                <i class="fa-solid fa-book-bookmark me-1"></i> সরবরাহকারী খতিয়ান (Ledger)
             </a>
         @endif
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
         <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> Back to Invoice
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Invoice
         </a>
     </div>
 @endsection
@@ -42,7 +42,7 @@
 {{-- Flash messages --}}
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" role="alert">
-        <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+        <i class="fa-solid fa-circle-check me-2"></i> {{ session('success') }}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 @endif
@@ -58,7 +58,7 @@
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge {{ $isRawCategory ? 'bg-warning-subtle text-warning-emphasis' : 'bg-primary-subtle text-primary' }} p-2 rounded-3">
-                            <i class="{{ $isRawCategory ? 'fas fa-industry' : 'fas fa-file-pen' }} fs-5"></i>
+                            <i class="{{ $isRawCategory ? 'fa-solid fa-industry' : 'fa-solid fa-file-pen' }} fs-5"></i>
                         </span>
                         <div>
                             <h5 class="fw-bold mb-0 text-dark">
@@ -72,10 +72,10 @@
                     @if(!$isRawCategory)
                         <div class="btn-group p-1 bg-light rounded-pill border" role="group">
                             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 active" id="btnExistingPub" onclick="setPublisherMode(false)">
-                                <i class="fas fa-list-check me-1"></i> Select from Directory
+                                <i class="fa-solid fa-list-check me-1"></i> Select from Directory
                             </button>
                             <button type="button" class="btn btn-sm rounded-pill fw-semibold px-3 text-muted" id="btnNewPub" onclick="setPublisherMode(true)">
-                                <i class="fas fa-plus-circle me-1"></i> + New Publisher
+                                <i class="fa-solid fa-circle-plus me-1"></i> + New Publisher
                             </button>
                         </div>
                     @endif
@@ -89,7 +89,7 @@
                                 <input type="hidden" name="purchase_category" value="{{ $purchase->purchase_category ?: 'raw_materials' }}">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-store text-warning me-1"></i> সরবরাহকারী ভেন্ডর / প্রেসের নাম <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-store text-warning me-1"></i> সরবরাহকারী ভেন্ডর / প্রেসের নাম <span class="text-danger">*</span>
                                     </label>
 
                                     {{-- Existing Vendor Directory Selector --}}
@@ -110,7 +110,7 @@
                                     @endif
 
                                     <div class="input-group">
-                                        <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-warning"></i></span>
+                                        <span class="input-group-text bg-white"><i class="fa-solid fa-pen-nib text-warning"></i></span>
                                         <input type="text" name="vendor_name" id="vendorNameInput" class="form-control form-control-lg fs-6 fw-bold" 
                                                value="{{ $currentVendor }}" placeholder="e.g. Karnafuli Paper Mills / আল-মদিনা প্রেস..." required oninput="onPartyChange()">
                                     </div>
@@ -119,20 +119,20 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-phone-alt text-success me-1"></i> মোবাইল নম্বর:
+                                            <i class="fa-solid fa-phone-alt text-success me-1"></i> মোবাইল নম্বর:
                                         </label>
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
+                                            <span class="input-group-text bg-white"><i class="fa-solid fa-phone"></i></span>
                                             <input type="text" name="vendor_phone" id="vendorPhoneInput" class="form-control" 
                                                    value="{{ old('vendor_phone', $purchase->vendor_phone ?: ($purchase->publisher?->phone ?? '')) }}" placeholder="e.g. 017XXXXXXXX">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-location-dot text-danger me-1"></i> ঠিকানা:
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i> ঠিকানা:
                                         </label>
                                         <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
+                                            <span class="input-group-text bg-white"><i class="fa-solid fa-location-dot"></i></span>
                                             <input type="text" name="vendor_address" id="vendorAddressInput" class="form-control" 
                                                    value="{{ old('vendor_address', $purchase->vendor_address ?: ($purchase->publisher?->address ?? '')) }}" placeholder="e.g. আরামবাগ / বাংলাবাজার">
                                         </div>
@@ -142,14 +142,14 @@
                                 <input type="hidden" name="purchase_category" value="books">
                                 <div class="d-flex align-items-center justify-content-between mb-2">
                                     <label class="form-label fw-bold text-dark mb-0">
-                                        <i class="fas fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-store text-primary me-1"></i> Publisher / Supplier <span class="text-danger">*</span>
                                     </label>
                                 </div>
 
                                 {{-- Existing Publisher Select --}}
                                 <div id="existingPublisherWrapper">
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light text-muted"><i class="fas fa-magnifying-glass"></i></span>
+                                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                                         <select name="publisher_id" id="publisherSelect" class="form-select form-select-lg fs-6 @error('publisher_id') is-invalid @enderror" onchange="onPartyChange()">
                                             <option value="">-- Select Publisher --</option>
                                             @foreach($publishers as $pub)
@@ -160,7 +160,7 @@
                                         </select>
                                     </div>
                                     <div class="form-text text-muted mt-1">
-                                        <i class="fas fa-info-circle me-1 text-primary"></i> Select current or updated publisher.
+                                        <i class="fa-solid fa-circle-info me-1 text-primary"></i> Select current or updated publisher.
                                     </div>
                                 </div>
 
@@ -170,7 +170,7 @@
                                         <div class="mb-2">
                                             <label class="form-label small fw-semibold text-dark">New Publisher Name <span class="text-danger">*</span></label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-white"><i class="fas fa-pen-nib text-primary"></i></span>
+                                                <span class="input-group-text bg-white"><i class="fa-solid fa-pen-nib text-primary"></i></span>
                                                 <input type="text" name="publisher_name" id="newPublisherName" class="form-control" placeholder="Type publisher name..." oninput="onPartyChange()">
                                             </div>
                                         </div>
@@ -178,14 +178,14 @@
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-semibold text-muted">Phone Number</label>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i class="fas fa-phone"></i></span>
+                                                    <span class="input-group-text bg-white"><i class="fa-solid fa-phone"></i></span>
                                                     <input type="text" name="publisher_phone" class="form-control" placeholder="01710...">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-semibold text-muted">Address</label>
                                                 <div class="input-group input-group-sm">
-                                                    <span class="input-group-text bg-white"><i class="fas fa-location-dot"></i></span>
+                                                    <span class="input-group-text bg-white"><i class="fa-solid fa-location-dot"></i></span>
                                                     <input type="text" name="publisher_address" class="form-control" placeholder="Address...">
                                                 </div>
                                             </div>
@@ -201,7 +201,7 @@
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-hashtag text-primary me-1"></i> Software Invoice # <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-hashtag text-primary me-1"></i> Software Invoice # <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <input type="text" name="purchase_no" class="form-control fw-bold @error('purchase_no') is-invalid @enderror" 
@@ -212,10 +212,10 @@
 
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-calendar-alt text-muted"></i></span>
                                         <input type="date" name="purchase_date" class="form-control" 
                                                value="{{ old('purchase_date', $purchase->purchase_date ? $purchase->purchase_date->format('Y-m-d') : date('Y-m-d')) }}" required>
                                     </div>
@@ -223,10 +223,10 @@
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> মেমো / চালান নম্বর
+                                        <i class="fa-solid fa-receipt text-success me-1"></i> মেমো / চালান নম্বর
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
+                                        <span class="input-group-text bg-light text-success"><i class="fa-solid fa-file-invoice"></i></span>
                                         <input type="text" name="publisher_memo_no" class="form-control" 
                                                placeholder="যেমন: Memo #1289 অথবা Challan #52" 
                                                value="{{ old('publisher_memo_no', $purchase->publisher_memo_no) }}">
@@ -247,7 +247,7 @@
                         <div class="col-12 col-md-4 border-end-md border-secondary border-opacity-50">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="bg-warning text-dark rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; flex-shrink: 0;">
-                                    <i class="fas fa-scale-balanced fs-5"></i>
+                                    <i class="fa-solid fa-scale-balanced fs-5"></i>
                                 </div>
                                 <div>
                                     <div class="text-white-50 small fw-bold text-uppercase" style="letter-spacing: 0.5px; font-size: 11px;">সরবরাহকারী চলতি খতিয়ান (Running Account)</div>
@@ -287,7 +287,7 @@
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div class="d-flex align-items-center flex-wrap gap-2.5">
                         <span class="badge {{ $isRawCategory ? 'bg-warning-subtle text-warning-emphasis' : 'bg-success-subtle text-success' }} p-2 rounded-3">
-                            <i class="{{ $isRawCategory ? 'fas fa-boxes-stacked' : 'fas fa-book-bookmark' }} fs-5"></i>
+                            <i class="{{ $isRawCategory ? 'fa-solid fa-boxes-stacked' : 'fa-solid fa-book-bookmark' }} fs-5"></i>
                         </span>
                         <div>
                             <h5 class="fw-bold mb-0 text-dark">{{ $isRawCategory ? 'কাঁচামাল ও প্রেস কাজ তালিকা (Raw Materials & Press Jobs)' : 'Purchased Books & Stock' }}</h5>
@@ -303,7 +303,7 @@
                                 </button>
                                 <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="rawPresetsDropdownEdit" style="min-width: 340px; max-height: 420px; overflow-y: auto; z-index: 1060;">
                                     <li class="dropdown-header small text-muted fw-bold text-uppercase pb-1 px-3">
-                                        <i class="fas fa-layer-group me-1 text-primary"></i> কাঁচামাল ও প্রেস বিল প্রিসেট তালিকা:
+                                        <i class="fa-solid fa-layer-group me-1 text-primary"></i> কাঁচামাল ও প্রেস বিল প্রিসেট তালিকা:
                                     </li>
                                     <li>
                                         <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="addRawMaterialPreset('অফসেট কাগজ', '২৩x৩৬ ইঞ্চি (ডিমাই - Demy)', 'রিম', 3200, '৮০ GSM অফসেট পেপার (Offset 80 GSM)', '1.67')">
@@ -418,7 +418,7 @@
                                 <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Comm %</span>
                                 <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
                                 <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply to all items">
-                                    <i class="fas fa-bolt"></i>
+                                    <i class="fa-solid fa-bolt"></i>
                                 </button>
                             </div>
 
@@ -426,13 +426,13 @@
                                 <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Store Disc %</span>
                                 <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
                                 <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply to all items">
-                                    <i class="fas fa-bolt"></i>
+                                    <i class="fa-solid fa-bolt"></i>
                                 </button>
                             </div>
                         @endif
 
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1.5"></i> {{ $isRawCategory ? '+ নতুন কাজ যোগ করুন' : '+ নতুন বই যোগ করুন' }}
+                            <i class="fa-solid fa-plus me-1.5"></i> {{ $isRawCategory ? '+ নতুন কাজ যোগ করুন' : '+ নতুন বই যোগ করুন' }}
                         </button>
                     </div>
                 </div>
@@ -509,7 +509,7 @@
                                         <td class="text-end pe-3 fw-bold text-dark item-subtotal font-monospace fs-6">৳{{ number_format($item->subtotal, 2) }}</td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
-                                                <i class="fas fa-trash-can"></i>
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -565,7 +565,7 @@
                                         <td class="text-end pe-3 fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
-                                                <i class="fas fa-trash-can"></i>
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -577,7 +577,7 @@
                     {{-- Add Row Button at Bottom of Table --}}
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
-                            <i class="fas fa-plus-circle me-1"></i> {{ $isRawCategory ? '+ আরও কাজ / কাঁচামাল যোগ করুন' : '+ আরও বইয়ের সারি যোগ করুন' }}
+                            <i class="fa-solid fa-circle-plus me-1"></i> {{ $isRawCategory ? '+ আরও কাজ / কাঁচামাল যোগ করুন' : '+ আরও বইয়ের সারি যোগ করুন' }}
                         </button>
                     </div>
                 </div>
@@ -591,7 +591,7 @@
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-success-subtle text-success p-2 rounded-3">
-                            <i class="fas fa-money-check-dollar fs-5"></i>
+                            <i class="fa-solid fa-money-check-dollar fs-5"></i>
                         </span>
                         <div>
                             <h6 class="fw-bold mb-0 text-dark">তারিখ অনুসারে টাকা পরিশোধের খতিয়ান (Payment History)</h6>
@@ -599,7 +599,7 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">
-                        <i class="fas fa-plus-circle me-1"></i> + টাকা পরিশোধ রেকর্ড করুন
+                        <i class="fa-solid fa-circle-plus me-1"></i> + টাকা পরিশোধ রেকর্ড করুন
                     </button>
                 </div>
                 <div class="card-body p-0">
@@ -638,10 +638,10 @@
                                             <td class="text-center pe-4">
                                                 <div class="btn-group btn-group-sm">
                                                     <a href="{{ route('admin.purchases.payments.voucher', $pmt->id) }}" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill px-2" title="Print Voucher">
-                                                        <i class="fas fa-print"></i>
+                                                        <i class="fa-solid fa-print"></i>
                                                     </a>
                                                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-2 ms-1" onclick="deletePaymentVoucher({{ $pmt->id }}, '{{ $pmt->payment_no }}', {{ $pmt->amount }})" title="Delete Payment">
-                                                        <i class="fas fa-trash-can"></i>
+                                                        <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -652,7 +652,7 @@
                         </div>
                     @else
                         <div class="p-4 text-center text-muted">
-                            <i class="fas fa-receipt fs-3 text-muted mb-2 d-block"></i>
+                            <i class="fa-solid fa-receipt fs-3 text-muted mb-2 d-block"></i>
                             <span class="small">এখনও পর্যন্ত কোনো পরিশোধ রেকর্ড করা হয়নি। সুবিধামতো সময়ে কিস্তি বা আংশিক টাকা পরিশোধ করতে উপরের <strong>"+ টাকা পরিশোধ রেকর্ড করুন"</strong> বাটনে ক্লিক করুন।</span>
                         </div>
                     @endif
@@ -663,13 +663,13 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-note-sticky text-warning me-2"></i>ইনভয়েস মন্তব্য ও শর্তাবলী (Invoice Notes & Remarks)
+                        <i class="fa-solid fa-note-sticky text-warning me-2"></i>ইনভয়েস মন্তব্য ও শর্তাবলী (Invoice Notes & Remarks)
                     </h6>
                 </div>
                 <div class="card-body p-4">
                     <div>
                         <label class="form-label small fw-bold text-dark mb-1">
-                            <i class="fas fa-pen text-primary me-1"></i> বিশেষ নোট বা নির্দেশনা (Optional):
+                            <i class="fa-solid fa-pen text-primary me-1"></i> বিশেষ নোট বা নির্দেশনা (Optional):
                         </label>
                         <textarea name="notes" rows="3" class="form-control rounded-3" 
                                   placeholder="Any special terms, shipping notes, or purchase details...">{{ old('notes', $purchase->notes) }}</textarea>
@@ -682,7 +682,7 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
                 <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>হিসাব ও আর্থিক বিবরণী</h5>
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator text-warning me-2"></i>হিসাব ও আর্থিক বিবরণী</h5>
                     <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small">Edit Mode</span>
                 </div>
 
@@ -694,7 +694,7 @@
 
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="form-label small fw-bold text-muted mb-1">
-                            <i class="fas fa-tag text-danger me-1"></i> Special Discount (৳):
+                            <i class="fa-solid fa-tag text-danger me-1"></i> Special Discount (৳):
                         </label>
                         <div class="input-group">
                             <span class="input-group-text bg-white fw-bold">৳</span>
@@ -714,7 +714,7 @@
                     {{-- Cumulative Ledger Box with Previous Due --}}
                     <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 rounded-3 p-3 mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-danger small fw-bold"><i class="fas fa-clock-rotate-left me-1"></i> Previous Due:</span>
+                            <span class="text-danger small fw-bold"><i class="fa-solid fa-clock-rotate-left me-1"></i> Previous Due:</span>
                             <span class="fw-bold text-danger font-monospace fs-6" id="displayPrevDue">৳{{ number_format($prevDueVal, 2) }}</span>
                         </div>
 
@@ -745,7 +745,7 @@
                     {{-- Payment Terms Selector --}}
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
+                            <i class="fa-solid fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
                         </label>
                         <select name="payment_type" id="paymentType" class="form-select form-select-md fw-semibold" required onchange="onPaymentTypeChangeEdit()">
                             <option value="cash" @selected(old('payment_type', $purchase->payment_type) == 'cash')>💵 Cash (Full Paid)</option>
@@ -759,7 +759,7 @@
                     <div id="installmentSectionWrapper" class="card border border-info-subtle bg-info-subtle bg-opacity-25 rounded-3 p-3 mb-3" style="{{ $purchase->payment_type === 'installment' ? '' : 'display: none;' }}">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="small fw-bold text-dark">
-                                <i class="fas fa-calendar-days text-info me-1"></i> কিস্তি পরিশোধ পরিকল্পনা (ঐচ্ছিক):
+                                <i class="fa-solid fa-calendar-days text-info me-1"></i> কিস্তি পরিশোধ পরিকল্পনা (ঐচ্ছিক):
                             </span>
                             <span id="perInstallmentAmount" class="badge bg-info text-dark fw-bold px-2.5 py-1">৳0.00 / কিস্তি</span>
                         </div>
@@ -785,14 +785,14 @@
                     {{-- Final Due Alert --}}
                     <div class="alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger" id="dueAlert">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-circle-exclamation fs-5"></i>
+                            <i class="fa-solid fa-circle-exclamation fs-5"></i>
                             <span class="fw-bold">সর্বমোট অবশিষ্ট দেনা (Closing Due):</span>
                         </div>
                         <span class="fw-bolder fs-4 text-danger font-monospace" id="displayDue">৳{{ number_format($cumClosingDue, 2) }}</span>
                     </div>
 
                     <button type="submit" class="btn btn-warning btn-lg w-100 py-3 rounded-pill fw-bold text-dark shadow-lg d-flex align-items-center justify-content-center gap-2">
-                        <i class="fas fa-check-circle fs-5"></i>
+                        <i class="fa-solid fa-circle-check fs-5"></i>
                         <span>Save & Update Purchase Invoice</span>
                     </button>
                 </div>
@@ -814,7 +814,7 @@
 
                 <div class="modal-header bg-success text-white py-3 px-4">
                     <h5 class="modal-title fw-bold" id="recordPaymentModalLabel">
-                        <i class="fas fa-hand-holding-dollar me-2"></i> টাকা পরিশোধ রেকর্ড করুন (Payment Voucher)
+                        <i class="fa-solid fa-hand-holding-dollar me-2"></i> টাকা পরিশোধ রেকর্ড করুন (Payment Voucher)
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -862,7 +862,7 @@
                 <div class="modal-footer bg-light py-2.5 px-4 border-top">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="fas fa-check-circle me-1"></i> Save & Generate Voucher
+                        <i class="fa-solid fa-circle-check me-1"></i> Save & Generate Voucher
                     </button>
                 </div>
             </form>
@@ -983,7 +983,7 @@
         if (!results || results.length === 0) {
             dropdown.innerHTML = `
                 <div class="p-3 text-center">
-                    <div class="text-muted small"><i class="fas fa-search me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি (নতুন বই হিসেবে সংরক্ষণ হবে)</div>
+                    <div class="text-muted small"><i class="fa-solid fa-magnifying-glass me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি (নতুন বই হিসেবে সংরক্ষণ হবে)</div>
                 </div>
             `;
             dropdown.classList.remove('d-none');
@@ -992,7 +992,7 @@
 
         let html = `
             <div class="px-3 py-1.5 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
+                <span><i class="fa-solid fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
                 <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">↑ ↓ Enter</span>
             </div>
             <div class="list-group list-group-flush p-1">
@@ -1545,7 +1545,7 @@
             <td class="text-end pe-3 fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
-                    <i class="fas fa-trash-can"></i>
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </td>
         `;
@@ -1652,7 +1652,7 @@
             <td class="text-end pe-3 fw-bold text-dark item-subtotal font-monospace fs-6">৳${parseFloat(rate || 0).toFixed(2)}</td>
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove row">
-                    <i class="fas fa-trash-can"></i>
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </td>
         `;

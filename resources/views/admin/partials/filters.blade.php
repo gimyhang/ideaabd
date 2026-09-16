@@ -9,7 +9,7 @@
     <div class="row g-2 align-items-center">
         <div class="col-lg">
             <div class="input-group">
-                <span class="input-group-text bg-white border-end-0"><i class="fas fa-magnifying-glass text-muted"></i></span>
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                 <input type="search" name="search" class="form-control border-start-0 ps-0"
                        placeholder="{{ $placeholder ?? 'Search records...' }}" value="{{ request('search') }}" aria-label="Search">
             </div>
@@ -27,9 +27,9 @@
         @endforeach
 
         <div class="col-lg-auto col-md-6 d-flex gap-2">
-            <button class="btn btn-primary flex-grow-1"><i class="fas fa-filter me-1"></i> Filter</button>
+            <button class="btn btn-primary flex-grow-1"><i class="fa-solid fa-filter me-1"></i> Filter</button>
             @if (request()->hasAny(array_merge(['search'], array_column($selects ?? [], 'name'))))
-                <a href="{{ $action }}" class="btn btn-outline-secondary" title="Reset Filters"><i class="fas fa-rotate-left"></i></a>
+                <a href="{{ $action }}" class="btn btn-outline-secondary" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></a>
             @endif
         </div>
     </div>

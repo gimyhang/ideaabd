@@ -884,4 +884,116 @@ class AdminAccessController extends Controller
             return back()->with('error', 'ক্যাশ ক্লিয়ার করতে ত্রুটি হয়েছে: ' . $e->getMessage());
         }
     }
+
+    /**
+     * AJAX Endpoint: Live Dynamic Theme Customizer Update.
+     */
+    public function updateTheme(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'primary_color'   => ['nullable', 'string', 'max:50'],
+            'secondary_color' => ['nullable', 'string', 'max:50'],
+            'accent_color'    => ['nullable', 'string', 'max:50'],
+            'default_mode'    => ['nullable', 'string', 'in:light,dark,auto'],
+            'sidebar_theme'   => ['nullable', 'string', 'max:50'],
+            'font_family'     => ['nullable', 'string', 'max:100'],
+            'border_radius'   => ['nullable', 'string', 'max:50'],
+            'card_style'      => ['nullable', 'string', 'max:50'],
+            'save_global'     => ['nullable', 'boolean'],
+        ]);
+
+        $themeData = [
+            'primary_color'   => $validated['primary_color'] ?? '#0066cc',
+            'secondary_color' => $validated['secondary_color'] ?? '#0099ff',
+            'accent_color'    => $validated['accent_color'] ?? '#ff6b35',
+            'default_mode'    => $validated['default_mode'] ?? 'light',
+            'sidebar_theme'   => $validated['sidebar_theme'] ?? 'theme-deep-navy',
+            'font_family'     => $validated['font_family'] ?? 'Hind Siliguri',
+            'border_radius'   => $validated['border_radius'] ?? 'rounded-modern',
+            'card_style'      => $validated['card_style'] ?? 'elevated',
+        ];
+
+        // 1. Save user personal preferences
+        $user = auth()->user();
+        if ($user) {
+            $regData = $user->reg_data ?? [];
+            $preferences = $regData['preferences'] ?? [];
+            $preferences['theme'] = $themeData['default_mode'];
+            $preferences['primary_color'] = $themeData['primary_color'];
+            $preferences['secondary_color'] = $themeData['secondary_color'];
+            $preferences['sidebar_theme'] = $themeData['sidebar_theme'];
+            $preferences['font_family'] = $themeData['font_family'];
+            $regData['preferences'] = $preferences;
+            $user->reg_data = $regData;
+            $user->save();
+        }
+
+        // 2. If requested to save as global default (Admin only)
+        if ($request->boolean('save_global') && $user && $user->isAdmin()) {
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'theme_settings'],
+                [
+                    'value'      => $themeData,
+                    'updated_by' => $user->id,
+                ]
+            );
+            \App\Support\SiteSetting::clearCache();
+            $this->accessService->log('update_theme', 'ড্যাশবোর্ড গ্লোবাল থিম সেটিংস সফলভাবে আপডেট করা হয়েছে');
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'থিম সেটিংস সফলভাবে সংরক্ষিত ও প্রয়োগ করা হয়েছে!',
+            'theme'   => $themeData,
+        ]);
+    }
+
+    /**
+     * AJAX Endpoint: Reset Theme to Factory Default.
+     */
+    public function resetTheme(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $defaultTheme = [
+            'primary_color'   => '#0066cc',
+            'secondary_color' => '#0099ff',
+            'accent_color'    => '#ff6b35',
+            'default_mode'    => 'light',
+            'sidebar_theme'   => 'theme-deep-navy',
+            'font_family'     => 'Hind Siliguri',
+            'border_radius'   => 'rounded-modern',
+            'card_style'      => 'elevated',
+        ];
+
+        $user = auth()->user();
+        if ($user) {
+            $regData = $user->reg_data ?? [];
+            $preferences = $regData['preferences'] ?? [];
+            $preferences['theme'] = 'auto';
+            $preferences['primary_color'] = '#0066cc';
+            $preferences['secondary_color'] = '#0099ff';
+            $preferences['sidebar_theme'] = 'theme-deep-navy';
+            $preferences['font_family'] = 'Hind Siliguri';
+            $regData['preferences'] = $preferences;
+            $user->reg_data = $regData;
+            $user->save();
+        }
+
+        if ($request->boolean('reset_global') && $user && $user->isAdmin()) {
+            AdminDashboardSetting::updateOrCreate(
+                ['key' => 'theme_settings'],
+                [
+                    'value'      => $defaultTheme,
+                    'updated_by' => $user->id,
+                ]
+            );
+            \App\Support\SiteSetting::clearCache();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'থিম ডিফল্ট অবস্থায় ফিরিয়ে আনা হয়েছে!',
+            'theme'   => $defaultTheme,
+        ]);
+    }
 }
+

@@ -10,32 +10,32 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="dropdown">
             <button class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-xs fw-semibold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-plus-circle me-1"></i> New Purchase
+                <i class="fa-solid fa-circle-plus me-1"></i> New Purchase
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
                 <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Select Purchase Class:</h6></li>
                 <li>
                     <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.purchases.create', ['type' => 'books']) }}">
-                        <i class="fas fa-book text-primary"></i> 1. Book Purchases
+                        <i class="fa-solid fa-book text-primary"></i> 1. Book Purchases
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.purchases.create', ['type' => 'raw_materials']) }}">
-                        <i class="fas fa-boxes-stacked text-warning"></i> 2. Raw Materials & Press
+                        <i class="fa-solid fa-boxes-stacked text-warning"></i> 2. Raw Materials & Press
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.purchases.create', ['type' => 'other']) }}">
-                        <i class="fas fa-cart-shopping text-info"></i> 3. Other Purchases
+                        <i class="fa-solid fa-cart-shopping text-info"></i> 3. Other Purchases
                     </a>
                 </li>
             </ul>
         </div>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
         <a href="{{ route('admin.purchases.payments') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-hand-holding-dollar me-1"></i> Payments & Ledgers
+            <i class="fa-solid fa-hand-holding-dollar me-1"></i> Payments & Ledgers
         </a>
         <a href="{{ route('admin.purchases.monthly-report') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
             <i class="fa-solid fa-chart-pie me-1"></i> Monthly Report
@@ -84,7 +84,7 @@
                     <span class="text-muted small fw-semibold">Invoices</span>
                     <h3 class="fw-bold mb-0 text-primary">{{ number_format($stats['total_invoices']) }}</h3>
                 </div>
-                <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fas fa-receipt fs-4"></i></div>
+                <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fa-solid fa-receipt fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -95,7 +95,7 @@
                     <span class="text-muted small fw-semibold">Total Purchases</span>
                     <h3 class="fw-bold mb-0 text-dark">৳{{ number_format($stats['total_purchase'], 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fas fa-cart-flatbed fs-4"></i></div>
+                <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fa-solid fa-cart-flatbed fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -106,7 +106,7 @@
                     <span class="text-muted small fw-semibold">Total Paid</span>
                     <h3 class="fw-bold mb-0 text-success">৳{{ number_format($stats['total_paid'], 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-hand-holding-dollar fs-4"></i></div>
+                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fa-solid fa-hand-holding-dollar fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -117,7 +117,7 @@
                     <span class="text-muted small fw-semibold">Due Balance</span>
                     <h3 class="fw-bold mb-0 text-danger">৳{{ number_format($stats['total_due'], 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fas fa-clock-rotate-left fs-4"></i></div>
+                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fa-solid fa-clock-rotate-left fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -132,7 +132,7 @@
             @endif
             <div class="col-md-3">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="search" name="search" class="form-control border-start-0" 
                            placeholder="Invoice #, book or vendor..." value="{{ request('search') }}">
                 </div>
@@ -157,9 +157,9 @@
                 <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" title="Start Date">
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Filter</button>
                 @if(request()->hasAny(['search', 'publisher_id', 'payment_status', 'date_from']))
-                    <a href="{{ route('admin.purchases.index', $category ? ['category' => $category] : []) }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                    <a href="{{ route('admin.purchases.index', $category ? ['category' => $category] : []) }}" class="btn btn-light border" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
@@ -170,15 +170,15 @@
 <div class="adm-card shadow-sm rounded-4 overflow-hidden bg-white">
     @if ($purchases->isEmpty())
         <div class="empty-state py-5 text-center">
-            <i class="fas fa-receipt fs-1 text-muted opacity-50 mb-3"></i>
+            <i class="fa-solid fa-receipt fs-1 text-muted opacity-50 mb-3"></i>
             <h5 class="fw-bold text-muted">No purchase invoices found</h5>
             <p class="text-muted small">Record a new purchase entry using the button below.</p>
             <div class="d-flex justify-content-center flex-wrap gap-2">
                 <a href="{{ route('admin.purchases.create', ['type' => 'books']) }}" class="btn btn-primary rounded-pill px-4">
-                    <i class="fas fa-book me-1"></i> Book Purchase
+                    <i class="fa-solid fa-book me-1"></i> Book Purchase
                 </a>
                 <a href="{{ route('admin.purchases.create', ['type' => 'raw_materials']) }}" class="btn btn-warning rounded-pill px-4 text-dark fw-bold">
-                    <i class="fas fa-boxes-stacked me-1"></i> Raw Materials
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> Raw Materials
                 </a>
             </div>
         </div>
@@ -229,12 +229,12 @@
                                 </div>
                                 @if($purchase->party_phone)
                                     <div class="text-muted small" style="font-size: 11px;">
-                                        <i class="fas fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $purchase->party_phone }}
+                                        <i class="fa-solid fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $purchase->party_phone }}
                                     </div>
                                 @endif
                                 @if($purchase->party_address)
                                     <div class="text-muted small text-truncate" style="max-width: 220px; font-size: 11px;" title="{{ $purchase->party_address }}">
-                                        <i class="fas fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $purchase->party_address }}
+                                        <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $purchase->party_address }}
                                     </div>
                                 @endif
                                 @if($purchase->publisher_memo_no)
@@ -275,18 +275,18 @@
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 py-1">
                                         <li>
                                             <a class="dropdown-item py-1.5 small" href="{{ route('admin.purchases.show', $purchase->id) }}">
-                                                <i class="fas fa-eye text-primary me-2"></i> View Invoice
+                                                <i class="fa-solid fa-eye text-primary me-2"></i> View Invoice
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item py-1.5 small" href="{{ route('admin.purchases.edit', $purchase->id) }}">
-                                                <i class="fas fa-pen text-warning me-2"></i> Edit Invoice
+                                                <i class="fa-solid fa-pen text-warning me-2"></i> Edit Invoice
                                             </a>
                                         </li>
                                         @if($purchase->due_amount > 0)
                                             <li>
                                                 <a class="dropdown-item py-1.5 small" href="{{ route('admin.purchases.payments', ['publisher_id' => $purchase->publisher_id, 'vendor_name' => $purchase->vendor_name]) }}">
-                                                    <i class="fas fa-hand-holding-dollar text-success me-2"></i> Record Payment
+                                                    <i class="fa-solid fa-hand-holding-dollar text-success me-2"></i> Record Payment
                                                 </a>
                                             </li>
                                         @endif
@@ -296,7 +296,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item py-1.5 small text-danger">
-                                                    <i class="fas fa-trash-can me-2"></i> Delete
+                                                    <i class="fa-solid fa-trash-can me-2"></i> Delete
                                                 </button>
                                             </form>
                                         </li>

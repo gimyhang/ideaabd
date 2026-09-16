@@ -10,16 +10,16 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAuthorsToCSV()" title="Export to CSV file">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
-            <i class="fas fa-print me-1"></i> Print
+            <i class="fa-solid fa-print me-1"></i> Print
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="openAddAuthorModal()">
-            <i class="fas fa-plus-circle me-1"></i> Add New Author
+            <i class="fa-solid fa-circle-plus me-1"></i> Add New Author
         </button>
         <a href="{{ route('authors.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Storefront
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Storefront
         </a>
     </div>
 @endsection
@@ -44,7 +44,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3 border-0 bg-success-subtle text-success-emphasis" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -63,7 +63,7 @@
                             <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fas fa-pen-fancy small"></i>
+                            <i class="fa-solid fa-pen-fancy small"></i>
                         </div>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
                             <h5 class="fw-bold mb-0 text-success">{{ number_format($stats['active'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fas fa-user-check small"></i>
+                            <i class="fa-solid fa-user-check small"></i>
                         </div>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
                             <h5 class="fw-bold mb-0 text-info">{{ number_format($stats['verified'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fas fa-certificate small"></i>
+                            <i class="fa-solid fa-certificate small"></i>
                         </div>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
                             <h5 class="fw-bold mb-0 text-warning-emphasis">{{ number_format($stats['with_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
                         </div>
                         <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fas fa-book-open small"></i>
+                            <i class="fa-solid fa-book-open small"></i>
                         </div>
                     </div>
                 </div>
@@ -122,7 +122,7 @@
                         <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">books</small></h5>
                     </div>
                     <div class="rounded-circle bg-secondary-subtle text-secondary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-layer-group small"></i>
+                        <i class="fa-solid fa-layer-group small"></i>
                     </div>
                 </div>
             </div>
@@ -139,7 +139,7 @@
                 <div class="col-12 col-lg-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-end-0 text-muted ps-2.5">
-                            <i class="fas fa-search"></i>
+                            <i class="fa-solid fa-magnifying-glass"></i>
                         </span>
                         <input type="search" name="search" class="form-control border-start-0 bg-light" 
                                placeholder="Search by author name, slug, phone or bio..." value="{{ request('search') }}">
@@ -188,16 +188,16 @@
 
                     <div class="btn-group btn-group-sm shadow-xs" role="group" aria-label="View Mode">
                         <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="7-Column Grid View">
-                            <i class="fas fa-th"></i>
+                            <i class="fa-solid fa-th"></i>
                         </button>
                         <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="Table View">
-                            <i class="fas fa-list"></i>
+                            <i class="fa-solid fa-list"></i>
                         </button>
                     </div>
 
                     @if(request()->hasAny(['search', 'is_active', 'is_verified', 'has_books', 'sort', 'per_page']))
                         <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="Reset Filters">
-                            <i class="fas fa-rotate-left"></i>
+                            <i class="fa-solid fa-rotate-left"></i>
                         </a>
                     @endif
                 </div>
@@ -212,7 +212,7 @@
         <div class="card border-0 shadow-xs rounded-4 bg-white p-5 text-center my-3">
             <div class="mb-3">
                 <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-3" style="width: 60px; height: 60px;">
-                    <i class="fas fa-pen-fancy fs-3 text-muted opacity-50"></i>
+                    <i class="fa-solid fa-pen-fancy fs-3 text-muted opacity-50"></i>
                 </div>
             </div>
             <h6 class="fw-bold text-dark mb-1">No Authors Found</h6>
@@ -220,7 +220,7 @@
             <div class="d-flex justify-content-center gap-2">
                 <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-3">Clear Filters</a>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openAddAuthorModal()">
-                    <i class="fas fa-plus me-1"></i> Add New Author
+                    <i class="fa-solid fa-plus me-1"></i> Add New Author
                 </button>
             </div>
         </div>
@@ -277,14 +277,14 @@
                                             </a>
                                         </h6>
                                         @if($author->is_verified)
-                                            <i class="fas fa-circle-check text-info flex-shrink-0" style="font-size: 11px;" title="Verified Author"></i>
+                                            <i class="fa-solid fa-circle-check text-info flex-shrink-0" style="font-size: 11px;" title="Verified Author"></i>
                                         @endif
                                     </div>
 
                                     {{-- রো ২ (নিচে): লেখকের সর্বমোট বইয়ের সংখ্যা --}}
                                     <div class="d-flex align-items-center justify-content-center gap-1.5 mb-2 w-100">
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 0.70rem;">
-                                            <i class="fas fa-book-bookmark me-1"></i>{{ $booksCount }} টি বই
+                                            <i class="fa-solid fa-book-bookmark me-1"></i>{{ $booksCount }} টি বই
                                         </span>
                                         @if(!$author->is_active)
                                             <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">নিষ্ক্রিয়</span>
@@ -295,20 +295,20 @@
                                     <div class="d-flex align-items-center justify-content-center gap-1 w-100">
                                         <button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" 
                                                 style="width: 24px; height: 24px; font-size: 10px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="🪪 প্রোফাইল ভিউ">
-                                            <i class="fas fa-id-card"></i>
+                                            <i class="fa-solid fa-id-card"></i>
                                         </button>
                                         <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
                                                 style="width: 24px; height: 24px; font-size: 10px;" onclick="openEditAuthorModal({{ $author->id }})" title="✏️ কুইক এডিট">
-                                            <i class="fas fa-pen"></i>
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <button type="button" class="btn btn-xs btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" 
                                                 style="width: 24px; height: 24px; font-size: 10px;" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="🔑 পাসওয়ার্ড রিসেট">
-                                            <i class="fas fa-key"></i>
+                                            <i class="fa-solid fa-key"></i>
                                         </button>
                                         <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
                                            class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" 
                                            style="width: 24px; height: 24px; font-size: 10px;" title="🌐 পাবলিক বুকশপ পেজ">
-                                            <i class="fas fa-external-link-alt"></i>
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -324,7 +324,7 @@
                                                          onerror="this.src='/images/book-placeholder.png'">
                                                 @else
                                                     <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-1 text-center" style="font-size: 0.60rem;">
-                                                        <i class="fas fa-book mb-1"></i>
+                                                        <i class="fa-solid fa-book mb-1"></i>
                                                         <span class="line-clamp-2" style="font-size: 0.55rem; line-height: 1;">{{ Str::limit($topBook->title, 10) }}</span>
                                                     </div>
                                                 @endif
@@ -337,7 +337,7 @@
                                     @else
                                         <div class="rounded-2 border border-dashed d-flex flex-column align-items-center justify-content-center text-muted bg-light" 
                                              style="width: 52px; height: 75px; font-size: 0.65rem;" title="কোনো বই নেই">
-                                            <i class="fas fa-book-open opacity-40 mb-1"></i>
+                                            <i class="fa-solid fa-book-open opacity-40 mb-1"></i>
                                             <span style="font-size: 0.55rem;">বই নেই</span>
                                         </div>
                                     @endif
@@ -405,22 +405,22 @@
                                                         {{ $author->name }}
                                                     </a>
                                                     @if($author->is_verified)
-                                                        <i class="fas fa-check-circle text-info ms-1" style="font-size: 11px;" title="Verified Author"></i>
+                                                        <i class="fa-solid fa-circle-check text-info ms-1" style="font-size: 11px;" title="Verified Author"></i>
                                                     @endif
                                                 </div>
                                                 <div class="text-muted font-monospace d-flex align-items-center gap-1" style="font-size: 0.72rem;">
                                                     <span>{{ $author->slug }}</span>
-                                                    <i class="fas fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug copied to clipboard!')" title="Copy Slug"></i>
+                                                    <i class="fa-solid fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug copied to clipboard!')" title="Copy Slug"></i>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td style="min-width: 140px;">
                                         @if($author->phone)
-                                            <div class="text-nowrap small mb-0.5" style="font-size: 0.78rem;"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
+                                            <div class="text-nowrap small mb-0.5" style="font-size: 0.78rem;"><i class="fa-solid fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
                                         @endif
                                         @if($author->email)
-                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem; max-width: 160px;" title="{{ $author->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem; max-width: 160px;" title="{{ $author->email }}"><i class="fa-solid fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
                                         @endif
                                         @if(!$author->phone && !$author->email)
                                             <span class="text-muted small">—</span>
@@ -428,7 +428,7 @@
                                     </td>
                                     <td>
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
-                                            <i class="fas fa-book me-1"></i>{{ $booksCount }} books
+                                            <i class="fa-solid fa-book me-1"></i>{{ $booksCount }} books
                                         </span>
                                     </td>
                                     <td>
@@ -447,7 +447,7 @@
                                                 style="font-size: 0.70rem;"
                                                 onclick="toggleAuthorStatus({{ $author->id }}, this)"
                                                 title="Toggle Status">
-                                            <i class="fas fa-circle-dot me-1" style="font-size: 7px;"></i>
+                                            <i class="fa-solid fa-circle-dot me-1" style="font-size: 7px;"></i>
                                             <span>{{ $author->is_active ? 'Active' : 'Inactive' }}</span>
                                         </button>
                                     </td>
@@ -455,23 +455,23 @@
                                     <td class="text-end pe-3">
                                         <div class="d-inline-flex gap-1 align-items-center">
                                             <button type="button" class="btn btn-xs btn-outline-info p-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Profile">
-                                                <i class="fas fa-eye small"></i>
+                                                <i class="fa-solid fa-eye small"></i>
                                             </button>
                                             <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
-                                                <i class="fas fa-pen-to-square small"></i>
+                                                <i class="fa-solid fa-pen-to-square small"></i>
                                             </button>
                                             <button type="button" class="btn btn-xs btn-outline-warning p-1" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট (Reset Password)">
-                                                <i class="fas fa-key small"></i>
+                                                <i class="fa-solid fa-key small"></i>
                                             </button>
                                             <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="View on Site">
-                                                <i class="fas fa-arrow-up-right-from-square text-muted small"></i>
+                                                <i class="fa-solid fa-arrow-up-right-from-square text-muted small"></i>
                                             </a>
                                             <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
                                                   method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই লেখক প্রোফাইলটি ডিলিট করতে চান?" data-confirm-title="লেখক ডিলিট">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Delete Author">
-                                                    <i class="fas fa-trash-can small"></i>
+                                                    <i class="fa-solid fa-trash-can small"></i>
                                                 </button>
                                             </form>
                                         </div>
@@ -509,7 +509,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
                 <h5 class="modal-title fw-bold text-dark" id="addAuthorModalLabel">
-                    <i class="fas fa-user-pen text-primary me-2"></i>Add New Author
+                    <i class="fa-solid fa-user-pen text-primary me-2"></i>Add New Author
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -550,7 +550,7 @@
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
                                      style="width: 54px; height: 54px;" id="addAvatarPreviewBox">
-                                    <i class="fas fa-image text-muted fs-4"></i>
+                                    <i class="fa-solid fa-image text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'addAvatarPreviewBox')">
@@ -576,7 +576,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnAddAuthorSubmit">
-                        <i class="fas fa-save me-1"></i> Save Author
+                        <i class="fa-solid fa-save me-1"></i> Save Author
                     </button>
                 </div>
             </form>
@@ -590,7 +590,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
                 <h5 class="modal-title fw-bold text-dark" id="editAuthorModalLabel">
-                    <i class="fas fa-pen-to-square text-primary me-2"></i>Edit Author Information
+                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Edit Author Information
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -632,7 +632,7 @@
                             <div class="d-flex align-items-center gap-3">
                                 <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
                                      style="width: 54px; height: 54px;" id="editAvatarPreviewBox">
-                                    <i class="fas fa-image text-muted fs-4"></i>
+                                    <i class="fa-solid fa-image text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'editAvatarPreviewBox')">
@@ -657,7 +657,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnEditAuthorSubmit">
-                        <i class="fas fa-save me-1"></i> Update Author
+                        <i class="fa-solid fa-save me-1"></i> Update Author
                     </button>
                 </div>
             </form>
@@ -688,10 +688,10 @@
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4">
                 <a href="#" id="detailsSiteLink" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View Store Profile
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Store Profile
                 </a>
                 <a href="#" id="detailsEditLink" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                    <i class="fas fa-pen-to-square me-1"></i> Full Edit
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Full Edit
                 </a>
             </div>
         </div>
@@ -723,7 +723,7 @@
             <div class="modal-header bg-warning text-dark border-0 p-3 px-4">
                 <div class="d-flex align-items-center gap-2.5">
                     <div class="bg-white bg-opacity-50 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-key text-dark"></i>
+                        <i class="fa-solid fa-key text-dark"></i>
                     </div>
                     <div>
                         <h6 class="modal-title fw-bold mb-0">লেখকের পাসওয়ার্ড রিসেট</h6>
@@ -746,7 +746,7 @@
                         <label class="form-label small fw-bold text-secondary mb-1 d-flex align-items-center justify-content-between">
                             <span>নতুন পাসওয়ার্ড লিখুন অথবা স্বয়ংক্রিয় তৈরি করুন:</span>
                             <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-primary fw-semibold small" onclick="generateRandomAuthorPassword()">
-                                <i class="fas fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
+                                <i class="fa-solid fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
                             </button>
                         </label>
                         <div class="input-group">
@@ -760,7 +760,7 @@
 
                     <div id="resetResultCard" class="d-none p-3 bg-white border border-success-subtle rounded-3 shadow-xs mb-3">
                         <div class="d-flex align-items-center gap-2 text-success fw-bold small mb-2">
-                            <i class="fas fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check"></i>
                             <span>পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!</span>
                         </div>
                         <div class="small text-muted mb-2">
@@ -781,7 +781,7 @@
                     <div class="d-flex justify-content-end gap-2 pt-2 border-top">
                         <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
                         <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-pill px-4" id="btnSubmitPasswordReset">
-                            <i class="fas fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
+                            <i class="fa-solid fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
                         </button>
                     </div>
                 </form>
@@ -795,7 +795,7 @@
     <div id="actionToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center gap-2">
-                <i class="fas fa-circle-check text-success fs-5" id="toastIcon"></i>
+                <i class="fa-solid fa-circle-check text-success fs-5" id="toastIcon"></i>
                 <span id="toastMessage">Operation completed successfully</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -891,7 +891,7 @@ function showToast(message, isSuccess = true) {
 
     toastMsg.textContent = message;
     if (toastIcon) {
-        toastIcon.className = isSuccess ? 'fas fa-circle-check text-success fs-5' : 'fas fa-triangle-exclamation text-danger fs-5';
+        toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-success fs-5' : 'fa-solid fa-triangle-exclamation text-danger fs-5';
     }
 
     const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
@@ -910,7 +910,7 @@ function openAddAuthorModal() {
     const form = document.getElementById('addAuthorForm');
     if (form) form.reset();
     const preview = document.getElementById('addAvatarPreviewBox');
-    if (preview) preview.innerHTML = '<i class="fas fa-image text-muted fs-4"></i>';
+    if (preview) preview.innerHTML = '<i class="fa-solid fa-image text-muted fs-4"></i>';
     const modal = new bootstrap.Modal(document.getElementById('addAuthorModal'));
     modal.show();
 }
@@ -979,7 +979,7 @@ function submitAddAuthor(event) {
     .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Author';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save Author';
         }
     });
 }
@@ -1060,7 +1060,7 @@ function submitEditAuthor(event) {
     .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Update Author';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Update Author';
         }
     });
 }
@@ -1154,13 +1154,13 @@ function openAuthorDetailsModal(id) {
             if (a.books && a.books.length > 0) {
                 booksHtml = `
                     <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-book text-primary me-2"></i>Catalog Books (${a.books.length} listed)</h6>
+                        <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-book text-primary me-2"></i>Catalog Books (${a.books.length} listed)</h6>
                         <div class="row row-cols-1 row-cols-sm-2 g-2">
                             ${a.books.map(b => `
                                 <div class="col">
                                     <div class="p-2 border rounded-3 d-flex align-items-center gap-2 bg-light">
                                         <div class="rounded overflow-hidden bg-white border flex-shrink-0" style="width: 36px; height: 48px;">
-                                            ${b.cover_image ? `<img src="/storage/${b.cover_image}" class="w-100 h-100 object-fit-cover">` : '<i class="fas fa-book text-muted m-2"></i>'}
+                                            ${b.cover_image ? `<img src="/storage/${b.cover_image}" class="w-100 h-100 object-fit-cover">` : '<i class="fa-solid fa-book text-muted m-2"></i>'}
                                         </div>
                                         <div class="min-w-0">
                                             <div class="fw-bold small text-truncate">${b.title}</div>
@@ -1175,7 +1175,7 @@ function openAuthorDetailsModal(id) {
             } else {
                 booksHtml = `
                     <div class="mt-4 pt-3 border-top text-center text-muted small py-3">
-                        <i class="fas fa-book-open opacity-50 mb-1 d-block fs-4"></i>
+                        <i class="fa-solid fa-book-open opacity-50 mb-1 d-block fs-4"></i>
                         No books listed under this author yet.
                     </div>
                 `;
@@ -1301,7 +1301,7 @@ function submitAuthorPasswordReset(e) {
     const originalText = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
 
     fetch(`/admin/authors/${authorId}/reset-password`, {
         method: 'POST',

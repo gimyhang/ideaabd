@@ -14,7 +14,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -62,7 +62,7 @@
         <form method="GET" action="{{ route('admin.author-honorariums.index') }}" class="row g-2 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="search" class="form-control border-start-0" placeholder="পাঠক, লেখক, TrxID বা লেখা..." value="{{ request('search') }}">
                 </div>
             </div>
@@ -100,11 +100,11 @@
 
             <div class="col-6 col-md-3 d-flex gap-2">
                 <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100 fw-semibold">
-                    <i class="fas fa-filter me-1"></i> ফিল্টার
+                    <i class="fa-solid fa-filter me-1"></i> ফিল্টার
                 </button>
                 @if(request()->hasAny(['search', 'author_id', 'method', 'status', 'from_date', 'to_date']))
                     <a href="{{ route('admin.author-honorariums.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="ফিল্টার রিসেট">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
             </div>
@@ -115,7 +115,7 @@
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light bg-opacity-50">
             <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <i class="fas fa-receipt text-danger"></i>
+                <i class="fa-solid fa-receipt text-danger"></i>
                 <span>পাঠক সম্মানি লেনদেন লগ (Author Honorariums Ledger)</span>
                 <span class="badge bg-danger text-white rounded-pill">Total: {{ $honorariums->total() }}</span>
             </h6>
@@ -157,7 +157,7 @@
                                                 style="width: 20px; height: 20px; font-size: 8.5px;" 
                                                 onclick="openAuthorPasswordResetModal({{ $h->author->id }}, '{{ addslashes($h->author->name) }}', '{{ addslashes($h->author->email ?: ($h->author->phone ?: '')) }}')" 
                                                 title="লেখকের পাসওয়ার্ড রিসেট (1-Click Password Reset)">
-                                            <i class="fas fa-key"></i>
+                                            <i class="fa-solid fa-key"></i>
                                         </button>
                                     </div>
                                     <small class="text-muted d-block">{{ $h->author->phone ?: $h->author->email }}</small>
@@ -237,7 +237,7 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="completed">
                                                 <button type="submit" class="dropdown-item small text-success">
-                                                    <i class="fas fa-check-circle me-1.5"></i> সফল (Completed)
+                                                    <i class="fa-solid fa-circle-check me-1.5"></i> সফল (Completed)
                                                 </button>
                                             </form>
                                         </li>
@@ -247,7 +247,7 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="pending">
                                                 <button type="submit" class="dropdown-item small text-warning">
-                                                    <i class="fas fa-clock me-1.5"></i> পেন্ডিং (Pending)
+                                                    <i class="fa-solid fa-clock me-1.5"></i> পেন্ডিং (Pending)
                                                 </button>
                                             </form>
                                         </li>
@@ -257,7 +257,7 @@
                                                 @method('PATCH')
                                                 <input type="hidden" name="status" value="rejected">
                                                 <button type="submit" class="dropdown-item small text-danger">
-                                                    <i class="fas fa-times-circle me-1.5"></i> বাতিল (Rejected)
+                                                    <i class="fa-solid fa-circle-xmark me-1.5"></i> বাতিল (Rejected)
                                                 </button>
                                             </form>
                                         </li>
@@ -267,7 +267,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="dropdown-item small text-danger">
-                                                    <i class="fas fa-trash-can me-1.5"></i> রেকর্ড মুছুন
+                                                    <i class="fa-solid fa-trash-can me-1.5"></i> রেকর্ড মুছুন
                                                 </button>
                                             </form>
                                         </li>
@@ -278,7 +278,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fas fa-hand-holding-heart fs-2 opacity-25 d-block mb-2"></i>
+                                <i class="fa-solid fa-hand-holding-heart fs-2 opacity-25 d-block mb-2"></i>
                                 কোনো লেখক সম্মানি রেকর্ড পাওয়া যায়নি।
                             </td>
                         </tr>
@@ -303,7 +303,7 @@
             <div class="modal-header bg-warning text-dark border-0 p-3 px-4">
                 <div class="d-flex align-items-center gap-2.5">
                     <div class="bg-white bg-opacity-50 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fas fa-key text-dark"></i>
+                        <i class="fa-solid fa-key text-dark"></i>
                     </div>
                     <div>
                         <h6 class="modal-title fw-bold mb-0">লেখকের পাসওয়ার্ড রিসেট</h6>
@@ -326,7 +326,7 @@
                         <label class="form-label small fw-bold text-secondary mb-1 d-flex align-items-center justify-content-between">
                             <span>নতুন পাসওয়ার্ড লিখুন অথবা স্বয়ংক্রিয় তৈরি করুন:</span>
                             <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-primary fw-semibold small" onclick="generateRandomAuthorPassword()">
-                                <i class="fas fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
+                                <i class="fa-solid fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
                             </button>
                         </label>
                         <div class="input-group">
@@ -340,7 +340,7 @@
 
                     <div id="resetResultCard" class="d-none p-3 bg-white border border-success-subtle rounded-3 shadow-xs mb-3">
                         <div class="d-flex align-items-center gap-2 text-success fw-bold small mb-2">
-                            <i class="fas fa-circle-check"></i>
+                            <i class="fa-solid fa-circle-check"></i>
                             <span>পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!</span>
                         </div>
                         <div class="small text-muted mb-2">
@@ -361,7 +361,7 @@
                     <div class="d-flex justify-content-end gap-2 pt-2 border-top">
                         <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
                         <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-pill px-4" id="btnSubmitPasswordReset">
-                            <i class="fas fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
+                            <i class="fa-solid fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
                         </button>
                     </div>
                 </form>
@@ -413,7 +413,7 @@ function submitAuthorPasswordReset(e) {
     const originalText = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
 
     fetch(`/admin/authors/${authorId}/reset-password`, {
         method: 'POST',

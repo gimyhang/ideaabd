@@ -11,12 +11,12 @@
     <form method="POST" action="{{ route('admin.sub-admins.toggle', $staff) }}" class="d-inline">
         @csrf @method('PATCH')
         <button class="btn btn-sm rounded-pill px-3 {{ $staff->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}">
-            <i class="fas fa-{{ $staff->is_active ? 'ban' : 'circle-check' }} me-1"></i>
+            <i class="fa-solid fa-{{ $staff->is_active ? 'ban' : 'circle-check' }} me-1"></i>
             {{ $staff->is_active ? 'Deactivate' : 'Activate' }}
         </button>
     </form>
     <a href="{{ route('admin.sub-admins.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-        <i class="fas fa-arrow-left me-1"></i> Directory
+        <i class="fa-solid fa-arrow-left me-1"></i> Directory
     </a>
 @endsection
 
@@ -61,25 +61,25 @@
                 <div class="kpi bg-white rounded-4 shadow-sm border-0 p-3" style="--bar:#0066cc">
                     <p class="kpi__label small text-muted fw-semibold mb-1">Total Bills</p>
                     <p class="kpi__value fs-4 fw-bold mb-0" style="color:#0066cc">{{ number_format($totals['bills']) }}</p>
-                    <span class="kpi__icon" style="background:#0066cc1a;color:#0066cc"><i class="fas fa-receipt"></i></span>
+                    <span class="kpi__icon" style="background:#0066cc1a;color:#0066cc"><i class="fa-solid fa-receipt"></i></span>
                 </div>
             </div>
             <div class="col-6">
                 <div class="kpi bg-white rounded-4 shadow-sm border-0 p-3" style="--bar:#2a9d8f">
                     <p class="kpi__label small text-muted fw-semibold mb-1">Total Revenue</p>
                     <p class="kpi__value fs-4 fw-bold mb-0" style="color:#2a9d8f">৳{{ number_format($totals['revenue'], 2) }}</p>
-                    <span class="kpi__icon" style="background:#2a9d8f1a;color:#2a9d8f"><i class="fas fa-sack-dollar"></i></span>
+                    <span class="kpi__icon" style="background:#2a9d8f1a;color:#2a9d8f"><i class="fa-solid fa-sack-dollar"></i></span>
                 </div>
             </div>
         </div>
 
         <div class="adm-card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
             <div class="adm-card__head p-3 border-bottom">
-                <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-receipt me-2 text-primary"></i> Recent Invoices & Bills</h6>
+                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-receipt me-2 text-primary"></i> Recent Invoices & Bills</h6>
             </div>
 
             @if ($bills->isEmpty())
-                <div class="empty-state py-5 text-center text-muted"><i class="fas fa-inbox fs-2 mb-2 d-block opacity-50"></i>No bills found for this account</div>
+                <div class="empty-state py-5 text-center text-muted"><i class="fa-solid fa-inbox fs-2 mb-2 d-block opacity-50"></i>No bills found for this account</div>
             @else
                 <div class="table-responsive">
                     <table class="table adm-table align-middle mb-0">

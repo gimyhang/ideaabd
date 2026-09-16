@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Mail\PasswordResetLinkMail;
 use App\Models\User;
+use App\Rules\StrongPassword;
+use App\Services\SecurityAuditService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -300,8 +302,11 @@ class PasswordResetController extends Controller
                 'required',
                 'confirmed',
                 'string',
-                'min:6',
-                'max:50',
+                'min:8',
+                'max:128',
+                new StrongPassword([
+                    'email' => (string) $request->input('email'),
+                ]),
             ],
         ], $customMessages);
 
@@ -333,7 +338,7 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        // Update password
+        // Update password with Argon2id
         $user->password = Hash::make($request->password);
         $user->save();
 
@@ -343,6 +348,7 @@ class PasswordResetController extends Controller
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
         } catch (\Throwable $e) {}
 
+        SecurityAuditService::passwordResetCompleted($user->id);
         Log::info("Password successfully reset for User ID: {$user->id} ({$user->email})");
 
         return redirect()->route('login')->with('status', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! এখন আপনার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।');
@@ -356,9 +362,9 @@ class PasswordResetController extends Controller
         $customMessages = [
             'phone.required'     => 'মোবাইল নম্বর বা ইমেইল প্রদান করুন।',
             'otp.required'       => '৬ ডিজিটের ভেরিফিকেশন কোড প্রদান করুন।',
-            'otp.digits'         => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে হবে।',
+            'otp.digits'         => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে باشد।',
             'password.required'  => 'নতুন পাসওয়ার্ড প্রদান করুন।',
-            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৬ অক্ষরের হতে হবে।',
+            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।',
             'password.confirmed' => 'পাসওয়ার্ড এবং পাসওয়ার্ড নিশ্চিতকরণ মেলেনি।',
         ];
 
@@ -369,8 +375,11 @@ class PasswordResetController extends Controller
                 'required',
                 'confirmed',
                 'string',
-                'min:6',
-                'max:50',
+                'min:8',
+                'max:128',
+                new StrongPassword([
+                    'phone' => (string) $request->input('phone'),
+                ]),
             ],
         ], $customMessages);
 

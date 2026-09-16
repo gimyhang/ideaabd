@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Rules\StrongPassword;
+use App\Services\SecurityAuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -160,17 +162,21 @@ class RegistrationController extends Controller
             'email'          => ['required', 'email', 'max:255'],
             'phone'          => ['required', 'string', 'max:25'],
             'country_code'   => ['nullable', 'string', 'max:10'],
-            'password'       => ['required', 'string', 'min:6'],
+            'password'       => ['required', 'string', 'min:8', 'max:128', new StrongPassword([
+                'name'  => (string) $request->input('name'),
+                'email' => (string) $request->input('email'),
+                'phone' => (string) $request->input('phone'),
+            ])],
             'category'       => ['required', 'string', 'in:buyer,author,publisher,seller'],
             'author_name'    => ['nullable', 'string', 'max:255'],
             'author_name_en' => ['nullable', 'string', 'max:255'],
             'publisher_name' => ['nullable', 'string', 'max:255'],
             'shop_name'      => ['nullable', 'string', 'max:255'],
-            'country'        => ['nullable', 'string', 'max:100'],
-            'district'       => ['nullable', 'string', 'max:100'],
-            'thana'          => ['nullable', 'string', 'max:100'],
-            'post_code'      => ['nullable', 'string', 'max:20'],
-            'address'        => ['nullable', 'string', 'max:500'],
+            'country'        => ['required', 'string', 'max:100'],
+            'district'       => ['required', 'string', 'max:100'],
+            'thana'          => ['required', 'string', 'max:100'],
+            'post_code'      => ['required', 'string', 'max:20'],
+            'address'        => ['required', 'string', 'max:500'],
         ])->validate();
 
         $countryCode = $request->input('country_code', '+880');
@@ -366,8 +372,12 @@ class RegistrationController extends Controller
             'confirmed',
             'string',
             'min:8',
-            'max:25',
-            'regex:/[!@#$%^&*(),.?":{}|<>_\-+=]/',
+            'max:128',
+            new StrongPassword([
+                'name'  => (string) ($request->input('name') ?? $request->input('name_bn') ?? $request->input('name_en')),
+                'email' => (string) $request->input('email'),
+                'phone' => (string) $request->input('phone'),
+            ]),
         ];
 
         if ($type === 'buyer') {

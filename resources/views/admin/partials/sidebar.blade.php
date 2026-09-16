@@ -62,6 +62,7 @@
             ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Gateway Reports'],
             ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Payment Gateways'],
             ['route' => 'admin.customers',        'icon' => 'user-tag',      'label' => 'Customers & Broadcast'],
+            ['route' => 'admin.sms.index',        'icon' => 'comment-sms',   'label' => 'Bulk SMS & Gateway'],
             ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Seller Bills'],
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Book Requests'],
         ],
@@ -129,6 +130,7 @@
         'admin.gateway-reports' => 'orders.view',
         'admin.payments.index' => 'orders.view',
         'admin.customers' => 'support.broadcast',
+        'admin.sms.index' => 'support.broadcast',
         'admin.orders' => 'orders.view',
         'admin.book-requests.index' => 'support.view',
         'admin.users' => 'users.view',
@@ -159,22 +161,22 @@
             </span>
         </a>
         <button type="button" class="adm-side__close d-lg-none btn btn-sm text-white" data-side-close aria-label="Close sidebar">
-            <i class="fas fa-times fs-5"></i>
+            <i class="fa-solid fa-xmark fs-5"></i>
         </button>
         <button type="button" class="adm-side__desktop-toggle d-none d-lg-flex btn btn-sm text-white-50 p-1 border-0" data-side-toggle title="সাইডবার টগল করুন" aria-label="Toggle Mini Sidebar">
-            <i class="fas fa-bars-staggered"></i>
+            <i class="fa-solid fa-bars-staggered"></i>
         </button>
     </div>
 
     <!-- 1. Spotlight Search Bar (Instant Filter) -->
     <div class="adm-side__search-wrap">
         <div class="adm-side__search-box">
-            <i class="fas fa-search adm-side__search-icon"></i>
+            <i class="fa-solid fa-magnifying-glass adm-side__search-icon"></i>
             <input type="text" id="admSidebarSearch" class="adm-side__search-input" placeholder="Search menu... (Ctrl+K)" autocomplete="off">
             <span id="admSidebarMatchCounter" class="adm-side__match-badge d-none">0</span>
             <span class="adm-side__search-shortcut" id="admSidebarShortcut">⌘K</span>
             <button type="button" id="admSidebarSearchClear" class="adm-side__search-clear" title="Clear filter">
-                <i class="fas fa-times"></i>
+                <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
     </div>
@@ -182,23 +184,23 @@
     <!-- 2. Quick Access / Favorites Chip Bar -->
     <div class="adm-side__favorites">
         <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="Boi Mela Stall POS" data-tooltip="Boi Mela POS">
-            <i class="fas fa-cash-register text-warning"></i>
+            <i class="fa-solid fa-cash-register text-warning"></i>
             <span>POS</span>
         </a>
         <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Book Orders" data-tooltip="Book Orders">
-            <i class="fas fa-cart-shopping text-info"></i>
+            <i class="fa-solid fa-cart-shopping text-info"></i>
             <span>Orders</span>
         </a>
         <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books Catalog" data-tooltip="Books Catalog">
-            <i class="fas fa-book text-success"></i>
+            <i class="fa-solid fa-book text-success"></i>
             <span>Books</span>
         </a>
         <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Multi-Currency FX" data-tooltip="Multi-Currency FX">
-            <i class="fas fa-coins text-warning"></i>
+            <i class="fa-solid fa-coins text-warning"></i>
             <span>FX</span>
         </a>
         <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Support Tickets" data-tooltip="Support Tickets">
-            <i class="fas fa-ticket text-danger"></i>
+            <i class="fa-solid fa-ticket text-danger"></i>
             <span>Tickets</span>
         </a>
     </div>
@@ -252,7 +254,7 @@
                     <div class="adm-nav__group {{ $groupHasActive ? 'is-active-group' : '' }}" data-group-id="{{ $groupId }}">
                         <div class="adm-nav__group-header" onclick="toggleNavGroup('{{ $groupId }}')">
                             <span>{{ $group }}</span>
-                            <i class="fas fa-chevron-down adm-nav__group-chevron"></i>
+                            <i class="fa-solid fa-chevron-down adm-nav__group-chevron"></i>
                         </div>
                         <div class="adm-nav__group-items" id="{{ $groupId }}">
                             @foreach ($items as $item)
@@ -268,7 +270,7 @@
                                    data-tooltip="{{ $item['label'] }}"
                                    @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
                                    @if ($active) id="activeNavItem" aria-current="page" @endif>
-                                    <i class="fas fa-{{ $item['icon'] }}"></i>
+                                    <i class="fa-solid fa-{{ $item['icon'] }}"></i>
                                     <span class="adm-nav__text">{{ $item['label'] }}</span>
                                     @if (! empty($item['badge']))
                                         <span class="badge {{ $item['badgeClass'] ?? 'bg-primary' }}">{{ $item['badge'] }}</span>
@@ -289,7 +291,7 @@
                            data-label="{{ strtolower($item['label']) }}"
                            data-tooltip="{{ $item['label'] }}"
                            @if ($active) id="activeNavItem" aria-current="page" @endif>
-                            <i class="fas fa-{{ $item['icon'] }}"></i>
+                            <i class="fa-solid fa-{{ $item['icon'] }}"></i>
                             <span class="adm-nav__text">{{ $item['label'] }}</span>
                         </a>
                     @endforeach
@@ -301,7 +303,7 @@
     <div class="adm-side__foot adm-brand__text d-flex justify-content-between align-items-center">
         <span>Version 2.0</span>
         <button type="button" class="btn btn-xs p-0 text-white-50 text-decoration-none" onclick="toggleAllNavGroups()" title="Expand/Collapse All">
-            <i class="fas fa-up-down-left-right" style="font-size: 10px;"></i> Toggle All
+            <i class="fa-solid fa-up-down-left-right" style="font-size: 10px;"></i> Toggle All
         </button>
     </div>
 </aside>

@@ -10,16 +10,16 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportPublishersToCSV()" title="Export to CSV file">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
-            <i class="fas fa-print me-1"></i> Print
+            <i class="fa-solid fa-print me-1"></i> Print
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="openAddPublisherModal()">
-            <i class="fas fa-plus-circle me-1"></i> Add New Publisher
+            <i class="fa-solid fa-circle-plus me-1"></i> Add New Publisher
         </button>
         <a href="{{ route('publishers.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Storefront
         </a>
     </div>
 @endsection
@@ -30,7 +30,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -47,7 +47,7 @@
                         <small class="text-muted d-block font-sans">Total Publishers</small>
                         <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }} <small class="fs-6 text-muted">publishers</small></h4>
                     </div>
-                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-building"></i></span>
+                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-building"></i></span>
                 </div>
             </a>
         </div>
@@ -58,7 +58,7 @@
                         <small class="text-muted d-block font-sans">Active Publishers</small>
                         <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }} <small class="fs-6 text-muted">active</small></h4>
                     </div>
-                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
+                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fa-solid fa-circle-check"></i></span>
                 </div>
             </a>
         </div>
@@ -71,7 +71,7 @@
                         Value: <strong class="text-primary">৳{{ number_format($stats['total_catalog_sum'] ?? 0, 0) }}</strong>
                     </div>
                 </div>
-                <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-book-open"></i></span>
+                <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fa-solid fa-book-open"></i></span>
             </div>
         </div>
         <div class="col-6 col-md-2-4 col-lg">
@@ -80,7 +80,7 @@
                     <small class="text-muted d-block font-sans">Total Purchases (Challans)</small>
                     <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($stats['total_purchase_sum'] ?? 0, 0) }}</h4>
                 </div>
-                <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-cart-flatbed"></i></span>
+                <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-cart-flatbed"></i></span>
             </div>
         </div>
         <div class="col-12 col-md-2-4 col-lg">
@@ -90,7 +90,7 @@
                         <small class="text-muted d-block font-sans">Total Due Balance</small>
                         <h4 class="fw-bold text-danger mb-0 font-monospace">৳{{ number_format($stats['total_due_sum'] ?? 0, 0) }}</h4>
                     </div>
-                    <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fas fa-hand-holding-dollar"></i></span>
+                    <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fa-solid fa-hand-holding-dollar"></i></span>
                 </div>
             </a>
         </div>
@@ -105,13 +105,13 @@
             {{-- Search Bar --}}
             <div class="col-12 col-md-4">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" id="publisherSearchInput" value="{{ request('search') }}" 
                            class="form-control border-start-0 border-end-0 ps-0" 
                            placeholder="Search by publisher name, phone, email, address, slug..." autocomplete="off">
                     @if(request('search'))
                         <a href="{{ route('admin.publishers', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear Search">
-                            <i class="fas fa-times"></i>
+                            <i class="fa-solid fa-times"></i>
                         </a>
                     @endif
                     <button type="submit" class="btn btn-primary px-3 fw-semibold">Search</button>
@@ -156,7 +156,7 @@
                     <option value="100" @selected(request('per_page') == 100)>100 per page</option>
                 </select>
                 <a href="{{ route('admin.publishers') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset Filters">
-                    <i class="fas fa-rotate-left"></i>
+                    <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
 
@@ -169,31 +169,31 @@
 
         @if($hasActiveFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
+                <span class="small fw-semibold text-muted me-1"><i class="fa-solid fa-sliders me-1"></i>Active Filters:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Search: "{{ request('search') }}"
-                        <a href="{{ route('admin.publishers', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.publishers', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('is_active') !== null && request('is_active') !== '')
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Status: {{ request('is_active') === '1' ? 'Active' : 'Inactive' }}
-                        <a href="{{ route('admin.publishers', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.publishers', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('has_due') === '1')
                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Has Due Balance Only
-                        <a href="{{ route('admin.publishers', request()->except('has_due')) }}" class="text-danger text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.publishers', request()->except('has_due')) }}" class="text-danger text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 <a href="{{ route('admin.publishers') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> Clear All Filters
+                    <i class="fa-solid fa-trash-can me-1"></i> Clear All Filters
                 </a>
             </div>
         @endif
@@ -275,13 +275,13 @@
                             <td>
                                 <div class="small">
                                     @if($publisher->phone)
-                                        <div class="text-dark"><i class="fas fa-phone me-1 text-primary" style="font-size: 10px;"></i>{{ $publisher->phone }}</div>
+                                        <div class="text-dark"><i class="fa-solid fa-phone me-1 text-primary" style="font-size: 10px;"></i>{{ $publisher->phone }}</div>
                                     @endif
                                     @if($publisher->email)
-                                        <div class="text-muted text-truncate" style="max-width: 200px;"><i class="fas fa-envelope me-1 text-secondary" style="font-size: 10px;"></i>{{ $publisher->email }}</div>
+                                        <div class="text-muted text-truncate" style="max-width: 200px;"><i class="fa-solid fa-envelope me-1 text-secondary" style="font-size: 10px;"></i>{{ $publisher->email }}</div>
                                     @endif
                                     @if($publisher->address)
-                                        <div class="text-muted text-truncate" style="max-width: 200px; font-size: 11px;"><i class="fas fa-location-dot me-1 text-danger-subtle" style="font-size: 10px;"></i>{{ $publisher->address }}</div>
+                                        <div class="text-muted text-truncate" style="max-width: 200px; font-size: 11px;"><i class="fa-solid fa-location-dot me-1 text-danger-subtle" style="font-size: 10px;"></i>{{ $publisher->address }}</div>
                                     @endif
                                     @if(!$publisher->phone && !$publisher->email && !$publisher->address)
                                         <span class="text-muted">—</span>
@@ -294,7 +294,7 @@
                                 <a href="{{ route('admin.publishers.show', $publisher->id) }}" 
                                    class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 text-decoration-none fw-bold hover-primary"
                                    title="Manage catalog books and purchase orders">
-                                    <i class="fas fa-book me-1"></i>{{ number_format($publisher->books_count ?? 0) }} books
+                                    <i class="fa-solid fa-book me-1"></i>{{ number_format($publisher->books_count ?? 0) }} books
                                 </a>
                             </td>
 
@@ -319,12 +319,12 @@
                                                 style="width: 24px; height: 24px; padding: 0;" 
                                                 onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})"
                                                 title="Record Payment Settlement">
-                                            <i class="fas fa-money-bill-wave" style="font-size: 9px;"></i>
+                                            <i class="fa-solid fa-money-bill-wave" style="font-size: 9px;"></i>
                                         </button>
                                     </div>
                                 @else
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                        <i class="fas fa-check me-0.5"></i>Paid
+                                        <i class="fa-solid fa-check me-0.5"></i>Paid
                                     </span>
                                 @endif
                             </td>
@@ -345,7 +345,7 @@
                                        class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" 
                                        style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; font-size: 11.5px;"
                                        title="Manage Books Catalog, Purchases & Ledger">
-                                        <i class="fas fa-layer-group text-white-50"></i>
+                                        <i class="fa-solid fa-layer-group text-white-50"></i>
                                         <span>Manage</span>
                                     </a>
 
@@ -355,7 +355,7 @@
                                                 style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                                 onclick="openQuickPaymentModal({{ $publisher->id }}, '{{ addslashes($publisher->name) }}', {{ $dueSum }})" 
                                                 title="Record Payment Settlement">
-                                            <i class="fas fa-hand-holding-dollar" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-hand-holding-dollar" style="font-size: 11px;"></i>
                                         </button>
                                     @endif
 
@@ -364,7 +364,7 @@
                                             style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                             onclick="openEditPublisherModal({{ $publisher->id }})" 
                                             title="Edit Publisher Profile">
-                                        <i class="fas fa-pen-to-square" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-pen-to-square" style="font-size: 11px;"></i>
                                     </button>
 
                                     {{-- View Storefront Page --}}
@@ -373,7 +373,7 @@
                                            class="btn btn-sm btn-light border text-info rounded-circle shadow-xs" 
                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                            title="View Storefront Page">
-                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
                                         </a>
                                     @endif
 
@@ -385,7 +385,7 @@
                                         <button type="submit" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs" 
                                                 style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                                 title="Delete Publisher">
-                                            <i class="fas fa-trash-can" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -400,12 +400,12 @@
                             <td colspan="8">
                                 <div class="empty-state py-5 text-center">
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
-                                        <i class="fas fa-building fs-1 text-muted"></i>
+                                        <i class="fa-solid fa-building fs-1 text-muted"></i>
                                     </div>
                                     <h5 class="fw-bold text-dark mb-1">No Publishers Found</h5>
                                     <p class="text-muted small mb-3">Add a new publisher to catalog or adjust your search filter.</p>
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="openAddPublisherModal()">
-                                        <i class="fas fa-plus me-1"></i> Add New Publisher
+                                        <i class="fa-solid fa-plus me-1"></i> Add New Publisher
                                     </button>
                                 </div>
                             </td>
@@ -436,7 +436,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-building-circle-arrow-right me-1.5"></i> Add New Publisher / Imprint
+                    <i class="fa-solid fa-building-circle-arrow-right me-1.5"></i> Add New Publisher / Imprint
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -452,7 +452,7 @@
                         </div>
                         <div>
                             <label for="addPubLogoInput" class="btn btn-xs btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                <i class="fas fa-camera me-1"></i> Upload Logo
+                                <i class="fa-solid fa-camera me-1"></i> Upload Logo
                             </label>
                             <input type="file" id="addPubLogoInput" name="logo_file" accept="image/*" class="d-none" onchange="previewAddPubLogo(this)">
                         </div>
@@ -495,7 +495,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="addPubSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-plus-circle me-1"></i> Save Publisher
+                        <i class="fa-solid fa-circle-plus me-1"></i> Save Publisher
                     </button>
                 </div>
             </form>
@@ -511,7 +511,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-dark text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-pen-to-square me-1.5 text-primary-subtle"></i> Edit Publisher Information
+                    <i class="fa-solid fa-pen-to-square me-1.5 text-primary-subtle"></i> Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -529,7 +529,7 @@
                         </div>
                         <div>
                             <label for="editPubLogoInput" class="btn btn-xs btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                <i class="fas fa-camera me-1"></i> Change Logo
+                                <i class="fa-solid fa-camera me-1"></i> Change Logo
                             </label>
                             <input type="file" id="editPubLogoInput" name="logo_file" accept="image/*" class="d-none" onchange="previewEditPubLogo(this)">
                         </div>
@@ -576,7 +576,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="editPubSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> Update Publisher
+                        <i class="fa-solid fa-circle-check me-1"></i> Update Publisher
                     </button>
                 </div>
             </form>
@@ -592,7 +592,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-hand-holding-dollar me-1.5"></i> Record Payment Settlement to Publisher
+                    <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Payment Settlement to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -644,7 +644,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="payPubSubmitBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> Save Payment Voucher
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher
                     </button>
                 </div>
             </form>
@@ -763,7 +763,7 @@ function handleAddPublisherSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -778,20 +778,20 @@ function handleAddPublisherSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>`;
             setTimeout(() => {
                 location.reload();
             }, 800);
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Save Publisher';
+            btn.innerHTML = '<i class="fa-solid fa-circle-plus me-1"></i> Save Publisher';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> Save Publisher';
+        btn.innerHTML = '<i class="fa-solid fa-circle-plus me-1"></i> Save Publisher';
     });
 }
 
@@ -834,7 +834,7 @@ function handleEditPublisherSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -849,20 +849,20 @@ function handleEditPublisherSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>`;
             setTimeout(() => {
                 location.reload();
             }, 800);
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Update Publisher';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Update Publisher';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Update Publisher';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Update Publisher';
     });
 }
 
@@ -887,7 +887,7 @@ function handleQuickPaymentSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Recording payment...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Recording payment...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -902,20 +902,20 @@ function handleQuickPaymentSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>`;
             setTimeout(() => {
                 location.reload();
             }, 1000);
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher';
     });
 }
 

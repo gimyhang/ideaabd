@@ -46,7 +46,7 @@
         <!-- Reply Form -->
         <div class="adm-card bg-white">
             <div class="adm-card__head">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-reply me-1.5 text-primary"></i> Send Reply to Customer</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-reply me-1.5 text-primary"></i> Send Reply to Customer</h6>
             </div>
             <div class="adm-card__body p-4">
                 <form action="{{ route('admin.tickets.reply', $ticket->id) }}" method="POST">
@@ -68,7 +68,7 @@
                         </div>
                         <div class="col-12 col-sm-6 text-end">
                             <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                                <i class="fas fa-paper-plane me-1"></i> Send Reply
+                                <i class="fa-solid fa-paper-plane me-1"></i> Send Reply
                             </button>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
     <div class="col-12 col-xl-4">
         <div class="adm-card bg-white">
             <div class="adm-card__head">
-                <h6 class="mb-0 fw-bold"><i class="fas fa-address-card me-1.5 text-primary"></i> Customer Information</h6>
+                <h6 class="mb-0 fw-bold"><i class="fa-solid fa-address-card me-1.5 text-primary"></i> Customer Information</h6>
             </div>
             <div class="adm-card__body p-4">
                 <ul class="list-unstyled mb-0 d-flex flex-column gap-2.5 small">

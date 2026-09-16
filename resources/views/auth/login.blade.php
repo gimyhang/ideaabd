@@ -24,10 +24,26 @@
     <!-- Google reCAPTCHA v2 Script -->
     <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit" async defer></script>
 
+    <!-- Kalpurush Bangla Font -->
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+
     <style>
         /* ══════════════════════════════════════════════════════════════════
            PREMIUM SKY-BLUE INTERNATIONAL AUTHENTICATION ARCHITECTURE
            ══════════════════════════════════════════════════════════════════ */
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        .font-kalpurush {
+            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -57,30 +73,37 @@
 
         /* 1. Header Logo */
         .auth-header {
-            margin-top: 8px;
+            margin-top: 12px;
             margin-bottom: 18px;
             text-align: center;
         }
 
         .brand-link {
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 6px;
             text-decoration: none;
             color: #0f1111;
         }
 
         .brand-logo-img {
-            max-height: 40px;
+            max-height: 48px;
             width: auto;
             object-fit: contain;
+            display: block;
         }
 
         .brand-title-text {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.4px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             color: #0f172a;
+            text-transform: uppercase;
+            line-height: 1.2;
+            display: block;
+            text-align: center;
         }
 
         /* 2. Main Box Card */
@@ -329,6 +352,101 @@
             color: #0f1111;
         }
 
+        /* Highly Attractive & Prominent Featured Create Account Button */
+        .btn-create-account-featured {
+            width: 100%;
+            min-height: 44px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border: 1.5px solid #cbd5e1;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            color: #0f172a;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            padding: 8px 16px;
+        }
+
+        .btn-create-account-featured::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(2, 132, 199, 0.09), transparent);
+            transition: left 0.55s ease;
+        }
+
+        .btn-create-account-featured:hover {
+            background: #ffffff;
+            border-color: #0284c7;
+            color: #0284c7;
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.18);
+            transform: translateY(-1.5px);
+        }
+
+        .btn-create-account-featured:hover::before {
+            left: 100%;
+        }
+
+        .btn-create-account-featured:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(2, 132, 199, 0.12);
+        }
+
+        .btn-create-account-featured .btn-icon-wrap {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: rgba(2, 132, 199, 0.1);
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-create-account-featured:hover .btn-icon-wrap {
+            background: #0284c7;
+            color: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .btn-create-account-featured .btn-arrow-icon {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-left: auto;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-create-account-featured:hover .btn-arrow-icon {
+            color: #0284c7;
+            transform: translateX(3px);
+        }
+
+        .create-account-roles-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 11.5px;
+            color: #64748b;
+            font-weight: 500;
+            margin-top: 8px;
+            text-align: center;
+        }
+
         /* Alert Box */
         .alert-custom-box {
             border: 1px solid #c40000;
@@ -369,146 +487,71 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Modern Digital Photographic Verification Challenge */
-        .puzzle-instruction-bar {
+        /* Modern Server-Side Image CAPTCHA Widget */
+        .captcha-card-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+        .captcha-img-wrapper {
+            position: relative;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 4px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            min-height: 84px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+        }
+        .captcha-img-element {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 6px;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .captcha-refresh-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #0284c7;
             background: #f0f9ff;
             border: 1px solid #bae6fd;
             border-radius: 6px;
-            padding: 8px 12px;
-            margin-bottom: 12px;
-        }
-
-        .puzzle-clue-badge {
-            font-size: 13px;
-            font-weight: 700;
-            color: #0369a1;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .puzzle-clue-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            background: #0284c7;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-        }
-
-        .puzzle-grid-box {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin: 10px 0 14px 0;
-        }
-
-        .puzzle-tile-item {
-            position: relative;
-            aspect-ratio: 1;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            overflow: hidden;
+            padding: 5px 11px;
             cursor: pointer;
-            background: #0f172a;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-            user-select: none;
-        }
-
-        .puzzle-tile-item:hover {
-            border-color: #0284c7;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-        }
-
-        .puzzle-tile-item.selected {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.5);
-        }
-
-        .puzzle-tile-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            display: block;
-            transition: transform 0.3s ease;
-        }
-
-        .puzzle-tile-item:hover .puzzle-tile-img {
-            transform: scale(1.08);
-        }
-
-        .puzzle-tile-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 14px 4px 4px 4px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 600;
-            text-align: center;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-            pointer-events: none;
-            line-height: 1.2;
-        }
-
-        .puzzle-check-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1.5px solid #94a3b8;
-            color: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 900;
-            transition: all 0.15s ease;
-            z-index: 2;
-        }
-
-        .puzzle-tile-item.selected .puzzle-check-badge {
-            background: #0284c7;
-            border-color: #0284c7;
-            color: #ffffff;
-            transform: scale(1.1);
-        }
-
-        .puzzle-footer-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .puzzle-action-link {
-            color: #0066c0;
+            transition: all 0.2s ease;
             text-decoration: none;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            cursor: pointer;
         }
-        .puzzle-action-link:hover {
-            color: #c45500;
-            text-decoration: underline;
+        .captcha-refresh-btn:hover {
+            color: #0369a1;
+            background: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+        .captcha-refresh-btn.spinning i {
+            animation: spinCaptchaRefresh 0.6s linear infinite;
+        }
+        @keyframes spinCaptchaRefresh {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .captcha-case-hint {
+            font-size: 11.5px;
+            color: #64748b;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         /* 6-Digit OTP Box */
@@ -588,10 +631,51 @@
             text-decoration: underline;
         }
 
-        .auth-footer-copy {
+        /* Interactive Password Strength Meter */
+        .pwd-strength-wrap {
+            margin-top: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        .pwd-strength-bar-bg {
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .pwd-strength-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .pwd-criteria-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
             font-size: 11px;
-            color: #555555;
-            margin: 0;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .pwd-criterion {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: color 0.2s ease;
+        }
+        .pwd-criterion i {
+            font-size: 10px;
+            color: #cbd5e1;
+        }
+        .pwd-criterion.met {
+            color: #15803d;
+            font-weight: 600;
+        }
+        .pwd-criterion.met i {
+            color: #16a34a;
         }
     </style>
 </head>
@@ -600,12 +684,12 @@
 <div class="auth-container">
     {{-- 1. Centered Header Logo --}}
     <div class="auth-header">
-        <a href="{{ url('/') }}" class="brand-link" title="Idea Homepage">
+        <a href="{{ url('/') }}" class="brand-link" title="IDEA PROKASHON">
             <img src="{{ \App\Support\SiteSetting::logoUrl() ?: (\App\Support\SiteSetting::loginLogoUrl() ?: asset('images/logo.png')) }}" 
-                 alt="Idea" 
+                 alt="IDEA PROKASHON" 
                  class="brand-logo-img" 
                  onerror="this.src='{{ asset('images/logo.png') }}';">
-            <span class="brand-title-text">{{ \App\Support\SiteSetting::name() ?: 'Idea' }}</span>
+            <span class="brand-title-text">IDEA PROKASHON</span>
         </a>
     </div>
 
@@ -720,34 +804,62 @@
         <div class="auth-flow-panel {{ request('mode') === 'register' ? 'active' : '' }}" id="panelCreateAccount">
             <h1 class="auth-heading">Create account</h1>
 
-            <form id="createAccountForm" onsubmit="event.preventDefault(); proceedToPuzzleChallenge();">
+            <form id="createAccountForm" onsubmit="event.preventDefault(); proceedToCaptchaChallenge();">
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regNameInput">Your name</label>
+                    <label class="form-label-custom" for="regNameInput">Your name <span style="color: #c40000; font-weight: bold;">*</span></label>
                     <input type="text" id="regNameInput" class="input-text-custom" placeholder="First and last name" required>
                 </div>
 
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regIdentifierInput">Mobile number or email</label>
-                    <input type="text" id="regIdentifierInput" class="input-text-custom" placeholder="Phone or email" required>
+                    <label class="form-label-custom" for="regPhoneInput">Mobile number <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <div class="country-input-row">
+                        <select class="country-select-dropdown" id="regCountryCodeSelect" aria-label="Country code">
+                            <option value="+880" selected>BD +880</option>
+                            <option value="+1">US +1</option>
+                            <option value="+44">UK +44</option>
+                            <option value="+91">IN +91</option>
+                            <option value="+971">AE +971</option>
+                            <option value="+966">SA +966</option>
+                            <option value="+60">MY +60</option>
+                            <option value="+65">SG +65</option>
+                            <option value="+61">AU +61</option>
+                            <option value="+1">CA +1</option>
+                            <option value="+39">IT +39</option>
+                            <option value="+49">DE +49</option>
+                            <option value="+33">FR +33</option>
+                            <option value="+81">JP +81</option>
+                            <option value="+82">KR +82</option>
+                            <option value="+974">QA +974</option>
+                            <option value="+968">OM +968</option>
+                            <option value="+965">KW +965</option>
+                            <option value="+973">BH +973</option>
+                            <option value="+92">PK +92</option>
+                            <option value="+977">NP +977</option>
+                            <option value="+94">LK +94</option>
+                        </select>
+                        <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1" placeholder="Mobile number (e.g. 01712345678)" required>
+                    </div>
                 </div>
 
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regPasswordInput">Password</label>
+                    <label class="form-label-custom" for="regEmailInput">Email <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="email" id="regEmailInput" class="input-text-custom" placeholder="Email address (e.g. name@example.com)" required>
+                </div>
+
+                <div class="form-group-item">
+                    <label class="form-label-custom" for="regPasswordInput">Password <span style="color: #c40000; font-weight: bold;">*</span></label>
                     <div class="pwd-field-wrap">
-                        <input type="password" id="regPasswordInput" class="input-text-custom" placeholder="At least 8 characters" minlength="8" required>
+                        <input type="password" id="regPasswordInput" class="input-text-custom" placeholder="At least 8 characters" minlength="8" maxlength="30" required>
                         <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('regPasswordInput', this)" title="Show password" aria-label="Toggle password">
                             <i class="fa-regular fa-eye"></i>
                         </button>
                     </div>
-                    <div style="font-size: 11.5px; color: #565959; margin-top: 3px;">
-                        <i class="fa-solid fa-info-circle me-0.5"></i> Passwords must be at least 8 characters.
-                    </div>
                 </div>
 
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regPasswordConfirmInput">Re-enter password</label>
+                    <label class="form-label-custom" for="regPasswordConfirmInput">Re-enter password <span style="color: #c40000; font-weight: bold;">*</span></label>
                     <div class="pwd-field-wrap">
-                        <input type="password" id="regPasswordConfirmInput" class="input-text-custom" required>
+                        <input type="password" id="regPasswordConfirmInput" class="input-text-custom" placeholder="Re-enter password" maxlength="30" required>
                         <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('regPasswordConfirmInput', this)" title="Show password" aria-label="Toggle password">
                             <i class="fa-regular fa-eye"></i>
                         </button>
@@ -770,34 +882,51 @@
         </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- PANEL 3: SOLVE THIS PUZZLE TO PROTECT YOUR ACCOUNT                   --}}
+        {{-- PANEL 3: SECURITY VERIFICATION (IMAGE CAPTCHA)                        --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        <div class="auth-flow-panel" id="panelPuzzle">
-            <h1 class="auth-heading" style="font-size: 22px;">Solve this puzzle to protect your account</h1>
-            
-            <div class="puzzle-instruction-bar">
-                <div class="puzzle-clue-badge">
-                    <span class="puzzle-clue-icon"><i class="fa-solid fa-camera" id="puzzleClueIcon"></i></span>
-                    <span>Pick: <strong id="targetPuzzleItemName" class="text-dark">Books or E-Reader</strong></span>
+        <div class="auth-flow-panel" id="panelCaptcha">
+            <h1 class="auth-heading" style="font-size: 22px;">Security Verification</h1>
+            <p style="font-size: 13px; color: #565959; margin-bottom: 12px;">
+                Enter the characters shown in the image below to protect your account.
+            </p>
+
+            <div class="captcha-card-box">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-dark" style="font-size: 12px;">
+                        <i class="fa-solid fa-shield-halved text-primary me-1"></i> CAPTCHA IMAGE
+                    </span>
+                    <button type="button" class="captcha-refresh-btn" id="btnRefreshCaptcha" onclick="refreshCaptchaChallenge()" title="Refresh CAPTCHA">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh CAPTCHA</span>
+                    </button>
                 </div>
-                <span class="badge bg-light text-muted border font-monospace" id="puzzleStepCounter" style="font-size: 11px;">1 of 1</span>
+
+                <div class="captcha-img-wrapper" id="captchaImageContainer">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status" id="captchaLoadingSpinner">
+                        <span class="visually-hidden">Loading CAPTCHA...</span>
+                    </div>
+                    <img src="" alt="CAPTCHA Code" id="captchaImageElement" class="captcha-img-element d-none" draggable="false">
+                </div>
+                <input type="hidden" id="captchaTokenInput" value="">
             </div>
 
-            <div class="puzzle-grid-box" id="puzzleTilesGrid">
-                <!-- Dynamically generated digital photographic cards -->
-            </div>
+            <form id="captchaVerificationForm" onsubmit="event.preventDefault(); verifyCaptchaSolution();">
+                <div class="form-group-item">
+                    <label class="form-label-custom" for="captchaCodeInput">Enter the CAPTCHA:</label>
+                    <input type="text" id="captchaCodeInput" class="input-text-custom font-monospace" placeholder="Type characters here (e.g. A7kP3mQ)" maxlength="12" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+                    <div class="captcha-case-hint">
+                        <i class="fa-solid fa-circle-info text-secondary"></i>
+                        <span>Letters and numbers are <strong>not case-sensitive</strong> (A-Z, 0-9).</span>
+                    </div>
+                </div>
 
-            <button type="button" class="btn-action-primary" id="btnVerifyPuzzle" onclick="verifyPuzzleSolution()">
-                <span>Verify & Continue</span>
-            </button>
+                <button type="submit" class="btn-action-primary" id="btnVerifyCaptcha">
+                    <span id="btnVerifyCaptchaText">Verify & Continue</span>
+                </button>
+            </form>
 
-            <div class="puzzle-footer-bar">
-                <a href="javascript:void(0)" class="puzzle-action-link" onclick="playAudioPuzzlePrompt()" title="Listen to challenge">
-                    <i class="fa-solid fa-volume-high"></i> Audio
-                </a>
-                <a href="javascript:void(0)" class="puzzle-action-link" onclick="generateFreshPuzzle()" title="Try another set">
-                    <i class="fa-solid fa-arrows-rotate"></i> Try different images
-                </a>
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #e7e7e7; font-size: 13px; text-align: center;">
+                <a href="javascript:void(0)" class="custom-link" onclick="switchAuthMode('register')">&larr; Back to registration details</a>
             </div>
         </div>
 
@@ -1023,11 +1152,11 @@
         <div class="auth-flow-panel" id="panelCategoryAddress">
             <h1 class="auth-heading" style="font-size: 22px;">Account category & address</h1>
             <p style="font-size: 13px; color: #565959; margin-bottom: 14px;">
-                Select your account type and provide your postal address.
+                Select your account type and provide your postal address. All fields marked with (<span style="color: #c40000; font-weight: bold;">*</span>) are mandatory.
             </p>
 
             <div class="form-group-item">
-                <label class="form-label-custom" for="regCategorySelect">Account Category <span style="color: #c40000;">*</span></label>
+                <label class="form-label-custom" for="regCategorySelect">Account Category <span style="color: #c40000; font-weight: bold;">*</span></label>
                 <select id="regCategorySelect" class="input-text-custom" style="height: 38px; font-weight: 600; cursor: pointer;" required onchange="onRegistrationCategoryChange(this.value)">
                     <option value="" disabled selected>Select Account Category *</option>
                     <option value="buyer">1. Buyer / Reader</option>
@@ -1040,44 +1169,45 @@
             <!-- Dynamic Author Identity Group -->
             <div id="authorIdentityGroup" class="d-none">
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regAuthorNameInput">Author Name <span style="color: #c40000;">*</span></label>
-                    <input type="text" id="regAuthorNameInput" class="input-text-custom" placeholder="Author / Pen name as published on books">
+                    <label class="form-label-custom" for="regAuthorNameInput">Author Name (Bangla) <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="text" id="regAuthorNameInput" class="input-text-custom font-kalpurush" placeholder="বাংলায় লেখকের নাম লিখুন" style="font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important; font-size: 15.5px;" required>
                     <div style="font-size: 11px; color: #565959; margin-top: 2px;">
                         This author name connects to Author Directory, Idea Potro, eBooks, Bookshop, and Homepage.
                     </div>
                 </div>
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regAuthorNameEnInput">Author Name (English) <span style="font-size: 11px; color: #565959; font-weight: normal;">(Optional if different)</span></label>
-                    <input type="text" id="regAuthorNameEnInput" class="input-text-custom" placeholder="e.g. Humayun Ahmed">
+                    <label class="form-label-custom" for="regAuthorNameEnInput">Author Name (English) <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="text" id="regAuthorNameEnInput" class="input-text-custom" placeholder="e.g. Humayun Ahmed" required>
                 </div>
             </div>
 
             <!-- Dynamic Publisher Identity Group -->
             <div id="publisherIdentityGroup" class="d-none">
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regPublishingHouseNameInput">Publishing House Name <span style="color: #c40000;">*</span></label>
-                    <input type="text" id="regPublishingHouseNameInput" class="input-text-custom" placeholder="e.g. Idea Prokashon">
+                    <label class="form-label-custom" for="regPublishingHouseNameInput">Publishing House Name <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="text" id="regPublishingHouseNameInput" class="input-text-custom" placeholder="e.g. Idea Prokashon" required>
                     <div style="font-size: 11px; color: #565959; margin-top: 2px;">
                         This publishing house connects to Publisher Directory, Homepage, Bookshop, eBooks, and Invoices.
                     </div>
                 </div>
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regPublisherOwnerNameInput">Publisher Name <span style="color: #c40000;">*</span></label>
-                    <input type="text" id="regPublisherOwnerNameInput" class="input-text-custom" placeholder="Name of Publisher / Owner / Representative">
+                    <label class="form-label-custom" for="regPublisherOwnerNameInput">Publisher Name <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="text" id="regPublisherOwnerNameInput" class="input-text-custom" placeholder="Name of Publisher / Owner / Representative" required>
                 </div>
             </div>
 
             <!-- Dynamic Seller Identity Group -->
             <div id="sellerIdentityGroup" class="d-none">
                 <div class="form-group-item">
-                    <label class="form-label-custom" for="regShopNameInput">Bookshop / Store Name <span style="color: #c40000;">*</span></label>
-                    <input type="text" id="regShopNameInput" class="input-text-custom" placeholder="e.g. Dhaka Book Corner">
+                    <label class="form-label-custom" for="regShopNameInput">Bookshop / Store Name <span style="color: #c40000; font-weight: bold;">*</span></label>
+                    <input type="text" id="regShopNameInput" class="input-text-custom" placeholder="e.g. Dhaka Book Corner" required>
                 </div>
             </div>
 
             <div class="form-group-item">
-                <label class="form-label-custom" for="regCountrySelect">Country</label>
-                <select id="regCountrySelect" class="input-text-custom" style="height: 36px;" onchange="onRegistrationCountryChange(this.value)">
+                <label class="form-label-custom" for="regCountrySelect">Country <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <select id="regCountrySelect" class="input-text-custom" style="height: 36px;" required onchange="onRegistrationCountryChange(this.value)">
+                    <option value="" disabled>Select Country *</option>
                     <option value="Bangladesh" selected>Bangladesh</option>
                     <option value="Afghanistan">Afghanistan</option>
                     <option value="Albania">Albania</option>
@@ -1151,38 +1281,38 @@
 
             <!-- District / State Field -->
             <div class="form-group-item" id="districtDropdownGroup">
-                <label class="form-label-custom" for="regDistrictSelect">District</label>
-                <select id="regDistrictSelect" class="input-text-custom" style="height: 36px;" onchange="onRegistrationDistrictChange(this.value)">
-                    <option value="">Select District</option>
+                <label class="form-label-custom" for="regDistrictSelect">District <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <select id="regDistrictSelect" class="input-text-custom" style="height: 36px;" required onchange="onRegistrationDistrictChange(this.value)">
+                    <option value="">Select District *</option>
                 </select>
             </div>
             <div class="form-group-item d-none" id="districtTextGroup">
-                <label class="form-label-custom" for="regDistrictTextInput">State / Province / District</label>
-                <input type="text" id="regDistrictTextInput" class="input-text-custom" placeholder="e.g. California / Ontario">
+                <label class="form-label-custom" for="regDistrictTextInput">State / Province / District <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <input type="text" id="regDistrictTextInput" class="input-text-custom" placeholder="e.g. California / Ontario" required>
             </div>
 
             <!-- Thana / City Field -->
             <div class="form-group-item" id="thanaDropdownGroup">
-                <label class="form-label-custom" for="regThanaSelect">Thana / Upazila</label>
-                <select id="regThanaSelect" class="input-text-custom" style="height: 36px;">
-                    <option value="">Select Thana / Upazila</option>
+                <label class="form-label-custom" for="regThanaSelect">Thana / Upazila <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <select id="regThanaSelect" class="input-text-custom" style="height: 36px;" required>
+                    <option value="">Select Thana / Upazila *</option>
                 </select>
             </div>
             <div class="form-group-item d-none" id="thanaTextGroup">
-                <label class="form-label-custom" for="regThanaTextInput">City / Suburb / Town</label>
-                <input type="text" id="regThanaTextInput" class="input-text-custom" placeholder="e.g. New York / London">
+                <label class="form-label-custom" for="regThanaTextInput">City / Suburb / Town <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <input type="text" id="regThanaTextInput" class="input-text-custom" placeholder="e.g. New York / London" required>
             </div>
 
             <!-- Post Code -->
             <div class="form-group-item">
-                <label class="form-label-custom" for="regPostCodeInput">Post Code</label>
-                <input type="text" id="regPostCodeInput" class="input-text-custom" placeholder="Postal / Zip Code (e.g. 1205)">
+                <label class="form-label-custom" for="regPostCodeInput">Post Code <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <input type="text" id="regPostCodeInput" class="input-text-custom" placeholder="Postal / Zip Code (e.g. 1205)" required>
             </div>
 
             <!-- Postal Address -->
             <div class="form-group-item">
-                <label class="form-label-custom" for="regAddressInput">Postal Address</label>
-                <textarea id="regAddressInput" class="input-text-custom" style="height: 65px; resize: vertical; padding: 6px 8px;" placeholder="Street address, house number, road, area..."></textarea>
+                <label class="form-label-custom" for="regAddressInput">Postal Address <span style="color: #c40000; font-weight: bold;">*</span></label>
+                <textarea id="regAddressInput" class="input-text-custom" style="height: 65px; resize: vertical; padding: 6px 8px;" placeholder="Street address, house number, road, area..." required></textarea>
             </div>
 
             <button type="button" class="btn-action-primary" id="btnFinishRegistration" onclick="submitCompleteUnifiedRegistration()">
@@ -1198,20 +1328,15 @@
             <span class="divider-label">New to Idea?</span>
         </div>
 
-        <button type="button" class="btn-action-secondary" onclick="switchAuthMode('register')">
-            <span>Create your Idea account</span>
+        <button type="button" class="btn-create-account-featured" onclick="switchAuthMode('register')" id="btnOpenCreateAccount">
+            <span class="btn-icon-wrap">
+                <i class="fa-solid fa-user-plus"></i>
+            </span>
+            <span class="fw-semibold">Create your Idea account</span>
+            <i class="fa-solid fa-arrow-right btn-arrow-icon"></i>
         </button>
-
-        <div style="margin-top: 10px;">
-            <a href="{{ route('register.author') }}" class="btn-action-secondary">
-                <span>Create your Author account</span>
-            </a>
-            <a href="{{ route('register.publisher') }}" class="btn-action-secondary">
-                <span>Create your Publisher account</span>
-            </a>
-            <a href="{{ route('register.form', 'seller') }}" class="btn-action-secondary">
-                <span>Create your Seller account</span>
-            </a>
+        <div class="create-account-roles-hint">
+            <i class="fa-solid fa-users me-1 text-primary"></i>পাঠক • লেখক • প্রকাশক • বিক্রেতা রেজিস্ট্রেশন
         </div>
     </div>
 
@@ -1253,6 +1378,7 @@ function switchAuthMode(mode) {
     if (mode === 'register') {
         document.getElementById('panelCreateAccount').classList.add('active');
         if (newSection) newSection.classList.add('d-none');
+        loadCaptchaChallenge();
     } else {
         document.getElementById('panelSignIn').classList.add('active');
         if (newSection) newSection.classList.remove('d-none');
@@ -1279,6 +1405,82 @@ function togglePasswordVisibility(inputId, btn) {
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
+    }
+}
+
+/**
+ * Real-Time Password Strength Evaluator
+ */
+function evaluatePasswordStrength(pwd) {
+    const bar = document.getElementById('pwdStrengthBar');
+    const label = document.getElementById('pwdStrengthLabel');
+    const critLength = document.getElementById('critLength');
+    const critUpper = document.getElementById('critUpper');
+    const critLower = document.getElementById('critLower');
+    const critNumber = document.getElementById('critNumber');
+
+    if (!bar || !label) return;
+
+    if (!pwd || pwd.length === 0) {
+        bar.style.width = '0%';
+        bar.style.backgroundColor = '#dc2626';
+        label.textContent = 'Too Weak';
+        label.style.color = '#dc2626';
+        if (critLength) critLength.classList.remove('valid');
+        if (critUpper) critUpper.classList.remove('valid');
+        if (critLower) critLower.classList.remove('valid');
+        if (critNumber) critNumber.classList.remove('valid');
+        return;
+    }
+
+    const hasLength = pwd.length >= 8;
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasLower = /[a-z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[^A-Za-z0-9]/.test(pwd);
+
+    if (critLength) critLength.classList.toggle('valid', hasLength);
+    if (critUpper) critUpper.classList.toggle('valid', hasUpper);
+    if (critLower) critLower.classList.toggle('valid', hasLower);
+    if (critNumber) critNumber.classList.toggle('valid', (hasNumber || hasSpecial));
+
+    let score = 0;
+    if (hasLength) score += 25;
+    if (pwd.length >= 12) score += 15;
+    if (hasUpper) score += 15;
+    if (hasLower) score += 15;
+    if (hasNumber) score += 15;
+    if (hasSpecial) score += 15;
+
+    // Check for obvious sequential / repetitive patterns
+    const isSequential = /(?:012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|xyz|qwerty)/i.test(pwd);
+    const isRepeated = /(.)\1{2,}/.test(pwd);
+    if (isSequential || isRepeated) {
+        score = Math.max(10, score - 25);
+    }
+
+    score = Math.min(100, score);
+
+    if (score < 40) {
+        bar.style.width = Math.max(15, score) + '%';
+        bar.style.backgroundColor = '#dc2626';
+        label.textContent = 'Weak';
+        label.style.color = '#dc2626';
+    } else if (score < 70) {
+        bar.style.width = score + '%';
+        bar.style.backgroundColor = '#d97706';
+        label.textContent = 'Fair';
+        label.style.color = '#d97706';
+    } else if (score < 90) {
+        bar.style.width = score + '%';
+        bar.style.backgroundColor = '#2563eb';
+        label.textContent = 'Good';
+        label.style.color = '#2563eb';
+    } else {
+        bar.style.width = '100%';
+        bar.style.backgroundColor = '#059669';
+        label.textContent = 'Strong';
+        label.style.color = '#059669';
     }
 }
 
@@ -1332,196 +1534,240 @@ function hideAlert() {
 
 /**
  * ═════════════════════════════════════════════════════════════════════════
- * STEP 2: PUZZLE CHALLENGE GENERATOR & VERIFIER
+ * STEP 2: MODERN SERVER-SIDE IMAGE CAPTCHA ENGINE
  * ═════════════════════════════════════════════════════════════════════════
  */
-/**
- * ═════════════════════════════════════════════════════════════════════════
- * STEP 2: DIGITAL PHOTOGRAPHIC PUZZLE CHALLENGE ENGINE
- * ═════════════════════════════════════════════════════════════════════════
- */
-const PUZZLE_SETS = [
-    {
-        targetName: 'Books or E-Reader',
-        targetIcon: 'fa-book-open',
-        items: [
-            { name: 'Hardcover Book', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=350&q=80', match: true },
-            { name: 'Hot Coffee', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=350&q=80', match: false },
-            { name: 'Headphones', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=350&q=80', match: false },
-            { name: 'Open Novel', image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=350&q=80', match: true },
-            { name: 'Digital Camera', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=350&q=80', match: false },
-            { name: 'Library Shelf', image: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=350&q=80', match: true }
-        ]
-    },
-    {
-        targetName: 'Headphones or Audio Device',
-        targetIcon: 'fa-headphones',
-        items: [
-            { name: 'Studio Headset', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=350&q=80', match: true },
-            { name: 'Green Plant', image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=350&q=80', match: false },
-            { name: 'Audio Headphones', image: 'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=350&q=80', match: true },
-            { name: 'Classic Camera', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=350&q=80', match: false },
-            { name: 'Wristwatch', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=350&q=80', match: false },
-            { name: 'Wireless Earbuds', image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=350&q=80', match: true }
-        ]
-    },
-    {
-        targetName: 'Coffee Mug or Cup',
-        targetIcon: 'fa-mug-hot',
-        items: [
-            { name: 'Ceramic Coffee Mug', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=350&q=80', match: true },
-            { name: 'Laptop Computer', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=350&q=80', match: false },
-            { name: 'Espresso Cup', image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=350&q=80', match: true },
-            { name: 'Bicycle', image: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=350&q=80', match: false },
-            { name: 'Morning Tea Cup', image: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=350&q=80', match: true },
-            { name: 'Study Book', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=350&q=80', match: false }
-        ]
-    },
-    {
-        targetName: 'Laptop or Computer Screen',
-        targetIcon: 'fa-laptop',
-        items: [
-            { name: 'MacBook Laptop', image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=350&q=80', match: true },
-            { name: 'Potted Succulent', image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=350&q=80', match: false },
-            { name: 'Desktop Workspace', image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=350&q=80', match: true },
-            { name: 'Leather Bag', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=350&q=80', match: false },
-            { name: 'Modern Laptop', image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=350&q=80', match: true },
-            { name: 'Headphones', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=350&q=80', match: false }
-        ]
-    },
-    {
-        targetName: 'Wristwatch or Timepiece',
-        targetIcon: 'fa-clock',
-        items: [
-            { name: 'Classic Wristwatch', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=350&q=80', match: true },
-            { name: 'Coffee Cup', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=350&q=80', match: false },
-            { name: 'Luxury Chronograph', image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=350&q=80', match: true },
-            { name: 'Sunglasses', image: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=350&q=80', match: false },
-            { name: 'Smart Watch', image: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=350&q=80', match: true },
-            { name: 'Desk Book', image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=350&q=80', match: false }
-        ]
-    },
-    {
-        targetName: 'Camera or Photography Gear',
-        targetIcon: 'fa-camera',
-        items: [
-            { name: 'Vintage Camera', image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=350&q=80', match: true },
-            { name: 'Headphones', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=350&q=80', match: false },
-            { name: 'DSLR Lens & Body', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=350&q=80', match: true },
-            { name: 'Plant Pot', image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=350&q=80', match: false },
-            { name: 'Film Rangefinder', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=350&q=80', match: true },
-            { name: 'Coffee Cup', image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=350&q=80', match: false }
-        ]
+let isCaptchaLoading = false;
+
+async function loadCaptchaChallenge(forceRefresh = false) {
+    const tokenInput = document.getElementById('captchaTokenInput');
+    const imgEl = document.getElementById('captchaImageElement');
+    const spinner = document.getElementById('captchaLoadingSpinner');
+    const refreshBtn = document.getElementById('btnRefreshCaptcha');
+
+    // If already loaded and not forced, return
+    if (!forceRefresh && tokenInput && tokenInput.value && imgEl && imgEl.src && !imgEl.classList.contains('d-none')) {
+        return;
     }
-];
 
-let currentPuzzleSet = null;
-let selectedPuzzleTiles = [];
+    if (isCaptchaLoading) return;
+    isCaptchaLoading = true;
 
-function proceedToPuzzleChallenge() {
+    if (spinner) spinner.classList.remove('d-none');
+    if (imgEl) imgEl.classList.add('d-none');
+    if (refreshBtn) refreshBtn.classList.add('spinning');
+
+    try {
+        const response = await fetch('{{ route("auth.captcha.generate") }}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        if (data && data.success && data.token && data.image) {
+            if (tokenInput) tokenInput.value = data.token;
+            if (imgEl) {
+                imgEl.src = data.image;
+                imgEl.classList.remove('d-none');
+            }
+        }
+    } catch (err) {
+        console.error('Failed to load CAPTCHA:', err);
+    } finally {
+        if (spinner) spinner.classList.add('d-none');
+        if (refreshBtn) refreshBtn.classList.remove('spinning');
+        isCaptchaLoading = false;
+    }
+}
+
+function refreshCaptchaChallenge() {
     hideAlert();
-    const name = document.getElementById('regNameInput').value.trim();
-    const identifier = document.getElementById('regIdentifierInput').value.trim();
-    const pwd = document.getElementById('regPasswordInput').value;
-    const pwdConfirm = document.getElementById('regPasswordConfirmInput').value;
+    const codeInput = document.getElementById('captchaCodeInput');
+    if (codeInput) {
+        codeInput.value = '';
+        codeInput.focus();
+    }
+    loadCaptchaChallenge(true);
+}
 
-    if (!name || !identifier) {
-        showAlert('Please enter your name and email or mobile number.');
+function proceedToCaptchaChallenge() {
+    hideAlert();
+    const name = document.getElementById('regNameInput') ? document.getElementById('regNameInput').value.trim() : '';
+    const phone = document.getElementById('regPhoneInput') ? document.getElementById('regPhoneInput').value.trim() : '';
+    const countryCode = document.getElementById('regCountryCodeSelect') ? document.getElementById('regCountryCodeSelect').value : '+880';
+    const email = document.getElementById('regEmailInput') ? document.getElementById('regEmailInput').value.trim() : '';
+    const pwd = document.getElementById('regPasswordInput') ? document.getElementById('regPasswordInput').value : '';
+    const pwdConfirm = document.getElementById('regPasswordConfirmInput') ? document.getElementById('regPasswordConfirmInput').value : '';
+
+    if (!name) {
+        showAlert('Please enter your name.');
+        const nameInput = document.getElementById('regNameInput');
+        if (nameInput) nameInput.focus();
         return;
     }
-    if (pwd.length < 8) {
-        showAlert('Passwords must be at least 8 characters.');
+
+    if (!phone) {
+        showAlert('Please enter your mobile number.');
+        const phoneInput = document.getElementById('regPhoneInput');
+        if (phoneInput) phoneInput.focus();
         return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+        showAlert('Please enter a valid email address.');
+        const emailInput = document.getElementById('regEmailInput');
+        if (emailInput) emailInput.focus();
+        return;
+    }
+
+    const errors = [];
+    if (pwd.length < 8) {
+        errors.push('পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।');
+    }
+    if (pwd.length > 30) {
+        errors.push('পাসওয়ার্ড সর্বোচ্চ ৩০ অক্ষরের মধ্যে হতে হবে।');
+    }
+    if (!/[A-Z]/.test(pwd)) {
+        errors.push('পাসওয়ার্ডে অন্তত একটি বড় হাতের অক্ষর (A-Z) থাকতে হবে।');
+    }
+    if (!/[a-z]/.test(pwd)) {
+        errors.push('পাসওয়ার্ডে অন্তত একটি ছোট হাতের অক্ষর (a-z) থাকতে হবে।');
+    }
+    if (!/[0-9]/.test(pwd)) {
+        errors.push('পাসওয়ার্ডে অন্তত একটি সংখ্যা (0-9) থাকতে হবে।');
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd)) {
+        errors.push('পাসওয়ার্ডে অন্তত একটি বিশেষ চিহ্ন বা স্পেশাল ক্যারেক্টার (!@#$%^&* ইত্যাদি) থাকতে হবে।');
     }
     if (pwd !== pwdConfirm) {
-        showAlert('Passwords do not match.');
+        errors.push('উভয় পাসওয়ার্ড হুবহু এক হতে হবে (Passwords do not match)।');
+    }
+
+    if (errors.length > 0) {
+        if (errors.length === 1) {
+            showAlert(errors[0]);
+        } else {
+            showAlert(errors[0] + ' (and ' + (errors.length - 1) + ' more error' + (errors.length > 2 ? 's' : '') + ')');
+        }
+        const pwdInput = document.getElementById('regPasswordInput');
+        if (pwdInput) pwdInput.focus();
         return;
     }
 
     regData.name = name;
-    regData.identifier = identifier;
+    regData.phone = phone;
+    regData.countryCode = countryCode;
+    regData.email = email;
+    regData.identifier = email;
     regData.password = pwd;
 
     document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panelPuzzle').classList.add('active');
-    generateFreshPuzzle();
-}
+    document.getElementById('panelCaptcha').classList.add('active');
 
-function generateFreshPuzzle() {
-    selectedPuzzleTiles = [];
-    const grid = document.getElementById('puzzleTilesGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-
-    // Pick random puzzle set
-    currentPuzzleSet = PUZZLE_SETS[Math.floor(Math.random() * PUZZLE_SETS.length)];
-
-    const targetLabel = document.getElementById('targetPuzzleItemName');
-    const targetIcon = document.getElementById('puzzleClueIcon');
-    if (targetLabel) targetLabel.textContent = currentPuzzleSet.targetName;
-    if (targetIcon) targetIcon.className = 'fa-solid ' + currentPuzzleSet.targetIcon;
-
-    // Shuffle items
-    const tiles = [...currentPuzzleSet.items].sort(() => Math.random() - 0.5);
-
-    tiles.forEach((t) => {
-        const item = document.createElement('div');
-        item.className = 'puzzle-tile-item';
-        item.innerHTML = `
-            <img src="${t.image}" alt="${t.name}" class="puzzle-tile-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=350&q=80'">
-            <span class="puzzle-check-badge"><i class="fa-solid fa-check"></i></span>
-            <div class="puzzle-tile-overlay">${t.name}</div>
-        `;
-        item.onclick = function() {
-            item.classList.toggle('selected');
-            if (item.classList.contains('selected')) {
-                selectedPuzzleTiles.push(t);
-            } else {
-                selectedPuzzleTiles = selectedPuzzleTiles.filter(pt => pt !== t);
-            }
-        };
-        grid.appendChild(item);
-    });
-}
-
-function playAudioPuzzlePrompt() {
-    if ('speechSynthesis' in window && currentPuzzleSet) {
-        const text = 'Please select all images containing ' + currentPuzzleSet.targetName + ' to protect your account.';
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    } else {
-        showAlert('Audio clue: Pick all ' + (currentPuzzleSet?.targetName || 'matching items'), true);
+    // Ensure CAPTCHA is loaded & focus input
+    loadCaptchaChallenge();
+    const codeInput = document.getElementById('captchaCodeInput');
+    if (codeInput) {
+        setTimeout(() => codeInput.focus(), 100);
     }
 }
 
-function verifyPuzzleSolution() {
-    if (!currentPuzzleSet || selectedPuzzleTiles.length === 0) {
-        showAlert('Please select the image containing ' + (currentPuzzleSet?.targetName || 'the requested item') + '.');
-        return;
-    }
+// Backward compatibility alias
+const proceedToPuzzleChallenge = proceedToCaptchaChallenge;
 
-    const hasMatch = selectedPuzzleTiles.some(t => t.match);
-    const hasWrong = selectedPuzzleTiles.some(t => !t.match);
-
-    if (!hasMatch || hasWrong) {
-        showAlert('Incorrect selection. Please look closely at the photos and try again.');
-        generateFreshPuzzle();
-        return;
-    }
-
+async function verifyCaptchaSolution() {
     hideAlert();
-    // Passed Puzzle! Move to Email / Mobile OTP
-    if (regData.identifier.includes('@')) {
-        document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
-        document.getElementById('displayEmailTarget').textContent = regData.identifier;
-        document.getElementById('panelEmailOtp').classList.add('active');
-        startEmailCountdown();
-    } else {
-        document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
-        const mobileInput = document.getElementById('mobileNumberInput');
-        if (mobileInput) mobileInput.value = regData.identifier;
-        document.getElementById('panelAddMobile').classList.add('active');
+    const tokenInput = document.getElementById('captchaTokenInput');
+    const codeInput = document.getElementById('captchaCodeInput');
+    const verifyBtn = document.getElementById('btnVerifyCaptcha');
+    const btnText = document.getElementById('btnVerifyCaptchaText');
+
+    const token = tokenInput ? tokenInput.value.trim() : '';
+    const code = codeInput ? codeInput.value.trim() : '';
+
+    if (!token) {
+        showAlert('CAPTCHA session expired. Refreshing CAPTCHA...');
+        refreshCaptchaChallenge();
+        return;
+    }
+
+    if (!code) {
+        showAlert('Please enter the characters shown in the CAPTCHA image.');
+        if (codeInput) codeInput.focus();
+        return;
+    }
+
+    if (verifyBtn) verifyBtn.disabled = true;
+    if (btnText) btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Verifying...';
+
+    try {
+        const response = await fetch('{{ route("auth.captcha.verify") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                captcha_token: token,
+                captcha_code: code
+            })
+        });
+
+        if (response.status === 419) {
+            showAlert('Session expired. Please refresh the page and try again.');
+            loadCaptchaChallenge(true);
+            return;
+        }
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            regData.captcha_proof_token = data.proof_token || '';
+            hideAlert();
+
+            // Transition to Step 3 (Email OTP verification)
+            document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
+            const displayTarget = document.getElementById('displayEmailTarget');
+            if (displayTarget) displayTarget.textContent = regData.email;
+            document.getElementById('panelEmailOtp').classList.add('active');
+            startEmailCountdown();
+            return;
+        }
+
+        // On Failure: Show required error message & automatically update CAPTCHA
+        const errorMsg = (data && data.message) ? data.message : 'Invalid CAPTCHA. Please enter the characters shown in the image.';
+        showAlert(errorMsg);
+
+        if (codeInput) {
+            codeInput.value = '';
+            codeInput.focus();
+        }
+
+        // Fast update using returned fresh CAPTCHA without extra HTTP request
+        if (data && data.fresh_token && data.fresh_image) {
+            if (tokenInput) tokenInput.value = data.fresh_token;
+            const imgEl = document.getElementById('captchaImageElement');
+            if (imgEl) {
+                imgEl.src = data.fresh_image;
+                imgEl.classList.remove('d-none');
+            }
+        } else {
+            loadCaptchaChallenge(true);
+        }
+
+    } catch (err) {
+        console.error('CAPTCHA verification error:', err);
+        showAlert('An error occurred during verification. Please try again.');
+        loadCaptchaChallenge(true);
+    } finally {
+        if (verifyBtn) verifyBtn.disabled = false;
+        if (btnText) btnText.textContent = 'Verify & Continue';
     }
 }
 
@@ -1627,7 +1873,7 @@ const BD_THANAS = {
     "Khulna": ["Khulna Sadar", "Sonadanga", "Khalishpur", "Daulatpur", "Khan Jahan Ali", "Batiaghata", "Dacope", "Dumuria", "Dighalia", "Koyra", "Paikgachha", "Phultala", "Rupsha", "Terokhada"],
     "Jashore": ["Jashore Sadar", "Jhikargachha", "Sharsha", "Manirampur", "Keshabpur", "Abhaynagar", "Bagherpara", "Chaugachha", "Benapole"],
     "Barishal": ["Kotwali", "Barishal Sadar", "Bakerganj", "Babuganj", "Wazirpur", "Banaripara", "Gournadi", "Agailjhara", "Mehendiganj", "Muladi", "Hizla"],
-    "Rangpur": ["Rangpur Sadar", "Kotwali", "Badarganj", "Gangachara", "Kaunia", "Mithapukur", "Pirgachha", "Pirganj", "Taraganj"],
+    "Rangpur": ["Rangpur City", "Rangpur Sadar", "Kotwali", "Badarganj", "Gangachara", "Kaunia", "Mithapukur", "Pirgachha", "Pirganj", "Taraganj"],
     "Mymensingh": ["Kotwali", "Mymensingh Sadar", "Muktagachha", "Trishal", "Bhaluka", "Fulbaria", "Gafargaon", "Haluaghat", "Ishwarganj", "Dhobaura", "Nandail", "Phulpur", "Tara Khanda"],
     "Cumilla": ["Cumilla Adarsha Sadar", "Cumilla Sadar Dakshin", "Barura", "Brahmanpara", "Burichang", "Chandina", "Chauddagram", "Daudkandi", "Debidwar", "Homna", "Laksam", "Muradnagar", "Meghna", "Monohargonj", "Nangalkot", "Titas", "Lalmai"],
     "Brahmanbaria": ["Brahmanbaria Sadar", "Ashuganj", "Nasirnagar", "Nabinagar", "Sarail", "Kasba", "Akhaura", "Bancharampur", "Bijoynagar"],
@@ -1730,10 +1976,7 @@ function onRegistrationCategoryChange(cat) {
     if (cat === 'author') {
         if (authorGrp) {
             authorGrp.classList.remove('d-none');
-            const authorInput = document.getElementById('regAuthorNameInput');
-            if (authorInput && !authorInput.value && regData.name) {
-                authorInput.value = regData.name;
-            }
+            // Author Name (Bangla) and (English) remain strictly blank for user manual entry
         }
     } else if (cat === 'publisher') {
         if (pubGrp) {
@@ -1774,11 +2017,17 @@ async function submitCompleteUnifiedRegistration() {
         const authorInput = document.getElementById('regAuthorNameInput');
         authorName = authorInput ? authorInput.value.trim() : '';
         if (!authorName) {
-            showAlert('Author Name is required for author registration.');
+            showAlert('Author Name (Bangla) is required for author registration.');
             if (authorInput) authorInput.focus();
             return;
         }
-        authorNameEn = document.getElementById('regAuthorNameEnInput')?.value.trim() || '';
+        const authorEnInput = document.getElementById('regAuthorNameEnInput');
+        authorNameEn = authorEnInput ? authorEnInput.value.trim() : '';
+        if (!authorNameEn) {
+            showAlert('Author Name (English) is required for author registration.');
+            if (authorEnInput) authorEnInput.focus();
+            return;
+        }
     } else if (category === 'publisher') {
         const pubHouseInput = document.getElementById('regPublishingHouseNameInput');
         publishingHouseName = pubHouseInput ? pubHouseInput.value.trim() : '';
@@ -1805,31 +2054,63 @@ async function submitCompleteUnifiedRegistration() {
         }
     }
 
+    const countryElem = document.getElementById('regCountrySelect');
+    const country = countryElem ? countryElem.value.trim() : '';
+    if (!country) {
+        showAlert('Please select your Country.');
+        if (countryElem) countryElem.focus();
+        return;
+    }
+
+    const isBD = (country === 'Bangladesh');
+    
+    const districtElem = isBD 
+        ? document.getElementById('regDistrictSelect')
+        : document.getElementById('regDistrictTextInput');
+    const district = districtElem ? districtElem.value.trim() : '';
+    if (!district) {
+        showAlert(isBD ? 'Please select your District.' : 'Please enter your State / Province / District.');
+        if (districtElem) districtElem.focus();
+        return;
+    }
+
+    const thanaElem = isBD
+        ? document.getElementById('regThanaSelect')
+        : document.getElementById('regThanaTextInput');
+    const thana = thanaElem ? thanaElem.value.trim() : '';
+    if (!thana) {
+        showAlert(isBD ? 'Please select your Thana / Upazila.' : 'Please enter your City / Suburb / Town.');
+        if (thanaElem) thanaElem.focus();
+        return;
+    }
+
+    const postCodeElem = document.getElementById('regPostCodeInput');
+    const postCode = postCodeElem ? postCodeElem.value.trim() : '';
+    if (!postCode) {
+        showAlert('Please enter your Post / Zip Code.');
+        if (postCodeElem) postCodeElem.focus();
+        return;
+    }
+
+    const addressElem = document.getElementById('regAddressInput');
+    const address = addressElem ? addressElem.value.trim() : '';
+    if (!address) {
+        showAlert('Please enter your Postal Address.');
+        if (addressElem) addressElem.focus();
+        return;
+    }
+
     const btn = document.getElementById('btnFinishRegistration');
     if (btn) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Creating Account...';
     }
 
-    const country = document.getElementById('regCountrySelect').value;
-    const isBD = (country === 'Bangladesh');
-    
-    const district = isBD 
-        ? (document.getElementById('regDistrictSelect').value.trim())
-        : (document.getElementById('regDistrictTextInput').value.trim());
-
-    const thana = isBD
-        ? (document.getElementById('regThanaSelect').value.trim())
-        : (document.getElementById('regThanaTextInput').value.trim());
-
-    const postCode = document.getElementById('regPostCodeInput').value.trim();
-    const address = document.getElementById('regAddressInput').value.trim();
-
     const formData = new FormData();
     formData.append('_token', '{{ csrf_token() }}');
     formData.append('name', regData.name);
-    formData.append('email', regData.identifier.includes('@') ? regData.identifier : (regData.phone + '@buyer.ideaabd.com'));
-    formData.append('phone', regData.phone || regData.identifier);
+    formData.append('email', regData.email);
+    formData.append('phone', regData.phone);
     formData.append('country_code', regData.countryCode || '+880');
     formData.append('password', regData.password);
     formData.append('category', category);
@@ -1845,6 +2126,7 @@ async function submitCompleteUnifiedRegistration() {
     formData.append('thana', thana);
     formData.append('post_code', postCode);
     formData.append('address', address);
+    formData.append('captcha_proof_token', regData.captcha_proof_token || '');
 
     try {
         const res = await fetch('{{ route("register.complete") }}', {
@@ -1877,6 +2159,27 @@ async function submitCompleteUnifiedRegistration() {
  */
 document.addEventListener('DOMContentLoaded', function() {
     initDistrictDropdown();
+
+    // Check URL parameters for mode and category
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialMode = urlParams.get('mode');
+    const initialCategory = urlParams.get('category');
+    if (initialMode === 'register') {
+        switchAuthMode('register');
+    } else {
+        // Pre-fetch CAPTCHA in idle time so there is 0ms delay when switching to register
+        setTimeout(() => loadCaptchaChallenge(), 1000);
+    }
+    if (initialCategory) {
+        const categorySelect = document.getElementById('regCategorySelect');
+        if (categorySelect) {
+            categorySelect.value = initialCategory;
+            if (typeof onRegistrationCategoryChange === 'function') {
+                onRegistrationCategoryChange(initialCategory);
+            }
+        }
+    }
+
     const form = document.getElementById('loginForm');
     const submitBtn = document.getElementById('loginSubmitBtn');
     const tokenInput = document.getElementById('gRecaptchaResponseInput');

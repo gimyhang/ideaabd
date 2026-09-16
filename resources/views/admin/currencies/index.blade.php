@@ -12,7 +12,7 @@
     <form action="{{ route('admin.currencies.sync') }}" method="POST">
         @csrf
         <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-            <i class="fas fa-rotate me-1.5"></i> Sync Live Exchange Rates
+            <i class="fa-solid fa-rotate me-1.5"></i> Sync Live Exchange Rates
         </button>
     </form>
 @endsection
@@ -25,12 +25,12 @@
         <div class="card-body p-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
-                    <i class="fas fa-coins text-warning"></i> Multi-Currency & Worldwide Pricing Engine
+                    <i class="fa-solid fa-coins text-warning"></i> Multi-Currency & Worldwide Pricing Engine
                 </h5>
                 <p class="text-muted small mb-0">Control real-time currency conversion rates (USD, EUR, GBP, AED, SAR, BDT) for worldwide buyers, e-book sales, and international author payouts.</p>
             </div>
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#addCurrencyModal">
-                <i class="fas fa-plus me-1"></i> Add New Currency
+                <i class="fa-solid fa-plus me-1"></i> Add New Currency
             </button>
         </div>
     </div>
@@ -38,7 +38,7 @@
     <!-- Currency Rates Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-globe me-2 text-primary"></i> Active Supported Currencies</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-globe me-2 text-primary"></i> Active Supported Currencies</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -76,7 +76,7 @@
                                 </td>
                                 <td>
                                     @if($curr->is_active)
-                                        <span class="pill pill--ok"><i class="fas fa-check"></i> Active</span>
+                                        <span class="pill pill--ok"><i class="fa-solid fa-check"></i> Active</span>
                                     @else
                                         <span class="pill pill--pending">Disabled</span>
                                     @endif
@@ -87,7 +87,7 @@
                                 <td class="text-end pe-3">
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1"
                                             onclick="openEditCurrencyModal({{ $curr->id }}, '{{ $curr->code }}', '{{ addslashes($curr->name) }}', '{{ $curr->symbol }}', {{ $curr->exchange_rate_to_bdt }}, {{ $curr->is_active ? 1 : 0 }})">
-                                        <i class="fas fa-pen"></i> Edit
+                                        <i class="fa-solid fa-pen"></i> Edit
                                     </button>
                                 </td>
                             </tr>
@@ -105,7 +105,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-plus-circle me-1.5"></i> Add New Currency</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Add New Currency</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.currencies.store') }}" method="POST">
@@ -148,7 +148,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-edit me-1.5"></i> Edit Currency Rate</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Currency Rate</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="editCurrencyForm" method="POST">

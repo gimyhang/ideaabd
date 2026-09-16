@@ -19,7 +19,7 @@
 
                 <div class="modal-header border-bottom py-3 bg-white">
                     <h5 class="modal-title fw-bold text-primary mb-0" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-palette me-2"></i>Purchases & Inventory Memo Branding Settings
+                        <i class="fa-solid fa-palette me-2"></i>Purchases & Inventory Memo Branding Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -27,18 +27,18 @@
                     
                     {{-- Live Preview Header Card --}}
                     <div class="card border rounded-3 p-3 mb-4 bg-light">
-                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-eye me-1 text-primary"></i>Purchase Invoice & Memo Header Live Preview:</span>
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fa-solid fa-eye me-1 text-primary"></i>Purchase Invoice & Memo Header Live Preview:</span>
                         <div class="d-flex align-items-center gap-3 p-2 bg-white rounded border">
                             <img src="{{ $modalLogoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
                                 <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $modalSettings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $modalSettings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
-                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $modalSettings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
+                                    <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $modalSettings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $modalSettings['phone'] ?? '018XXXXXXXX' }}</span></span>
+                                    <span><i class="fa-solid fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $modalSettings['phone'] ?? '018XXXXXXXX' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $modalSettings['email'] ?? 'info@ideaabd.com' }}</span></span>
+                                    <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $modalSettings['email'] ?? 'info@ideaabd.com' }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-primary-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
+                                <i class="fa-solid fa-crop-simple me-1"></i> Logo Upload & 2:1 Wide Crop Tool
                             </label>
                             <span class="badge bg-primary text-white">Ratio 2:1 (Double Width)</span>
                         </div>
@@ -63,12 +63,12 @@
                                         <canvas id="cropCanvas" width="360" height="180" class="w-100 h-100" style="object-fit: contain;"></canvas>
                                     </div>
                                     <div class="d-flex align-items-center gap-2 mt-2">
-                                        <i class="fas fa-magnifying-glass-minus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-minus text-muted small"></i>
                                         <input type="range" class="form-range" id="cropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
-                                        <i class="fas fa-magnifying-glass-plus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-plus text-muted small"></i>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>Drag to reposition, slider to zoom</small>
+                                        <small class="text-muted"><i class="fa-solid fa-hand-pointer me-1"></i>Drag to reposition, slider to zoom</small>
                                         <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="resetCrop()">Reset</button>
                                     </div>
                                 </div>
@@ -77,7 +77,7 @@
                                     <div class="p-2 border rounded-3 bg-white d-inline-block shadow-xs mb-2">
                                         <img id="cropperPreviewThumb" src="{{ $modalLogoSrc }}" alt="Live Crop Thumb" style="height: 50px; width: 100px; object-fit: contain;">
                                     </div>
-                                    <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>Logo ready to save</div>
+                                    <div class="small text-success fw-semibold"><i class="fa-solid fa-circle-check me-1"></i>Logo ready to save</div>
                                 </div>
                             </div>
                         </div>
@@ -87,7 +87,7 @@
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i> Delivery & Supplier Typography
+                                <i class="fa-solid fa-truck-ramp-box me-1"></i> Delivery & Supplier Typography
                             </label>
                             <span class="badge bg-primary text-white">Challan Typography</span>
                         </div>
@@ -98,10 +98,10 @@
                         {{-- Recipient Live Preview Box --}}
                         <div class="p-2.5 bg-white rounded-2 border mb-3 shadow-xs">
                             <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size: 10px;">
-                                <i class="fas fa-eye me-1 text-primary"></i>Typography Live Preview:
+                                <i class="fa-solid fa-eye me-1 text-primary"></i>Typography Live Preview:
                             </div>
                             <div class="p-2 bg-light rounded border" id="previewRecipientBox">
-                                <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fas fa-truck me-1 text-primary"></i>Supplier / Destination Details:</div>
+                                <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fa-solid fa-truck me-1 text-primary"></i>Supplier / Destination Details:</div>
                                 <div id="previewRecipientName" style="font-size: {{ $mRecipientNameSize }}; font-weight: bold; color: #0f172a;">Rahim Book House / Supplier Name</div>
                                 <div id="previewRecipientDesig" class="text-muted" style="font-size: {{ $mRecipientDesigSize }};">Proprietor / Manager</div>
                                 <div id="previewRecipientOrg" class="text-primary fw-semibold" style="font-size: {{ $mRecipientOrgSize }};">Anupam Publishing & Distributors</div>
@@ -200,7 +200,7 @@
                 <div class="modal-footer border-top py-2.5 bg-light">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
-                        <i class="fas fa-save me-1"></i> Save Design & Settings
+                        <i class="fa-solid fa-save me-1"></i> Save Design & Settings
                     </button>
                 </div>
             </form>

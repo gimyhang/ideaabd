@@ -9,10 +9,10 @@
 
 @section('actions')
     <a href="{{ route('admin.content.create', 'blog_categories') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-plus me-1"></i> Create Category
+        <i class="fa-solid fa-plus me-1"></i> Create Category
     </a>
     <a href="{{ route('admin.blog') }}" class="btn btn-outline-secondary rounded-pill px-3">
-        <i class="fas fa-blog me-1"></i> View All Posts
+        <i class="fa-solid fa-blog me-1"></i> View All Posts
     </a>
 @endsection
 
@@ -23,7 +23,7 @@
     <div class="col-6 col-md-4">
         <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 d-flex align-items-center gap-3">
             <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.35rem;">
-                <i class="fas fa-shapes"></i>
+                <i class="fa-solid fa-shapes"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">Total Categories</div>
@@ -34,7 +34,7 @@
     <div class="col-6 col-md-4">
         <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 d-flex align-items-center gap-3">
             <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.35rem;">
-                <i class="fas fa-check-circle"></i>
+                <i class="fa-solid fa-circle-check"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">Active Categories</div>
@@ -45,12 +45,12 @@
     <div class="col-12 col-md-4">
         <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 d-flex align-items-center gap-3">
             <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; font-size: 1.35rem;">
-                <i class="fas fa-feather-pointed"></i>
+                <i class="fa-solid fa-feather-pointed"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">Literary Portal</div>
                 <div class="fs-6 fw-bold text-info">
-                    <a href="{{ route('blog.index') }}" target="_blank" class="text-decoration-none">Visit Portal <i class="fas fa-external-link-alt ms-1"></i></a>
+                    <a href="{{ route('blog.index') }}" target="_blank" class="text-decoration-none">Visit Portal <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i></a>
                 </div>
             </div>
         </div>
@@ -62,14 +62,14 @@
     <form method="GET" action="{{ route('admin.blog-categories') }}" class="row g-2 align-items-center">
         <div class="col-md-9">
             <div class="input-group">
-                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                 <input type="text" name="search" class="form-control" placeholder="Search by category name or slug..." value="{{ $search }}">
             </div>
         </div>
         <div class="col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-primary flex-grow-1 rounded-pill"><i class="fas fa-filter me-1"></i> Filter</button>
+            <button type="submit" class="btn btn-primary flex-grow-1 rounded-pill"><i class="fa-solid fa-filter me-1"></i> Filter</button>
             @if($search)
-                <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-secondary rounded-pill" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-secondary rounded-pill" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
             @endif
         </div>
     </form>
@@ -128,16 +128,16 @@
                         <td class="text-end pe-3">
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ route('blog.category', $category->slug) }}" target="_blank" class="btn btn-outline-secondary" title="View on Site">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fa-solid fa-eye"></i>
                                 </a>
                                 <a href="{{ route('admin.content.edit', ['type' => 'blog_categories', 'id' => $category->id]) }}" class="btn btn-outline-primary" title="Edit">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
                                 <form action="{{ route('admin.content.destroy', ['type' => 'blog_categories', 'id' => $category->id]) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ব্লগ ক্যাটাগরিটি মুছে ফেলতে চান?" data-confirm-title="ব্লগ ক্যাটাগরি ডিলিট">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
                             </div>
@@ -146,7 +146,7 @@
                 @empty
                     <tr>
                         <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="fas fa-folder-open fs-2 mb-2 d-block opacity-50"></i>
+                            <i class="fa-solid fa-folder-open fs-2 mb-2 d-block opacity-50"></i>
                             No categories found.
                         </td>
                     </tr>

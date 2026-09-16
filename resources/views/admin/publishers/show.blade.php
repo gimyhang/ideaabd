@@ -11,18 +11,18 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="{{ route('admin.publishers') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> All Publishers
+            <i class="fa-solid fa-arrow-left me-1"></i> All Publishers
         </a>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="openMakePaymentModal()">
-            <i class="fas fa-hand-holding-dollar me-1"></i> Record Payment
+            <i class="fa-solid fa-hand-holding-dollar me-1"></i> Record Payment
         </button>
         <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none;">
-            <i class="fas fa-plus-circle"></i>
+            <i class="fa-solid fa-circle-plus"></i>
             <span>Add New Book</span>
         </a>
         @if($publisher->slug)
             <a href="{{ route('publishers.show', $publisher->slug) }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-                <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
+                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Storefront
             </a>
         @endif
     </div>
@@ -34,7 +34,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4 border-0 bg-success bg-opacity-10 text-success-emphasis" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -74,16 +74,16 @@
                         <h3 class="fw-bold text-dark mb-0">{{ $publisher->name }}</h3>
                         @if($publisher->is_active)
                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                <i class="fas fa-check-circle me-1"></i>Active Publisher
+                                <i class="fa-solid fa-circle-check me-1"></i>Active Publisher
                             </span>
                         @else
                             <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                <i class="fas fa-pause-circle me-1"></i>Inactive
+                                <i class="fa-solid fa-pause-circle me-1"></i>Inactive
                             </span>
                         @endif
                         @if($publisher->is_verified)
                             <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2 py-1" style="font-size: 11px;">
-                                <i class="fas fa-certificate text-info me-1"></i>Verified
+                                <i class="fa-solid fa-certificate text-info me-1"></i>Verified
                             </span>
                         @endif
                     </div>
@@ -92,7 +92,7 @@
                     <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
                         @if($publisher->phone)
                             <a href="tel:{{ $publisher->phone }}" class="badge bg-light text-dark border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
-                                <i class="fas fa-phone me-1 text-primary"></i>{{ $publisher->phone }}
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>{{ $publisher->phone }}
                             </a>
                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $publisher->phone) }}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none rounded-pill px-2 py-1.5 hover-success" title="Chat on WhatsApp">
                                 <i class="fab fa-whatsapp"></i>
@@ -100,17 +100,17 @@
                         @endif
                         @if($publisher->email)
                             <a href="mailto:{{ $publisher->email }}" class="badge bg-light text-dark border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
-                                <i class="fas fa-envelope me-1 text-primary"></i>{{ $publisher->email }}
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>{{ $publisher->email }}
                             </a>
                         @endif
                         @if($publisher->address)
                             <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1.5 fw-normal" title="{{ $publisher->address }}">
-                                <i class="fas fa-location-dot me-1 text-danger"></i>{{ Str::limit($publisher->address, 35) }}
+                                <i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ Str::limit($publisher->address, 35) }}
                             </span>
                         @endif
                         @if($publisher->website)
                             <a href="{{ $publisher->website }}" target="_blank" rel="noopener" class="badge bg-light text-primary border text-decoration-none rounded-pill px-2.5 py-1.5 fw-normal hover-primary">
-                                <i class="fas fa-globe me-1"></i>{{ parse_url($publisher->website, PHP_URL_HOST) ?: $publisher->website }}
+                                <i class="fa-solid fa-globe me-1"></i>{{ parse_url($publisher->website, PHP_URL_HOST) ?: $publisher->website }}
                             </a>
                         @endif
                     </div>
@@ -139,7 +139,7 @@
                         </div>
                         @if($dueAmount > 0)
                             <button type="button" class="btn btn-sm btn-danger rounded-pill w-100 fw-bold shadow-xs mt-1" onclick="openMakePaymentModal()">
-                                <i class="fas fa-money-bill-wave me-1"></i> Pay Due Settlement
+                                <i class="fa-solid fa-money-bill-wave me-1"></i> Pay Due Settlement
                             </button>
                         @endif
                     </div>
@@ -160,7 +160,7 @@
                     <small class="text-success" style="font-size: 11px;">🟢 {{ $stats['in_stock'] ?? 0 }} In Stock</small>
                 </div>
                 <div class="p-3 bg-primary-subtle text-primary rounded-4 fs-4">
-                    <i class="fas fa-book-open"></i>
+                    <i class="fa-solid fa-book-open"></i>
                 </div>
             </div>
         </div>
@@ -172,7 +172,7 @@
                     <small class="text-muted" style="font-size: 11px;">Units Delivered</small>
                 </div>
                 <div class="p-3 bg-success-subtle text-success rounded-4 fs-4">
-                    <i class="fas fa-cart-shopping"></i>
+                    <i class="fa-solid fa-cart-shopping"></i>
                 </div>
             </div>
         </div>
@@ -184,7 +184,7 @@
                     <small class="text-muted" style="font-size: 11px;">Stock Invoices</small>
                 </div>
                 <div class="p-3 bg-info-subtle text-info rounded-4 fs-4">
-                    <i class="fas fa-file-invoice-dollar"></i>
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
                 </div>
             </div>
         </div>
@@ -196,7 +196,7 @@
                     <small class="text-muted" style="font-size: 11px;">Receipts Recorded</small>
                 </div>
                 <div class="p-3 bg-warning-subtle text-warning rounded-4 fs-4">
-                    <i class="fas fa-receipt"></i>
+                    <i class="fa-solid fa-receipt"></i>
                 </div>
             </div>
         </div>
@@ -211,7 +211,7 @@
             'books' => [
                 'title' => 'Books Catalog & Purchase Orders (PO)',
                 'short' => 'Books Catalog',
-                'icon' => 'fas fa-book',
+                'icon' => 'fa-solid fa-book',
                 'color' => 'primary',
                 'count' => $stats['total_books'] ?? 0,
                 'desc' => 'Manage inventory books, live prices, commission and send Purchase Orders'
@@ -219,7 +219,7 @@
             'purchases' => [
                 'title' => 'Purchase Invoices & History',
                 'short' => 'Purchase Invoices',
-                'icon' => 'fas fa-file-invoice-dollar',
+                'icon' => 'fa-solid fa-file-invoice-dollar',
                 'color' => 'success',
                 'count' => $stats['total_po'] ?? 0,
                 'desc' => 'Review stock-in purchase invoices, supplier memos and delivery tracking'
@@ -227,7 +227,7 @@
             'payments' => [
                 'title' => 'Payments & Ledger Statement',
                 'short' => 'Payments & Ledger',
-                'icon' => 'fas fa-receipt',
+                'icon' => 'fa-solid fa-receipt',
                 'color' => 'warning',
                 'count' => $stats['total_payments'] ?? 0,
                 'desc' => 'Complete debit & credit statement, running balance and payment receipts'
@@ -235,7 +235,7 @@
             'analytics' => [
                 'title' => 'Sales & Bestsellers Analytics',
                 'short' => 'Sales Analytics',
-                'icon' => 'fas fa-chart-line',
+                'icon' => 'fa-solid fa-chart-line',
                 'color' => 'info',
                 'count' => null,
                 'desc' => 'Top performing books, sales velocity and revenue statistics'
@@ -262,7 +262,7 @@
                             </span>
                         @endif
                     </div>
-                    <i class="fas fa-chevron-down text-muted ms-2" id="dropdownChevronIcon" style="font-size: 11px; transition: transform 0.2s;"></i>
+                    <i class="fa-solid fa-chevron-down text-muted ms-2" id="dropdownChevronIcon" style="font-size: 11px; transition: transform 0.2s;"></i>
                 </button>
 
                 {{-- Dropdown Container --}}
@@ -270,7 +270,7 @@
                      id="publisherViewDropdownMenu" 
                      style="display: none; top: 100%; left: 0; min-width: 320px; z-index: 1050;">
                     <div class="dropdown-header text-uppercase small fw-bold text-muted px-2 py-1">
-                        <i class="fas fa-layer-group me-1"></i> Switch Module View
+                        <i class="fa-solid fa-layer-group me-1"></i> Switch Module View
                     </div>
                     @foreach($tabMeta as $tKey => $tVal)
                         <a class="dropdown-item rounded-3 p-2.5 d-flex align-items-center justify-content-between mb-1 {{ $activeTab === $tKey ? 'bg-primary-subtle text-primary fw-bold' : 'text-dark hover-bg-light' }}" 
@@ -313,15 +313,15 @@
             {{-- Quick Action Buttons --}}
             <div class="d-flex align-items-center gap-1.5">
                 <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border:none; font-size: 12px;">
-                    <i class="fas fa-plus-circle"></i>
+                    <i class="fa-solid fa-circle-plus"></i>
                     <span>Add Book</span>
                 </a>
                 <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1" style="font-size: 12px;">
-                    <i class="fas fa-cart-plus"></i>
+                    <i class="fa-solid fa-cart-plus"></i>
                     <span>New PO</span>
                 </a>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1.5 shadow-xs" onclick="openEditPublisherModal({{ $publisher->id }})" title="Edit Publisher Profile">
-                    <i class="fas fa-pen-to-square"></i>
+                    <i class="fa-solid fa-pen-to-square"></i>
                 </button>
             </div>
 
@@ -341,13 +341,13 @@
                 {{-- Search Box --}}
                 <div class="col-12 col-md-4">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="text" name="search" id="pubBookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-start-0 border-end-0 ps-0" 
                                placeholder="Search title, author, ISBN, SKU..." autocomplete="off">
                         @if(request('search'))
                             <a href="{{ route('admin.publishers.show', array_merge(['id' => $publisher->id], request()->except('search'))) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear search">
-                                <i class="fas fa-times"></i>
+                                <i class="fa-solid fa-times"></i>
                             </a>
                         @endif
                         <button type="submit" class="btn btn-primary px-3 fw-bold">Search</button>
@@ -389,7 +389,7 @@
                 {{-- Reset Button --}}
                 <div class="col-6 col-md-1 d-flex gap-1">
                     <a href="{{ route('admin.publishers.show', ['id' => $publisher->id, 'tab' => 'books']) }}" class="btn btn-sm btn-outline-secondary w-100 rounded-3" title="Reset Filters">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 </div>
             </form>
@@ -420,10 +420,10 @@
                         </button>
                     </div>
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs" onclick="openPurchaseOrderModal()" id="sendPoBtn" disabled>
-                        <i class="fas fa-paper-plane me-1"></i> Send PO via Email
+                        <i class="fa-solid fa-paper-plane me-1"></i> Send PO via Email
                     </button>
                     <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 shadow-xs" onclick="printPurchaseOrderSlip()" id="printPoBtn" disabled>
-                        <i class="fas fa-print me-1"></i> Print PO Slip
+                        <i class="fa-solid fa-print me-1"></i> Print PO Slip
                     </button>
                 </div>
             </div>
@@ -433,7 +433,7 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-3" style="width: 40px;">
-                                <i class="fas fa-check-square text-muted"></i>
+                                <i class="fa-solid fa-check-square text-muted"></i>
                             </th>
                             <th style="min-width: 250px;">Book Info & Cover</th>
                             <th style="min-width: 130px;">Edition / Category</th>
@@ -516,7 +516,7 @@
                                                 {{ $book->title }}
                                             </a>
                                             <div class="text-muted small text-truncate" style="font-size: 11.5px; max-width: 220px;">
-                                                <i class="fas fa-pen-nib text-secondary me-1" style="font-size: 10px;"></i>
+                                                <i class="fa-solid fa-pen-nib text-secondary me-1" style="font-size: 10px;"></i>
                                                 {{ $book->author_name ?: 'Unknown Author' }}
                                             </div>
                                             @if($book->isbn || $book->sku)
@@ -618,20 +618,20 @@
                                         <button type="button" class="btn btn-sm btn-light border text-primary rounded-circle shadow-xs" 
                                                 style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                                 onclick="openQuickBookEditModal({{ $book->id }})" title="Quick Edit Book">
-                                            <i class="fas fa-bolt" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-bolt" style="font-size: 11px;"></i>
                                         </button>
                                         <a href="{{ route('admin.content.edit', ['type' => 'books', 'id' => $book->id]) }}" target="_blank"
                                            class="btn btn-sm btn-light border text-secondary rounded-circle shadow-xs" 
                                            style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                            title="Full CMS Edit">
-                                            <i class="fas fa-pen" style="font-size: 10px;"></i>
+                                            <i class="fa-solid fa-pen" style="font-size: 10px;"></i>
                                         </a>
                                         @if($book->slug)
                                             <a href="{{ route('book.show', $book->slug) }}" target="_blank"
                                                class="btn btn-sm btn-light border text-info rounded-circle shadow-xs" 
                                                style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                                title="View in Live Shop">
-                                                <i class="fas fa-eye" style="font-size: 10px;"></i>
+                                                <i class="fa-solid fa-eye" style="font-size: 10px;"></i>
                                             </a>
                                         @endif
                                     </div>
@@ -642,11 +642,11 @@
                             <tr>
                                 <td colspan="9">
                                     <div class="empty-state py-5 text-center">
-                                        <i class="fas fa-book-open fs-1 text-muted opacity-50 mb-2"></i>
+                                        <i class="fa-solid fa-book-open fs-1 text-muted opacity-50 mb-2"></i>
                                         <h6 class="fw-bold text-dark mb-1">No books found in this publisher catalog</h6>
                                         <p class="text-muted small mb-3">Add books to this publisher or reset your search filters.</p>
                                         <a href="{{ route('admin.content.create', 'books') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                                            <i class="fas fa-plus-circle me-1"></i> Add First Book
+                                            <i class="fa-solid fa-circle-plus me-1"></i> Add First Book
                                         </a>
                                     </div>
                                 </td>
@@ -674,9 +674,9 @@
     @if($activeTab === 'purchases')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-file-invoice-dollar me-1.5 text-primary"></i> Purchase Invoices & History</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar me-1.5 text-primary"></i> Purchase Invoices & History</h6>
                 <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                    <i class="fas fa-plus me-1"></i> Create New Purchase Invoice
+                    <i class="fa-solid fa-plus me-1"></i> Create New Purchase Invoice
                 </a>
             </div>
 
@@ -718,17 +718,17 @@
                                 </td>
                                 <td class="text-end pe-3">
                                     <a href="{{ route('admin.purchases.show', $purchase->id) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2.5">
-                                        <i class="fas fa-eye me-1"></i> View Invoice
+                                        <i class="fa-solid fa-eye me-1"></i> View Invoice
                                     </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
-                                    <i class="fas fa-receipt fs-2 opacity-50 mb-2"></i>
+                                    <i class="fa-solid fa-receipt fs-2 opacity-50 mb-2"></i>
                                     <h6>No purchase invoices recorded yet</h6>
                                     <a href="{{ route('admin.purchases.create') }}?publisher_id={{ $publisher->id }}" class="btn btn-sm btn-primary rounded-pill px-3 mt-2">
-                                        <i class="fas fa-plus me-1"></i> Create First Invoice
+                                        <i class="fa-solid fa-plus me-1"></i> Create First Invoice
                                     </a>
                                 </td>
                             </tr>
@@ -751,9 +751,9 @@
     @if($activeTab === 'payments')
         <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4 bg-white">
             <div class="p-3 bg-light bg-opacity-75 border-bottom d-flex align-items-center justify-content-between">
-                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-receipt me-1.5 text-success"></i> Payment Receipts & Financial Statement</h6>
+                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-receipt me-1.5 text-success"></i> Payment Receipts & Financial Statement</h6>
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" onclick="openMakePaymentModal()">
-                    <i class="fas fa-plus me-1"></i> Record New Payment
+                    <i class="fa-solid fa-plus me-1"></i> Record New Payment
                 </button>
             </div>
 
@@ -800,7 +800,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fas fa-hand-holding-dollar fs-2 opacity-50 mb-2"></i>
+                                    <i class="fa-solid fa-hand-holding-dollar fs-2 opacity-50 mb-2"></i>
                                     <h6>No payment vouchers found</h6>
                                 </td>
                             </tr>
@@ -822,7 +822,7 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'analytics')
         <div class="adm-card p-4 shadow-sm border-0 rounded-4 bg-white">
-            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> Top Performing & Bestselling Books</h5>
+            <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-chart-line me-2 text-primary"></i> Top Performing & Bestselling Books</h5>
             
             <div class="table-responsive">
                 <table class="table adm-table align-middle mb-0">
@@ -844,7 +844,7 @@
                             <tr>
                                 <td class="ps-3">
                                     @if($idx === 0)
-                                        <span class="badge bg-warning text-dark rounded-circle p-1.5"><i class="fas fa-crown"></i></span>
+                                        <span class="badge bg-warning text-dark rounded-circle p-1.5"><i class="fa-solid fa-crown"></i></span>
                                     @else
                                         <span class="badge bg-light text-muted border rounded-circle">#{{ $idx + 1 }}</span>
                                     @endif
@@ -865,7 +865,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="fas fa-chart-pie fs-2 opacity-50 mb-2"></i>
+                                    <i class="fa-solid fa-chart-pie fs-2 opacity-50 mb-2"></i>
                                     <h6>No sales records accumulated yet for this publisher</h6>
                                 </td>
                             </tr>
@@ -892,13 +892,13 @@
         </div>
         <div class="d-flex align-items-center gap-2">
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="clearAllSelections()">
-                <i class="fas fa-times me-1"></i> Clear
+                <i class="fa-solid fa-times me-1"></i> Clear
             </button>
             <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" onclick="printPurchaseOrderSlip()">
-                <i class="fas fa-print me-1"></i> Print PO Slip
+                <i class="fa-solid fa-print me-1"></i> Print PO Slip
             </button>
             <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow" onclick="openPurchaseOrderModal()">
-                <i class="fas fa-paper-plane me-1.5"></i> Send PO via Email
+                <i class="fa-solid fa-paper-plane me-1.5"></i> Send PO via Email
             </button>
         </div>
     </div>
@@ -912,7 +912,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="purchaseOrderModalLabel">
-                    <i class="fas fa-file-invoice-dollar me-2"></i> Send Purchase Order (PO) to Publisher
+                    <i class="fa-solid fa-file-invoice-dollar me-2"></i> Send Purchase Order (PO) to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -926,7 +926,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">Publisher Email Address <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-light"><i class="fas fa-envelope text-muted"></i></span>
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-muted"></i></span>
                                 <input type="email" id="poRecipientEmail" name="recipient_email" value="{{ $publisher->email }}" class="form-control" required placeholder="example@publisher.com">
                             </div>
                         </div>
@@ -984,7 +984,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold" id="sendPoSubmitBtn">
-                        <i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email
+                        <i class="fa-solid fa-paper-plane me-1.5"></i> Send Purchase Order Email
                     </button>
                 </div>
             </form>
@@ -1000,7 +1000,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="makePaymentModalLabel">
-                    <i class="fas fa-hand-holding-dollar me-2"></i> Record Payment to Publisher
+                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Payment to Publisher
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1051,7 +1051,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold" id="savePaymentBtn">
-                        <i class="fas fa-check-circle me-1"></i> Save Payment Voucher
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher
                     </button>
                 </div>
             </form>
@@ -1067,7 +1067,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="editPublisherModalLabel">
-                    <i class="fas fa-pen-to-square me-2"></i> Edit Publisher Information
+                    <i class="fa-solid fa-pen-to-square me-2"></i> Edit Publisher Information
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1117,7 +1117,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold" id="savePublisherBtn">
-                        <i class="fas fa-save me-1"></i> Save Changes
+                        <i class="fa-solid fa-save me-1"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -1358,7 +1358,7 @@ function handleSendPOSubmit(e) {
     }
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Sending Email...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Sending Email...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const payload = {
@@ -1383,7 +1383,7 @@ function handleSendPOSubmit(e) {
     .then(data => {
         if (data.success) {
             alertBox.innerHTML = `<div class="alert alert-success p-3 small mb-3">
-                <i class="fas fa-circle-check fs-5 me-1 text-success"></i> ${data.message}
+                <i class="fa-solid fa-circle-check fs-5 me-1 text-success"></i> ${data.message}
             </div>`;
             setTimeout(() => {
                 location.reload();
@@ -1391,13 +1391,13 @@ function handleSendPOSubmit(e) {
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Error sending PO email.'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1.5"></i> Send Purchase Order Email';
         }
     })
     .catch(err => {
         alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error occurred.</div>';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1.5"></i> Send Purchase Order Email';
+        btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1.5"></i> Send Purchase Order Email';
     });
 }
 
@@ -1485,7 +1485,7 @@ function handleMakePaymentSubmit(e) {
     const alertBox = document.getElementById('paymentAlertBox');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const formData = new FormData(document.getElementById('makePaymentForm'));
@@ -1506,13 +1506,13 @@ function handleMakePaymentSubmit(e) {
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Validation error.'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher';
         }
     })
     .catch(() => {
         alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error.</div>';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Payment Voucher';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Payment Voucher';
     });
 }
 
@@ -1531,7 +1531,7 @@ function handleEditPublisherSubmit(e) {
     const alertBox = document.getElementById('editPubAlertBox');
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Updating...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const formData = new FormData(document.getElementById('editPublisherForm'));
@@ -1552,13 +1552,13 @@ function handleEditPublisherSubmit(e) {
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'Update error.'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+            btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save Changes';
         }
     })
     .catch(() => {
         alertBox.innerHTML = '<div class="alert alert-danger p-2 small mb-2">Server error.</div>';
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        btn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save Changes';
     });
 }
 

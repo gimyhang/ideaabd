@@ -9,10 +9,10 @@
 
 @section('actions')
     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
-        <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+        <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
     </button>
     <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-        <i class="fas fa-arrow-left me-1"></i> Back to List
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to List
     </a>
 @endsection
 
@@ -58,7 +58,7 @@
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
                     <div class="d-flex align-items-center gap-2.5">
                         <span class="badge bg-primary-subtle text-primary p-2 rounded-3" id="supplierIconBadge">
-                            <i class="fas fa-building fs-5"></i>
+                            <i class="fa-solid fa-building fs-5"></i>
                         </span>
                         <div>
                             <h5 class="fw-bold mb-0 text-dark" id="supplierCardTitle">Vendor & Invoice Information</h5>
@@ -77,7 +77,7 @@
                             <div id="topVendorWrapper" style="{{ $isInitRaw ? 'display: block;' : 'display: none;' }}">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-store text-warning me-1"></i> <span id="vendorFieldLabel">Vendor</span> <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-store text-warning me-1"></i> <span id="vendorFieldLabel">Vendor</span> <span class="text-danger">*</span>
                                     </label>
                                     
                                     {{-- Existing Vendor Directory Selector --}}
@@ -97,7 +97,7 @@
                                     @endif
 
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-pen-nib text-secondary"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-pen-nib text-secondary"></i></span>
                                         <input type="text" name="vendor_name" id="customVendorInput" class="form-control fw-bold" 
                                                placeholder="e.g. Karnafuli Paper Mills / Al-Madina Press..." value="{{ old('vendor_name') }}" oninput="checkVendorPreviousDue(this.value)">
                                     </div>
@@ -106,13 +106,13 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-phone-alt text-success me-1"></i> Phone
+                                            <i class="fa-solid fa-phone-alt text-success me-1"></i> Phone
                                         </label>
                                         <input type="text" name="vendor_phone" id="createVendorPhone" class="form-control form-control-sm" placeholder="017XXXXXXXX" value="{{ old('vendor_phone') }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-location-dot text-danger me-1"></i> Address
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i> Address
                                         </label>
                                         <input type="text" name="vendor_address" id="createVendorAddress" class="form-control form-control-sm" placeholder="Banglabazar / Arambagh, Dhaka" value="{{ old('vendor_address') }}">
                                     </div>
@@ -123,7 +123,7 @@
                             <div id="bookPublisherWrapper" style="{{ $isInitRaw ? 'display: none;' : 'display: block;' }}">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-store text-primary me-1"></i> Publisher <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-store text-primary me-1"></i> Publisher <span class="text-danger">*</span>
                                     </label>
                                     
                                     {{-- Existing Publisher Directory Selector --}}
@@ -148,7 +148,7 @@
                                     @endif
 
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-book-open-reader text-primary"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-book-open-reader text-primary"></i></span>
                                         <input type="text" name="publisher_name" id="customPublisherInput" class="form-control fw-bold" 
                                                placeholder="e.g. Prothoma / Batighar / Any Publisher Name..." value="{{ old('publisher_name') }}" oninput="checkPublisherInput(this.value)">
                                         <input type="hidden" name="publisher_id" id="selectedPublisherId" value="{{ old('publisher_id') }}">
@@ -159,13 +159,13 @@
                                 <div class="row g-2">
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-phone-alt text-success me-1"></i> Phone
+                                            <i class="fa-solid fa-phone-alt text-success me-1"></i> Phone
                                         </label>
                                         <input type="text" name="publisher_phone" id="createPublisherPhone" class="form-control form-control-sm" placeholder="017XXXXXXXX" value="{{ old('publisher_phone') }}">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-location-dot text-danger me-1"></i> Address
+                                            <i class="fa-solid fa-location-dot text-danger me-1"></i> Address
                                         </label>
                                         <input type="text" name="publisher_address" id="createPublisherAddress" class="form-control form-control-sm" placeholder="Banglabazar, Dhaka" value="{{ old('publisher_address') }}">
                                     </div>
@@ -178,7 +178,7 @@
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-hashtag text-primary me-1"></i> Invoice No <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-hashtag text-primary me-1"></i> Invoice No <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light fw-bold text-primary font-monospace" id="invoicePrefixBadge">
@@ -192,20 +192,20 @@
 
                                 <div class="col-sm-6">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
+                                        <i class="fa-solid fa-calendar-day text-primary me-1"></i> Purchase Date <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                        <span class="input-group-text bg-light"><i class="fa-solid fa-calendar-alt text-muted"></i></span>
                                         <input type="date" name="purchase_date" class="form-control" value="{{ old('purchase_date', date('Y-m-d')) }}" required>
                                     </div>
                                 </div>
 
                                 <div class="col-12">
                                     <label class="form-label fw-bold text-dark mb-1">
-                                        <i class="fas fa-receipt text-success me-1"></i> Challan / Memo No
+                                        <i class="fa-solid fa-receipt text-success me-1"></i> Challan / Memo No
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light text-success"><i class="fas fa-file-invoice"></i></span>
+                                        <span class="input-group-text bg-light text-success"><i class="fa-solid fa-file-invoice"></i></span>
                                         <input type="text" name="publisher_memo_no" class="form-control" 
                                                placeholder="e.g. Memo #1289 or Challan #52" value="{{ old('publisher_memo_no') }}">
                                     </div>
@@ -225,7 +225,7 @@
                 <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div class="d-flex align-items-center flex-wrap gap-2.5">
                         <span class="badge bg-success-subtle text-success p-2 rounded-3" id="itemSectionIconBadge">
-                            <i class="fas fa-book-bookmark fs-5"></i>
+                            <i class="fa-solid fa-book-bookmark fs-5"></i>
                         </span>
                         <div>
                             <h5 class="fw-bold mb-0 text-dark" id="itemCardHeading">Bill Items</h5>
@@ -239,7 +239,7 @@
                             </button>
                             <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2" aria-labelledby="rawPresetsDropdown" style="min-width: 320px; max-height: 420px; overflow-y: auto; z-index: 1060;">
                                 <li class="dropdown-header small text-muted fw-bold text-uppercase pb-1 px-3">
-                                    <i class="fas fa-layer-group me-1 text-primary"></i> Quick Presets:
+                                    <i class="fa-solid fa-layer-group me-1 text-primary"></i> Quick Presets:
                                 </li>
                                 <li>
                                     <a class="dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-2.5" href="javascript:void(0)" onclick="applyRawMaterialPreset('Offset Paper', '23x36 Demy', 'Ream', 3200, '80 GSM Offset Paper', '1.67')">
@@ -335,7 +335,7 @@
                                 <span class="input-group-text bg-light text-primary fw-semibold" style="font-size: 0.75rem;">Comm %</span>
                                 <input type="number" step="0.5" id="batchCommInput" class="form-control text-center" placeholder="40" min="0" max="100">
                                 <button type="button" class="btn btn-outline-primary" onclick="applyBatchCommission()" title="Apply commission to all items">
-                                    <i class="fas fa-bolt"></i>
+                                    <i class="fa-solid fa-bolt"></i>
                                 </button>
                             </div>
 
@@ -343,13 +343,13 @@
                                 <span class="input-group-text bg-light text-success fw-semibold" style="font-size: 0.75rem;">Shop Disc %</span>
                                 <input type="number" step="0.5" id="batchSaleDiscInput" class="form-control text-center" placeholder="25" min="0" max="100">
                                 <button type="button" class="btn btn-outline-success" onclick="applyBatchShopDiscount()" title="Apply store discount to all items">
-                                    <i class="fas fa-bolt"></i>
+                                    <i class="fa-solid fa-bolt"></i>
                                 </button>
                             </div>
                         </div>
 
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnAddMoreItems" onclick="addItemRow()">
-                            <i class="fas fa-plus me-1"></i> <span id="btnAddMoreText">{{ $initType === 'raw_materials' ? '+ Add Item' : ($initType === 'other' ? '+ Add Expense' : '+ Add Book') }}</span>
+                            <i class="fa-solid fa-plus me-1"></i> <span id="btnAddMoreText">{{ $initType === 'raw_materials' ? '+ Add Item' : ($initType === 'other' ? '+ Add Expense' : '+ Add Book') }}</span>
                         </button>
                     </div>
                 </div>
@@ -416,7 +416,7 @@
                                         {{-- Linked Book Mini Badge --}}
                                         <div class="item-book-badge mt-1 small" style="display: none;">
                                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                                                <i class="fas fa-check-circle me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
+                                                <i class="fa-solid fa-circle-check me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
                                             </span>
                                         </div>
                                     </td>
@@ -459,10 +459,10 @@
                                     <td class="text-center">
                                         <div class="d-flex align-items-center justify-content-center gap-1">
                                             <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(0)" title="Extra Details">
-                                                <i class="fas fa-sliders text-secondary"></i>
+                                                <i class="fa-solid fa-sliders text-secondary"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove Row">
-                                                <i class="fas fa-trash-can"></i>
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -473,7 +473,7 @@
                                     <td colspan="12" class="p-3">
                                         <div class="p-2.5 bg-white rounded-3 border">
                                             <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
-                                                <i class="fas fa-info-circle text-primary"></i>
+                                                <i class="fa-solid fa-circle-info text-primary"></i>
                                                 <span>Extra Catalog Specifications (Optional):</span>
                                             </div>
                                             <div class="row g-2">
@@ -515,7 +515,7 @@
                     {{-- Add Row Trigger Button at Bottom of Table --}}
                     <div class="mt-3 d-flex justify-content-start align-items-center">
                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3.5 py-1.5 fw-semibold shadow-xs" onclick="addItemRow()">
-                            <i class="fas fa-plus-circle me-1"></i> + Add Another Item
+                            <i class="fa-solid fa-circle-plus me-1"></i> + Add Another Item
                         </button>
                     </div>
 
@@ -565,7 +565,7 @@
             <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
                 <div class="card-header bg-white py-3 px-4 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="fas fa-note-sticky text-warning me-2"></i>Notes
+                        <i class="fa-solid fa-note-sticky text-warning me-2"></i>Notes
                     </h6>
                 </div>
                 <div class="card-body p-4">
@@ -577,7 +577,7 @@
             {{-- Automation Notice Card --}}
             <div class="card border-0 bg-primary-subtle bg-opacity-25 rounded-4 p-3.5 border-start border-4 border-primary">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="fs-3 text-primary"><i class="fas fa-boxes-stacked"></i></div>
+                    <div class="fs-3 text-primary"><i class="fa-solid fa-boxes-stacked"></i></div>
                     <div>
                         <h6 class="fw-bold text-primary mb-1">Automatic Inventory & Ledger Sync</h6>
                         <div class="small text-dark">Stock will be updated instantly and dues / repayments will be tracked seamlessly in vendor ledger.</div>
@@ -590,7 +590,7 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 sticky-top bg-white" style="top: 80px;">
                 <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4 d-flex align-items-center justify-content-between">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator text-warning me-2"></i>Invoice Summary & Payment</h5>
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator text-warning me-2"></i>Invoice Summary & Payment</h5>
                     <span class="badge bg-light text-dark px-2.5 py-1 rounded-pill small font-monospace">Summary</span>
                 </div>
 
@@ -605,7 +605,7 @@
                     <div class="my-2.5 p-2.5 bg-light rounded-3 border">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-bold text-muted mb-0">
-                                <i class="fas fa-tag text-danger me-1"></i> Special Discount (৳):
+                                <i class="fa-solid fa-tag text-danger me-1"></i> Special Discount (৳):
                             </label>
                         </div>
                         <div class="input-group input-group-sm">
@@ -624,7 +624,7 @@
                     <div id="previousDueRowWrap" class="mb-3 p-3 bg-warning-subtle bg-opacity-25 rounded-3 border border-warning-subtle" style="display: none;">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-danger small">
-                                <i class="fas fa-clock-rotate-left me-1"></i> Previous Due:
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i> Previous Due:
                             </span>
                             <span class="fw-bold fs-6 text-danger font-monospace" id="displayPreviousDue">৳0.00</span>
                         </div>
@@ -646,7 +646,7 @@
                     {{-- Payment Terms --}}
                     <div class="mb-3">
                         <label class="form-label fw-bold text-dark mb-1">
-                            <i class="fas fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
+                            <i class="fa-solid fa-hand-holding-dollar text-primary me-1"></i> Payment Terms <span class="text-danger">*</span>
                         </label>
                         <select name="payment_type" id="paymentType" class="form-select form-select-md fw-semibold" required onchange="onPaymentTypeChange()">
                             <option value="cash">💵 Cash (Full Paid)</option>
@@ -660,7 +660,7 @@
                     <div id="paidSectionWrapper">
                         <div class="mb-3" id="paidAmountGroup">
                             <label class="form-label fw-bold text-dark mb-1" id="paidAmountLabel">
-                                <i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):
+                                <i class="fa-solid fa-money-bill-wave text-success me-1"></i> Paid (৳):
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold text-success">৳</span>
@@ -688,7 +688,7 @@
 
                         {{-- Dynamic Bank Details (shown when Bank or Cheque is selected) --}}
                         <div id="bankDetailsRow" class="card border border-info-subtle bg-info-subtle bg-opacity-25 rounded-3 p-2.5 mb-3" style="display: none;">
-                            <div class="small fw-bold text-primary mb-1.5"><i class="fas fa-building-columns me-1"></i> Bank Account Information:</div>
+                            <div class="small fw-bold text-primary mb-1.5"><i class="fa-solid fa-building-columns me-1"></i> Bank Account Information:</div>
                             <div class="row g-2">
                                 <div class="col-sm-6">
                                     <label class="form-label small text-muted mb-0.5">Bank Name:</label>
@@ -706,7 +706,7 @@
                     <div id="installmentSectionWrapper" class="card border border-warning-subtle bg-warning-subtle bg-opacity-25 rounded-3 p-3 mb-3" style="display: none;">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="small fw-bold text-dark">
-                                <i class="fas fa-calendar-days text-warning me-1"></i> Installment Plan:
+                                <i class="fa-solid fa-calendar-days text-warning me-1"></i> Installment Plan:
                             </span>
                             <span id="perInstallmentAmount" class="badge bg-warning text-dark fw-bold px-2.5 py-1 font-monospace">৳0.00 / inst</span>
                         </div>
@@ -730,14 +730,14 @@
 
                     <div class="alert alert-success p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-success-subtle text-success" id="dueAlert">
                         <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-circle-check fs-5" id="dueIcon"></i>
+                            <i class="fa-solid fa-circle-check fs-5" id="dueIcon"></i>
                             <span class="fw-bold" id="dueLabel">Net Due:</span>
                         </div>
                         <span class="fw-bolder fs-4 font-monospace" id="displayDue">৳0.00</span>
                     </div>
 
                     <button type="submit" id="btnSubmitPurchase" class="btn btn-success btn-lg w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center gap-2">
-                        <i class="fas fa-check-circle fs-5"></i>
+                        <i class="fa-solid fa-circle-check fs-5"></i>
                         <span>Save Purchase Order</span>
                     </button>
                 </div>
@@ -872,11 +872,11 @@
             if (vendorInput) vendorInput.placeholder = 'e.g. Karnafuli Paper Mills / Al-Madina Press...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
-                iconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
+                iconBadge.innerHTML = '<i class="fa-solid fa-boxes-stacked fs-5"></i>';
             }
             if (itemIconBadge) {
                 itemIconBadge.className = 'badge bg-warning-subtle text-warning-emphasis p-2 rounded-3';
-                itemIconBadge.innerHTML = '<i class="fas fa-boxes-stacked fs-5"></i>';
+                itemIconBadge.innerHTML = '<i class="fa-solid fa-boxes-stacked fs-5"></i>';
             }
             if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
@@ -912,11 +912,11 @@
             if (vendorInput) vendorInput.placeholder = 'e.g. City Stationery / Vendor Name...';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
-                iconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
+                iconBadge.innerHTML = '<i class="fa-solid fa-cart-shopping fs-5"></i>';
             }
             if (itemIconBadge) {
                 itemIconBadge.className = 'badge bg-info-subtle text-info-emphasis p-2 rounded-3';
-                itemIconBadge.innerHTML = '<i class="fas fa-cart-shopping fs-5"></i>';
+                itemIconBadge.innerHTML = '<i class="fa-solid fa-cart-shopping fs-5"></i>';
             }
             if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'none';
@@ -950,11 +950,11 @@
             if (invoicePrefixBadge) invoicePrefixBadge.textContent = 'PUR';
             if (iconBadge) {
                 iconBadge.className = 'badge bg-primary-subtle text-primary p-2 rounded-3';
-                iconBadge.innerHTML = '<i class="fas fa-building fs-5"></i>';
+                iconBadge.innerHTML = '<i class="fa-solid fa-building fs-5"></i>';
             }
             if (itemIconBadge) {
                 itemIconBadge.className = 'badge bg-success-subtle text-success p-2 rounded-3';
-                itemIconBadge.innerHTML = '<i class="fas fa-book-bookmark fs-5"></i>';
+                itemIconBadge.innerHTML = '<i class="fa-solid fa-book-bookmark fs-5"></i>';
             }
             if (itemCardHeading) itemCardHeading.textContent = 'Bill Items';
             if (pubModeToggle) pubModeToggle.style.display = 'inline-flex';
@@ -1176,7 +1176,7 @@
                     } else if (localMatches.length === 0) {
                         dropdown.innerHTML = `
                             <div class="p-3 text-muted small text-center">
-                                <i class="fas fa-plus-circle text-success me-1"></i> নতুন বই হিসেবে স্বয়ংক্রিয়ভাবে সেভ হবে: <strong>"${escapeHtml(query)}"</strong>
+                                <i class="fa-solid fa-circle-plus text-success me-1"></i> নতুন বই হিসেবে স্বয়ংক্রিয়ভাবে সেভ হবে: <strong>"${escapeHtml(query)}"</strong>
                             </div>
                         `;
                         dropdown.style.display = 'block';
@@ -1193,7 +1193,7 @@
         const header = document.createElement('div');
         header.className = 'px-3 py-2 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center';
         header.innerHTML = `
-            <span><i class="fas fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${books.length}টি):</span>
+            <span><i class="fa-solid fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${books.length}টি):</span>
             <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">↑ ↓ Enter</span>
         `;
         dropdown.appendChild(header);
@@ -1219,7 +1219,7 @@
                 <div class="flex-grow-1 text-truncate">
                     <div class="fw-bold text-dark fs-6 text-truncate">${titleHtml}</div>
                     <div class="small text-muted text-truncate mt-0.5">
-                        <i class="fas fa-pen-nib me-1 text-primary"></i>${escapeHtml(author)}
+                        <i class="fa-solid fa-pen-nib me-1 text-primary"></i>${escapeHtml(author)}
                         ${pubName ? `· <span class="badge bg-light text-secondary border rounded-pill px-1.5 py-0.5">${escapeHtml(pubName)}</span>` : ''}
                     </div>
                 </div>
@@ -1581,11 +1581,11 @@
 
         if (netTotalDue <= 0) {
             if (dueAlert) dueAlert.className = 'alert alert-success p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-success-subtle text-success';
-            if (dueIcon) dueIcon.className = 'fas fa-circle-check fs-5';
+            if (dueIcon) dueIcon.className = 'fa-solid fa-circle-check fs-5';
             if (dueLabel) dueLabel.textContent = 'Paid in Full (All Clear):';
         } else {
             if (dueAlert) dueAlert.className = 'alert alert-danger p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border-0 bg-danger-subtle text-danger';
-            if (dueIcon) dueIcon.className = 'fas fa-circle-exclamation fs-5';
+            if (dueIcon) dueIcon.className = 'fa-solid fa-circle-exclamation fs-5';
             if (dueLabel) dueLabel.textContent = currentPartyPreviousDue > 0 ? 'Total Due Balance:' : 'Due Bill:';
         }
 
@@ -1649,18 +1649,18 @@
         } else if (type === 'installment') {
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'block';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Down Payment / Initial Paid (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fa-solid fa-money-bill-wave text-success me-1"></i> Down Payment / Initial Paid (৳):';
             if (parseFloat(paidInput.value) >= parseFloat(document.getElementById('displayGrandTotal').textContent.replace(/[^\d.]/g, '') || 0)) {
                 paidInput.value = 0;
             }
         } else if (type === 'partial') {
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'none';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fa-solid fa-money-bill-wave text-success me-1"></i> Paid (৳):';
         } else { // cash
             paidSection.style.display = 'block';
             if (installmentSection) installmentSection.style.display = 'none';
-            if (paidLabel) paidLabel.innerHTML = '<i class="fas fa-money-bill-wave text-success me-1"></i> Paid (৳):';
+            if (paidLabel) paidLabel.innerHTML = '<i class="fa-solid fa-money-bill-wave text-success me-1"></i> Paid (৳):';
         }
         calcTotals();
     }
@@ -1689,7 +1689,7 @@
                 </div>
                 <div class="item-book-badge mt-1 small" style="display: none;">
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                        <i class="fas fa-check-circle me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
+                        <i class="fa-solid fa-circle-check me-1"></i>Catalog Linked (Stock: <span class="badge-stock">0</span>)
                     </span>
                 </div>
             </td>
@@ -1732,10 +1732,10 @@
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
                     <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="Extra Details">
-                        <i class="fas fa-sliders text-secondary"></i>
+                        <i class="fa-solid fa-sliders text-secondary"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove Row">
-                        <i class="fas fa-trash-can"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </td>
@@ -1749,7 +1749,7 @@
             <td colspan="12" class="p-3">
                 <div class="p-2.5 bg-white rounded-3 border">
                     <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
-                        <i class="fas fa-info-circle text-primary"></i>
+                        <i class="fa-solid fa-circle-info text-primary"></i>
                         <span>Extra Catalog Specifications (Optional):</span>
                     </div>
                     <div class="row g-2">
@@ -1896,10 +1896,10 @@
             <td class="text-center">
                 <div class="d-flex align-items-center justify-content-center gap-1">
                     <button type="button" class="btn btn-sm btn-outline-secondary p-1.5 rounded-circle border-0" onclick="toggleExtraDetails(${i})" title="অতিরিক্ত বিবরণ">
-                        <i class="fas fa-sliders text-secondary"></i>
+                        <i class="fa-solid fa-sliders text-secondary"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="মুছে ফেলুন">
-                        <i class="fas fa-trash-can"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
             </td>

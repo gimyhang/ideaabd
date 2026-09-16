@@ -81,7 +81,7 @@
                 <div class="col-md-3">
                     <div class="input-group input-group-sm">
                         <input type="text" name="search" value="{{ $search }}" class="form-control rounded-start-3" placeholder="ভাউচার নং, নাম বা কাজের বিবরণ...">
-                        <button type="submit" class="btn btn-primary fw-semibold"><i class="fa-solid fa-search"></i></button>
+                        <button type="submit" class="btn btn-primary fw-semibold"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
                 </div>
                 <div class="col-md-1">

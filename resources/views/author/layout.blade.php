@@ -253,9 +253,13 @@
                 <i class="fas fa-pen-nib text-warning"></i>
                 <span>Write Post</span>
             </a>
-            <a href="{{ route('blog.index') }}" target="_blank" class="author-nav-link">
-                <i class="fas fa-newspaper text-info"></i>
-                <span>Live Feed</span>
+            {{-- SECTION 3: ACCOUNT & PROFILE --}}
+            <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
+                Account & Settings
+            </div>
+            <a href="{{ route('my-account') }}" class="author-nav-link {{ request()->routeIs('my-account*') ? 'active' : '' }}" title="মাই একাউন্ট (অর্ডার, প্রোফাইল ও সিকিউরিটি)">
+                <i class="fas fa-user-circle text-info"></i>
+                <span>মাই একাউন্ট</span>
             </a>
         </nav>
 
@@ -265,7 +269,7 @@
             $authorAvatarUrl = $authorAvatar ? (str_starts_with($authorAvatar, 'http') ? $authorAvatar : asset('storage/' . ltrim($authorAvatar, '/'))) : null;
         @endphp
         <div class="pt-3 border-top border-secondary border-opacity-25 d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2 text-white text-truncate">
+            <a href="{{ route('my-account') }}" class="d-flex align-items-center gap-2 text-white text-truncate text-decoration-none" title="আমার প্রোফাইল ও একাউন্ট">
                 <div class="rounded-circle overflow-hidden bg-primary text-white fw-bold d-flex align-items-center justify-content-center flex-shrink-0 border border-white border-opacity-25" style="width: 38px; height: 38px; min-width: 38px; aspect-ratio: 1/1;">
                     @if($authorAvatarUrl)
                         <img src="{{ $authorAvatarUrl }}" alt="{{ auth()->user()->name }}" class="w-100 h-100 object-fit-cover header-author-avatar-img">
@@ -275,15 +279,20 @@
                 </div>
                 <div class="overflow-hidden">
                     <div class="small fw-bold text-truncate text-white">{{ auth()->user()->name }}</div>
-                    <small class="text-white-50 d-block text-truncate" style="font-size: 11px;">Author</small>
+                    <small class="text-white-50 d-block text-truncate" style="font-size: 11px;">Author Profile</small>
                 </div>
+            </a>
+            <div class="d-flex align-items-center gap-1">
+                <a href="{{ route('my-account') }}" class="btn btn-sm btn-link text-white-50 p-1" title="মাই একাউন্ট">
+                    <i class="fas fa-gear"></i>
+                </a>
+                <form action="{{ route('logout') }}" method="POST" class="m-0">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-link text-white-50 p-1" title="Logout">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </form>
             </div>
-            <form action="{{ route('logout') }}" method="POST" class="m-0">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-link text-white-50 p-1" title="Logout">
-                    <i class="fas fa-power-off"></i>
-                </button>
-            </form>
         </div>
     </aside>
 
@@ -348,17 +357,23 @@
                     <i class="fas fa-heart text-danger"></i>
                     <span>Reader Tips</span>
                 </a>
-                <a href="{{ route('author.posts.create') }}" class="author-nav-link {{ request()->routeIs('author.posts.create') ? 'active' : '' }}">
-                    <i class="fas fa-pen-nib text-warning"></i>
-                    <span>Write Post</span>
+                <div class="text-white-50 text-uppercase fw-bold px-3 pt-3 pb-1" style="font-size: 10px; letter-spacing: 0.8px;">
+                    Account & Settings
+                </div>
+                <a href="{{ route('my-account') }}" class="author-nav-link {{ request()->routeIs('my-account*') ? 'active' : '' }}">
+                    <i class="fas fa-user-circle text-info"></i>
+                    <span>মাই একাউন্ট</span>
                 </a>
             </nav>
 
-            <div class="pt-3 border-top border-secondary border-opacity-25">
-                <form action="{{ route('logout') }}" method="POST">
+            <div class="pt-3 border-top border-secondary border-opacity-25 d-flex gap-2">
+                <a href="{{ route('my-account') }}" class="btn btn-outline-light btn-sm rounded-pill flex-grow-1 fw-semibold">
+                    <i class="fas fa-user me-1"></i> একাউন্ট
+                </a>
+                <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
-                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-semibold">
-                        <i class="fas fa-power-off me-1"></i> Logout
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="fas fa-power-off"></i>
                     </button>
                 </form>
             </div>
@@ -387,6 +402,74 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                {{-- My Account Dropdown --}}
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs dropdown-toggle" 
+                            type="button" 
+                            id="authorTopAccountDropdownBtn" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false" 
+                            title="My Account Options">
+                        <i class="fas fa-user-circle text-primary"></i>
+                        <span>My Account</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 rounded-4 p-2 mt-1" aria-labelledby="authorTopAccountDropdownBtn" style="min-width: 260px; z-index: 1100;">
+                        @php
+                            $authMe = auth()->user();
+                        @endphp
+                        <li class="px-3 py-2 border-bottom mb-2 bg-light rounded-3 text-center">
+                            <div class="fw-bold text-dark fs-6">{{ $authMe->name }}</div>
+                            <div class="text-muted small text-truncate" style="font-size: 11px;">{{ $authMe->email }}</div>
+                            <div class="badge bg-primary mt-1 px-2.5 py-0.5 rounded-pill small" style="font-size: 10px;">Author Studio</div>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account') }}">
+                                <i class="fas fa-user-gear text-primary" style="width: 18px;"></i>
+                                <span>Your Account Hub</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'orders']) }}">
+                                <i class="fas fa-box-archive text-info" style="width: 18px;"></i>
+                                <span>Your Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('author.royalties') }}">
+                                <i class="fas fa-sack-dollar text-warning" style="width: 18px;"></i>
+                                <span>Royalties (50%)</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('author.payouts.index') }}">
+                                <i class="fas fa-hand-holding-dollar text-success" style="width: 18px;"></i>
+                                <span>Payouts</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'loginSecurity']) }}">
+                                <i class="fas fa-shield-halved text-success" style="width: 18px;"></i>
+                                <span>Login & Security</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'addresses']) }}">
+                                <i class="fas fa-location-dot text-danger" style="width: 18px;"></i>
+                                <span>Your Addresses</span>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1.5"></li>
+                        <li>
+                            <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="dropdown-item text-danger py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 bg-danger-subtle text-center justify-content-center">
+                                    <i class="fas fa-power-off"></i>
+                                    <span>Sign Out</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
                 <a href="{{ route('home') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
                     <i class="fas fa-store me-1"></i> <span class="d-none d-sm-inline">Store</span>
                 </a>
@@ -560,6 +643,33 @@
                         window.history.back();
                     }
                 }
+            }
+        });
+
+        // Bulletproof Dropdown Toggle Helper for Author Studio
+        document.addEventListener('click', function(e) {
+            var toggle = e.target.closest('[data-bs-toggle="dropdown"]');
+            if (toggle) {
+                var menu = toggle.nextElementSibling || toggle.parentElement.querySelector('.dropdown-menu');
+                if (menu) {
+                    var isShown = menu.classList.contains('show');
+                    document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                        if (m !== menu) m.classList.remove('show');
+                    });
+                    if (isShown) {
+                        menu.classList.remove('show');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    } else {
+                        menu.classList.add('show');
+                        toggle.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            } else if (!e.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                    m.classList.remove('show');
+                    var pToggle = m.parentElement.querySelector('[data-bs-toggle="dropdown"]');
+                    if (pToggle) pToggle.setAttribute('aria-expanded', 'false');
+                });
             }
         });
     </script>

@@ -14,7 +14,7 @@
     {{-- Flash Messages --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center rounded-4 mb-0 shadow-xs" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -24,7 +24,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white rounded-4 shadow-sm border-0 p-3" style="--bar: var(--warn);">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-hourglass-half"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-hourglass-half"></i></div>
                 <p class="kpi__label small text-muted fw-semibold mb-1">Pending Payout Requests</p>
                 <h3 class="kpi__value text-dark fs-4 fw-bold mb-1">{{ number_format($stats['pending_count']) }}</h3>
                 <p class="kpi__foot text-muted small mb-0 font-monospace">৳{{ number_format($stats['pending_sum'], 2) }}</p>
@@ -33,7 +33,7 @@
 
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white rounded-4 shadow-sm border-0 p-3" style="--bar: var(--ok);">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fas fa-circle-check"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <p class="kpi__label small text-muted fw-semibold mb-1">Paid Out to Authors</p>
                 <h3 class="kpi__value text-dark fs-4 fw-bold mb-1">{{ number_format($stats['paid_count']) }}</h3>
                 <p class="kpi__foot text-muted small mb-0 font-monospace">৳{{ number_format($stats['paid_sum'], 2) }}</p>
@@ -42,7 +42,7 @@
 
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white rounded-4 shadow-sm border-0 p-3" style="--bar: var(--danger);">
-                <div class="kpi__icon bg-danger-subtle text-danger"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="kpi__icon bg-danger-subtle text-danger"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                 <p class="kpi__label small text-muted fw-semibold mb-1">TDS / Tax Deducted</p>
                 <h3 class="kpi__value text-dark fs-4 fw-bold mb-1 font-monospace">৳{{ number_format($stats['total_tax'], 2) }}</h3>
                 <p class="kpi__foot text-muted small mb-0">Government tax withholding</p>
@@ -111,7 +111,7 @@
                                 <td>
                                     @if($payout->status === 'paid')
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-circle-check me-1"></i> Paid
+                                            <i class="fa-solid fa-circle-check me-1"></i> Paid
                                         </span>
                                         @if($payout->transaction_ref)
                                             <small class="d-block text-muted font-monospace" style="font-size: 10px;">Trx: {{ $payout->transaction_ref }}</small>
@@ -126,12 +126,12 @@
                                     @if($payout->status === 'pending')
                                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" 
                                                 data-bs-toggle="modal" data-bs-target="#processPayoutModal{{ $payout->id }}">
-                                            <i class="fas fa-hand-holding-dollar me-1"></i> Process
+                                            <i class="fa-solid fa-hand-holding-dollar me-1"></i> Process
                                         </button>
                                     @elseif($payout->status === 'paid')
                                         <a href="{{ route('admin.author-payouts.receipt', $payout->id) }}" target="_blank" 
                                            class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold" title="Print Payout Voucher / Receipt">
-                                            <i class="fas fa-receipt me-1"></i> Receipt
+                                            <i class="fa-solid fa-receipt me-1"></i> Receipt
                                         </a>
                                     @else
                                         <span class="text-muted small">Rejected</span>
@@ -145,7 +145,7 @@
                                                     @csrf
                                                     <div class="modal-header border-bottom">
                                                         <h6 class="modal-title fw-bold text-dark">
-                                                            <i class="fas fa-money-bill-transfer text-primary me-1.5"></i> Process Payout Request #{{ $payout->id }}
+                                                            <i class="fa-solid fa-money-bill-transfer text-primary me-1.5"></i> Process Payout Request #{{ $payout->id }}
                                                         </h6>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
@@ -189,7 +189,7 @@
                                                                     <div class="form-check form-check-inline border p-2 rounded-3 flex-fill m-0 bg-success bg-opacity-10 border-success border-opacity-25">
                                                                         <input class="form-check-input ms-0 me-2" type="radio" name="payout_mode" id="pm_api_{{ $payout->id }}" value="automated_api" onchange="toggleDisbursalMode({{ $payout->id }}, 'automated_api')">
                                                                         <label class="form-check-label small fw-bold text-success" for="pm_api_{{ $payout->id }}">
-                                                                            <i class="fas fa-bolt me-1"></i> অটোমেটেড এপিআই (Instant)
+                                                                            <i class="fa-solid fa-bolt me-1"></i> অটোমেটেড এপিআই (Instant)
                                                                         </label>
                                                                     </div>
                                                                 </div>
@@ -207,7 +207,7 @@
 
                                                             <div class="mb-3 d-none p-3 rounded-3 border bg-success-subtle bg-opacity-25" id="api_notice_{{ $payout->id }}">
                                                                 <small class="text-success fw-semibold d-block mb-1">
-                                                                    <i class="fas fa-circle-check me-1"></i> গেটওয়ে এপিআই স্বয়ংক্রিয়ভাবে লেখকের একাউন্টে ({{ $payout->payment_method }}: {{ $payout->account_details }}) টাকা ট্রান্সফার করবে এবং TrxID সেভ করবে।
+                                                                    <i class="fa-solid fa-circle-check me-1"></i> গেটওয়ে এপিআই স্বয়ংক্রিয়ভাবে লেখকের একাউন্টে ({{ $payout->payment_method }}: {{ $payout->account_details }}) টাকা ট্রান্সফার করবে এবং TrxID সেভ করবে।
                                                                 </small>
                                                                 <div class="mt-2">
                                                                     <label class="form-label small text-muted mb-0">গেটওয়ে সার্ভিস ফি / চার্জ (৳ - ঐচ্ছিক)</label>
@@ -242,7 +242,7 @@
                         @empty
                             <tr>
                                 <td colspan="8" class="text-center py-5 text-muted">
-                                    <i class="fas fa-receipt fs-2 mb-2 d-block opacity-25"></i>
+                                    <i class="fa-solid fa-receipt fs-2 mb-2 d-block opacity-25"></i>
                                     কোনো পে-আউট রিকোয়েস্ট পাওয়া যায়নি।
                                 </td>
                             </tr>

@@ -10,10 +10,10 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.reports.print', request()->all()) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-            <i class="fas fa-print me-1.5"></i> Print & PDF Report
+            <i class="fa-solid fa-print me-1.5"></i> Print & PDF Report
         </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" data-theme-toggle title="Theme Switcher">
-            <i class="fas fa-moon"></i>
+            <i class="fa-solid fa-moon"></i>
         </button>
     </div>
 @endsection
@@ -24,7 +24,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0" role="alert">
-            <i class="fas fa-circle-check me-2"></i>
+            <i class="fa-solid fa-circle-check me-2"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -33,7 +33,7 @@
     {{-- System Notice Banner (if set) --}}
     @if (!empty($systemNotice) && !empty($systemNotice['text']))
         <div class="alert alert-{{ $systemNotice['type'] ?? 'info' }} alert-dismissible d-flex align-items-center gap-2 mb-0 shadow-sm" role="alert">
-            <i class="fas fa-bullhorn fs-5 me-1 text-primary"></i>
+            <i class="fa-solid fa-bullhorn fs-5 me-1 text-primary"></i>
             <div class="fw-medium">{{ $systemNotice['text'] }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -60,7 +60,7 @@
             <div class="card-header bg-warning-subtle bg-opacity-40 py-2.5 px-3 px-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-warning text-dark p-2 rounded-circle shadow-xs">
-                        <i class="fas fa-bell"></i>
+                        <i class="fa-solid fa-bell"></i>
                     </span>
                     <h6 class="fw-bold mb-0 text-dark">পেন্ডিং রিকোয়েস্ট ({{ $totalAlertsCount }})</h6>
                 </div>
@@ -68,7 +68,7 @@
                 {{-- Action Required Interactive Dropdown Launcher --}}
                 <div class="dropdown">
                     <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold text-dark dropdown-toggle shadow-xs d-flex align-items-center gap-1.5" type="button" id="pendingActionMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-bolt-lightning text-danger"></i>
+                        <i class="fa-solid fa-bolt-lightning text-danger"></i>
                         <span>অ্যাকশন প্রয়োজন</span>
                         <span class="badge bg-danger text-white rounded-pill ms-1">{{ $totalAlertsCount }}</span>
                     </button>
@@ -77,7 +77,7 @@
                         @if($orderCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-cart-shopping text-warning me-2"></i>নতুন বই অর্ডার</span>
+                                    <span><i class="fa-solid fa-cart-shopping text-warning me-2"></i>নতুন বই অর্ডার</span>
                                     <span class="badge bg-warning-subtle text-dark fw-bold rounded-pill">{{ $orderCount }}</span>
                                 </a>
                             </li>
@@ -85,7 +85,7 @@
                         @if($submissionCount > 0 || $authorUpdateCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.registrations.index', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-file-signature text-dark me-2"></i>পাণ্ডুলিপি ও লেখক</span>
+                                    <span><i class="fa-solid fa-file-signature text-dark me-2"></i>পাণ্ডুলিপি ও লেখক</span>
                                     <span class="badge bg-dark-subtle text-dark fw-bold rounded-pill">{{ $submissionCount + $authorUpdateCount }}</span>
                                 </a>
                             </li>
@@ -93,7 +93,7 @@
                         @if($regCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.registrations.index', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-user-clock text-danger me-2"></i>রেজিস্ট্রেশন অনুরোধ</span>
+                                    <span><i class="fa-solid fa-user-clock text-danger me-2"></i>রেজিস্ট্রেশন অনুরোধ</span>
                                     <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill">{{ $regCount }}</span>
                                 </a>
                             </li>
@@ -101,7 +101,7 @@
                         @if($blogCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.blog', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-feather-pointed text-success me-2"></i>ব্লগ পোস্ট রিভিউ</span>
+                                    <span><i class="fa-solid fa-feather-pointed text-success me-2"></i>ব্লগ পোস্ট রিভিউ</span>
                                     <span class="badge bg-success-subtle text-success fw-bold rounded-pill">{{ $blogCount }}</span>
                                 </a>
                             </li>
@@ -109,7 +109,7 @@
                         @if($bookReqCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}">
-                                    <span><i class="fas fa-book-bookmark text-info me-2"></i>বই রিকোয়েস্ট</span>
+                                    <span><i class="fa-solid fa-book-bookmark text-info me-2"></i>বই রিকোয়েস্ট</span>
                                     <span class="badge bg-info-subtle text-info fw-bold rounded-pill">{{ $bookReqCount }}</span>
                                 </a>
                             </li>
@@ -117,7 +117,7 @@
                         @if($bookCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.books', ['mod_status' => 'pending']) }}">
-                                    <span><i class="fas fa-book-open text-primary me-2"></i>বই অনুমোদন</span>
+                                    <span><i class="fa-solid fa-book-open text-primary me-2"></i>বই অনুমোদন</span>
                                     <span class="badge bg-primary-subtle text-primary fw-bold rounded-pill">{{ $bookCount }}</span>
                                 </a>
                             </li>
@@ -125,7 +125,7 @@
                         @if($ebookCount > 0)
                             <li>
                                 <a class="dropdown-item d-flex align-items-center justify-content-between rounded-2 py-2 px-3" href="{{ route('admin.ebooks', ['mod_status' => 'pending']) }}">
-                                    <span><i class="fas fa-tablet-screen-button text-secondary me-2"></i>ই-বুক মডারেশন</span>
+                                    <span><i class="fa-solid fa-tablet-screen-button text-secondary me-2"></i>ই-বুক মডারেশন</span>
                                     <span class="badge bg-secondary-subtle text-secondary fw-bold rounded-pill">{{ $ebookCount }}</span>
                                 </a>
                             </li>
@@ -133,7 +133,7 @@
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
                             <a class="dropdown-item small text-center text-primary fw-semibold py-1" href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}">
-                                <i class="fas fa-arrow-up-right-from-square me-1"></i>সব দেখুন
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>সব দেখুন
                             </a>
                         </li>
                     </ul>
@@ -151,7 +151,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-warning bg-opacity-20 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-cart-shopping"></i>
+                                            <i class="fa-solid fa-cart-shopping"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
@@ -160,7 +160,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1">
-                                    অর্ডার দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                                    অর্ডার দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -173,7 +173,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-file-signature"></i>
+                                            <i class="fa-solid fa-file-signature"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
@@ -182,7 +182,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    রিভিউ করুন <i class="fas fa-arrow-right ms-1"></i>
+                                    রিভিউ করুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -195,7 +195,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-user-clock"></i>
+                                            <i class="fa-solid fa-user-clock"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">রেজিস্ট্রেশন অনুরোধ</div>
@@ -204,7 +204,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
+                                    অনুমোদন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -217,7 +217,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-feather-pointed"></i>
+                                            <i class="fa-solid fa-feather-pointed"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">ব্লগ পোস্ট</div>
@@ -226,7 +226,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    রিভিউ করুন <i class="fas fa-arrow-right ms-1"></i>
+                                    রিভিউ করুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -239,7 +239,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-book-bookmark"></i>
+                                            <i class="fa-solid fa-book-bookmark"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">বই রিকোয়েস্ট</div>
@@ -248,7 +248,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.book-requests.index', ['status' => 'pending']) }}" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    সোর্সিং <i class="fas fa-arrow-right ms-1"></i>
+                                    সোর্সিং <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -261,7 +261,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-book-open"></i>
+                                            <i class="fa-solid fa-book-open"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">বই অনুমোদন</div>
@@ -270,7 +270,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.books', ['mod_status' => 'pending']) }}" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    অনুমোদন <i class="fas fa-arrow-right ms-1"></i>
+                                    অনুমোদন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -283,7 +283,7 @@
                                 <div class="d-flex align-items-center justify-content-between mb-2.5">
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fas fa-tablet-screen-button"></i>
+                                            <i class="fa-solid fa-tablet-screen-button"></i>
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">ই-বুক মডারেশন</div>
@@ -292,7 +292,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.ebooks', ['mod_status' => 'pending']) }}" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1">
-                                    ই-বুক দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                                    ই-বুক দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
@@ -308,24 +308,30 @@
     {{-- ========================================================================= --}}
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 bg-white border-0 shadow-xs rounded-4">
         <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-1">
-            <span class="badge bg-primary text-white rounded-circle p-1.5"><i class="fas fa-bolt"></i></span>
+            <span class="badge bg-primary text-white rounded-circle p-1.5"><i class="fa-solid fa-bolt"></i></span>
             <span>কুইক অ্যাকশন:</span>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
+            <a href="{{ route('admin.sms.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold shadow-xs">
+                <i class="fa-solid fa-comment-sms me-1 text-primary"></i>বাল্ক এসএমএস
+                @if(isset($smsInfo['balance']) && $smsInfo['balance'] !== null)
+                    <span class="badge bg-primary text-white rounded-pill ms-1 font-monospace">{{ number_format((float)$smsInfo['balance']) }}</span>
+                @endif
+            </a>
             <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">
-                <i class="fas fa-cash-register me-1"></i>বইমেলা POS
+                <i class="fa-solid fa-cash-register me-1"></i>বইমেলা POS
             </a>
             <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                <i class="fas fa-plus-circle me-1"></i>নতুন বই
+                <i class="fa-solid fa-circle-plus me-1"></i>নতুন বই
             </a>
             <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                <i class="fas fa-calculator me-1"></i>অ্যাকাউন্টিং
+                <i class="fa-solid fa-calculator me-1"></i>অ্যাকাউন্টিং
             </a>
             <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                <i class="fas fa-database me-1"></i>ডাটাবেজ ব্যাকআপ
+                <i class="fa-solid fa-database me-1"></i>ডাটাবেজ ব্যাকআপ
             </a>
             <a href="{{ route('admin.cache.manage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                <i class="fas fa-broom me-1"></i>ক্যাশ ক্লিয়ার
+                <i class="fa-solid fa-broom me-1"></i>ক্যাশ ক্লিয়ার
             </a>
         </div>
     </div>
@@ -357,13 +363,13 @@
             <!-- Custom Date Range Pickers -->
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fas fa-calendar-day text-muted"></i></span>
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-calendar-day text-muted"></i></span>
                     <input type="date" name="date_from" value="{{ $dateFrom }}" class="form-control" title="Start Date">
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-xl-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light"><i class="fas fa-calendar-check text-muted"></i></span>
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-calendar-check text-muted"></i></span>
                     <input type="date" name="date_to" value="{{ $dateTo }}" class="form-control" title="End Date">
                 </div>
             </div>
@@ -371,10 +377,10 @@
             <!-- Submit & Reset -->
             <div class="col-12 col-xl-1 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary flex-fill fw-semibold" title="Apply Filter">
-                    <i class="fas fa-filter"></i>
+                    <i class="fa-solid fa-filter"></i>
                 </button>
                 <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary" title="Reset">
-                    <i class="fas fa-rotate-left"></i>
+                    <i class="fa-solid fa-rotate-left"></i>
                 </a>
             </div>
 
@@ -383,7 +389,7 @@
         <!-- Active Filter Indicator -->
         <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2.5 border-top small text-muted">
             <div>
-                <i class="fas fa-clock-rotate-left me-1 text-primary"></i> 
+                <i class="fa-solid fa-clock-rotate-left me-1 text-primary"></i> 
                 সময়কাল: <strong>{{ $stats['filter_label'] ?? 'All Time' }}</strong>
             </div>
             <div>
@@ -402,16 +408,16 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: var(--ok);">
                 <div class="kpi__icon bg-success-subtle text-success">
-                    <i class="fas fa-sack-dollar"></i>
+                    <i class="fa-solid fa-sack-dollar"></i>
                 </div>
                 <p class="kpi__label">আজকের বিক্রয়</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot d-flex align-items-center justify-content-between">
                     <span class="badge bg-light text-primary border font-monospace small">≈ ${{ number_format($stats['today_revenue_usd'] ?? 0, 2) }} USD</span>
                     @if (($stats['revenue_growth'] ?? 0) > 0)
-                        <span class="text-success fw-bold"><i class="fas fa-arrow-trend-up me-1"></i>+{{ $stats['revenue_growth'] }}%</span>
+                        <span class="text-success fw-bold"><i class="fa-solid fa-arrow-trend-up me-1"></i>+{{ $stats['revenue_growth'] }}%</span>
                     @elseif (($stats['revenue_growth'] ?? 0) < 0)
-                        <span class="text-danger fw-bold"><i class="fas fa-arrow-trend-down me-1"></i>{{ $stats['revenue_growth'] }}%</span>
+                        <span class="text-danger fw-bold"><i class="fa-solid fa-arrow-trend-down me-1"></i>{{ $stats['revenue_growth'] }}%</span>
                     @endif
                 </p>
             </div>
@@ -421,7 +427,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: var(--brand);">
                 <div class="kpi__icon bg-primary-subtle text-primary">
-                    <i class="fas fa-cart-shopping"></i>
+                    <i class="fa-solid fa-cart-shopping"></i>
                 </div>
                 <p class="kpi__label">মোট অর্ডার</p>
                 <h3 class="kpi__value text-dark">{{ $stats['filtered_orders'] ?? 0 }}</h3>
@@ -436,7 +442,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: #ff6b35;">
                 <div class="kpi__icon bg-warning-subtle text-warning">
-                    <i class="fas fa-cash-register"></i>
+                    <i class="fa-solid fa-cash-register"></i>
                 </div>
                 <p class="kpi__label">বইমেলা POS সেল</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['pos']['today_sales'] ?? 0, 2) }}</h3>
@@ -450,7 +456,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi" style="--bar: #7048e8;">
                 <div class="kpi__icon bg-primary-subtle text-primary">
-                    <i class="fas fa-globe"></i>
+                    <i class="fa-solid fa-globe"></i>
                 </div>
                 <p class="kpi__label">সর্বমোট বিক্রয়</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</h3>
@@ -476,7 +482,7 @@
                             <span class="position-absolute w-100 h-100 rounded-circle bg-success opacity-75 animate-ping" style="animation: pulse 1.5s cubic-bezier(0,0,.2,1) infinite;"></span>
                             <span class="position-relative w-100 h-100 rounded-circle bg-success"></span>
                         </span>
-                        <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-tower-broadcast me-1.5 text-success"></i>লাইভ সেলস ফিড</h6>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tower-broadcast me-1.5 text-success"></i>লাইভ সেলস ফিড</h6>
                     </div>
                     <span class="badge bg-light text-muted border small">স্বয়ংক্রিয়</span>
                 </div>
@@ -523,7 +529,7 @@
         <div class="col-12 col-xl-5">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-bullseye me-2 text-danger"></i>বিক্রয় লক্ষ্যমাত্রা ও চ্যানেল শেয়ার</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-bullseye me-2 text-danger"></i>বিক্রয় লক্ষ্যমাত্রা ও চ্যানেল শেয়ার</h6>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php
@@ -551,7 +557,7 @@
                     <div class="d-flex flex-column gap-2 small">
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fas fa-cart-shopping text-primary me-1"></i>ই-কমার্স স্টোর</span>
+                                <span><i class="fa-solid fa-cart-shopping text-primary me-1"></i>ই-কমার্স স্টোর</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ecom']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -560,7 +566,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fas fa-cash-register text-success me-1"></i>বইমেলা ও শোরুম POS</span>
+                                <span><i class="fa-solid fa-cash-register text-success me-1"></i>বইমেলা ও শোরুম POS</span>
                                 <span class="fw-bold font-monospace">{{ $channels['pos']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -569,7 +575,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fas fa-tablet-screen-button text-info me-1"></i>ই-বুক সাবস্ক্রিপশন</span>
+                                <span><i class="fa-solid fa-tablet-screen-button text-info me-1"></i>ই-বুক সাবস্ক্রিপশন</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ebook']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -592,7 +598,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-primary"></i>বিক্রয় ও আয় ট্রেন্ড</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>বিক্রয় ও আয় ট্রেন্ড</h6>
                     <div class="btn-group btn-group-sm">
                         <a href="{{ request()->fullUrlWithQuery(['sales_period' => 'daily']) }}" 
                            class="btn {{ ($salesPeriod === 'daily') ? 'btn-primary' : 'btn-outline-secondary' }}">Daily</a>
@@ -614,7 +620,7 @@
         <div class="col-12 col-xl-4">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2 text-purple"></i>পেমেন্ট মেথড শেয়ার</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-credit-card me-2 text-purple"></i>পেমেন্ট মেথড শেয়ার</h6>
                     <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">গেটওয়ে</a>
                 </div>
                 <div class="adm-card__body d-flex flex-column align-items-center justify-content-center">
@@ -622,10 +628,10 @@
                         <canvas id="paymentSplitChart"></canvas>
                     </div>
                     <div class="d-flex flex-wrap justify-content-center gap-2 mt-3 small">
-                        <span class="badge bg-danger"><i class="fas fa-circle me-1"></i> bKash (৳{{ number_format($stats['payment_split']['bkash'] ?? 0, 0) }})</span>
-                        <span class="badge bg-warning text-dark"><i class="fas fa-circle me-1"></i> Nagad (৳{{ number_format($stats['payment_split']['nagad'] ?? 0, 0) }})</span>
-                        <span class="badge bg-info text-dark"><i class="fas fa-circle me-1"></i> Rocket (৳{{ number_format($stats['payment_split']['rocket'] ?? 0, 0) }})</span>
-                        <span class="badge bg-success"><i class="fas fa-circle me-1"></i> COD (৳{{ number_format($stats['payment_split']['cod'] ?? 0, 0) }})</span>
+                        <span class="badge bg-danger"><i class="fa-solid fa-circle me-1"></i> bKash (৳{{ number_format($stats['payment_split']['bkash'] ?? 0, 0) }})</span>
+                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-circle me-1"></i> Nagad (৳{{ number_format($stats['payment_split']['nagad'] ?? 0, 0) }})</span>
+                        <span class="badge bg-info text-dark"><i class="fa-solid fa-circle me-1"></i> Rocket (৳{{ number_format($stats['payment_split']['rocket'] ?? 0, 0) }})</span>
+                        <span class="badge bg-success"><i class="fa-solid fa-circle me-1"></i> COD (৳{{ number_format($stats['payment_split']['cod'] ?? 0, 0) }})</span>
                     </div>
                 </div>
             </div>
@@ -635,7 +641,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-users-viewfinder me-2 text-info"></i>ভিজিটর ও পেজভিউ ট্রাফিক</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-info"></i>ভিজিটর ও পেজভিউ ট্রাফিক</h6>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group btn-group-sm">
                             <a href="{{ request()->fullUrlWithQuery(['traffic_period' => 'daily']) }}" 
@@ -659,7 +665,7 @@
         <div class="col-12 col-xl-4">
             <div class="adm-card h-100 d-flex flex-column">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-earth-americas me-2 text-primary"></i>গ্লোবাল ট্রাফিক ম্যাপ</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-earth-americas me-2 text-primary"></i>গ্লোবাল ট্রাফিক ম্যাপ</h6>
                 </div>
                 
                 <!-- Interactive SVG World Vector Canvas -->
@@ -684,7 +690,7 @@
                         <circle cx="220" cy="120" r="3" fill="#38bdf8"><title>Toronto, Canada</title></circle>
                     </svg>
                     <div class="d-flex justify-content-between align-items-center text-white-50 px-2 font-monospace" style="font-size: 10px;">
-                        <span><i class="fas fa-circle text-success me-1"></i> Live Geo Stream</span>
+                        <span><i class="fa-solid fa-circle text-success me-1"></i> Live Geo Stream</span>
                         <span>6 Continents</span>
                     </div>
                 </div>
@@ -707,11 +713,11 @@
                 </div>
                 <div class="adm-card__foot text-center py-2.5 bg-light d-flex justify-content-around">
                     <a href="{{ route('admin.currencies.index') }}" class="small text-decoration-none fw-semibold">
-                        <i class="fas fa-coins me-1"></i> Multi-Currency
+                        <i class="fa-solid fa-coins me-1"></i> Multi-Currency
                     </a>
                     <span class="text-muted">|</span>
                     <a href="{{ route('admin.translations.index') }}" class="small text-decoration-none fw-semibold">
-                        <i class="fas fa-language me-1"></i> Translations
+                        <i class="fa-solid fa-language me-1"></i> Translations
                     </a>
                 </div>
             </div>
@@ -728,9 +734,9 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-receipt me-2 text-primary"></i>সাম্প্রতিক অর্ডার</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-receipt me-2 text-primary"></i>সাম্প্রতিক অর্ডার</h6>
                     <a href="{{ route('admin.ecommerce-orders') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        সব অর্ডার <i class="fas fa-arrow-right ms-1"></i>
+                        সব অর্ডার <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
                 </div>
                 <div class="adm-card__body p-0">
@@ -766,9 +772,9 @@
                                         </td>
                                         <td>
                                             @if($order->status === 'delivered')
-                                                <span class="pill pill--ok"><i class="fas fa-check"></i> Delivered</span>
+                                                <span class="pill pill--ok"><i class="fa-solid fa-check"></i> Delivered</span>
                                             @elseif($order->status === 'pending')
-                                                <span class="pill pill--pending"><i class="fas fa-clock"></i> Pending</span>
+                                                <span class="pill pill--pending"><i class="fa-solid fa-clock"></i> Pending</span>
                                             @else
                                                 <span class="pill pill--info">{{ ucfirst($order->status) }}</span>
                                             @endif
@@ -776,7 +782,7 @@
                                         <td class="text-end pe-3.5">
                                             <a href="{{ route('admin.ecommerce-orders.invoice', $order->id) }}" target="_blank" 
                                                class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" title="Print Invoice">
-                                                <i class="fas fa-print"></i>
+                                                <i class="fa-solid fa-print"></i>
                                             </a>
                                         </td>
                                     </tr>
@@ -784,7 +790,7 @@
                                     <tr>
                                         <td colspan="6">
                                             <div class="empty-state py-4">
-                                                <i class="fas fa-receipt"></i>
+                                                <i class="fa-solid fa-receipt"></i>
                                                 <p class="mb-0 fw-semibold">কোনো সাম্প্রতিক অর্ডার নেই</p>
                                             </div>
                                         </td>
@@ -802,7 +808,7 @@
             <div class="adm-card h-100 border-start border-4 border-warning">
                 <div class="adm-card__head">
                     <h6 class="mb-0 fw-bold text-warning-emphasis">
-                        <i class="fas fa-triangle-exclamation me-1.5 text-warning"></i>কম স্টক সতর্কতা (Low Stock)
+                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-warning"></i>কম স্টক সতর্কতা (Low Stock)
                     </h6>
                 </div>
                 <div class="adm-card__body p-0">
@@ -820,13 +826,13 @@
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2.5"
                                             onclick="openQuickStockModal({{ $b->id }}, '{{ addslashes($b->title) }}', {{ $b->stock_quantity }})"
                                             title="স্টক রিফিল">
-                                        <i class="fas fa-plus"></i>
+                                        <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
                         @empty
                             <div class="p-4 text-center text-muted small">
-                                <i class="fas fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
                                 সকল বইয়ের স্টক স্বাভাবিক রয়েছে!
                             </div>
                         @endforelse
@@ -834,7 +840,7 @@
                 </div>
                 <div class="adm-card__foot text-center py-2.5">
                     <a href="{{ route('admin.books') }}" class="small text-decoration-none fw-semibold">
-                        সকল ক্যাটালগ দেখুন <i class="fas fa-arrow-right ms-1"></i>
+                        সকল ক্যাটালগ দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -851,7 +857,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-trophy me-2 text-warning"></i>টপ বেস্ট সেলার</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-trophy me-2 text-warning"></i>টপ বেস্ট সেলার</h6>
                 </div>
                 <div class="adm-card__body p-0">
                     <div class="list-group list-group-flush">
@@ -885,7 +891,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2 text-primary"></i>বই রিকোয়েস্ট ফিড</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-primary"></i>বই রিকোয়েস্ট ফিড</h6>
                     <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2.5 small">সবগুলো</a>
                 </div>
                 <div class="adm-card__body p-0">
@@ -898,7 +904,7 @@
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
                                    class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" title="ক্যাটালগে যুক্ত করুন">
-                                    <i class="fas fa-plus me-1"></i> ক্যাটালগে যোগ
+                                    <i class="fa-solid fa-plus me-1"></i> ক্যাটালগে যোগ
                                 </a>
                             </div>
                         @empty
@@ -941,19 +947,19 @@
                     </span>
                 </div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6"><i class="fas fa-sitemap"></i></span>
+                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6"><i class="fa-solid fa-sitemap"></i></span>
                     <span>সিইও অ্যাডমিন: বিভাগীয় টিম ও কর্মী ব্যবস্থাপনা</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#dashboardQuickAddEmployeeModal">
-                    <i class="fas fa-user-plus me-1.5"></i> নতুন কর্মী
+                    <i class="fa-solid fa-user-plus me-1.5"></i> নতুন কর্মী
                 </button>
                 <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
-                    <i class="fas fa-users me-1.5"></i> কর্মী ডিরেক্টরি (@bn($empStats['total_employees']) জন)
+                    <i class="fa-solid fa-users me-1.5"></i> কর্মী ডিরেক্টরি (@bn($empStats['total_employees']) জন)
                 </a>
                 <a href="{{ route('admin.accounting.salary.index') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                    <i class="fas fa-money-check-dollar me-1.5"></i> পে-রোল
+                    <i class="fa-solid fa-money-check-dollar me-1.5"></i> পে-রোল
                 </a>
             </div>
         </div>
@@ -987,7 +993,7 @@
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fas fa-filter ms-1"></i>
+                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1017,7 +1023,7 @@
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ca8a04;">
-                                ফিল্টার <i class="fas fa-filter ms-1"></i>
+                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1047,7 +1053,7 @@
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fas fa-filter ms-1"></i>
+                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1077,7 +1083,7 @@
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ea580c;">
-                                ফিল্টার <i class="fas fa-filter ms-1"></i>
+                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1107,7 +1113,7 @@
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fas fa-filter ms-1"></i>
+                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1121,7 +1127,7 @@
                 <div class="col-12 col-lg-5">
                     <div class="p-3.5 bg-light rounded-4 border h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-chart-pie me-1.5 text-primary"></i>বিভাগীয় জনবল ও পে-রোল</h6>
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie me-1.5 text-primary"></i>বিভাগীয় জনবল ও পে-রোল</h6>
                             <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-white border" role="group">
                                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptHeadcount" onclick="switchDeptChartMetric('headcount')">জনবল</button>
                                 <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptPayroll" onclick="switchDeptChartMetric('payroll')">পে-রোল (৳)</button>
@@ -1153,7 +1159,7 @@
                 <div class="col-12 col-lg-7">
                     <div class="p-3.5 bg-light rounded-4 border h-100">
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fas fa-table-columns me-1.5 text-secondary"></i>বিভাগভিত্তিক বাজেট বিবরণী</h6>
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-table-columns me-1.5 text-secondary"></i>বিভাগভিত্তিক বাজেট বিবরণী</h6>
                             <span class="badge bg-white text-muted border small">৫টি শ্রেণি</span>
                         </div>
                         <div class="table-responsive">
@@ -1189,7 +1195,7 @@
                                             </td>
                                             <td class="text-end pe-2">
                                                 <a href="{{ route('admin.accounting.employees.index', ['department' => $dData['filter_slug']]) }}" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2" style="font-size: 10.5px;">
-                                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                                 </a>
                                             </td>
                                         </tr>
@@ -1229,7 +1235,7 @@
                     {{-- Live Search Box --}}
                     <div class="w-100 w-md-auto" style="min-width: 250px;">
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                             <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control rounded-end-pill" placeholder="স্টাফ নাম, পদবী, মোবাইল...">
                         </div>
                     </div>
@@ -1289,7 +1295,7 @@
                                         <div class="d-flex align-items-center gap-1.5">
                                             @if($emp->phone)
                                                 <a href="tel:{{ $emp->phone }}" class="btn btn-xs btn-outline-success rounded-circle p-1" title="Call {{ $emp->phone }}" style="width: 26px; height: 26px; display: grid; place-items: center;">
-                                                    <i class="fas fa-phone" style="font-size: 11px;"></i>
+                                                    <i class="fa-solid fa-phone" style="font-size: 11px;"></i>
                                                 </a>
                                                 <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $emp->phone) }}" target="_blank" class="btn btn-xs btn-outline-success rounded-circle p-1" title="WhatsApp" style="width: 26px; height: 26px; display: grid; place-items: center; border-color: #25d366; color: #25d366;">
                                                     <i class="fab fa-whatsapp" style="font-size: 12px;"></i>
@@ -1473,7 +1479,7 @@
                 <div class="modal-footer bg-light border-top p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fas fa-check-circle me-1"></i> সংরক্ষণ
+                        <i class="fa-solid fa-circle-check me-1"></i> সংরক্ষণ
                     </button>
                 </div>
             </form>
@@ -1491,19 +1497,19 @@
         <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-success-subtle text-success p-2 rounded-circle"><i class="fas fa-store"></i></span>
+                    <span class="badge bg-success-subtle text-success p-2 rounded-circle"><i class="fa-solid fa-store"></i></span>
                     <span>সেলার ও ডিলার বিক্রয় হিসাব</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route('subadmin.dashboard') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                    <i class="fas fa-gauge-high me-1"></i> সেলার সেন্ট্রাল ড্যাশবোর্ড
+                    <i class="fa-solid fa-gauge-high me-1"></i> সেলার সেন্ট্রাল ড্যাশবোর্ড
                 </a>
                 <a href="{{ route('subadmin.bills.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-file-invoice-dollar me-1"></i> সকল বিল (@bn($sSummary['total_bills'] ?? 0))
+                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> সকল বিল (@bn($sSummary['total_bills'] ?? 0))
                 </a>
                 <a href="{{ route('subadmin.accounts') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-wallet me-1"></i> হিসাব বিবরণী
+                    <i class="fa-solid fa-wallet me-1"></i> হিসাব বিবরণী
                 </a>
             </div>
         </div>
@@ -1565,7 +1571,7 @@
                                 <td class="ps-3.5">
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 34px; height: 34px; font-size: 13px;">
-                                            <i class="fas fa-store"></i>
+                                            <i class="fa-solid fa-store"></i>
                                         </div>
                                         <div>
                                             <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="fw-bold text-dark text-decoration-none">
@@ -1593,16 +1599,16 @@
                                     @if($sb->due_amount > 0)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2.5 py-1">৳{{ number_format($sb->due_amount, 2) }}</span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fas fa-check"></i> পরিশোধিত</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fa-solid fa-check"></i> পরিশোধিত</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-3.5">
                                     <div class="btn-group btn-group-sm">
                                         <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-primary" title="ড্যাশবোর্ড দেখুন">
-                                            <i class="fas fa-gauge-high me-1"></i> ড্যাশবোর্ড
+                                            <i class="fa-solid fa-gauge-high me-1"></i> ড্যাশবোর্ড
                                         </a>
                                         <a href="{{ route('subadmin.bills.index', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-secondary" title="বিল তালিকা">
-                                            <i class="fas fa-file-invoice"></i>
+                                            <i class="fa-solid fa-file-invoice"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -1610,7 +1616,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-4 text-muted">
-                                    <i class="fas fa-store-slash text-muted fs-3 mb-2 d-block"></i>
+                                    <i class="fa-solid fa-store-slash text-muted fs-3 mb-2 d-block"></i>
                                     কোনো সেলারের বিল রেকর্ড নেই।
                                 </td>
                             </tr>
@@ -1629,15 +1635,15 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-server me-2 text-primary"></i>সার্ভার ও সিস্টেম হেলথ</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-server me-2 text-primary"></i>সার্ভার ও সিস্টেম হেলথ</h6>
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-                        <i class="fas fa-circle-check me-1"></i>{{ $stats['system_health']['status'] ?? 'Optimal' }}
+                        <i class="fa-solid fa-circle-check me-1"></i>{{ $stats['system_health']['status'] ?? 'Optimal' }}
                     </span>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php $health = $stats['system_health'] ?? []; @endphp
                     <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                        <span class="text-muted"><i class="fas fa-hard-drive me-1 text-secondary"></i>ডিস্ক স্টোরেজ ব্যবহার:</span>
+                        <span class="text-muted"><i class="fa-solid fa-hard-drive me-1 text-secondary"></i>ডিস্ক স্টোরেজ ব্যবহার:</span>
                         <span class="fw-bold text-dark font-monospace">{{ $health['disk_used_gb'] ?? 0 }} GB / {{ $health['disk_total_gb'] ?? 0 }} GB ({{ $health['disk_used_percent'] ?? 0 }}%)</span>
                     </div>
                     <div class="progress mb-3" style="height: 7px;">
@@ -1670,7 +1676,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-pen-nib me-2 text-warning"></i>লেখক রয়্যালটি পাইপলাইন</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-nib me-2 text-warning"></i>লেখক রয়্যালটি পাইপলাইন</h6>
                     <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2.5 small">লেখক তালিকা</a>
                 </div>
                 <div class="adm-card__body p-3.5">
@@ -1696,7 +1702,7 @@
                         </div>
                     </div>
                     <div class="p-2.5 bg-light rounded-3 border d-flex align-items-center justify-content-between small">
-                        <span class="text-muted"><i class="fas fa-money-bill-transfer text-primary me-1"></i>সর্বমোট লেখক:</span>
+                        <span class="text-muted"><i class="fa-solid fa-money-bill-transfer text-primary me-1"></i>সর্বমোট লেখক:</span>
                         <span class="fw-bold text-dark">{{ $stats['total_authors'] ?? 0 }} জন</span>
                     </div>
                 </div>
@@ -1714,7 +1720,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickStockModalLabel">
-                    <i class="fas fa-boxes-stacked me-1.5"></i> Refill Inventory Stock
+                    <i class="fa-solid fa-boxes-stacked me-1.5"></i> Refill Inventory Stock
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1738,7 +1744,7 @@
                 <div class="modal-footer bg-light py-2">
                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="quickStockBtn" class="btn btn-sm btn-primary">
-                        <i class="fas fa-check-circle me-1"></i> Save Stock
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Stock
                     </button>
                 </div>
             </form>
@@ -2016,7 +2022,7 @@ function handleQuickStockSubmit(e) {
     const qty = document.getElementById('quickStockQty').value;
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -2043,7 +2049,7 @@ function handleQuickStockSubmit(e) {
     })
     .finally(() => {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Stock';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Stock';
     });
 }
 </script>

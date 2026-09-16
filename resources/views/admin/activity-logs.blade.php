@@ -14,19 +14,19 @@
         <div class="adm-card bg-white rounded-4 shadow-sm border-0">
             <div class="adm-card__head d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
                 <div>
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-clock-rotate-left me-2 text-primary"></i> System Activity Audit Trail</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> System Activity Audit Trail</h6>
                     <small class="text-muted">Real-time audit log of administrative actions, moderation, and system updates</small>
                 </div>
                 <form class="d-flex gap-2" action="{{ route('admin.activity-logs') }}" method="GET">
                     <input type="search" name="search" class="form-control form-control-sm rounded-pill px-3" placeholder="Search IP, description..." value="{{ request('search') }}">
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3"><i class="fas fa-search me-1"></i> Search</button>
+                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3"><i class="fa-solid fa-magnifying-glass me-1"></i> Search</button>
                 </form>
             </div>
 
             <div class="adm-card__body p-0">
                 @if($logs->isEmpty())
                     <div class="empty-state py-5 text-center">
-                        <i class="fas fa-history text-muted fs-1 mb-2"></i>
+                        <i class="fa-solid fa-history text-muted fs-1 mb-2"></i>
                         <p class="fw-semibold text-dark mb-0">No activity logs recorded yet</p>
                     </div>
                 @else

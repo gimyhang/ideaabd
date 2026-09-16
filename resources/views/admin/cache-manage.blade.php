@@ -12,25 +12,25 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         {{-- Live Refresh Stats Button --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="refreshCacheMetrics(this)">
-            <i class="fas fa-arrows-rotate" id="refreshIcon"></i>
+            <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i>
             <span id="refreshText">রিফ্রেশ</span>
         </button>
 
         {{-- 1-Click Cache Warmup Engine --}}
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="executeCacheAction('{{ route('admin.cache.warmup') }}', 'ক্যাশ প্রি-লোড ও ওয়ার্ম-আপ হচ্ছে...', this)">
-            <i class="fas fa-rocket"></i>
+            <i class="fa-solid fa-rocket"></i>
             <span>ক্যাশ ওয়ার্ম-আপ (Warm Up)</span>
         </button>
 
         {{-- 1-Click Production Turbo Optimizer --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" onclick="executeCacheAction('{{ route('admin.cache.optimize') }}', 'টার্বো অপ্টিমাইজেশন চলছে...', this)">
-            <i class="fas fa-bolt"></i>
+            <i class="fa-solid fa-bolt"></i>
             <span>টার্বো অপ্টিমাইজ (Run Optimize)</span>
         </button>
 
         {{-- 1-Click Master Purge All Cache --}}
         <button type="button" class="btn btn-danger btn-sm rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm text-white" onclick="confirmMasterPurge(this)">
-            <i class="fas fa-trash-can"></i>
+            <i class="fa-solid fa-trash-can"></i>
             <span>সমস্ত ক্যাশ ক্লিয়ার</span>
         </button>
     </div>
@@ -99,7 +99,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-success bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-circle-check text-success fs-5 me-2.5"></i>
+            <i class="fa-solid fa-circle-check text-success fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -107,7 +107,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-danger bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
+            <i class="fa-solid fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -130,7 +130,7 @@
                         </h4>
                     </div>
                     <div class="cache-avatar-icon bg-primary-subtle text-primary flex-shrink-0">
-                        <i class="fas fa-tv"></i>
+                        <i class="fa-solid fa-tv"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -155,7 +155,7 @@
                         </h4>
                     </div>
                     <div class="cache-avatar-icon bg-info-subtle text-info flex-shrink-0">
-                        <i class="fas fa-database"></i>
+                        <i class="fa-solid fa-database"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -184,7 +184,7 @@
                         </h5>
                     </div>
                     <div class="cache-avatar-icon bg-warning-subtle text-warning flex-shrink-0">
-                        <i class="fas fa-microchip"></i>
+                        <i class="fa-solid fa-microchip"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -207,7 +207,7 @@
                         </h5>
                     </div>
                     <div class="cache-avatar-icon bg-success-subtle text-success flex-shrink-0">
-                        <i class="fas fa-gauge-high"></i>
+                        <i class="fa-solid fa-gauge-high"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -233,7 +233,7 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between pb-3 mb-3 border-bottom gap-2">
             <div>
                 <h6 class="fw-bold text-dark mb-0" style="font-size: 0.98rem;">
-                    <i class="fas fa-sliders text-primary me-2"></i>সুনির্দিষ্ট ক্যাশ মডিউল ক্লিয়ার ও টিউনিং
+                    <i class="fa-solid fa-sliders text-primary me-2"></i>সুনির্দিষ্ট ক্যাশ মডিউল ক্লিয়ার ও টিউনিং
                 </h6>
                 <small class="text-muted">সাইটে কোনো নতুন ডিজাইন, রুট বা সেটিংস আপডেট তাৎক্ষণিক দেখতে সংশ্লিষ্ট ক্যাশ ক্লিয়ার করুন</small>
             </div>
@@ -249,7 +249,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-primary text-white rounded-3 p-2"><i class="fas fa-tv"></i></span>
+                            <span class="badge bg-primary text-white rounded-3 p-2"><i class="fa-solid fa-tv"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">Blade View Cache</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -257,7 +257,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-views') }}', 'ভিউ ক্যাশ ক্লিয়ার হচ্ছে...', this)">
-                        <i class="fas fa-broom"></i> <span>ক্লিয়ার ভিউ ক্যাশ</span>
+                        <i class="fa-solid fa-broom"></i> <span>ক্লিয়ার ভিউ ক্যাশ</span>
                     </button>
                 </div>
             </div>
@@ -267,7 +267,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-info text-white rounded-3 p-2"><i class="fas fa-layer-group"></i></span>
+                            <span class="badge bg-info text-white rounded-3 p-2"><i class="fa-solid fa-layer-group"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">App Data & Model Cache</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -275,7 +275,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-info btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-app') }}', 'ডেটা ক্যাশ ক্লিয়ার হচ্ছে...', this)">
-                        <i class="fas fa-broom"></i> <span>ক্লিয়ার ডেটা ক্যাশ</span>
+                        <i class="fa-solid fa-broom"></i> <span>ক্লিয়ার ডেটা ক্যাশ</span>
                     </button>
                 </div>
             </div>
@@ -285,7 +285,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-warning text-dark rounded-3 p-2"><i class="fas fa-gear"></i></span>
+                            <span class="badge bg-warning text-dark rounded-3 p-2"><i class="fa-solid fa-gear"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">Config & Environment</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -293,7 +293,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-config') }}', 'কনফিগ ক্যাশ ক্লিয়ার হচ্ছে...', this)">
-                        <i class="fas fa-broom"></i> <span>ক্লিয়ার কনফিগ ক্যাশ</span>
+                        <i class="fa-solid fa-broom"></i> <span>ক্লিয়ার কনফিগ ক্যাশ</span>
                     </button>
                 </div>
             </div>
@@ -303,7 +303,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-secondary text-white rounded-3 p-2"><i class="fas fa-route"></i></span>
+                            <span class="badge bg-secondary text-white rounded-3 p-2"><i class="fa-solid fa-route"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">Routing Table Cache</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -311,7 +311,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-routes') }}', 'রুট ক্যাশ ক্লিয়ার হচ্ছে...', this)">
-                        <i class="fas fa-broom"></i> <span>ক্লিয়ার রুট ক্যাশ</span>
+                        <i class="fa-solid fa-broom"></i> <span>ক্লিয়ার রুট ক্যাশ</span>
                     </button>
                 </div>
             </div>
@@ -321,7 +321,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-danger text-white rounded-3 p-2"><i class="fas fa-bolt"></i></span>
+                            <span class="badge bg-danger text-white rounded-3 p-2"><i class="fa-solid fa-bolt"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">PHP OPcache Reset</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -329,7 +329,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-opcache') }}', 'OPcache রিসেট হচ্ছে...', this)">
-                        <i class="fas fa-rotate-left"></i> <span>রিসেট OPcache</span>
+                        <i class="fa-solid fa-rotate-left"></i> <span>রিসেট OPcache</span>
                     </button>
                 </div>
             </div>
@@ -339,7 +339,7 @@
                 <div class="cache-action-box p-3.5 h-100 d-flex flex-column justify-content-between">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-success text-white rounded-3 p-2"><i class="fas fa-images"></i></span>
+                            <span class="badge bg-success text-white rounded-3 p-2"><i class="fa-solid fa-images"></i></span>
                             <h6 class="fw-bold text-dark mb-0" style="font-size: 0.92rem;">Temp Thumbnails & Images</h6>
                         </div>
                         <p class="small text-muted mb-3" style="font-size: 0.82rem; line-height: 1.45;">
@@ -347,7 +347,7 @@
                         </p>
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm rounded-pill w-100 fw-semibold d-flex align-items-center justify-content-center gap-1.5" onclick="executeCacheAction('{{ route('admin.cache.clear-images') }}', 'ইমেজ ক্যাশ পরিষ্কার হচ্ছে...', this)">
-                        <i class="fas fa-trash-can"></i> <span>ক্লিন ইমেজ ক্যাশ</span>
+                        <i class="fa-solid fa-trash-can"></i> <span>ক্লিন ইমেজ ক্যাশ</span>
                     </button>
                 </div>
             </div>
@@ -360,7 +360,7 @@
         <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between py-3 px-4 border-bottom gap-2">
             <div class="d-flex align-items-center gap-2.5">
                 <div class="rounded-3 bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                    <i class="fas fa-key"></i>
+                    <i class="fa-solid fa-key"></i>
                 </div>
                 <div>
                     <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">অ্যাপ্লিকেশন ক্যাশ কী ইন্সপেক্টর (Active Cache Keys)</h6>
@@ -402,17 +402,17 @@
                                 <td>
                                     @if($ck['is_cached'])
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-circle-check me-1"></i> Cached
+                                            <i class="fa-solid fa-circle-check me-1"></i> Cached
                                         </span>
                                     @else
                                         <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1">
-                                            <i class="fas fa-circle-minus me-1"></i> Empty
+                                            <i class="fa-solid fa-circle-minus me-1"></i> Empty
                                         </span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-4">
                                     <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2 py-1" onclick="deleteSingleKey('{{ $ck['key'] }}', this)" title="ক্যাশ থেকে মুছুন">
-                                        <i class="fas fa-trash-can me-1"></i> মুছুন
+                                        <i class="fa-solid fa-trash-can me-1"></i> মুছুন
                                     </button>
                                 </td>
                             </tr>
@@ -470,8 +470,8 @@
             title: 'মাস্টার ক্যাশ ক্লিয়ার',
             text: 'আপনি কি নিশ্চিত যে সমস্ত সিস্টেম ক্যাশ, ভিউ ক্যাশ, কনফিগ ও রুট ক্যাশ একযোগে ক্লিয়ার করতে চান?',
             icon: 'warning',
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ক্যাশ ক্লিয়ার করুন',
-            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ক্যাশ ক্লিয়ার করুন',
+            cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
         }).then(function(result) {
             if (result.isConfirmed) {
                 executeCacheAction('{{ route("admin.cache.clear-all") }}', 'সমস্ত ক্যাশ ক্লিয়ার হচ্ছে...', btnElement);
@@ -545,7 +545,7 @@
         const container = document.getElementById('dynamicCacheAlert');
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-${type} bg-white py-2.5 px-3" role="alert">
-                <i class="fas fa-${type === 'success' ? 'circle-check text-success' : (type === 'info' ? 'circle-info text-info' : 'triangle-exclamation text-danger')} fs-5 me-2.5"></i>
+                <i class="fa-solid fa-${type === 'success' ? 'circle-check text-success' : (type === 'info' ? 'circle-info text-info' : 'triangle-exclamation text-danger')} fs-5 me-2.5"></i>
                 <div class="fw-semibold small text-dark">${message}</div>
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

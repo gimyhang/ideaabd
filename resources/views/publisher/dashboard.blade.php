@@ -243,6 +243,10 @@
                     <span>ফিরে যান</span>
                     <kbd class="bg-white bg-opacity-25 text-white border-0 px-1 py-0 ms-0.5 d-none d-md-inline small font-monospace" style="font-size: 0.65rem;">⌫</kbd>
                 </button>
+                <a href="{{ route('my-account') }}" class="btn btn-outline-light rounded-pill px-3 py-1.5 fw-semibold small d-inline-flex align-items-center gap-1.5 shadow-sm" title="মাই একাউন্ট (প্রোফাইল ও অর্ডার)">
+                    <i class="fas fa-user-circle text-warning"></i>
+                    <span>মাই একাউন্ট</span>
+                </a>
                 <button type="button" class="btn btn-warning text-dark rounded-pill px-3.5 py-1.5 fw-bold shadow-sm small" onclick="switchPublisherTab('add-book')">
                     <i class="fas fa-plus-circle me-1"></i> Add New Book
                 </button>
@@ -337,6 +341,7 @@
     {{-- ═════════════════════════════════════════════════════════════════════════ --}}
 
     {{-- Mobile Tab Dropdown (< 768px) to prevent text clipping & horizontal overflow --}}
+    {{-- Mobile Tab Dropdown (< 768px) to prevent text clipping & horizontal overflow --}}
     <div class="d-md-none mb-3">
         <label for="mobilePublisherTabSelect" class="form-label small fw-bold text-muted mb-1">
             <i class="fas fa-bars-staggered me-1 text-success"></i> Portal Navigation Menu
@@ -348,12 +353,13 @@
             <option value="add-book" @selected(request('tab') === 'add-book' || $editBook)>{{ $editBook ? '✏️ Edit Book' : '➕ Add New Book' }}</option>
             <option value="orders" @selected(request('tab') === 'orders')>🧾 Purchases & Bills</option>
             <option value="settings" @selected(request('tab') === 'settings')>⚙️ Company Profile</option>
+            <option value="account-redirect">👤 মাই একাউন্ট (My Account)</option>
         </select>
     </div>
 
     {{-- Desktop & Tablet Navigation Pills (>= 768px) with Clean Flex Wrapping --}}
     <div class="d-none d-md-block mb-4">
-        <ul class="nav nav-pills bg-white p-1.5 rounded-pill shadow-xs border d-inline-flex flex-wrap gap-1" id="publisherTabs" role="tablist">
+        <ul class="nav nav-pills bg-white p-1.5 rounded-pill shadow-xs border d-inline-flex flex-wrap align-items-center gap-1 w-100" id="publisherTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link pub-nav-pill-btn {{ request('tab', 'overview') === 'overview' && !$editBook ? 'active' : '' }} rounded-pill px-3 py-1.5 fw-semibold" 
                         id="tab-overview-btn" data-bs-toggle="pill" data-bs-target="#tab-overview" type="button" role="tab" onclick="syncMobileTabSelect('overview')">
@@ -394,6 +400,11 @@
                     <i class="fas fa-gear me-1.5"></i> Company Profile
                 </button>
             </li>
+            <li class="nav-item ms-auto" role="presentation">
+                <a href="{{ route('my-account') }}" class="nav-link pub-nav-pill-btn rounded-pill px-3 py-1.5 fw-semibold text-secondary border bg-light shadow-2xs hover-success" title="মাই একাউন্ট (প্রোফাইল ও অর্ডার)">
+                    <i class="fas fa-user-circle me-1.5 text-success"></i> মাই একাউন্ট
+                </a>
+            </li>
         </ul>
     </div>
 
@@ -414,48 +425,64 @@
                             <h5 class="fw-bold text-dark mb-0"><i class="fas fa-bolt text-warning me-2"></i>Quick Actions & Management Desk</h5>
                             <span class="badge bg-light text-muted border">Company Desk</span>
                         </div>
-                        <div class="row g-3">
-                            <div class="col-12 col-md-4">
+                        <div class="row g-2.5 g-md-3">
+                            <div class="col-6 col-md-3">
                                 <div class="p-3 border rounded-3 text-center bg-light pub-quick-action-card cursor-pointer h-100 d-flex flex-column justify-content-between" onclick="switchPublisherTab('today-purchases')">
                                     <div>
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex p-3 mb-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-inline-flex p-2.5 mb-2">
                                             <i class="fas fa-truck-fast fs-4"></i>
                                         </div>
-                                        <h6 class="fw-bold text-dark mb-1">Today's Purchases</h6>
-                                        <p class="small text-muted mb-0" style="font-size: 12px;">View daily order dispatches and print delivery challans.</p>
+                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Today's Orders</h6>
+                                        <p class="small text-muted mb-0" style="font-size: 11px;">Daily order dispatches & challans.</p>
                                     </div>
                                     <div class="mt-2 pt-2 border-top">
-                                        <span class="small text-primary fw-semibold" style="font-size: 11.5px;">Go to Orders &rarr;</span>
+                                        <span class="small text-primary fw-semibold" style="font-size: 11px;">Go to Orders &rarr;</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-4">
+                            <div class="col-6 col-md-3">
                                 <div class="p-3 border rounded-3 text-center bg-light pub-quick-action-card cursor-pointer h-100 d-flex flex-column justify-content-between" onclick="switchPublisherTab('books')">
                                     <div>
-                                        <div class="rounded-circle bg-info bg-opacity-10 text-info d-inline-flex p-3 mb-2">
+                                        <div class="rounded-circle bg-info bg-opacity-10 text-info d-inline-flex p-2.5 mb-2">
                                             <i class="fas fa-boxes-stacked fs-4"></i>
                                         </div>
-                                        <h6 class="fw-bold text-dark mb-1">Manage Catalog & Stock</h6>
-                                        <p class="small text-muted mb-0" style="font-size: 12px;">Review {{ number_format($totalBooks) }} catalog titles, update inventory quantities & prices.</p>
+                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Catalog & Stock</h6>
+                                        <p class="small text-muted mb-0" style="font-size: 11px;">{{ number_format($totalBooks) }} titles, stock & prices.</p>
                                     </div>
                                     <div class="mt-2 pt-2 border-top">
-                                        <span class="small text-info fw-semibold" style="font-size: 11.5px;">Manage Inventory &rarr;</span>
+                                        <span class="small text-info fw-semibold" style="font-size: 11px;">Catalog &rarr;</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-md-4">
+                            <div class="col-6 col-md-3">
                                 <div class="p-3 border rounded-3 text-center bg-light pub-quick-action-card cursor-pointer h-100 d-flex flex-column justify-content-between" onclick="switchPublisherTab('orders')">
                                     <div>
-                                        <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex p-3 mb-2">
+                                        <div class="rounded-circle bg-success bg-opacity-10 text-success d-inline-flex p-2.5 mb-2">
                                             <i class="fas fa-file-invoice-dollar fs-4"></i>
                                         </div>
-                                        <h6 class="fw-bold text-dark mb-1">Purchases Ledger & Bills</h6>
-                                        <p class="small text-muted mb-0" style="font-size: 12px;">Check financial settlements, invoices and due balances.</p>
+                                        <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">Ledger & Bills</h6>
+                                        <p class="small text-muted mb-0" style="font-size: 11px;">Settlements, bills & balances.</p>
                                     </div>
                                     <div class="mt-2 pt-2 border-top">
-                                        <span class="small text-success fw-semibold" style="font-size: 11.5px;">View Ledger &rarr;</span>
+                                        <span class="small text-success fw-semibold" style="font-size: 11px;">View Bills &rarr;</span>
                                     </div>
                                 </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a href="{{ route('my-account') }}" class="text-decoration-none">
+                                    <div class="p-3 border rounded-3 text-center bg-light pub-quick-action-card cursor-pointer h-100 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="rounded-circle bg-warning bg-opacity-15 text-warning-emphasis d-inline-flex p-2.5 mb-2">
+                                                <i class="fas fa-user-circle fs-4"></i>
+                                            </div>
+                                            <h6 class="fw-bold text-dark mb-1" style="font-size: 13.5px;">মাই একাউন্ট</h6>
+                                            <p class="small text-muted mb-0" style="font-size: 11px;">প্রোফাইল, পাসওয়ার্ড ও অর্ডার।</p>
+                                        </div>
+                                        <div class="mt-2 pt-2 border-top">
+                                            <span class="small text-warning-emphasis fw-semibold" style="font-size: 11px;">My Account &rarr;</span>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
                         </div>
 
@@ -1889,6 +1916,11 @@
 <script>
 // ── Clean Single Tab Switcher (Synchronizes Pills, Mobile Dropdown & Tab Panes) ──
 function switchPublisherTab(tabName) {
+    if (tabName === 'account-redirect') {
+        window.location.href = "{{ route('my-account') }}";
+        return;
+    }
+
     const tabMap = {
         'overview': 'tab-overview-btn',
         'today-purchases': 'tab-today-purchases-btn',

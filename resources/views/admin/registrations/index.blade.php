@@ -30,13 +30,13 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportRegistrationsToCSV()" title="Export to CSV">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print Table">
-            <i class="fas fa-print me-1"></i> Print
+            <i class="fa-solid fa-print me-1"></i> Print
         </button>
         <button type="button" class="btn btn-light border btn-sm rounded-pill px-3 shadow-xs" onclick="window.location.reload()" title="Refresh">
-            <i class="fas fa-rotate me-1"></i> Refresh
+            <i class="fa-solid fa-rotate me-1"></i> Refresh
         </button>
     </div>
 @endsection
@@ -47,7 +47,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4 border-0 bg-success-subtle text-success-emphasis" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -67,7 +67,7 @@
                             <h4 class="fw-bold mb-0 text-dark" id="statAllCount">{{ number_format($counts['all'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-users-viewfinder fs-5"></i>
+                            <i class="fa-solid fa-users-viewfinder fs-5"></i>
                         </div>
                     </div>
                 </div>
@@ -89,7 +89,7 @@
                             <h4 class="fw-bold mb-0 text-warning-emphasis" id="statPendingCount">{{ number_format($counts['pending'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-hourglass-half fs-5"></i>
+                            <i class="fa-solid fa-hourglass-half fs-5"></i>
                         </div>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                             <h4 class="fw-bold mb-0 text-success" id="statApprovedCount">{{ number_format($counts['approved'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-success-subtle text-success p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-circle-check fs-5"></i>
+                            <i class="fa-solid fa-circle-check fs-5"></i>
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                             <h4 class="fw-bold mb-0 text-danger" id="statRejectedCount">{{ number_format($counts['rejected'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-danger-subtle text-danger p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                            <i class="fas fa-circle-xmark fs-5"></i>
+                            <i class="fa-solid fa-circle-xmark fs-5"></i>
                         </div>
                     </div>
                 </div>
@@ -137,15 +137,15 @@
                 <div class="d-flex flex-wrap gap-1.5">
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'author'])) }}" 
                        class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'author' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' }}">
-                        <i class="fas fa-pen-fancy me-1"></i>Authors: {{ number_format($counts['authors'] ?? 0) }}
+                        <i class="fa-solid fa-pen-fancy me-1"></i>Authors: {{ number_format($counts['authors'] ?? 0) }}
                     </a>
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'publisher'])) }}" 
                        class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'publisher' ? 'bg-info text-white' : 'bg-info-subtle text-info border border-info-subtle' }}">
-                        <i class="fas fa-building me-1"></i>Publishers: {{ number_format($counts['publishers'] ?? 0) }}
+                        <i class="fa-solid fa-building me-1"></i>Publishers: {{ number_format($counts['publishers'] ?? 0) }}
                     </a>
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'seller'])) }}" 
                        class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'seller' ? 'bg-primary text-white' : 'bg-primary-subtle text-primary border border-primary-subtle' }}">
-                        <i class="fas fa-store me-1"></i>Sellers: {{ number_format($counts['sellers'] ?? 0) }}
+                        <i class="fa-solid fa-store me-1"></i>Sellers: {{ number_format($counts['sellers'] ?? 0) }}
                     </a>
                 </div>
             </div>
@@ -162,7 +162,7 @@
                 <div class="col-12 col-lg-4">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted ps-3">
-                            <i class="fas fa-search"></i>
+                            <i class="fa-solid fa-magnifying-glass"></i>
                         </span>
                         <input type="search" name="search" class="form-control border-start-0 bg-light" 
                                placeholder="Search by applicant name, email, phone or shop/publisher..." value="{{ request('search') }}">
@@ -209,12 +209,12 @@
                     </select>
 
                     <button type="submit" class="btn btn-sm btn-primary px-3 rounded-3" title="Apply Filter">
-                        <i class="fas fa-filter"></i>
+                        <i class="fa-solid fa-filter"></i>
                     </button>
 
                     @if(request()->hasAny(['search', 'status', 'type', 'sort', 'per_page', 'date_from', 'date_to']))
                         <a href="{{ route('admin.registrations.index') }}" class="btn btn-sm btn-light border text-danger rounded-3" title="Reset Filter">
-                            <i class="fas fa-rotate-left"></i>
+                            <i class="fa-solid fa-rotate-left"></i>
                         </a>
                     @endif
                 </div>
@@ -229,7 +229,7 @@
         @if ($registrations->isEmpty())
             <div class="p-5 text-center my-3">
                 <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 80px; height: 80px;">
-                    <i class="fas fa-inbox fs-2 text-muted opacity-50"></i>
+                    <i class="fa-solid fa-inbox fs-2 text-muted opacity-50"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1">No registration requests found</h5>
                 <p class="text-muted small mb-3">Try adjusting your search terms or filters.</p>
@@ -285,8 +285,8 @@
                                                 </a>
                                             </div>
                                             <div class="text-muted d-flex flex-column m-0 p-0" style="font-size: 11px; line-height: 1.2;">
-                                                <span class="text-truncate m-0 p-0" title="{{ $user->email }}"><i class="fas fa-envelope text-muted me-1" style="font-size: 9px;"></i>{{ $user->email }}</span>
-                                                <span class="text-truncate font-monospace m-0 p-0" title="{{ $user->phone }}"><i class="fas fa-phone-alt text-muted me-1" style="font-size: 9px;"></i>{{ $user->phone }}</span>
+                                                <span class="text-truncate m-0 p-0" title="{{ $user->email }}"><i class="fa-solid fa-envelope text-muted me-1" style="font-size: 9px;"></i>{{ $user->email }}</span>
+                                                <span class="text-truncate font-monospace m-0 p-0" title="{{ $user->phone }}"><i class="fa-solid fa-phone-alt text-muted me-1" style="font-size: 9px;"></i>{{ $user->phone }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -295,7 +295,7 @@
                                 {{-- 2. Role Badge --}}
                                 <td class="text-center">
                                     <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
-                                        <i class="fas fa-{{ $roleIcons[$user->role] ?? 'user' }} me-0.5"></i>
+                                        <i class="fa-solid fa-{{ $roleIcons[$user->role] ?? 'user' }} me-0.5"></i>
                                         {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                                     </span>
                                 </td>
@@ -316,14 +316,14 @@
 
                                             @if(!empty($regData['genre']))
                                                 <span class="badge bg-light text-secondary border px-1.5 py-0 text-truncate align-middle" style="max-width: 80px; font-size: 9px; font-weight: normal;" title="Genre: {{ $regData['genre'] }}">
-                                                    <i class="fas fa-tag text-muted me-0.5" style="font-size: 8px;"></i>{{ Str::limit($regData['genre'], 10) }}
+                                                    <i class="fa-solid fa-tag text-muted me-0.5" style="font-size: 8px;"></i>{{ Str::limit($regData['genre'], 10) }}
                                                 </span>
                                             @endif
                                         </div>
 
                                         @if(!empty($cleanBio))
                                             <div class="text-muted d-flex align-items-center flex-wrap gap-1" style="font-size: 11px;">
-                                                <i class="fas fa-quote-left text-muted opacity-40 me-0.5 flex-shrink-0" style="font-size: 8px;"></i>
+                                                <i class="fa-solid fa-quote-left text-muted opacity-40 me-0.5 flex-shrink-0" style="font-size: 8px;"></i>
                                                 <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 140px;" title="{{ $cleanBio }}">
                                                     {{ Str::limit($cleanBio, 26) }}
                                                 </span>
@@ -342,7 +342,7 @@
                                         @if(($regData['profile_update_status'] ?? '') === 'updated')
                                             <div id="authorUpdateBadge-{{ $user->id }}">
                                                 <span class="badge bg-warning text-dark px-1.5 py-0 rounded-pill shadow-xs" style="font-size: 8.5px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
-                                                    <i class="fas fa-bell me-0.5"></i> Profile Updated
+                                                    <i class="fa-solid fa-bell me-0.5"></i> Profile Updated
                                                 </span>
                                             </div>
                                         @endif
@@ -354,15 +354,15 @@
                                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
                                         @if($user->reg_status === 'pending')
                                             <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                                                <i class="fas fa-hourglass-half me-0.5"></i> Pending
+                                                <i class="fa-solid fa-hourglass-half me-0.5"></i> Pending
                                             </span>
                                         @elseif($user->reg_status === 'approved')
                                             <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                                                <i class="fas fa-circle-check me-0.5"></i> Approved
+                                                <i class="fa-solid fa-circle-check me-0.5"></i> Approved
                                             </span>
                                         @else
                                             <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="{{ $user->rejection_reason ?? 'Rejected' }}">
-                                                <i class="fas fa-circle-xmark me-0.5"></i> Rejected
+                                                <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
                                             </span>
                                         @endif
 
@@ -394,7 +394,7 @@
                                                 onclick="openRegDetailsModal({{ $user->id }})" 
                                                 title="View Details"
                                                 data-bs-toggle="tooltip">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fa-solid fa-eye"></i>
                                         </button>
 
                                         {{-- Dynamic Role Appointment & Promotion Button --}}
@@ -403,7 +403,7 @@
                                                 onclick="openRegAssignRoleModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 
                                                 title="যে কোনো পদে পদায়ন বা নিয়োগ দিন"
                                                 data-bs-toggle="tooltip">
-                                            <i class="fas fa-user-gear"></i>
+                                            <i class="fa-solid fa-user-gear"></i>
                                         </button>
 
                                         {{-- Sync Author to Directory Button --}}
@@ -414,7 +414,7 @@
                                                     onclick="ajaxSyncAuthor({{ $user->id }}, this)" 
                                                     title="Sync Author to Directory"
                                                     data-bs-toggle="tooltip">
-                                                <i class="fas fa-arrows-rotate"></i>
+                                                <i class="fa-solid fa-arrows-rotate"></i>
                                             </button>
                                         @endif
 
@@ -426,7 +426,7 @@
                                                     onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
                                                     title="Approved (Click to re-verify)"
                                                     data-bs-toggle="tooltip">
-                                                <i class="fas fa-check-double"></i>
+                                                <i class="fa-solid fa-check-double"></i>
                                             </button>
                                         @else
                                             <button type="button" 
@@ -435,7 +435,7 @@
                                                     onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
                                                     title="Approve & Verify Account"
                                                     data-bs-toggle="tooltip">
-                                                <i class="fas fa-check"></i>
+                                                <i class="fa-solid fa-check"></i>
                                             </button>
                                         @endif
 
@@ -447,7 +447,7 @@
                                                     onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
                                                     title="Rejected (Click to edit reason)"
                                                     data-bs-toggle="tooltip">
-                                                <i class="fas fa-ban"></i>
+                                                <i class="fa-solid fa-ban"></i>
                                             </button>
                                         @else
                                             <button type="button" 
@@ -456,7 +456,7 @@
                                                     onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
                                                     title="Reject Application"
                                                     data-bs-toggle="tooltip">
-                                                <i class="fas fa-xmark"></i>
+                                                <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         @endif
 
@@ -465,7 +465,7 @@
                                            class="btn btn-action-icon btn-outline-primary" 
                                            title="Edit Registration & Profile"
                                            data-bs-toggle="tooltip">
-                                            <i class="fas fa-pen"></i>
+                                            <i class="fa-solid fa-pen"></i>
                                         </a>
 
                                         {{-- Delete Button --}}
@@ -474,7 +474,7 @@
                                                 onclick="ajaxDeleteUser({{ $user->id }}, '{{ addslashes($user->name) }}')" 
                                                 title="Delete Request"
                                                 data-bs-toggle="tooltip">
-                                            <i class="fas fa-trash-can"></i>
+                                            <i class="fa-solid fa-trash-can"></i>
                                         </button>
                             </tr>
                         @endforeach
@@ -536,7 +536,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header bg-danger text-white border-0 py-3 px-4 rounded-top-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="rejectReasonModalLabel">
-                    <i class="fas fa-circle-xmark me-2"></i>Decline Registration Request
+                    <i class="fa-solid fa-circle-xmark me-2"></i>Decline Registration Request
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -555,7 +555,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnRejectSubmit">
-                        <i class="fas fa-ban me-1"></i> Confirm Decline
+                        <i class="fa-solid fa-ban me-1"></i> Confirm Decline
                     </button>
                 </div>
             </form>
@@ -568,7 +568,7 @@
     <div id="actionToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body d-flex align-items-center gap-2">
-                <i class="fas fa-circle-check text-success fs-5" id="toastIcon"></i>
+                <i class="fa-solid fa-circle-check text-success fs-5" id="toastIcon"></i>
                 <span id="toastMessage">Operation completed successfully</span>
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -657,7 +657,7 @@ function showToast(message, isSuccess = true) {
 
     toastMsg.textContent = message;
     if (toastIcon) {
-        toastIcon.className = isSuccess ? 'fas fa-circle-check text-success fs-5' : 'fas fa-triangle-exclamation text-danger fs-5';
+        toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-success fs-5' : 'fa-solid fa-triangle-exclamation text-danger fs-5';
     }
 
     const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
@@ -688,7 +688,7 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
     if (btn) {
         origHtml = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
     }
 
     fetch(`/admin/registrations/${userId}/approve`, {
@@ -714,7 +714,7 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 statusCell.innerHTML = `
                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
                         <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                            <i class="fas fa-circle-check me-0.5"></i> Approved
+                            <i class="fa-solid fa-circle-check me-0.5"></i> Approved
                         </span>
                         <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
@@ -743,14 +743,14 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
             const approveBtn = document.getElementById(`btnApprove-${userId}`);
             if (approveBtn) {
                 approveBtn.className = 'btn btn-action-icon btn-outline-success';
-                approveBtn.innerHTML = '<i class="fas fa-check-double"></i>';
+                approveBtn.innerHTML = '<i class="fa-solid fa-check-double"></i>';
                 approveBtn.title = 'Approved (Click to re-verify)';
                 approveBtn.disabled = false;
             }
             const rejectBtn = document.getElementById(`btnReject-${userId}`);
             if (rejectBtn) {
                 rejectBtn.className = 'btn btn-action-icon btn-outline-danger';
-                rejectBtn.innerHTML = '<i class="fas fa-xmark"></i>';
+                rejectBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
                 rejectBtn.title = 'Reject Application';
                 rejectBtn.disabled = false;
             }
@@ -781,13 +781,13 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 if (modalFooter) {
                     modalFooter.innerHTML = `
                         <a href="/admin/registrations/${userId}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                            <i class="fas fa-arrow-up-right-from-square me-1"></i> Full Page
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Page
                         </a>
                         <a href="/admin/registrations/${userId}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            <i class="fas fa-pen-to-square me-1"></i> Edit Profile
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
                         </a>
                         <span class="badge bg-success py-2 px-3 rounded-pill fw-bold">
-                            <i class="fas fa-circle-check me-1"></i> Approved & Active
+                            <i class="fa-solid fa-circle-check me-1"></i> Approved & Active
                         </span>
                     `;
                 }
@@ -853,7 +853,7 @@ function submitAjaxReject(event) {
                 statusCell.innerHTML = `
                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
                         <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="${reason}">
-                            <i class="fas fa-circle-xmark me-0.5"></i> Rejected
+                            <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
                         </span>
                         <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
                             <input class="form-check-input mt-0" type="checkbox" role="switch" 
@@ -872,14 +872,14 @@ function submitAjaxReject(event) {
             const approveBtn = document.getElementById(`btnApprove-${userId}`);
             if (approveBtn) {
                 approveBtn.className = 'btn btn-action-icon btn-success shadow-xs btn-approve-action';
-                approveBtn.innerHTML = '<i class="fas fa-check"></i>';
+                approveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
                 approveBtn.title = 'Approve & Verify Account';
                 approveBtn.disabled = false;
             }
             const rejectBtn = document.getElementById(`btnReject-${userId}`);
             if (rejectBtn) {
                 rejectBtn.className = 'btn btn-action-icon btn-danger text-white shadow-xs';
-                rejectBtn.innerHTML = '<i class="fas fa-ban"></i>';
+                rejectBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
                 rejectBtn.title = 'Rejected (Click to edit reason)';
                 rejectBtn.disabled = false;
             }
@@ -901,7 +901,7 @@ function submitAjaxReject(event) {
     .finally(() => {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-ban me-1"></i> Confirm Decline';
+            submitBtn.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Confirm Decline';
         }
     });
 }
@@ -973,7 +973,7 @@ function ajaxDeleteUser(userId, userName) {
             title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
             html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
             icon: 'warning',
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {
@@ -985,7 +985,7 @@ function ajaxDeleteUser(userId, userName) {
             html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {
@@ -1030,11 +1030,11 @@ function ajaxSyncAuthor(userId, btn) {
             showToast(data.message || 'লেখক ডিরেক্টরিতে সফলভাবে সিঙ্ক হয়েছে!', true);
             const badge = document.getElementById(`authorUpdateBadge-${userId}`);
             if (badge) {
-                badge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 10px;"><i class="fas fa-check-double me-0.5"></i> Synced</span>';
+                badge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 10px;"><i class="fa-solid fa-check-double me-0.5"></i> Synced</span>';
             }
             if (btn) {
                 btn.className = 'btn btn-sm btn-outline-success text-success rounded-pill px-2.5 py-1 shadow-xs fw-semibold';
-                btn.innerHTML = '<i class="fas fa-circle-check me-1"></i> Synced';
+                btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Synced';
             }
         } else {
             showToast(data.message || 'সিঙ্ক করতে ত্রুটি হয়েছে।', false);
@@ -1137,7 +1137,7 @@ function openRegDetailsModal(userId) {
                         <div class="col-12">
                             <small class="text-muted d-block">Website & Social Links</small>
                             <div class="d-flex flex-wrap gap-2 mt-1">
-                                ${r.website ? `<a href="${r.website}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fas fa-globe me-1"></i>Website</a>` : ''}
+                                ${r.website ? `<a href="${r.website}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fa-solid fa-globe me-1"></i>Website</a>` : ''}
                                 ${r.facebook ? `<a href="${r.facebook}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fab fa-facebook me-1"></i>Facebook</a>` : ''}
                                 ${r.twitter ? `<a href="${r.twitter}" target="_blank" class="badge bg-light text-info border text-decoration-none py-1.5 px-2"><i class="fab fa-twitter me-1"></i>Twitter</a>` : ''}
                                 ${r.youtube ? `<a href="${r.youtube}" target="_blank" class="badge bg-light text-danger border text-decoration-none py-1.5 px-2"><i class="fab fa-youtube me-1"></i>YouTube</a>` : ''}
@@ -1152,7 +1152,7 @@ function openRegDetailsModal(userId) {
                     <div class="col-sm-6"><small class="text-muted d-block">Established Year</small><div class="fw-semibold text-dark">${r.established || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
                     <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Website</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fas fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Website</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fa-solid fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
                 `;
             } else if (u.role === 'seller' || u.reg_type === 'seller') {
                 extraHtml = `
@@ -1171,11 +1171,11 @@ function openRegDetailsModal(userId) {
                     <div class="col-12">
                         <div class="alert alert-warning d-flex align-items-center justify-content-between mb-0 py-2 px-3 rounded-3 shadow-xs">
                             <div class="small">
-                                <i class="fas fa-bell me-1.5 text-warning"></i>
+                                <i class="fa-solid fa-bell me-1.5 text-warning"></i>
                                 <strong>Profile Updated:</strong> লেখক সম্প্রতি তথ্য বা ছবি আপডেট করেছেন (${r.profile_updated_at || 'Recently'}).
                             </div>
                             <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-1 shadow-xs" onclick="ajaxSyncAuthor(${u.id}, this)">
-                                <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> Sync to Directory
                             </button>
                         </div>
                     </div>
@@ -1239,7 +1239,7 @@ function openRegDetailsModal(userId) {
             if (data.author_slug) {
                 authorDirectoryBtn = `
                     <a href="/authors/${data.author_slug}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3" title="View Public Profile">
-                        <i class="fas fa-globe me-1"></i> Public Directory
+                        <i class="fa-solid fa-globe me-1"></i> Public Directory
                     </a>
                 `;
             }
@@ -1247,7 +1247,7 @@ function openRegDetailsModal(userId) {
             if (u.role === 'author' || u.reg_type === 'author') {
                 syncBtn = `
                     <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold" onclick="ajaxSyncAuthor(${u.id}, this)">
-                        <i class="fas fa-arrows-rotate me-1"></i> Sync Directory
+                        <i class="fa-solid fa-arrows-rotate me-1"></i> Sync Directory
                     </button>
                 `;
             }
@@ -1256,21 +1256,21 @@ function openRegDetailsModal(userId) {
                 ${syncBtn}
                 ${authorDirectoryBtn}
                 <a href="/admin/registrations/${u.id}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="View dedicated page">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Full Page
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Page
                 </a>
                 <a href="/admin/registrations/${u.id}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                    <i class="fas fa-pen-to-square me-1"></i> Edit Profile
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
                 </a>
                 ${u.reg_status !== 'approved' ? `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide(); openRejectModal(${u.id}, '${safeName}');">
-                        <i class="fas fa-circle-xmark me-1"></i> Reject
+                        <i class="fa-solid fa-circle-xmark me-1"></i> Reject
                     </button>
                     <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="ajaxApproveUser(${u.id}, '${safeName}', this)">
-                        <i class="fas fa-circle-check me-1"></i> Approve & Activate
+                        <i class="fa-solid fa-circle-check me-1"></i> Approve & Activate
                     </button>
                 ` : `
                     <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold">
-                        <i class="fas fa-circle-check me-1"></i> Approved
+                        <i class="fa-solid fa-circle-check me-1"></i> Approved
                     </span>
                 `}
             `;
@@ -1320,7 +1320,7 @@ function exportRegistrationsToCSV() {
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header py-3 px-4 bg-dark text-white">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fas fa-crown text-warning"></i>
+                    <i class="fa-solid fa-crown text-warning"></i>
                     <span>আবেদনকারীকে পদায়ন ও নিয়োগ নিয়ন্ত্রণ</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -1370,13 +1370,13 @@ function exportRegistrationsToCSV() {
                     </div>
 
                     <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
-                        <i class="fas fa-circle-info me-1"></i> শুধুমাত্র মূল সুপার অ্যাডমিন যেকোনো রেজিস্ট্রেশন থেকে যেকোনো আবেদনকারীকে ইচ্ছামতো যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারবেন।
+                        <i class="fa-solid fa-circle-info me-1"></i> শুধুমাত্র মূল সুপার অ্যাডমিন যেকোনো রেজিস্ট্রেশন থেকে যেকোনো আবেদনকারীকে ইচ্ছামতো যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারবেন।
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2.5 px-4 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
+                        <i class="fa-solid fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
                     </button>
                 </div>
             </form>

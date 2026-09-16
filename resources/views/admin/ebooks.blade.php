@@ -10,16 +10,16 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#ebookSettingsModal" title="ই-বুক সেটিংস ও প্রিভিউ পেজ লিমিট">
-            <i class="fas fa-sliders me-1"></i> Settings
+            <i class="fa-solid fa-sliders me-1"></i> Settings
         </button>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportEbooksToCSV()" title="CSV Export">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <a href="{{ route('admin.content.create', 'ebooks') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> Upload New E-Book
+            <i class="fa-solid fa-circle-plus me-1"></i> Upload New E-Book
         </a>
         <a href="{{ route('ebook.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Library
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Library
         </a>
     </div>
 @endsection
@@ -30,7 +30,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -48,7 +48,7 @@
                         <small class="text-muted d-block font-sans">Total E-Books</small>
                         <h4 class="fw-bold text-dark mb-0 font-monospace">{{ number_format($stats['total'] ?? 0) }}</h4>
                     </div>
-                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-tablet-screen-button"></i></span>
+                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-tablet-screen-button"></i></span>
                 </div>
             </a>
         </div>
@@ -66,7 +66,7 @@
                             @endif
                         </h4>
                     </div>
-                    <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fas fa-hourglass-half"></i></span>
+                    <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fa-solid fa-hourglass-half"></i></span>
                 </div>
             </a>
         </div>
@@ -79,7 +79,7 @@
                         <small class="text-muted d-block font-sans">Active & Live</small>
                         <h4 class="fw-bold text-success mb-0 font-monospace">{{ number_format($stats['active'] ?? 0) }}</h4>
                     </div>
-                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
+                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fa-solid fa-circle-check"></i></span>
                 </div>
             </a>
         </div>
@@ -92,7 +92,7 @@
                         <small class="text-muted d-block font-sans">Total Copies Sold</small>
                         <h4 class="fw-bold text-info mb-0 font-monospace">{{ number_format($stats['total_sales'] ?? 0) }}</h4>
                     </div>
-                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-bag-shopping"></i></span>
+                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fa-solid fa-bag-shopping"></i></span>
                 </div>
             </a>
         </div>
@@ -108,13 +108,13 @@
                 <!-- Search Bar -->
                 <div class="col-12 col-lg-3">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="text" name="search" id="ebookSearchInput" value="{{ request('search') }}" 
                                class="form-control border-start-0 border-end-0 ps-0" 
                                placeholder="Search title, author, publisher, ISBN..." autocomplete="off">
                         @if(request('search'))
                             <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear Search">
-                                <i class="fas fa-times"></i>
+                                <i class="fa-solid fa-times"></i>
                             </a>
                         @endif
                     </div>
@@ -198,7 +198,7 @@
                 <div class="d-flex align-items-center gap-2">
                     @if(request()->hasAny(['search', 'author_id', 'publisher_id', 'category_id', 'price_type', 'is_active', 'mod_status']))
                         <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
-                            <i class="fas fa-rotate-left me-1"></i> Reset Filters
+                            <i class="fa-solid fa-rotate-left me-1"></i> Reset Filters
                         </a>
                     @endif
                 </div>
@@ -262,7 +262,7 @@
                                                 <span class="badge bg-light text-muted border font-monospace px-1.5 py-0.5">{{ $ebook->isbn }}</span>
                                             @endif
                                             @if($ebook->pages)
-                                                <span><i class="fas fa-file-lines me-0.5"></i>{{ $ebook->pages }}p</span>
+                                                <span><i class="fa-solid fa-file-lines me-0.5"></i>{{ $ebook->pages }}p</span>
                                             @endif
                                             @if($ebook->sample_file_path)
                                                 <span class="badge bg-info-subtle text-info" style="font-size: 9.5px;">Sample Preview</span>
@@ -277,11 +277,11 @@
                                 <div class="fw-semibold text-dark small mb-0.5">
                                     @if($ebook->authorLink)
                                         <a href="{{ route('admin.ebooks', ['author_id' => $ebook->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
-                                            <i class="fas fa-user-pen me-1 text-muted"></i>{{ $ebook->authorLink->name }}
+                                            <i class="fa-solid fa-user-pen me-1 text-muted"></i>{{ $ebook->authorLink->name }}
                                         </a>
                                     @elseif($ebook->author)
                                         <a href="{{ route('admin.ebooks', ['author_id' => $ebook->author->id]) }}" class="text-decoration-none text-primary hover-underline">
-                                            <i class="fas fa-user-pen me-1 text-muted"></i>{{ $ebook->author->name }}
+                                            <i class="fa-solid fa-user-pen me-1 text-muted"></i>{{ $ebook->author->name }}
                                         </a>
                                     @else
                                         <span class="text-dark">{{ $ebook->author_name ?? '—' }}</span>
@@ -290,11 +290,11 @@
                                 <div>
                                     @if($isAuthorKdp)
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 10px;">
-                                            <i class="fas fa-feather-pointed me-0.5"></i> Author Self-Published
+                                            <i class="fa-solid fa-feather-pointed me-0.5"></i> Author Self-Published
                                         </span>
                                     @else
                                         <span class="small text-muted" style="font-size: 11px;">
-                                            <i class="fas fa-building me-1 text-secondary"></i>{{ $ebook->publisher?->name ?? 'Idea Prakashan' }}
+                                            <i class="fa-solid fa-building me-1 text-secondary"></i>{{ $ebook->publisher?->name ?? 'Idea Prakashan' }}
                                         </span>
                                     @endif
                                 </div>
@@ -338,16 +338,16 @@
                             <td class="text-center">
                                 @if($ebook->mod_status === 'approved')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-circle-check me-1"></i> Approved
+                                        <i class="fa-solid fa-circle-check me-1"></i> Approved
                                     </span>
                                 @elseif($ebook->mod_status === 'rejected')
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" 
                                           title="{{ $ebook->rejection_reason ?? 'Needs Revision' }}" data-bs-toggle="tooltip">
-                                        <i class="fas fa-circle-xmark me-1"></i> Rejected
+                                        <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
                                     </span>
                                 @else
                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-hourglass-half me-1"></i> Pending
+                                        <i class="fa-solid fa-hourglass-half me-1"></i> Pending
                                     </span>
                                 @endif
                             </td>
@@ -367,29 +367,29 @@
                                     @if($ebook->mod_status === 'pending')
                                         <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-semibold shadow-xs" 
                                                 onclick="ajaxApproveEbook({{ $ebook->id }})" title="Approve & Publish to Live Store">
-                                            <i class="fas fa-check me-1"></i> Approve
+                                            <i class="fa-solid fa-check me-1"></i> Approve
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" 
                                                 data-bs-toggle="modal" data-bs-target="#rejectModal{{ $ebook->id }}" title="Reject / Request Revision">
-                                            <i class="fas fa-xmark"></i>
+                                            <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     @elseif($ebook->mod_status === 'rejected')
                                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-0.5 fw-semibold" 
                                                 onclick="ajaxApproveEbook({{ $ebook->id }})" title="Re-approve E-Book">
-                                            <i class="fas fa-check me-1"></i> Approve
+                                            <i class="fa-solid fa-check me-1"></i> Approve
                                         </button>
                                     @endif
 
                                     {{-- DRM Reader Preview --}}
                                     <a href="{{ route('ebook.read', $ebook->slug ?? $ebook->id) }}" target="_blank" 
                                        class="btn btn-sm btn-outline-info rounded-pill px-2 py-0.5" title="Open DRM Reader">
-                                        <i class="fas fa-book-open"></i>
+                                        <i class="fa-solid fa-book-open"></i>
                                     </a>
 
                                     {{-- Edit --}}
                                     <a href="{{ route('admin.content.edit', ['type' => 'ebooks', 'id' => $ebook->id]) }}" 
                                        class="btn btn-sm btn-outline-primary rounded-pill px-2 py-0.5" title="Edit Form">
-                                        <i class="fas fa-pen-to-square"></i>
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
 
                                     {{-- Delete --}}
@@ -398,7 +398,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete">
-                                            <i class="fas fa-trash-can"></i>
+                                            <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -411,7 +411,7 @@
                                                 @csrf
                                                 <div class="modal-header border-bottom">
                                                     <h6 class="modal-title fw-bold text-dark">
-                                                        <i class="fas fa-triangle-exclamation text-warning me-1.5"></i> Request Revision / Reject E-Book
+                                                        <i class="fa-solid fa-triangle-exclamation text-warning me-1.5"></i> Request Revision / Reject E-Book
                                                     </h6>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
@@ -441,12 +441,12 @@
                             <td colspan="9">
                                 <div class="empty-state py-5 text-center">
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
-                                        <i class="fas fa-tablet-screen-button fs-1 text-muted"></i>
+                                        <i class="fa-solid fa-tablet-screen-button fs-1 text-muted"></i>
                                     </div>
                                     <h5 class="fw-bold text-dark mb-1">No E-Books Found</h5>
                                     <p class="text-muted small mb-3">Try adjusting your search filters or upload a new digital e-book.</p>
                                     <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="fas fa-rotate-left me-1"></i> Clear All Filters
+                                        <i class="fa-solid fa-rotate-left me-1"></i> Clear All Filters
                                     </a>
                                 </div>
                             </td>
@@ -472,7 +472,7 @@
                 <div class="modal-content rounded-4 border-0 shadow-lg">
                     <div class="modal-header border-bottom py-3">
                         <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="ebookSettingsModalLabel">
-                            <span class="p-2 bg-primary-subtle text-primary rounded-circle"><i class="fas fa-sliders"></i></span>
+                            <span class="p-2 bg-primary-subtle text-primary rounded-circle"><i class="fa-solid fa-sliders"></i></span>
                             <span>ই-বুক গ্লোবাল সেটিংস ও প্রিভিউ লিমিট</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -482,7 +482,7 @@
                         <div class="modal-body p-4">
                             <div class="mb-3">
                                 <label for="default_preview_pages" class="form-label fw-bold text-dark small mb-1">
-                                    <i class="fas fa-book-open-reader text-warning me-1"></i> ডিফল্ট অটো-প্রিভিউ পৃষ্ঠা সংখ্যা (Default Preview Pages)
+                                    <i class="fa-solid fa-book-open-reader text-warning me-1"></i> ডিফল্ট অটো-প্রিভিউ পৃষ্ঠা সংখ্যা (Default Preview Pages)
                                 </label>
                                 <p class="text-muted small mb-2" style="font-size: 12px; line-height: 1.5;">
                                     পাঠক কোনো ই-বুক কেনার আগে সর্বোচ্চ কত পৃষ্ঠা পর্যন্ত ফ্রিতে পড়তে পারবেন তা নির্ধারণ করুন (যেমন: ১, ৩, ৫, ১০, ১৬, ২০ ইত্যাদি)।
@@ -503,7 +503,7 @@
 
                             <div class="p-3 bg-light rounded-3 border">
                                 <div class="d-flex gap-2">
-                                    <i class="fas fa-circle-info text-primary mt-0.5"></i>
+                                    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
                                     <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
                                         <strong>স্বয়ংক্রিয় প্রিভিউ:</strong> লেখক আলাদা স্যাম্পল ফাইল না দিলে সিস্টেম স্বয়ংক্রিয়ভাবে মূল ফাইল থেকে এই নির্ধারিত পৃষ্ঠাসংখ্যা পর্যন্ত প্রিভিউ রিডারে পরিবেশন করবে।
                                     </div>
@@ -513,7 +513,7 @@
                         <div class="modal-footer border-top py-2.5 px-4 bg-light bg-opacity-50">
                             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
                             <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                                <i class="fas fa-check me-1"></i> সেটিংস সংরক্ষণ করুন
+                                <i class="fa-solid fa-check me-1"></i> সেটিংস সংরক্ষণ করুন
                             </button>
                         </div>
                     </form>
@@ -532,7 +532,7 @@ async function ajaxApproveEbook(id) {
         title: 'ই-বুক অনুমোদন ও লাইভ প্রকাশ',
         text: 'আপনি কি এই ই-বুকটি অনুমোদন করে লাইভ স্টোরে প্রকাশ করতে চান?',
         icon: 'question',
-        confirmButtonText: '<i class="fas fa-check-circle me-1"></i> হ্যাঁ, অনুমোদন করুন',
+        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> হ্যাঁ, অনুমোদন করুন',
         confirmButtonColor: '#10b981',
         cancelButtonText: 'বাতিল'
     });
@@ -558,7 +558,7 @@ async function ajaxApproveEbook(id) {
             if (row) {
                 const badgeTd = row.children[6];
                 if (badgeTd) {
-                    badgeTd.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1"><i class="fas fa-circle-check me-1"></i> Approved</span>`;
+                    badgeTd.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1"><i class="fa-solid fa-circle-check me-1"></i> Approved</span>`;
                 }
             }
 
@@ -609,7 +609,7 @@ function showEbookToast(type, msg) {
     alertDiv.style.zIndex = '99999';
     alertDiv.innerHTML = `
         <div class="d-flex align-items-center gap-2">
-            <i class="fas ${type === 'success' ? 'fa-check-circle text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
+            <i class="fas ${type === 'success' ? 'fa-circle-check text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
             <div class="small fw-semibold">${msg}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
         </div>

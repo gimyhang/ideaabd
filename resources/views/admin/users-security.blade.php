@@ -12,13 +12,13 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#manualBlockIpModal">
-            <i class="fas fa-ban me-1"></i> আইপি ব্লক
+            <i class="fa-solid fa-ban me-1"></i> আইপি ব্লক
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#quickOtpModal">
-            <i class="fas fa-shield-halved me-1"></i> ওয়ানটাইম OTP
+            <i class="fa-solid fa-shield-halved me-1"></i> ওয়ানটাইম OTP
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#autoPasswordModal">
-            <i class="fas fa-key me-1"></i> অটো পাসওয়ার্ড জেনারেটর
+            <i class="fa-solid fa-key me-1"></i> অটো পাসওয়ার্ড জেনারেটর
         </button>
     </div>
 @endsection
@@ -29,7 +29,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-circle-check me-2 text-success fs-5"></i>
+            <i class="fa-solid fa-circle-check me-2 text-success fs-5"></i>
             <div class="fw-semibold">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -37,7 +37,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-triangle-exclamation me-2 text-danger fs-5"></i>
+            <i class="fa-solid fa-triangle-exclamation me-2 text-danger fs-5"></i>
             <div class="fw-semibold">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -51,7 +51,7 @@
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
                         <span class="badge bg-success rounded-pill px-2.5 py-1 text-white">
-                            <i class="fas fa-shield-check me-1"></i> পাসওয়ার্ড অ্যাক্টিভ
+                            <i class="fa-solid fa-shield-check me-1"></i> পাসওয়ার্ড অ্যাক্টিভ
                         </span>
                         <h5 class="fw-bold mb-0 text-white">নতুন স্ট্রং পাসওয়ার্ড তৈরি সম্পন্ন!</h5>
                     </div>
@@ -64,7 +64,7 @@
                         <span id="genPassText">{{ $pData['password'] }}</span>
                     </div>
                     <button type="button" class="btn btn-primary rounded-pill px-3 fw-bold" onclick="copyText('{{ $pData['password'] }}', 'পাসওয়ার্ড কপি হয়েছে!')">
-                        <i class="fas fa-copy me-1"></i> কপি করুন
+                        <i class="fa-solid fa-copy me-1"></i> কপি করুন
                     </button>
                     @if(!empty($pData['user_phone']))
                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $pData['user_phone']) }}?text={{ urlencode('প্রিয় ' . $pData['user_name'] . ', আপনার আইডিয়া প্রকাশন অ্যাকাউন্টের নতুন পাসওয়ার্ড: ' . $pData['password'] . ' । লগইন লিংক: ' . $pData['login_url']) }}" 
@@ -84,7 +84,7 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div>
                     <div class="d-flex align-items-center gap-2 mb-1">
-                        <i class="fas fa-shield-halved fs-4 text-warning"></i>
+                        <i class="fa-solid fa-shield-halved fs-4 text-warning"></i>
                         <h5 class="fw-bold mb-0 text-white">ওয়ানটাইম পাসওয়ার্ড (OTP) সফলভাবে তৈরি হয়েছে!</h5>
                     </div>
                     <p class="mb-0 text-white-50 small">
@@ -96,7 +96,7 @@
                         {{ $otpData['otp'] }}
                     </div>
                     <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" onclick="copyText('{{ $otpData['otp'] }}', 'OTP কপি হয়েছে!')">
-                        <i class="fas fa-copy me-1"></i> কপি করুন
+                        <i class="fa-solid fa-copy me-1"></i> কপি করুন
                     </button>
                     @if(!empty($otpData['user_phone']))
                         <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $otpData['user_phone']) }}?text={{ urlencode('প্রিয় ' . $otpData['user_name'] . ', আপনার আইডিয়া প্রকাশন অ্যাকাউন্টের ওয়ানটাইম পাসওয়ার্ড (OTP): ' . $otpData['otp'] . ' । এটি দিয়ে লগইন করে অবিলম্বে আপনার নতুন পাসওয়ার্ড সেট করুন।') }}" 
@@ -116,7 +116,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">পেন্ডিং রিসেট রিকুয়েস্ট</span>
                     <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-envelope-open-text"></i>
+                        <i class="fa-solid fa-envelope-open-text"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['pending_requests']) }} টি</h3>
@@ -129,7 +129,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">ফ্ল্যাগড সিকিউরিটি ইস্যু</span>
                     <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-triangle-exclamation"></i>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['security_issues']) }} টি</h3>
@@ -142,7 +142,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">অটো-ব্লক করা আইপি</span>
                     <div class="rounded-circle bg-dark-subtle text-dark p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-ban"></i>
+                        <i class="fa-solid fa-ban"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['total_blocked_ips']) }} টি</h3>
@@ -155,7 +155,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">১০ মিনিট সাময়িক লক</span>
                     <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-clock-rotate-left"></i>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['locked_10min_ips']) }} টি</h3>
@@ -171,7 +171,7 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link {{ $tab === 'requests' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
                        href="{{ route('admin.users.security.index', ['tab' => 'requests']) }}">
-                        <i class="fas fa-key me-1.5 text-warning"></i> ১. পাসওয়ার্ড রিসেট রিকুয়েস্ট
+                        <i class="fa-solid fa-key me-1.5 text-warning"></i> ১. পাসওয়ার্ড রিসেট রিকুয়েস্ট
                         @if($stats['pending_requests'] > 0)
                             <span class="badge bg-danger rounded-pill ms-1">{{ $stats['pending_requests'] }}</span>
                         @endif
@@ -180,7 +180,7 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link {{ $tab === 'ips' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
                        href="{{ route('admin.users.security.index', ['tab' => 'ips']) }}">
-                        <i class="fas fa-shield-virus me-1.5 text-danger"></i> ২. সকল আইপি ও ট্র্যাকার
+                        <i class="fa-solid fa-shield-virus me-1.5 text-danger"></i> ২. সকল আইপি ও ট্র্যাকার
                         @if($stats['total_blocked_ips'] > 0)
                             <span class="badge bg-danger rounded-pill ms-1">{{ $stats['total_blocked_ips'] }}</span>
                         @endif
@@ -189,7 +189,7 @@
                 <li class="nav-item" role="presentation">
                     <a class="nav-link {{ $tab === 'issues' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
                        href="{{ route('admin.users.security.index', ['tab' => 'issues']) }}">
-                        <i class="fas fa-triangle-exclamation me-1.5 text-danger"></i> ৩. ফ্ল্যাগড সিকিউরিটি ইস্যু
+                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-danger"></i> ৩. ফ্ল্যাগড সিকিউরিটি ইস্যু
                         @if($stats['security_issues'] > 0)
                             <span class="badge bg-danger rounded-pill ms-1">{{ $stats['security_issues'] }}</span>
                         @endif
@@ -200,7 +200,7 @@
             <form action="{{ route('admin.users.security.clean-expired') }}" method="POST" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="সমস্ত মেয়াদোত্তীর্ণ ১০ মিনিটের লক ক্লিন করুন">
-                    <i class="fas fa-broom me-1"></i> মেয়াদোত্তীর্ণ লক ক্লিন
+                    <i class="fa-solid fa-broom me-1"></i> মেয়াদোত্তীর্ণ লক ক্লিন
                 </button>
             </form>
         </div>
@@ -256,7 +256,7 @@
                                     <td class="text-center">
                                         @if($req->status === 'resolved')
                                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                <i class="fas fa-circle-check me-1"></i> ওয়ানটাইম পাসওয়ার্ড প্রেরিত
+                                                <i class="fa-solid fa-circle-check me-1"></i> ওয়ানটাইম পাসওয়ার্ড প্রেরিত
                                             </span>
                                         @elseif($req->status === 'rejected')
                                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-semibold">
@@ -264,7 +264,7 @@
                                             </span>
                                         @else
                                             <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                <i class="fas fa-hourglass-half me-1"></i> অপেক্ষমান
+                                                <i class="fa-solid fa-hourglass-half me-1"></i> অপেক্ষমান
                                             </span>
                                         @endif
                                     </td>
@@ -274,13 +274,13 @@
                                                 @csrf
                                                 <input type="hidden" name="request_id" value="{{ $req->id }}">
                                                 <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" title="৬ ডিজিটের ওটিপি তৈরি">
-                                                    <i class="fas fa-key me-1"></i> OTP তৈরি
+                                                    <i class="fa-solid fa-key me-1"></i> OTP তৈরি
                                                 </button>
                                             </form>
                                             @if($req->user)
                                                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" 
                                                         onclick="openAutoPasswordModal('{{ $req->user->id }}', '{{ $req->user->name }}', '{{ $req->identity }}')">
-                                                    <i class="fas fa-lock me-1"></i> পাসওয়ার্ড জেনারেটর
+                                                    <i class="fa-solid fa-lock me-1"></i> পাসওয়ার্ড জেনারেটর
                                                 </button>
                                             @endif
                                         </div>
@@ -289,7 +289,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fas fa-key fs-2 mb-2 text-secondary"></i>
+                                        <i class="fa-solid fa-key fs-2 mb-2 text-secondary"></i>
                                         <div>এখনো কোনো পাসওয়ার্ড রিসেট সহায়তার আবেদন জমা পড়েনি।</div>
                                     </td>
                                 </tr>
@@ -329,7 +329,7 @@
                                 <tr>
                                     <td class="ps-4 font-monospace fw-bold text-dark">
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="fas fa-network-wired text-muted"></i>
+                                            <i class="fa-solid fa-network-wired text-muted"></i>
                                             <span>{{ $log->ip_address }}</span>
                                             @if($log->is_security_issue)
                                                 <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 10px;">
@@ -349,15 +349,15 @@
                                     <td class="text-center">
                                         @if($log->is_blocked)
                                             <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fas fa-ban me-1"></i> ৫ বার ব্যর্থ — অটো ব্লকড
+                                                <i class="fa-solid fa-ban me-1"></i> ৫ বার ব্যর্থ — অটো ব্লকড
                                             </span>
                                         @elseif($is10MinLocked)
                                             <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fas fa-clock me-1"></i> ৩ বার ব্যর্থ — ১০ মিনিট লক
+                                                <i class="fa-solid fa-clock me-1"></i> ৩ বার ব্যর্থ — ১০ মিনিট লক
                                             </span>
                                         @elseif($log->is_security_issue)
                                             <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fas fa-shield-halved me-1"></i> সাইন ভেরিফিকেশন সক্রিয়
+                                                <i class="fa-solid fa-shield-halved me-1"></i> সাইন ভেরিফিকেশন সক্রিয়
                                             </span>
                                         @else
                                             <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">
@@ -375,17 +375,17 @@
                                                   data-confirm="আপনি কি এই আইপি ({{ $log->ip_address }}) এর নিরাপত্তা ব্লক ও ব্যর্থ লগইন কাউন্টার ক্লিন করে আনব্লক করতে চান?"
                                                   data-confirm-title="আইপি আনব্লক ও সিকিউরিটি ক্লিন"
                                                   data-confirm-icon="question"
-                                                  data-confirm-btn="<i class='fas fa-lock-open me-1'></i> হ্যাঁ, আনব্লক করুন">
+                                                  data-confirm-btn="<i class='fa-solid fa-lock-open me-1'></i> হ্যাঁ, আনব্লক করুন">
                                                 @csrf
                                                 <input type="hidden" name="ip_address" value="{{ $log->ip_address }}">
                                                 <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
-                                                    <i class="fas fa-lock-open me-1"></i> আনব্লক ও ক্লিন
+                                                    <i class="fa-solid fa-lock-open me-1"></i> আনব্লক ও ক্লিন
                                                 </button>
                                             </form>
                                             @if($log->last_username)
                                                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 fw-bold" 
                                                         onclick="openAutoPasswordModal('', '', '{{ $log->last_username }}')" title="ইউজারের পাসওয়ার্ড পরিবর্তন">
-                                                    <i class="fas fa-key"></i>
+                                                    <i class="fa-solid fa-key"></i>
                                                 </button>
                                             @endif
                                         </div>
@@ -394,7 +394,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fas fa-shield-check fs-2 mb-2 text-success"></i>
+                                        <i class="fa-solid fa-shield-check fs-2 mb-2 text-success"></i>
                                         <div>বর্তমানে কোনো নিরাপত্তা সমস্যা বা আইপি ব্লক নেই। সিস্টেম সম্পূর্ণ সুরক্ষিত!</div>
                                     </td>
                                 </tr>
@@ -421,7 +421,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fas fa-key text-warning"></i>
+                    <i class="fa-solid fa-key text-warning"></i>
                     <span>পাসওয়ার্ড অটো-জেনারেটর ও অ্যাকাউন্ট রিকভারি</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -441,14 +441,14 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-bold text-dark mb-0">অটো-জেনারেটেড স্ট্রং পাসওয়ার্ড প্রিভিউ</label>
                             <button type="button" class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold" onclick="generateRandomPassString()">
-                                <i class="fas fa-rotate me-1"></i> নতুন তৈরি করুন
+                                <i class="fa-solid fa-rotate me-1"></i> নতুন তৈরি করুন
                             </button>
                         </div>
                         <div class="input-group">
                             <input type="text" name="custom_password" id="modalAutoPassString" class="form-control font-monospace fw-bold text-primary bg-light" 
                                    value="" placeholder="Click to generate...">
                             <button type="button" class="btn btn-outline-secondary" onclick="copyText(document.getElementById('modalAutoPassString').value, 'পাসওয়ার্ড কপি হয়েছে!')" title="কপি করুন">
-                                <i class="fas fa-copy"></i>
+                                <i class="fa-solid fa-copy"></i>
                             </button>
                         </div>
                         <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ক্রিপ্টোগ্রাফিক ১২-ডিজিটের স্ট্রং পাসওয়ার্ড</small>
@@ -466,7 +466,7 @@
                 <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4">
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fas fa-check me-1"></i> পাসওয়ার্ড সেট ও আনব্লক করুন
+                        <i class="fa-solid fa-check me-1"></i> পাসওয়ার্ড সেট ও আনব্লক করুন
                     </button>
                 </div>
             </form>
@@ -479,7 +479,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-dark"><i class="fas fa-shield-halved text-primary me-2"></i> যেকোনো ইউজারের জন্য ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি</h6>
+                <h6 class="modal-title fw-bold text-dark"><i class="fa-solid fa-shield-halved text-primary me-2"></i> যেকোনো ইউজারের জন্য ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.users.security.generate-otp') }}" method="POST">
@@ -507,7 +507,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-danger"><i class="fas fa-ban text-danger me-2"></i> ম্যানুয়ালি আইপি ব্লক করুন</h6>
+                <h6 class="modal-title fw-bold text-danger"><i class="fa-solid fa-ban text-danger me-2"></i> ম্যানুয়ালি আইপি ব্লক করুন</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.users.security.block-ip') }}" method="POST">

@@ -11,23 +11,23 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         <div class="dropdown">
             <button class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-xs fw-semibold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-plus-circle me-1"></i> New Transaction
+                <i class="fa-solid fa-circle-plus me-1"></i> New Transaction
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 200px;">
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2 text-success" data-bs-toggle="modal" data-bs-target="#newIncomeModal">
-                        <i class="fas fa-plus-circle text-success"></i> Record Income
+                        <i class="fa-solid fa-circle-plus text-success"></i> Record Income
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2 text-danger" data-bs-toggle="modal" data-bs-target="#newExpenseModal">
-                        <i class="fas fa-minus-circle text-danger"></i> Record Expense
+                        <i class="fa-solid fa-circle-minus text-danger"></i> Record Expense
                     </button>
                 </li>
             </ul>
         </div>
         <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-file-invoice-dollar me-1"></i> Invoices & Challans
+            <i class="fa-solid fa-file-invoice-dollar me-1"></i> Invoices & Challans
         </a>
     </div>
 @endsection
@@ -41,15 +41,15 @@
             <div class="btn-group shadow-2xs rounded-pill p-1 bg-light border" role="group">
                 <a href="{{ route('admin.accounting.index') }}" 
                    class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-white text-primary shadow-xs">
-                    <i class="fas fa-scale-balanced me-1.5"></i> Income & Expenses
+                    <i class="fa-solid fa-scale-balanced me-1.5"></i> Income & Expenses
                 </a>
                 <a href="{{ route('admin.accounting.invoices.index') }}" 
                    class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light text-muted">
-                    <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices & Challans
+                    <i class="fa-solid fa-file-invoice-dollar me-1.5"></i> Invoices & Challans
                 </a>
                 <a href="{{ route('admin.accounting.reports.index') }}" 
                    class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light text-muted">
-                    <i class="fas fa-chart-pie me-1.5"></i> P&L Reports
+                    <i class="fa-solid fa-chart-pie me-1.5"></i> P&L Reports
                 </a>
             </div>
             <div class="text-muted small">
@@ -68,7 +68,7 @@
                     <span class="text-muted small fw-semibold">Total Income</span>
                     <h3 class="fw-bold mb-0 text-success">৳{{ number_format($totalIncome, 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-arrow-trend-up fs-4"></i></div>
+                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fa-solid fa-arrow-trend-up fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -79,7 +79,7 @@
                     <span class="text-muted small fw-semibold">Total Expenses & Purchases</span>
                     <h3 class="fw-bold mb-0 text-danger">৳{{ number_format($totalExpense, 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fas fa-arrow-trend-down fs-4"></i></div>
+                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fa-solid fa-arrow-trend-down fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -91,7 +91,7 @@
                     <h3 class="fw-bold mb-0 {{ $netBalance >= 0 ? 'text-primary' : 'text-danger' }}">৳{{ number_format($netBalance, 2) }}</h3>
                 </div>
                 <div class="rounded-circle {{ $netBalance >= 0 ? 'bg-primary-subtle text-primary' : 'bg-warning-subtle text-warning' }} p-3">
-                    <i class="fas fa-scale-balanced fs-4"></i>
+                    <i class="fa-solid fa-scale-balanced fs-4"></i>
                 </div>
             </div>
         </div>
@@ -101,7 +101,7 @@
 {{-- Top Expense Sectors Summary Pill Carousel --}}
 @if($expenseBreakdown->isNotEmpty())
 <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
-    <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fas fa-chart-pie me-1 text-danger"></i>Top Expense Sectors:</span>
+    <span class="small fw-bold text-muted text-uppercase mb-2 d-block"><i class="fa-solid fa-chart-pie me-1 text-danger"></i>Top Expense Sectors:</span>
     <div class="d-flex flex-wrap gap-2">
         @foreach($expenseBreakdown as $exp)
             <div class="badge bg-light text-dark border p-2 rounded-3 fw-normal">
@@ -118,7 +118,7 @@
         <form action="{{ route('admin.accounting.index') }}" method="GET" class="row g-2 align-items-center">
             <div class="col-md-3">
                 <div class="input-group">
-                    <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Description / Voucher / Party..." value="{{ $search }}">
                 </div>
             </div>
@@ -141,9 +141,9 @@
                 <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="Start Date">
             </div>
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Filter</button>
                 @if(request()->hasAny(['search', 'type', 'category', 'date_from', 'date_to']))
-                    <a href="{{ route('admin.accounting.index') }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                    <a href="{{ route('admin.accounting.index') }}" class="btn btn-light border" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
@@ -154,7 +154,7 @@
 <div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
     @if ($entries->isEmpty())
         <div class="empty-state py-5 text-center">
-            <i class="fas fa-receipt fs-1 text-muted opacity-50 mb-3"></i>
+            <i class="fa-solid fa-receipt fs-1 text-muted opacity-50 mb-3"></i>
             <h5 class="fw-bold text-muted">No Accounting Entries Found</h5>
             <p class="text-muted small">Record an income or expense transaction using the buttons above.</p>
         </div>
@@ -187,11 +187,11 @@
                             <td>
                                 @if($entry->type === 'income')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-arrow-up me-1"></i>Income
+                                        <i class="fa-solid fa-arrow-up me-1"></i>Income
                                     </span>
                                 @else
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
-                                        <i class="fas fa-arrow-down me-1"></i>Expense
+                                        <i class="fa-solid fa-arrow-down me-1"></i>Expense
                                     </span>
                                 @endif
                             </td>
@@ -201,7 +201,7 @@
                             <td>
                                 <div class="fw-bold text-dark">{{ $entry->title }}</div>
                                 @if($entry->party_name)
-                                    <div class="text-muted small"><i class="fas fa-store text-primary me-1"></i>{{ $entry->party_name }}</div>
+                                    <div class="text-muted small"><i class="fa-solid fa-store text-primary me-1"></i>{{ $entry->party_name }}</div>
                                 @endif
                                 @if($entry->notes)
                                     <div class="small text-secondary mt-0.5 bg-light p-1 rounded border-start border-2 border-primary" style="font-size: 11.5px; white-space: pre-line; line-height: 1.4;">
@@ -210,7 +210,7 @@
                                 @endif
                                 @if($entry->invoice)
                                     <a href="{{ route('admin.accounting.invoices.show', $entry->invoice_id) }}" class="small text-primary text-decoration-none d-inline-block mt-0.5">
-                                        <i class="fas fa-file-invoice me-1"></i>Invoice #{{ $entry->invoice->invoice_no }}
+                                        <i class="fa-solid fa-file-invoice me-1"></i>Invoice #{{ $entry->invoice->invoice_no }}
                                     </a>
                                 @endif
                             </td>
@@ -226,7 +226,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger p-1 border-0" title="Delete">
-                                        <i class="fas fa-trash-can"></i>
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
                             </td>
@@ -402,7 +402,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-3 bg-success text-white rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="fas fa-plus-circle me-2"></i>Record New Income Transaction</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-circle-plus me-2"></i>Record New Income Transaction</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.accounting.entries.store') }}" method="POST">

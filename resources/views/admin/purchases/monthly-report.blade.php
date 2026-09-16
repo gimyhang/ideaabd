@@ -12,7 +12,7 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize branding header">
-            <i class="fas fa-palette me-1.5 text-primary"></i> Memo Branding
+            <i class="fa-solid fa-palette me-1.5 text-primary"></i> Memo Branding
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-2xs fw-semibold" onclick="window.print()">
             <i class="fa-solid fa-print me-1.5 text-primary"></i> প্রিন্ট রিপোর্ট

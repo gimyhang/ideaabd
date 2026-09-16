@@ -402,7 +402,7 @@
 
                                             <!-- Mock Navbar Navigation elements on the right -->
                                             <div class="d-none d-sm-flex align-items-center gap-2 opacity-50 pe-1">
-                                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small"><i class="fa-solid fa-search me-1"></i>সার্চ</span>
+                                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small"><i class="fa-solid fa-magnifying-glass me-1"></i>সার্চ</span>
                                                 <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small"><i class="fa-solid fa-cart-shopping me-1"></i>কার্ট (০)</span>
                                             </div>
                                         </div>
@@ -885,29 +885,58 @@
                                 </div>
                             </div>
 
-                            <!-- Right: Live Theme Mode Switch -->
+                            <!-- Right: Live Theme Mode & Sidebar Switch -->
                             <div class="col-lg-6">
-                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-moon text-primary me-2"></i>Default Display Mode</h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-moon text-primary me-2"></i>Default Display Mode & Layout</h6>
                                 
-                                <div class="p-4 bg-light rounded-4 border mb-4">
-                                    <div class="row g-3">
-                                        <div class="col-6">
-                                            <label class="card p-3 border-2 rounded-4 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? 'light') === 'light' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <label class="card p-2.5 border-2 rounded-3 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? 'light') === 'light' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
                                                 <input type="radio" name="default_mode" value="light" class="d-none" {{ ($themeSetting['default_mode'] ?? 'light') === 'light' ? 'checked' : '' }}>
-                                                <i class="fa-solid fa-sun fs-2 text-warning mb-2"></i>
-                                                <div class="fw-bold fs-6">Light Mode</div>
-                                                <span class="small text-muted">Clean & bright reading</span>
+                                                <i class="fa-solid fa-sun fs-4 text-warning mb-1"></i>
+                                                <div class="fw-bold small">Light</div>
                                             </label>
                                         </div>
-                                        <div class="col-6">
-                                            <label class="card p-3 border-2 rounded-4 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? '') === 'dark' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
+                                        <div class="col-4">
+                                            <label class="card p-2.5 border-2 rounded-3 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? '') === 'dark' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
                                                 <input type="radio" name="default_mode" value="dark" class="d-none" {{ ($themeSetting['default_mode'] ?? '') === 'dark' ? 'checked' : '' }}>
-                                                <i class="fa-solid fa-moon fs-2 text-indigo-500 mb-2"></i>
-                                                <div class="fw-bold fs-6">Dark Mode</div>
-                                                <span class="small text-muted">Easy on the eyes</span>
+                                                <i class="fa-solid fa-moon fs-4 text-primary mb-1"></i>
+                                                <div class="fw-bold small">Dark</div>
+                                            </label>
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="card p-2.5 border-2 rounded-3 text-center cursor-pointer hover-lift transition-all {{ ($themeSetting['default_mode'] ?? '') === 'auto' ? 'border-primary bg-white shadow-xs' : 'border-transparent bg-white' }}">
+                                                <input type="radio" name="default_mode" value="auto" class="d-none" {{ ($themeSetting['default_mode'] ?? '') === 'auto' ? 'checked' : '' }}>
+                                                <i class="fa-solid fa-desktop fs-4 text-info mb-1"></i>
+                                                <div class="fw-bold small">Auto</div>
                                             </label>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Sidebar Theme Preset -->
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-table-columns text-primary me-1.5"></i>Default Sidebar Style</label>
+                                    <select name="sidebar_theme" class="form-select form-select-sm rounded-3">
+                                        <option value="theme-deep-navy" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-deep-navy' ? 'selected' : '' }}>Deep Navy (Default)</option>
+                                        <option value="theme-midnight-slate" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-midnight-slate' ? 'selected' : '' }}>Carbon Dark Slate</option>
+                                        <option value="theme-emerald-forest" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-emerald-forest' ? 'selected' : '' }}>Forest Emerald</option>
+                                        <option value="theme-royal-purple" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-royal-purple' ? 'selected' : '' }}>Royal Indigo Purple</option>
+                                        <option value="theme-crimson-night" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-crimson-night' ? 'selected' : '' }}>Velvet Crimson</option>
+                                        <option value="theme-minimal-light" {{ ($themeSetting['sidebar_theme'] ?? '') === 'theme-minimal-light' ? 'selected' : '' }}>Minimal Clean Light</option>
+                                    </select>
+                                </div>
+
+                                <!-- Bengali Font Family -->
+                                <div class="p-3 bg-light rounded-4 border">
+                                    <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-font text-primary me-1.5"></i>Default Typography / Font</label>
+                                    <select name="font_family" class="form-select form-select-sm rounded-3">
+                                        <option value="Hind Siliguri" {{ ($themeSetting['font_family'] ?? '') === 'Hind Siliguri' ? 'selected' : '' }}>Hind Siliguri (Standard)</option>
+                                        <option value="Kalpurush" {{ ($themeSetting['font_family'] ?? '') === 'Kalpurush' ? 'selected' : '' }}>Kalpurush</option>
+                                        <option value="Nikosh" {{ ($themeSetting['font_family'] ?? '') === 'Nikosh' ? 'selected' : '' }}>Nikosh</option>
+                                        <option value="Inter" {{ ($themeSetting['font_family'] ?? '') === 'Inter' ? 'selected' : '' }}>Inter (English UI)</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -2230,7 +2259,7 @@
             title: 'আইটেম মুছে ফেলুন',
             text: `আপনি কি "${window.headerMenuItemsData[index]?.label || 'এই'}" আইটেমটি মুছে ফেলতে চান?`,
             icon: 'warning',
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {
@@ -2341,7 +2370,7 @@
             title: 'ডিফল্ট রিস্টোর',
             text: 'আপনি কি ডিফল্ট হেডার মেনু তালিকা রিস্টোর করতে চান?',
             icon: 'question',
-            confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
+            confirmButtonText: '<i class="fa-solid fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
             confirmButtonColor: '#0284c7',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {
@@ -2668,7 +2697,7 @@
             title: 'স্লাইড মুছে ফেলুন',
             text: `আপনি কি "${window.heroSlidesData[index]?.title || 'এই'}" স্লাইডটি মুছে ফেলতে চান?`,
             icon: 'warning',
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, মুছুন',
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {
@@ -2794,7 +2823,7 @@
             title: 'ডিফল্ট রিস্টোর',
             text: 'আপনি কি ডিফল্ট ৬টি হিরো স্লাইডার তালিকা রিস্টোর করতে চান?',
             icon: 'question',
-            confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
+            confirmButtonText: '<i class="fa-solid fa-rotate me-1"></i> হ্যাঁ, রিস্টোর করুন',
             confirmButtonColor: '#0284c7',
             cancelButtonText: 'বাতিল'
         }).then(function(result) {

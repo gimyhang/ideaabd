@@ -22,6 +22,7 @@ use App\Http\Controllers\HomeController;
 
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\PaymentAdminController;
+use App\Http\Controllers\Auth\CaptchaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,11 +76,9 @@ Route::get('/ads.txt', function () {
 // --- Auth routes (login / logout / registration) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
-Route::get('/register/author', [\Modules\Author\Http\Controllers\Frontend\AuthorController::class, 'register'])->name('register.author');
-Route::post('/register/author', [\Modules\Author\Http\Controllers\Frontend\AuthorController::class, 'storeRegistration'])->name('register.author.store');
-Route::get('/register/publisher', [\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class, 'register'])->name('register.publisher');
-Route::post('/register/publisher', [\Modules\Publisher\Http\Controllers\Frontend\PublisherController::class, 'storeRegistration'])->name('register.publisher.store');
-Route::get('/register', fn() => redirect()->route('register.author'))->name('register');
+Route::get('/register/author', fn() => redirect('/login?mode=register&category=author'))->name('register.author');
+Route::get('/register/publisher', fn() => redirect('/login?mode=register&category=publisher'))->name('register.publisher');
+Route::get('/register', fn() => redirect('/login?mode=register'))->name('register');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
@@ -269,7 +268,10 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
     return redirect()->back()->with('success', 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।');
 })->name('contact.submit');
 
-// --- Registration routes --------------------------------------------------
+// --- Registration & CAPTCHA routes ---------------------------------------
+Route::get('/auth/captcha/generate', [CaptchaController::class, 'generate'])->name('auth.captcha.generate');
+Route::post('/auth/captcha/verify', [CaptchaController::class, 'verify'])->name('auth.captcha.verify');
+
 Route::get('/register', fn() => redirect('/login?mode=register'))->name('register.choose');
 Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->name('register.complete');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
@@ -578,6 +580,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::match(['post', 'put', 'patch'], '/payments', [PaymentAdminController::class, 'updateGateways'])->name('payments.update');
     Route::patch('/payments/{order}/status', [PaymentAdminController::class, 'updateStatus'])->name('payments.status');
 
+    // Bulk SMS & Email Management, Live Gateway Balance & Messaging Hub
+    Route::prefix('sms')->name('sms.')->controller(\App\Http\Controllers\Admin\AdminSmsController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/balance', 'getBalance')->name('balance');
+        Route::post('/send-test', 'sendTest')->name('send-test');
+        Route::post('/broadcast', 'broadcast')->name('broadcast');
+        Route::post('/settings', 'updateSettings')->name('settings');
+        Route::post('/send-email-test', 'sendEmailTest')->name('send-email-test');
+        Route::post('/broadcast-email', 'broadcastEmail')->name('broadcast-email');
+        Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
+        Route::post('/send-otp-test', 'sendOtpTest')->name('send-otp-test');
+        Route::post('/broadcast-dual', 'broadcastDual')->name('broadcast-dual');
+    });
+
     // Quick AJAX resource creators for books/ebooks/blog forms
     Route::post('/quick/category', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreCategory'])->name('quick.category');
     Route::post('/quick/blog-category', [\App\Http\Controllers\Admin\QuickResourceController::class, 'quickStoreBlogCategory'])->name('quick.blog-category');
@@ -607,6 +623,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
     Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
     Route::post('/system-settings/clear-cache', [AdminAccessController::class, 'clearCache'])->name('system-settings.clear-cache');
+    Route::post('/theme/update', [AdminAccessController::class, 'updateTheme'])->name('theme.update');
+    Route::post('/theme/reset', [AdminAccessController::class, 'resetTheme'])->name('theme.reset');
 
     // Cache management & optimizations
     Route::prefix('cache')->name('cache.')->controller(\App\Http\Controllers\Admin\AdminCacheController::class)->group(function () {

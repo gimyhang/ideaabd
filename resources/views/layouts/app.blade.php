@@ -306,11 +306,15 @@
         }
     </style>
     
-    {{-- public/build is gitignored, so a git-only deploy may not have a manifest.
-         Guarding this keeps the whole site from 500-ing when the assets are absent. --}}
     @if (file_exists(public_path('hot')) || file_exists(public_path('build/manifest.json')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
+
+    {{-- Dynamic View Stylesheets & Head Stacks --}}
+    @yield('styles')
+    @yield('css')
+    @stack('styles')
+    @stack('head')
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
     <!-- Google AdSense AMP Auto Ads Unit -->
@@ -376,9 +380,35 @@
                 }, 8000);
             });
         });
+
+        // Bulletproof Dropdown Toggle Helper for Site-wide Navbar & Topbar
+        document.addEventListener('click', function(e) {
+            var toggle = e.target.closest('[data-bs-toggle="dropdown"]');
+            if (toggle) {
+                var menu = toggle.nextElementSibling || (toggle.parentElement ? toggle.parentElement.querySelector('.dropdown-menu') : null);
+                if (menu) {
+                    var isShown = menu.classList.contains('show');
+                    document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                        if (m !== menu) m.classList.remove('show');
+                    });
+                    if (isShown) {
+                        menu.classList.remove('show');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    } else {
+                        menu.classList.add('show');
+                        toggle.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            } else if (!e.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                    m.classList.remove('show');
+                    var pToggle = m.parentElement ? m.parentElement.querySelector('[data-bs-toggle="dropdown"]') : null;
+                    if (pToggle) pToggle.setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
     </script>
 
-    
     {{-- Google Translate Element (Hidden from view) --}}
     <div id="google_translate_element" style="display:none; position:absolute; left:-9999px;"></div>
 

@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportPayoutLogsCSV()">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <a href="{{ route('admin.author-payouts.index') }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-xs fw-bold">
-            <i class="fas fa-hand-holding-dollar me-1"></i> Pending Payout Requests
+            <i class="fa-solid fa-hand-holding-dollar me-1"></i> Pending Payout Requests
         </a>
     </div>
 @endsection
@@ -66,7 +66,7 @@
         <form action="{{ route('admin.royalty-payout-logs') }}" method="GET" class="row g-2 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control border-start-0" 
                            placeholder="Search TrxID, Author, Account...">
                 </div>
@@ -96,11 +96,11 @@
             </div>
             <div class="col-12 col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold shadow-xs">
-                    <i class="fas fa-filter"></i>
+                    <i class="fa-solid fa-filter"></i>
                 </button>
                 @if(request()->hasAny(['search', 'channel', 'status', 'from_date', 'to_date']))
                     <a href="{{ route('admin.royalty-payout-logs') }}" class="btn btn-sm btn-outline-secondary rounded-pill" title="Reset">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
             </div>
@@ -153,7 +153,7 @@
                                 @endif
                                 @if(!empty($log->gateway_channel) && $log->gateway_channel !== 'manual')
                                     <small class="d-block text-success font-monospace" style="font-size: 10px;">
-                                        <i class="fas fa-bolt me-0.5"></i> Automated API
+                                        <i class="fa-solid fa-bolt me-0.5"></i> Automated API
                                     </small>
                                 @endif
                             </td>
@@ -177,7 +177,7 @@
                             <td class="text-center">
                                 @if($log->status === 'paid')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-circle-check me-1"></i> Paid
+                                        <i class="fa-solid fa-circle-check me-1"></i> Paid
                                     </span>
                                 @elseif($log->status === 'rejected')
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
@@ -193,7 +193,7 @@
                                 @if($log->status === 'paid')
                                     <a href="{{ route('admin.author-payouts.receipt', $log->id) }}" target="_blank" 
                                        class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5" title="Print Official Receipt">
-                                        <i class="fas fa-receipt me-1"></i> Receipt
+                                        <i class="fa-solid fa-receipt me-1"></i> Receipt
                                     </a>
                                 @else
                                     <span class="text-muted small">—</span>
@@ -203,7 +203,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fas fa-receipt fs-2 mb-2 d-block opacity-25"></i>
+                                <i class="fa-solid fa-receipt fs-2 mb-2 d-block opacity-25"></i>
                                 কোনো রয়্যালটি গেটওয়ে ট্রানজেকশন লগ পাওয়া যায়নি।
                             </td>
                         </tr>

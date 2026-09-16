@@ -126,7 +126,7 @@
                 @endif
                 <div class="col-md-5">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-search text-muted"></i></span>
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                         <input type="text" name="search" value="{{ $search }}" class="form-control rounded-end-3" placeholder="Search by name, role, trade or phone...">
                     </div>
                 </div>

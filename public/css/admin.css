@@ -24,7 +24,9 @@
 @import url('https://fonts.maateen.me/kalpurush/font.css');
 @import url('https://fonts.maateen.me/nikosh/font.css');
 
-* { font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Inter', sans-serif; }
+body, button, input, select, textarea, optgroup { 
+    font-family: 'Hind Siliguri', 'Kalpurush', 'Nikosh', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+}
 
 html {
     overflow-x: hidden;
@@ -1534,3 +1536,438 @@ body.dark-mode .timeline-item::before {
 .table-sm > :not(caption) > * > * {
     padding: 9px 12px;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   DYNAMIC THEME & COLOR VARIABLE SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+    --brand-rgb: 0, 102, 204;
+    --brand-hover: #0052a3;
+    --brand-glow: rgba(0, 102, 204, 0.25);
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --text-heading: #0f172a;
+    --topbar-bg: rgba(255, 255, 255, 0.88);
+    --topbar-border: #e2e8f0;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --dropdown-bg: #ffffff;
+    --dropdown-border: #e2e8f0;
+    --modal-bg: #ffffff;
+    --table-header-bg: #f8fafc;
+    --table-row-hover: #f8fafc;
+    --table-border-color: #f1f5f9;
+}
+
+/* ── Dynamic Brand Color Helpers ── */
+.bg-brand { background-color: var(--brand) !important; color: #fff !important; }
+.text-brand { color: var(--brand) !important; }
+.border-brand { border-color: var(--brand) !important; }
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2, var(--brand)) 100%) !important;
+    border-color: var(--brand) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px var(--brand-glow) !important;
+    transition: all 0.2s ease-in-out;
+}
+.btn-primary:hover, .btn-primary:focus {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px var(--brand-glow) !important;
+}
+
+.btn-outline-primary {
+    color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    background: transparent !important;
+}
+.btn-outline-primary:hover {
+    background: var(--brand) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px var(--brand-glow) !important;
+}
+
+.badge-primary, .bg-primary-subtle {
+    background-color: rgba(var(--brand-rgb, 0, 102, 204), 0.12) !important;
+    color: var(--brand) !important;
+}
+
+.adm-nav__link.active {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2, var(--brand)) 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   COMPLETE WORLD-CLASS DARK MODE SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+body.dark-mode {
+    --bg: #0b0f19;
+    --card-bg: #111827;
+    --card-border: #1f2937;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --text-heading: #f9fafb;
+    --topbar-bg: rgba(17, 24, 39, 0.85);
+    --topbar-border: #1f2937;
+    --input-bg: #1f2937;
+    --input-border: #374151;
+    --dropdown-bg: #111827;
+    --dropdown-border: #374151;
+    --modal-bg: #111827;
+    --table-header-bg: #161f30;
+    --table-row-hover: #1b2436;
+    --table-border-color: #1f2937;
+    background-color: var(--bg) !important;
+    color: var(--text-main) !important;
+}
+
+/* Dark Mode Components */
+body.dark-mode .adm-main {
+    background-color: var(--bg);
+}
+
+body.dark-mode .adm-top {
+    background: var(--topbar-bg);
+    border-bottom: 1px solid var(--topbar-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+body.dark-mode .adm-content {
+    background-color: var(--bg);
+}
+
+body.dark-mode .adm-card,
+body.dark-mode .card,
+body.dark-mode .bg-white {
+    background-color: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .card-header,
+body.dark-mode .card-footer {
+    background-color: #151d2f !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-heading) !important;
+}
+
+body.dark-mode .bg-light,
+body.dark-mode .bg-light-subtle {
+    background-color: #151e2e !important;
+    color: var(--text-main) !important;
+}
+
+body.dark-mode .border,
+body.dark-mode .border-top,
+body.dark-mode .border-bottom,
+body.dark-mode .border-end,
+body.dark-mode .border-start {
+    border-color: var(--card-border) !important;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, 
+body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode .text-dark,
+body.dark-mode .fw-bold {
+    color: var(--text-heading) !important;
+}
+
+body.dark-mode .text-muted,
+body.dark-mode .text-secondary {
+    color: var(--text-muted) !important;
+}
+
+/* Dark Mode Tables */
+body.dark-mode .table,
+body.dark-mode .adm-table {
+    color: var(--text-main);
+    border-color: var(--table-border-color);
+}
+
+body.dark-mode .table thead th,
+body.dark-mode .adm-table thead th {
+    background-color: var(--table-header-bg) !important;
+    color: #cbd5e1 !important;
+    border-bottom: 2px solid var(--card-border) !important;
+}
+
+body.dark-mode .table tbody td,
+body.dark-mode .adm-table tbody td {
+    background-color: var(--card-bg) !important;
+    color: var(--text-main) !important;
+    border-bottom: 1px solid var(--table-border-color) !important;
+}
+
+body.dark-mode .table tbody tr:hover td,
+body.dark-mode .adm-table tbody tr:hover td {
+    background-color: var(--table-row-hover) !important;
+}
+
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #151e2e !important;
+    color: var(--text-main);
+}
+
+/* Dark Mode Forms & Inputs */
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode .input-group-text {
+    background-color: var(--input-bg) !important;
+    border-color: var(--input-border) !important;
+    color: #f9fafb !important;
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+    background-color: #1a2332 !important;
+    border-color: var(--brand) !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 0.25rem var(--brand-glow) !important;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #6b7280 !important;
+}
+
+body.dark-mode .form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+}
+
+body.dark-mode .form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
+}
+
+/* Dark Mode Modals & Dropdowns */
+body.dark-mode .modal-content,
+body.dark-mode .offcanvas {
+    background-color: var(--modal-bg) !important;
+    border-color: var(--card-border) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer,
+body.dark-mode .offcanvas-header {
+    border-color: var(--card-border) !important;
+}
+
+body.dark-mode .dropdown-menu {
+    background-color: var(--dropdown-bg) !important;
+    border-color: var(--dropdown-border) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-mode .dropdown-item {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .dropdown-item:hover,
+body.dark-mode .dropdown-item:focus {
+    background-color: #1f2937 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .dropdown-divider {
+    border-color: var(--card-border) !important;
+}
+
+body.dark-mode .dropdown-header {
+    color: #9ca3af !important;
+}
+
+/* Dark Mode Navigation Tabs & Breadcrumbs */
+body.dark-mode .nav-tabs {
+    border-color: var(--card-border) !important;
+}
+
+body.dark-mode .nav-tabs .nav-link {
+    color: var(--text-muted);
+}
+
+body.dark-mode .nav-tabs .nav-link.active {
+    background-color: var(--card-bg) !important;
+    color: var(--brand) !important;
+    border-color: var(--card-border) var(--card-border) var(--card-bg) !important;
+}
+
+body.dark-mode .breadcrumb-item,
+body.dark-mode .breadcrumb-item a {
+    color: var(--text-muted);
+}
+body.dark-mode .breadcrumb-item.active {
+    color: #e5e7eb;
+}
+
+/* Dark Mode Alerts & Badges */
+body.dark-mode .alert-info { background-color: #0c2d48 !important; border-color: #144970 !important; color: #7dd3fc !important; }
+body.dark-mode .alert-success { background-color: #064e3b !important; border-color: #065f46 !important; color: #6ee7b7 !important; }
+body.dark-mode .alert-warning { background-color: #451a03 !important; border-color: #78350f !important; color: #fde047 !important; }
+body.dark-mode .alert-danger { background-color: #450a0a !important; border-color: #7f1d1d !important; color: #fca5a5 !important; }
+
+/* Dark Mode Search & Custom Elements */
+body.dark-mode .adm-search__input {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .adm-search__icon {
+    color: #9ca3af !important;
+}
+
+body.dark-mode .adm-iconbtn {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #d1d5db !important;
+}
+
+body.dark-mode .adm-iconbtn:hover {
+    background: #374151 !important;
+    color: #ffffff !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SIDEBAR THEME PRESETS
+   ══════════════════════════════════════════════════════════════════ */
+/* 1. Deep Navy (Default) */
+body.sidebar-deep-navy .adm-side {
+    background: linear-gradient(180deg, #0b2545 0%, #13315c 100%) !important;
+}
+
+/* 2. Midnight Carbon Slate */
+body.sidebar-midnight-slate .adm-side {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+}
+
+/* 3. Forest Emerald */
+body.sidebar-emerald-forest .adm-side {
+    background: linear-gradient(180deg, #064e3b 0%, #022c22 100%) !important;
+}
+
+/* 4. Royal Indigo Purple */
+body.sidebar-royal-purple .adm-side {
+    background: linear-gradient(180deg, #311042 0%, #1e1b4b 100%) !important;
+}
+
+/* 5. Velvet Crimson */
+body.sidebar-crimson-night .adm-side {
+    background: linear-gradient(180deg, #4c0519 0%, #1f0208 100%) !important;
+}
+
+/* 6. Minimalist White/Light */
+body.sidebar-minimal-light .adm-side {
+    background: #ffffff !important;
+    color: #334155 !important;
+    border-right: 1px solid #e2e8f0;
+}
+body.sidebar-minimal-light .adm-side .adm-side__brand {
+    border-bottom: 1px solid #f1f5f9;
+    color: #0f172a !important;
+}
+body.sidebar-minimal-light .adm-nav__link {
+    color: #475569 !important;
+}
+body.sidebar-minimal-light .adm-nav__link:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+body.sidebar-minimal-light .adm-side__section {
+    color: #94a3b8 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TYPOGRAPHY & FONT PRESETS
+   ══════════════════════════════════════════════════════════════════ */
+body.font-hind-siliguri, 
+body.font-hind-siliguri :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
+    font-family: 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+}
+body.font-kalpurush, 
+body.font-kalpurush :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
+    font-family: 'Kalpurush', 'Hind Siliguri', sans-serif; 
+}
+body.font-nikosh, 
+body.font-nikosh :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
+    font-family: 'Nikosh', 'Hind Siliguri', sans-serif; 
+}
+body.font-inter, 
+body.font-inter :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
+    font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FONT AWESOME ICON ENGINE & RENDERING PROTECTION
+   ══════════════════════════════════════════════════════════════════ */
+.fa, .fas, .far, .fal, .fab, .fad, .fa-solid, .fa-regular, .fa-brands, .fa-light, .fa-thin, .fa-duotone, [class*="fa-"] {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    display: inline-block;
+    line-height: 1;
+}
+.fa-solid, .fas {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+.fa-regular, .far {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+.fa-brands, .fab {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LIVE THEME CUSTOMIZER STYLING
+   ══════════════════════════════════════════════════════════════════ */
+.theme-customizer-drawer {
+    width: 360px !important;
+    max-width: 90vw !important;
+    border-left: 1px solid var(--card-border) !important;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.25) !important;
+    z-index: 1060 !important;
+}
+
+.theme-preset-btn {
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: var(--card-bg);
+}
+.theme-preset-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.theme-preset-btn.active {
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 3px var(--brand-glow) !important;
+}
+
+.theme-color-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+

@@ -12,7 +12,7 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         {{-- Explicit Upload Backup Button --}}
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="document.getElementById('backupFileInput').click()">
-            <i class="fas fa-file-arrow-up"></i>
+            <i class="fa-solid fa-file-arrow-up"></i>
             <span>ব্যাকআপ আপলোড</span>
         </button>
 
@@ -20,7 +20,7 @@
         <form action="{{ route('admin.backup.integrity') }}" method="POST" class="m-0">
             @csrf
             <button type="submit" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                <i class="fas fa-stethoscope"></i>
+                <i class="fa-solid fa-stethoscope"></i>
                 <span>ইন্টিগ্রিটি স্ক্যান</span>
             </button>
         </form>
@@ -30,10 +30,10 @@
               data-confirm="আপনি কি ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স অপ্টিমাইজ করতে চান?"
               data-confirm-title="ডাটাবেজ অপ্টিমাইজেশন"
               data-confirm-icon="info"
-              data-confirm-btn="<i class='fas fa-wand-magic-sparkles me-1'></i> হ্যাঁ, অপ্টিমাইজ করুন">
+              data-confirm-btn="<i class='fa-solid fa-wand-magic-sparkles me-1'></i> হ্যাঁ, অপ্টিমাইজ করুন">
             @csrf
             <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs">
-                <i class="fas fa-wand-magic-sparkles"></i>
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <span>ডাটাবেজ অপ্টিমাইজ</span>
             </button>
         </form>
@@ -43,7 +43,7 @@
             @csrf
             <input type="hidden" name="mode" value="data_media">
             <button type="submit" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm text-white" id="btnDataMediaBackup">
-                <i class="fas fa-box-archive"></i>
+                <i class="fa-solid fa-box-archive"></i>
                 <span id="btnDataMediaBackupText">সমস্ত ডাটা ও ছবি ব্যাকআপ (.ZIP)</span>
             </button>
         </form>
@@ -53,7 +53,7 @@
             @csrf
             <input type="hidden" name="mode" value="full_system">
             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-sm" id="btnMasterBackup">
-                <i class="fas fa-file-zipper"></i>
+                <i class="fa-solid fa-file-zipper"></i>
                 <span id="btnMasterBackupText">সম্পূর্ণ সিস্টেম ব্যাকআপ</span>
             </button>
         </form>
@@ -133,7 +133,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-success bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-circle-check text-success fs-5 me-2.5"></i>
+            <i class="fa-solid fa-circle-check text-success fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -141,7 +141,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-danger bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
+            <i class="fa-solid fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -164,7 +164,7 @@
                         </h5>
                     </div>
                     <div class="metric-avatar-icon bg-primary-subtle text-primary flex-shrink-0">
-                        <i class="fas fa-database"></i>
+                        <i class="fa-solid fa-database"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -187,12 +187,12 @@
                         <h4 class="fw-bold text-dark mb-0 font-monospace" style="font-size: 1.25rem;">{{ $formattedDbSize }}</h4>
                     </div>
                     <div class="metric-avatar-icon bg-success-subtle text-success flex-shrink-0">
-                        <i class="fas fa-server"></i>
+                        <i class="fa-solid fa-server"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                     <span class="small text-muted font-monospace" style="font-size: 0.75rem;">
-                        <i class="fas fa-table-cells text-muted me-1"></i>{{ count($tables) }} টি টেবিল
+                        <i class="fa-solid fa-table-cells text-muted me-1"></i>{{ count($tables) }} টি টেবিল
                     </span>
                     <span class="small text-dark fw-bold font-monospace" style="font-size: 0.75rem;">
                         {{ number_format($totalRowsCount) }} টি রেকর্ড
@@ -210,7 +210,7 @@
                         <h4 class="fw-bold text-dark mb-0 font-monospace" style="font-size: 1.25rem;">{{ count($backups) }} টি আর্কাইভ</h4>
                     </div>
                     <div class="metric-avatar-icon bg-warning-subtle text-warning flex-shrink-0">
-                        <i class="fas fa-file-zipper"></i>
+                        <i class="fa-solid fa-file-zipper"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -229,11 +229,11 @@
                     <div>
                         <span class="text-muted small fw-semibold text-uppercase font-monospace d-block mb-1" style="font-size: 0.70rem; letter-spacing: 0.5px;">ডিজাস্টার সিকিউরিটি</span>
                         <h5 class="fw-bold text-success mb-0 d-flex align-items-center gap-1.5" style="font-size: 1.05rem;">
-                            <i class="fas fa-shield-halved"></i> শতভাগ সুরক্ষিত
+                            <i class="fa-solid fa-shield-halved"></i> শতভাগ সুরক্ষিত
                         </h5>
                     </div>
                     <div class="metric-avatar-icon bg-info-subtle text-info flex-shrink-0">
-                        <i class="fas fa-clock-rotate-left"></i>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
@@ -251,7 +251,7 @@
     <div class="card border-0 shadow-xs rounded-4 bg-white p-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <div class="d-flex align-items-center gap-2">
-                <i class="fas fa-file-arrow-up text-primary fs-5"></i>
+                <i class="fa-solid fa-file-arrow-up text-primary fs-5"></i>
                 <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">ডাটাবেজ ও মাস্টার ব্যাকআপ ফাইল আপলোড</h6>
             </div>
             <span class="badge bg-light text-muted border rounded-pill px-3 py-1 small">
@@ -264,7 +264,7 @@
             
             <div id="dropZonePrompt" class="py-2">
                 <div class="rounded-circle bg-primary-subtle text-primary p-3 d-inline-flex align-items-center justify-content-center mb-2 shadow-xs" style="width: 52px; height: 52px;">
-                    <i class="fas fa-cloud-arrow-up fs-4"></i>
+                    <i class="fa-solid fa-cloud-arrow-up fs-4"></i>
                 </div>
                 <h6 class="fw-bold text-dark mb-1" style="font-size: 1.05rem;">
                     কম্পিউটার থেকে ব্যাকআপ ফাইল (.ZIP / .SQL) এখানে টেনে আনুন
@@ -273,7 +273,7 @@
                     অথবা নিচে বাটনে ক্লিক করে ফাইল নির্বাচন করুন (সর্বোচ্চ ২০০ মেগাবাইট)
                 </p>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="event.stopPropagation(); document.getElementById('backupFileInput').click()">
-                    <i class="fas fa-folder-open me-1.5"></i> ফাইল নির্বাচন করুন (Browse File)
+                    <i class="fa-solid fa-folder-open me-1.5"></i> ফাইল নির্বাচন করুন (Browse File)
                 </button>
             </div>
 
@@ -301,7 +301,7 @@
         <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between py-3 px-4 border-bottom gap-2">
             <div class="d-flex align-items-center gap-2.5">
                 <div class="rounded-3 bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                    <i class="fas fa-file-zipper"></i>
+                    <i class="fa-solid fa-file-zipper"></i>
                 </div>
                 <div>
                     <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">মাস্টার ব্যাকআপ আর্কাইভ তালিকা</h6>
@@ -315,7 +315,7 @@
                     @csrf
                     <input type="hidden" name="include_media" value="0">
                     <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" title="মিডিয়া ছাড়া শুধুমাত্র ডাটাবেজ ব্যাকআপ">
-                        <i class="fas fa-database me-1"></i> শুধুমাত্র ডাটাবেজ ব্যাকআপ
+                        <i class="fa-solid fa-database me-1"></i> শুধুমাত্র ডাটাবেজ ব্যাকআপ
                     </button>
                 </form>
 
@@ -345,11 +345,11 @@
                                     <div class="d-flex align-items-center gap-2.5">
                                         <div class="rounded-3 {{ $b['is_master_zip'] ? 'bg-primary text-white' : 'bg-light border text-muted' }} p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;">
                                             @if($b['is_master_zip'])
-                                                <i class="fas fa-file-zipper"></i>
+                                                <i class="fa-solid fa-file-zipper"></i>
                                             @elseif($b['extension'] === 'sqlite')
-                                                <i class="fas fa-database text-success"></i>
+                                                <i class="fa-solid fa-database text-success"></i>
                                             @else
-                                                <i class="fas fa-file-code"></i>
+                                                <i class="fa-solid fa-file-code"></i>
                                             @endif
                                         </div>
                                         <div class="min-w-0">
@@ -365,7 +365,7 @@
                                 <td>
                                     @if($b['is_master_zip'])
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.70rem;">
-                                            <i class="fas fa-box-archive me-1"></i> MASTER .ZIP
+                                            <i class="fa-solid fa-box-archive me-1"></i> MASTER .ZIP
                                         </span>
                                     @else
                                         <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.70rem;">
@@ -385,19 +385,19 @@
                                         {{-- Inspect ZIP Preview --}}
                                         @if($b['is_master_zip'])
                                             <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1 fw-semibold" onclick="inspectZipArchive('{{ $b['filename'] }}')" title="প্রিভিউ দেখুন">
-                                                <i class="fas fa-eye me-1"></i> প্রিভিউ
+                                                <i class="fa-solid fa-eye me-1"></i> প্রিভিউ
                                             </button>
                                         @endif
 
                                         {{-- Download --}}
                                         <a href="{{ route('admin.backup.download', $b['filename']) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" title="ডাউনলোড">
-                                            <i class="fas fa-download me-1"></i> ডাউনলোড
+                                            <i class="fa-solid fa-download me-1"></i> ডাউনলোড
                                         </a>
 
                                         {{-- Restore with Safety Guarantee --}}
                                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold" 
                                                 onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="সিস্টেম রিস্টোর">
-                                            <i class="fas fa-rotate-left me-1"></i> রিস্টোর
+                                            <i class="fa-solid fa-rotate-left me-1"></i> রিস্টোর
                                         </button>
 
                                         {{-- Delete --}}
@@ -405,12 +405,12 @@
                                               data-confirm="আপনি কি নিশ্চিত এই ব্যাকআপ ফাইলটি ({{ $b['filename'] }}) মুছে ফেলতে চান?"
                                               data-confirm-title="ব্যাকআপ ফাইল অপসারণ"
                                               data-confirm-icon="warning"
-                                              data-confirm-btn="<i class='fas fa-trash-can me-1'></i> মুছে ফেলুন"
+                                              data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> মুছে ফেলুন"
                                               class="d-inline m-0">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-0 d-inline-flex align-items-center justify-content-center" style="width:28px;height:28px;" title="মুছে ফেলুন">
-                                                <i class="fas fa-trash-can" style="font-size:11px;"></i>
+                                                <i class="fa-solid fa-trash-can" style="font-size:11px;"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -420,7 +420,7 @@
                             <tr id="emptyRow">
                                 <td colspan="5" class="text-center py-5 text-muted">
                                     <div class="p-3 text-center">
-                                        <i class="fas fa-file-zipper fs-1 text-secondary opacity-40 mb-3 d-block"></i>
+                                        <i class="fa-solid fa-file-zipper fs-1 text-secondary opacity-40 mb-3 d-block"></i>
                                         <h6 class="fw-bold text-dark">কোনো ব্যাকআপ ফাইল সংরক্ষিত নেই</h6>
                                         <p class="small text-muted mb-3">উপরের বাটনে ক্লিক করে প্রথম মাস্টার ব্যাকআপ (.ZIP) তৈরি করুন</p>
                                     </div>
@@ -438,11 +438,11 @@
         <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
             <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-table-list text-info fs-5"></i>
+                    <i class="fa-solid fa-table-list text-info fs-5"></i>
                     <h6 class="fw-bold text-dark mb-0">ডাটাবেজ টেবিল ও রেকর্ড বিবরণী ({{ count($tables) }} টি টেবিল)</h6>
                 </div>
                 <button class="btn btn-sm btn-light border rounded-pill px-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTables" aria-expanded="false">
-                    <i class="fas fa-chevron-down me-1"></i> বিস্তারিত দেখুন
+                    <i class="fa-solid fa-chevron-down me-1"></i> বিস্তারিত দেখুন
                 </button>
             </div>
             <div class="collapse" id="collapseTables">
@@ -482,7 +482,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-3">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-file-zipper text-warning me-2"></i>মাস্টার জিপ আর্কাইভ প্রিভিউ: <span id="inspectFilename" class="font-monospace text-info"></span>
+                    <i class="fa-solid fa-file-zipper text-warning me-2"></i>মাস্টার জিপ আর্কাইভ প্রিভিউ: <span id="inspectFilename" class="font-monospace text-info"></span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -504,7 +504,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-danger text-white py-3">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-triangle-exclamation me-2"></i>সিস্টেম রিস্টোর সতর্কতা!
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>সিস্টেম রিস্টোর সতর্কতা!
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -512,20 +512,20 @@
                 @csrf
                 <div class="modal-body p-4 text-center">
                     <div class="rounded-circle bg-danger-subtle text-danger p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 60px; height: 60px;">
-                        <i class="fas fa-rotate-left fs-2"></i>
+                        <i class="fa-solid fa-rotate-left fs-2"></i>
                     </div>
                     <h5 class="fw-bold text-dark mb-2">আপনি কি নিশ্চিত যে সিস্টেম রিস্টোর করবেন?</h5>
                     <p class="text-muted small mb-3">
                         <strong class="text-danger font-monospace" id="restoreFilename"></strong> ফাইল থেকে ডাটাবেজ ও মিডিয়া প্রতিস্থাপিত হবে।
                     </p>
                     <div class="p-3 bg-light rounded-3 text-start small text-muted border">
-                        <i class="fas fa-shield-check text-success me-1.5"></i> <strong>অটোমেটিক সেফটি স্ন্যাপশট:</strong> রিস্টোর শুরু হওয়ার পূর্বে বর্তমান ডাটার একটি স্বয়ংক্রিয় ব্যাকআপ তৈরি হবে, যাতে যেকোনো প্রয়োজনে পূর্বাবস্থায় ফিরে যাওয়া যায়।
+                        <i class="fa-solid fa-shield-check text-success me-1.5"></i> <strong>অটোমেটিক সেফটি স্ন্যাপশট:</strong> রিস্টোর শুরু হওয়ার পূর্বে বর্তমান ডাটার একটি স্বয়ংক্রিয় ব্যাকআপ তৈরি হবে, যাতে যেকোনো প্রয়োজনে পূর্বাবস্থায় ফিরে যাওয়া যায়।
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2 justify-content-center">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">না, বাতিল করুন</button>
                     <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold">
-                        <i class="fas fa-check me-1"></i> হ্যাঁ, রিস্টোর নিশ্চিত করুন
+                        <i class="fa-solid fa-check me-1"></i> হ্যাঁ, রিস্টোর নিশ্চিত করুন
                     </button>
                 </div>
             </form>
@@ -637,7 +637,7 @@
         const container = document.getElementById('dynamicAlertContainer');
         container.innerHTML = `
             <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center mb-0 rounded-3 shadow-xs border-0 border-start border-4 border-${type} bg-white py-2.5 px-3" role="alert">
-                <i class="fas fa-${type === 'success' ? 'circle-check text-success' : 'triangle-exclamation text-danger'} fs-5 me-2.5"></i>
+                <i class="fa-solid fa-${type === 'success' ? 'circle-check text-success' : 'triangle-exclamation text-danger'} fs-5 me-2.5"></i>
                 <div class="fw-semibold small text-dark">${message}</div>
                 <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>

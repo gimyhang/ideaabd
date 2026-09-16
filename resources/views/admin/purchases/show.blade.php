@@ -50,33 +50,33 @@
         {{-- Collect / Pay Due Installment Button --}}
         @if($purchase->due_amount > 0)
             <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                <i class="fas fa-hand-holding-dollar me-1.5"></i> বকেয়া পরিশোধ / কিস্তি জমা
+                <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> বকেয়া পরিশোধ / কিস্তি জমা
             </button>
         @endif
 
         {{-- Vendor Ledger Link --}}
         <a href="{{ route('admin.purchases.ledger', ['party' => $purchase->publisher_id ? 'pub_' . $purchase->publisher_id : 'vendor_' . ($purchase->vendor_name ?: $purchase->supplier_name)]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" title="সরবরাহকারীর খতিয়ান ও রানিং স্টেটমেন্ট দেখুন">
-            <i class="fas fa-book-bookmark me-1 text-primary"></i> ভেন্ডর খতিয়ান
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> ভেন্ডর খতিয়ান
         </a>
 
         {{-- Print / PDF Button --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> Print / PDF
+            <i class="fa-solid fa-print me-1.5"></i> Print / PDF
         </button>
 
         {{-- Edit Document Button --}}
         <a href="{{ route('admin.purchases.edit', $purchase->id) }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm">
-            <i class="fas fa-edit me-1"></i> Edit Invoice
+            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Invoice
         </a>
 
         {{-- Customize Memo Header Settings Button --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize purchases & memo branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
 
         {{-- Back to List --}}
         <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 @endsection
@@ -89,35 +89,35 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.purchases.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-cart-flatbed me-1.5 text-primary"></i> Purchases & Invoices
+                <i class="fa-solid fa-cart-flatbed me-1.5 text-primary"></i> Purchases & Invoices
             </a>
             <a href="{{ route('admin.purchases.payments') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-hand-holding-dollar me-1.5 text-success"></i> Payments & Ledgers
+                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> Payments & Ledgers
             </a>
             <a href="{{ route('admin.purchases.ledger') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-book-bookmark me-1.5 text-info"></i> Vendor Statements
+                <i class="fa-solid fa-book-bookmark me-1.5 text-info"></i> Vendor Statements
             </a>
             <a href="{{ route('admin.purchases.monthly-report') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-chart-pie me-1.5 text-warning"></i> Monthly Report
+                <i class="fa-solid fa-chart-pie me-1.5 text-warning"></i> Monthly Report
             </a>
             <a href="{{ route('admin.purchases.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5 text-danger"></i> New Purchase Order
+                <i class="fa-solid fa-file-circle-plus me-1.5 text-danger"></i> New Purchase Order
             </a>
         </div>
 
         <div class="btn-group btn-group-sm">
             <button type="button" class="btn btn-outline-primary active" id="btnShowBoth" onclick="setViewMode('both')">
-                <i class="fas fa-file-lines me-1"></i>Both Pages (Bill & Challan)
+                <i class="fa-solid fa-file-lines me-1"></i>Both Pages (Bill & Challan)
             </button>
             <button type="button" class="btn btn-outline-primary" id="btnShowBill" onclick="setViewMode('bill')">
-                <i class="fas fa-receipt me-1"></i>Page 1 (Purchase Bill)
+                <i class="fa-solid fa-receipt me-1"></i>Page 1 (Purchase Bill)
             </button>
             <button type="button" class="btn btn-outline-primary" id="btnShowChallan" onclick="setViewMode('challan')">
-                <i class="fas fa-truck me-1"></i>Page 2 (Receiving Challan)
+                <i class="fa-solid fa-truck me-1"></i>Page 2 (Receiving Challan)
             </button>
         </div>
     </div>
@@ -141,11 +141,11 @@
                             <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                             <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                             <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                                <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                                <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                             </div>
                         </div>
                     </div>
@@ -171,7 +171,7 @@
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $purchase->purchase_no }}</div>
                     
                     <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                        <i class="fas fa-desktop me-1"></i>Computer-generated purchase invoice
+                        <i class="fa-solid fa-desktop me-1"></i>Computer-generated purchase invoice
                         · Date: <strong>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</strong>
                     </div>
                     <div class="mt-1">
@@ -191,7 +191,7 @@
                 <div class="row g-2 align-items-start m-0">
                     <div class="col-7 p-0 pe-2">
                         <div class="fw-bold text-dark mb-1" style="font-size: 12px;">
-                            <i class="fas fa-truck-field me-1 text-primary"></i>
+                            <i class="fa-solid fa-truck-field me-1 text-primary"></i>
                             @if($purchase->purchase_category === 'raw_materials')
                                 কাঁচামাল সরবরাহকারী / প্রেস ও সাপ্লায়ার বিবরণ:
                             @elseif($purchase->purchase_category === 'other')
@@ -229,7 +229,7 @@
                             @endif
                             <div>Payment Term: <strong>{{ ['cash' => 'নগদ (Cash)', 'credit' => 'বাকি (Credit)', 'partial' => 'আংশিক (Partial)', 'installment' => 'কিস্তি (Installment)'][$purchase->payment_type] ?? ucfirst($purchase->payment_type) }}</strong></div>
                             @if($purchase->due_date)
-                                <div class="text-danger fw-semibold" style="font-size: 10.5px;"><i class="fas fa-calendar-day me-0.5"></i>Due Date: {{ $purchase->due_date->format('d M, Y') }}</div>
+                                <div class="text-danger fw-semibold" style="font-size: 10.5px;"><i class="fa-solid fa-calendar-day me-0.5"></i>Due Date: {{ $purchase->due_date->format('d M, Y') }}</div>
                             @endif
                             <div class="text-muted small">Recorded by: <strong>{{ $purchase->creator->name ?? 'Admin' }}</strong></div>
                         </div>
@@ -326,7 +326,7 @@
                                         <div class="fw-semibold text-dark">{{ $item->displayName }}</div>
                                         @if($item->book)
                                             <a href="{{ route('shop.show', $item->book->slug) }}" target="_blank" class="text-primary text-decoration-none d-print-none" style="font-size: 8.5px;">
-                                                <i class="fas fa-arrow-up-right-from-square me-0.5"></i>Store (Stock: {{ $item->book->stock_quantity }})
+                                                <i class="fa-solid fa-arrow-up-right-from-square me-0.5"></i>Store (Stock: {{ $item->book->stock_quantity }})
                                             </a>
                                         @endif
                                     </td>
@@ -356,7 +356,7 @@
                         <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
-                                    <i class="fas fa-coins me-1 text-primary"></i>টাকা কথায় (In Words):
+                                    <i class="fa-solid fa-coins me-1 text-primary"></i>টাকা কথায় (In Words):
                                 </div>
                                 <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
                                     @takaInWordsEn($totalPayable > 0 ? $totalPayable : $purchase->grand_total)
@@ -366,7 +366,7 @@
                             @if($previousDue > 0 && !empty($previousInvoices))
                                 <div class="mt-2 pt-1.5 border-top border-secondary-subtle">
                                     <span class="text-muted fw-bold d-block mb-1" style="font-size: 9px;">
-                                        <i class="fas fa-clock-rotate-left me-1 text-danger"></i>পূর্বের বকেয়া মেমো ও তারিখ:
+                                        <i class="fa-solid fa-clock-rotate-left me-1 text-danger"></i>পূর্বের বকেয়া মেমো ও তারিখ:
                                     </span>
                                     <div class="d-flex flex-wrap gap-1">
                                         @foreach($previousInvoices as $pi)
@@ -430,7 +430,7 @@
 
             {{-- Notes & Terms --}}
             <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. Goods once received and verified are entered into bookshop inventory.
+                <strong class="text-dark"><i class="fa-solid fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. Goods once received and verified are entered into bookshop inventory.
                 @if($purchase->notes)
                     · {{ $purchase->notes }}
                 @endif
@@ -455,7 +455,7 @@
                         <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                             <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                             <div class="text-start" style="line-height: 1.15;">
-                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
+                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fa-solid fa-qrcode me-0.5"></i>Scan to Verify</span>
                                 <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $purchase->purchase_no }}</span>
                             </div>
                         </div>
@@ -501,11 +501,11 @@
                             <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                             <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                             <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                                <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                                <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                             </div>
                         </div>
                     </div>
@@ -518,7 +518,7 @@
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $purchase->purchase_no }}</div>
                     
                     <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                        <i class="fas fa-boxes-packing me-1"></i>Computer-generated inventory receiving memo · Date: <strong>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</strong>
+                        <i class="fa-solid fa-boxes-packing me-1"></i>Computer-generated inventory receiving memo · Date: <strong>{{ $purchase->purchase_date ? $purchase->purchase_date->format('d M, Y') : '—' }}</strong>
                     </div>
                     <div class="text-muted" style="font-size: 9px;">Linked Purchase Order #: <strong>#{{ $purchase->purchase_no }}</strong></div>
                 </div>
@@ -529,7 +529,7 @@
                 <div class="row g-2 align-items-start m-0">
                     <div class="col-7 p-0 pe-2">
                         <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
-                            <span><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Supplier / Dispatcher Information:</span>
+                            <span><i class="fa-solid fa-truck-ramp-box me-1 text-primary"></i>Supplier / Dispatcher Information:</span>
                         </div>
                         <table class="table-borderless p-0 m-0 w-100 recipient-info-table" style="line-height: 1.45;">
                             @if($purchase->party_name)
@@ -609,7 +609,7 @@
                                 <td class="text-center py-0.5 px-1 text-muted font-monospace" style="font-size: 8.5px;">{{ $unitName }}</td>
                                 <td class="text-center py-0.5 px-1 fw-bold text-primary">{{ $item->quantity }}</td>
                                 <td class="text-center py-0.5 px-1 font-monospace text-muted">{{ $item->reams_quantity ? number_format($item->reams_quantity, 2) : '—' }}</td>
-                                <td class="text-center py-0.5 px-1 text-success fw-semibold" style="font-size: 8.5px;"><i class="fas fa-circle-check me-0.5"></i>Stocked In</td>
+                                <td class="text-center py-0.5 px-1 text-success fw-semibold" style="font-size: 8.5px;"><i class="fa-solid fa-circle-check me-0.5"></i>Stocked In</td>
                                 <td class="py-0.5 px-1.5 text-muted" style="font-size: 8.5px;">{{ $item->item_notes ?: 'Verified' }}</td>
                             </tr>
                         @endforeach
@@ -627,7 +627,7 @@
 
             {{-- Challan Notes --}}
             <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Goods physically received and verified against supplier delivery order.
+                <strong class="text-dark"><i class="fa-solid fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Goods physically received and verified against supplier delivery order.
                 @if($purchase->notes)
                     · {{ $purchase->notes }}
                 @endif
@@ -649,7 +649,7 @@
                         <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                             <img src="{{ $qrCodeUrl }}" alt="QR" style="width: 34px; height: 34px; object-fit: contain;">
                             <div class="text-start" style="line-height: 1.15;">
-                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
+                                <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fa-solid fa-qrcode me-0.5"></i>Scan to Verify</span>
                                 <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $purchase->purchase_no }}</span>
                             </div>
                         </div>
@@ -690,7 +690,7 @@
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success p-2 rounded-circle">
-                        <i class="fas fa-hand-holding-dollar fs-6"></i>
+                        <i class="fa-solid fa-hand-holding-dollar fs-6"></i>
                     </span>
                     <div>
                         <h5 class="fw-bold mb-0 text-dark">টাকা পরিশোধ ও কিস্তির খতিয়ান (Payment & Installments History)</h5>
@@ -699,14 +699,14 @@
                 </div>
                 @if($purchase->due_amount > 0)
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                        <i class="fas fa-plus me-1"></i> + কিস্তি / পরিশোধ জমা নিন
+                        <i class="fa-solid fa-plus me-1"></i> + কিস্তি / পরিশোধ জমা নিন
                     </button>
                 @endif
             </div>
             <div class="card-body p-0">
                 @if($purchase->payments->isEmpty())
                     <div class="p-4 text-center text-muted">
-                        <i class="fas fa-receipt fs-2 opacity-50 mb-2"></i>
+                        <i class="fa-solid fa-receipt fs-2 opacity-50 mb-2"></i>
                         <p class="mb-0">এখনও পর্যন্ত কোনো পরিশোধ বা কিস্তি রেকর্ড করা হয়নি।</p>
                     </div>
                 @else
@@ -728,7 +728,7 @@
                                     <tr>
                                         <td class="ps-3 fw-bold font-monospace">
                                             <a href="{{ route('admin.purchases.payments.voucher', $pay->id) }}" class="text-primary text-decoration-none">
-                                                <i class="fas fa-receipt me-1"></i>{{ $pay->payment_no }}
+                                                <i class="fa-solid fa-receipt me-1"></i>{{ $pay->payment_no }}
                                             </a>
                                         </td>
                                         <td>{{ $pay->payment_date ? $pay->payment_date->format('d M, Y') : '—' }}</td>
@@ -742,7 +742,7 @@
                                         <td class="text-muted small">{{ $pay->recorder->name ?? 'Admin' }}</td>
                                         <td class="text-end pe-3">
                                             <a href="{{ route('admin.purchases.payments.voucher', $pay->id) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2.5" title="ভাউচার স্লিপ প্রিন্ট করুন">
-                                                <i class="fas fa-print me-1"></i>ভাউচার
+                                                <i class="fa-solid fa-print me-1"></i>ভাউচার
                                             </a>
                                         </td>
                                     </tr>
@@ -762,7 +762,7 @@
     <div class="modal-dialog">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-3 bg-light">
-                <h5 class="modal-title fw-bold text-success"><i class="fas fa-hand-holding-dollar me-2"></i>Record Installment / Payment</h5>
+                <h5 class="modal-title fw-bold text-success"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Record Installment / Payment</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.purchases.payments.store') }}" method="POST">

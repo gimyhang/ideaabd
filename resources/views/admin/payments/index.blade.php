@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="#tab-trx" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="switchTab('tab-trx-btn')">
-            <i class="fas fa-receipt me-1 text-success"></i> লেনদেন লগ ও ট্রানজাকশন
+            <i class="fa-solid fa-receipt me-1 text-success"></i> লেনদেন লগ ও ট্রানজাকশন
         </a>
         <a href="{{ route('admin.gateway-reports') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-chart-pie me-1"></i> গেটওয়ে রিপোর্ট
+            <i class="fa-solid fa-chart-pie me-1"></i> গেটওয়ে রিপোর্ট
         </a>
     </div>
 @endsection
@@ -25,7 +25,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-circle-check me-2 text-success fs-5"></i>
+            <i class="fa-solid fa-circle-check me-2 text-success fs-5"></i>
             <div class="fw-semibold">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -33,7 +33,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-triangle-exclamation me-2 text-danger fs-5"></i>
+            <i class="fa-solid fa-triangle-exclamation me-2 text-danger fs-5"></i>
             <div class="fw-semibold">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -46,11 +46,11 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">সর্বমোট আদায়কৃত রেভিনিউ</span>
                     <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-sack-dollar"></i>
+                        <i class="fa-solid fa-sack-dollar"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">৳{{ number_format($stats['total_online_revenue'], 2) }}</h3>
-                <p class="text-muted small mb-0"><i class="fas fa-circle-check text-success me-1"></i> অনলাইন ও সিওডি সফল পেমেন্ট</p>
+                <p class="text-muted small mb-0"><i class="fa-solid fa-circle-check text-success me-1"></i> অনলাইন ও সিওডি সফল পেমেন্ট</p>
             </div>
         </div>
 
@@ -59,11 +59,11 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">পরিশোধিত অর্ডার</span>
                     <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-clipboard-check"></i>
+                        <i class="fa-solid fa-clipboard-check"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['paid_orders_count']) }} টি</h3>
-                <p class="text-muted small mb-0"><i class="fas fa-shield-check text-primary me-1"></i> ভেরিফাইড পেমেন্ট সম্পন্ন</p>
+                <p class="text-muted small mb-0"><i class="fa-solid fa-shield-check text-primary me-1"></i> ভেরিফাইড পেমেন্ট সম্পন্ন</p>
             </div>
         </div>
 
@@ -72,11 +72,11 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">অপেক্ষমান পেমেন্ট যাচাই</span>
                     <div class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-hourglass-half"></i>
+                        <i class="fa-solid fa-hourglass-half"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['pending_orders_count']) }} টি</h3>
-                <p class="text-muted small mb-0"><i class="fas fa-bell text-warning me-1"></i> TrxID ও ব্যালেন্স কনফার্মেশন বাকি</p>
+                <p class="text-muted small mb-0"><i class="fa-solid fa-bell text-warning me-1"></i> TrxID ও ব্যালেন্স কনফার্মেশন বাকি</p>
             </div>
         </div>
 
@@ -85,11 +85,11 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">মোবাইল ব্যাংকিং (MFS)</span>
                     <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-mobile-screen-button"></i>
+                        <i class="fa-solid fa-mobile-screen-button"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1">৳{{ number_format($stats['bkash_revenue'] + $stats['nagad_revenue'], 2) }}</h3>
-                <p class="text-muted small mb-0"><i class="fas fa-wallet text-danger me-1"></i> বিকাশ ও নগদ সরাসরি লেনদেন</p>
+                <p class="text-muted small mb-0"><i class="fa-solid fa-wallet text-danger me-1"></i> বিকাশ ও নগদ সরাসরি লেনদেন</p>
             </div>
         </div>
     </div>
@@ -104,37 +104,37 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active rounded-pill fw-semibold py-1.5 px-3" 
                                 id="tab-mfs-btn" data-bs-toggle="pill" data-bs-target="#tab-mfs" type="button" role="tab">
-                            <i class="fas fa-mobile-screen-button me-1.5 text-danger"></i> ১. মোবাইল ব্যাংকিং (MFS)
+                            <i class="fa-solid fa-mobile-screen-button me-1.5 text-danger"></i> ১. মোবাইল ব্যাংকিং (MFS)
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
                                 id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab">
-                            <i class="fas fa-credit-card me-1.5 text-primary"></i> ২. অনলাইন গেটওয়ে ও কার্ড
+                            <i class="fa-solid fa-credit-card me-1.5 text-primary"></i> ২. অনলাইন গেটওয়ে ও কার্ড
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
                                 id="tab-cod-btn" data-bs-toggle="pill" data-bs-target="#tab-cod" type="button" role="tab">
-                            <i class="fas fa-hand-holding-dollar me-1.5 text-success"></i> ৩. ক্যাশ অন ডেলিভারি (COD)
+                            <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> ৩. ক্যাশ অন ডেলিভারি (COD)
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
                                 id="tab-scripts-btn" data-bs-toggle="pill" data-bs-target="#tab-scripts" type="button" role="tab">
-                            <i class="fas fa-code me-1.5 text-dark"></i> ৪. লাইভ স্ক্রিপ্ট ও পেমেন্ট কোড
+                            <i class="fa-solid fa-code me-1.5 text-dark"></i> ৪. লাইভ স্ক্রিপ্ট ও পেমেন্ট কোড
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
                                 id="tab-trx-btn" data-bs-toggle="pill" data-bs-target="#tab-trx" type="button" role="tab">
-                            <i class="fas fa-receipt me-1.5 text-info"></i> ৫. লেনদেন হিস্ট্রি ও ট্রানজাকশন
+                            <i class="fa-solid fa-receipt me-1.5 text-info"></i> ৫. লেনদেন হিস্ট্রি ও ট্রানজাকশন
                         </button>
                     </li>
                 </ul>
 
                 <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
-                    <i class="fas fa-floppy-disk me-1.5"></i> পরিবর্তন সেভ করুন
+                    <i class="fa-solid fa-floppy-disk me-1.5"></i> পরিবর্তন সেভ করুন
                 </button>
             </div>
 
@@ -147,7 +147,7 @@
                     <div class="tab-pane fade show active" id="tab-mfs" role="tabpanel">
                         
                         <div class="alert alert-info border-0 rounded-4 p-3 mb-4 bg-info-subtle text-info-emphasis d-flex align-items-start gap-2.5">
-                            <i class="fas fa-circle-info fs-5 mt-0.5"></i>
+                            <i class="fa-solid fa-circle-info fs-5 mt-0.5"></i>
                             <div class="small">
                                 <strong>মোবাইল ব্যাংকিং মেথড কনফিগারেশন:</strong> প্রতিটি পেমেন্ট মাধ্যমের জন্য আপনি ৩টি ভিন্ন মোড ব্যবহার করতে পারেন—
                                 <strong>(১) ম্যানুয়াল মোড:</strong> সরাসরি পার্সোনাল/মার্চেন্ট নম্বরে Send Money ও ট্রানজাকশন আইডি (TrxID) যাচাই।
@@ -164,7 +164,7 @@
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2.5 px-3 border-bottom">
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge text-white px-2.5 py-1 fw-bold rounded-pill" style="background:#d82a6f;">
-                                                <i class="fas fa-bolt me-1"></i> bKash
+                                                <i class="fa-solid fa-bolt me-1"></i> bKash
                                             </span>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">বিকাশ (bKash)</h6>
@@ -183,7 +183,7 @@
                                         
                                         <div class="mb-3">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-sliders text-primary me-1"></i> লেনদেনের মোড (Operation Mode)
+                                                <i class="fa-solid fa-sliders text-primary me-1"></i> লেনদেনের মোড (Operation Mode)
                                             </label>
                                             <select class="form-select form-select-sm rounded-3 fw-semibold" name="payment_gateways[bkash][mode]" onchange="toggleGwMode('bkash', this.value)">
                                                 <option value="manual" @selected(($paymentGateways['bkash']['mode'] ?? 'manual') === 'manual')>
@@ -254,7 +254,7 @@
                                         {{-- Mode 2: Automated Direct PGW --}}
                                         <div id="bkash_mode_automated" class="gw-mode-sec p-2.5 bg-light rounded-3 border {{ ($paymentGateways['bkash']['mode'] ?? '') === 'automated' ? '' : 'd-none' }}">
                                             <div class="small fw-bold text-danger mb-2 d-flex align-items-center justify-content-between">
-                                                <span><i class="fas fa-key me-1"></i> bKash PGW API Credentials</span>
+                                                <span><i class="fa-solid fa-key me-1"></i> bKash PGW API Credentials</span>
                                                 <span class="badge bg-danger text-white">Tokenized API</span>
                                             </div>
                                             <div class="mb-2">
@@ -293,7 +293,7 @@
                                         {{-- Mode 3: Custom Embed Code --}}
                                         <div id="bkash_mode_custom_code" class="gw-mode-sec p-2.5 bg-dark text-white rounded-3 border {{ ($paymentGateways['bkash']['mode'] ?? '') === 'custom_code' ? '' : 'd-none' }}">
                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                <span class="small fw-bold text-warning"><i class="fas fa-code me-1"></i> Custom bKash HTML/JS Embed Code</span>
+                                                <span class="small fw-bold text-warning"><i class="fa-solid fa-code me-1"></i> Custom bKash HTML/JS Embed Code</span>
                                                 <span class="badge bg-warning text-dark" style="font-size:10px;">Direct Snippet</span>
                                             </div>
                                             <p class="text-white-50 small mb-2" style="font-size:11px;">
@@ -314,7 +314,7 @@
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2.5 px-3 border-bottom">
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge text-white px-2.5 py-1 fw-bold rounded-pill" style="background:#e8590c;">
-                                                <i class="fas fa-bolt me-1"></i> Nagad
+                                                <i class="fa-solid fa-bolt me-1"></i> Nagad
                                             </span>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">নগদ (Nagad)</h6>
@@ -333,7 +333,7 @@
                                         
                                         <div class="mb-3">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-sliders text-primary me-1"></i> লেনদেনের মোড (Operation Mode)
+                                                <i class="fa-solid fa-sliders text-primary me-1"></i> লেনদেনের মোড (Operation Mode)
                                             </label>
                                             <select class="form-select form-select-sm rounded-3 fw-semibold" name="payment_gateways[nagad][mode]" onchange="toggleGwMode('nagad', this.value)">
                                                 <option value="manual" @selected(($paymentGateways['nagad']['mode'] ?? 'manual') === 'manual')>
@@ -403,7 +403,7 @@
                                         {{-- Mode 2: Automated Direct PGW --}}
                                         <div id="nagad_mode_automated" class="gw-mode-sec p-2.5 bg-light rounded-3 border {{ ($paymentGateways['nagad']['mode'] ?? '') === 'automated' ? '' : 'd-none' }}">
                                             <div class="small fw-bold text-warning mb-2 d-flex align-items-center justify-content-between">
-                                                <span><i class="fas fa-key me-1"></i> Nagad PGW API Credentials</span>
+                                                <span><i class="fa-solid fa-key me-1"></i> Nagad PGW API Credentials</span>
                                                 <span class="badge bg-warning text-dark">Direct PGW</span>
                                             </div>
                                             <div class="row g-2 mb-2">
@@ -442,7 +442,7 @@
                                         {{-- Mode 3: Custom Embed Code --}}
                                         <div id="nagad_mode_custom_code" class="gw-mode-sec p-2.5 bg-dark text-white rounded-3 border {{ ($paymentGateways['nagad']['mode'] ?? '') === 'custom_code' ? '' : 'd-none' }}">
                                             <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                <span class="small fw-bold text-warning"><i class="fas fa-code me-1"></i> Custom Nagad HTML/JS Embed Code</span>
+                                                <span class="small fw-bold text-warning"><i class="fa-solid fa-code me-1"></i> Custom Nagad HTML/JS Embed Code</span>
                                                 <span class="badge bg-warning text-dark" style="font-size:10px;">Direct Snippet</span>
                                             </div>
                                             <p class="text-white-50 small mb-2" style="font-size:11px;">
@@ -599,7 +599,7 @@
                                 <div class="card border rounded-4 shadow-2xs overflow-hidden">
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2.5 px-3 border-bottom">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-dark text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fas fa-credit-card me-1"></i> SSLCommerz</span>
+                                            <span class="badge bg-dark text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fa-solid fa-credit-card me-1"></i> SSLCommerz</span>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">SSLCommerz পেমেন্ট গেটওয়ে</h6>
                                                 <small class="text-muted" style="font-size: 11px;">Visa, MasterCard, Amex, Internet Banking & MFS Gateway</small>
@@ -734,7 +734,7 @@
                                 <div class="card border rounded-4 shadow-2xs overflow-hidden">
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2.5 px-3 border-bottom">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-primary text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fas fa-building-columns me-1"></i> Bank Account</span>
+                                            <span class="badge bg-primary text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fa-solid fa-building-columns me-1"></i> Bank Account</span>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">ব্যাংক ডিপোজিট ও ওয়্যার ট্রান্সফার (Bank Transfer)</h6>
                                                 <small class="text-muted" style="font-size: 11px;">Direct Bank Account Deposit / Online Banking Transfer</small>
@@ -800,7 +800,7 @@
                                 <div class="card border rounded-4 shadow-2xs overflow-hidden">
                                     <div class="card-header bg-light d-flex align-items-center justify-content-between py-2.5 px-3 border-bottom">
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge bg-success text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fas fa-hand-holding-dollar me-1"></i> COD</span>
+                                            <span class="badge bg-success text-white px-2.5 py-1 fw-bold rounded-pill"><i class="fa-solid fa-hand-holding-dollar me-1"></i> COD</span>
                                             <div>
                                                 <h6 class="mb-0 fw-bold text-dark">ক্যাশ অন ডেলিভারি (Cash on Delivery)</h6>
                                                 <small class="text-muted" style="font-size: 11px;">পণ্য হাতে পেয়ে মূল্য পরিশোধ</small>
@@ -841,7 +841,7 @@
 
                             <div class="col-12 col-xl-4">
                                 <div class="card border rounded-4 shadow-2xs p-3 bg-light h-100">
-                                    <h6 class="fw-bold text-dark small mb-2"><i class="fas fa-shield-halved text-success me-1"></i> নিরাপদ লেনদেন ও হেল্পলাইন</h6>
+                                    <h6 class="fw-bold text-dark small mb-2"><i class="fa-solid fa-shield-halved text-success me-1"></i> নিরাপদ লেনদেন ও হেল্পলাইন</h6>
                                     <p class="small text-muted mb-3">
                                         চেকআউট পেজে গ্রাহকদের জন্য বিশেষ হেল্পলাইন ও সচেতনতামূলক বার্তা প্রদর্শন করুন।
                                     </p>
@@ -864,7 +864,7 @@
                                 <div class="card border rounded-4 shadow-2xs h-100 overflow-hidden">
                                     <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between py-2.5 px-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="fas fa-code text-warning"></i>
+                                            <i class="fa-solid fa-code text-warning"></i>
                                             <div>
                                                 <h6 class="mb-0 fw-bold">হেডার স্ক্রিপ্ট ইনজেকশন (&lt;head&gt; Scripts)</h6>
                                                 <small class="text-white-50" style="font-size: 11px;">Payment Gateways SDK, Meta Pixel & Google Analytics</small>
@@ -886,7 +886,7 @@
                                 <div class="card border rounded-4 shadow-2xs h-100 overflow-hidden">
                                     <div class="card-header bg-dark text-white d-flex align-items-center justify-content-between py-2.5 px-3">
                                         <div class="d-flex align-items-center gap-2">
-                                            <i class="fas fa-code text-info"></i>
+                                            <i class="fa-solid fa-code text-info"></i>
                                             <div>
                                                 <h6 class="mb-0 fw-bold">ফুটার স্ক্রিপ্ট ও পেমেন্ট উইজেট (&lt;body&gt; Scripts)</h6>
                                                 <small class="text-white-50" style="font-size: 11px;">Live Payment Modal, Trigger Buttons & Floating Widget</small>
@@ -917,7 +917,7 @@
                             <div class="row g-2 align-items-center">
                                 <div class="col-12 col-md-4">
                                     <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                                         <input type="text" id="trxSearchInput" class="form-control border-start-0 ps-0" 
                                                placeholder="অর্ডার নম্বর, TrxID, মোবাইল বা গ্রাহকের নাম..." value="{{ request('search') }}">
                                     </div>
@@ -942,7 +942,7 @@
                                 </div>
                                 <div class="col-12 col-md-2 d-flex gap-2">
                                     <button type="button" class="btn btn-sm btn-primary flex-fill fw-semibold rounded-pill" onclick="applyTrxFilter()">ফিল্টার</button>
-                                    <a href="{{ route('admin.payments.index') }}?tab=trx" class="btn btn-sm btn-outline-secondary rounded-pill" title="রিসেট"><i class="fas fa-rotate-left"></i></a>
+                                    <a href="{{ route('admin.payments.index') }}?tab=trx" class="btn btn-sm btn-outline-secondary rounded-pill" title="রিসেট"><i class="fa-solid fa-rotate-left"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -1011,15 +1011,15 @@
                                             <td>
                                                 @if(($order->payment_status ?? 'pending') === 'paid')
                                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                        <i class="fas fa-circle-check me-1"></i> Paid
+                                                        <i class="fa-solid fa-circle-check me-1"></i> Paid
                                                     </span>
                                                 @elseif(($order->payment_status ?? 'pending') === 'failed')
                                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                        <i class="fas fa-circle-xmark me-1"></i> Failed
+                                                        <i class="fa-solid fa-circle-xmark me-1"></i> Failed
                                                     </span>
                                                 @else
                                                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                        <i class="fas fa-hourglass-half me-1"></i> Pending
+                                                        <i class="fa-solid fa-hourglass-half me-1"></i> Pending
                                                     </span>
                                                 @endif
                                             </td>
@@ -1029,22 +1029,22 @@
                                             <td class="text-end pe-3">
                                                 <div class="dropdown">
                                                     <button class="btn btn-sm btn-light rounded-pill border px-2 py-1" type="button" data-bs-toggle="dropdown">
-                                                        <i class="fas fa-ellipsis-vertical"></i>
+                                                        <i class="fa-solid fa-ellipsis-vertical"></i>
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-1.5" style="min-width: 180px;">
                                                         <li>
                                                             <button type="button" class="dropdown-item rounded-2 small text-success fw-semibold py-1.5" onclick="changePaymentStatus({{ $order->id }}, 'paid')">
-                                                                <i class="fas fa-circle-check me-2"></i> Mark as Paid
+                                                                <i class="fa-solid fa-circle-check me-2"></i> Mark as Paid
                                                             </button>
                                                         </li>
                                                         <li>
                                                             <button type="button" class="dropdown-item rounded-2 small text-warning py-1.5" onclick="changePaymentStatus({{ $order->id }}, 'pending')">
-                                                                <i class="fas fa-hourglass-half me-2"></i> Mark as Pending
+                                                                <i class="fa-solid fa-hourglass-half me-2"></i> Mark as Pending
                                                             </button>
                                                         </li>
                                                         <li>
                                                             <button type="button" class="dropdown-item rounded-2 small text-danger py-1.5" onclick="changePaymentStatus({{ $order->id }}, 'failed')">
-                                                                <i class="fas fa-circle-xmark me-2"></i> Mark as Failed
+                                                                <i class="fa-solid fa-circle-xmark me-2"></i> Mark as Failed
                                                             </button>
                                                         </li>
                                                     </ul>
@@ -1054,7 +1054,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="8" class="text-center py-5 text-muted">
-                                                <i class="fas fa-receipt fs-2 mb-2 text-secondary"></i>
+                                                <i class="fa-solid fa-receipt fs-2 mb-2 text-secondary"></i>
                                                 <div>কোনো লেনদেনের রেকর্ড পাওয়া যায়নি</div>
                                             </td>
                                         </tr>
@@ -1077,10 +1077,10 @@
 
             <div class="card-footer bg-light d-flex align-items-center justify-content-between py-3 px-4 border-top">
                 <span class="small text-muted">
-                    <i class="fas fa-circle-info me-1 text-primary"></i> কোনো পরিবর্তন করার পর অবশ্যই <strong>পরিবর্তন সেভ করুন</strong> বাটনে চাপুন।
+                    <i class="fa-solid fa-circle-info me-1 text-primary"></i> কোনো পরিবর্তন করার পর অবশ্যই <strong>পরিবর্তন সেভ করুন</strong> বাটনে চাপুন।
                 </span>
                 <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 fw-bold shadow-xs">
-                    <i class="fas fa-floppy-disk me-1.5"></i> পরিবর্তন সেভ করুন
+                    <i class="fa-solid fa-floppy-disk me-1.5"></i> পরিবর্তন সেভ করুন
                 </button>
             </div>
         </div>
@@ -1152,8 +1152,8 @@
             title: 'পেমেন্ট স্ট্যাটাস পরিবর্তন',
             text: 'আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?',
             icon: 'question',
-            confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, পরিবর্তন করুন',
-            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+            confirmButtonText: '<i class="fa-solid fa-check me-1"></i> হ্যাঁ, পরিবর্তন করুন',
+            cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
         }).then(function(result) {
             if (!result.isConfirmed) return;
             const form = document.createElement('form');

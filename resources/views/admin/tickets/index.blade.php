@@ -15,7 +15,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #e63946;">
-                <div class="kpi__icon bg-danger-subtle text-danger"><i class="fas fa-envelope-open-text"></i></div>
+                <div class="kpi__icon bg-danger-subtle text-danger"><i class="fa-solid fa-envelope-open-text"></i></div>
                 <p class="kpi__label">Open Tickets</p>
                 <h3 class="kpi__value text-dark">{{ number_format($openTicketsCount) }}</h3>
                 <p class="kpi__foot text-muted">Awaiting staff response</p>
@@ -23,7 +23,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #f4a261;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-spinner"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-spinner"></i></div>
                 <p class="kpi__label">In Progress</p>
                 <h3 class="kpi__value text-dark">{{ number_format($inProgressCount) }}</h3>
                 <p class="kpi__foot text-muted">Under investigation</p>
@@ -31,7 +31,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #2a9d8f;">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fas fa-circle-check"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <p class="kpi__label">Resolved Tickets</p>
                 <h3 class="kpi__value text-dark">{{ number_format($resolvedCount) }}</h3>
                 <p class="kpi__foot text-muted">Successfully handled issues</p>
@@ -42,7 +42,7 @@
     <!-- Tickets Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-ticket me-2 text-primary"></i> Customer Issues & Inquiries</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-ticket me-2 text-primary"></i> Customer Issues & Inquiries</h6>
             <div class="btn-group btn-group-sm">
                 <a href="{{ route('admin.tickets.index') }}" class="btn {{ empty($status) ? 'btn-primary' : 'btn-outline-secondary' }}">All</a>
                 <a href="{{ route('admin.tickets.index', ['status' => 'open']) }}" class="btn {{ $status === 'open' ? 'btn-primary' : 'btn-outline-secondary' }}">Open</a>
@@ -92,7 +92,7 @@
                                 <td class="small text-muted">{{ $t->created_at->format('M d, Y') }}</td>
                                 <td class="text-end pe-3">
                                     <a href="{{ route('admin.tickets.show', $t->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-0.5">
-                                        Reply <i class="fas fa-arrow-right ms-1"></i>
+                                        Reply <i class="fa-solid fa-arrow-right ms-1"></i>
                                     </a>
                                 </td>
                             </tr>

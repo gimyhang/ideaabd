@@ -41,25 +41,25 @@
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center no-print">
         <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 shadow-xs fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#editReceiptPaymentModal">
-            <i class="fas fa-pen-to-square me-1.5"></i> Edit Payment
+            <i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Payment
         </button>
 
         <button type="button" class="btn btn-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#receiptDesignCustomizerOffcanvas" id="btnOpenReceiptCustomizer">
-            <i class="fas fa-palette me-1.5 text-warning"></i> Customize Design
+            <i class="fa-solid fa-palette me-1.5 text-warning"></i> Customize Design
         </button>
 
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> Print Receipt
+            <i class="fa-solid fa-print me-1.5"></i> Print Receipt
         </button>
 
         @if($invoice)
             <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-                <i class="fas fa-arrow-left me-1"></i> Invoice #{{ $invoice->invoice_no }}
+                <i class="fa-solid fa-arrow-left me-1"></i> Invoice #{{ $invoice->invoice_no }}
             </a>
         @endif
 
         <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $payment->party_name, 'customer_phone' => $payment->party_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-book-bookmark me-1 text-primary"></i> Customer Ledger
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledger
         </a>
     </div>
 @endsection
@@ -348,12 +348,12 @@
                             <span id="liveReceiptAddress">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                             <span class="text-muted mx-2 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneDivider">|</span>
                             <span class="d-inline-flex align-items-center {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptPhoneContainer">
-                                <i class="fas fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>
+                                <i class="fa-solid fa-phone-alt text-secondary me-1.5" style="font-size: 10px;"></i>
                                 <span id="liveReceiptPhone">{{ $settings['phone'] ?? '' }}</span>
                             </span>
                             <span class="text-muted mx-2 {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailDivider">|</span>
                             <span class="d-inline-flex align-items-center {{ empty($settings['email']) ? 'd-none' : '' }}" id="liveReceiptEmailContainer">
-                                <i class="fas fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>
+                                <i class="fa-solid fa-envelope text-secondary me-1.5" style="font-size: 10.5px;"></i>
                                 <span id="liveReceiptEmail">{{ $settings['email'] ?? '' }}</span>
                             </span>
                         </div>
@@ -362,7 +362,7 @@
             </div>
             <div class="col-4 text-end">
                 <div class="receipt-title-badge mb-0.5">
-                    <i class="fas fa-receipt me-1"></i> MONEY RECEIPT
+                    <i class="fa-solid fa-receipt me-1"></i> MONEY RECEIPT
                 </div>
                 <div class="fw-bold text-dark fs-6 font-monospace">#{{ $payment->payment_no }}</div>
                 <div class="text-muted small" style="font-size: 11px;">Date: <strong class="text-dark">{{ $payment->payment_date ? $payment->payment_date->format('d M, Y') : date('d M, Y') }}</strong></div>
@@ -457,7 +457,7 @@
 
             <div class="p-1.5 rounded-2 bg-white border d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <p class="mb-0 text-dark fw-medium" style="font-size: 11px;">
-                    <i class="fas fa-shield-halved text-success me-1"></i>
+                    <i class="fa-solid fa-shield-halved text-success me-1"></i>
                     Official Status: <strong class="text-success">{{ $remainingDue <= 0 ? 'Full Settlement Achieved' : 'Partial Installment Acknowledged' }}</strong>.
                 </p>
                 <span class="badge {{ $remainingDue <= 0 ? 'bg-success text-white' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill fw-bold" style="font-size: 10px;">
@@ -471,7 +471,7 @@
             <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-2 p-2 mb-2" id="liveReceiptDeductionBox">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <span class="fw-bold text-dark" style="font-size: 11.5px;">
-                        <i class="fas fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
+                        <i class="fa-solid fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
                     </span>
                     <span class="badge bg-warning text-dark border font-monospace" style="font-size: 9.5px;">TDS / VDS</span>
                 </div>
@@ -488,7 +488,7 @@
                         <tbody>
                             <tr>
                                 <td class="py-1 px-2">
-                                    <strong class="text-success"><i class="fas fa-money-check-dollar me-1"></i>Net Realized (Cheque / Cash)</strong>
+                                    <strong class="text-success"><i class="fa-solid fa-money-check-dollar me-1"></i>Net Realized (Cheque / Cash)</strong>
                                 </td>
                                 <td class="text-center py-1 px-2">—</td>
                                 <td class="text-end font-monospace fw-bold text-success py-1 px-2">৳{{ number_format($payment->effective_net_amount, 2) }}</td>
@@ -612,7 +612,7 @@
                 <div class="col-sm-7">
                     <div class="p-3 rounded-2 bg-white border border-success-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
                         <div class="text-success small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
-                            <i class="fas fa-money-check-dollar me-1.5"></i> Total Paid to Date:
+                            <i class="fa-solid fa-money-check-dollar me-1.5"></i> Total Paid to Date:
                         </div>
                         <div class="fs-3 fw-bold text-success font-monospace mb-1" style="line-height: 1.15;">
                             ৳{{ number_format($payment->effective_net_amount, 2) }}
@@ -627,7 +627,7 @@
                 <div class="col-sm-5">
                     <div class="p-3 rounded-2 bg-white border border-danger-subtle shadow-2xs h-100 d-flex flex-column justify-content-center">
                         <div class="text-danger small fw-bold text-uppercase mb-1" style="font-size: 11px; letter-spacing: 0.5px;">
-                            <i class="fas fa-circle-exclamation me-1.5"></i> Due:
+                            <i class="fa-solid fa-circle-exclamation me-1.5"></i> Due:
                         </div>
                         <div class="fs-3 fw-bold text-danger font-monospace mb-1" style="line-height: 1.15;">
                             ৳{{ number_format($remainingDue, 2) }}
@@ -646,7 +646,7 @@
                 @if(!empty($payment->note))
                     <div class="col-md-8">
                         <div class="p-1.5 bg-light rounded-2 border" style="font-size: 11px;">
-                            <span class="text-muted fw-bold me-1"><i class="fas fa-comment-dots me-1"></i>Remarks:</span>
+                            <span class="text-muted fw-bold me-1"><i class="fa-solid fa-comment-dots me-1"></i>Remarks:</span>
                             <span class="text-dark">{{ $payment->note }}</span>
                         </div>
                     </div>
@@ -655,7 +655,7 @@
                 @if($invoice && $invoice->due_date && $remainingDue > 0)
                     <div class="col-md-4 text-md-end">
                         <div class="p-1.5 bg-danger-subtle rounded-2 border border-danger-subtle text-danger small fw-semibold d-inline-block text-start" style="font-size: 11px;">
-                            <i class="fas fa-calendar-day me-1"></i> Next Due: 
+                            <i class="fa-solid fa-calendar-day me-1"></i> Next Due: 
                             <strong class="text-danger font-monospace">{{ $invoice->due_date->format('d M, Y') }}</strong>
                         </div>
                     </div>
@@ -681,7 +681,7 @@
                             <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: 75px; height: 75px; object-fit: contain; display: block;">
                         </div>
                         <div class="text-start text-muted" style="font-size: 10px; line-height: 1.4;">
-                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fas fa-shield-check text-success me-1"></i>Official Verification</div>
+                            <div class="fw-bold text-dark" style="font-size: 11px;"><i class="fa-solid fa-shield-check text-success me-1"></i>Official Verification</div>
                             <div class="font-monospace text-secondary" style="font-size: 9.5px;">Issued: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : date('d/m/Y') }}</div>
                             <div class="text-muted small" style="font-size: 9px;">Scan to Verify Online</div>
                         </div>
@@ -703,7 +703,7 @@
         <div class="text-center text-muted mt-2 pt-1.5 border-top" id="liveReceiptFooterBox" style="font-size: 9.5px;">
             Thank you! This is an official computer-generated receipt from <span id="liveReceiptFooterBizName">{{ $settings['business_name'] ?? 'Idea Publication' }}</span>.
             <span class="ms-1.5 {{ empty($settings['phone']) ? 'd-none' : '' }}" id="liveReceiptFooterPhoneContainer">
-                <i class="fas fa-phone-alt me-1"></i><span id="liveReceiptFooterPhone">{{ $settings['phone'] ?? '' }}</span>
+                <i class="fa-solid fa-phone-alt me-1"></i><span id="liveReceiptFooterPhone">{{ $settings['phone'] ?? '' }}</span>
             </span>
         </div>
     </div>
@@ -715,7 +715,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-gradient bg-primary text-white py-2.5 px-3.5">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-pen-to-square text-white"></i>
+                    <i class="fa-solid fa-pen-to-square text-white"></i>
                     <h5 class="modal-title fw-bold mb-0 text-white fs-6" id="editReceiptPaymentModalLabel">
                         Edit Payment
                     </h5>
@@ -758,7 +758,7 @@
                     <div class="card border border-warning-subtle bg-warning-subtle bg-opacity-10 rounded-3 p-3 mb-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="fw-bold text-dark small">
-                                <i class="fas fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
+                                <i class="fa-solid fa-scale-balanced text-warning-emphasis me-1"></i> Statutory Tax & VAT Deduction Breakdown
                             </span>
                             <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">TDS / VDS</span>
                         </div>
@@ -767,7 +767,7 @@
                         <div class="p-2.5 bg-white rounded-3 border mb-2.5">
                             <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
                                 <label class="form-label small fw-bold text-dark mb-0">
-                                    <i class="fas fa-building-columns text-danger me-1"></i>TDS (Tax Deducted at Source):
+                                    <i class="fa-solid fa-building-columns text-danger me-1"></i>TDS (Tax Deducted at Source):
                                 </label>
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditTaxRate(0)">0%</button>
@@ -791,7 +791,7 @@
                         <div class="p-2.5 bg-white rounded-3 border mb-2.5">
                             <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
                                 <label class="form-label small fw-bold text-dark mb-0">
-                                    <i class="fas fa-file-invoice text-primary me-1"></i>VDS (VAT Deducted at Source):
+                                    <i class="fa-solid fa-file-invoice text-primary me-1"></i>VDS (VAT Deducted at Source):
                                 </label>
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1.5" onclick="setEditVatRate(0)">0%</button>
@@ -815,7 +815,7 @@
                             <div class="col-md-6 col-12">
                                 <div class="p-2.5 bg-white rounded-3 border">
                                     <label class="form-label small fw-bold text-dark mb-1">
-                                        <i class="fas fa-money-check-dollar text-success me-1"></i>Net Realized (Cheque / Cash):
+                                        <i class="fa-solid fa-money-check-dollar text-success me-1"></i>Net Realized (Cheque / Cash):
                                     </label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">৳</span>
@@ -828,7 +828,7 @@
                             <div class="col-md-6 col-12">
                                 <div class="p-2.5 bg-white rounded-3 border">
                                     <label class="form-label small fw-bold text-dark mb-1">
-                                        <i class="fas fa-minus-circle text-secondary me-1"></i>Other Deductions:
+                                        <i class="fa-solid fa-circle-minus text-secondary me-1"></i>Other Deductions:
                                     </label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">৳</span>
@@ -903,7 +903,7 @@
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="fas fa-check me-1.5"></i> Save & Update Receipt
+                        <i class="fa-solid fa-check me-1.5"></i> Save & Update Receipt
                     </button>
                 </div>
             </form>
@@ -1022,7 +1022,7 @@ function handleEditFieldChange(source) {
     {{-- Offcanvas Header --}}
     <div class="offcanvas-header bg-dark text-white py-3 px-3.5 border-bottom">
         <div class="d-flex align-items-center gap-2.5">
-            <span class="badge bg-warning text-dark rounded-circle p-2 shadow-xs"><i class="fas fa-sliders fs-6"></i></span>
+            <span class="badge bg-warning text-dark rounded-circle p-2 shadow-xs"><i class="fa-solid fa-sliders fs-6"></i></span>
             <div>
                 <h6 class="offcanvas-title fw-bold mb-0 text-white" id="receiptDesignCustomizerLabel" style="font-size: 15px;">
                     Receipt Design Customizer
@@ -1041,16 +1041,16 @@ function handleEditFieldChange(source) {
         <div class="bg-white border-bottom shadow-2xs">
             <div class="d-flex justify-content-between px-2 pt-1" id="designCustomizerTabs" role="tablist">
                 <button class="customizer-tab-btn active flex-fill text-center" id="tab-colors" data-bs-toggle="tab" data-bs-target="#panel-colors" type="button" role="tab">
-                    <i class="fas fa-droplet text-primary d-block mb-0.5 fs-6"></i>Theme
+                    <i class="fa-solid fa-droplet text-primary d-block mb-0.5 fs-6"></i>Theme
                 </button>
                 <button class="customizer-tab-btn flex-fill text-center" id="tab-geometry" data-bs-toggle="tab" data-bs-target="#panel-geometry" type="button" role="tab">
-                    <i class="fas fa-stamp text-danger d-block mb-0.5 fs-6"></i>Stamp/Logo
+                    <i class="fa-solid fa-stamp text-danger d-block mb-0.5 fs-6"></i>Stamp/Logo
                 </button>
                 <button class="customizer-tab-btn flex-fill text-center" id="tab-branding" data-bs-toggle="tab" data-bs-target="#panel-branding" type="button" role="tab">
-                    <i class="fas fa-building text-info d-block mb-0.5 fs-6"></i>Branding
+                    <i class="fa-solid fa-building text-info d-block mb-0.5 fs-6"></i>Branding
                 </button>
                 <button class="customizer-tab-btn flex-fill text-center" id="tab-visibility" data-bs-toggle="tab" data-bs-target="#panel-visibility" type="button" role="tab">
-                    <i class="fas fa-sliders text-success d-block mb-0.5 fs-6"></i>Toggles
+                    <i class="fa-solid fa-sliders text-success d-block mb-0.5 fs-6"></i>Toggles
                 </button>
             </div>
         </div>
@@ -1062,7 +1062,7 @@ function handleEditFieldChange(source) {
                 <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-circle-notch text-success me-1.5"></i>Primary Accent Theme:
+                            <i class="fa-solid fa-circle-notch text-success me-1.5"></i>Primary Accent Theme:
                         </label>
                         <span class="badge bg-light text-dark border font-monospace" id="customThemeHexBadge">{{ $settings['receipt_primary_color'] ?? '#059669' }}</span>
                     </div>
@@ -1090,7 +1090,7 @@ function handleEditFieldChange(source) {
                 <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-stamp text-purple me-1.5"></i>Rubber Stamp Ink:
+                            <i class="fa-solid fa-stamp text-purple me-1.5"></i>Rubber Stamp Ink:
                         </label>
                         <span class="badge bg-light text-dark border font-monospace" id="customStampHexBadge">{{ $settings['receipt_stamp_color'] ?? '#6b21a8' }}</span>
                     </div>
@@ -1118,7 +1118,7 @@ function handleEditFieldChange(source) {
                 {{-- Logo Geometry & Live Upload --}}
                 <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-image text-primary me-1.5"></i>Header Logo Settings:</label>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fa-solid fa-image text-primary me-1.5"></i>Header Logo Settings:</label>
                         <span class="badge bg-light text-dark border font-monospace" id="customLogoHeightVal">{{ $settings['receipt_logo_height'] ?? '58px' }}</span>
                     </div>
 
@@ -1153,7 +1153,7 @@ function handleEditFieldChange(source) {
                 {{-- Rubber Stamp Geometry & Offsets --}}
                 <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-stamp text-danger me-1.5"></i>Rubber Stamp Seal:</label>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fa-solid fa-stamp text-danger me-1.5"></i>Rubber Stamp Seal:</label>
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input" type="checkbox" id="toggleStampVisibility" checked onchange="toggleStampSeal(this.checked)">
                             <label class="form-check-label small fw-semibold text-dark" for="toggleStampVisibility">Show</label>
@@ -1192,7 +1192,7 @@ function handleEditFieldChange(source) {
             {{-- Tab 3: Branding & Text Info --}}
             <div class="tab-pane fade" id="panel-branding" role="tabpanel">
                 <div class="customizer-card">
-                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-building text-primary me-1.5"></i>Organization Branding:</label>
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-building text-primary me-1.5"></i>Organization Branding:</label>
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-0.5">Business Name:</label>
                         <input type="text" class="form-control form-control-sm" id="customInputBizName" value="{{ $settings['business_name'] ?? 'Idea Publication' }}" oninput="updateLiveText('liveReceiptBizName', this.value); updateLiveText('liveReceiptFooterBizName', this.value)">
@@ -1219,7 +1219,7 @@ function handleEditFieldChange(source) {
 
                 {{-- Signatures & Roles --}}
                 <div class="customizer-card">
-                    <label class="form-label small fw-bold text-dark mb-2"><i class="fas fa-signature text-secondary me-1.5"></i>Signatures & Roles:</label>
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-signature text-secondary me-1.5"></i>Signatures & Roles:</label>
                     <div class="mb-2">
                         <label class="form-label small text-muted mb-0.5">Collector / Signatory Name:</label>
                         <input type="text" class="form-control form-control-sm fw-bold" id="customInputSignatoryName" value="{{ $creatorName ?: 'Shakil Masud' }}" oninput="updateLiveText('liveReceiptSignatoryName', this.value)">
@@ -1244,7 +1244,7 @@ function handleEditFieldChange(source) {
             {{-- Tab 4: Component Toggles & Scale --}}
             <div class="tab-pane fade" id="panel-visibility" role="tabpanel">
                 <div class="customizer-card">
-                    <label class="form-label small fw-bold text-dark mb-2.5"><i class="fas fa-sliders text-success me-1.5"></i>Component Visibility:</label>
+                    <label class="form-label small fw-bold text-dark mb-2.5"><i class="fa-solid fa-sliders text-success me-1.5"></i>Component Visibility:</label>
                     
                     <div class="form-check form-switch mb-2.5">
                         <input class="form-check-input" type="checkbox" id="toggleCertBox" checked onchange="toggleComponent('liveReceiptCertBox', this.checked)">
@@ -1285,7 +1285,7 @@ function handleEditFieldChange(source) {
                 {{-- Document Font & Print Scale --}}
                 <div class="customizer-card">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label small fw-bold text-dark mb-0"><i class="fas fa-magnifying-glass-plus text-primary me-1.5"></i>Receipt Page Scale / Zoom:</label>
+                        <label class="form-label small fw-bold text-dark mb-0"><i class="fa-solid fa-magnifying-glass-plus text-primary me-1.5"></i>Receipt Page Scale / Zoom:</label>
                         <span class="badge bg-light text-dark border font-monospace" id="fontScaleVal">{{ round((float)($settings['receipt_font_scale'] ?? 1) * 100) }}%</span>
                     </div>
                     <input type="range" class="form-range mt-2" id="customFontScaleSlider" min="0.85" max="1.15" step="0.01" value="{{ (float)($settings['receipt_font_scale'] ?? 1) }}" oninput="updateFontScale(this.value)">
@@ -1296,10 +1296,10 @@ function handleEditFieldChange(source) {
         {{-- Offcanvas Sticky Footer Actions --}}
         <div class="offcanvas-footer bg-white p-3 border-top d-flex align-items-center justify-content-between gap-2 shadow-sm">
             <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="resetCustomizerDefaults()">
-                <i class="fas fa-rotate-left me-1"></i> Reset Defaults
+                <i class="fa-solid fa-rotate-left me-1"></i> Reset Defaults
             </button>
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm" id="btnSaveReceiptSettings" onclick="saveReceiptCustomizerSettings()">
-                <i class="fas fa-floppy-disk me-1.5"></i> Save as Default
+                <i class="fa-solid fa-floppy-disk me-1.5"></i> Save as Default
             </button>
         </div>
     </div>
@@ -1480,7 +1480,7 @@ function saveReceiptCustomizerSettings() {
     const btn = document.getElementById('btnSaveReceiptSettings');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1.5"></i> Saving...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> Saving...';
 
     const payload = new FormData();
     payload.append('_token', '{{ csrf_token() }}');
@@ -1513,7 +1513,7 @@ function saveReceiptCustomizerSettings() {
         btn.disabled = false;
         btn.innerHTML = originalText;
         if (response.ok) {
-            btn.innerHTML = '<i class="fas fa-check-circle me-1.5 text-success"></i> Saved!';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1.5 text-success"></i> Saved!';
             setTimeout(() => { btn.innerHTML = originalText; }, 2500);
         } else {
             alert('Settings updated successfully!');

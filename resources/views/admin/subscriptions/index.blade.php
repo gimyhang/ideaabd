@@ -11,13 +11,13 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <a href="{{ route('admin.author-royalties.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-2xs fw-semibold">
-            <i class="fas fa-scale-balanced me-1.5 text-warning"></i> রয়্যালটি পুল হিসাব
+            <i class="fa-solid fa-scale-balanced me-1.5 text-warning"></i> রয়্যালটি পুল হিসাব
         </a>
         <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3.5 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#grantSubModal">
-            <i class="fas fa-user-plus me-1.5"></i> সাবস্ক্রিপশন প্রদান
+            <i class="fa-solid fa-user-plus me-1.5"></i> সাবস্ক্রিপশন প্রদান
         </button>
         <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#addPlanModal">
-            <i class="fas fa-plus-circle me-1.5"></i> নতুন প্ল্যান তৈরি
+            <i class="fa-solid fa-circle-plus me-1.5"></i> নতুন প্ল্যান তৈরি
         </button>
     </div>
 @endsection
@@ -30,40 +30,40 @@
         {{-- Card 1: Active Subscribers --}}
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white shadow-2xs border-start border-4 border-primary rounded-4" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary rounded-3"><i class="fas fa-crown"></i></div>
+                <div class="kpi__icon bg-primary-subtle text-primary rounded-3"><i class="fa-solid fa-crown"></i></div>
                 <p class="kpi__label fw-semibold text-muted mb-1">সক্রিয় মেম্বার (Active Members)</p>
                 <h3 class="kpi__value text-dark fw-bold mb-1">{{ number_format($activeSubscribersCount) }}</h3>
-                <p class="kpi__foot text-muted small mb-0"><i class="fas fa-users me-1 text-primary"></i>Kindle Unlimited মডেল সদস্য</p>
+                <p class="kpi__foot text-muted small mb-0"><i class="fa-solid fa-users me-1 text-primary"></i>Kindle Unlimited মডেল সদস্য</p>
             </div>
         </div>
 
         {{-- Card 2: Total Revenue --}}
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white shadow-2xs border-start border-4 border-success rounded-4" style="--bar: #16a34a;">
-                <div class="kpi__icon bg-success-subtle text-success rounded-3"><i class="fas fa-sack-dollar"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success rounded-3"><i class="fa-solid fa-sack-dollar"></i></div>
                 <p class="kpi__label fw-semibold text-muted mb-1">সাবস্ক্রিপশন আয় (Revenue)</p>
                 <h3 class="kpi__value text-dark fw-bold mb-1">৳{{ number_format($totalSubscriptionRevenue, 2) }}</h3>
-                <p class="kpi__foot text-muted small mb-0"><i class="fas fa-chart-line me-1 text-success"></i>রিক্যারিং পাঠক মেম্বারশিপ ফি</p>
+                <p class="kpi__foot text-muted small mb-0"><i class="fa-solid fa-chart-line me-1 text-success"></i>রিক্যারিং পাঠক মেম্বারশিপ ফি</p>
             </div>
         </div>
 
         {{-- Card 3: Pages Read --}}
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white shadow-2xs border-start border-4 border-warning rounded-4" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning rounded-3"><i class="fas fa-book-open-reader"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning rounded-3"><i class="fa-solid fa-book-open-reader"></i></div>
                 <p class="kpi__label fw-semibold text-muted mb-1">পঠিত পৃষ্ঠা (Pages Read)</p>
                 <h3 class="kpi__value text-dark fw-bold mb-1">{{ number_format($totalPagesReadThisMonth) }}</h3>
-                <p class="kpi__foot text-muted small mb-0"><i class="fas fa-calendar-check me-1 text-warning"></i>চলতি মাসে রয়্যালটি ফান্ড গণনা</p>
+                <p class="kpi__foot text-muted small mb-0"><i class="fa-solid fa-calendar-check me-1 text-warning"></i>চলতি মাসে রয়্যালটি ফান্ড গণনা</p>
             </div>
         </div>
 
         {{-- Card 4: Active Plans --}}
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="kpi bg-white shadow-2xs border-start border-4 border-info rounded-4" style="--bar: #0099ff;">
-                <div class="kpi__icon bg-info-subtle text-info rounded-3"><i class="fas fa-layer-group"></i></div>
+                <div class="kpi__icon bg-info-subtle text-info rounded-3"><i class="fa-solid fa-layer-group"></i></div>
                 <p class="kpi__label fw-semibold text-muted mb-1">সক্রিয় প্ল্যান (Active Plans)</p>
                 <h3 class="kpi__value text-dark fw-bold mb-1">{{ $activePlansCount }} <span class="fs-6 fw-normal text-muted">টি প্যাকেজ</span></h3>
-                <p class="kpi__foot text-muted small mb-0"><i class="fas fa-cubes me-1 text-info"></i>মোট {{ $plans->count() }}টি প্যাকেজ কনফিগার করা</p>
+                <p class="kpi__foot text-muted small mb-0"><i class="fa-solid fa-cubes me-1 text-info"></i>মোট {{ $plans->count() }}টি প্যাকেজ কনফিগার করা</p>
             </div>
         </div>
     </div>
@@ -73,13 +73,13 @@
         <div class="adm-card__head d-flex flex-wrap justify-content-between align-items-center gap-2 p-3.5 border-bottom bg-light bg-opacity-50">
             <div>
                 <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="fas fa-layer-group text-primary"></i> 
+                    <i class="fa-solid fa-layer-group text-primary"></i> 
                     আইডিয়া মেম্বারশিপ ও রিডিং প্যাকেজসমূহ (Membership Plans)
                 </h6>
                 <small class="text-muted">পাঠকদের জন্য আনলিমিটেড ই-বুক ও ডিজিটাল পড়ার প্ল্যান তালিকা</small>
             </div>
             <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#addPlanModal">
-                <i class="fas fa-plus me-1.5"></i> নতুন প্ল্যান যোগ করুন
+                <i class="fa-solid fa-plus me-1.5"></i> নতুন প্ল্যান যোগ করুন
             </button>
         </div>
         <div class="adm-card__body p-4">
@@ -89,7 +89,7 @@
                         <div class="card h-100 rounded-4 border {{ $plan->is_featured ? 'border-2 border-primary shadow-sm' : 'border-slate-200' }} position-relative overflow-hidden transition-all">
                             @if($plan->is_featured)
                                 <div class="position-absolute top-0 end-0 bg-primary text-white text-uppercase fw-bold px-3 py-1 rounded-bottom-start-3" style="font-size: 0.68rem; letter-spacing: 0.5px;">
-                                    <i class="fas fa-star me-1 text-warning"></i> জনপ্রিয় (Popular)
+                                    <i class="fa-solid fa-star me-1 text-warning"></i> জনপ্রিয় (Popular)
                                 </div>
                             @endif
 
@@ -97,11 +97,11 @@
                                 <div>
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <span class="badge {{ $plan->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }} rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.72rem;">
-                                            <i class="fas fa-circle {{ $plan->is_active ? 'text-success' : 'text-secondary' }} me-1" style="font-size: 6px;"></i>
+                                            <i class="fa-solid fa-circle {{ $plan->is_active ? 'text-success' : 'text-secondary' }} me-1" style="font-size: 6px;"></i>
                                             {{ $plan->is_active ? 'সক্রিয় প্ল্যান (Active)' : 'নিষ্ক্রিয় (Inactive)' }}
                                         </span>
                                         <span class="text-muted small fw-semibold">
-                                            <i class="fas fa-users text-primary me-1"></i>{{ $plan->subscriptions_count }} জন মেম্বার
+                                            <i class="fa-solid fa-users text-primary me-1"></i>{{ $plan->subscriptions_count }} জন মেম্বার
                                         </span>
                                     </div>
 
@@ -120,24 +120,24 @@
                                         <small class="text-uppercase fw-bold text-muted d-block mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">প্ল্যানের সুবিধাসমূহ:</small>
                                         <ul class="list-unstyled small text-secondary mb-0 d-flex flex-column gap-2">
                                             <li class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-mobile-screen-button text-primary"></i> 
+                                                <i class="fa-solid fa-mobile-screen-button text-primary"></i> 
                                                 সর্বোচ্চ <strong>{{ $plan->max_devices }}টি ডিভাইসে</strong> একসাথে ব্যবহার
                                             </li>
                                             <li class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-shield-halved text-success"></i> 
+                                                <i class="fa-solid fa-shield-halved text-success"></i> 
                                                 DRM সুরক্ষিত ক্লাউড ই-রিডার সুবিধা
                                             </li>
                                             <li class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-{{ $plan->unlimited_ebooks ? 'check-circle text-success' : 'times-circle text-muted' }}"></i> 
+                                                <i class="fa-solid fa-{{ $plan->unlimited_ebooks ? 'check-circle text-success' : 'times-circle text-muted' }}"></i> 
                                                 সীমাহীন ই-বুক পাঠের সুবিধা
                                             </li>
                                             <li class="d-flex align-items-center gap-2">
-                                                <i class="fas fa-{{ $plan->unlimited_webzines ? 'check-circle text-success' : 'times-circle text-muted' }}"></i> 
+                                                <i class="fa-solid fa-{{ $plan->unlimited_webzines ? 'check-circle text-success' : 'times-circle text-muted' }}"></i> 
                                                 সকল ওয়েবজিন ও ম্যাগাজিন এক্সেস
                                             </li>
                                             @if($plan->unlimited_audiobooks)
                                                 <li class="d-flex align-items-center gap-2">
-                                                    <i class="fas fa-headphones text-info"></i> 
+                                                    <i class="fa-solid fa-headphones text-info"></i> 
                                                     অডিওবুক এক্সেস অন্তর্ভুক্ত
                                                 </li>
                                             @endif
@@ -149,19 +149,19 @@
                                     <form action="{{ route('admin.subscriptions.plans.toggle', $plan) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button type="submit" class="btn btn-xs {{ $plan->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-pill px-2.5 py-1 fw-semibold">
-                                            <i class="fas fa-power-off me-1"></i>{{ $plan->is_active ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন' }}
+                                            <i class="fa-solid fa-power-off me-1"></i>{{ $plan->is_active ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন' }}
                                         </button>
                                     </form>
 
                                     <div class="d-flex align-items-center gap-1">
                                         <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" data-bs-toggle="modal" data-bs-target="#editPlanModal{{ $plan->id }}">
-                                            <i class="fas fa-pen me-1"></i> এডিট
+                                            <i class="fa-solid fa-pen me-1"></i> এডিট
                                         </button>
                                         <form action="{{ route('admin.subscriptions.plans.destroy', $plan) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই প্ল্যানটি মুছে ফেলতে চান?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 fw-semibold" title="Delete Plan">
-                                                <i class="fas fa-trash-alt"></i>
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -176,7 +176,7 @@
                             <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
                                 <div class="modal-header bg-primary text-white py-3 px-4">
                                     <h6 class="modal-title fw-bold text-white mb-0">
-                                        <i class="fas fa-pen-to-square me-1.5"></i> প্ল্যান সম্পাদনা: {{ $plan->name }}
+                                        <i class="fa-solid fa-pen-to-square me-1.5"></i> প্ল্যান সম্পাদনা: {{ $plan->name }}
                                     </h6>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
@@ -246,7 +246,7 @@
                 @empty
                     <div class="col-12">
                         <div class="p-5 text-center text-muted border rounded-4 bg-light">
-                            <i class="fas fa-layer-group fs-2 mb-2 d-block opacity-50"></i>
+                            <i class="fa-solid fa-layer-group fs-2 mb-2 d-block opacity-50"></i>
                             <h6 class="fw-bold">কোনো সাবস্ক্রিপশন প্ল্যান তৈরি করা হয়নি</h6>
                             <p class="small mb-3">পাঠকদের জন্য নতুন মেম্বারশিপ প্যাকেজ তৈরি করতে ওপরের বাটনে ক্লিক করুন।</p>
                         </div>
@@ -261,7 +261,7 @@
         <div class="adm-card__head d-flex flex-wrap justify-content-between align-items-center gap-3 p-3.5 border-bottom bg-light bg-opacity-50">
             <div>
                 <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="fas fa-users-gear text-primary"></i> 
+                    <i class="fa-solid fa-users-gear text-primary"></i> 
                     পাঠক মেম্বারশিপ তালিকা (Active Subscriber Enrollments)
                 </h6>
                 <small class="text-muted">বর্তমানে রেজিস্টার্ড সাবস্ক্রাইবার ও রিডিং মেম্বারশিপ রেকর্ড</small>
@@ -270,7 +270,7 @@
             {{-- Filter & Search Form --}}
             <form action="{{ route('admin.subscriptions.index') }}" method="GET" class="d-flex flex-wrap align-items-center gap-2">
                 <div class="input-group input-group-sm" style="width: 220px;">
-                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="text" name="search" class="form-control border-start-0" placeholder="নাম, ইমেইল বা ফোন..." value="{{ request('search') }}">
                 </div>
 
@@ -290,7 +290,7 @@
 
                 @if(request()->hasAny(['search', 'plan_id', 'status']))
                     <a href="{{ route('admin.subscriptions.index') }}" class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="ফিল্টার মুছুন">
-                        <i class="fas fa-times"></i>
+                        <i class="fa-solid fa-times"></i>
                     </a>
                 @endif
             </form>
@@ -325,14 +325,14 @@
                                         <div>
                                             <div class="fw-bold text-dark">{{ $sub->user->name ?? 'Reader' }}</div>
                                             <small class="text-muted d-block font-monospace" style="font-size: 0.75rem;">
-                                                <i class="fas fa-envelope me-1"></i>{{ $sub->user->email ?? $sub->user->phone ?? 'N/A' }}
+                                                <i class="fa-solid fa-envelope me-1"></i>{{ $sub->user->email ?? $sub->user->phone ?? 'N/A' }}
                                             </small>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                        <i class="fas fa-layer-group me-1"></i>{{ $sub->plan->name ?? 'Custom Plan' }}
+                                        <i class="fa-solid fa-layer-group me-1"></i>{{ $sub->plan->name ?? 'Custom Plan' }}
                                     </span>
                                 </td>
                                 <td class="small text-muted font-monospace">
@@ -361,15 +361,15 @@
                                 <td>
                                     @if($isActive)
                                         <span class="pill pill--ok shadow-2xs">
-                                            <i class="fas fa-circle-check text-success"></i> সক্রিয় (Active)
+                                            <i class="fa-solid fa-circle-check text-success"></i> সক্রিয় (Active)
                                         </span>
                                     @elseif($sub->status === 'cancelled')
                                         <span class="pill pill--danger">
-                                            <i class="fas fa-ban"></i> বাতিলকৃত
+                                            <i class="fa-solid fa-ban"></i> বাতিলকৃত
                                         </span>
                                     @else
                                         <span class="pill pill--pending">
-                                            <i class="fas fa-clock"></i> এক্সপায়ার্ড
+                                            <i class="fa-solid fa-clock"></i> এক্সপায়ার্ড
                                         </span>
                                     @endif
                                 </td>
@@ -378,7 +378,7 @@
                                         <form action="{{ route('admin.subscriptions.cancel', $sub) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিত যে এই ইউজারের সাবস্ক্রিপশন বাতিল করতে চান?')">
                                             @csrf
                                             <button type="submit" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 fw-semibold" title="Cancel Subscription">
-                                                <i class="fas fa-times-circle me-1"></i> বাতিল
+                                                <i class="fa-solid fa-circle-xmark me-1"></i> বাতিল
                                             </button>
                                         </form>
                                     @else
@@ -389,7 +389,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="fas fa-users-slash fs-3 mb-2 d-block opacity-50"></i>
+                                    <i class="fa-solid fa-users-slash fs-3 mb-2 d-block opacity-50"></i>
                                     <div class="fw-bold">কোনো সাবস্ক্রাইবার রেকর্ড পাওয়া যায়নি</div>
                                     <small class="text-muted">নতুন ইউজারকে সাবস্ক্রিপশন প্রদান করতে ওপরের 'সাবস্ক্রিপশন প্রদান' বাটনে ক্লিক করুন।</small>
                                 </td>
@@ -415,7 +415,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-plus-circle me-1.5"></i> নতুন রিডিং সাবস্ক্রিপশন প্ল্যান তৈরি করুন
+                    <i class="fa-solid fa-circle-plus me-1.5"></i> নতুন রিডিং সাবস্ক্রিপশন প্ল্যান তৈরি করুন
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -488,7 +488,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fas fa-user-plus me-1.5"></i> ব্যবহারকারীকে সাবস্ক্রিপশন প্রদান করুন
+                    <i class="fa-solid fa-user-plus me-1.5"></i> ব্যবহারকারীকে সাবস্ক্রিপশন প্রদান করুন
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

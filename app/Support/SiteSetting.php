@@ -512,4 +512,56 @@ class SiteSetting
             ? route('authors.show', $slug) 
             : url('/authors/' . $slug);
     }
+
+    // --- Dynamic Admin & Site Theme Customization Engine ---
+    public static function themeSettings(): array
+    {
+        $theme = self::get('theme_settings', []);
+        if (!is_array($theme)) {
+            $theme = [];
+        }
+
+        return array_merge([
+            'primary_color'   => '#0066cc',
+            'secondary_color' => '#0099ff',
+            'accent_color'    => '#ff6b35',
+            'default_mode'    => 'light',
+            'sidebar_theme'   => 'theme-deep-navy',
+            'font_family'     => 'Hind Siliguri',
+            'border_radius'   => 'rounded-modern',
+            'card_style'      => 'elevated',
+            'custom_css'      => '',
+        ], $theme);
+    }
+
+    public static function primaryColor(): string
+    {
+        return (string) (self::themeSettings()['primary_color'] ?? '#0066cc');
+    }
+
+    public static function secondaryColor(): string
+    {
+        return (string) (self::themeSettings()['secondary_color'] ?? '#0099ff');
+    }
+
+    public static function accentColor(): string
+    {
+        return (string) (self::themeSettings()['accent_color'] ?? '#ff6b35');
+    }
+
+    public static function themeMode(): string
+    {
+        return (string) (self::themeSettings()['default_mode'] ?? 'light');
+    }
+
+    public static function sidebarTheme(): string
+    {
+        return (string) (self::themeSettings()['sidebar_theme'] ?? 'theme-deep-navy');
+    }
+
+    public static function fontFamily(): string
+    {
+        return (string) (self::themeSettings()['font_family'] ?? 'Hind Siliguri');
+    }
 }
+

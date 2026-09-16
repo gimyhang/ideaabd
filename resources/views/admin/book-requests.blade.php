@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addRequestModal">
-            <i class="fas fa-plus-circle me-1.5"></i> Add New Request
+            <i class="fa-solid fa-circle-plus me-1.5"></i> Add New Request
         </button>
         <a href="{{ route('admin.purchases.create') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
-            <i class="fas fa-cart-plus me-1.5"></i> Purchase Order
+            <i class="fa-solid fa-cart-plus me-1.5"></i> Purchase Order
         </a>
     </div>
 @endsection
@@ -34,7 +34,7 @@
                         <h3 class="fw-bold text-dark mb-0 mt-1">{{ number_format($stats['total']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                        <i class="fas fa-book-open fs-5"></i>
+                        <i class="fa-solid fa-book-open fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -50,7 +50,7 @@
                         <h3 class="fw-bold text-warning mb-0 mt-1">{{ number_format($stats['pending']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-warning-subtle text-warning p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                        <i class="fas fa-clock fs-5"></i>
+                        <i class="fa-solid fa-clock fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -66,7 +66,7 @@
                         <h3 class="fw-bold text-info mb-0 mt-1">{{ number_format($stats['processing']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-info-subtle text-info p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                        <i class="fas fa-spinner fs-5"></i>
+                        <i class="fa-solid fa-spinner fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -82,7 +82,7 @@
                         <h3 class="fw-bold text-success mb-0 mt-1">{{ number_format($stats['available']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-success-subtle text-success p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                        <i class="fas fa-check-circle fs-5"></i>
+                        <i class="fa-solid fa-circle-check fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -98,7 +98,7 @@
                         <h3 class="fw-bold text-secondary mb-0 mt-1">{{ number_format($stats['closed']) }}</h3>
                     </div>
                     <div class="rounded-circle bg-secondary-subtle text-secondary p-3 d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
-                        <i class="fas fa-circle-xmark fs-5"></i>
+                        <i class="fa-solid fa-circle-xmark fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -116,12 +116,12 @@
             {{-- Search Input --}}
             <div class="col-12 col-md-4">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-magnifying-glass"></i></span>
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" class="form-control border-start-0 ps-0 bg-light" 
                            placeholder="Search book title, author, customer or phone..." value="{{ $search }}">
                     @if($search)
                         <a href="{{ route('admin.book-requests.index', array_filter(['status' => $status, 'date_from' => $dateFrom, 'date_to' => $dateTo])) }}" class="input-group-text bg-light text-muted text-decoration-none">
-                            <i class="fas fa-times"></i>
+                            <i class="fa-solid fa-times"></i>
                         </a>
                     @endif
                 </div>
@@ -149,11 +149,11 @@
             {{-- Actions --}}
             <div class="col-6 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100 rounded-3 fw-semibold">
-                    <i class="fas fa-filter me-1"></i> Filter
+                    <i class="fa-solid fa-filter me-1"></i> Filter
                 </button>
                 @if($search || $status || $dateFrom || $dateTo)
                     <a href="{{ route('admin.book-requests.index') }}" class="btn btn-light border rounded-3 text-danger" title="Clear Filters">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
             </div>
@@ -226,20 +226,20 @@
                                 </div>
                                 <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
                                     @if($req->author_name)
-                                        <span><i class="fas fa-user-pen me-1 text-secondary"></i>{{ $req->author_name }}</span>
+                                        <span><i class="fa-solid fa-user-pen me-1 text-secondary"></i>{{ $req->author_name }}</span>
                                     @endif
                                     @if($req->edition)
-                                        <span class="badge bg-light text-dark border"><i class="fas fa-bookmark me-1 text-warning"></i>{{ $req->edition }}</span>
+                                        <span class="badge bg-light text-dark border"><i class="fa-solid fa-bookmark me-1 text-warning"></i>{{ $req->edition }}</span>
                                     @endif
                                 </div>
                                 {{-- Quick Link to check in catalog / purchase --}}
                                 <div class="mt-1">
                                     <a href="{{ route('admin.books', ['search' => $req->book_title]) }}" target="_blank" class="text-decoration-none small text-muted hover-primary" style="font-size: 0.73rem;">
-                                        <i class="fas fa-search me-0.5"></i>Check Catalog
+                                        <i class="fa-solid fa-magnifying-glass me-0.5"></i>Check Catalog
                                     </a>
                                     <span class="text-muted mx-1">•</span>
                                     <a href="{{ route('admin.purchases.create') }}" class="text-decoration-none small text-success hover-underline" style="font-size: 0.73rem;">
-                                        <i class="fas fa-cart-plus me-0.5"></i>Purchase Entry
+                                        <i class="fa-solid fa-cart-plus me-0.5"></i>Purchase Entry
                                     </a>
                                 </div>
                             </td>
@@ -251,7 +251,7 @@
                                     <div class="d-flex align-items-center gap-1.5 mt-0.5">
                                         <span class="small font-monospace text-muted">{{ $req->customer_phone }}</span>
                                         <a href="tel:{{ $req->customer_phone }}" class="badge bg-primary-subtle text-primary p-1 rounded-circle text-decoration-none" title="Call directly">
-                                            <i class="fas fa-phone" style="font-size: 9px;"></i>
+                                            <i class="fa-solid fa-phone" style="font-size: 9px;"></i>
                                         </a>
                                         <a href="https://wa.me/{{ $cleanPhone }}?text={{ $waText }}" target="_blank" class="badge bg-success-subtle text-success p-1 rounded-circle text-decoration-none" title="Send WhatsApp message">
                                             <i class="fab fa-whatsapp" style="font-size: 10px;"></i>
@@ -260,7 +260,7 @@
                                 @endif
                                 @if($req->customer_email)
                                     <div class="small text-muted text-truncate" style="max-width: 160px;" title="{{ $req->customer_email }}">
-                                        <i class="fas fa-envelope me-1" style="font-size: 10px;"></i>{{ $req->customer_email }}
+                                        <i class="fa-solid fa-envelope me-1" style="font-size: 10px;"></i>{{ $req->customer_email }}
                                     </div>
                                 @endif
                             </td>
@@ -283,7 +283,7 @@
                                         {{ $req->admin_notes ?: 'No notes' }}
                                     </div>
                                     <button type="button" class="btn btn-xs btn-light border-0 p-1 text-muted" onclick="openNotesModal({{ $req->id }}, '{{ addslashes($req->admin_notes ?? '') }}')" title="Edit Note">
-                                        <i class="fas fa-pen" style="font-size: 10px;"></i>
+                                        <i class="fa-solid fa-pen" style="font-size: 10px;"></i>
                                     </button>
                                 </div>
                             </td>
@@ -311,7 +311,7 @@
                                 <div class="d-flex align-items-center justify-content-end gap-1">
                                     <button type="button" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs" 
                                             onclick="openViewModal({{ json_encode($req) }})" title="View Details">
-                                        <i class="fas fa-eye text-primary" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-eye text-primary" style="font-size: 11px;"></i>
                                     </button>
 
                                     <form action="{{ route('admin.book-requests.destroy', $req->id) }}" method="POST" 
@@ -319,7 +319,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-light border p-1 rounded-circle shadow-xs text-danger" title="Delete">
-                                            <i class="fas fa-trash-can" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -329,11 +329,11 @@
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <div class="p-4">
-                                    <i class="fas fa-book-open fs-1 opacity-25 mb-3 d-block"></i>
+                                    <i class="fa-solid fa-book-open fs-1 opacity-25 mb-3 d-block"></i>
                                     <h6 class="fw-bold text-dark">No Book Requests Found</h6>
                                     <p class="small text-muted mb-3">Requests submitted by readers will appear here automatically.</p>
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3.5" data-bs-toggle="modal" data-bs-target="#addRequestModal">
-                                        <i class="fas fa-plus me-1"></i> Add New Request
+                                        <i class="fa-solid fa-plus me-1"></i> Add New Request
                                     </button>
                                 </div>
                             </td>
@@ -365,7 +365,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h5 class="modal-title fw-bold" id="addRequestModalLabel">
-                    <i class="fas fa-plus-circle me-1.5"></i> New Book Request Entry
+                    <i class="fa-solid fa-circle-plus me-1.5"></i> New Book Request Entry
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -441,7 +441,7 @@
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white py-2.5 px-3">
-                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-note-sticky text-warning me-1.5"></i>Admin Notes</h6>
+                <h6 class="modal-title fw-bold mb-0"><i class="fa-solid fa-note-sticky text-warning me-1.5"></i>Admin Notes</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="notesForm" onsubmit="saveAdminNotes(event)">
@@ -466,7 +466,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-light py-3 px-4 border-bottom">
                 <h5 class="modal-title fw-bold text-dark mb-0">
-                    <i class="fas fa-circle-info text-primary me-1.5"></i>Request Details (#<span id="vReqId"></span>)
+                    <i class="fa-solid fa-circle-info text-primary me-1.5"></i>Request Details (#<span id="vReqId"></span>)
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -611,7 +611,7 @@ function handleBulkActionSubmit() {
         title: 'বাল্ক অ্যাকশন নিশ্চিতকরণ',
         text: `আপনি কি নিশ্চিত যে নির্বাচিত ${checked.length}টি অনুরোধে এই অ্যাকশন প্রয়োগ করতে চান?`,
         icon: 'question',
-        confirmButtonText: '<i class="fas fa-check me-1"></i> হ্যাঁ, প্রয়োগ করুন',
+        confirmButtonText: '<i class="fa-solid fa-check me-1"></i> হ্যাঁ, প্রয়োগ করুন',
     }).then(function(result) {
         if (result.isConfirmed) {
             document.getElementById('bulkForm').submit();
@@ -626,7 +626,7 @@ function showToast(msg) {
         <div class="toast show align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert">
             <div class="d-flex">
                 <div class="toast-body small fw-semibold">
-                    <i class="fas fa-check-circle text-success me-1.5"></i> ${msg}
+                    <i class="fa-solid fa-circle-check text-success me-1.5"></i> ${msg}
                 </div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>

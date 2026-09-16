@@ -123,9 +123,83 @@ class UserController extends Controller
                 ->get();
         }
 
+        // 8. Recommended Books for Account Hub Carousel
+        $recommendedBooks = collect();
+        if (class_exists(\Modules\Book\Models\Book::class)) {
+            try {
+                $recommendedBooks = \Modules\Book\Models\Book::where('is_active', true)
+                    ->inRandomOrder()
+                    ->take(8)
+                    ->get();
+            } catch (\Throwable $e) {
+                $recommendedBooks = collect();
+            }
+        }
+
+        // 9. Continue Reading (Most recently read/accessed eBook)
+        $recentReading = $myEbooks->first();
+
+        // 10. Recent Orders (Top 3 for dashboard dual widget)
+        $recentOrders = Order::where('user_id', $user->id)->with('book')->latest('id')->take(3)->get();
+
+        // 11. Author Published Books Count
+        $publishedBooksCount = 0;
+        if (class_exists(\Modules\Book\Models\Book::class)) {
+            try {
+                if ($author) {
+                    $publishedBooksCount = \Modules\Book\Models\Book::where(function($q) use ($author, $user) {
+                        $q->where('author_link_id', $author->id)
+                          ->orWhere('author_name', $user->name);
+                    })->count();
+                } elseif ($user->role === 'author' || $user->reg_type === 'author') {
+                    $publishedBooksCount = \Modules\Book\Models\Book::where('author_name', $user->name)->count();
+                }
+            } catch (\Throwable $e) {
+                $publishedBooksCount = 0;
+            }
+        }
+
+        // 12. KYC Checklist & Percentage Calculation
+        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+        $kycItems = [
+            'photo'   => !empty($user->avatar) || !empty($regData['avatar']),
+            'name'    => !empty($user->name) || !empty($regData['name_bn']) || !empty($regData['name_en']),
+            'bio'     => !empty($regData['bio']),
+            'nid'     => !empty($regData['nid']) || !empty($regData['nid_file']),
+            'address' => !empty($regData['address']) || !empty($defaultAddress['address']) || !empty($regData['district']),
+        ];
+        $kycCompletedCount = count(array_filter($kycItems));
+        $kycPercent = (int) round(($kycCompletedCount / max(1, count($kycItems))) * 100);
+
+        // 13. Wallet & Royalty Balance
+        $walletBalance = (float) ($author?->wallet_balance ?? 0);
+        if ($walletBalance <= 0 && $totalCommissionEarned > 0) {
+            $walletBalance = (float) $totalCommissionEarned;
+        }
+
+        $monthlyRoyalty = 0.0;
+        if (class_exists(\App\Models\AuthorRoyalty::class)) {
+            try {
+                $monthlyRoyalty += (float) \App\Models\AuthorRoyalty::where('user_id', $user->id)
+                    ->whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->sum('royalty_amount');
+            } catch (\Throwable $e) {}
+        }
+        if (class_exists(\App\Models\AuthorHonorarium::class)) {
+            try {
+                $monthlyRoyalty += (float) \App\Models\AuthorHonorarium::where('author_user_id', $user->id)
+                    ->where('payment_status', 'completed')
+                    ->whereMonth('created_at', now()->month)
+                    ->whereYear('created_at', now()->year)
+                    ->sum('author_amount');
+            } catch (\Throwable $e) {}
+        }
+
         return view('frontend.pages.my-account', compact(
             'user',
             'myOrders',
+            'recentOrders',
             'totalOrdersCount',
             'deliveredOrdersCount',
             'totalSpentAmount',
@@ -133,11 +207,19 @@ class UserController extends Controller
             'wishlistItems',
             'affiliateOrders',
             'totalCommissionEarned',
+            'author',
             'authorPosts',
             'blogCategories',
             'editPost',
             'defaultAddress',
-            'myEbooks'
+            'myEbooks',
+            'recentReading',
+            'recommendedBooks',
+            'publishedBooksCount',
+            'kycItems',
+            'kycPercent',
+            'walletBalance',
+            'monthlyRoyalty'
         ));
     }
 

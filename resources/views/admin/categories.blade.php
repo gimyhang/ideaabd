@@ -9,11 +9,11 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.books') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5">
-            <i class="fas fa-book text-muted"></i>
+            <i class="fa-solid fa-book text-muted"></i>
             <span>সকল বই দেখুন</span>
         </a>
         <a href="{{ route('admin.content.create', 'categories') }}" class="btn btn-primary rounded-pill px-3.5 py-2 shadow-sm fw-bold d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none;">
-            <i class="fas fa-plus-circle fs-6"></i>
+            <i class="fa-solid fa-circle-plus fs-6"></i>
             <span>নতুন ক্যাটাগরি তৈরি করুন</span>
         </a>
     </div>
@@ -397,7 +397,7 @@
     <div class="col-6 col-md-3">
         <div class="bento-stat-card d-flex align-items-center gap-3">
             <div class="bento-stat-icon bg-primary-subtle text-primary">
-                <i class="fas fa-layer-group"></i>
+                <i class="fa-solid fa-layer-group"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">সর্বমোট ক্যাটাগরি</div>
@@ -408,7 +408,7 @@
     <div class="col-6 col-md-3">
         <div class="bento-stat-card d-flex align-items-center gap-3">
             <div class="bento-stat-icon bg-success-subtle text-success">
-                <i class="fas fa-circle-check"></i>
+                <i class="fa-solid fa-circle-check"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">সক্রিয় ক্যাটাগরি</div>
@@ -419,7 +419,7 @@
     <div class="col-6 col-md-3">
         <div class="bento-stat-card d-flex align-items-center gap-3">
             <div class="bento-stat-icon bg-warning-subtle text-warning">
-                <i class="fas fa-folder-open"></i>
+                <i class="fa-solid fa-folder-open"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">মূল বিষয় (Parent)</div>
@@ -430,7 +430,7 @@
     <div class="col-6 col-md-3">
         <div class="bento-stat-card d-flex align-items-center gap-3">
             <div class="bento-stat-icon bg-info-subtle text-info">
-                <i class="fas fa-diagram-nested"></i>
+                <i class="fa-solid fa-diagram-nested"></i>
             </div>
             <div>
                 <div class="small text-muted fw-semibold">উপ-ক্যাটাগরি (Sub)</div>
@@ -445,7 +445,7 @@
     <form method="GET" action="{{ route('admin.categories') }}" id="catFilterForm" class="row g-2 align-items-center">
         <div class="col-12 col-md-4">
             <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" name="search" class="form-control border-start-0 rounded-end-3" placeholder="ক্যাটাগরি নাম বা স্লাগ খুঁজুন..." value="{{ request('search') }}">
             </div>
         </div>
@@ -477,11 +477,11 @@
         </div>
         <div class="col-6 col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-primary flex-grow-1 rounded-3 fw-bold">
-                <i class="fas fa-filter me-1"></i> ফিল্টার
+                <i class="fa-solid fa-filter me-1"></i> ফিল্টার
             </button>
             @if(request()->hasAny(['search', 'parent_id', 'is_active', 'per_page']))
                 <a href="{{ route('admin.categories') }}" class="btn btn-outline-secondary rounded-3" title="রিসেট">
-                    <i class="fas fa-rotate-left"></i>
+                    <i class="fa-solid fa-rotate-left"></i>
                 </a>
             @endif
         </div>
@@ -491,17 +491,17 @@
 {{-- Gallery Toolbar & View Mode --}}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 px-1">
     <div class="text-muted small fw-semibold">
-        <i class="fas fa-folder-open text-primary me-1.5"></i>
+        <i class="fa-solid fa-folder-open text-primary me-1.5"></i>
         মোট <strong>@bn($categories->total())</strong>টি ক্যাটাগরির মধ্যে @bn($categories->firstItem() ?? 0) - @bn($categories->lastItem() ?? 0) প্রদর্শিত হচ্ছে
     </div>
     <div class="d-flex align-items-center gap-2">
         <span class="small text-muted me-1 d-none d-sm-inline">ভিউ মোড:</span>
         <div class="btn-group" role="group">
             <button type="button" class="view-pill-btn active" id="btnViewGrid" onclick="switchView('grid')">
-                <i class="fas fa-grid-2"></i> <span>ফোল্ডার গ্যালারি</span>
+                <i class="fa-solid fa-grid-2"></i> <span>ফোল্ডার গ্যালারি</span>
             </button>
             <button type="button" class="view-pill-btn" id="btnViewTable" onclick="switchView('table')">
-                <i class="fas fa-list"></i> <span>তালিকা</span>
+                <i class="fa-solid fa-list"></i> <span>তালিকা</span>
             </button>
         </div>
     </div>
@@ -551,7 +551,7 @@
                     <div class="cat-top-bar">
                         <a href="{{ route('admin.books', ['category_id' => $cat->id]) }}" class="text-decoration-none" title="এই ক্যাটাগরির @bn($cat->books_count ?? 0)টি বই দেখুন">
                             <span class="cat-book-chip">
-                                <i class="fas fa-book-bookmark text-primary"></i>
+                                <i class="fa-solid fa-book-bookmark text-primary"></i>
                                 <span>@bn($cat->books_count ?? 0)</span>
                             </span>
                         </a>
@@ -577,7 +577,7 @@
 
                             @if($totalCovers > 1)
                                 <span class="cat-slide-badge">
-                                    <i class="fas fa-layer-group me-1 opacity-75"></i>১/@bn($totalCovers)
+                                    <i class="fa-solid fa-layer-group me-1 opacity-75"></i>১/@bn($totalCovers)
                                 </span>
                             @endif
                         @else
@@ -594,10 +594,10 @@
                         {{-- Hover Interactive Slide Arrows --}}
                         @if($totalCovers > 1)
                             <button type="button" class="cat-nav-pill prev" onclick="cycleCategorySlide({{ $cat->id }}, -1, event)" title="পূর্ববর্তী কভার">
-                                <i class="fas fa-chevron-left"></i>
+                                <i class="fa-solid fa-chevron-left"></i>
                             </button>
                             <button type="button" class="cat-nav-pill next" onclick="cycleCategorySlide({{ $cat->id }}, 1, event)" title="পরবর্তী কভার">
-                                <i class="fas fa-chevron-right"></i>
+                                <i class="fa-solid fa-chevron-right"></i>
                             </button>
                         @endif
                     </div>
@@ -626,14 +626,14 @@
                         <a href="{{ route('admin.books', ['category_id' => $cat->id]) }}" 
                            class="cat-action-circle act-view" 
                            title="এই ক্যাটাগরির বইগুলো দেখুন">
-                            <i class="fas fa-arrow-up-right-from-square"></i>
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
 
                         {{-- Edit Category --}}
                         <a href="{{ route('admin.content.edit', ['type' => 'categories', 'id' => $cat->id]) }}" 
                            class="cat-action-circle act-edit" 
                            title="সম্পাদনা করুন">
-                            <i class="fas fa-pen-to-square"></i>
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </a>
 
                         {{-- Delete Category --}}
@@ -641,7 +641,7 @@
                                 onclick="confirmCategoryDelete({{ $cat->id }}, '{{ addslashes($cat->name) }}')" 
                                 class="cat-action-circle act-del" 
                                 title="মুছে ফেলুন">
-                            <i class="fas fa-trash-can"></i>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -650,12 +650,12 @@
     @else
         <div class="bento-stat-card p-5 text-center text-muted">
             <div class="mb-3">
-                <i class="fas fa-folder-open fs-1 text-muted opacity-50"></i>
+                <i class="fa-solid fa-folder-open fs-1 text-muted opacity-50"></i>
             </div>
             <h5 class="fw-bold text-dark">কোন ক্যাটাগরি পাওয়া যায়নি!</h5>
             <p class="small text-muted mb-3">আপনার সার্চ ফিল্টারে কোন তথ্য নেই অথবা নতুন ক্যাটাগরি তৈরি করুন।</p>
             <a href="{{ route('admin.content.create', 'categories') }}" class="btn btn-primary rounded-pill px-4">
-                <i class="fas fa-plus me-1"></i> নতুন ক্যাটাগরি তৈরি করুন
+                <i class="fa-solid fa-plus me-1"></i> নতুন ক্যাটাগরি তৈরি করুন
             </a>
         </div>
     @endif
@@ -713,7 +713,7 @@
                         <td class="px-3">
                             @if($cat->parent)
                                 <span class="badge bg-light text-dark border">
-                                    <i class="fas fa-folder-open text-primary me-1"></i> {{ $cat->parent->name }}
+                                    <i class="fa-solid fa-folder-open text-primary me-1"></i> {{ $cat->parent->name }}
                                 </span>
                             @else
                                 <span class="badge bg-primary-subtle text-primary border">মূল বিষয় (Root)</span>
@@ -736,16 +736,16 @@
                             <div class="d-inline-flex gap-1">
                                 <a href="{{ route('admin.books', ['category_id' => $cat->id]) }}"
                                    class="btn btn-sm btn-outline-secondary py-1 px-2" title="বইগুলো দেখুন">
-                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 </a>
                                 <a href="{{ route('admin.content.edit', ['type' => 'categories', 'id' => $cat->id]) }}"
                                    class="btn btn-sm btn-outline-primary py-1 px-2" title="সম্পাদনা">
-                                    <i class="fas fa-pen-to-square"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
                                 <button type="button" 
                                         onclick="confirmCategoryDelete({{ $cat->id }}, '{{ addslashes($cat->name) }}')"
                                         class="btn btn-sm btn-outline-danger py-1 px-2" title="মুছে ফেলুন">
-                                    <i class="fas fa-trash-can"></i>
+                                    <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </td>
@@ -753,7 +753,7 @@
                 @empty
                     <tr>
                         <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="fas fa-folder-open fs-2 mb-2 d-block text-muted opacity-50"></i>
+                            <i class="fa-solid fa-folder-open fs-2 mb-2 d-block text-muted opacity-50"></i>
                             কোন ক্যাটাগরি পাওয়া যায়নি।
                         </td>
                     </tr>
@@ -821,8 +821,8 @@
             title: 'ক্যাটাগরি মুছে ফেলা',
             text: 'আপনি কি নিশ্চিত যে "' + catName + '" ক্যাটাগরিটি মুছে ফেলতে চান?',
             icon: 'warning',
-            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছে ফেলুন',
-            cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, মুছে ফেলুন',
+            cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
         }).then(function(result) {
             if (result.isConfirmed) {
                 var form = document.getElementById('globalCategoryDeleteForm');

@@ -12,13 +12,13 @@
     <div class="d-flex align-items-center gap-2 flex-wrap">
         {{-- 1-Click Auto Optimizer Engine --}}
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="btnOptimizeAll" onclick="runMediaOptimization(this)">
-            <i class="fas fa-bolt text-success"></i>
+            <i class="fa-solid fa-bolt text-success"></i>
             <span>অটো-অপ্টিমাইজেশন চালান</span>
         </button>
 
         {{-- Upload Modal Trigger --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-bold d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#uploadMediaModal">
-            <i class="fas fa-cloud-arrow-up"></i>
+            <i class="fa-solid fa-cloud-arrow-up"></i>
             <span>নতুন মিডিয়া আপলোড</span>
         </button>
     </div>
@@ -94,7 +94,7 @@
     <!-- Flash Messages -->
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs border-0 border-start border-4 border-success bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-circle-check text-success fs-5 me-2.5"></i>
+            <i class="fa-solid fa-circle-check text-success fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -102,7 +102,7 @@
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs border-0 border-start border-4 border-danger bg-white py-2.5 px-3" role="alert">
-            <i class="fas fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
+            <i class="fa-solid fa-triangle-exclamation text-danger fs-5 me-2.5"></i>
             <div class="fw-semibold small text-dark">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -118,7 +118,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">মোট মিডিয়া ফাইল</span>
                     <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-images"></i>
+                        <i class="fa-solid fa-images"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold mb-1 font-monospace" id="lblTotalCount">{{ number_format($totalCount) }} টি</h3>
@@ -131,7 +131,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">মোট স্টোরেজ সাইজ</span>
                     <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-hard-drive"></i>
+                        <i class="fa-solid fa-hard-drive"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold font-monospace mb-1" id="lblTotalSize">{{ $totalFormatted }}</h3>
@@ -144,7 +144,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">অটো-অপ্টিমাইজার</span>
                     <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-bolt"></i>
+                        <i class="fa-solid fa-bolt"></i>
                     </div>
                 </div>
                 <h3 class="text-success fs-5 fw-bold mb-1 d-flex align-items-center gap-1.5">
@@ -159,7 +159,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">বর্তমান ফোল্ডার</span>
                     <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fas fa-folder-open"></i>
+                        <i class="fa-solid fa-folder-open"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-5 fw-bold mb-1 text-capitalize">
@@ -175,7 +175,7 @@
         <div class="row g-2 align-items-center">
             <div class="col-12 col-lg-5">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-primary"><i class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-white border-end-0 text-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="search" id="mediaLiveSearch" class="form-control border-start-0 ps-0 fw-semibold" 
                            placeholder="লাইভ খুঁজুন (ফাইলের নাম বা এক্সটেনশন টাইপ করুন)..." 
                            value="{{ $search }}" oninput="filterMediaCards(this.value)">
@@ -227,19 +227,19 @@
                         </button>
                         <div class="d-flex align-items-center gap-1">
                             <a href="{{ $item['url'] }}" target="_blank" class="btn btn-xs btn-outline-secondary border-0 p-1" title="পূর্ণাঙ্গ ব্রাউজারে খুলুন">
-                                <i class="fas fa-arrow-up-right-from-square"></i>
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
                             </a>
                             <form action="{{ route('admin.media.destroy') }}" method="POST"
                                   data-confirm="আপনি কি নিশ্চিত এই মিডিয়া ছবিটি মুছে ফেলতে চান?"
                                   data-confirm-title="মিডিয়া ফাইল অপসারণ"
                                   data-confirm-icon="warning"
-                                  data-confirm-btn="<i class='fas fa-trash-can me-1'></i> মুছে ফেলুন"
+                                  data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> মুছে ফেলুন"
                                   class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <input type="hidden" name="path" value="{{ $item['path'] }}">
                                 <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="মুছে ফেলুন">
-                                    <i class="fas fa-trash-can"></i>
+                                    <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </form>
                         </div>
@@ -249,7 +249,7 @@
         @empty
             <div class="col-12" id="emptyMediaNotice">
                 <div class="card bg-white rounded-4 p-5 text-center text-muted border-0 shadow-sm">
-                    <i class="fas fa-images fs-1 text-secondary mb-3 opacity-50"></i>
+                    <i class="fa-solid fa-images fs-1 text-secondary mb-3 opacity-50"></i>
                     <h5 class="text-dark fw-bold">কোনো মিডিয়া ফাইল পাওয়া যায়নি</h5>
                     <p class="small mb-3">উপরে <strong>নতুন মিডিয়া আপলোড</strong> বাটনে চাপ দিয়ে ছবি যোগ করুন।</p>
                 </div>
@@ -260,7 +260,7 @@
     <!-- No Search Results Placeholder -->
     <div id="noSearchMatchNotice" class="d-none col-12">
         <div class="card bg-white rounded-4 p-5 text-center text-muted border-0 shadow-sm">
-            <i class="fas fa-search fs-1 text-secondary mb-3 opacity-50"></i>
+            <i class="fa-solid fa-magnifying-glass fs-1 text-secondary mb-3 opacity-50"></i>
             <h5 class="text-dark fw-bold">কোনো ফলাফল মেলেনি</h5>
             <p class="small mb-0">ভিন্ন কোনো ফাইলের নাম বা এক্সটেনশন দিয়ে অনুসন্ধান করুন।</p>
         </div>
@@ -274,7 +274,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3 px-4 bg-light rounded-top-4">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
-                    <i class="fas fa-cloud-arrow-up text-primary"></i>
+                    <i class="fa-solid fa-cloud-arrow-up text-primary"></i>
                     <span>নতুন মিডিয়া আপলোড ও অটো-অপ্টিমাইজ</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -295,7 +295,7 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark">ছবি নির্বাচন (JPG, PNG, WEBP, SVG)</label>
                         <div class="media-dragzone p-4 text-center" onclick="document.getElementById('mediaFileInput').click()">
-                            <i class="fas fa-cloud-arrow-up fs-2 text-primary mb-2 d-block"></i>
+                            <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary mb-2 d-block"></i>
                             <div class="fw-bold text-dark small mb-0.5">ছবি ড্র্যাগ করুন অথবা ক্লিক করে নির্বাচন করুন</div>
                             <small class="text-muted" style="font-size:11px;">সর্বোচ্চ সাইজ: 5MB | স্বয়ংক্রিয়ভাবে ওয়েব অপ্টিমাইজড হবে</small>
                             <input type="file" name="file" id="mediaFileInput" class="d-none" accept="image/*" required onchange="handleFilePreview(this)">
@@ -311,7 +311,7 @@
                 <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4">
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fas fa-upload me-1"></i> আপলোড ও অপ্টিমাইজ
+                        <i class="fa-solid fa-upload me-1"></i> আপলোড ও অপ্টিমাইজ
                     </button>
                 </div>
             </form>
@@ -337,7 +337,7 @@
                         <i class="fa-regular fa-copy me-1"></i> URL কপি
                     </button>
                     <a href="" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="lightboxOpenBtn">
-                        <i class="fas fa-arrow-up-right-from-square me-1"></i> সরাসরি লিংক
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> সরাসরি লিংক
                     </a>
                 </div>
             </div>

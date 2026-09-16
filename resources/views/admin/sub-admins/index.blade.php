@@ -8,7 +8,7 @@
 
 @section('actions')
     <a href="{{ route('admin.sub-admins.create') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-user-plus me-1"></i> Add Sub-Admin
+        <i class="fa-solid fa-user-plus me-1"></i> Add Sub-Admin
     </a>
 @endsection
 
@@ -24,7 +24,7 @@
                 <p class="kpi__label small text-muted fw-semibold mb-1">{{ $tile['label'] }}</p>
                 <p class="kpi__value fs-4 fw-bold mb-0" style="color: {{ $tile['color'] }}">{{ number_format($tile['value']) }}</p>
                 <span class="kpi__icon" style="background: {{ $tile['color'] }}1a; color: {{ $tile['color'] }}">
-                    <i class="fas fa-{{ $tile['icon'] }}"></i>
+                    <i class="fa-solid fa-{{ $tile['icon'] }}"></i>
                 </span>
             </div>
         </div>
@@ -44,10 +44,10 @@
 <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-0 overflow-hidden">
     @if ($staff->isEmpty())
         <div class="empty-state py-5 text-center">
-            <i class="fas fa-user-shield fs-1 text-muted opacity-50 mb-2"></i>
+            <i class="fa-solid fa-user-shield fs-1 text-muted opacity-50 mb-2"></i>
             <div class="fw-semibold text-dark">No sub-admins or sellers found</div>
             <a href="{{ route('admin.sub-admins.create') }}" class="btn btn-sm btn-primary rounded-pill px-3 mt-3">
-                <i class="fas fa-user-plus me-1"></i> Create First Account
+                <i class="fa-solid fa-user-plus me-1"></i> Create First Account
             </a>
         </div>
     @else
@@ -93,19 +93,19 @@
                             <td class="pe-3">
                                 <div class="d-flex justify-content-end gap-1">
                                     <a href="{{ route('admin.sub-admins.show', $member) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5" title="View Details">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fa-solid fa-eye"></i>
                                     </a>
                                     <form method="POST" action="{{ route('admin.sub-admins.toggle', $member) }}">
                                         @csrf @method('PATCH')
                                         <button class="btn btn-sm {{ $member->is_active ? 'btn-outline-warning' : 'btn-outline-success' }} rounded-pill px-2.5"
                                                 title="{{ $member->is_active ? 'Deactivate' : 'Activate' }}">
-                                            <i class="fas fa-{{ $member->is_active ? 'ban' : 'circle-check' }}"></i>
+                                            <i class="fa-solid fa-{{ $member->is_active ? 'ban' : 'circle-check' }}"></i>
                                         </button>
                                     </form>
                                     <form method="POST" action="{{ route('admin.sub-admins.destroy', $member) }}"
                                           data-confirm="আপনি কি নিশ্চিত যে {{ $member->name }} এর সাব-অ্যাডমিন অ্যাকাউন্টটি মুছে ফেলতে চান?" data-confirm-title="সাব-অ্যাডমিন ডিলিট">
                                         @csrf @method('DELETE')
-                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="Delete"><i class="fas fa-trash"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger rounded-pill px-2.5" title="Delete"><i class="fa-solid fa-trash"></i></button>
                                     </form>
                                 </div>
                             </td>

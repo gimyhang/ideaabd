@@ -10,7 +10,7 @@
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                 <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2">
-                    <i class="fas fa-tablet-screen-button"></i>
+                    <i class="fa-solid fa-tablet-screen-button"></i>
                 </span>
                 <span>Basic Information & Details</span>
             </h2>
@@ -21,7 +21,7 @@
             {{-- 1. E-Book Title --}}
             <div class="col-12 col-md-8">
                 <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-book text-primary me-1"></i> E-Book Title <span class="text-danger">*</span>
+                    <i class="fa-solid fa-book text-primary me-1"></i> E-Book Title <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
                        class="form-control form-control-sm rounded-3 fw-semibold @error('title') is-invalid @enderror" 
@@ -32,7 +32,7 @@
             {{-- 2. ISBN / E-Book Code --}}
             <div class="col-12 col-md-4">
                 <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-barcode text-secondary me-1"></i> ISBN / E-Book Code
+                    <i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / E-Book Code
                 </label>
                 <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
                        class="form-control form-control-sm rounded-3 font-monospace @error('isbn') is-invalid @enderror" 
@@ -43,7 +43,7 @@
             {{-- 3. Subtitle / Tagline --}}
             <div class="col-12">
                 <label for="f-subtitle" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fas fa-quote-left text-muted me-1"></i> Subtitle / Tagline
+                    <i class="fa-solid fa-quote-left text-muted me-1"></i> Subtitle / Tagline
                 </label>
                 <input type="text" id="f-subtitle" name="subtitle" value="{{ $val('subtitle') }}"
                        class="form-control form-control-sm rounded-3 @error('subtitle') is-invalid @enderror" 
@@ -55,11 +55,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-folder-tree text-primary me-1"></i> Category <span class="text-danger">*</span>
+                        <i class="fa-solid fa-folder-tree text-primary me-1"></i> Category <span class="text-danger">*</span>
                     </label>
                     <button type="button" class="btn btn-xs btn-link text-primary text-decoration-none p-0 fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                        <i class="fas fa-plus"></i> + Add Category
+                        <i class="fa-solid fa-plus"></i> + Add Category
                     </button>
                 </div>
                 <select id="f-category_id" name="category_id" required
@@ -75,11 +75,11 @@
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-building text-success me-1"></i> Publisher
+                        <i class="fa-solid fa-building text-success me-1"></i> Publisher
                     </label>
                     <button type="button" class="btn btn-xs btn-link text-primary text-decoration-none p-0 fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fas fa-plus"></i> + Add Publisher
+                        <i class="fa-solid fa-plus"></i> + Add Publisher
                     </button>
                 </div>
                 <select id="f-publisher_id" name="publisher_id"
@@ -97,7 +97,7 @@
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                         <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-tags text-success me-1"></i> Pricing & Page Count
+                            <i class="fa-solid fa-tags text-success me-1"></i> Pricing & Page Count
                         </label>
                         <span class="badge bg-white text-muted border small">৳0 = Free E-Book</span>
                     </div>
@@ -132,7 +132,7 @@
                             </div>
                             <div id="ebookSavingsBadge" class="mt-1 d-none">
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small fw-bold">
-                                    <i class="fas fa-fire me-1"></i> Save: ৳<span id="ebookSavingsAmount">0</span> (<span id="ebookSavingsPercent">0</span>%)
+                                    <i class="fa-solid fa-fire me-1"></i> Save: ৳<span id="ebookSavingsAmount">0</span> (<span id="ebookSavingsPercent">0</span>%)
                                 </span>
                             </div>
                             @error('discount_price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -162,7 +162,7 @@
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border" style="border-left: 4px solid #10b981 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                         <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-coins text-success me-1"></i> রয়্যালটি ও লেখক আয় সেটিংস (Royalty & Author Earnings)
+                            <i class="fa-solid fa-coins text-success me-1"></i> রয়্যালটি ও লেখক আয় সেটিংস (Royalty & Author Earnings)
                         </label>
                         <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small fw-bold">
                             ইবুক রয়্যালটি নিয়ন্ত্রণ
@@ -177,7 +177,7 @@
                                        id="f-is_royalty_free" name="is_royalty_free" value="1" 
                                        @checked($isRoyaltyFree) onchange="toggleEbookRoyaltyInputs(this)">
                                 <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free">
-                                    <i class="fas fa-hand-holding-heart text-warning me-1"></i> রয়্যালটি ফ্রি ইবুক (Royalty-Free)
+                                    <i class="fa-solid fa-hand-holding-heart text-warning me-1"></i> রয়্যালটি ফ্রি ইবুক (Royalty-Free)
                                 </label>
                                 <small class="d-block text-muted" style="font-size: 11px;">অন করলে এই ইবুক বিক্রয়ে কোনো রয়্যালটি লেখক অ্যাকাউন্টে যাবে না (০% রয়্যালটি)।</small>
                             </div>
@@ -214,11 +214,11 @@
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
                         <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fas fa-pen-nib text-primary me-1"></i> Authors & Contributors <span class="text-danger">*</span>
+                            <i class="fa-solid fa-pen-nib text-primary me-1"></i> Authors & Contributors <span class="text-danger">*</span>
                         </label>
                         <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2.5 rounded-pill fw-semibold" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                            <i class="fas fa-plus me-1"></i>+ Add New Author
+                            <i class="fa-solid fa-plus me-1"></i>+ Add New Author
                         </button>
                     </div>
 
@@ -258,7 +258,7 @@
                     <div class="row g-2 pt-2 border-top">
                         <div class="col-12 col-md-4">
                             <label for="f-editor_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fas fa-feather text-info me-1"></i> Editor (সম্পাদক)
+                                <i class="fa-solid fa-feather text-info me-1"></i> Editor (সম্পাদক)
                             </label>
                             <input type="text" id="f-editor_name" name="editor_name" value="{{ $curEditor }}"
                                    class="form-control form-control-sm rounded-3 @error('editor_name') is-invalid @enderror" 
@@ -268,7 +268,7 @@
 
                         <div class="col-12 col-md-4">
                             <label for="f-rewriter_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fas fa-pen-fancy text-warning me-1"></i> Rewriter (পুনর্লেখক)
+                                <i class="fa-solid fa-pen-fancy text-warning me-1"></i> Rewriter (পুনর্লেখক)
                             </label>
                             <input type="text" id="f-rewriter_name" name="rewriter_name" value="{{ $curRewriter }}"
                                    class="form-control form-control-sm rounded-3 @error('rewriter_name') is-invalid @enderror" 
@@ -278,7 +278,7 @@
 
                         <div class="col-12 col-md-4">
                             <label for="f-translator_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fas fa-language text-secondary me-1"></i> Translator (অনুবাদক)
+                                <i class="fa-solid fa-language text-secondary me-1"></i> Translator (অনুবাদক)
                             </label>
                             <input type="text" id="f-translator_name" name="translator_name" value="{{ $curTranslator }}"
                                    class="form-control form-control-sm rounded-3 @error('translator_name') is-invalid @enderror" 
@@ -293,7 +293,7 @@
             <div class="col-12 mt-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-description" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fas fa-align-left text-primary me-1"></i> Description & Synopsis
+                        <i class="fa-solid fa-align-left text-primary me-1"></i> Description & Synopsis
                     </label>
                     <span class="text-muted small" style="font-size: 11px;">HTML & Rich formatting supported</span>
                 </div>
@@ -310,7 +310,7 @@
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                 <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2">
-                    <i class="fas fa-file-pdf"></i>
+                    <i class="fa-solid fa-file-pdf"></i>
                 </span>
                 <span>Digital E-Book Files Upload</span>
             </h2>
@@ -325,7 +325,7 @@
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 hover-shadow transition-all">
                     <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-2">
                         <label for="f-file_path" class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                            <i class="fas fa-file-arrow-up text-primary fs-6"></i>
+                            <i class="fa-solid fa-file-arrow-up text-primary fs-6"></i>
                             <span>Main Digital Book File (PDF / EPUB)</span>
                         </label>
                         <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
@@ -339,10 +339,10 @@
                     @if ($editing && !empty($record->file_path))
                         <div class="d-flex align-items-center justify-content-between mt-2 p-2 bg-white rounded-3 border border-success-subtle">
                             <span class="small text-success fw-semibold text-truncate">
-                                <i class="fas fa-circle-check me-1"></i> Current file: {{ basename($record->file_path) }}
+                                <i class="fa-solid fa-circle-check me-1"></i> Current file: {{ basename($record->file_path) }}
                             </span>
                             <a href="{{ Storage::url($record->file_path) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 small text-nowrap">
-                                <i class="fas fa-download me-1"></i> Download
+                                <i class="fa-solid fa-download me-1"></i> Download
                             </a>
                         </div>
                     @endif
@@ -353,7 +353,7 @@
             <div class="col-12 col-md-6">
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 h-100">
                     <label for="f-epub_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fas fa-book-open text-info fs-6"></i>
+                        <i class="fa-solid fa-book-open text-info fs-6"></i>
                         <span>Dedicated EPUB File (Optional)</span>
                     </label>
                     <small class="text-muted d-block mb-2" style="font-size: 11px;">Optimized file for native e-pub reader devices</small>
@@ -363,7 +363,7 @@
 
                     @if ($editing && !empty($record->epub_file_path))
                         <div class="mt-2 small text-info fw-semibold text-truncate">
-                            <i class="fas fa-check-circle me-1"></i> {{ basename($record->epub_file_path) }}
+                            <i class="fa-solid fa-circle-check me-1"></i> {{ basename($record->epub_file_path) }}
                         </div>
                     @endif
                 </div>
@@ -373,7 +373,7 @@
             <div class="col-12 col-md-6">
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 h-100">
                     <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fas fa-eye text-warning fs-6"></i>
+                        <i class="fa-solid fa-eye text-warning fs-6"></i>
                         <span>Free Sample Preview File (Optional)</span>
                     </label>
                     <small class="text-muted d-block mb-2" style="font-size: 11px;">Sample chapter for visitors to preview before purchasing</small>
@@ -383,7 +383,7 @@
 
                     @if ($editing && !empty($record->sample_file_path))
                         <div class="mt-2 small text-warning-emphasis fw-semibold text-truncate">
-                            <i class="fas fa-check-circle me-1"></i> {{ basename($record->sample_file_path) }}
+                            <i class="fa-solid fa-circle-check me-1"></i> {{ basename($record->sample_file_path) }}
                         </div>
                     @endif
                 </div>
@@ -399,7 +399,7 @@
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                <i class="fas fa-circle-check text-success"></i> Publishing Actions
+                <i class="fa-solid fa-circle-check text-success"></i> Publishing Actions
             </h2>
             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small">Live Control</span>
         </div>
@@ -408,7 +408,7 @@
         <div class="p-3 bg-light rounded-3 border mb-3">
             <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 mb-0">
                 <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer" for="f-is_active">
-                    <i class="fas fa-globe text-primary me-1"></i> Active & Live in Store
+                    <i class="fa-solid fa-globe text-primary me-1"></i> Active & Live in Store
                 </label>
                 <input type="hidden" name="is_active" value="0">
                 <input class="form-check-input ms-0 cursor-pointer" type="checkbox" role="switch" id="f-is_active" 
@@ -420,12 +420,12 @@
         {{-- Primary Action Button --}}
         <button type="submit" form="contentMainForm" id="btnSubmitEbookForm" 
                 class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2 py-2.5">
-            <i class="fas fa-circle-check fs-5"></i>
+            <i class="fa-solid fa-circle-check fs-5"></i>
             <span>{{ $editing ? 'Save Changes' : 'Publish & Save E-Book' }}</span>
         </button>
 
         <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary w-100 rounded-pill fw-semibold btn-sm py-2">
-            <i class="fas fa-arrow-left me-1"></i> Cancel & Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> Cancel & Back to List
         </a>
     </div>
 
@@ -433,7 +433,7 @@
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
             <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                <i class="fas fa-image text-primary"></i> E-Book Cover
+                <i class="fa-solid fa-image text-primary"></i> E-Book Cover
             </h2>
             <span class="badge bg-light text-muted border small">7:10 Ratio</span>
         </div>
@@ -456,7 +456,7 @@
             <div id="ebookCoverPlaceholder" class="w-100 h-100 d-flex flex-column justify-content-between p-3 text-start {{ $existingCover ? 'd-none' : '' }}" style="border-left: 4px solid #38bdf8;">
                 <div class="d-flex justify-content-between align-items-start">
                     <span class="badge bg-primary bg-opacity-25 text-info border border-info border-opacity-25 px-1.5 py-0.5 rounded-pill" style="font-size: 0.6rem;">E-Book</span>
-                    <i class="fas fa-bookmark text-warning opacity-75" style="font-size: 0.7rem;"></i>
+                    <i class="fa-solid fa-bookmark text-warning opacity-75" style="font-size: 0.7rem;"></i>
                 </div>
                 <div class="my-auto py-1">
                     <h6 id="mockupEbookTitle" class="fw-bold text-white mb-1" style="font-size: 0.8rem; line-height: 1.35; font-family: 'Hind Siliguri', 'Inter', sans-serif; color: #f8fafc !important;">
@@ -468,7 +468,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center pt-1.5 border-top border-secondary border-opacity-25">
                     <span class="text-white-50 small" style="font-size: 0.6rem;">Idea Digital</span>
-                    <i class="fas fa-feather-pointed text-info opacity-75" style="font-size: 0.6rem;"></i>
+                    <i class="fa-solid fa-feather-pointed text-info opacity-75" style="font-size: 0.6rem;"></i>
                 </div>
             </div>
         </div>
@@ -476,7 +476,7 @@
         {{-- File Input --}}
         <div>
             <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">
-                <i class="fas fa-cloud-arrow-up text-secondary me-1"></i> Upload Cover Image
+                <i class="fa-solid fa-cloud-arrow-up text-secondary me-1"></i> Upload Cover Image
             </label>
             <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                    class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"

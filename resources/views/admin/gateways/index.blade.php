@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportGatewayCSV()">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <a href="{{ route('admin.payments.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-sliders me-1"></i> Gateway Settings
+            <i class="fa-solid fa-sliders me-1"></i> Gateway Settings
         </a>
     </div>
 @endsection
@@ -78,7 +78,7 @@
         <form action="{{ route('admin.gateway-reports') }}" method="GET" class="row g-2 align-items-center">
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control border-start-0" 
                            placeholder="Search Order #, TrxID, Phone...">
                 </div>
@@ -108,11 +108,11 @@
             </div>
             <div class="col-12 col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold shadow-xs">
-                    <i class="fas fa-filter"></i>
+                    <i class="fa-solid fa-filter"></i>
                 </button>
                 @if(request()->hasAny(['search', 'gateway', 'status', 'from_date', 'to_date']))
                     <a href="{{ route('admin.gateway-reports') }}" class="btn btn-sm btn-outline-secondary rounded-pill" title="Reset">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
             </div>
@@ -153,19 +153,19 @@
                             <td>
                                 @if(str_contains($pm, 'bkash') || str_contains($pm, 'বিকাশ'))
                                     <span class="badge rounded-pill text-white px-2.5 py-1" style="background: #d12053;">
-                                        <i class="fas fa-mobile-screen-button me-1"></i> bKash
+                                        <i class="fa-solid fa-mobile-screen-button me-1"></i> bKash
                                     </span>
                                 @elseif(str_contains($pm, 'nagad') || str_contains($pm, 'নগদ'))
                                     <span class="badge rounded-pill text-white px-2.5 py-1" style="background: #f7931e;">
-                                        <i class="fas fa-mobile-screen-button me-1"></i> Nagad
+                                        <i class="fa-solid fa-mobile-screen-button me-1"></i> Nagad
                                     </span>
                                 @elseif(str_contains($pm, 'card') || str_contains($pm, 'sslcommerz') || str_contains($pm, 'visa'))
                                     <span class="badge bg-primary rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-credit-card me-1"></i> SSLCommerz (Card)
+                                        <i class="fa-solid fa-credit-card me-1"></i> SSLCommerz (Card)
                                     </span>
                                 @else
                                     <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-truck me-1"></i> Cash on Delivery
+                                        <i class="fa-solid fa-truck me-1"></i> Cash on Delivery
                                     </span>
                                 @endif
                             </td>
@@ -182,7 +182,7 @@
                             <td class="text-center">
                                 @if($isPaid)
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                                        <i class="fas fa-circle-check me-1"></i> Paid / Success
+                                        <i class="fa-solid fa-circle-check me-1"></i> Paid / Success
                                     </span>
                                 @elseif($order->status === 'cancelled' || $order->payment_status === 'failed')
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
@@ -196,14 +196,14 @@
                             </td>
                             <td class="text-end pe-4">
                                 <a href="{{ route('admin.ecommerce-orders.show', $order->id) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" title="View Order">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fa-solid fa-eye"></i>
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fas fa-credit-card fs-2 mb-2 d-block opacity-25"></i>
+                                <i class="fa-solid fa-credit-card fs-2 mb-2 d-block opacity-25"></i>
                                 কোনো গেটওয়ে ট্রানজেকশন রেকর্ড পাওয়া যায়নি।
                             </td>
                         </tr>

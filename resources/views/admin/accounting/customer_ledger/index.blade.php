@@ -23,7 +23,7 @@
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark"><i class="fas fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট" }}</span>
+        <span class="fs-5 fw-bold text-dark"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট" }}</span>
         @if($activeCustomer)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
                 ID: {{ $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : 'ACC-' . substr(md5($activeCustomer['name']), 0, 6) }}
@@ -42,29 +42,29 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
         {{-- Customize Logo & Info Button --}}
         <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#ledgerBrandingSettingsModal" title="লেজার ও বিলের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজ করুন">
-            <i class="fas fa-palette me-1 text-primary"></i> লোগো ও তথ্য পরিবর্তন
+            <i class="fa-solid fa-palette me-1 text-primary"></i> লোগো ও তথ্য পরিবর্তন
         </button>
 
         {{-- Collect Payment Button --}}
         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal">
-            <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি / জমা নিন
+            <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> কিস্তি / জমা নিন
         </button>
 
         {{-- Export Tools Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs btn-sm rounded-pill px-3 fw-semibold dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-file-export me-1 text-primary"></i> এক্সপোর্ট / শেয়ার
+                <i class="fa-solid fa-file-export me-1 text-primary"></i> এক্সপোর্ট / শেয়ার
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
                 <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">এক্সপোর্ট ফরম্যাট:</h6></li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportTableToCSV('customer-ledger-data.csv')">
-                        <i class="fas fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
+                        <i class="fa-solid fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="copyTableToClipboard()">
-                        <i class="fas fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
+                        <i class="fa-solid fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
                     </button>
                 </li>
                 @if($statement && $activeCustomer)
@@ -80,15 +80,15 @@
 
         @if($statement)
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
-                <i class="fas fa-print me-1.5"></i> স্টেটমেন্ট প্রিন্ট / PDF
+                <i class="fa-solid fa-print me-1.5"></i> স্টেটমেন্ট প্রিন্ট / PDF
             </button>
             <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-                <i class="fas fa-users me-1"></i> সকল গ্রাহক তালিকা
+                <i class="fa-solid fa-users me-1"></i> সকল গ্রাহক তালিকা
             </a>
         @endif
 
         <a href="{{ route('admin.accounting.invoices.create') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-plus me-1"></i> নতুন বিল / চালান
+            <i class="fa-solid fa-plus me-1"></i> নতুন বিল / চালান
         </a>
     </div>
 @endsection
@@ -201,7 +201,7 @@
                         <div class="text-muted small" style="font-size: 11px;">Active Parties</div>
                     </div>
                     <div class="rounded-circle bg-primary-subtle p-3 text-primary">
-                        <i class="fas fa-user-group fs-5"></i>
+                        <i class="fa-solid fa-user-group fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -216,7 +216,7 @@
                         <div class="text-muted small" style="font-size: 11px;">Total Invoiced</div>
                     </div>
                     <div class="rounded-circle bg-info-subtle p-3 text-info">
-                        <i class="fas fa-file-invoice-dollar fs-5"></i>
+                        <i class="fa-solid fa-file-invoice-dollar fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -231,7 +231,7 @@
                         <div class="text-success small" style="font-size: 11px;">Collection: {{ $totalBilledAll > 0 ? round(($totalPaidAll / $totalBilledAll) * 100, 1) : 0 }}%</div>
                     </div>
                     <div class="rounded-circle bg-success-subtle p-3 text-success">
-                        <i class="fas fa-hand-holding-dollar fs-5"></i>
+                        <i class="fa-solid fa-hand-holding-dollar fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -246,7 +246,7 @@
                         <div class="text-danger small" style="font-size: 11px;">Overdue: {{ $totalOverdueCount }}</div>
                     </div>
                     <div class="rounded-circle bg-danger-subtle p-3 text-danger">
-                        <i class="fas fa-clock-rotate-left fs-5"></i>
+                        <i class="fa-solid fa-clock-rotate-left fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -259,7 +259,7 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-2.5">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-secondary-subtle text-dark p-2 rounded-circle">
-                        <i class="fas fa-chart-simple text-primary"></i>
+                        <i class="fa-solid fa-chart-simple text-primary"></i>
                     </span>
                     <div>
                         <h6 class="fw-bold mb-0 text-dark">Aging Analysis</h6>
@@ -268,16 +268,16 @@
                 </div>
                 <div class="d-flex gap-1.5 flex-wrap">
                     <span class="aging-pill bg-success-subtle text-success border border-success-subtle">
-                        <i class="fas fa-circle-check me-1"></i>0–30 Days: <strong>৳{{ number_format($agingCurrent, 2) }}</strong>
+                        <i class="fa-solid fa-circle-check me-1"></i>0–30 Days: <strong>৳{{ number_format($agingCurrent, 2) }}</strong>
                     </span>
                     <span class="aging-pill bg-info-subtle text-info border border-info-subtle">
-                        <i class="fas fa-calendar-day me-1"></i>31–60 Days: <strong>৳{{ number_format($aging30, 2) }}</strong>
+                        <i class="fa-solid fa-calendar-day me-1"></i>31–60 Days: <strong>৳{{ number_format($aging30, 2) }}</strong>
                     </span>
                     <span class="aging-pill bg-warning-subtle text-dark border border-warning-subtle">
-                        <i class="fas fa-triangle-exclamation me-1 text-warning"></i>61–90 Days: <strong>৳{{ number_format($aging60, 2) }}</strong>
+                        <i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>61–90 Days: <strong>৳{{ number_format($aging60, 2) }}</strong>
                     </span>
                     <span class="aging-pill bg-danger-subtle text-danger border border-danger-subtle">
-                        <i class="fas fa-circle-exclamation me-1"></i>90+ Days: <strong>৳{{ number_format($aging90p, 2) }}</strong>
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>90+ Days: <strong>৳{{ number_format($aging90p, 2) }}</strong>
                     </span>
                 </div>
             </div>
@@ -322,14 +322,14 @@
                 <div class="col-md-2">
                     <label class="form-label small text-muted mb-1 fw-semibold">Search:</label>
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light"><i class="fas fa-search"></i></span>
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="text" name="search" class="form-control" placeholder="Name / Phone / Org..." value="{{ $search }}">
                     </div>
                 </div>
 
                 {{-- Quick Date Dropdown --}}
                 <div class="col-md-2">
-                    <label class="form-label small text-muted mb-1 fw-semibold"><i class="fas fa-calendar-days me-1 text-primary"></i>Period:</label>
+                    <label class="form-label small text-muted mb-1 fw-semibold"><i class="fa-solid fa-calendar-days me-1 text-primary"></i>Period:</label>
                     <select id="quickDatePresetSelect" class="form-select form-select-sm" onchange="setDatePreset(this.value)">
                         <option value="">— Select Period —</option>
                         <option value="today">Today</option>
@@ -356,10 +356,10 @@
 
                 <div class="col-md-1 d-flex gap-1 pt-3">
                     <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="Apply Filter">
-                        <i class="fas fa-filter"></i>
+                        <i class="fa-solid fa-filter"></i>
                     </button>
                     @if(request()->hasAny(['customer', 'search', 'date_from', 'date_to', 'has_due', 'customer_name', 'customer_phone']))
-                        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-light border btn-sm" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-light border btn-sm" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                     @endif
                 </div>
 
@@ -369,13 +369,13 @@
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input" type="checkbox" name="has_due" id="hasDueSwitch" value="1" {{ request('has_due') ? 'checked' : '' }} onchange="this.form.submit()">
                             <label class="form-check-label small fw-bold text-dark" for="hasDueSwitch">
-                                <i class="fas fa-clock text-danger me-1"></i>Due Only
+                                <i class="fa-solid fa-clock text-danger me-1"></i>Due Only
                             </label>
                         </div>
                     </div>
 
                     <div class="text-muted small">
-                        <i class="fas fa-info-circle me-1 text-primary"></i>Customer ledger updates automatically with FIFO payment settlements.
+                        <i class="fa-solid fa-circle-info me-1 text-primary"></i>Customer ledger updates automatically with FIFO payment settlements.
                     </div>
                 </div>
             </form>
@@ -410,7 +410,7 @@
                 </div>
                 <div class="col-4 text-end">
                     <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold fs-6 mb-1">
-                        <i class="fas fa-book-bookmark me-1"></i> Statement
+                        <i class="fa-solid fa-book-bookmark me-1"></i> Statement
                     </div>
                     <div class="text-muted small">Date: <strong class="text-dark">{{ date('d M, Y') }}</strong></div>
                 </div>
@@ -422,35 +422,35 @@
                     <div class="bg-light p-3.5 rounded-3 border h-100 position-relative">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <span class="badge bg-primary px-2.5 py-1 rounded-pill text-uppercase" style="font-size: 11px;">
-                                <i class="fas fa-user-check me-1"></i> Profile
+                                <i class="fa-solid fa-user-check me-1"></i> Profile
                             </span>
                             @if($statement['net_due'] <= 0)
                                 <span class="badge bg-success text-white px-2.5 py-1 rounded-pill">
-                                    <i class="fas fa-check-circle me-1"></i>Full Paid
+                                    <i class="fa-solid fa-circle-check me-1"></i>Full Paid
                                 </span>
                             @else
                                 <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill">
-                                    <i class="fas fa-clock me-1"></i>Due Balance
+                                    <i class="fa-solid fa-clock me-1"></i>Due Balance
                                 </span>
                             @endif
                         </div>
                         <h4 class="fw-bold text-dark mb-1">{{ $activeCustomer['name'] }}</h4>
                         @if($activeCustomer['org'] !== '—')
-                            <div class="text-secondary fw-medium mb-1"><i class="fas fa-building me-1.5 text-muted"></i>{{ $activeCustomer['org'] }}</div>
+                            <div class="text-secondary fw-medium mb-1"><i class="fa-solid fa-building me-1.5 text-muted"></i>{{ $activeCustomer['org'] }}</div>
                         @endif
                         <div class="small text-muted d-flex flex-wrap gap-3 mt-2">
                             @if($activeCustomer['phone'] !== '—')
                                 <span>
                                     <a href="tel:{{ $activeCustomer['phone'] }}" class="text-decoration-none text-dark fw-bold font-monospace">
-                                        <i class="fas fa-phone me-1 text-success"></i>{{ $activeCustomer['phone'] }}
+                                        <i class="fa-solid fa-phone me-1 text-success"></i>{{ $activeCustomer['phone'] }}
                                     </a>
                                 </span>
                             @endif
                             @if($activeCustomer['email'] !== '—')
-                                <span><i class="fas fa-envelope me-1 text-primary"></i>{{ $activeCustomer['email'] }}</span>
+                                <span><i class="fa-solid fa-envelope me-1 text-primary"></i>{{ $activeCustomer['email'] }}</span>
                             @endif
                             @if($activeCustomer['address'] !== '—')
-                                <span><i class="fas fa-location-dot me-1 text-danger"></i>{{ $activeCustomer['address'] }}</span>
+                                <span><i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ $activeCustomer['address'] }}</span>
                             @endif
                         </div>
 
@@ -461,11 +461,11 @@
                                     <i class="fab fa-whatsapp me-1"></i> WhatsApp
                                 </button>
                                 <a href="tel:{{ $activeCustomer['phone'] }}" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1">
-                                    <i class="fas fa-phone-flip me-1"></i> Call
+                                    <i class="fa-solid fa-phone-flip me-1"></i> Call
                                 </a>
                             @endif
                             <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="copyCustomerStatementSummary()">
-                                <i class="fas fa-copy me-1"></i> Copy
+                                <i class="fa-solid fa-copy me-1"></i> Copy
                             </button>
                         </div>
                     </div>
@@ -474,7 +474,7 @@
                 <div class="col-md-5">
                     <div class="bg-light p-3.5 rounded-3 border h-100">
                         <div class="text-muted small fw-bold text-uppercase mb-2 text-primary" style="font-size: 11px;">
-                            <i class="fas fa-chart-pie me-1"></i> Summary
+                            <i class="fa-solid fa-chart-pie me-1"></i> Summary
                         </div>
                         <div class="d-flex justify-content-between py-1 border-bottom small">
                             <span class="text-muted">Billed:</span>
@@ -497,7 +497,7 @@
                 <div class="alert alert-warning border-warning-subtle rounded-3 p-3 mb-4 no-print">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                         <div>
-                            <strong class="text-dark"><i class="fas fa-exclamation-triangle text-warning me-1.5"></i>Pending Invoices ({{ count($statement['due_invoices']) }}):</strong>
+                            <strong class="text-dark"><i class="fa-solid fa-triangle-exclamation text-warning me-1.5"></i>Pending Invoices ({{ count($statement['due_invoices']) }}):</strong>
                             <div class="small text-muted mt-1 d-flex flex-wrap gap-1.5">
                                 @foreach($statement['due_invoices'] as $di)
                                     <span class="badge bg-white text-dark border p-1.5 font-monospace">
@@ -515,7 +515,7 @@
                             <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs" 
                                     data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal"
                                     onclick="setPaymentCustomer('{{ addslashes($activeCustomer['name']) }}', '{{ $activeCustomer['phone'] }}')">
-                                <i class="fas fa-hand-holding-dollar me-1"></i> Collect Payment
+                                <i class="fa-solid fa-hand-holding-dollar me-1"></i> Collect Payment
                             </button>
                         </div>
                     </div>
@@ -556,11 +556,11 @@
                                 <td>
                                     @if($entry['type'] === 'invoice')
                                         <span class="badge badge-debit rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-file-invoice me-1"></i>Invoice
+                                            <i class="fa-solid fa-file-invoice me-1"></i>Invoice
                                         </span>
                                     @else
                                         <span class="badge badge-credit rounded-pill px-2.5 py-1 small">
-                                            <i class="fas fa-hand-holding-dollar me-1"></i>Payment
+                                            <i class="fa-solid fa-hand-holding-dollar me-1"></i>Payment
                                         </span>
                                     @endif
                                 </td>
@@ -580,7 +580,7 @@
                                     @endif
                                     @if(!empty($entry['due_date']))
                                         <div class="badge bg-danger-subtle text-danger border-danger-subtle mt-0.5" style="font-size: 10.5px;">
-                                            <i class="fas fa-calendar-day me-1"></i>Due Date: {{ $entry['due_date'] }}
+                                            <i class="fa-solid fa-calendar-day me-1"></i>Due Date: {{ $entry['due_date'] }}
                                         </div>
                                     @endif
                                 </td>
@@ -596,12 +596,12 @@
                                 <td class="text-center no-print">
                                     @if($entry['type'] === 'invoice')
                                         <a href="{{ route('admin.accounting.invoices.show', $entry['invoice_id']) }}" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" title="View Bill">
-                                            <i class="fas fa-eye"></i>
+                                            <i class="fa-solid fa-eye"></i>
                                         </a>
                                     @else
                                         @if(!empty($entry['payment_id']))
                                             <a href="{{ route('admin.accounting.invoices.payments.receipt', $entry['payment_id']) }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" title="View Receipt">
-                                                <i class="fas fa-receipt"></i>
+                                                <i class="fa-solid fa-receipt"></i>
                                             </a>
                                         @else
                                             <span class="text-muted small">—</span>
@@ -612,7 +612,7 @@
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center py-4 text-muted">
-                                    <i class="fas fa-inbox fs-3 mb-2 d-block text-secondary"></i>
+                                    <i class="fa-solid fa-inbox fs-3 mb-2 d-block text-secondary"></i>
                                     No transactions found.
                                 </td>
                             </tr>
@@ -636,7 +636,7 @@
             <div class="p-3 bg-light rounded-3 border mb-4" style="font-size: 11px; line-height: 1.4;">
                 <div class="row g-2">
                     <div class="col-md-8">
-                        <strong class="text-dark"><i class="fas fa-building-columns text-primary me-1"></i>Terms & Payment Info:</strong>
+                        <strong class="text-dark"><i class="fa-solid fa-building-columns text-primary me-1"></i>Terms & Payment Info:</strong>
                         <div class="text-muted mt-1">
                             Please make payments via bank transfer, official bKash/Nagad merchant, or office cash receipt. Report any discrepancies within 7 business days.
                         </div>
@@ -680,7 +680,7 @@
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <h5 class="card-title fw-bold mb-0 text-dark">
-                        <i class="fas fa-users-viewfinder text-primary me-2"></i>Customers List
+                        <i class="fa-solid fa-users-viewfinder text-primary me-2"></i>Customers List
                     </h5>
                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill font-monospace">
                         {{ count($allSummaries) }} Customers
@@ -689,10 +689,10 @@
 
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold" onclick="exportTableToCSV('all-customers-ledger.csv')">
-                        <i class="fas fa-file-excel me-1"></i> Excel
+                        <i class="fa-solid fa-file-excel me-1"></i> Excel
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold" onclick="copyTableToClipboard()">
-                        <i class="fas fa-copy me-1"></i> Copy
+                        <i class="fa-solid fa-copy me-1"></i> Copy
                     </button>
                 </div>
             </div>
@@ -730,7 +730,7 @@
                                 <td class="font-monospace small">
                                     @if($row['phone'] !== '—')
                                         <a href="tel:{{ $row['phone'] }}" class="text-decoration-none text-secondary">
-                                            <i class="fas fa-phone me-1 text-success small"></i>{{ $row['phone'] }}
+                                            <i class="fa-solid fa-phone me-1 text-success small"></i>{{ $row['phone'] }}
                                         </a>
                                     @else
                                         <span class="text-muted">—</span>
@@ -762,11 +762,11 @@
                                 <td class="text-center small">
                                     @if($row['current_due'] <= 0)
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                            <i class="fas fa-check me-1"></i>Paid
+                                            <i class="fa-solid fa-check me-1"></i>Paid
                                         </span>
                                     @elseif($row['aging']['days_90p'] > 0)
                                         <span class="badge bg-danger text-white px-2 py-1 font-monospace" title="90+ Days Due">
-                                            <i class="fas fa-triangle-exclamation me-0.5"></i>90+ Days
+                                            <i class="fa-solid fa-triangle-exclamation me-0.5"></i>90+ Days
                                         </span>
                                     @elseif($row['aging']['days_60'] > 0)
                                         <span class="badge bg-warning text-dark px-2 py-1 font-monospace">
@@ -781,14 +781,14 @@
                                 <td class="text-center">
                                     <div class="d-flex align-items-center justify-content-center gap-1">
                                         <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $row['name'], 'customer_phone' => ($row['phone'] !== '—' ? $row['phone'] : '')]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 small fw-semibold" title="View Statement">
-                                            <i class="fas fa-book-bookmark me-1"></i>Ledger
+                                            <i class="fa-solid fa-book-bookmark me-1"></i>Ledger
                                         </a>
 
                                         @if($row['current_due'] > 0)
                                             <button type="button" class="btn btn-outline-success btn-sm rounded-circle p-1.5" title="Collect Payment"
                                                     data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal"
                                                     onclick="setPaymentCustomer('{{ addslashes($row['name']) }}', '{{ $row['phone'] !== '—' ? $row['phone'] : '' }}')">
-                                                <i class="fas fa-hand-holding-dollar"></i>
+                                                <i class="fa-solid fa-hand-holding-dollar"></i>
                                             </button>
                                         @endif
                                     </div>
@@ -797,7 +797,7 @@
                         @empty
                             <tr>
                                 <td colspan="10" class="text-center py-5 text-muted">
-                                    <i class="fas fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
+                                    <i class="fa-solid fa-folder-open fs-2 mb-2 d-block text-secondary"></i>
                                     No customer records found.
                                 </td>
                             </tr>
@@ -819,7 +819,7 @@
                 @csrf
                 <div class="modal-header bg-success text-white py-3">
                     <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="collectLedgerPaymentModalLabel">
-                        <i class="fas fa-hand-holding-dollar"></i>
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
                         <span>Record Payment</span>
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -857,7 +857,7 @@
                             <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" role="switch" id="toggleLedgerVatTax" onchange="toggleLedgerVatTaxSection(this.checked)">
                                 <label class="form-check-label fw-bold text-dark small" for="toggleLedgerVatTax">
-                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> TDS & VDS Adjustment Calculator
+                                    <i class="fa-solid fa-calculator text-warning-emphasis me-1"></i> TDS & VDS Adjustment Calculator
                                 </label>
                             </div>
                             <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">TDS / VDS</span>
@@ -865,7 +865,7 @@
                         
                         <div id="ledgerVatTaxCalculatorPanel" class="mt-3 pt-3 border-top border-warning-subtle d-none">
                             <div class="d-flex align-items-center justify-content-between mb-2.5 flex-wrap gap-2">
-                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>Calculation Mode:</span>
+                                <span class="text-muted small fw-bold"><i class="fa-solid fa-arrow-right-arrow-left text-primary me-1"></i>Calculation Mode:</span>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <input type="radio" class="btn-check" name="ledger_calc_mode" id="ledgerCalcModeGross" value="gross" checked onchange="switchLedgerCalcMode('gross')">
                                     <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="ledgerCalcModeGross" style="font-size: 11.5px;">1. Gross (From Due)</label>
@@ -925,7 +925,7 @@
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-money-bill-wave text-success me-1"></i>Net Received:
+                                            <i class="fa-solid fa-money-bill-wave text-success me-1"></i>Net Received:
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
@@ -1021,7 +1021,7 @@
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">
-                        <i class="fas fa-check me-1.5"></i> Confirm Payment
+                        <i class="fa-solid fa-check me-1.5"></i> Confirm Payment
                     </button>
                 </div>
             </form>

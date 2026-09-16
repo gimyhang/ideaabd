@@ -491,7 +491,7 @@
                         <div class="text-end mt-1">
                             <span class="small {{ $order->payment_status === 'paid' ? 'text-success' : 'text-danger' }} fw-bold">
                                 @if($order->payment_status === 'paid')
-                                    <i class="fa-solid fa-check-circle me-1"></i> পরিশোধিত (PAID)
+                                    <i class="fa-solid fa-circle-check me-1"></i> পরিশোধিত (PAID)
                                 @else
                                     <i class="fa-solid fa-hand-holding-dollar me-1"></i> ক্যাশ অন ডেলিভারি (Due on Delivery)
                                 @endif

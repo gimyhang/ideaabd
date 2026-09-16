@@ -1,29 +1,32 @@
 <?php
+
 require __DIR__ . '/../vendor/autoload.php';
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Auth\LoginController;
 
-$controller = new LoginController();
-$request = Request::create('/login', 'GET');
-$response = $controller->showLoginForm($request);
+echo "Testing /login rendering with register mode...\n";
+$request = Request::create('/login?mode=register', 'GET');
+$response = $app->handle($request);
 
-echo "Status: " . $response->getStatusCode() . "\n";
-echo "Content length: " . strlen($response->getContent()) . "\n";
+$content = $response->getContent();
 
 $checks = [
-    'Sign in' => strpos($response->getContent(), 'Sign in') !== false,
-    'Create account' => strpos($response->getContent(), 'Create account') !== false,
-    'Solve this puzzle' => strpos($response->getContent(), 'Solve this puzzle to protect your account') !== false,
-    'Verify email address' => strpos($response->getContent(), 'Verify email address') !== false,
-    'Add mobile number' => strpos($response->getContent(), 'Add mobile number') !== false,
-    'New to Idea?' => strpos($response->getContent(), 'New to Idea?') !== false,
-    'No Amazon keyword' => stripos($response->getContent(), 'Amazon') === false,
+    'Panel Captcha' => strpos($content, 'id="panelCaptcha"') !== false,
+    'Captcha Card Box' => strpos($content, 'class="captcha-card-box"') !== false,
+    'Captcha Code Input' => strpos($content, 'id="captchaCodeInput"') !== false,
+    'Refresh Button' => strpos($content, 'id="btnRefreshCaptcha"') !== false,
+    'Verify Button' => strpos($content, 'id="btnVerifyCaptcha"') !== false,
+    'Case-Sensitive text' => strpos($content, 'case-sensitive') !== false,
+    'No Old Puzzle Set' => strpos($content, 'PUZZLE_SETS') === false,
 ];
 
-foreach ($checks as $name => $ok) {
-    echo "Check [$name]: " . ($ok ? "PASS" : "FAIL") . "\n";
+foreach ($checks as $name => $passed) {
+    echo ($passed ? "  ✓ " : "  ✗ ") . $name . "\n";
+    assert($passed, "Check {$name} failed!");
 }
+
+echo "\nRender check complete! Status Code: " . $response->getStatusCode() . "\n";

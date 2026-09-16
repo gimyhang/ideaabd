@@ -78,65 +78,226 @@
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 1: ULTRA-COMPACT UTILITY TOPBAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-topbar text-white" style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0f3057 100%) !important; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.12); min-height: 36px; padding: 5px 0;">
-        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-1.5 gap-md-2">
-            {{-- Left: Hotline & WhatsApp icon info --}}
-            <div class="d-flex align-items-center gap-1.5 gap-sm-2 text-nowrap flex-shrink-0">
-                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-1.5 hover-warning" title="হোয়াটসঅ্যাপ বা সরাসরি কলে যোগাযোগ করুন">
-                    <span class="rounded-circle bg-success bg-opacity-25 d-inline-flex align-items-center justify-content-center text-success shadow-2xs flex-shrink-0" style="width: 24px; height: 24px;">
-                        <i class="fa-brands fa-whatsapp fs-6 text-success"></i>
+    <div class="site-topbar text-white" style="background: linear-gradient(90deg, #07192f 0%, #0d2847 50%, #07192f 100%) !important; font-size: 13.5px; border-bottom: 1.5px solid rgba(245, 158, 11, 0.35); min-height: 50px; height: 50px; display: flex; align-items: center; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.18);">
+        <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2 gap-md-3">
+            {{-- Left: Hotline & WhatsApp info (English, High-Contrast) --}}
+            <div class="d-flex align-items-center gap-2 text-nowrap flex-shrink-0">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 hover-warning" title="Contact via WhatsApp or Direct Call">
+                    <span class="rounded-circle bg-success text-white shadow-sm d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 15px; box-shadow: 0 0 10px rgba(37, 211, 102, 0.45) !important;">
+                        <i class="fa-brands fa-whatsapp"></i>
                     </span>
-                    <strong class="text-white small" style="letter-spacing: 0.2px;">হটলাইন:</strong>
-                    <span class="text-white fw-bold font-monospace" style="font-size: clamp(12px, 3.2vw, 15px); letter-spacing: 0.3px;">+88 01726976982</span>
+                    <strong class="text-warning-emphasis fw-bold" style="font-size: 13px; letter-spacing: 0.5px; color: #fde047 !important;">HOTLINE:</strong>
+                    <span class="text-white fw-bold font-monospace px-2.5 py-1 rounded-pill shadow-xs" style="font-size: clamp(13.5px, 3.4vw, 15.5px); letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);">+88 01726976982</span>
                 </a>
-                <span class="text-white-50 ms-1 d-none d-md-inline" style="font-size: 10.5px;">(9.00 AM to 11.00 PM)</span>
+                <span class="badge rounded-pill text-light fw-medium ms-1 d-none d-md-inline-flex align-items-center gap-1.5" style="background: rgba(255, 255, 255, 0.10); font-size: 11.5px; border: 1px solid rgba(255, 255, 255, 0.15); padding: 5px 12px;">
+                    <i class="fa-regular fa-clock text-warning" style="font-size: 11px;"></i>
+                    <span>9:00 AM — 11:00 PM</span>
+                </span>
             </div>
 
-            {{-- Right: Quick Utility Links & Focused Language Switcher in one row --}}
-            <div class="d-flex align-items-center gap-1.5 gap-md-3 text-nowrap ms-auto ms-sm-0">
-                <div class="d-flex align-items-center gap-2 gap-md-3 overflow-x-auto text-nowrap scrollbar-none">
-                    <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white-50 hover-white text-decoration-none d-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-truck-fast text-info" style="font-size: 11.5px;"></i>
-                        <span>অর্ডার ট্র্যাক</span>
+            {{-- Right: Quick Utility Links & Focused Language Switcher in English --}}
+            <div class="d-flex align-items-center gap-2 gap-md-2.5 text-nowrap ms-auto ms-sm-0">
+                <div class="d-flex align-items-center gap-2 gap-md-2 overflow-x-auto text-nowrap scrollbar-none">
+                    <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white text-decoration-none d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold" style="font-size: 13px;">
+                        <i class="fa-solid fa-truck-fast text-info" style="font-size: 13px;"></i>
+                        <span>Track Order</span>
                     </a>
-                    <span class="text-white-50 opacity-25 d-none d-sm-inline">|</span>
-                    <a href="{{ url('/hub') }}" class="text-white-50 hover-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-briefcase text-warning" style="font-size: 11.5px;"></i>
-                        <span>আইডিয়া ক্যারিয়ার</span>
+                    <span class="text-white-50 opacity-30 d-none d-sm-inline">|</span>
+                    <a href="{{ url('/hub') }}" class="text-white text-decoration-none d-none d-md-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px;">
+                        <i class="fa-solid fa-briefcase text-warning" style="font-size: 13px;"></i>
+                        <span>Careers</span>
                     </a>
-                    <span class="text-white-50 opacity-25 d-none d-md-inline">|</span>
-                    <a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}" class="text-white-50 hover-white text-decoration-none d-none d-md-inline-flex align-items-center gap-1">
-                        <i class="fa-solid fa-headset text-success" style="font-size: 11.5px;"></i>
-                        <span>হেল্পলাইন</span>
+                    <span class="text-white-50 opacity-30 d-none d-md-inline">|</span>
+                    <a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}" class="text-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px;">
+                        <i class="fa-solid fa-headset text-success" style="font-size: 13px;"></i>
+                        <span>Help Center</span>
                     </a>
+                </div>
+
+                {{-- My Account Interactive Dropdown Menu --}}
+                <div class="dropdown notranslate flex-shrink-0">
+                    <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-warning fw-semibold" 
+                            type="button" 
+                            id="topAccountDropdownBtn" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"
+                            title="My Account Options"
+                            style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12.5px; backdrop-filter: blur(4px);">
+                        <i class="fa-solid fa-user-circle text-warning" style="font-size: 13px;"></i>
+                        <span class="text-white fw-bold">{{ $me ? Str::limit($me->name, 12) : 'My Account' }}</span>
+                        <i class="fa-solid fa-chevron-down ms-0.5 text-white-50" style="font-size: 10px;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-2xl border-0 rounded-4 p-2 mt-1" aria-labelledby="topAccountDropdownBtn" style="width: 280px; max-height: 480px; overflow-y: auto; z-index: 1100;">
+                        @if($me)
+                            {{-- Authenticated User Header Card --}}
+                            <li class="px-3 py-2.5 border-bottom mb-2 bg-light rounded-3 text-center">
+                                <div class="fw-bold text-dark fs-6">{{ $me->name }}</div>
+                                <div class="text-muted small text-truncate" style="font-size: 11.5px;">{{ $me->email }}</div>
+                                <div class="badge bg-primary mt-1.5 px-2.5 py-0.5 rounded-pill small" style="font-size: 10.5px;">
+                                    {{ ['admin' => 'Admin', 'sub_admin' => 'Sub-Admin', 'seller' => 'Seller', 'publisher' => 'Publisher', 'author' => 'Author'][$me->role] ?? 'Customer' }}
+                                </div>
+                            </li>
+
+                            {{-- Core Account Functions --}}
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account') }}">
+                                    <i class="fa-solid fa-user-gear text-primary" style="width: 18px;"></i>
+                                    <span>Your Account Hub</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'orders']) }}">
+                                    <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
+                                    <span>Your Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'loginSecurity']) }}">
+                                    <i class="fa-solid fa-shield-halved text-success" style="width: 18px;"></i>
+                                    <span>Login & Security</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'addresses']) }}">
+                                    <i class="fa-solid fa-location-dot text-danger" style="width: 18px;"></i>
+                                    <span>Your Addresses</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'payments']) }}">
+                                    <i class="fa-solid fa-wallet text-warning" style="width: 18px;"></i>
+                                    <span>Your Payments</span>
+                                </a>
+                            </li>
+                            @if (Route::has('wishlist'))
+                                <li>
+                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('wishlist') }}">
+                                        <i class="fa-solid fa-heart text-danger" style="width: 18px;"></i>
+                                        <span>Your Wishlist</span>
+                                    </a>
+                                </li>
+                            @endif
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('my-account', ['tab' => 'kyc']) }}">
+                                    <i class="fa-solid fa-id-card text-primary" style="width: 18px;"></i>
+                                    <span>KYC Verification</span>
+                                </a>
+                            </li>
+
+                            {{-- Role Specific Portal Shortcuts --}}
+                            @if ($me->isAdmin() && Route::has('admin.dashboard'))
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-danger d-flex align-items-center gap-2" href="{{ route('admin.dashboard') }}">
+                                        <i class="fa-solid fa-shield-halved text-danger" style="width: 18px;"></i>
+                                        <span>Admin Panel</span>
+                                    </a>
+                                </li>
+                            @endif
+                            @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-primary d-flex align-items-center gap-2" href="{{ route('author.dashboard') }}">
+                                        <i class="fa-solid fa-feather-pointed text-primary" style="width: 18px;"></i>
+                                        <span>Author Studio</span>
+                                    </a>
+                                </li>
+                            @endif
+                            @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-success d-flex align-items-center gap-2" href="{{ route('publisher.dashboard') }}">
+                                        <i class="fa-solid fa-building text-success" style="width: 18px;"></i>
+                                        <span>Publisher Portal</span>
+                                    </a>
+                                </li>
+                            @endif
+                            @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                                <li>
+                                    <a class="dropdown-item py-1.5 px-3 rounded-2 fw-bold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('subadmin.dashboard') }}">
+                                        <i class="fa-solid fa-store text-warning" style="width: 18px;"></i>
+                                        <span>Seller Dashboard</span>
+                                    </a>
+                                </li>
+                            @endif
+
+                            <li><hr class="dropdown-divider my-1.5"></li>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 bg-danger-subtle text-center justify-content-center">
+                                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                        <span>Sign Out</span>
+                                    </button>
+                                </form>
+                            </li>
+                        @else
+                            {{-- Guest Dropdown --}}
+                            <li class="px-3 py-2.5 border-bottom mb-2 bg-light rounded-3 text-center">
+                                <div class="fw-bold text-dark small mb-2">Welcome to Idea Prokashon</div>
+                                <a href="{{ route('login') }}" class="btn btn-warning btn-sm w-100 rounded-pill fw-bold text-dark shadow-xs mb-1.5">
+                                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Sign In / Register
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('login') }}">
+                                    <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
+                                    <span>Track Your Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'author') }}">
+                                    <i class="fa-solid fa-feather-pointed text-primary" style="width: 18px;"></i>
+                                    <span>Register as Author</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'publisher') }}">
+                                    <i class="fa-solid fa-building text-success" style="width: 18px;"></i>
+                                    <span>Register as Publisher</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('register.form', 'seller') }}">
+                                    <i class="fa-solid fa-store text-warning" style="width: 18px;"></i>
+                                    <span>Register as Seller / Dealer</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li>
+                                <a class="dropdown-item py-1.5 px-3 rounded-2 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('contact') }}">
+                                    <i class="fa-solid fa-headset text-success" style="width: 18px;"></i>
+                                    <span>Help Center & Support</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
                 </div>
 
                 {{-- Compact Native Language Switcher Dropdown --}}
                 <div class="dropdown notranslate flex-shrink-0">
-                    <button class="btn btn-sm btn-outline-light rounded-pill py-0.5 px-2 d-inline-flex align-items-center gap-1 shadow-2xs hover-primary" 
+                    <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-primary" 
                             type="button" 
                             id="topLangDropdownBtn" 
                             data-bs-toggle="dropdown" 
                             aria-expanded="false"
-                            title="ভাষা পরিবর্তন / Switch Language"
-                            style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 11px; backdrop-filter: blur(4px);">
-                        <i class="fas fa-globe text-warning" style="font-size: 11px;"></i>
-                        <span class="current-lang-display fw-bold text-white">বাংলা</span>
+                            title="Switch Language"
+                            style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
+                        <i class="fas fa-globe text-warning" style="font-size: 12px;"></i>
+                        <span class="current-lang-display fw-bold text-white">English</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
-                        <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
-                            <i class="fas fa-language me-1 text-primary"></i> প্রধান ভাষা / Primary
+                        <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10.5px; letter-spacing: 0.5px;">
+                            <i class="fas fa-language me-1 text-primary"></i> Primary Language
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
-                                <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
-                                <i class="fas fa-check text-success lang-check-icon" data-lang="bn"></i>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
+                                <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
+                                <i class="fas fa-check text-success lang-check-icon" data-lang="en"></i>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
-                                <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="en"></i>
+                            <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
+                                <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
+                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="bn"></i>
                             </a>
                         </li>
                         <li>

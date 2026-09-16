@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoginSecurityLog;
+use App\Services\CaptchaService;
 use App\Services\RecaptchaService;
+use App\Services\SecurityAuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -358,41 +360,50 @@ class LoginController extends Controller
             throw ValidationException::withMessages(['email' => $msg]);
         }
 
-        // 2. Intelligent IP Security & Block Check
+        // 2. Intelligent IP Security & Progressive Delay Check
         $ipStatus = LoginSecurityLog::checkIpStatus($request->ip(), $loginInput);
         if ($ipStatus['status'] === 'blocked') {
-            $msg = "নিরাপত্তা সতর্কতা: ভুল পাসওয়ার্ড দিয়ে ৫বার ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি ({$request->ip()}) সাময়িক অটো-ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।";
+            $msg = "নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি ({$request->ip()}) ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।";
             if ($isAjax) {
                 return response()->json(['success' => false, 'is_blocked' => true, 'message' => $msg], 422);
             }
             throw ValidationException::withMessages(['email' => $msg]);
         }
 
-        // 3. Google reCAPTCHA v2 / Visual Verification Check (3+ Failed Attempts Threshold)
+        if ($ipStatus['status'] === 'locked') {
+            $remainingSec = $ipStatus['remaining_seconds'] ?? 30;
+            $msg = ($remainingSec >= 60)
+                ? "একাধিক ভুল চেষ্টার কারণে লগইন সাময়িক স্থগিত করা হয়েছে। অনুগ্রহ করে " . ceil($remainingSec / 60) . " মিনিট পর আবার চেষ্টা করুন।"
+                : "একাধিক ভুল চেষ্টার কারণে লগইন সাময়িক স্থগিত করা হয়েছে। অনুগ্রহ করে {$remainingSec} সেকেন্ড পর আবার চেষ্টা করুন।";
+            if ($isAjax) {
+                return response()->json([
+                    'success'           => false,
+                    'is_locked'         => true,
+                    'remaining_seconds' => $remainingSec,
+                    'show_captcha'      => true,
+                    'message'           => $msg,
+                ], 429);
+            }
+            throw ValidationException::withMessages(['email' => $msg]);
+        }
+
+        // 3. CAPTCHA Verification Check (Triggered after 3+ failed attempts)
         $mustVerifyCaptcha = LoginSecurityLog::requiresCaptcha($request->ip(), $loginInput);
         if ($mustVerifyCaptcha) {
-            $recaptchaToken = (string) ($request->input('g-recaptcha-response') ?? $request->input('recaptcha_token') ?? $request->input('captcha_token') ?? '');
-            
-            if ($recaptchaToken === '') {
-                Session::flash('show_captcha', true);
-                $msg = 'নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ লগইন চেষ্টার কারণে Google reCAPTCHA যাচাইকরণ আবশ্যক। অনুগ্রহ করে ক্যাপচা পূরণ করুন।';
-                if ($isAjax) {
-                    return response()->json([
-                        'success'          => false,
-                        'show_captcha'     => true,
-                        'captcha_required' => true,
-                        'message'          => $msg,
-                    ], 422);
-                }
-                throw ValidationException::withMessages(['g-recaptcha-response' => $msg]);
-            }
+            $captchaToken = (string) ($request->input('captcha_token') ?? $request->input('g-recaptcha-response') ?? $request->input('recaptcha_token') ?? '');
+            $captchaCode = (string) $request->input('captcha_code', '');
 
-            // Verify the token with Google reCAPTCHA API
-            $isVerified = RecaptchaService::verify($recaptchaToken, $request->ip());
+            $isVerified = false;
+            if (!empty($captchaToken) && !empty($captchaCode)) {
+                $verifyRes = app(CaptchaService::class)->verify($captchaToken, $captchaCode, $request->ip());
+                $isVerified = (bool) ($verifyRes['success'] ?? false);
+            } elseif (!empty($captchaToken)) {
+                $isVerified = RecaptchaService::verify($captchaToken, $request->ip());
+            }
 
             if (!$isVerified) {
                 Session::flash('show_captcha', true);
-                $msg = 'Google reCAPTCHA যাচাইকরণ সফল হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।';
+                $msg = 'নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ লগইন চেষ্টার কারণে CAPTCHA যাচাইকরণ আবশ্যক। সঠিক কোড দিন।';
                 if ($isAjax) {
                     return response()->json([
                         'success'          => false,
@@ -401,10 +412,9 @@ class LoginController extends Controller
                         'message'          => $msg,
                     ], 422);
                 }
-                throw ValidationException::withMessages(['g-recaptcha-response' => $msg]);
+                throw ValidationException::withMessages(['email' => $msg]);
             }
 
-            // Token verified successfully
             LoginSecurityLog::recordChallengePassed($request->ip());
         }
 
@@ -414,7 +424,7 @@ class LoginController extends Controller
             $seconds = RateLimiter::availableIn($throttleKey);
             $msg = "খুব বেশি ভুল লগইন চেষ্টা করা হয়েছে! অনুগ্রহ করে {$seconds} সেকেন্ড পর আবার চেষ্টা করুন।";
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => $msg], 422);
+                return response()->json(['success' => false, 'message' => $msg], 429);
             }
             throw ValidationException::withMessages(['email' => $msg]);
         }
@@ -468,9 +478,17 @@ class LoginController extends Controller
             }
 
             if ($matchedUser) {
+                // Transparently rehash password to Argon2id if needed
+                if (Hash::needsRehash($matchedUser->password)) {
+                    $matchedUser->password = Hash::make($password);
+                    $matchedUser->save();
+                }
+
                 // Clear Rate Limiter & IP security attempts on successful login
                 RateLimiter::clear($throttleKey);
                 LoginSecurityLog::recordSuccessfulLogin($request->ip(), $loginInput);
+                SecurityAuditService::loginSuccess($matchedUser->id, $loginInput);
+
                 Session::forget('login_bot_challenge');
                 Session::forget('login_visual_challenge');
                 Session::forget('show_captcha');
@@ -534,16 +552,25 @@ class LoginController extends Controller
 
                 return redirect()->intended($redirectUrl);
             }
-        } catch (\Illuminate\Database\QueryException $e) {
-            $msg = 'সিস্টেম ডাটাবেজ অফলাইনে আছে বা কানেক্ট হতে পারছে না। অনুগ্রহ করে সার্ভার চেক করুন।';
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Login process error: ' . $e->getMessage(), [
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $msg = 'লগইন প্রক্রিয়ায় সাময়িক সমস্যা দেখা দিয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন বা অ্যাডমিনের সাথে যোগাযোগ করুন।';
             if ($isAjax) {
-                return response()->json(['success' => false, 'message' => $msg], 500);
+                return response()->json(['success' => false, 'message' => $msg], 422);
             }
             throw ValidationException::withMessages(['email' => $msg]);
         }
 
         RateLimiter::hit($throttleKey, 60);
         $failResult = LoginSecurityLog::recordFailedAttempt($request->ip(), $loginInput);
+        SecurityAuditService::loginFailed($loginInput, $failResult['count'] ?? 1);
 
         $showCaptcha = (bool) ($failResult['show_captcha'] ?? false);
         if ($showCaptcha) {
@@ -556,6 +583,7 @@ class LoginController extends Controller
                 'show_captcha'     => $showCaptcha,
                 'captcha_required' => (bool) ($failResult['requires_captcha'] ?? false),
                 'attempts'         => $failResult['count'] ?? 1,
+                'cooldown_seconds' => $failResult['cooldown_seconds'] ?? 0,
                 'is_blocked'       => ($failResult['action'] ?? '') === 'auto_blocked',
                 'message'          => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
             ], 422);

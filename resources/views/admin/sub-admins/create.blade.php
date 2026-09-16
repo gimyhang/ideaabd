@@ -15,7 +15,7 @@
             @csrf
 
             <div class="adm-card__head p-3 border-bottom">
-                <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-user-plus me-2 text-primary"></i> Account Information</h6>
+                <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-user-plus me-2 text-primary"></i> Account Information</h6>
             </div>
 
             <div class="adm-card__body p-4">
@@ -67,7 +67,7 @@
             </div>
 
             <div class="adm-card__foot p-3 border-top bg-light rounded-bottom-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs"><i class="fas fa-check me-1"></i> Create Account</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs"><i class="fa-solid fa-check me-1"></i> Create Account</button>
                 <a href="{{ route('admin.sub-admins.index') }}" class="btn btn-outline-secondary rounded-pill px-3">Cancel</a>
             </div>
         </form>

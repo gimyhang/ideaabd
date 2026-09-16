@@ -637,23 +637,23 @@ img, svg, video, canvas, audio, iframe {
 }
 
 @media (max-width: 575.98px) {
-    /* Topbar compact */
+    /* Topbar classic & readable on mobile */
     .site-topbar {
-        padding: 5px 0 !important;
-        font-size: 11px !important;
-        min-height: auto !important;
+        padding: 6px 0 !important;
+        font-size: 12.5px !important;
+        min-height: 40px !important;
     }
     .site-topbar .container {
         flex-wrap: wrap !important;
-        row-gap: 5px;
+        row-gap: 6px;
         justify-content: space-between !important;
     }
     .site-topbar a strong {
-        font-size: 11.5px !important;
+        font-size: 12.5px !important;
     }
     .site-topbar .font-monospace {
-        font-size: 13px !important;
-        padding: 2px 6px !important;
+        font-size: 14px !important;
+        padding: 2px 8px !important;
     }
     
     /* Brand & Logo scaling */

@@ -10,16 +10,16 @@
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#newPaymentModal">
-            <i class="fas fa-plus-circle me-1"></i> Record Payment
+            <i class="fa-solid fa-circle-plus me-1"></i> Record Payment
         </button>
         <a href="{{ route('admin.purchases.ledger') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-book-bookmark me-1"></i> Detailed Statements
+            <i class="fa-solid fa-book-bookmark me-1"></i> Detailed Statements
         </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
         <a href="{{ route('admin.purchases.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> Purchases List
+            <i class="fa-solid fa-arrow-left me-1"></i> Purchases List
         </a>
     </div>
 @endsection
@@ -35,7 +35,7 @@
                     <span class="text-muted small fw-semibold">Total Purchases</span>
                     <h3 class="fw-bold mb-0 text-dark">৳{{ number_format($totalPurchaseSum, 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fas fa-cart-flatbed fs-4"></i></div>
+                <div class="rounded-circle bg-dark-subtle text-dark p-3"><i class="fa-solid fa-cart-flatbed fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
                     <span class="text-muted small fw-semibold">Total Paid</span>
                     <h3 class="fw-bold mb-0 text-success">৳{{ number_format($totalPaidSum, 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fas fa-hand-holding-dollar fs-4"></i></div>
+                <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fa-solid fa-hand-holding-dollar fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
                     <span class="text-muted small fw-semibold">Outstanding Due</span>
                     <h3 class="fw-bold mb-0 text-danger">৳{{ number_format($totalDueSum, 2) }}</h3>
                 </div>
-                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fas fa-clock-rotate-left fs-4"></i></div>
+                <div class="rounded-circle bg-danger-subtle text-danger p-3"><i class="fa-solid fa-clock-rotate-left fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -68,7 +68,7 @@
                     <span class="text-muted small fw-semibold">Pending Due Invoices</span>
                     <h3 class="fw-bold mb-0 text-warning">{{ number_format($pendingCount) }}</h3>
                 </div>
-                <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fas fa-file-invoice-dollar fs-4"></i></div>
+                <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fa-solid fa-file-invoice-dollar fs-4"></i></div>
             </div>
         </div>
     </div>
@@ -80,12 +80,12 @@
         <ul class="nav nav-pills nav-fill gap-2" id="paymentLedgerTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active rounded-pill fw-semibold py-2" id="tab-ledgers-tab" data-bs-toggle="tab" data-bs-target="#tab-ledgers" type="button" role="tab">
-                    <i class="fas fa-book-open-reader me-1.5 text-primary"></i> 1. Vendor & Press Ledgers ({{ count($vendorLedgers) }})
+                    <i class="fa-solid fa-book-open-reader me-1.5 text-primary"></i> 1. Vendor & Press Ledgers ({{ count($vendorLedgers) }})
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link rounded-pill fw-semibold py-2" id="tab-payments-tab" data-bs-toggle="tab" data-bs-target="#tab-payments" type="button" role="tab">
-                    <i class="fas fa-receipt me-1.5 text-success"></i> 2. Payment Vouchers History ({{ $payments->total() }})
+                    <i class="fa-solid fa-receipt me-1.5 text-success"></i> 2. Payment Vouchers History ({{ $payments->total() }})
                 </button>
             </li>
         </ul>
@@ -102,7 +102,7 @@
         <div class="adm-card shadow-sm rounded-4 overflow-hidden bg-white mb-4">
             @if(empty($vendorLedgers))
                 <div class="empty-state py-5 text-center">
-                    <i class="fas fa-book-bookmark fs-1 text-muted opacity-50 mb-3"></i>
+                    <i class="fa-solid fa-book-bookmark fs-1 text-muted opacity-50 mb-3"></i>
                     <h5 class="fw-bold text-muted">No vendor ledgers found</h5>
                     <p class="text-muted small">Vendor ledgers are automatically created when new purchase invoices are entered.</p>
                 </div>
@@ -131,12 +131,12 @@
                                         </a>
                                         @if(!empty($vl['phone']) && $vl['phone'] !== '—')
                                             <div class="text-muted small" style="font-size: 11px;">
-                                                <i class="fas fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $vl['phone'] }}
+                                                <i class="fa-solid fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $vl['phone'] }}
                                             </div>
                                         @endif
                                         @if(!empty($vl['address']) && $vl['address'] !== '—')
                                             <div class="text-muted small text-truncate" style="max-width: 220px; font-size: 11px;" title="{{ $vl['address'] }}">
-                                                <i class="fas fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $vl['address'] }}
+                                                <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $vl['address'] }}
                                             </div>
                                         @endif
                                         <div>
@@ -147,11 +147,11 @@
                                     </td>
                                     <td>
                                         @if($vl['category'] === 'raw_materials')
-                                            <span class="badge bg-warning-subtle text-dark border"><i class="fas fa-boxes-stacked me-1"></i>Raw Materials</span>
+                                            <span class="badge bg-warning-subtle text-dark border"><i class="fa-solid fa-boxes-stacked me-1"></i>Raw Materials</span>
                                         @elseif($vl['category'] === 'other')
-                                            <span class="badge bg-info-subtle text-dark border"><i class="fas fa-cart-shopping me-1"></i>Other Expenses</span>
+                                            <span class="badge bg-info-subtle text-dark border"><i class="fa-solid fa-cart-shopping me-1"></i>Other Expenses</span>
                                         @else
-                                            <span class="badge bg-primary-subtle text-primary border"><i class="fas fa-book me-1"></i>Book Publisher</span>
+                                            <span class="badge bg-primary-subtle text-primary border"><i class="fa-solid fa-book me-1"></i>Book Publisher</span>
                                         @endif
                                     </td>
                                     <td class="text-end fw-semibold text-dark font-monospace">
@@ -173,12 +173,12 @@
                                         <div class="d-inline-flex gap-1.5">
                                             <a href="{{ route('admin.purchases.ledger', ['party' => $vl['key']]) }}" 
                                                class="btn btn-outline-primary btn-xs rounded-pill px-2.5 py-1 fw-semibold">
-                                                <i class="fas fa-file-lines me-1"></i> Statement
+                                                <i class="fa-solid fa-file-lines me-1"></i> Statement
                                             </a>
                                             @if($vl['current_due'] > 0)
                                                 <button type="button" class="btn btn-success btn-xs rounded-pill px-2.5 py-1 fw-semibold"
                                                         onclick="openPartyPaymentModal('{{ $vl['party_type'] }}', '{{ $vl['publisher_id'] }}', '{{ addslashes($vl['vendor_name'] ?? $vl['name']) }}', '{{ addslashes($vl['name']) }}', '{{ $vl['current_due'] }}')">
-                                                    <i class="fas fa-plus me-1"></i> Pay
+                                                    <i class="fa-solid fa-plus me-1"></i> Pay
                                                 </button>
                                             @endif
                                         </div>
@@ -229,9 +229,9 @@
                         </select>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-filter me-1"></i> Filter</button>
                         @if(request()->hasAny(['search', 'publisher_id', 'vendor_name', 'payment_method', 'date_from']))
-                            <a href="{{ route('admin.purchases.payments') }}" class="btn btn-light border" title="Reset"><i class="fas fa-rotate-left"></i></a>
+                            <a href="{{ route('admin.purchases.payments') }}" class="btn btn-light border" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                         @endif
                     </div>
                 </form>
@@ -242,7 +242,7 @@
         <div class="adm-card shadow-sm rounded-4 overflow-hidden bg-white">
             @if ($payments->isEmpty())
                 <div class="empty-state py-5 text-center">
-                    <i class="fas fa-money-bill-wave fs-1 text-muted opacity-50 mb-3"></i>
+                    <i class="fa-solid fa-money-bill-wave fs-1 text-muted opacity-50 mb-3"></i>
                     <h5 class="fw-bold text-muted">No payment records found</h5>
                     <p class="text-muted small">Record a new payment voucher using the button above.</p>
                 </div>
@@ -274,19 +274,19 @@
                                         @endphp
                                         @if($payPhone)
                                             <div class="text-muted small" style="font-size: 11px;">
-                                                <i class="fas fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $payPhone }}
+                                                <i class="fa-solid fa-phone-alt text-primary me-1" style="font-size: 10px;"></i>{{ $payPhone }}
                                             </div>
                                         @endif
                                         @if($payAddress)
                                             <div class="text-muted small text-truncate" style="max-width: 200px; font-size: 11px;" title="{{ $payAddress }}">
-                                                <i class="fas fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $payAddress }}
+                                                <i class="fa-solid fa-location-dot text-danger me-1" style="font-size: 10px;"></i>{{ $payAddress }}
                                             </div>
                                         @endif
                                     </td>
                                     <td>
                                         @if($pay->purchase)
                                             <a href="{{ route('admin.purchases.show', $pay->purchase_id) }}" class="badge bg-light text-dark border text-decoration-none py-1 px-2 font-monospace">
-                                                <i class="fas fa-file-lines me-1 text-primary"></i>#{{ $pay->purchase->purchase_no }}
+                                                <i class="fa-solid fa-file-lines me-1 text-primary"></i>#{{ $pay->purchase->purchase_no }}
                                             </a>
                                         @else
                                             <span class="badge bg-success-subtle text-success border">Account Credit</span>
@@ -327,7 +327,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header border-bottom py-3 bg-light">
                 <h5 class="modal-title fw-bold text-success">
-                    <i class="fas fa-hand-holding-dollar me-2"></i>Record Supplier Payment
+                    <i class="fa-solid fa-hand-holding-dollar me-2"></i>Record Supplier Payment
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -342,13 +342,13 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_target" id="targetSupplierAccount" value="supplier_account" checked onchange="togglePaymentTarget('supplier_account')">
                                 <label class="form-check-label fw-semibold text-dark" for="targetSupplierAccount">
-                                    <i class="fas fa-book-bookmark text-primary me-1"></i> Supplier Running Account (Auto FIFO Settlement)
+                                    <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Supplier Running Account (Auto FIFO Settlement)
                                 </label>
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_target" id="targetSpecificInvoice" value="specific_invoice" onchange="togglePaymentTarget('specific_invoice')">
                                 <label class="form-check-label fw-semibold text-dark" for="targetSpecificInvoice">
-                                    <i class="fas fa-file-invoice text-success me-1"></i> Specific Purchase Invoice
+                                    <i class="fa-solid fa-file-invoice text-success me-1"></i> Specific Purchase Invoice
                                 </label>
                             </div>
                         </div>
@@ -430,7 +430,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="fas fa-check-circle me-1"></i> Save Payment
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Payment
                     </button>
                 </div>
             </form>

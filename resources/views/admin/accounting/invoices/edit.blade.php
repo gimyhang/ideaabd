@@ -11,7 +11,7 @@
 
 @section('actions')
     <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-        <i class="fas fa-arrow-left me-1"></i> Back
+        <i class="fa-solid fa-arrow-left me-1"></i> Back
     </a>
 @endsection
 
@@ -23,15 +23,15 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense
+                <i class="fa-solid fa-scale-balanced me-1.5"></i> Income & Expense
             </a>
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices & Documents
+                <i class="fa-solid fa-file-invoice-dollar me-1.5"></i> Invoices & Documents
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> Create New
+                <i class="fa-solid fa-file-circle-plus me-1.5"></i> Create New
             </a>
         </div>
     </div>
@@ -71,7 +71,7 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
         <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h5 class="fw-bold mb-0 text-primary">
-                <i class="fas fa-edit me-2"></i>Edit Document & Client Information
+                <i class="fa-solid fa-pen-to-square me-2"></i>Edit Document & Client Information
             </h5>
             
             {{-- 4 Document Types Switcher --}}
@@ -79,25 +79,25 @@
                 <input type="radio" class="btn-check" name="type" id="typeInvoice" value="invoice" 
                        @checked($currentType === 'invoice') onchange="updateDocType()">
                 <label class="btn btn-outline-primary fw-semibold" for="typeInvoice">
-                    <i class="fas fa-receipt me-1"></i>Bill / Invoice
+                    <i class="fa-solid fa-receipt me-1"></i>Bill / Invoice
                 </label>
 
                 <input type="radio" class="btn-check" name="type" id="typeChallan" value="challan" 
                        @checked($currentType === 'challan') onchange="updateDocType()">
                 <label class="btn btn-outline-primary fw-semibold" for="typeChallan">
-                    <i class="fas fa-truck me-1"></i>Delivery Challan
+                    <i class="fa-solid fa-truck me-1"></i>Delivery Challan
                 </label>
 
                 <input type="radio" class="btn-check" name="type" id="typeQuotation" value="quotation" 
                        @checked($currentType === 'quotation') onchange="updateDocType()">
                 <label class="btn btn-outline-primary fw-semibold" for="typeQuotation">
-                    <i class="fas fa-file-lines me-1"></i>Quotation / Proforma
+                    <i class="fa-solid fa-file-lines me-1"></i>Quotation / Proforma
                 </label>
 
                 <input type="radio" class="btn-check" name="type" id="typeTender" value="tender" 
                        @checked($currentType === 'tender') onchange="updateDocType()">
                 <label class="btn btn-outline-primary fw-semibold" for="typeTender">
-                    <i class="fas fa-landmark me-1"></i>Tender Document
+                    <i class="fa-solid fa-landmark me-1"></i>Tender Document
                 </label>
             </div>
         </div>
@@ -106,7 +106,7 @@
             <div id="tenderQuotationPanel" class="p-3 rounded-3 border mb-3 {{ $currentType === 'tender' ? 'bg-indigo-subtle border-indigo-subtle' : ($currentType === 'quotation' ? 'bg-warning-subtle bg-opacity-25 border-warning-subtle' : ($currentType === 'challan' ? 'bg-info-subtle bg-opacity-25 border-info-subtle' : 'bg-light border-primary-subtle')) }}">
                 <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom text-dark fw-bold small" id="tenderPanelHeader">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="{{ $currentType === 'tender' ? 'fas fa-landmark text-indigo fs-5' : ($currentType === 'quotation' ? 'fas fa-file-invoice text-warning-emphasis fs-5' : ($currentType === 'challan' ? 'fas fa-truck text-info fs-5' : 'fas fa-receipt text-primary fs-5')) }}" id="tenderPanelIcon"></i> 
+                        <i class="{{ $currentType === 'tender' ? 'fa-solid fa-landmark text-indigo fs-5' : ($currentType === 'quotation' ? 'fa-solid fa-file-invoice text-warning-emphasis fs-5' : ($currentType === 'challan' ? 'fa-solid fa-truck text-info fs-5' : 'fa-solid fa-receipt text-primary fs-5')) }}" id="tenderPanelIcon"></i> 
                         <span id="tenderPanelTitle" class="fs-6 fw-bold">
                             @if($currentType === 'tender') Tender Subject
                             @elseif($currentType === 'quotation') Quotation Subject
@@ -128,7 +128,7 @@
                             Subject <span class="text-danger">*</span>
                         </label>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-heading"></i></span>
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-heading"></i></span>
                             <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white border-start-0" 
                                    placeholder="e.g. Book Sales / Printing & Publishing Services..." 
                                    value="{{ old('subject', $invoice->subject ?? '') }}">
@@ -139,7 +139,7 @@
                             Ref / Memo No
                         </label>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-hashtag"></i></span>
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-hashtag"></i></span>
                             <input type="text" name="reference_no" id="f-reference_no" class="form-control form-control-sm bg-white border-start-0" 
                                    placeholder="e.g. PO/2026/089" value="{{ old('reference_no', $invoice->reference_no) }}">
                         </div>
@@ -166,10 +166,10 @@
                 </span>
                 <div class="d-flex align-items-center gap-2">
                     <span id="customerMatchBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="display:none;">
-                        <i class="fas fa-check-circle me-1"></i>পুরাতন রেজিস্টার্ড কাস্টমার সংযুক্ত
+                        <i class="fa-solid fa-circle-check me-1"></i>পুরাতন রেজিস্টার্ড কাস্টমার সংযুক্ত
                     </span>
                     <button type="button" id="btnClearCustomerInfo" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="display:none;" onclick="clearClientInfo()" title="তথ্য মুছে নতুন গ্রাহক এন্ট্রি করুন">
-                        <i class="fas fa-rotate-left me-1"></i>নতুন এন্ট্রি
+                        <i class="fa-solid fa-rotate-left me-1"></i>নতুন এন্ট্রি
                     </button>
                 </div>
             </div>
@@ -178,10 +178,10 @@
                 <div class="col-md-4 position-relative">
                     <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                         <span>Customer / Client Name <span class="text-danger">*</span></span>
-                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fa-solid fa-bolt me-1"></i>Auto-fill</small>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-user"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-user"></i></span>
                         <input type="text" name="customer_name" id="inputCustomerName" class="form-control client-autocomplete-input @error('customer_name') is-invalid @enderror" 
                                placeholder="Client / Contact person name..." value="{{ old('customer_name', $invoice->customer_name) }}" required autocomplete="off">
                     </div>
@@ -190,7 +190,7 @@
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Designation</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-id-badge"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-id-badge"></i></span>
                         <input type="text" name="customer_designation" id="inputCustomerDesignation" class="form-control" 
                                placeholder="e.g. Executive Director, Headmaster..." value="{{ old('customer_designation', $invoice->customer_designation) }}">
                     </div>
@@ -198,10 +198,10 @@
                 <div class="col-md-4 position-relative">
                     <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                         <span>Organization / Institution</span>
-                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fa-solid fa-bolt me-1"></i>Auto-fill</small>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-building"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-building"></i></span>
                         <input type="text" name="customer_org" id="inputCustomerOrg" class="form-control client-autocomplete-input" 
                                placeholder="Library, Bookshop or Company name..." value="{{ old('customer_org', $invoice->customer_org) }}" autocomplete="off">
                     </div>
@@ -209,17 +209,17 @@
                 <div class="col-md-3 position-relative">
                     <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
                         <span>Phone Number</span>
-                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fas fa-bolt me-1"></i>Auto-fill</small>
+                        <small class="text-primary font-monospace fw-normal" style="font-size: 11px;"><i class="fa-solid fa-bolt me-1"></i>Auto-fill</small>
                     </label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-phone"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-phone"></i></span>
                         <input type="text" name="customer_phone" id="inputCustomerPhone" class="form-control client-autocomplete-input font-monospace" placeholder="017XXXXXXXX" value="{{ old('customer_phone', $invoice->customer_phone) }}" autocomplete="off">
                     </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Email Address</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-envelope"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-envelope"></i></span>
                         <input type="email" name="customer_email" id="inputCustomerEmail" class="form-control" placeholder="customer@example.com" value="{{ old('customer_email', $invoice->customer_email) }}">
                     </div>
                 </div>
@@ -234,7 +234,7 @@
                 <div class="col-md-8">
                     <label class="form-label small fw-semibold text-muted">Full Address / Shipping Destination</label>
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light text-muted"><i class="fas fa-location-dot"></i></span>
+                        <span class="input-group-text bg-light text-muted"><i class="fa-solid fa-location-dot"></i></span>
                         <input type="text" name="customer_address" id="inputCustomerAddress" class="form-control form-control-sm" placeholder="Full address..." value="{{ old('customer_address', $invoice->customer_address) }}">
                     </div>
                 </div>
@@ -257,7 +257,7 @@
         <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div>
                 <h5 class="fw-bold mb-0 text-dark" id="itemsSectionTitle">
-                    <i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates
+                    <i class="fa-solid fa-list-check me-2 text-success"></i>Items & Schedule of Rates
                 </h5>
             </div>
             <div class="d-flex align-items-center gap-2">
@@ -265,7 +265,7 @@
                     <i class="fa-solid fa-calculator text-dark me-1"></i> Print Cost Calculator
                 </button>
                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" id="btnAddItemBtn" onclick="addItemRow()">
-                    <i class="fas fa-plus me-1"></i> Add Item
+                    <i class="fa-solid fa-plus me-1"></i> Add Item
                 </button>
             </div>
         </div>
@@ -443,7 +443,7 @@
                                                   onkeydown="handleBookSearchKeydown(event, {{ $i }})" 
                                                   autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">{{ $item['title'] ?? '' }}</textarea>
                                         <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal({{ $i }})" title="Add new book to Bookshop" style="min-height: 52px;">
-                                            <i class="fas fa-plus"></i>
+                                            <i class="fa-solid fa-plus"></i>
                                         </button>
                                     </div>
                                     <input type="hidden" name="items[{{ $i }}][book_id]" class="item-book-id" value="{{ $item['book_id'] ?? ($bookObj ? $bookObj->id : '') }}">
@@ -489,7 +489,7 @@
                                 <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳{{ number_format($lineTotal, 2) }}</td>
                                 <td class="text-center">
                                     <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                                        <i class="fas fa-trash-can"></i>
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </td>
                             </tr>
@@ -500,7 +500,7 @@
 
             <div class="mt-2.5">
                 <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" onclick="addItemRow()">
-                    <i class="fas fa-plus me-1"></i> Add More Items
+                    <i class="fa-solid fa-plus me-1"></i> Add More Items
                 </button>
             </div>
         </div>
@@ -556,7 +556,7 @@
         <div class="col-12 col-lg-5">
             <div class="card border-0 shadow-sm rounded-4 bg-white">
                 <div class="card-header bg-primary text-white py-3 rounded-top-4" id="rightCardHeader">
-                    <h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>Pricing & Financials</h5>
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator me-2"></i>Pricing & Financials</h5>
                 </div>
                 <div class="card-body p-3.5 p-md-4">
                     {{-- Summary Box --}}
@@ -589,7 +589,7 @@
                     <div class="mb-3 p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning-subtle" id="previousDueCard">
                         <div class="d-flex justify-content-between align-items-center mb-1.5">
                             <label class="form-label small fw-bold text-dark mb-0">
-                                <i class="fas fa-clock-rotate-left me-1 text-warning"></i>পূর্বের বকেয়া জের (Previous Due)
+                                <i class="fa-solid fa-clock-rotate-left me-1 text-warning"></i>পূর্বের বকেয়া জের (Previous Due)
                             </label>
                             <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" id="togglePreviousDueCheck" {{ $hasPrevDue ? 'checked' : '' }} onchange="togglePreviousDueInput(this.checked)">
@@ -648,7 +648,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center p-2.5 bg-danger-subtle rounded-3 mb-3 border border-danger-subtle">
-                            <span class="small fw-bold text-danger"><i class="fas fa-clock me-1"></i>Due Balance:</span>
+                            <span class="small fw-bold text-danger"><i class="fa-solid fa-clock me-1"></i>Due Balance:</span>
                             <span class="fw-bold text-danger font-monospace fs-6" id="displayDue">৳0.00</span>
                         </div>
 
@@ -675,7 +675,7 @@
                     {{-- Quotation Notice Box --}}
                     <div id="quotationNoticeSection" class="p-3 bg-warning-subtle rounded-3 mb-3 border border-warning-subtle d-none">
                         <div class="small text-dark fw-semibold mb-1">
-                            <i class="fas fa-circle-info text-warning me-1"></i> Proposal Mode Active
+                            <i class="fa-solid fa-circle-info text-warning me-1"></i> Proposal Mode Active
                         </div>
                         <div class="text-muted" style="font-size: 11.5px;">
                             No initial payment transactions are recorded for quotations and tenders.
@@ -684,7 +684,7 @@
 
                     {{-- Submit Button --}}
                     <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
-                        <i class="fas fa-save me-1.5"></i> Save Changes
+                        <i class="fa-solid fa-save me-1.5"></i> Save Changes
                     </button>
                     
                     <a href="{{ route('admin.accounting.invoices.show', $invoice->id) }}" class="btn btn-outline-secondary w-100 rounded-pill mt-2 py-2 small">
@@ -702,7 +702,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel">
-                    <i class="fas fa-book-medical me-2"></i>Add New Book to Bookshop
+                    <i class="fa-solid fa-book-medical me-2"></i>Add New Book to Bookshop
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -758,7 +758,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="qbSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> Save & Insert Book
+                        <i class="fa-solid fa-circle-check me-1"></i> Save & Insert Book
                     </button>
                 </div>
             </form>
@@ -930,9 +930,9 @@
         if (!results || results.length === 0) {
             dropdown.innerHTML = `
                 <div class="p-3 text-center">
-                    <div class="text-muted small mb-2"><i class="fas fa-search me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি</div>
+                    <div class="text-muted small mb-2"><i class="fa-solid fa-magnifying-glass me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি</div>
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-2xs" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
-                        <i class="fas fa-plus-circle me-1"></i> + Add "${escapeHtml(query)}" to Bookshop
+                        <i class="fa-solid fa-circle-plus me-1"></i> + Add "${escapeHtml(query)}" to Bookshop
                     </button>
                     <div class="text-muted small mt-1" style="font-size: 11px;">কাস্টম আইটেম হিসেবে সরাসরি ইনভয়েসে ব্যবহার করা যাবে</div>
                 </div>
@@ -943,7 +943,7 @@
 
         let html = `
             <div class="px-3 py-1.5 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
+                <span><i class="fa-solid fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
                 <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">↑ ↓ Enter</span>
             </div>
             <div class="list-group list-group-flush p-1">
@@ -993,7 +993,7 @@
         html += `
             <div class="p-2 border-top bg-light text-center">
                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1 small fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
-                    <i class="fas fa-plus-circle me-1"></i> তালিকাভুক্ত নয়? "${escapeHtml(query || 'নতুন বই')}" বুকশপে যুক্ত করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> তালিকাভুক্ত নয়? "${escapeHtml(query || 'নতুন বই')}" বুকশপে যুক্ত করুন
                 </button>
             </div>
         </div>`;
@@ -1116,7 +1116,7 @@
                               onkeydown="handleBookSearchKeydown(event, ${i})" 
                               autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
                     <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
-                        <i class="fas fa-plus"></i>
+                        <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
                 <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
@@ -1162,7 +1162,7 @@
             <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳0.00</td>
             <td class="text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                    <i class="fas fa-trash-can"></i>
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
             </td>
         `;
@@ -1203,7 +1203,7 @@
         const btn = document.getElementById('qbSubmitBtn');
         const alertBox = document.getElementById('quickBookAlert');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...';
 
         const payload = {
             title: document.getElementById('qbTitle').value.trim(),
@@ -1228,7 +1228,7 @@
         .then(res => res.json())
         .then(data => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save & Insert Book';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save & Insert Book';
             if (data.success && data.book) {
                 const b = data.book;
                 booksCatalog[b.id] = {
@@ -1260,7 +1260,7 @@
         })
         .catch(err => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save & Insert Book';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save & Insert Book';
             alertBox.innerHTML = `<div class="alert alert-danger py-2 small">Error: ${err.message}</div>`;
         });
     }
@@ -1294,7 +1294,7 @@
 
         if (docType === 'tender') {
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-indigo-subtle border-indigo-subtle';
-            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-landmark text-indigo fs-5';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-landmark text-indigo fs-5';
             if (tenderPanelTitle) tenderPanelTitle.textContent = 'Tender Subject';
             if (tenderPanelBadge) {
                 tenderPanelBadge.className = 'badge bg-indigo text-white px-2.5 py-1 rounded-pill shadow-xs';
@@ -1307,20 +1307,20 @@
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
 
-            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-indigo"></i>Schedule of Requirements & BoQ';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fa-solid fa-list-check me-2 text-indigo"></i>Schedule of Requirements & BoQ';
             if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Specify items, paper size, quantity, and estimated pricing';
 
-            submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> Save Tender Changes';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1.5"></i> Save Tender Changes';
             submitBtn.className = 'btn btn-purple w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
             submitBtn.style.backgroundColor = '#582be8';
             submitBtn.style.borderColor = '#582be8';
 
             rightHeader.className = 'card-header text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#582be8';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-landmark me-2"></i>Tender Evaluation & BoQ Financials</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-landmark me-2"></i>Tender Evaluation & BoQ Financials</h5>';
         } else if (docType === 'quotation') {
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-warning-subtle bg-opacity-25 border-warning-subtle';
-            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-file-invoice text-warning-emphasis fs-5';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-file-invoice text-warning-emphasis fs-5';
             if (tenderPanelTitle) tenderPanelTitle.textContent = 'Quotation Subject';
             if (tenderPanelBadge) {
                 tenderPanelBadge.className = 'badge bg-warning text-dark px-2.5 py-1 rounded-pill shadow-xs';
@@ -1333,20 +1333,20 @@
             paymentSection.classList.add('d-none');
             quotationNotice.classList.remove('d-none');
 
-            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-warning-emphasis"></i>Quotation Items & Rates';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fa-solid fa-list-check me-2 text-warning-emphasis"></i>Quotation Items & Rates';
             if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'List books or custom printing service line items';
 
-            submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> Save Quotation Changes';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1.5"></i> Save Quotation Changes';
             submitBtn.className = 'btn btn-warning w-100 py-3 rounded-pill fw-bold shadow-sm text-dark';
             submitBtn.style.backgroundColor = '#eab308';
             submitBtn.style.borderColor = '#ca8a04';
 
             rightHeader.className = 'card-header bg-warning text-dark py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#eab308';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-calculator me-2"></i>Quotation Financial Summary</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-calculator me-2"></i>Quotation Financial Summary</h5>';
         } else if (docType === 'challan') {
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-info-subtle bg-opacity-25 border-info-subtle';
-            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-truck text-info fs-5';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-truck text-info fs-5';
             if (tenderPanelTitle) tenderPanelTitle.textContent = 'Challan Subject';
             if (tenderPanelBadge) {
                 tenderPanelBadge.className = 'badge bg-info text-white px-2.5 py-1 rounded-pill shadow-xs';
@@ -1359,21 +1359,21 @@
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
 
-            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-truck me-2 text-info"></i>Delivery Items';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fa-solid fa-truck me-2 text-info"></i>Delivery Items';
             if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Quantities, packaging, and dispatch item list';
 
-            submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> Save Delivery Challan Changes';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1.5"></i> Save Delivery Challan Changes';
             submitBtn.className = 'btn btn-info w-100 py-3 rounded-pill fw-bold shadow-sm text-white';
             submitBtn.style.backgroundColor = '#0891b2';
             submitBtn.style.borderColor = '#0891b2';
 
             rightHeader.className = 'card-header text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '#0891b2';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-truck-ramp-box me-2"></i>Challan Dispatch Summary</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-truck-ramp-box me-2"></i>Challan Dispatch Summary</h5>';
         } else {
             // Bill / Invoice Mode
             if (tenderPanel) tenderPanel.className = 'p-3 rounded-3 border mb-3 bg-light border-primary-subtle';
-            if (tenderPanelIcon) tenderPanelIcon.className = 'fas fa-receipt text-primary fs-5';
+            if (tenderPanelIcon) tenderPanelIcon.className = 'fa-solid fa-receipt text-primary fs-5';
             if (tenderPanelTitle) tenderPanelTitle.textContent = 'Invoice Subject';
             if (tenderPanelBadge) {
                 tenderPanelBadge.className = 'badge bg-primary text-white px-2.5 py-1 rounded-pill shadow-xs';
@@ -1386,17 +1386,17 @@
             paymentSection.classList.remove('d-none');
             quotationNotice.classList.add('d-none');
 
-            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Bill / Invoice Items';
+            if (itemsSectionTitle) itemsSectionTitle.innerHTML = '<i class="fa-solid fa-list-check me-2 text-success"></i>Bill / Invoice Items';
             if (itemsSectionSubtitle) itemsSectionSubtitle.textContent = 'Select catalog books or custom billing line items';
 
-            submitBtn.innerHTML = '<i class="fas fa-save me-1.5"></i> Save Bill Changes';
+            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1.5"></i> Save Bill Changes';
             submitBtn.className = 'btn btn-success w-100 py-3 rounded-pill fw-bold shadow-sm';
             submitBtn.style.backgroundColor = '';
             submitBtn.style.borderColor = '';
 
             rightHeader.className = 'card-header bg-primary text-white py-3 rounded-top-4';
             rightHeader.style.backgroundColor = '';
-            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fas fa-receipt me-2"></i>Pricing & Financials</h5>';
+            rightHeader.innerHTML = '<h5 class="fw-bold mb-0"><i class="fa-solid fa-receipt me-2"></i>Pricing & Financials</h5>';
         }
     }
 
@@ -1572,7 +1572,7 @@
                     if (noticeEl) {
                         noticeEl.style.display = 'block';
                         const invoiceWord = (data.invoices_count || data.due_count || 1) + 'টি বিল';
-                        noticeEl.innerHTML = `<span class="text-danger"><i class="fas fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
+                        noticeEl.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
                     }
                 } else {
                     if (noticeEl) noticeEl.style.display = 'none';
@@ -1668,7 +1668,7 @@
             dropdown.style.width = Math.max(340, rect.width) + 'px';
         }
 
-        resultsList.innerHTML = `<div class="p-2.5 text-center text-muted small"><i class="fas fa-spinner fa-spin me-1.5 text-primary"></i>গ্রাহক অনুসন্ধান করা হচ্ছে...</div>`;
+        resultsList.innerHTML = `<div class="p-2.5 text-center text-muted small"><i class="fa-solid fa-spinner fa-spin me-1.5 text-primary"></i>গ্রাহক অনুসন্ধান করা হচ্ছে...</div>`;
         dropdown.style.display = 'block';
 
         fetch(`{{ route('admin.accounting.invoices.customer-search') }}?q=${encodeURIComponent(query)}`, {
@@ -1679,7 +1679,7 @@
             if (!customers || !customers.length) {
                 resultsList.innerHTML = `
                     <div class="p-2.5 text-center text-muted small">
-                        <i class="fas fa-user-slash me-1 text-secondary"></i>কোন পুরাতন রেজিস্টার্ড কাস্টমার পাওয়া যায়নি।
+                        <i class="fa-solid fa-user-slash me-1 text-secondary"></i>কোন পুরাতন রেজিস্টার্ড কাস্টমার পাওয়া যায়নি।
                     </div>`;
                 return;
             }
@@ -1687,7 +1687,7 @@
             let html = `
                 <div class="px-2 py-1 mb-1 border-bottom d-flex align-items-center justify-content-between bg-light rounded-top">
                     <span class="small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                        <i class="fas fa-users text-primary me-1"></i>মিলিত কাস্টমার তালিকা (${customers.length})
+                        <i class="fa-solid fa-users text-primary me-1"></i>মিলিত কাস্টমার তালিকা (${customers.length})
                     </span>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 9.5px;">ক্লিক করে অটো-পূরণ করুন</span>
                 </div>
@@ -1702,18 +1702,18 @@
                             <div>
                                 <div class="fw-bold text-dark d-flex align-items-center gap-1.5 flex-wrap">
                                     <span>${c.name || '—'}</span>
-                                    ${c.org ? `<span class="badge bg-white text-dark border fw-semibold shadow-2xs"><i class="fas fa-building text-primary me-0.5"></i>${c.org}</span>` : ''}
+                                    ${c.org ? `<span class="badge bg-white text-dark border fw-semibold shadow-2xs"><i class="fa-solid fa-building text-primary me-0.5"></i>${c.org}</span>` : ''}
                                     ${c.designation ? `<span class="badge bg-secondary-subtle text-secondary fw-normal">${c.designation}</span>` : ''}
                                 </div>
                                 <div class="small text-muted mt-0.5 d-flex align-items-center gap-2.5 flex-wrap" style="font-size: 11.5px;">
-                                    ${c.phone ? `<span><i class="fas fa-phone text-success me-0.5"></i><strong>${c.phone}</strong></span>` : ''}
-                                    ${c.email ? `<span><i class="fas fa-envelope text-info me-0.5"></i>${c.email}</span>` : ''}
+                                    ${c.phone ? `<span><i class="fa-solid fa-phone text-success me-0.5"></i><strong>${c.phone}</strong></span>` : ''}
+                                    ${c.email ? `<span><i class="fa-solid fa-envelope text-info me-0.5"></i>${c.email}</span>` : ''}
                                 </div>
-                                ${c.address ? `<div class="text-muted small mt-0.5 text-truncate" style="font-size: 11px; max-width: 320px;"><i class="fas fa-location-dot text-danger me-0.5"></i>${c.address}</div>` : ''}
+                                ${c.address ? `<div class="text-muted small mt-0.5 text-truncate" style="font-size: 11px; max-width: 320px;"><i class="fa-solid fa-location-dot text-danger me-0.5"></i>${c.address}</div>` : ''}
                             </div>
                             <div class="text-end text-nowrap">
                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 10px;">${c.source}</span>
-                                ${c.due_amount > 0 ? `<div class="badge bg-danger text-white rounded-pill mt-1 d-block shadow-2xs" style="font-size: 9.5px;"><i class="fas fa-triangle-exclamation me-0.5"></i>বকেয়া: ৳${c.due_formatted}</div>` : ''}
+                                ${c.due_amount > 0 ? `<div class="badge bg-danger text-white rounded-pill mt-1 d-block shadow-2xs" style="font-size: 9.5px;"><i class="fa-solid fa-triangle-exclamation me-0.5"></i>বকেয়া: ৳${c.due_formatted}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -1763,7 +1763,7 @@
         const clearBtn = document.getElementById('btnClearCustomerInfo');
         if (badge) {
             badge.style.display = 'inline-flex';
-            badge.innerHTML = `<i class="fas fa-check-circle me-1"></i>${c.source || 'পুরাতন কাস্টমার'} অটো-ফিল হয়েছে`;
+            badge.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>${c.source || 'পুরাতন কাস্টমার'} অটো-ফিল হয়েছে`;
         }
         if (clearBtn) clearBtn.style.display = 'inline-flex';
 
@@ -1949,7 +1949,7 @@
                                   onkeydown="handleBookSearchKeydown(event, ${i})" 
                                   autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
                         <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
-                            <i class="fas fa-plus"></i>
+                            <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
                     <input type="hidden" name="items[${i}][book_id]" class="item-book-id" value="">
@@ -1995,7 +1995,7 @@
                 <td class="text-end fw-bold text-dark item-subtotal font-monospace fs-6">৳${lineTotal.toFixed(2)}</td>
                 <td class="text-center">
                     <button type="button" class="btn btn-sm btn-outline-danger p-1.5 rounded-circle border-0" onclick="removeRow(this)" title="Remove">
-                        <i class="fas fa-trash-can"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </td>
             `;
@@ -2047,7 +2047,7 @@
             if (stnWrap) stnWrap.style.display = 'block';
             if (prtWrap) prtWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-pen-ruler me-2 text-info"></i>Stationery Items & Rates';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
+            if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item / Product Title';
             if (thAuthor) thAuthor.textContent = 'Model / Spec';
@@ -2058,7 +2058,7 @@
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'block';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-print me-2 text-warning"></i>Printing & Press Services';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
+            if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Job Title / Description';
             if (thAuthor) thAuthor.textContent = 'Size / Spec';
@@ -2069,7 +2069,7 @@
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
             if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-cart-plus me-2 text-secondary"></i>Other Items & Services';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
+            if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item Description';
             if (thAuthor) thAuthor.textContent = 'Spec / Notes';
@@ -2079,8 +2079,8 @@
         } else { // books
             if (stnWrap) stnWrap.style.display = 'none';
             if (prtWrap) prtWrap.style.display = 'none';
-            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fas fa-list-check me-2 text-success"></i>Items & Schedule of Rates';
-            if (addBtn) addBtn.innerHTML = '<i class="fas fa-plus me-1"></i> Add Item';
+            if (itemsSecTitle) itemsSecTitle.innerHTML = '<i class="fa-solid fa-list-check me-2 text-success"></i>Items & Schedule of Rates';
+            if (addBtn) addBtn.innerHTML = '<i class="fa-solid fa-plus me-1"></i> Add Item';
 
             if (thTitle) thTitle.textContent = 'Item / Book Title';
             if (thAuthor) thAuthor.textContent = 'Author / Spec';
@@ -3933,7 +3933,7 @@
                                     <i class="fa-regular fa-copy me-2"></i> Copy Complete Estimate
                                 </button>
                                 <button type="button" class="btn btn-success rounded-pill px-5 py-2.5 fw-bold shadow-sm fs-6" onclick="insertBookCostToInvoice()">
-                                    <i class="fa-solid fa-plus-circle me-2"></i> + Add to Quotation / Proposal
+                                    <i class="fa-solid fa-circle-plus me-2"></i> + Add to Quotation / Proposal
                                 </button>
                             </div>
                         </div>
@@ -4101,7 +4101,7 @@
                                     <i class="fa-regular fa-copy me-2"></i> Copy Commercial Estimate
                                 </button>
                                 <button type="button" class="btn btn-warning rounded-pill px-5 py-2.5 fw-bold shadow-sm fs-6 text-dark" onclick="insertCommercialCostToInvoice()">
-                                    <i class="fa-solid fa-plus-circle me-2"></i> + Add Commercial Item to Invoice
+                                    <i class="fa-solid fa-circle-plus me-2"></i> + Add Commercial Item to Invoice
                                 </button>
                             </div>
                         </div>
@@ -4123,7 +4123,7 @@
                                     <i class="fa-regular fa-copy me-2"></i> Copy Complete Estimate
                                 </button>
                                 <button type="button" class="btn btn-warning text-dark rounded-pill px-5 py-2.5 fw-bold shadow-sm fs-6" onclick="insertCommercialCostToInvoice()">
-                                    <i class="fa-solid fa-plus-circle me-2"></i> + Add to Quotation / Proposal
+                                    <i class="fa-solid fa-circle-plus me-2"></i> + Add to Quotation / Proposal
                                 </button>
                             </div>
                         </div>

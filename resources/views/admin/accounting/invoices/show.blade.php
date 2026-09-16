@@ -60,22 +60,22 @@
         {{-- Collect Installment Payment Button --}}
         @if(in_array($invoice->type, ['invoice', 'challan']) && $invoice->due_amount > 0)
             <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
-                <i class="fas fa-hand-holding-dollar me-1.5"></i> কিস্তি জমা নিন
+                <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> কিস্তি জমা নিন
             </button>
         @endif
 
         {{-- Customer Ledger Link --}}
         <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
-            <i class="fas fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
         </a>
 
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> Print / PDF
+            <i class="fa-solid fa-print me-1.5"></i> Print / PDF
         </button>
 
         {{-- Send Invoice Link to Customer Email Button --}}
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal" title="Send digital invoice link to customer email">
-            <i class="fas fa-paper-plane me-1.5"></i> Send Email
+            <i class="fa-solid fa-paper-plane me-1.5"></i> Send Email
             @if($invoice->emailed_at)
                 <span class="badge bg-success text-white ms-1 px-1.5 py-0.5 rounded-pill" title="Email sent">✓</span>
             @endif
@@ -83,21 +83,21 @@
 
         {{-- Copy Customer Public Link --}}
         <button type="button" class="btn btn-outline-secondary text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" onclick="copyCustomerShareLink()" id="btnAdminCopyLink" title="Copy public share link for customer">
-            <i class="fas fa-share-nodes me-1 text-primary"></i> Copy Link
+            <i class="fa-solid fa-share-nodes me-1 text-primary"></i> Copy Link
         </button>
 
         <a href="{{ $invoice->public_url }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" title="Preview public view">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> Customer View
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Customer View
         </a>
 
         {{-- Edit Document Button --}}
         <a href="{{ route('admin.accounting.invoices.edit', $invoice->id) }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm">
-            <i class="fas fa-edit me-1"></i> Edit Document
+            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Document
         </a>
 
         {{-- Customize Memo Header Settings Button --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize invoice branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
 
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
@@ -107,7 +107,7 @@
                 @csrf
                 <input type="hidden" name="target_type" value="invoice">
                 <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
-                    <i class="fas fa-receipt me-1"></i> Convert to Bill
+                    <i class="fa-solid fa-receipt me-1"></i> Convert to Bill
                 </button>
             </form>
 
@@ -116,13 +116,13 @@
                 @csrf
                 <input type="hidden" name="target_type" value="challan">
                 <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm">
-                    <i class="fas fa-truck me-1"></i> Convert to Challan
+                    <i class="fa-solid fa-truck me-1"></i> Convert to Challan
                 </button>
             </form>
         @endif
 
         <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-left me-1"></i> Back to List
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
         </a>
     </div>
 @endsection
@@ -135,32 +135,32 @@
         <div class="nav nav-pills gap-1.5 flex-wrap">
             <a href="{{ route('admin.accounting.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-scale-balanced me-1.5"></i> Income & Expense Ledger
+                <i class="fa-solid fa-scale-balanced me-1.5"></i> Income & Expense Ledger
             </a>
             <a href="{{ route('admin.accounting.invoices.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
+                <i class="fa-solid fa-file-invoice-dollar me-1.5"></i> Invoices, Challans & Quotations
             </a>
             <a href="{{ route('admin.accounting.customer-ledger.index') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-book-bookmark me-1.5"></i> Customer Ledgers & Statements
+                <i class="fa-solid fa-book-bookmark me-1.5"></i> Customer Ledgers & Statements
             </a>
             <a href="{{ route('admin.accounting.invoices.create') }}" 
                class="nav-link rounded-pill px-3.5 py-2 fw-semibold text-dark hover-bg-light">
-                <i class="fas fa-file-circle-plus me-1.5"></i> Create New Invoice
+                <i class="fa-solid fa-file-circle-plus me-1.5"></i> Create New Invoice
             </a>
         </div>
 
         @if($invoice->type === 'invoice')
             <div class="btn-group btn-group-sm">
                 <button type="button" class="btn btn-outline-primary active" id="btnShowBoth" onclick="setViewMode('both')">
-                    <i class="fas fa-file-lines me-1"></i>Both Pages (Bill & Challan)
+                    <i class="fa-solid fa-file-lines me-1"></i>Both Pages (Bill & Challan)
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="btnShowBill" onclick="setViewMode('bill')">
-                    <i class="fas fa-receipt me-1"></i>Page 1 (Bill)
+                    <i class="fa-solid fa-receipt me-1"></i>Page 1 (Bill)
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="btnShowChallan" onclick="setViewMode('challan')">
-                    <i class="fas fa-truck me-1"></i>Page 2 (Challan)
+                    <i class="fa-solid fa-truck me-1"></i>Page 2 (Challan)
                 </button>
             </div>
         @endif
@@ -185,11 +185,11 @@
                             <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                             <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                             <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                                <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                 <span class="mx-1 text-muted">·</span>
-                                <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                                <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                             </div>
                         </div>
                     </div>
@@ -228,11 +228,11 @@
                     <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                     
                     <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                        <i class="fas fa-desktop me-1"></i>{{ $computerGeneratedLabels[$invoice->type] ?? 'Computer-generated bill' }}
+                        <i class="fa-solid fa-desktop me-1"></i>{{ $computerGeneratedLabels[$invoice->type] ?? 'Computer-generated bill' }}
                         · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                     </div>
                     @if($invoice->valid_until)
-                        <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fas fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
+                        <div class="text-danger fw-semibold" style="font-size: 9px;"><i class="fa-solid fa-hourglass-half me-0.5"></i>Valid until: {{ $invoice->valid_until->format('d M, Y') }}</div>
                     @endif
                 </div>
             </div>
@@ -268,7 +268,7 @@
             <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                 <div class="row g-2 align-items-start m-0">
                     <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fas fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
+                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fa-solid fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             @if($invoice->customer_name)
                                 <tr>
@@ -308,7 +308,7 @@
                         </table>
                     </div>
                     <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-file-invoice me-1 text-primary"></i>Order & Payment Details:</div>
+                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fa-solid fa-file-invoice me-1 text-primary"></i>Order & Payment Details:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             <tr>
                                 <td class="colon-label" style="width: 85px;">Doc Type</td>
@@ -462,7 +462,7 @@
                         <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
-                                    <i class="fas fa-coins me-1 text-primary"></i>Total in Words (টাকা কথায়):
+                                    <i class="fa-solid fa-coins me-1 text-primary"></i>Total in Words (টাকা কথায়):
                                 </div>
                                 <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
                                     @takaInWordsEn($invoice->grand_total)
@@ -472,19 +472,19 @@
                             @if(in_array($invoice->type, ['invoice', 'challan']))
                                 <div class="mt-2 pt-2 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 9.5px;">
                                     <span class="text-muted fw-semibold">
-                                        <i class="fas fa-receipt me-1 text-secondary"></i>Payment Status:
+                                        <i class="fa-solid fa-receipt me-1 text-secondary"></i>Payment Status:
                                     </span>
                                     @if($invoice->due_amount <= 0)
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
-                                            <i class="fas fa-circle-check me-1"></i>FULL PAID
+                                            <i class="fa-solid fa-circle-check me-1"></i>FULL PAID
                                         </span>
                                     @elseif($invoice->paid_amount > 0)
                                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
-                                            <i class="fas fa-clock me-1"></i>PARTIAL PAID (Due: ৳{{ number_format($invoice->due_amount, 2) }})
+                                            <i class="fa-solid fa-clock me-1"></i>PARTIAL PAID (Due: ৳{{ number_format($invoice->due_amount, 2) }})
                                         </span>
                                     @else
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0.5 fw-bold" style="font-size: 9px;">
-                                            <i class="fas fa-circle-exclamation me-1"></i>UNPAID
+                                            <i class="fa-solid fa-circle-exclamation me-1"></i>UNPAID
                                         </span>
                                     @endif
                                 </div>
@@ -548,7 +548,7 @@
 
             {{-- Note at end right before signature --}}
             <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. VAT not included unless specified.
+                <strong class="text-dark"><i class="fa-solid fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. VAT not included unless specified.
                 @if($invoice->notes)
                     · {{ $invoice->notes }}
                 @endif
@@ -687,11 +687,11 @@
                                 <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
+                                    <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
+                                    <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                                    <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -704,7 +704,7 @@
                         <div class="fw-bold text-dark mb-0 font-monospace invoice-no-text" style="font-size: 13pt; line-height: 1.2;">#{{ $invoice->invoice_no }}</div>
                         
                         <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.2;">
-                            <i class="fas fa-truck me-1"></i>Computer-generated delivery challan · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
+                            <i class="fa-solid fa-truck me-1"></i>Computer-generated delivery challan · Date: <strong>{{ $invoice->invoice_date ? $invoice->invoice_date->format('d M, Y') : '—' }}</strong>
                         </div>
                         <div class="text-muted" style="font-size: 9px;">Linked Bill #: <strong>#{{ $invoice->invoice_no }}</strong></div>
                     </div>
@@ -732,7 +732,7 @@
                     <div class="row g-2 align-items-start m-0">
                         <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
                             <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
-                                <span><i class="fas fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
+                                <span><i class="fa-solid fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
                             </div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table recipient-info-table" style="line-height: 1.45;">
                                 @if($invoice->customer_name)
@@ -773,7 +773,7 @@
                             </table>
                         </div>
                         <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
-                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fas fa-truck-fast me-1 text-primary"></i>Challan Tracking & Dispatch Info:</div>
+                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fa-solid fa-truck-fast me-1 text-primary"></i>Challan Tracking & Dispatch Info:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 <tr>
                                     <td class="colon-label" style="width: 90px;">Challan Type</td>
@@ -868,7 +868,7 @@
 
                 {{-- Challan Notes --}}
                 <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
-                    <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Please verify the quantity and binding condition before signing receipt.
+                    <strong class="text-dark"><i class="fa-solid fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Please verify the quantity and binding condition before signing receipt.
                     @if($invoice->notes)
                         · {{ $invoice->notes }}
                     @endif
@@ -890,7 +890,7 @@
                             <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                                 <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
-                                    <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fas fa-qrcode me-0.5"></i>Scan to Verify</span>
+                                    <span class="text-muted fw-semibold d-block" style="font-size: 8px;"><i class="fa-solid fa-qrcode me-0.5"></i>Scan to Verify</span>
                                     <span class="font-monospace text-dark fw-bold" style="font-size: 9px;">#{{ $invoice->invoice_no }}</span>
                                 </div>
                             </div>
@@ -931,7 +931,7 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="d-flex align-items-center gap-3">
                     <div class="p-2.5 bg-warning text-dark rounded-circle fs-5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                        <i class="fas fa-layer-group"></i>
+                        <i class="fa-solid fa-layer-group"></i>
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 text-dark">
@@ -945,10 +945,10 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                        <i class="fas fa-book-bookmark me-1 text-primary"></i> খতিয়ান দেখুন
+                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> খতিয়ান দেখুন
                     </a>
                     <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="openAllDueSettlementModal()">
-                        <i class="fas fa-hand-holding-dollar me-1.5"></i> সকল বকেয়া একসাথে পরিশোধ করুন
+                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> সকল বকেয়া একসাথে পরিশোধ করুন
                     </button>
                 </div>
             </div>
@@ -967,7 +967,7 @@
             <div class="card-header bg-white py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div class="d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success p-2 rounded-circle">
-                        <i class="fas fa-hand-holding-dollar fs-6"></i>
+                        <i class="fa-solid fa-hand-holding-dollar fs-6"></i>
                     </span>
                     <div>
                         <h5 class="card-title fw-bold mb-0 text-dark">ধাপে ধাপে কিস্তি ও জমা পরিশোধের হিসাব</h5>
@@ -976,11 +976,11 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                        <i class="fas fa-book-bookmark me-1 text-primary"></i> সম্পূর্ণ গ্রাহক খতিয়ান
+                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> সম্পূর্ণ গ্রাহক খতিয়ান
                     </a>
                     @if($invoice->due_amount > 0 || ($customerTotalDue ?? 0) > 0)
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
-                            <i class="fas fa-plus me-1"></i> নতুন কিস্তি জমা নিন
+                            <i class="fa-solid fa-plus me-1"></i> নতুন কিস্তি জমা নিন
                         </button>
                     @endif
                 </div>
@@ -1016,13 +1016,13 @@
                             <div class="fs-6 fw-bold text-dark font-monospace mt-1">
                                 @if($invoice->due_date && $invoice->due_amount > 0)
                                     <span class="{{ $invoice->is_overdue ? 'text-danger' : 'text-primary' }}">
-                                        <i class="fas fa-calendar-day me-1"></i>{{ $invoice->due_date->format('d M, Y') }}
+                                        <i class="fa-solid fa-calendar-day me-1"></i>{{ $invoice->due_date->format('d M, Y') }}
                                         @if($invoice->is_overdue)
                                             <span class="badge bg-danger text-white ms-1" style="font-size: 9px;">মেয়াদোত্তীর্ণ</span>
                                         @endif
                                     </span>
                                 @elseif($invoice->due_amount <= 0)
-                                    <span class="text-success small"><i class="fas fa-check-circle me-1"></i>সম্পূর্ণ পরিশোধিত</span>
+                                    <span class="text-success small"><i class="fa-solid fa-circle-check me-1"></i>সম্পূর্ণ পরিশোধিত</span>
                                 @else
                                     <span class="text-muted small">নির্ধারিত নেই</span>
                                 @endif
@@ -1052,7 +1052,7 @@
 
                 {{-- Installment Payments History Table --}}
                 <h6 class="fw-bold text-dark mb-2.5">
-                    <i class="fas fa-clock-rotate-left text-primary me-1.5"></i>Payment History
+                    <i class="fa-solid fa-clock-rotate-left text-primary me-1.5"></i>Payment History
                 </h6>
 
                 <div class="table-responsive">
@@ -1100,7 +1100,7 @@
                                             <div class="text-muted font-monospace" style="font-size: 11px;">Trx: {{ $pmt->transaction_ref }}</div>
                                         @endif
                                         @if($pmt->deduction_challan_no)
-                                            <div class="text-primary font-monospace" style="font-size: 10.5px;"><i class="fas fa-file-lines me-1"></i>Challan: {{ $pmt->deduction_challan_no }}</div>
+                                            <div class="text-primary font-monospace" style="font-size: 10.5px;"><i class="fa-solid fa-file-lines me-1"></i>Challan: {{ $pmt->deduction_challan_no }}</div>
                                         @endif
                                     </td>
                                     <td class="text-center text-muted small py-2 px-3">
@@ -1109,7 +1109,7 @@
                                     <td class="text-center py-2 px-3">
                                         <div class="d-flex align-items-center justify-content-center gap-1.5">
                                             <a href="{{ route('admin.accounting.invoices.payments.receipt', $pmt->id) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 fw-semibold" title="View Receipt">
-                                                <i class="fas fa-file-shield me-1"></i>Receipt
+                                                <i class="fa-solid fa-file-shield me-1"></i>Receipt
                                             </a>
 
                                             <form action="{{ route('admin.accounting.invoices.payments.destroy', $pmt->id) }}" method="POST" class="d-inline"
@@ -1117,7 +1117,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1" style="width: 28px; height: 28px; line-height: 1;" title="Delete">
-                                                    <i class="fas fa-trash-alt" style="font-size: 11px;"></i>
+                                                    <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                                 </button>
                                             </form>
                                         </div>
@@ -1126,7 +1126,7 @@
                             @empty
                                 <tr>
                                     <td colspan="8" class="text-center py-4 text-muted">
-                                        <i class="fas fa-receipt fs-3 mb-2 d-block text-secondary"></i>
+                                        <i class="fa-solid fa-receipt fs-3 mb-2 d-block text-secondary"></i>
                                         No payments recorded yet.
                                     </td>
                                 </tr>
@@ -1188,7 +1188,7 @@
 
                     {{-- Copy Link --}}
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs text-dark" onclick="copyCustomerShareLink()" title="গ্রাহকের জন্য সরাসরি পাবলিক লিংক কপি করুন">
-                        <i class="fas fa-copy me-1 text-primary"></i> Copy Link
+                        <i class="fa-solid fa-copy me-1 text-primary"></i> Copy Link
                     </button>
                     
                     {{-- WhatsApp Share --}}
@@ -1211,7 +1211,7 @@
 
                     {{-- Send Email Modal Trigger --}}
                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3.5 py-1.5 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                        <i class="fas fa-paper-plane me-1"></i> Send Email
+                        <i class="fa-solid fa-paper-plane me-1"></i> Send Email
                     </button>
                 </div>
             </div>
@@ -1447,14 +1447,14 @@
                                                         style="font-size: 11px;" 
                                                         onclick="openResendModal('{{ implode(', ', $allRecipientEmails) }}', '{{ addslashes($log['custom_message'] ?? '') }}')" 
                                                         title="এই ঠিকানায় পুনরায় ইনভয়েস মেইল পাঠান">
-                                                    <i class="fas fa-rotate-right me-0.5"></i> Resend
+                                                    <i class="fa-solid fa-rotate-right me-0.5"></i> Resend
                                                 </button>
                                                 @if(!empty($log['id']))
                                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 shadow-2xs" 
                                                             style="font-size: 11px;" 
                                                             onclick="deleteEmailLogEntry('{{ $invoice->id }}', '{{ $log['id'] }}', this)" 
                                                             title="এই লগটি মুছে ফেলুন">
-                                                        <i class="fas fa-trash-alt"></i>
+                                                        <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 @endif
                                             </div>
@@ -1490,7 +1490,7 @@
                             গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় এক ক্লিকে ডিজিটাল বিল ও ডেলিভারি চালানের সরাসরি লিংক এবং পিডিএফ কপি পাঠাতে নিচের বাটনে ক্লিক করুন।
                         </p>
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            <i class="fas fa-paper-plane me-1.5"></i> এখনই গ্রাহককে ইমেইল পাঠান
+                            <i class="fa-solid fa-paper-plane me-1.5"></i> এখনই গ্রাহককে ইমেইল পাঠান
                         </button>
                     </div>
                 @endif
@@ -1592,10 +1592,10 @@
                                     {{-- Save and Reset Toolbar --}}
                                     <div class="d-flex align-items-center justify-content-between pt-3 mt-3 border-top">
                                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 12px;" onclick="resetToAutoFilledMessages()">
-                                            <i class="fas fa-rotate-left me-1"></i>অটোফিল রিস্টোর
+                                            <i class="fa-solid fa-rotate-left me-1"></i>অটোফিল রিস্টোর
                                         </button>
                                         <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 py-1.5 fw-bold shadow-xs" id="btnSaveCustomMsg">
-                                            <i class="fas fa-save me-1.5" id="btnSaveCustomMsgIcon"></i>
+                                            <i class="fa-solid fa-save me-1.5" id="btnSaveCustomMsgIcon"></i>
                                             <span id="btnSaveCustomMsgText">বার্তা সংরক্ষণ করুন</span>
                                         </button>
                                     </div>
@@ -1759,7 +1759,7 @@ function handleCustomMessageSubmit(e) {
 
     if (btn) btn.disabled = true;
     if (btnIcon) {
-        btnIcon.className = "fas fa-spinner fa-spin me-1.5";
+        btnIcon.className = "fa-solid fa-spinner fa-spin me-1.5";
     }
     if (btnText) btnText.textContent = "সংরক্ষণ হচ্ছে...";
 
@@ -1800,7 +1800,7 @@ function handleCustomMessageSubmit(e) {
     .finally(() => {
         if (btn) btn.disabled = false;
         if (btnIcon) {
-            btnIcon.className = "fas fa-save me-1.5";
+            btnIcon.className = "fa-solid fa-save me-1.5";
         }
         if (btnText) btnText.textContent = "বার্তা সংরক্ষণ করুন";
     });
@@ -1895,7 +1895,7 @@ function deleteEmailLogEntry(invoiceId, logId, btn) {
     const row = btn.closest('tr');
     const originalContent = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
     fetch(`/admin/accounting/invoices/${invoiceId}/email-logs/${logId}`, {
         method: 'DELETE',
@@ -1964,7 +1964,7 @@ function openResendModal(emails, customMsg) {
                 
                 <div class="modal-header bg-success text-white py-3">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-hand-holding-dollar fs-5"></i>
+                        <i class="fa-solid fa-hand-holding-dollar fs-5"></i>
                         <div>
                             <h5 class="modal-title fw-bold mb-0" id="recordInvoicePaymentModalLabel">
                                 Record Payment
@@ -1980,7 +1980,7 @@ function openResendModal(emails, customMsg) {
                     @if(($customerDueCount ?? 0) > 1 || (isset($otherDueInvoices) && $otherDueInvoices->isNotEmpty()))
                         <div class="card border border-primary-subtle bg-primary-subtle bg-opacity-10 rounded-3 p-2.5 mb-3">
                             <label class="form-label small fw-bold text-dark mb-1.5 d-block">
-                                <i class="fas fa-sliders text-primary me-1"></i>Payment Scope:
+                                <i class="fa-solid fa-sliders text-primary me-1"></i>Payment Scope:
                             </label>
                             <div class="d-flex gap-2 flex-wrap">
                                 <div class="form-check form-check-inline m-0 p-2 bg-white rounded-2 border flex-fill">
@@ -2018,7 +2018,7 @@ function openResendModal(emails, customMsg) {
                         <div id="allInvoicesBreakdownBox" class="mb-3 d-none">
                             <div class="d-flex justify-content-between align-items-center mb-1.5">
                                 <span class="small fw-bold text-dark">
-                                    <i class="fas fa-list-check text-success me-1"></i>Due Invoices (FIFO order):
+                                    <i class="fa-solid fa-list-check text-success me-1"></i>Due Invoices (FIFO order):
                                 </span>
                                 <span class="badge bg-danger text-white">Total Due: ৳{{ number_format($customerTotalDue, 2) }}</span>
                             </div>
@@ -2062,7 +2062,7 @@ function openResendModal(emails, customMsg) {
                             <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" role="switch" id="toggleVatTaxDeduction" onchange="toggleVatTaxSection(this.checked)">
                                 <label class="form-check-label fw-bold text-dark small" for="toggleVatTaxDeduction">
-                                    <i class="fas fa-calculator text-warning-emphasis me-1"></i> TDS & VDS Adjustment Calculator
+                                    <i class="fa-solid fa-calculator text-warning-emphasis me-1"></i> TDS & VDS Adjustment Calculator
                                 </label>
                             </div>
                             <span class="badge bg-warning text-dark border font-monospace" style="font-size: 11px;">TDS / VDS</span>
@@ -2070,7 +2070,7 @@ function openResendModal(emails, customMsg) {
                         
                         <div id="vatTaxCalculatorPanel" class="mt-3 pt-3 border-top border-warning-subtle d-none">
                             <div class="d-flex align-items-center justify-content-between mb-2.5 flex-wrap gap-2">
-                                <span class="text-muted small fw-bold"><i class="fas fa-arrow-right-arrow-left text-primary me-1"></i>Calculation Mode:</span>
+                                <span class="text-muted small fw-bold"><i class="fa-solid fa-arrow-right-arrow-left text-primary me-1"></i>Calculation Mode:</span>
                                 <div class="btn-group btn-group-sm" role="group">
                                     <input type="radio" class="btn-check" name="calc_mode" id="calcModeGross" value="gross" checked onchange="switchCalcMode('gross')">
                                     <label class="btn btn-outline-primary btn-sm py-0.5 px-2.5 font-monospace" for="calcModeGross" style="font-size: 11.5px;">1. Gross (From Due)</label>
@@ -2130,7 +2130,7 @@ function openResendModal(emails, customMsg) {
                                 <div class="col-md-6 col-12">
                                     <div class="p-2.5 bg-white rounded-3 border">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            <i class="fas fa-money-bill-wave text-success me-1"></i>Net Received:
+                                            <i class="fa-solid fa-money-bill-wave text-success me-1"></i>Net Received:
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text">৳</span>
@@ -2226,7 +2226,7 @@ function openResendModal(emails, customMsg) {
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnSubmitPayment">
-                        <i class="fas fa-check me-1.5"></i> Confirm Payment
+                        <i class="fa-solid fa-check me-1.5"></i> Confirm Payment
                     </button>
                 </div>
             </form>
@@ -2445,7 +2445,7 @@ function updateCalcDisplays(net, deductions, gross) {
                 @csrf
                 <div class="modal-header bg-success text-white py-3 px-4">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-paper-plane fs-5"></i>
+                        <i class="fa-solid fa-paper-plane fs-5"></i>
                         <div>
                             <h5 class="modal-title fw-bold mb-0" id="sendInvoiceEmailModalLabel">
                                 Send Invoice Link to Customer
@@ -2457,7 +2457,7 @@ function updateCalcDisplays(net, deductions, gross) {
                 </div>
                 <div class="modal-body p-4">
                     <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-info-subtle">
-                        <i class="fas fa-circle-info me-2 fs-5 text-info"></i>
+                        <i class="fa-solid fa-circle-info me-2 fs-5 text-info"></i>
                         <div style="font-size: 12.5px;">
                             গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় সরাসরি ডিজিটাল ইনভয়েস দেখা এবং পিডিএফ (PDF) ডাউনলোড করার লিংক স্বয়ংক্রিয়ভাবে প্রেরিত হবে।
                         </div>
@@ -2502,7 +2502,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     @if(!empty($invoice->email_logs))
                         <div class="mt-3 p-3 bg-light rounded-3 border">
                             <span class="small fw-bold text-dark d-block mb-1">
-                                <i class="fas fa-history me-1 text-success"></i> পূর্ববর্তী প্রেরণের ইতিহাস (Dispatch History):
+                                <i class="fa-solid fa-history me-1 text-success"></i> পূর্ববর্তী প্রেরণের ইতিহাস (Dispatch History):
                             </span>
                             <div class="d-flex flex-column gap-1" style="max-height: 120px; overflow-y: auto;">
                                 @foreach(array_slice($invoice->email_logs, 0, 3) as $hLog)
@@ -2522,7 +2522,7 @@ function updateCalcDisplays(net, deductions, gross) {
                 <div class="modal-footer border-top py-2.5 bg-light">
                     <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill fw-semibold px-4 shadow-sm" id="btnSendInvoiceEmail">
-                        <i class="fas fa-paper-plane me-1.5"></i> Send Email Now
+                        <i class="fa-solid fa-paper-plane me-1.5"></i> Send Email Now
                     </button>
                 </div>
             </form>
@@ -2594,7 +2594,7 @@ function updateCalcDisplays(net, deductions, gross) {
 
                 <div class="modal-header border-bottom py-3">
                     <h5 class="modal-title fw-bold text-primary" id="invoiceSettingsModalLabel">
-                        <i class="fas fa-sliders me-2"></i>Invoice & Memo Settings
+                        <i class="fa-solid fa-sliders me-2"></i>Invoice & Memo Settings
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -2603,7 +2603,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     {{-- 1. Live Header Preview --}}
                     <div class="card border rounded-3 p-3 mb-3 bg-light">
                         <span class="small fw-bold text-muted text-uppercase mb-2 d-block">
-                            <i class="fas fa-eye me-1 text-primary"></i>Header Live Preview
+                            <i class="fa-solid fa-eye me-1 text-primary"></i>Header Live Preview
                         </span>
                         <div class="d-flex align-items-center gap-3.5 p-2.5 bg-white rounded border">
                             <img src="{{ $logoSrc }}" id="previewHeaderLogo" alt="Logo Preview" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 6px;">
@@ -2611,11 +2611,11 @@ function updateCalcDisplays(net, deductions, gross) {
                                 <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
                                 <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
-                                    <span><i class="fas fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
+                                    <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $settings['phone'] ?? '018XXXXXXXX' }}</span></span>
+                                    <span><i class="fa-solid fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $settings['phone'] ?? '018XXXXXXXX' }}</span></span>
                                     <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fas fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $settings['email'] ?? 'info@ideaabd.com' }}</span></span>
+                                    <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $settings['email'] ?? 'info@ideaabd.com' }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -2625,7 +2625,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-image me-1"></i>Company Logo (2:1 Ratio)
+                                <i class="fa-solid fa-image me-1"></i>Company Logo (2:1 Ratio)
                             </label>
                             <span class="badge bg-primary text-white">2:1 Aspect Ratio</span>
                         </div>
@@ -2640,12 +2640,12 @@ function updateCalcDisplays(net, deductions, gross) {
                                         <canvas id="cropCanvas" width="360" height="180" class="w-100 h-100" style="object-fit: contain;"></canvas>
                                     </div>
                                     <div class="d-flex align-items-center gap-2 mt-2">
-                                        <i class="fas fa-magnifying-glass-minus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-minus text-muted small"></i>
                                         <input type="range" class="form-range" id="cropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
-                                        <i class="fas fa-magnifying-glass-plus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-plus text-muted small"></i>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-1">
-                                        <small class="text-muted"><i class="fas fa-hand me-1"></i>Drag to position, slider to zoom</small>
+                                        <small class="text-muted"><i class="fa-solid fa-hand me-1"></i>Drag to position, slider to zoom</small>
                                         <button type="button" class="btn btn-sm btn-link text-decoration-none p-0" onclick="resetCrop()">Reset</button>
                                     </div>
                                 </div>
@@ -2654,7 +2654,7 @@ function updateCalcDisplays(net, deductions, gross) {
                                     <div class="p-2 border rounded-3 bg-white d-inline-block shadow-xs mb-1">
                                         <img id="cropperPreviewThumb" src="{{ $logoSrc }}" alt="Live Crop Thumb" style="height: 50px; width: 100px; object-fit: contain;">
                                     </div>
-                                    <div class="small text-success fw-semibold"><i class="fas fa-circle-check me-1"></i>Ready</div>
+                                    <div class="small text-success fw-semibold"><i class="fa-solid fa-circle-check me-1"></i>Ready</div>
                                 </div>
                             </div>
                         </div>
@@ -2674,7 +2674,7 @@ function updateCalcDisplays(net, deductions, gross) {
                                 <div class="p-2.5 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="small fw-bold text-dark"><i class="fas fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket QR</span>
+                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-mobile-screen-button text-primary me-1"></i>bKash / Nagad / Rocket QR</span>
                                         </div>
                                         <input type="file" name="mfs_qr_file" id="mfsQrFileInput" class="form-control form-control-sm mb-2" accept="image/*" onchange="previewQr(this, 'mfsQrPreviewImg', 'mfsQrStatusText')">
                                         <div class="mb-2">
@@ -2740,7 +2740,7 @@ function updateCalcDisplays(net, deductions, gross) {
                                 <div class="row align-items-center">
                                     <div class="col-md-5">
                                         <label class="form-label small fw-bold text-dark mb-0">
-                                            <i class="fas fa-expand me-1 text-success"></i>QR Code Display Size:
+                                            <i class="fa-solid fa-expand me-1 text-success"></i>QR Code Display Size:
                                         </label>
                                     </div>
                                     <div class="col-md-7">
@@ -2759,7 +2759,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-3 bg-primary bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-primary mb-0">
-                                <i class="fas fa-truck-ramp-box me-1"></i>Delivery Challan Typography
+                                <i class="fa-solid fa-truck-ramp-box me-1"></i>Delivery Challan Typography
                             </label>
                             <span class="badge bg-primary text-white">Challan Fonts</span>
                         </div>
@@ -2767,10 +2767,10 @@ function updateCalcDisplays(net, deductions, gross) {
                         {{-- Recipient Live Preview Box --}}
                         <div class="p-2.5 bg-white rounded-2 border mb-3 shadow-xs">
                             <div class="small fw-bold text-muted text-uppercase mb-1" style="font-size: 10px;">
-                                <i class="fas fa-eye me-1 text-primary"></i>Recipient Typography Live Preview:
+                                <i class="fa-solid fa-eye me-1 text-primary"></i>Recipient Typography Live Preview:
                             </div>
                             <div class="p-2 bg-light rounded border" id="previewRecipientBox">
-                                <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fas fa-truck me-1 text-primary"></i>Delivery Destination & Recipient:</div>
+                                <div class="fw-bold text-dark mb-1" style="font-size: 11px;"><i class="fa-solid fa-truck me-1 text-primary"></i>Delivery Destination & Recipient:</div>
                                 <div id="previewRecipientName" style="font-size: {{ $recipientNameSize }}; font-weight: bold; color: #0f172a;">Mohammad Abdullah / Rahim Book House</div>
                                 <div id="previewRecipientDesig" class="text-muted" style="font-size: {{ $recipientDesigSize }};">Headmaster / Proprietor</div>
                                 <div id="previewRecipientOrg" class="text-primary fw-semibold" style="font-size: {{ $recipientOrgSize }};">Idea Academy & Library</div>
@@ -2828,7 +2828,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     <div class="card border border-warning-subtle rounded-3 p-3 mb-3 bg-warning-subtle bg-opacity-15">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-dark mb-0">
-                                <i class="fas fa-file-contract me-1 text-warning"></i>Quotation & Tender Presets
+                                <i class="fa-solid fa-file-contract me-1 text-warning"></i>Quotation & Tender Presets
                             </label>
                             <span class="badge bg-warning text-dark">Quotation / Tender</span>
                         </div>
@@ -2893,7 +2893,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     <div class="card border border-danger-subtle rounded-3 p-3 mb-3 bg-danger-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-dark mb-0">
-                                <i class="fas fa-percent me-1 text-danger"></i>Tax & VAT Deduction Defaults (TDS & VDS)
+                                <i class="fa-solid fa-percent me-1 text-danger"></i>Tax & VAT Deduction Defaults (TDS & VDS)
                             </label>
                             <span class="badge bg-danger text-white font-monospace">TDS & VDS</span>
                         </div>
@@ -2934,7 +2934,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     {{-- 7. Company Details --}}
                     <div class="card border rounded-3 p-3 mb-2 bg-light">
                         <span class="small fw-bold text-muted text-uppercase mb-2 d-block">
-                            <i class="fas fa-building me-1 text-primary"></i>Company Information
+                            <i class="fa-solid fa-building me-1 text-primary"></i>Company Information
                         </span>
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -2975,7 +2975,7 @@ function updateCalcDisplays(net, deductions, gross) {
                 <div class="modal-footer border-top py-2.5">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary fw-semibold px-4 shadow-sm">
-                        <i class="fas fa-save me-1"></i> Save Settings
+                        <i class="fa-solid fa-save me-1"></i> Save Settings
                     </button>
                 </div>
             </form>
@@ -3074,7 +3074,7 @@ function copyCustomerShareLink() {
         const btn = document.getElementById('btnAdminCopyLink');
         if (btn) {
             const original = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check me-1 text-success"></i>Link Copied!';
+            btn.innerHTML = '<i class="fa-solid fa-check me-1 text-success"></i>Link Copied!';
             setTimeout(() => { btn.innerHTML = original; }, 2500);
         }
     }).catch(function() {

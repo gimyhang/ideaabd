@@ -284,7 +284,7 @@
 
                     <!-- Add Work / Task Log Button -->
                     <button type="button" class="btn text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: {{ $role['accent_color'] }}; border-color: {{ $role['accent_color'] }};">
-                        <i class="fa-solid fa-plus-circle me-1.5"></i> Add Work Log (কাজের হিসাব)
+                        <i class="fa-solid fa-circle-plus me-1.5"></i> Add Work Log (কাজের হিসাব)
                     </button>
 
                     <!-- Record Cash Payout Button -->
@@ -362,7 +362,7 @@
             <form action="{{ route('admin.accounting.employees.ledger', $employee->id) }}" method="GET" class="row g-2 align-items-center">
                 <div class="col-md-3">
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light"><i class="fa-solid fa-search"></i></span>
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="text" name="search" value="{{ request('search') ?: request('book_title') }}" class="form-control" placeholder="Search Book / Task / Note...">
                     </div>
                 </div>
@@ -603,7 +603,7 @@
                                         </div>
                                     @endif
                                     @if($log->notes)
-                                        <div class="text-muted" style="font-size: 8pt;"><i class="fa-solid fa-info-circle me-1 text-primary"></i>{{ $log->notes }}</div>
+                                        <div class="text-muted" style="font-size: 8pt;"><i class="fa-solid fa-circle-info me-1 text-primary"></i>{{ $log->notes }}</div>
                                     @endif
                                 </td>
                                 <td class="text-center font-monospace">
@@ -651,7 +651,7 @@
                                         <h6 class="fw-bold text-dark">No Ledger Records Found</h6>
                                         <p class="small text-muted mb-3">Add daily work logs or cash withdrawals to start building this staff ledger.</p>
                                         <button type="button" class="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: {{ $role['accent_color'] }};">
-                                            <i class="fa-solid fa-plus-circle me-1"></i> Add First Work Log
+                                            <i class="fa-solid fa-circle-plus me-1"></i> Add First Work Log
                                         </button>
                                     </div>
                                 </td>
@@ -830,7 +830,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: {{ $role['accent_color'] }};">
-                        <i class="fa-solid fa-check-circle me-1"></i> Save Work Log (কাজের হিসাব সংরক্ষণ)
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Work Log (কাজের হিসাব সংরক্ষণ)
                     </button>
                 </div>
             </form>

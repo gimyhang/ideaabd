@@ -115,7 +115,7 @@
     {{-- Screen Action Toolbar --}}
     <div class="actions-bar no-print">
         <button type="button" class="btn-action btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> প্রিন্ট করুন
+            <i class="fa-solid fa-print"></i> প্রিন্ট করুন
         </button>
         @php
             $waMsg = urlencode("আইডিয়া প্রকাশন — ক্যাশ মেমো #{$sale->receipt_no}\nমোট টাকা: ৳" . number_format($sale->total, 2) . "\nবিস্তারিত দেখুন: " . route('admin.pos.receipt', $sale->id));

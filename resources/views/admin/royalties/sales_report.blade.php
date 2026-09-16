@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportSalesToCSV()">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()">
-            <i class="fas fa-print me-1"></i> Print Report
+            <i class="fa-solid fa-print me-1"></i> Print Report
         </button>
     </div>
 @endsection
@@ -94,11 +94,11 @@
             <div class="col-12 d-flex justify-content-end gap-2 pt-2 border-top">
                 @if(request()->hasAny(['from_date', 'to_date', 'author_id', 'ebook_id']))
                     <a href="{{ route('admin.ebook-sales-report') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                        <i class="fas fa-rotate-left me-1"></i> Reset
+                        <i class="fa-solid fa-rotate-left me-1"></i> Reset
                     </a>
                 @endif
                 <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                    <i class="fas fa-filter me-1"></i> Generate Report
+                    <i class="fa-solid fa-filter me-1"></i> Generate Report
                 </button>
             </div>
         </form>
@@ -149,7 +149,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="fas fa-chart-pie fs-2 mb-2 d-block opacity-25"></i>
+                                <i class="fa-solid fa-chart-pie fs-2 mb-2 d-block opacity-25"></i>
                                 কোনো সেলস ডাটা পাওয়া যায়নি।
                             </td>
                         </tr>

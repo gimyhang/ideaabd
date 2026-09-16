@@ -10,7 +10,7 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-xs text-dark position-relative" title="View Publisher Books Waiting for Approval">
-            <i class="fas fa-building-circle-check me-1"></i> Publisher Review Queue
+            <i class="fa-solid fa-building-circle-check me-1"></i> Publisher Review Queue
             @if(($stats['publisher_pending'] ?? 0) > 0)
                 <span class="badge bg-danger rounded-pill ms-1" style="font-size: 10px;">
                     {{ $stats['publisher_pending'] }}
@@ -18,25 +18,25 @@
             @endif
         </a>
         <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" onclick="syncAllBookSerials()" title="Auto-assign missing serial numbers (SKU) to books">
-            <i class="fas fa-wand-magic-sparkles me-1"></i> Sync Serials
+            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Sync Serials
         </button>
         <a href="{{ route('admin.books.print-labels') }}" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs" title="Print Barcode & QR Sticker Labels">
-            <i class="fas fa-barcode me-1"></i> Print Labels
+            <i class="fa-solid fa-barcode me-1"></i> Print Labels
         </a>
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportBooksToCSV()" title="Export to CSV file">
-            <i class="fas fa-file-csv me-1"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
         </button>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
-            <i class="fas fa-print me-1"></i> Print
+            <i class="fa-solid fa-print me-1"></i> Print
         </button>
         <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
-            <i class="fas fa-folder-tree me-1"></i> Categories
+            <i class="fa-solid fa-folder-tree me-1"></i> Categories
         </a>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fas fa-plus-circle me-1"></i> Add New Book
+            <i class="fa-solid fa-circle-plus me-1"></i> Add New Book
         </a>
         <a href="{{ route('book.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-arrow-up-right-from-square me-1"></i> View Storefront
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Storefront
         </a>
     </div>
 @endsection
@@ -47,7 +47,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -65,7 +65,7 @@
                         <small class="text-muted d-block font-sans">Total Catalog</small>
                         <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
-                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fas fa-book"></i></span>
+                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-book"></i></span>
                 </div>
             </a>
         </div>
@@ -79,7 +79,7 @@
                         </div>
                         <h4 class="fw-bold text-indigo-emphasis mb-0">{{ number_format($stats['publisher_pending'] ?? 0) }} <small class="fs-6 text-muted">review</small></h4>
                     </div>
-                    <span class="p-2 bg-indigo-subtle text-indigo rounded-circle fs-5"><i class="fas fa-building-circle-check text-primary"></i></span>
+                    <span class="p-2 bg-indigo-subtle text-indigo rounded-circle fs-5"><i class="fa-solid fa-building-circle-check text-primary"></i></span>
                 </div>
             </a>
         </div>
@@ -90,7 +90,7 @@
                         <small class="text-muted d-block font-sans">All Pending Review</small>
                         <h4 class="fw-bold text-warning-emphasis mb-0">{{ number_format($stats['pending'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
-                    <span class="p-2 bg-warning-subtle text-warning-emphasis rounded-circle fs-5"><i class="fas fa-hourglass-half"></i></span>
+                    <span class="p-2 bg-warning-subtle text-warning-emphasis rounded-circle fs-5"><i class="fa-solid fa-hourglass-half"></i></span>
                 </div>
             </a>
         </div>
@@ -101,7 +101,7 @@
                         <small class="text-muted d-block font-sans">Active & Live</small>
                         <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
-                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fas fa-circle-check"></i></span>
+                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fa-solid fa-circle-check"></i></span>
                 </div>
             </a>
         </div>
@@ -112,7 +112,7 @@
                         <small class="text-muted d-block font-sans">Pre-Order</small>
                         <h4 class="fw-bold text-info mb-0">{{ number_format($stats['pre_order'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
                     </div>
-                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fas fa-clock-rotate-left"></i></span>
+                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fa-solid fa-clock-rotate-left"></i></span>
                 </div>
             </a>
         </div>
@@ -123,7 +123,7 @@
                         <small class="text-muted d-block font-sans">Low & Out Stock</small>
                         <h4 class="fw-bold text-danger mb-0">{{ number_format(($stats['low_stock'] ?? 0) + ($stats['out_stock'] ?? 0)) }} <small class="fs-6 text-muted">items</small></h4>
                     </div>
-                    <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fas fa-triangle-exclamation"></i></span>
+                    <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fa-solid fa-triangle-exclamation"></i></span>
                 </div>
             </a>
         </div>
@@ -140,17 +140,17 @@
                 <!-- Search Bar -->
                 <div class="col-12 col-lg-4">
                     <div class="input-group input-group-sm shadow-xs rounded-3 overflow-hidden border">
-                        <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-search text-primary"></i></span>
+                        <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
                         <input type="text" name="search" id="bookSearchInput" value="{{ request('search') }}" 
                                 class="form-control border-0 ps-1" 
                                 placeholder="Search by title, author, publisher, ISBN, SKU, category..." autocomplete="off">
                         @if(request('search'))
                             <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-0 text-muted hover-danger" title="Clear Search">
-                                <i class="fas fa-times-circle"></i>
+                                <i class="fa-solid fa-circle-xmark"></i>
                             </a>
                         @endif
                         <button type="submit" class="btn btn-primary px-3 fw-bold d-flex align-items-center gap-1.5" id="bookSearchBtn">
-                            <span>Search</span> <i class="fas fa-arrow-right small"></i>
+                            <span>Search</span> <i class="fa-solid fa-arrow-right small"></i>
                         </button>
                     </div>
                 </div>
@@ -259,7 +259,7 @@
                         <option value="200" @selected(request('per_page') == 200)>200 per page</option>
                     </select>
                     <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset All Filters">
-                        <i class="fas fa-rotate-left"></i>
+                        <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 </div>
             </div>
@@ -270,7 +270,7 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="discountOnlySwitch" name="discount_only" value="1" 
                            @checked(request('discount_only') === '1' || request()->boolean('discount_only')) onchange="submitFilterForm()">
                     <label class="form-check-label small fw-semibold text-dark" for="discountOnlySwitch">
-                        <i class="fas fa-tag text-primary me-1"></i> Show Discounted Books Only
+                        <i class="fa-solid fa-tag text-primary me-1"></i> Show Discounted Books Only
                     </label>
                 </div>
                 <div class="small text-muted">
@@ -287,73 +287,73 @@
 
         @if($hasActiveFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fas fa-sliders me-1"></i>Active Filters:</span>
+                <span class="small fw-semibold text-muted me-1"><i class="fa-solid fa-sliders me-1"></i>Active Filters:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Search: "{{ request('search') }}"
-                        <a href="{{ route('admin.books', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('search')) }}" class="text-primary text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('author_id') && isset($authors[request('author_id')]))
                     <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Author: {{ $authors[request('author_id')] }}
-                        <a href="{{ route('admin.books', request()->except('author_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('author_id')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('publisher_id'))
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Publisher: {{ request('publisher_id') === 'idea' ? 'IDEA Publication' : ($publishers[request('publisher_id')] ?? request('publisher_id')) }}
-                        <a href="{{ route('admin.books', request()->except('publisher_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('publisher_id')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('category_id') && isset($categories[request('category_id')]))
                     <span class="badge bg-secondary-subtle text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Category: {{ $categories[request('category_id')] }}
-                        <a href="{{ route('admin.books', request()->except('category_id')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('category_id')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('stock'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Stock: {{ request('stock') === 'in_stock' ? 'In Stock' : (request('stock') === 'low' ? 'Low Stock' : (request('stock') === 'out' ? 'Out of Stock' : 'Pre-Order')) }}
-                        <a href="{{ route('admin.books', request()->except('stock')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('stock')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('cover_type'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Cover: {{ request('cover_type') === 'hardcover' ? 'Hardcover' : (request('cover_type') === 'both' ? 'Both Formats' : 'Paperback') }}
-                        <a href="{{ route('admin.books', request()->except('cover_type')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('cover_type')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('is_active') !== null && request('is_active') !== '')
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Status: {{ request('is_active') === '1' ? 'Live' : 'Draft' }}
-                        <a href="{{ route('admin.books', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('is_active')) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('min_price') || request('max_price'))
                     <span class="badge bg-light text-dark border rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Price: ৳{{ request('min_price', '0') }} - ৳{{ request('max_price', '∞') }}
-                        <a href="{{ route('admin.books', request()->except(['min_price', 'max_price'])) }}" class="text-dark text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except(['min_price', 'max_price'])) }}" class="text-dark text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 @if(request('discount_only') === '1' || request()->boolean('discount_only'))
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
                         Discounted Only
-                        <a href="{{ route('admin.books', request()->except('discount_only')) }}" class="text-success text-decoration-none"><i class="fas fa-times-circle"></i></a>
+                        <a href="{{ route('admin.books', request()->except('discount_only')) }}" class="text-success text-decoration-none"><i class="fa-solid fa-circle-xmark"></i></a>
                     </span>
                 @endif
 
                 <a href="{{ route('admin.books') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fas fa-trash-can me-1"></i> Clear All Filters
+                    <i class="fa-solid fa-trash-can me-1"></i> Clear All Filters
                 </a>
             </div>
         @endif
@@ -489,13 +489,13 @@
 
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
         <div class="d-flex align-items-center justify-content-between px-3 py-2.5 bg-light border-bottom" style="font-size: 12px;">
-            <span class="text-muted"><i class="fas fa-arrows-left-right text-primary me-1"></i> Scroll horizontally to view all columns and quick action commands</span>
+            <span class="text-muted"><i class="fa-solid fa-arrows-left-right text-primary me-1"></i> Scroll horizontally to view all columns and quick action commands</span>
             <div class="d-flex align-items-center gap-1">
                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
-                    <i class="fas fa-chevron-left"></i>
+                    <i class="fa-solid fa-chevron-left"></i>
                 </button>
                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(300)" title="Scroll Right">
-                    <i class="fas fa-chevron-right"></i>
+                    <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
         </div>
@@ -587,7 +587,7 @@
                                         <img src="{{ $coverUrl }}" alt="{{ $book->title }}" 
                                              class="rounded shadow-xs border" style="width: 44px; height: 60px; object-fit: cover;" id="bookCoverImg_{{ $book->id }}">
                                         <span class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 text-white p-0.5 rounded-circle" style="font-size: 8px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-camera"></i>
+                                            <i class="fa-solid fa-camera"></i>
                                         </span>
                                     </div>
                                     <div class="overflow-hidden" style="max-width: 210px;">
@@ -598,7 +598,7 @@
                                         <div class="d-flex flex-wrap align-items-center gap-1.5 small text-muted font-monospace" style="font-size: 11px;">
                                             @if($book->idea_serial_no)
                                                 <span class="badge bg-warning-subtle text-dark border border-warning px-1.5 py-0.5 fw-bold" id="bookIdeaSerialDisplay_{{ $book->id }}" title="আইডিয়া প্রকাশন নিজস্ব ক্রমিক নম্বর">
-                                                    <i class="fas fa-star text-warning me-0.5"></i>{{ $book->idea_serial_no }}
+                                                    <i class="fa-solid fa-star text-warning me-0.5"></i>{{ $book->idea_serial_no }}
                                                 </span>
                                             @endif
                                             @if($book->sku)
@@ -607,10 +607,10 @@
                                                 </span>
                                             @endif
                                             <button type="button" class="btn btn-xs btn-outline-dark py-0 px-1.5 rounded-pill" onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code" style="font-size: 10px;">
-                                                <i class="fas fa-barcode me-0.5"></i>QR
+                                                <i class="fa-solid fa-barcode me-0.5"></i>QR
                                             </button>
                                             @if($book->isbn)
-                                                <span class="text-truncate" title="ISBN: {{ $book->isbn }}"><i class="fas fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
+                                                <span class="text-truncate" title="ISBN: {{ $book->isbn }}"><i class="fa-solid fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
                                             @endif
                                         </div>
                                     </div>
@@ -634,12 +634,12 @@
                                 <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 140px;">
                                     @if($book->authorLink)
                                         <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
-                                            <i class="fas fa-user-pen me-1 text-muted"></i>{{ $book->authorLink->name }}
+                                            <i class="fa-solid fa-user-pen me-1 text-muted"></i>{{ $book->authorLink->name }}
                                         </a>
                                     @elseif($book->authors->isNotEmpty())
                                         @foreach($book->authors as $auth)
                                             <a href="{{ route('admin.books', ['author_id' => $auth->id]) }}" class="text-decoration-none text-primary hover-underline d-inline-block me-1">
-                                                <i class="fas fa-user-pen me-0.5 text-muted"></i>{{ $auth->name }}
+                                                <i class="fa-solid fa-user-pen me-0.5 text-muted"></i>{{ $auth->name }}
                                             </a>
                                         @endforeach
                                     @else
@@ -649,13 +649,13 @@
                                 <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 140px;">
                                     @if($book->publisher)
                                         <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-dark fw-semibold hover-primary" title="View Publisher: {{ $book->publisher->name }}">
-                                            <i class="fas fa-building text-primary me-1"></i>{{ $book->publisher->name }}
+                                            <i class="fa-solid fa-building text-primary me-1"></i>{{ $book->publisher->name }}
                                         </a>
                                         <span class="badge bg-indigo-subtle text-indigo-emphasis border border-indigo-subtle rounded-pill py-0.5 px-1.5 ms-1" style="font-size: 9px;" title="Registered Publisher Book">
-                                            <i class="fas fa-certificate text-warning me-0.5"></i> Publisher
+                                            <i class="fa-solid fa-certificate text-warning me-0.5"></i> Publisher
                                         </span>
                                     @else
-                                        <span class="text-muted"><i class="fas fa-star text-warning me-1"></i>IDEA Pub (In-House)</span>
+                                        <span class="text-muted"><i class="fa-solid fa-star text-warning me-1"></i>IDEA Pub (In-House)</span>
                                     @endif
                                 </div>
                             </td>
@@ -664,13 +664,13 @@
                                 @if($book->category)
                                     <a href="{{ route('admin.books', ['category_id' => $book->category->id]) }}" class="text-decoration-none">
                                         <span class="badge bg-light text-primary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fas fa-folder me-0.5 text-primary-subtle"></i>{{ $book->category->name }}
+                                            <i class="fa-solid fa-folder me-0.5 text-primary-subtle"></i>{{ $book->category->name }}
                                         </span>
                                     </a>
                                 @else
                                     <a href="{{ route('admin.books', ['category_id' => $bibidhId ?? 'bibidh']) }}" class="text-decoration-none" title="ক্যাটাগরি সিলেক্ট মিসিং (বিবিধ ক্যাটাগরির অন্তর্ভুক্ত)">
                                         <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fas fa-folder-open me-0.5 text-warning"></i>বিবিধ
+                                            <i class="fa-solid fa-folder-open me-0.5 text-warning"></i>বিবিধ
                                         </span>
                                     </a>
                                 @endif
@@ -746,7 +746,7 @@
                                         <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">{{ $stock }} pcs</span>
                                     @endif
                                     <button type="button" class="btn btn-xs btn-outline-secondary rounded-circle border-0 hover-bg-light" style="width: 18px; height: 18px; padding: 0;" onclick="openQuickEditModal({{ $book->id }}, 'stock')" title="Quick stock edit">
-                                        <i class="fas fa-pen text-muted" style="font-size: 8px;"></i>
+                                        <i class="fa-solid fa-pen text-muted" style="font-size: 8px;"></i>
                                     </button>
                                 </div>
                             </td>
@@ -757,37 +757,37 @@
                                         <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1 btn-approve-action" 
                                                 style="font-size: 11px; background: linear-gradient(135deg, #10b981, #059669); border: none;"
                                                 onclick="ajaxApproveBook({{ $book->id }})" title="Approve & Publish to Shop">
-                                            <i class="fas fa-circle-check"></i> <span>Approve</span>
+                                            <i class="fa-solid fa-circle-check"></i> <span>Approve</span>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle btn-reject-action" 
                                                 style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                                 onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')" title="Reject / Request Revision">
-                                            <i class="fas fa-xmark" style="font-size: 10px;"></i>
+                                            <i class="fa-solid fa-xmark" style="font-size: 10px;"></i>
                                         </button>
                                     </div>
                                 @elseif($book->mod_status === 'rejected')
                                     <div class="d-inline-flex align-items-center gap-1">
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" 
                                               title="{{ $book->rejection_reason ?? 'Rejected' }}" data-bs-toggle="tooltip">
-                                            <i class="fas fa-circle-xmark me-0.5"></i> Rejected
+                                            <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
                                         </span>
                                         <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold shadow-2xs" 
                                                 style="font-size: 10.5px;" onclick="ajaxApproveBook({{ $book->id }})" title="Re-Approve Book">
-                                            <i class="fas fa-check"></i> Approve
+                                            <i class="fa-solid fa-check"></i> Approve
                                         </button>
                                     </div>
                                 @else
                                     <div class="dropdown d-inline-block">
                                         <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-pill px-2.5 py-0.5 fw-semibold dropdown-toggle shadow-2xs" 
                                                 data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11px;">
-                                            <i class="fas fa-circle-check text-success me-1"></i> Approved
+                                            <i class="fa-solid fa-circle-check text-success me-1"></i> Approved
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="font-size: 12px; min-width: 165px;">
                                             <li><h6 class="dropdown-header text-muted text-uppercase" style="font-size: 10px;">Moderation Action</h6></li>
-                                            <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook({{ $book->id }})"><i class="fas fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
-                                            <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending({{ $book->id }})"><i class="fas fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
+                                            <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook({{ $book->id }})"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
+                                            <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending({{ $book->id }})"><i class="fa-solid fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
                                             <li><hr class="dropdown-divider my-1"></li>
-                                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')"><i class="fas fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
+                                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
                                         </ul>
                                     </div>
                                 @endif
@@ -807,19 +807,19 @@
                                         <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-sm fw-bold btn-approve-action" 
                                                 style="font-size: 11.5px; background: linear-gradient(135deg, #10b981, #059669); border: none;"
                                                 onclick="ajaxApproveBook({{ $book->id }})" title="Approve Book & Make Live in Shop">
-                                            <i class="fas fa-circle-check"></i>
+                                            <i class="fa-solid fa-circle-check"></i>
                                             <span>Approve</span>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle shadow-xs btn-reject-action" 
                                                 style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                                 onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')" title="Reject / Request Revision">
-                                            <i class="fas fa-xmark" style="font-size: 11px;"></i>
+                                            <i class="fa-solid fa-xmark" style="font-size: 11px;"></i>
                                         </button>
                                     @elseif($book->mod_status === 'rejected')
                                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold btn-approve-action" 
                                                 style="font-size: 11px;"
                                                 onclick="ajaxApproveBook({{ $book->id }})" title="Re-approve Book">
-                                            <i class="fas fa-circle-check"></i>
+                                            <i class="fa-solid fa-circle-check"></i>
                                             <span>Approve</span>
                                         </button>
                                     @endif
@@ -828,7 +828,7 @@
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold adm-action-btn" 
                                             style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; font-size: 11.5px;"
                                             onclick="openQuickEditModal({{ $book->id }})" title="Quick Edit Book (Shortcut)">
-                                        <i class="fas fa-bolt text-warning" style="font-size: 10.5px;"></i>
+                                        <i class="fa-solid fa-bolt text-warning" style="font-size: 10.5px;"></i>
                                         <span>Edit</span>
                                     </button>
 
@@ -837,7 +837,7 @@
                                        class="btn btn-sm btn-light border rounded-circle shadow-xs adm-icon-action-btn" 
                                        style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                        title="Full Details Edit">
-                                        <i class="fas fa-pen-to-square" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-pen-to-square" style="font-size: 11px;"></i>
                                     </a>
 
                                     {{-- View on Live Store --}}
@@ -846,7 +846,7 @@
                                            class="btn btn-sm btn-light border text-info rounded-circle shadow-xs adm-icon-action-btn" 
                                            style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                            title="View Live in Shop">
-                                            <i class="fas fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
                                         </a>
                                     @endif
 
@@ -854,7 +854,7 @@
                                     <button type="button" class="btn btn-sm btn-light border text-dark rounded-circle shadow-xs adm-icon-action-btn" 
                                             style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                             onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code">
-                                        <i class="fas fa-barcode" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-barcode" style="font-size: 11px;"></i>
                                     </button>
 
                                     {{-- Delete Action --}}
@@ -862,7 +862,7 @@
                                             style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
                                             onclick="confirmDeleteBook({{ $book->id }}, '{{ addslashes($book->title) }}')" 
                                             title="Delete Book">
-                                        <i class="fas fa-trash-can" style="font-size: 11px;"></i>
+                                        <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                     </button>
 
                                     {{-- Hidden Delete Form --}}
@@ -879,12 +879,12 @@
                             <td colspan="12">
                                 <div class="empty-state py-5 text-center">
                                     <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
-                                        <i class="fas fa-book-open fs-1 text-muted"></i>
+                                        <i class="fa-solid fa-book-open fs-1 text-muted"></i>
                                     </div>
                                     <h5 class="fw-bold text-dark mb-1">No Books Found</h5>
                                     <p class="text-muted small mb-3">Adjust your search criteria or add new books to the catalog.</p>
                                     <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="fas fa-rotate-left me-1"></i> Clear All Filters
+                                        <i class="fa-solid fa-rotate-left me-1"></i> Clear All Filters
                                     </a>
                                 </div>
                             </td>
@@ -920,7 +920,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3">
                 <h5 class="modal-title fw-bold text-white mb-0" id="quickBookEditModalLabel">
-                    <i class="fas fa-bolt me-1.5"></i> Quick Book Shortcut Editor
+                    <i class="fa-solid fa-bolt me-1.5"></i> Quick Book Shortcut Editor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -943,7 +943,7 @@
                             </div>
                             <div>
                                 <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
-                                    <i class="fas fa-upload me-1"></i> Upload New Cover
+                                    <i class="fa-solid fa-upload me-1"></i> Upload New Cover
                                 </label>
                                 <input type="file" id="qeCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewSelectedCover(this)">
                                 <div class="small text-muted mt-1" style="font-size: 11px;">JPG, PNG, WebP (Max 5MB)</div>
@@ -968,22 +968,22 @@
                             {{-- Cover Type Selection Tabs in Modal --}}
                             <div class="mb-2.5 pb-2 border-bottom">
                                 <label class="form-label small fw-bold text-dark d-block mb-1">
-                                    <i class="fas fa-layer-group text-primary me-1"></i> Cover & Binding Format <span class="text-danger">*</span>
+                                    <i class="fa-solid fa-layer-group text-primary me-1"></i> Cover & Binding Format <span class="text-danger">*</span>
                                 </label>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_paperback" value="paperback" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_paperback">
-                                        <i class="fas fa-book-open me-1 text-info"></i> Paperback
+                                        <i class="fa-solid fa-book-open me-1 text-info"></i> Paperback
                                     </label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_hardcover" value="hardcover" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_hardcover">
-                                        <i class="fas fa-gem me-1 text-warning"></i> Hardcover
+                                        <i class="fa-solid fa-gem me-1 text-warning"></i> Hardcover
                                     </label>
 
                                     <input type="radio" class="btn-check" name="cover_type" id="qeCoverType_both" value="both" onchange="onQeCoverTypeChange()">
                                     <label class="btn btn-outline-primary btn-sm py-1 fw-semibold" for="qeCoverType_both">
-                                        <i class="fas fa-layer-group me-1 text-success"></i> Both Formats
+                                        <i class="fa-solid fa-layer-group me-1 text-success"></i> Both Formats
                                     </label>
                                 </div>
                             </div>
@@ -995,7 +995,7 @@
                                 <div id="qePaperbackPriceBlock" class="mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="badge bg-light text-dark border px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fas fa-book-open text-primary me-1"></i> Paperback Pricing
+                                            <i class="fa-solid fa-book-open text-primary me-1"></i> Paperback Pricing
                                         </span>
                                     </div>
                                     <div class="row g-2">
@@ -1027,7 +1027,7 @@
                                 <div id="qeHardcoverPriceBlock" class="mb-2">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                         <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-0.5 small fw-bold" style="font-size: 11px;">
-                                            <i class="fas fa-gem text-warning me-1"></i> Hardcover Pricing
+                                            <i class="fa-solid fa-gem text-warning me-1"></i> Hardcover Pricing
                                         </span>
                                     </div>
                                     <div class="row g-2">
@@ -1060,7 +1060,7 @@
                                     <div class="row g-2 align-items-center">
                                         <div class="col-6">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-hand-holding-dollar text-success me-1"></i> Wholesale Buy Commission (%)
+                                                <i class="fa-solid fa-hand-holding-dollar text-success me-1"></i> Wholesale Buy Commission (%)
                                             </label>
                                             <div class="input-group input-group-sm">
                                                 <input type="number" id="qeBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-bold" placeholder="40" oninput="recalcCostPriceFromCommission()">
@@ -1069,7 +1069,7 @@
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small fw-bold text-dark mb-1">
-                                                <i class="fas fa-money-bill-wave text-success me-1"></i> Wholesale Cost Price (৳)
+                                                <i class="fa-solid fa-money-bill-wave text-success me-1"></i> Wholesale Cost Price (৳)
                                             </label>
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text bg-white">৳</span>
@@ -1127,7 +1127,7 @@
                 <div class="modal-footer bg-light py-2.5">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="qeSubmitBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check-circle me-1"></i> Save Changes
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Changes
                     </button>
                 </div>
             </form>
@@ -1455,7 +1455,7 @@ function handleQuickBookEditSubmit(e) {
     const formData = new FormData(form);
 
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving changes...';
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving changes...';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -1470,20 +1470,20 @@ function handleQuickBookEditSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fas fa-check-circle me-1"></i> ${data.message}</div>`;
+            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>`;
             setTimeout(() => {
                 location.reload();
             }, 800);
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
         }
     })
     .catch(err => {
         alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> Save Changes';
+        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
     });
 }
 
@@ -1524,7 +1524,7 @@ function confirmDeleteBook(bookId, bookTitle) {
         title: 'Delete this book?',
         html: `Are you sure you want to delete <strong>‘${bookTitle}’</strong>?<br><span class="text-danger small">This book will be permanently removed from catalog & storefront.</span>`,
         icon: 'warning',
-        confirmButtonText: '<i class="fas fa-trash-can me-1"></i> Yes, Delete',
+        confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete',
         confirmButtonColor: '#ef4444',
         cancelButtonText: 'Cancel'
     }).then(function(result) {
@@ -1557,7 +1557,7 @@ async function ajaxApproveBook(bookId) {
         title: 'Approve & Publish Book',
         text: 'Do you want to approve this book and make it live in the storefront?',
         icon: 'question',
-        confirmButtonText: '<i class="fas fa-circle-check me-1"></i> Yes, Approve',
+        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> Yes, Approve',
         confirmButtonColor: '#10b981',
         cancelButtonText: 'Cancel'
     });
@@ -1581,14 +1581,14 @@ async function ajaxApproveBook(bookId) {
                     <div class="dropdown d-inline-block">
                         <button type="button" class="btn btn-sm btn-light border border-success-subtle text-success rounded-pill px-2.5 py-0.5 fw-semibold dropdown-toggle shadow-2xs" 
                                 data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11px;">
-                            <i class="fas fa-circle-check text-success me-1"></i> Approved
+                            <i class="fa-solid fa-circle-check text-success me-1"></i> Approved
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="font-size: 12px; min-width: 165px;">
                             <li><h6 class="dropdown-header text-muted text-uppercase" style="font-size: 10px;">Moderation Action</h6></li>
-                            <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook(${bookId})"><i class="fas fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
-                            <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending(${bookId})"><i class="fas fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
+                            <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook(${bookId})"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
+                            <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending(${bookId})"><i class="fa-solid fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal(${bookId}, '')"><i class="fas fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
+                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal(${bookId}, '')"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
                         </ul>
                     </div>
                 `;
@@ -1641,12 +1641,12 @@ async function ajaxSetBookPending(bookId) {
                         <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-0.5 fw-bold shadow-xs d-inline-flex align-items-center gap-1 btn-approve-action" 
                                 style="font-size: 11px; background: linear-gradient(135deg, #10b981, #059669); border: none;"
                                 onclick="ajaxApproveBook(${bookId})" title="Approve & Publish to Shop">
-                            <i class="fas fa-circle-check"></i> <span>Approve</span>
+                            <i class="fa-solid fa-circle-check"></i> <span>Approve</span>
                         </button>
                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle btn-reject-action" 
                                 style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
                                 onclick="openBookRejectModal(${bookId}, '')" title="Reject / Request Revision">
-                            <i class="fas fa-xmark" style="font-size: 10px;"></i>
+                            <i class="fa-solid fa-xmark" style="font-size: 10px;"></i>
                         </button>
                     </div>
                 `;
@@ -1704,11 +1704,11 @@ async function ajaxRejectBookSubmit() {
                 badgeEl.innerHTML = `
                     <div class="d-inline-flex align-items-center gap-1">
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="${reason}">
-                            <i class="fas fa-circle-xmark me-0.5"></i> Rejected
+                            <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
                         </span>
                         <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold shadow-2xs" 
                                 style="font-size: 10.5px;" onclick="ajaxApproveBook(${bookId})" title="Re-Approve Book">
-                            <i class="fas fa-check"></i> Approve
+                            <i class="fa-solid fa-check"></i> Approve
                         </button>
                     </div>
                 `;
@@ -1759,7 +1759,7 @@ function showBookToast(type, msg) {
     alertDiv.style.zIndex = '99999';
     alertDiv.innerHTML = `
         <div class="d-flex align-items-center gap-2">
-            <i class="fas ${type === 'success' ? 'fa-check-circle text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
+            <i class="fas ${type === 'success' ? 'fa-circle-check text-success' : (type === 'warning' ? 'fa-triangle-exclamation text-warning' : 'fa-circle-xmark text-danger')} fs-5"></i>
             <div class="small fw-semibold">${msg}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
         </div>
@@ -1773,8 +1773,8 @@ function syncAllBookSerials() {
         title: 'বইয়ের সিরিয়াল সিঙ্ক',
         text: 'আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?',
         icon: 'info',
-        confirmButtonText: '<i class="fas fa-rotate me-1"></i> হ্যাঁ, সিঙ্ক করুন',
-        cancelButtonText: '<i class="fas fa-times me-1"></i> বাতিল'
+        confirmButtonText: '<i class="fa-solid fa-rotate me-1"></i> হ্যাঁ, সিঙ্ক করুন',
+        cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
     }).then(function(result) {
         if (!result.isConfirmed) return;
 
@@ -1869,7 +1869,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white py-3">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fas fa-barcode"></i></span>
+                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fa-solid fa-barcode"></i></span>
                     <div>
                         <h6 class="modal-title fw-bold mb-0 text-white">Product Barcode & QR Code</h6>
                         <small class="text-white-50" style="font-size: 11px;">মোবাইল ক্যামেরা ও বারকোড রিডার কম্প্যাটিবল</small>
@@ -1886,7 +1886,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP001</span>
                         <span class="badge bg-success text-white px-2.5 py-1 fw-bold fs-6 font-monospace" id="barcodeModalPrice">৳350</span>
                         <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" id="barcodeModalCopyBtn" title="Copy Serial Code">
-                            <i class="fas fa-copy me-1"></i>Copy
+                            <i class="fa-solid fa-copy me-1"></i>Copy
                         </button>
                     </div>
                 </div>
@@ -1910,14 +1910,14 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-footer bg-white py-2.5 d-flex justify-content-between">
                 <a href="#" target="_blank" id="barcodeModalStoreLink" class="btn btn-sm btn-outline-dark rounded-pill px-3">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> View Book
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Book
                 </a>
                 <div class="d-flex gap-2">
                     <a href="#" target="_blank" id="barcodeModalPrint1x" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                        <i class="fas fa-print me-1"></i> Print 1x Label
+                        <i class="fa-solid fa-print me-1"></i> Print 1x Label
                     </a>
                     <a href="#" target="_blank" id="barcodeModalPrint5x" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                        <i class="fas fa-tags me-1"></i> Print 5x Labels
+                        <i class="fa-solid fa-tags me-1"></i> Print 5x Labels
                     </a>
                 </div>
             </div>
@@ -1931,7 +1931,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-danger text-white py-3">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fas fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
+                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1948,7 +1948,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer bg-light py-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBookSubmit()">
-                    <i class="fas fa-circle-xmark me-1"></i> Confirm Rejection
+                    <i class="fa-solid fa-circle-xmark me-1"></i> Confirm Rejection
                 </button>
             </div>
         </div>

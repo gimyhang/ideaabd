@@ -63,11 +63,11 @@
     <!-- Action Bar (hidden in print) -->
     <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom no-print">
         <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
         </a>
         <div class="d-flex gap-2">
             <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-                <i class="fas fa-print me-1.5"></i> Print / Save PDF
+                <i class="fa-solid fa-print me-1.5"></i> Print / Save PDF
             </button>
         </div>
     </div>
@@ -120,7 +120,7 @@
 
     <!-- Payment Gateways Collection Breakdown -->
     <div class="mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-credit-card me-1.5 text-primary"></i> Payment Gateways Collection Summary</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-credit-card me-1.5 text-primary"></i> Payment Gateways Collection Summary</h6>
         <div class="table-responsive">
             <table class="table table-bordered align-middle mb-0">
                 <thead class="table-light">
@@ -170,7 +170,7 @@
 
     <!-- Recent Orders in this timeframe -->
     <div class="mb-4">
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fas fa-receipt me-1.5 text-primary"></i> Recent Orders Breakdown</h6>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-receipt me-1.5 text-primary"></i> Recent Orders Breakdown</h6>
         <div class="table-responsive">
             <table class="table table-bordered table-sm align-middle mb-0">
                 <thead class="table-light">

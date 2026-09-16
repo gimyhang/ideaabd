@@ -78,6 +78,11 @@
                 <i class="fas fa-wallet {{ request()->routeIs('subadmin.accounts') ? 'text-primary' : '' }}"></i>
                 <span>হিসাব বিবরণী</span>
             </a>
+            <a href="{{ route('my-account') }}" 
+               class="btn btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm" title="মাই একাউন্ট (প্রোফাইল ও অর্ডার)">
+                <i class="fas fa-user-circle text-warning"></i>
+                <span>মাই একাউন্ট</span>
+            </a>
         </div>
     </div>
 </div>

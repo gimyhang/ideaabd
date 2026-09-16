@@ -10,7 +10,7 @@
 
 @section('actions')
     <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#addAffiliateModal">
-        <i class="fas fa-user-plus me-1"></i> Add Affiliate Partner
+        <i class="fa-solid fa-user-plus me-1"></i> Add Affiliate Partner
     </button>
 @endsection
 
@@ -21,7 +21,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-xl-4">
             <div class="kpi" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fas fa-bullhorn"></i></div>
+                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fa-solid fa-bullhorn"></i></div>
                 <p class="kpi__label">Total Affiliates / Influencers</p>
                 <h3 class="kpi__value text-dark">{{ number_format($totalAffiliatesCount) }}</h3>
                 <p class="kpi__foot text-muted">Active referral promoters</p>
@@ -29,7 +29,7 @@
         </div>
         <div class="col-12 col-sm-6 col-xl-4">
             <div class="kpi" style="--bar: #16a34a;">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fas fa-hand-holding-dollar"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-hand-holding-dollar"></i></div>
                 <p class="kpi__label">Total Commission Paid</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($totalCommissionPaid, 2) }}</h3>
                 <p class="kpi__foot text-muted">Disbursed affiliate payouts</p>
@@ -37,7 +37,7 @@
         </div>
         <div class="col-12 col-sm-6 col-xl-4">
             <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-wallet"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-wallet"></i></div>
                 <p class="kpi__label">Unpaid Commission Balance</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($totalPendingBalance, 2) }}</h3>
                 <p class="kpi__foot text-muted">Awaiting partner payouts</p>
@@ -48,7 +48,7 @@
     <!-- Affiliates Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-users-viewfinder me-2 text-primary"></i> Registered Affiliate Partners</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-primary"></i> Registered Affiliate Partners</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -87,7 +87,7 @@
                                     @if($aff->balance > 0)
                                         <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-0.5"
                                                 onclick="openPayoutModal({{ $aff->id }}, '{{ addslashes($aff->user->name ?? '') }}', {{ $aff->balance }})">
-                                            <i class="fas fa-money-bill-transfer me-1"></i> Pay
+                                            <i class="fa-solid fa-money-bill-transfer me-1"></i> Pay
                                         </button>
                                     @else
                                         <span class="text-muted small">Paid Up</span>
@@ -110,7 +110,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-plus-circle me-1.5"></i> Register Affiliate / Influencer</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-circle-plus me-1.5"></i> Register Affiliate / Influencer</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.affiliates.store') }}" method="POST">
@@ -159,7 +159,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-hand-holding-dollar me-1.5"></i> Disburse Commission Payout</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Disburse Commission Payout</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="payoutForm" method="POST">

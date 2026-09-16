@@ -14,7 +14,7 @@
 
                 <div class="modal-header bg-dark text-white border-bottom py-3">
                     <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary rounded-circle p-2"><i class="fas fa-sliders fs-6 text-white"></i></span>
+                        <span class="badge bg-primary rounded-circle p-2"><i class="fa-solid fa-sliders fs-6 text-white"></i></span>
                         <h5 class="modal-title fw-bold mb-0 text-white" id="ledgerBrandingSettingsModalLabel">
                             লেজার, বিল ও স্টেটমেন্টের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজেশন
                         </h5>
@@ -27,7 +27,7 @@
                     <div class="card border border-primary-subtle rounded-3 p-3 mb-4 bg-light shadow-2xs">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="small fw-bold text-primary text-uppercase">
-                                <i class="fas fa-eye me-1"></i>মেমো ও লেজার হেডার লাইভ প্রিভিউ (Live Preview):
+                                <i class="fa-solid fa-eye me-1"></i>মেমো ও লেজার হেডার লাইভ প্রিভিউ (Live Preview):
                             </span>
                             <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">রিয়েল-টাইম আপডেট</span>
                         </div>
@@ -47,14 +47,14 @@
                     <div class="card border border-info-subtle rounded-3 p-3 mb-4 bg-info-subtle bg-opacity-10">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <label class="form-label fw-bold text-dark mb-0">
-                                <i class="fas fa-image text-info me-1.5"></i>প্রতিষ্ঠানের লোগো পরিবর্তন (Logo Upload & Wide Crop)
+                                <i class="fa-solid fa-image text-info me-1.5"></i>প্রতিষ্ঠানের লোগো পরিবর্তন (Logo Upload & Wide Crop)
                             </label>
                             <span class="badge bg-info text-dark fw-bold font-monospace">2:1 Widescreen</span>
                         </div>
 
                         <input type="file" id="brandingLogoFileInput" class="form-control mb-2" accept="image/*">
                         <div class="form-text small text-muted mb-3" style="font-size: 11.5px;">
-                            <i class="fas fa-lightbulb text-warning me-1"></i>কম্পিউটার বা মোবাইল থেকে লোগো সিলেক্ট করুন। স্বয়ংক্রিয়ভাবে জুম ও পজিশন করে কাঙ্ক্ষিত সাইজে বসিয়ে নিতে পারবেন।
+                            <i class="fa-solid fa-lightbulb text-warning me-1"></i>কম্পিউটার বা মোবাইল থেকে লোগো সিলেক্ট করুন। স্বয়ংক্রিয়ভাবে জুম ও পজিশন করে কাঙ্ক্ষিত সাইজে বসিয়ে নিতে পারবেন।
                         </div>
 
                         <div id="brandingCropperContainer" class="d-none">
@@ -65,15 +65,15 @@
                                         <canvas id="brandingCropCanvas" width="360" height="180" class="w-100 h-100" style="object-fit: contain;"></canvas>
                                     </div>
                                     <div class="d-flex align-items-center gap-2 mt-2">
-                                        <i class="fas fa-magnifying-glass-minus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-minus text-muted small"></i>
                                         <input type="range" class="form-range" id="brandingCropZoomSlider" min="0.3" max="3.5" step="0.02" value="1">
-                                        <i class="fas fa-magnifying-glass-plus text-muted small"></i>
+                                        <i class="fa-solid fa-magnifying-glass-plus text-muted small"></i>
                                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="brandingResetCrop()" title="রিসেট">
-                                            <i class="fas fa-rotate-left"></i>
+                                            <i class="fa-solid fa-rotate-left"></i>
                                         </button>
                                     </div>
                                     <small class="text-muted d-block mt-1" style="font-size: 11px;">
-                                        <i class="fas fa-hand me-1"></i>ড্র্যাগ করে লোগোর পজিশন সরান এবং স্লাইডার দিয়ে জুম ইন/আউট করুন।
+                                        <i class="fa-solid fa-hand me-1"></i>ড্র্যাগ করে লোগোর পজিশন সরান এবং স্লাইডার দিয়ে জুম ইন/আউট করুন।
                                     </small>
                                 </div>
                                 <div class="col-md-5 text-center">
@@ -81,7 +81,7 @@
                                     <div class="p-2 bg-white rounded border d-inline-block shadow-xs">
                                         <img id="brandingCroppedResultThumb" src="{{ $modalLogoSrc }}" style="height: 60px; width: 120px; aspect-ratio: 2/1; object-fit: contain;" class="rounded">
                                     </div>
-                                    <div class="text-success small fw-bold mt-1.5"><i class="fas fa-check-circle me-1"></i>লোগো ক্রপ প্রস্তুত</div>
+                                    <div class="text-success small fw-bold mt-1.5"><i class="fa-solid fa-circle-check me-1"></i>লোগো ক্রপ প্রস্তুত</div>
                                 </div>
                             </div>
                         </div>
@@ -102,7 +102,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">অফিসিয়াল মোবাইল / ফোন নম্বর:</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <span class="input-group-text"><i class="fa-solid fa-phone"></i></span>
                                 <input type="text" name="phone" id="brandingInputPhone" class="form-control font-monospace" value="{{ $modalSettings['phone'] ?? '' }}" placeholder="+88017XXXXXXXX" oninput="brandingUpdateLivePreview()">
                             </div>
                         </div>
@@ -110,7 +110,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">অফিসিয়াল ইমেইল ঠিকানা:</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
                                 <input type="email" name="email" id="brandingInputEmail" class="form-control" value="{{ $modalSettings['email'] ?? '' }}" placeholder="info@ideaabd.com" oninput="brandingUpdateLivePreview()">
                             </div>
                         </div>
@@ -130,7 +130,7 @@
                 <div class="modal-footer bg-light p-3 d-flex justify-content-between">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check me-1.5"></i> পরিবর্তন সংরক্ষণ করুন
+                        <i class="fa-solid fa-check me-1.5"></i> পরিবর্তন সংরক্ষণ করুন
                     </button>
                 </div>
             </form>

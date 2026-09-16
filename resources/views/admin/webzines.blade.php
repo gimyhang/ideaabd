@@ -8,10 +8,10 @@
 
 @section('actions')
     <a href="{{ route('admin.content.create', 'webzines') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-        <i class="fas fa-plus me-1"></i> Add New Webzine
+        <i class="fa-solid fa-plus me-1"></i> Add New Webzine
     </a>
     <a href="{{ route('webzine.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary rounded-pill px-3">
-        <i class="fas fa-arrow-up-right-from-square me-1"></i> View on Website
+        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Website
     </a>
 @endsection
 

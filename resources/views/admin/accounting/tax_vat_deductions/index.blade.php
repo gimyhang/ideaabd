@@ -28,7 +28,7 @@
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="fs-5 fw-bold text-dark">
-            <i class="fas fa-scale-balanced text-primary me-2"></i>উৎসে কর ও মূসক কর্তন রেজিস্টার (TDS & VDS Report)
+            <i class="fa-solid fa-scale-balanced text-primary me-2"></i>উৎসে কর ও মূসক কর্তন রেজিস্টার (TDS & VDS Report)
         </span>
         @if($monthNameBn)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
@@ -48,24 +48,24 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
         {{-- Customize % Presets Button --}}
         <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#customPercentPresetsModal">
-            <i class="fas fa-sliders text-warning me-1.5"></i> % প্রিসেট কাস্টমাইজ
+            <i class="fa-solid fa-sliders text-warning me-1.5"></i> % প্রিসেট কাস্টমাইজ
         </button>
 
         {{-- Export Tools Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs btn-sm rounded-pill px-3 fw-semibold dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fas fa-file-export me-1 text-primary"></i> এক্সপোর্ট
+                <i class="fa-solid fa-file-export me-1 text-primary"></i> এক্সপোর্ট
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
                 <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">এক্সপোর্ট ফরম্যাট:</h6></li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportDeductionsToCSV('tax-vat-deductions-{{ $selectedMonth ?: date('Y-m') }}.csv')">
-                        <i class="fas fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
+                        <i class="fa-solid fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="copyDeductionsToClipboard()">
-                        <i class="fas fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
+                        <i class="fa-solid fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
                     </button>
                 </li>
             </ul>
@@ -73,15 +73,15 @@
 
         {{-- Print Statement Button --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> প্রিন্ট / PDF প্রতিবেদন
+            <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট / PDF প্রতিবেদন
         </button>
 
         <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-file-invoice me-1"></i> ইনভয়েস ড্যাশবোর্ড
+            <i class="fa-solid fa-file-invoice me-1"></i> ইনভয়েস ড্যাশবোর্ড
         </a>
 
         <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fas fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
         </a>
     </div>
 @endsection
@@ -230,7 +230,7 @@
                         <div class="text-muted small" style="font-size: 11px;">সর্বমোট {{ $deductions->count() }}টি লেনদেন ({{ $totalClientsCount }} জন গ্রাহক)</div>
                     </div>
                     <div class="rounded-circle bg-primary-subtle p-3 text-primary">
-                        <i class="fas fa-file-invoice-dollar fs-5"></i>
+                        <i class="fa-solid fa-file-invoice-dollar fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -245,7 +245,7 @@
                         <div class="text-success small" style="font-size: 11px;">আদায় হার: {{ $totalSettledAmount > 0 ? round(($totalNetCollected / $totalSettledAmount) * 100, 1) : 0 }}%</div>
                     </div>
                     <div class="rounded-circle bg-success-subtle p-3 text-success">
-                        <i class="fas fa-money-bill-wave fs-5"></i>
+                        <i class="fa-solid fa-money-bill-wave fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -260,7 +260,7 @@
                         <div class="text-muted small" style="font-size: 11px;">সরকারি কোষাগারে জমাকৃত ভ্যাট</div>
                     </div>
                     <div class="rounded-circle bg-warning-subtle p-3 text-warning-emphasis">
-                        <i class="fas fa-receipt fs-5"></i>
+                        <i class="fa-solid fa-receipt fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -275,7 +275,7 @@
                         <div class="text-danger small" style="font-size: 11px;">সর্বমোট সরকারি কর্তন: ৳{{ number_format($grandTotalDeductions, 2) }}</div>
                     </div>
                     <div class="rounded-circle bg-danger-subtle p-3 text-danger">
-                        <i class="fas fa-scale-balanced fs-5"></i>
+                        <i class="fa-solid fa-scale-balanced fs-5"></i>
                     </div>
                 </div>
             </div>
@@ -290,7 +290,7 @@
                     {{-- Month Picker --}}
                     <div class="col-md-3 col-sm-6">
                         <label class="form-label small fw-bold text-dark mb-1">
-                            <i class="fas fa-calendar-days text-primary me-1"></i>হিসাব মাস নির্বাচন:
+                            <i class="fa-solid fa-calendar-days text-primary me-1"></i>হিসাব মাস নির্বাচন:
                         </label>
                         <input type="month" name="month" id="filterMonthInput" class="form-control form-control-sm font-monospace fw-semibold" value="{{ $selectedMonth }}" onchange="document.getElementById('deductionsFilterForm').submit()">
                     </div>
@@ -311,7 +311,7 @@
                         <div class="input-group input-group-sm">
                             <input type="text" name="search" class="form-control" placeholder="গ্রাহকের নাম, মোবাইল, বিল #, চালান #..." value="{{ $search }}">
                             <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search me-1"></i> খুঁজুন
+                                <i class="fa-solid fa-magnifying-glass me-1"></i> খুঁজুন
                             </button>
                         </div>
                     </div>
@@ -334,7 +334,7 @@
                 @if($monthlyDeductionSummaries->isNotEmpty())
                     <div class="mt-3 pt-2.5 border-top d-flex align-items-center gap-1.5 flex-wrap">
                         <span class="text-muted small fw-bold me-1" style="font-size: 11px;">
-                            <i class="fas fa-clock-rotate-left me-1"></i>বিগত মাসসমূহ:
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i>বিগত মাসসমূহ:
                         </span>
                         @foreach($monthlyDeductionSummaries as $ms)
                             @php
@@ -357,7 +357,7 @@
         <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h6 class="fw-bold mb-0 text-dark">
-                    <i class="fas fa-table-list text-primary me-2"></i>উৎসে ভ্যাট ও ট্যাক্স কর্তনের বিস্তারিত তালিকা ({{ $deductions->count() }}টি রেকর্ড)
+                    <i class="fa-solid fa-table-list text-primary me-2"></i>উৎসে ভ্যাট ও ট্যাক্স কর্তনের বিস্তারিত তালিকা ({{ $deductions->count() }}টি রেকর্ড)
                 </h6>
                 <small class="text-muted">
                     হিসাবকাল: <strong class="text-dark">{{ $monthNameBn ?: ($dateFrom ? "{$dateFrom} হতে {$dateTo}" : 'সকল সময়ের সারাংশ') }}</strong>
@@ -406,7 +406,7 @@
                                     <div class="text-muted small" style="font-size: 11px;">{{ $inv->customer_org }}</div>
                                 @endif
                                 @if($d->party_phone && $d->party_phone !== '—')
-                                    <div class="text-secondary font-monospace" style="font-size: 11px;"><i class="fas fa-phone me-1"></i>{{ $d->party_phone }}</div>
+                                    <div class="text-secondary font-monospace" style="font-size: 11px;"><i class="fa-solid fa-phone me-1"></i>{{ $d->party_phone }}</div>
                                 @endif
                             </td>
                             <td>
@@ -462,7 +462,7 @@
                             <td>
                                 @if($d->deduction_challan_no)
                                     <div class="fw-bold font-monospace text-primary" style="font-size: 11.5px;">
-                                        <i class="fas fa-file-shield me-1"></i>{{ $d->deduction_challan_no }}
+                                        <i class="fa-solid fa-file-shield me-1"></i>{{ $d->deduction_challan_no }}
                                     </div>
                                 @else
                                     <span class="text-muted small">চালান নেই</span>
@@ -473,14 +473,14 @@
                             </td>
                             <td class="text-center no-print">
                                 <a href="{{ route('admin.accounting.invoices.payments.receipt', $d->id) }}" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-bold shadow-2xs" target="_blank" title="প্রাপ্তিস্বীকারপত্র ও রসিদ দেখুন">
-                                    <i class="fas fa-file-shield me-1"></i>রসিদ
+                                    <i class="fa-solid fa-file-shield me-1"></i>রসিদ
                                 </a>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="13" class="text-center py-5 text-muted">
-                                <i class="fas fa-scale-balanced fs-1 mb-2 d-block text-secondary opacity-50"></i>
+                                <i class="fa-solid fa-scale-balanced fs-1 mb-2 d-block text-secondary opacity-50"></i>
                                 এই হিসাবকালে কোনো ভ্যাট বা ট্যাক্স কর্তনযুক্ত লেনদেন পাওয়া যায়নি।
                             </td>
                         </tr>
@@ -540,7 +540,7 @@
                 
                 <div class="modal-header bg-dark text-white py-3">
                     <h5 class="modal-title fw-bold" id="customPercentPresetsModalLabel">
-                        <i class="fas fa-sliders text-warning me-2"></i>ভ্যাট ও ট্যাক্স শতকরা (%) প্রিসেট কাস্টমাইজ
+                        <i class="fa-solid fa-sliders text-warning me-2"></i>ভ্যাট ও ট্যাক্স শতকরা (%) প্রিসেট কাস্টমাইজ
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -583,7 +583,7 @@
                 <div class="modal-footer bg-light p-3">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fas fa-save me-1.5"></i> প্রিসেট সেভ করুন
+                        <i class="fa-solid fa-save me-1.5"></i> প্রিসেট সেভ করুন
                     </button>
                 </div>
             </form>

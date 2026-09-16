@@ -11,10 +11,10 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#manualAdjustmentModal">
-            <i class="fas fa-plus-minus me-1"></i> Manual Royalty Adjustment
+            <i class="fa-solid fa-plus-minus me-1"></i> Manual Royalty Adjustment
         </button>
         <a href="{{ route('admin.ebook-sales-report') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fas fa-chart-pie me-1"></i> View Sales Report
+            <i class="fa-solid fa-chart-pie me-1"></i> View Sales Report
         </a>
     </div>
 @endsection
@@ -25,7 +25,7 @@
     {{-- Flash Notifications --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2 text-success"></i>
+            <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -79,7 +79,7 @@
             <form method="GET" action="{{ route('admin.author-royalties.index') }}" class="d-flex align-items-center gap-2">
                 <div class="input-group input-group-sm">
                     <input type="text" name="search" value="{{ request('search') }}" class="form-control rounded-start-pill" placeholder="Search author name/phone...">
-                    <button type="submit" class="btn btn-outline-secondary rounded-end-pill px-3"><i class="fas fa-search"></i></button>
+                    <button type="submit" class="btn btn-outline-secondary rounded-end-pill px-3"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
             </form>
         </div>
@@ -130,10 +130,10 @@
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary" 
                                             onclick="openAdjustmentModal({{ $author->id }}, '{{ addslashes($author->name) }}')" title="Adjust Balance">
-                                        <i class="fas fa-plus-minus"></i> Adjust
+                                        <i class="fa-solid fa-plus-minus"></i> Adjust
                                     </button>
                                     <a href="{{ route('admin.ebook-sales-report', ['author_id' => $author->id]) }}" class="btn btn-outline-secondary" title="View Sales">
-                                        <i class="fas fa-list"></i>
+                                        <i class="fa-solid fa-list"></i>
                                     </a>
                                 </div>
                             </td>
@@ -166,7 +166,7 @@
                 @csrf
                 <div class="modal-header border-bottom">
                     <h6 class="modal-title fw-bold text-dark">
-                        <i class="fas fa-plus-minus text-primary me-1.5"></i> ম্যানুয়াল রয়্যালটি এডজাস্টমেন্ট (Credit / Debit)
+                        <i class="fa-solid fa-plus-minus text-primary me-1.5"></i> ম্যানুয়াল রয়্যালটি এডজাস্টমেন্ট (Credit / Debit)
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

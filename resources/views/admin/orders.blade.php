@@ -9,7 +9,7 @@
 @section('actions')
     @if (Route::has('subadmin.bills.create'))
         <a href="{{ route('subadmin.bills.create') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-            <i class="fas fa-plus me-1"></i> Create New Bill
+            <i class="fa-solid fa-plus me-1"></i> Create New Bill
         </a>
     @endif
 @endsection
@@ -35,7 +35,7 @@
                     @endif
                 </p>
                 <span class="kpi__icon" style="background: {{ $tile['color'] }}1a; color: {{ $tile['color'] }}">
-                    <i class="fas fa-{{ $tile['icon'] }}"></i>
+                    <i class="fa-solid fa-{{ $tile['icon'] }}"></i>
                 </span>
             </div>
         </div>

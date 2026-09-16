@@ -15,7 +15,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fas fa-paper-plane"></i></div>
+                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fa-solid fa-paper-plane"></i></div>
                 <p class="kpi__label">Messages Dispatched</p>
                 <h3 class="kpi__value text-dark">{{ number_format($totalSentCount + $totalDeliveredCount) }}</h3>
                 <p class="kpi__foot text-muted">Worldwide emails & WhatsApp</p>
@@ -23,7 +23,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #16a34a;">
-                <div class="kpi__icon bg-success-subtle text-success"><i class="fas fa-circle-check"></i></div>
+                <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <p class="kpi__label">Delivery Success Rate</p>
                 <h3 class="kpi__value text-dark">99.4%</h3>
                 <p class="kpi__foot text-muted">Amazon SES / Cloudflare / Meta</p>
@@ -31,7 +31,7 @@
         </div>
         <div class="col-12 col-sm-4">
             <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-cart-shopping"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-cart-shopping"></i></div>
                 <p class="kpi__label">Abandoned Cart Recoveries</p>
                 <h3 class="kpi__value text-dark">28.5%</h3>
                 <p class="kpi__foot text-muted">Automated 24h win-back rate</p>
@@ -42,7 +42,7 @@
     <!-- Active Communication Templates -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-robot me-2 text-primary"></i> Automated Transactional & Recovery Triggers</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-robot me-2 text-primary"></i> Automated Transactional & Recovery Triggers</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -67,11 +67,11 @@
                                 </td>
                                 <td>
                                     @if($tmpl->channel === 'email')
-                                        <span class="badge bg-primary-subtle text-primary border"><i class="fas fa-envelope me-1"></i> Email</span>
+                                        <span class="badge bg-primary-subtle text-primary border"><i class="fa-solid fa-envelope me-1"></i> Email</span>
                                     @elseif($tmpl->channel === 'whatsapp')
                                         <span class="badge bg-success-subtle text-success border"><i class="fab fa-whatsapp me-1"></i> WhatsApp</span>
                                     @else
-                                        <span class="badge bg-secondary"><i class="fas fa-bell me-1"></i> Push</span>
+                                        <span class="badge bg-secondary"><i class="fa-solid fa-bell me-1"></i> Push</span>
                                     @endif
                                 </td>
                                 <td>
@@ -83,7 +83,7 @@
                                 </td>
                                 <td>
                                     @if($tmpl->is_active)
-                                        <span class="pill pill--ok"><i class="fas fa-check"></i> Live</span>
+                                        <span class="pill pill--ok"><i class="fa-solid fa-check"></i> Live</span>
                                     @else
                                         <span class="pill pill--pending">Paused</span>
                                     @endif
@@ -92,11 +92,11 @@
                                     <div class="btn-group btn-group-sm">
                                         <button type="button" class="btn btn-outline-primary rounded-pill px-2.5 py-0.5"
                                                 onclick="openEditTemplateModal({{ $tmpl->id }}, '{{ addslashes($tmpl->name) }}', '{{ addslashes($tmpl->subject ?? '') }}', '{{ addslashes($tmpl->content_template) }}', {{ $tmpl->is_active ? 1 : 0 }})">
-                                            <i class="fas fa-pen"></i> Edit
+                                            <i class="fa-solid fa-pen"></i> Edit
                                         </button>
                                         <button type="button" class="btn btn-outline-secondary rounded-pill px-2.5 py-0.5 ms-1"
                                                 onclick="openTestSendModal({{ $tmpl->id }}, '{{ addslashes($tmpl->name) }}', '{{ $tmpl->channel }}')">
-                                            <i class="fas fa-paper-plane"></i> Test
+                                            <i class="fa-solid fa-paper-plane"></i> Test
                                         </button>
                                     </div>
                                 </td>
@@ -111,7 +111,7 @@
     <!-- Recent Dispatch Logs -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-clock-rotate-left me-2 text-primary"></i> Live Dispatch Logs</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i> Live Dispatch Logs</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -154,7 +154,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-edit me-1.5"></i> Edit Automation Template</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-pen-to-square me-1.5"></i> Edit Automation Template</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="editTemplateForm" method="POST">
@@ -192,7 +192,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-success text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-paper-plane me-1.5"></i> Send Test Message</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-paper-plane me-1.5"></i> Send Test Message</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.communication.test-send') }}" method="POST">

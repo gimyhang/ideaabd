@@ -16,20 +16,20 @@
             <form action="{{ route('admin.registrations.sync-author', $user) }}" method="POST" class="m-0">
                 @csrf
                 <button type="submit" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold shadow-xs">
-                    <i class="fas fa-arrows-rotate me-1"></i> Sync to Directory
+                    <i class="fa-solid fa-arrows-rotate me-1"></i> Sync to Directory
                 </button>
             </form>
             @if($authorRec && $authorRec->slug)
                 <a href="{{ route('authors.show', $authorRec->slug) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-arrow-up-right-from-square me-1"></i> Directory View
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Directory View
                 </a>
             @endif
         @endif
         <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-outline-primary rounded-pill px-3 btn-sm">
-            <i class="fas fa-edit me-1"></i> Edit Profile
+            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
         </a>
         <a href="{{ route('admin.registrations.index') }}" class="btn btn-outline-secondary rounded-pill px-3 btn-sm">
-            <i class="fas fa-arrow-left me-1"></i> Back to Requests
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Requests
         </a>
     </div>
 @endsection
@@ -50,7 +50,7 @@
                     </div>
                 @else
                     <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width:88px;height:88px">
-                        <i class="fas fa-user fa-2x text-muted"></i>
+                        <i class="fa-solid fa-user fa-2x text-muted"></i>
                     </div>
                 @endif
                 <h5 class="fw-bold mb-1 text-dark">{{ $user->name }}</h5>
@@ -76,7 +76,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                         <h6 class="fw-bold text-muted text-uppercase mb-0" style="font-size:.75rem;letter-spacing:.05em">Submitted Application Data</h6>
                         <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-sm btn-outline-secondary py-0.5 px-2.5 rounded-pill" style="font-size: 12px;">
-                            <i class="fas fa-edit me-1"></i> Edit
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                         </a>
                     </div>
                     
@@ -112,7 +112,7 @@
                                     <td>
                                         @if(!empty($user->reg_data['nid_file']))
                                             <a href="{{ asset('storage/' . ltrim($user->reg_data['nid_file'], '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-2xs">
-                                                <i class="fas fa-file-arrow-down me-1"></i> View / Download NID
+                                                <i class="fa-solid fa-file-arrow-down me-1"></i> View / Download NID
                                             </a>
                                         @else
                                             <span class="text-muted small">No file uploaded</span>
@@ -204,7 +204,7 @@
                                                 </div>
                                             @elseif($key === 'nid_file' && !empty($value))
                                                 <a href="{{ asset('storage/' . ltrim($value, '/')) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 shadow-2xs">
-                                                    <i class="fas fa-file-arrow-down me-1"></i> View / Download Document
+                                                    <i class="fa-solid fa-file-arrow-down me-1"></i> View / Download Document
                                                 </a>
                                             @elseif(is_array($value))
                                                 @if(empty($value))
@@ -239,24 +239,24 @@
                     @endif
 
                     <hr class="my-4">
-                    <h6 class="fw-bold text-dark mb-3"><i class="fas fa-sliders text-primary me-1"></i> Administrative Actions & Approval Control</h6>
+                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-sliders text-primary me-1"></i> Administrative Actions & Approval Control</h6>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         {{-- Approve Button --}}
                         <form method="POST" action="{{ route('admin.registrations.approve', $user) }}" class="flex-grow-1">
                             @csrf @method('PATCH')
                             <button type="submit" class="btn {{ $user->reg_status === 'approved' ? 'btn-outline-success' : 'btn-success' }} w-100 rounded-pill fw-bold">
-                                <i class="fas fa-check me-1"></i>{{ $user->reg_status === 'approved' ? 'Approved (Re-approve)' : 'Approve & Notify User' }}
+                                <i class="fa-solid fa-check me-1"></i>{{ $user->reg_status === 'approved' ? 'Approved (Re-approve)' : 'Approve & Notify User' }}
                             </button>
                         </form>
 
                         {{-- Reject Button (Collapse trigger) --}}
                         <button type="button" class="btn {{ $user->reg_status === 'rejected' ? 'btn-outline-danger' : 'btn-danger' }} flex-grow-1 rounded-pill fw-semibold" data-bs-toggle="collapse" data-bs-target="#rejectForm">
-                            <i class="fas fa-times me-1"></i>{{ $user->reg_status === 'rejected' ? 'Update Rejection Reason' : 'Decline / Reject Request' }}
+                            <i class="fa-solid fa-times me-1"></i>{{ $user->reg_status === 'rejected' ? 'Update Rejection Reason' : 'Decline / Reject Request' }}
                         </button>
 
                         {{-- Edit Button --}}
                         <a href="{{ route('admin.registrations.edit', $user) }}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
-                            <i class="fas fa-edit me-1"></i> Edit
+                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                         </a>
 
                         {{-- Delete Button --}}
@@ -264,7 +264,7 @@
                               data-confirm="আপনি কি নিশ্চিত যে {{ addslashes($user->name) }} এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?" data-confirm-title="অ্যাকাউন্ট ডিলিট">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-outline-danger rounded-pill px-4">
-                                <i class="fas fa-trash me-1"></i> Delete Permanently
+                                <i class="fa-solid fa-trash me-1"></i> Delete Permanently
                             </button>
                         </form>
                     </div>

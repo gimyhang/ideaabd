@@ -20,7 +20,7 @@
 <div class="adm-card">
     @if ($rows->isEmpty())
         <div class="empty-state">
-            <i class="fas fa-{{ $emptyIcon ?? 'inbox' }}"></i>
+            <i class="fa-solid fa-{{ $emptyIcon ?? 'inbox' }}"></i>
             <div>{{ $empty ?? 'No records found' }}</div>
             @isset($emptyHint)
                 <div class="small mt-1">{{ $emptyHint }}</div>
@@ -102,7 +102,7 @@
                                            class="btn btn-sm btn-outline-primary" 
                                            title="Edit"
                                            style="padding: 0.2rem 0.5rem;">
-                                            <i class="fas fa-pen-to-square"></i>
+                                            <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                         <form action="{{ route('admin.content.destroy', ['type' => $contentType, 'id' => data_get($row, 'id')]) }}" 
                                               method="POST" 
@@ -114,7 +114,7 @@
                                                     class="btn btn-sm btn-outline-danger" 
                                                     title="Delete"
                                                     style="padding: 0.2rem 0.5rem;">
-                                                <i class="fas fa-trash-can"></i>
+                                                <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
                                     </div>

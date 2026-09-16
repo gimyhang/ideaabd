@@ -10,7 +10,7 @@
 
 @section('actions')
     <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#createBundleModal">
-        <i class="fas fa-plus me-1"></i> Create Book Combo
+        <i class="fa-solid fa-plus me-1"></i> Create Book Combo
     </button>
 @endsection
 
@@ -21,7 +21,7 @@
     <div class="row g-3">
         <div class="col-12 col-sm-6">
             <div class="kpi" style="--bar: #0066cc;">
-                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fas fa-boxes-stacked"></i></div>
+                <div class="kpi__icon bg-primary-subtle text-primary"><i class="fa-solid fa-boxes-stacked"></i></div>
                 <p class="kpi__label">Active Book Bundles</p>
                 <h3 class="kpi__value text-dark">{{ number_format($activeBundlesCount) }}</h3>
                 <p class="kpi__foot text-muted">Special discount package combos</p>
@@ -29,7 +29,7 @@
         </div>
         <div class="col-12 col-sm-6">
             <div class="kpi" style="--bar: #ff6b35;">
-                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fas fa-hourglass-half"></i></div>
+                <div class="kpi__icon bg-warning-subtle text-warning"><i class="fa-solid fa-hourglass-half"></i></div>
                 <p class="kpi__label">Registered Pre-Orders</p>
                 <h3 class="kpi__value text-dark">{{ number_format($totalPreOrdersCount) }}</h3>
                 <p class="kpi__foot text-muted">Awaiting publication release</p>
@@ -40,7 +40,7 @@
     <!-- Book Bundles Grid -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-layer-group me-2 text-primary"></i> Special Book Combos & Bundles</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-layer-group me-2 text-primary"></i> Special Book Combos & Bundles</h6>
         </div>
         <div class="adm-card__body">
             <div class="row g-3">
@@ -59,7 +59,7 @@
                                     <div class="small fw-semibold text-muted mb-1">Included Books:</div>
                                     <ul class="list-unstyled small mb-0 ps-1">
                                         @foreach($bundle->items as $bi)
-                                            <li><i class="fas fa-book text-primary me-1"></i> {{ $bi->book->title ?? 'Book' }}</li>
+                                            <li><i class="fa-solid fa-book text-primary me-1"></i> {{ $bi->book->title ?? 'Book' }}</li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -86,7 +86,7 @@
     <!-- Pre-Orders Pipeline Table -->
     <div class="adm-card bg-white">
         <div class="adm-card__head">
-            <h6 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2 text-warning"></i> Customer Book Pre-Orders Pipeline</h6>
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-warning"></i> Customer Book Pre-Orders Pipeline</h6>
         </div>
         <div class="adm-card__body p-0">
             <div class="table-responsive">
@@ -143,7 +143,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
-                <h6 class="modal-title fw-bold text-white mb-0"><i class="fas fa-boxes-stacked me-1.5"></i> Create Book Combo</h6>
+                <h6 class="modal-title fw-bold text-white mb-0"><i class="fa-solid fa-boxes-stacked me-1.5"></i> Create Book Combo</h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.bundles.store') }}" method="POST">

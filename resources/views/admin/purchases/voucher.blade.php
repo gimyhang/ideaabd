@@ -72,13 +72,13 @@
 @section('actions')
     <div class="d-flex gap-2">
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Customize branding header">
-            <i class="fas fa-palette me-1 text-primary"></i> Memo Settings
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Memo Settings
         </button>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fas fa-print me-1.5"></i> প্রিন্ট / PDF ভাউচার
+            <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট / PDF ভাউচার
         </button>
         <a href="{{ route('admin.purchases.ledger', ['party' => $payment->publisher_id ? 'pub_' . $payment->publisher_id : 'vendor_' . $payment->vendor_name]) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fas fa-arrow-left me-1"></i> ভেন্ডর লেজার
+            <i class="fa-solid fa-arrow-left me-1"></i> ভেন্ডর লেজার
         </a>
     </div>
 @endsection
@@ -154,7 +154,7 @@
             </div>
             <div class="col-4 text-end">
                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold fs-6">
-                    <i class="fas fa-money-bill-transfer me-1"></i> ডেবিট / পেমেন্ট ভাউচার
+                    <i class="fa-solid fa-money-bill-transfer me-1"></i> ডেবিট / পেমেন্ট ভাউচার
                 </span>
                 <div class="text-muted small mt-2">
                     ভাউচার নং: <strong class="font-monospace text-dark">#{{ $payment->payment_no }}</strong>
@@ -170,21 +170,21 @@
             <div class="col-md-7">
                 <div class="bg-light p-3.5 rounded-3 border">
                     <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 11px;">
-                        <i class="fas fa-user-tag text-primary me-1"></i>প্রাপক / সরবরাহকারী (Paid To / Supplier):
+                        <i class="fa-solid fa-user-tag text-primary me-1"></i>প্রাপক / সরবরাহকারী (Paid To / Supplier):
                     </div>
                     <h5 class="fw-bold text-dark mb-1">{{ $party }}</h5>
                     @if($partyPhone !== '—')
-                        <div class="text-muted small"><i class="fas fa-phone me-1 text-success"></i>{{ $partyPhone }}</div>
+                        <div class="text-muted small"><i class="fa-solid fa-phone me-1 text-success"></i>{{ $partyPhone }}</div>
                     @endif
                     @if($partyAddress !== '—')
-                        <div class="text-muted small"><i class="fas fa-location-dot me-1 text-danger"></i>{{ $partyAddress }}</div>
+                        <div class="text-muted small"><i class="fa-solid fa-location-dot me-1 text-danger"></i>{{ $partyAddress }}</div>
                     @endif
                 </div>
             </div>
             <div class="col-md-5">
                 <div class="bg-light p-3.5 rounded-3 border">
                     <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 11px;">
-                        <i class="fas fa-file-invoice text-info me-1"></i>সংশ্লিষ্ট বিল ও বিবরণ:
+                        <i class="fa-solid fa-file-invoice text-info me-1"></i>সংশ্লিষ্ট বিল ও বিবরণ:
                     </div>
                     @if($purchase)
                         <div class="fw-bold text-dark font-monospace">ক্রয় চালান/বিল #{{ $purchase->purchase_no }}</div>

@@ -9,10 +9,10 @@
 @section('actions')
     <div class="d-flex gap-2">
         <a href="{{ route('admin.users.security.index') }}" class="btn btn-outline-danger rounded-pill px-3 shadow-xs">
-            <i class="fas fa-shield-halved me-1.5"></i> Login Security & OTP
+            <i class="fa-solid fa-shield-halved me-1.5"></i> Login Security & OTP
         </a>
         <a href="{{ route('admin.sub-admins.create') }}" class="btn btn-primary rounded-pill px-3 shadow-xs">
-            <i class="fas fa-user-plus me-1.5"></i> Add Staff / Sub-Admin
+            <i class="fa-solid fa-user-plus me-1.5"></i> Add Staff / Sub-Admin
         </a>
     </div>
 @endsection
@@ -264,7 +264,7 @@
                                           data-confirm="আপনি কি নিশ্চিত যে '{{ addslashes($user->name) }}' এর বর্তমান পদায়ন বাতিল করে সাধারণ ক্রেতা (Buyer) করতে চান?"
                                           data-confirm-title="পদায়ন বাতিলের নিশ্চিতকরণ"
                                           data-confirm-icon="warning"
-                                          data-confirm-btn="<i class='fas fa-user-xmark me-1'></i> হ্যাঁ, পদায়ন বাতিল করুন">
+                                          data-confirm-btn="<i class='fa-solid fa-user-xmark me-1'></i> হ্যাঁ, পদায়ন বাতিল করুন">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 fw-semibold" style="font-size: 11px;" title="পদায়ন বাতিল করুন">
                                             <i class="fa-solid fa-user-xmark"></i>
@@ -292,7 +292,7 @@
                                       data-confirm="আপনি কি '{{ addslashes($user->name) }}' এর জন্য একটি নতুন ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করতে চান?"
                                       data-confirm-title="ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি"
                                       data-confirm-icon="info"
-                                      data-confirm-btn="<i class='fas fa-key me-1'></i> ওটিপি তৈরি করুন">
+                                      data-confirm-btn="<i class='fa-solid fa-key me-1'></i> ওটিপি তৈরি করুন">
                                     @csrf
                                     <input type="hidden" name="user_id" value="{{ $user->id }}">
                                     <button type="submit" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 text-dark fw-semibold" style="font-size: 11px;" title="ওয়ানটাইম ওটিপি (OTP) তৈরি করুন">
@@ -336,7 +336,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fas fa-key text-warning"></i>
+                    <i class="fa-solid fa-key text-warning"></i>
                     <span>পাসওয়ার্ড অটো-জেনারেটর ও অ্যাকাউন্ট রিকভারি</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -356,14 +356,14 @@
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <label class="form-label small fw-bold text-dark mb-0">অটো-জেনারেটেড স্ট্রং পাসওয়ার্ড</label>
                             <button type="button" class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold" onclick="generateRandomPassString()">
-                                <i class="fas fa-rotate me-1"></i> নতুন তৈরি করুন
+                                <i class="fa-solid fa-rotate me-1"></i> নতুন তৈরি করুন
                             </button>
                         </div>
                         <div class="input-group">
                             <input type="text" name="custom_password" id="modalAutoPassString" class="form-control font-monospace fw-bold text-primary bg-light" 
                                    value="" placeholder="Click to generate...">
                             <button type="button" class="btn btn-outline-secondary" onclick="copyPassText(document.getElementById('modalAutoPassString').value)" title="কপি করুন">
-                                <i class="fas fa-copy"></i>
+                                <i class="fa-solid fa-copy"></i>
                             </button>
                         </div>
                         <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ক্রিপ্টোগ্রাফিক ১২-ডিজিটের স্ট্রং পাসওয়ার্ড</small>
@@ -381,7 +381,7 @@
                 <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4">
                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fas fa-check me-1"></i> পাসওয়ার্ড সেট করুন
+                        <i class="fa-solid fa-check me-1"></i> পাসওয়ার্ড সেট করুন
                     </button>
                 </div>
             </form>
@@ -395,7 +395,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header py-3 px-4 bg-dark text-white">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fas fa-crown text-warning"></i>
+                    <i class="fa-solid fa-crown text-warning"></i>
                     <span>ব্যবহারকারী পদায়ন ও নিয়োগ নিয়ন্ত্রণ</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -445,13 +445,13 @@
                     </div>
 
                     <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
-                        <i class="fas fa-circle-info me-1"></i> সুপার অ্যাডমিন হিসেবে আপনি সাধারণ ক্রেতা, লেখক, বিক্রেতা বা যেকোনো ইউজারকে মুহূর্তে যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারেন।
+                        <i class="fa-solid fa-circle-info me-1"></i> সুপার অ্যাডমিন হিসেবে আপনি সাধারণ ক্রেতা, লেখক, বিক্রেতা বা যেকোনো ইউজারকে মুহূর্তে যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারেন।
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2.5 px-4 border-top">
                     <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fas fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
+                        <i class="fa-solid fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
                     </button>
                 </div>
             </form>

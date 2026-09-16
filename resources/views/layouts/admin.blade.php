@@ -1,9 +1,23 @@
+@php
+    $siteTheme = \App\Support\SiteSetting::themeSettings();
+    $userPrefs = auth()->user()->reg_data['preferences'] ?? [];
+    $adminThemeMode = $userPrefs['theme'] ?? $siteTheme['default_mode'] ?? 'light';
+    $adminPrimary = $userPrefs['primary_color'] ?? $siteTheme['primary_color'] ?? '#0066cc';
+    $adminSecondary = $userPrefs['secondary_color'] ?? $siteTheme['secondary_color'] ?? '#0099ff';
+    $adminSidebar = $userPrefs['sidebar_theme'] ?? $siteTheme['sidebar_theme'] ?? 'theme-deep-navy';
+    $adminFont = $userPrefs['font_family'] ?? $siteTheme['font_family'] ?? 'Hind Siliguri';
+@endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" 
+      data-theme-mode="{{ $adminThemeMode }}" 
+      data-primary-color="{{ $adminPrimary }}" 
+      data-secondary-color="{{ $adminSecondary }}" 
+      data-sidebar-theme="{{ $adminSidebar }}" 
+      data-font-family="{{ $adminFont }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="{{ $adminPrimary }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'Admin Panel') — {{ \App\Support\SiteSetting::name() }}</title>
@@ -21,14 +35,37 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700;800&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
     {{-- Admin stylesheet lives in /public so deploys need no vite build step --}}
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ @filemtime(public_path('css/admin.css')) ?: 1 }}">
 
+    {{-- Dynamic Server-Side Injected Theme CSS Variables --}}
+    <style id="admDynamicThemeStyles">
+        :root {
+            --brand: {{ $adminPrimary }};
+            --brand-2: {{ $adminSecondary }};
+        }
+    </style>
+
+    {{-- Immediate Pre-render Theme Application to prevent FOUC / Flicker --}}
+    <script>
+        (function() {
+            var localMode = localStorage.getItem('adm-theme-mode') || '{{ $adminThemeMode }}';
+            var isDark = localMode === 'dark' || (localMode === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark || localStorage.getItem('adm-dark-mode') === '1') {
+                document.documentElement.classList.add('dark-mode');
+            }
+            var customBrand = localStorage.getItem('adm-theme-primary') || '{{ $adminPrimary }}';
+            var customBrand2 = localStorage.getItem('adm-theme-secondary') || '{{ $adminSecondary }}';
+            if (customBrand) document.documentElement.style.setProperty('--brand', customBrand);
+            if (customBrand2) document.documentElement.style.setProperty('--brand-2', customBrand2);
+        })();
+    </script>
+
     @stack('styles')
 </head>
-<body>
+<body class="{{ $adminThemeMode === 'dark' ? 'dark-mode' : '' }} sidebar-{{ str_replace('theme-', '', $adminSidebar) }} font-{{ strtolower(str_replace(' ', '-', $adminFont)) }}">
 
 @include('admin.partials.sidebar')
 <div class="adm-backdrop" data-side-close></div>
@@ -43,7 +80,7 @@
                 <h1 class="h4 fw-bold mb-1 d-flex align-items-center gap-2">@yield('heading', 'Dashboard')</h1>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 small">
-                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-primary"><i class="fas fa-home-alt me-1"></i>Admin</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-primary"><i class="fa-solid fa-house me-1"></i>Admin</a></li>
                         @yield('breadcrumb')
                     </ol>
                 </nav>
@@ -55,7 +92,7 @@
         @foreach (['success' => 'circle-check', 'error' => 'circle-exclamation', 'warning' => 'triangle-exclamation', 'info' => 'circle-info'] as $key => $icon)
             @if (session($key))
                 <div class="alert alert-{{ $key === 'error' ? 'danger' : $key }} alert-dismissible d-flex align-items-center d-print-none" role="alert">
-                    <i class="fas fa-{{ $icon }} me-2"></i>
+                    <i class="fa-solid fa-{{ $icon }} me-2"></i>
                     <div>{{ session($key) }}</div>
                     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -64,7 +101,7 @@
 
         @if (isset($errors) && $errors->any())
             <div class="alert alert-danger alert-dismissible">
-                <strong><i class="fas fa-circle-exclamation me-1"></i> Please fix the following errors:</strong>
+                <strong><i class="fa-solid fa-circle-exclamation me-1"></i> Please fix the following errors:</strong>
                 <ul class="mb-0 mt-2 ps-3">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -397,6 +434,13 @@
         });
     })();
 </script>
+
+{{-- Dynamic Admin Theme Customizer Drawer Partial --}}
+@include('admin.partials.theme-customizer')
+
+{{-- Modular Standalone Theme Controller JS --}}
+<script src="{{ asset('js/admin-theme.js') }}?v={{ @filemtime(public_path('js/admin-theme.js')) ?: 1 }}"></script>
+
 @stack('scripts')
 </body>
 </html>

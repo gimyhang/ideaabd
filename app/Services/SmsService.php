@@ -29,6 +29,28 @@ class SmsService
     }
 
     /**
+     * Get active SMS credentials from DB SiteSetting or fallback to .env and defaults.
+     */
+    public static function getCredentials(): array
+    {
+        $settings = \App\Support\SiteSetting::get('sms_gateway_settings', []);
+        return [
+            'provider'  => $settings['provider'] ?? env('SMS_GATEWAY_PROVIDER', 'bulksmsbd'),
+            'url'       => $settings['url'] ?? env('SMS_GATEWAY_URL', 'http://bulksmsbd.net/api/smsapi'),
+            'api_key'   => $settings['api_key'] ?? env('SMS_GATEWAY_API_KEY', 'NDZQOR8CI0fWSxqk1go8'),
+            'sender_id' => $settings['sender_id'] ?? env('SMS_GATEWAY_SENDER_ID', 'IdeaProkash'),
+        ];
+    }
+
+    /**
+     * Check if a string contains non-ASCII (e.g. Bengali / Unicode) characters.
+     */
+    public static function isUnicode(string $text): bool
+    {
+        return strlen($text) !== mb_strlen($text, 'UTF-8');
+    }
+
+    /**
      * Send an SMS message to one or multiple recipients (comma-separated or array).
      *
      * @param string|array $recipient Mobile number(s) e.g. 01726976982 or 8801726976982,88018XXXXXXXX
@@ -47,21 +69,23 @@ class SmsService
             $formattedNumbers = implode(',', array_filter($numbers));
         }
 
-        $url      = env('SMS_GATEWAY_URL', 'http://bulksmsbd.net/api/smsapi');
-        $apiKey   = env('SMS_GATEWAY_API_KEY', 'NDZQOR8CI0fWSxqk1go8');
-        $senderId = env('SMS_GATEWAY_SENDER_ID', 'IdeaProkash');
-        $provider = strtolower((string) env('SMS_GATEWAY_PROVIDER', 'bulksmsbd'));
+        $creds    = self::getCredentials();
+        $url      = $creds['url'];
+        $apiKey   = $creds['api_key'];
+        $senderId = $creds['sender_id'];
+        $provider = strtolower((string) $creds['provider']);
+        $isUnicode = self::isUnicode($message);
 
-        Log::info("SMS dispatch requested to: {$formattedNumbers} | Provider: {$provider} | Sender: {$senderId}");
+        Log::info("SMS dispatch requested to: {$formattedNumbers} | Provider: {$provider} | Sender: {$senderId} | Unicode: " . ($isUnicode ? 'Yes' : 'No'));
 
         // If no API key is set, simulate
         if (empty($apiKey) || $apiKey === 'your_sms_api_key') {
-            Log::info("SMS Gateway not fully configured in .env. SMS simulated for: {$formattedNumbers}");
+            Log::info("SMS Gateway not fully configured. SMS simulated for: {$formattedNumbers}");
             return [
                 'success'       => true,
                 'simulated'     => true,
                 'response_code' => 1000,
-                'message'       => 'এসএমএস প্রস্তুত করা হয়েছে (গেটওয়ে সিমুলেশন মোড)।',
+                'message'       => 'এসএমএস প্রস্তুত করা হয়েছে (সিমুলেশন মোড)।',
                 'numbers'       => $formattedNumbers,
             ];
         }
@@ -72,11 +96,12 @@ class SmsService
             if ($provider === 'bulksmsbd' || $provider === 'balksms' || str_contains((string) $url, 'bulksmsbd.net')) {
                 // BulkSMSBD API (Single / Comma-separated Bulk)
                 $apiUrl = (str_contains((string) $url, '/api/smsapi')) ? $url : 'http://bulksmsbd.net/api/smsapi';
+                $smsType = $isUnicode ? 'unicode' : 'text';
                 
                 // BulkSMSBD supports GET & POST
                 $payload = [
                     'api_key'  => $apiKey,
-                    'type'     => 'text',
+                    'type'     => $smsType,
                     'number'   => $formattedNumbers,
                     'senderid' => $senderId,
                     'message'  => $message,
@@ -86,7 +111,7 @@ class SmsService
                 if (!$response->successful()) {
                     $response = Http::timeout(12)->get($apiUrl, [
                         'api_key'  => $apiKey,
-                        'type'     => 'text',
+                        'type'     => $smsType,
                         'number'   => $formattedNumbers,
                         'senderid' => $senderId,
                         'message'  => urlencode($message),
@@ -114,6 +139,7 @@ class SmsService
                     'sender_id' => $senderId,
                     'number'    => $formattedNumbers,
                     'message'   => $message,
+                    'type'      => $isUnicode ? 'unicode' : 'text',
                 ];
                 $response = Http::timeout(10)->post($url, $payload);
             }
@@ -153,8 +179,9 @@ class SmsService
      */
     public static function sendBulk(array $messages): array
     {
-        $apiKey   = env('SMS_GATEWAY_API_KEY', 'NDZQOR8CI0fWSxqk1go8');
-        $senderId = env('SMS_GATEWAY_SENDER_ID', 'IdeaProkash');
+        $creds    = self::getCredentials();
+        $apiKey   = $creds['api_key'];
+        $senderId = $creds['sender_id'];
         $url      = 'http://bulksmsbd.net/api/smsapimany';
 
         $formattedMessages = [];
@@ -194,18 +221,24 @@ class SmsService
      */
     public static function checkBalance(): array
     {
-        $apiKey = env('SMS_GATEWAY_API_KEY', 'NDZQOR8CI0fWSxqk1go8');
-        $url    = 'http://bulksmsbd.net/api/smsapicheckbalance';
+        $creds  = self::getCredentials();
+        $apiKey = $creds['api_key'];
+        $url    = 'http://bulksmsbd.net/api/getBalanceApi';
 
         try {
             $response = Http::timeout(8)->get($url, [
                 'api_key' => $apiKey,
             ]);
 
+            $json = $response->json();
+            $balance = $json['balance'] ?? ($json['balance_sms'] ?? null);
+
             return [
-                'success'  => $response->successful(),
-                'status'   => $response->status(),
-                'data'     => $response->json() ?: $response->body(),
+                'success'       => $response->successful() && ($response->status() >= 200 && $response->status() < 300),
+                'status'        => $response->status(),
+                'balance'       => $balance,
+                'response_code' => $json['response_code'] ?? null,
+                'data'          => $json ?: $response->body(),
             ];
         } catch (\Throwable $e) {
             return ['success' => false, 'error' => $e->getMessage()];
@@ -227,6 +260,44 @@ class SmsService
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
         $message = "আইডিয়া প্রকাশন — আপনার মোবাইল ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ১৫ মিনিট)। কোডটি কাউকে শেয়ার করবেন না।";
+        return self::send($phone, $message);
+    }
+
+    /**
+     * Send login 2FA security OTP SMS.
+     */
+    public static function sendLoginOtp(string $phone, string $otpCode): array
+    {
+        $message = "আইডিয়া প্রকাশন — আপনার সিকিউরিটি লগইন ওটিপি কোড: {$otpCode} (মেয়াদ ৫ মিনিট)।";
+        return self::send($phone, $message);
+    }
+
+    /**
+     * Send order confirmation/COD OTP SMS.
+     */
+    public static function sendOrderOtp(string $phone, string $otpCode, ?string $orderNumber = null): array
+    {
+        $orderLabel = $orderNumber ? "#{$orderNumber}" : '';
+        $message = "আইডিয়া প্রকাশন — বই অর্ডার {$orderLabel} নিশ্চিত করতে ভেরিফিকেশন ওটিপি: {$otpCode}।";
+        return self::send($phone, $message);
+    }
+
+    /**
+     * Send order status update SMS.
+     */
+    public static function sendOrderNotification(string $phone, string $orderNumber, string $statusText): array
+    {
+        $message = "আইডিয়া প্রকাশন — আপনার অর্ডার #{$orderNumber} {$statusText}। বিস্তারিত: " . url('/track-order');
+        return self::send($phone, $message);
+    }
+
+    /**
+     * Send author royalty or honorarium payout SMS.
+     */
+    public static function sendRoyaltyNotification(string $phone, float $amount, ?string $note = null): array
+    {
+        $amt = number_format($amount, 2);
+        $message = "আইডিয়া প্রকাশন — সম্মানিত লেখক, আপনার ৳{$amt} রয়্যালটি/সম্মানি সফলভাবে প্রস্তুত/পরিশোধ করা হয়েছে (" . ($note ?: 'চলতি মাস') . ")।";
         return self::send($phone, $message);
     }
 }
