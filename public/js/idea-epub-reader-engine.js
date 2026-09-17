@@ -1,7 +1,9 @@
 /**
  * Idea Prokashon - World-Class International EPUB & PDF Reader Engine
+ * Supports: Kalpurush & Multi-Font Bengali Typography, 5 Themes, 2-Page Spread,
+ * In-Book Search, 5-Color Highlights & Notes, DRM Watermarks.
  * Author: Antigravity AI Engineering Team
- * Version: 2.0.0
+ * Version: 2.1.0
  */
 
 class IdeaEpubReader {
@@ -29,7 +31,7 @@ class IdeaEpubReader {
         this.currentFlow = 'paginated'; // 'paginated' or 'scrolled-doc'
         this.currentSpread = window.innerWidth < 768 ? 'none' : 'always';
         this.theme = localStorage.getItem('idea_reader_theme') || 'light';
-        this.fontFamily = localStorage.getItem('idea_reader_font') || 'Hind Siliguri';
+        this.fontFamily = localStorage.getItem('idea_reader_font') || 'Kalpurush';
         this.fontSize = parseInt(localStorage.getItem('idea_reader_font_size_' + this.config.ebookId) || '100');
         this.lineHeight = parseFloat(localStorage.getItem('idea_reader_line_height') || '1.85');
         this.textAlign = localStorage.getItem('idea_reader_text_align') || 'justify';
@@ -120,9 +122,21 @@ class IdeaEpubReader {
 
         // Spread Mode Toggle
         if (d.spreadBtn) d.spreadBtn.addEventListener('click', () => this.toggleSpread());
+        document.querySelectorAll('.btn-spread-choice').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const choice = e.currentTarget.getAttribute('data-spread');
+                this.setSpreadMode(choice === 'always');
+            });
+        });
 
         // Flow Mode Toggle (Paginated vs Scroll)
         if (d.flowBtn) d.flowBtn.addEventListener('click', () => this.toggleFlow());
+        document.querySelectorAll('.btn-flow-choice').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const choice = e.currentTarget.getAttribute('data-flow');
+                this.setFlowMode(choice);
+            });
+        });
 
         // Font Size Zoom
         const fontInc = document.getElementById('btn-font-inc');
@@ -130,10 +144,23 @@ class IdeaEpubReader {
         if (fontInc) fontInc.addEventListener('click', () => this.adjustFontSize(10));
         if (fontDec) fontDec.addEventListener('click', () => this.adjustFontSize(-10));
 
+        const drawerFontInc = document.getElementById('drawer-font-inc');
+        const drawerFontDec = document.getElementById('drawer-font-dec');
+        if (drawerFontInc) drawerFontInc.addEventListener('click', () => this.adjustFontSize(10));
+        if (drawerFontDec) drawerFontDec.addEventListener('click', () => this.adjustFontSize(-10));
+
         // Theme Switchers
         ['light', 'sepia', 'dark', 'sand', 'mint'].forEach(themeName => {
             const btn = document.getElementById('theme-' + themeName);
             if (btn) btn.addEventListener('click', () => this.applyTheme(themeName));
+        });
+
+        // Theme Card Options inside Settings Drawer
+        document.querySelectorAll('.theme-card-option').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const themeName = e.currentTarget.getAttribute('data-theme');
+                if (themeName) this.applyTheme(themeName);
+            });
         });
 
         // Font Family Select
@@ -159,6 +186,7 @@ class IdeaEpubReader {
 
         // Text Alignment Radios
         document.querySelectorAll('input[name="text-align-option"]').forEach(radio => {
+            if (radio.value === this.textAlign) radio.checked = true;
             radio.addEventListener('change', (e) => this.applyTextAlign(e.target.value));
         });
 
@@ -406,13 +434,19 @@ class IdeaEpubReader {
                 const head = doc.head;
                 if (!head) return;
 
-                // Inject Bengali Google Web Fonts
+                // 1. Inject Kalpurush Font CSS from maateen CDN
+                const kalpurushLink = doc.createElement('link');
+                kalpurushLink.rel = 'stylesheet';
+                kalpurushLink.href = 'https://fonts.maateen.me/kalpurush/font.css';
+                head.appendChild(kalpurushLink);
+
+                // 2. Inject Bengali Google Web Fonts
                 const fontLink = doc.createElement('link');
                 fontLink.rel = 'stylesheet';
                 fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap';
                 head.appendChild(fontLink);
 
-                // Inject Reader Dynamic Stylesheet
+                // 3. Inject Reader Dynamic Stylesheet with local Kalpurush fallback
                 const style = doc.createElement('style');
                 style.id = 'idea-reader-injected-style';
                 style.textContent = this.generateIframeCSS();
@@ -489,14 +523,22 @@ class IdeaEpubReader {
         if (this.marginPadding === 'wide') paddingX = '56px';
 
         return `
+            @font-face {
+                font-family: 'Kalpurush';
+                src: url('/fonts/kalpurush/kalpurush.woff2') format('woff2'),
+                     url('/fonts/kalpurush/kalpurush.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+                font-display: swap;
+            }
             * {
-                font-family: '${this.fontFamily}', 'Hind Siliguri', 'SolaimanLipi', 'Kalpurush', sans-serif !important;
+                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
                 -webkit-font-smoothing: antialiased !important;
                 text-rendering: optimizeLegibility !important;
                 -webkit-touch-callout: none !important;
             }
             body {
-                font-family: '${this.fontFamily}', 'Hind Siliguri', sans-serif !important;
+                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
                 line-height: ${this.lineHeight} !important;
                 padding: 18px ${paddingX} !important;
                 word-wrap: break-word !important;
@@ -685,9 +727,17 @@ class IdeaEpubReader {
     applyTheme(theme) {
         this.theme = theme;
         document.documentElement.setAttribute('data-theme', theme);
+        
+        // Update quick navbar buttons
         document.querySelectorAll('[id^="theme-"]').forEach(btn => btn.classList.remove('active'));
         const activeBtn = document.getElementById('theme-' + theme);
         if (activeBtn) activeBtn.classList.add('active');
+
+        // Update settings drawer theme cards
+        document.querySelectorAll('.theme-card-option').forEach(card => {
+            if (card.getAttribute('data-theme') === theme) card.classList.add('active');
+            else card.classList.remove('active');
+        });
 
         try { localStorage.setItem('idea_reader_theme', theme); } catch (e) {}
 
@@ -709,11 +759,14 @@ class IdeaEpubReader {
         this.fontFamily = fontName;
         try { localStorage.setItem('idea_reader_font', fontName); } catch (e) {}
         this.updateTypographyInViewer();
+        this.showDrmToast(`ফন্ট পরিবর্তিত হয়েছে: ${fontName}`);
     }
 
     adjustFontSize(delta) {
         this.fontSize = Math.max(70, Math.min(200, this.fontSize + delta));
         if (this.dom.fontScaleDisplay) this.dom.fontScaleDisplay.textContent = this.fontSize + '%';
+        const drawerScale = document.getElementById('drawer-font-scale-display');
+        if (drawerScale) drawerScale.textContent = this.fontSize + '%';
         try { localStorage.setItem('idea_reader_font_size_' + this.config.ebookId, this.fontSize); } catch (e) {}
         if (this.rendition) this.rendition.themes.fontSize(this.fontSize + "%");
     }
@@ -736,30 +789,34 @@ class IdeaEpubReader {
         this.updateTypographyInViewer();
     }
 
-    toggleSpread() {
+    setSpreadMode(isSpread) {
         if (!this.rendition) return;
         const d = this.dom;
-        if (this.currentSpread === 'always') {
-            this.currentSpread = 'none';
-            this.rendition.spread('none');
-            if (d.spreadIcon) d.spreadIcon.className = 'fa-solid fa-book';
-            if (d.spreadText) d.spreadText.textContent = '১ পাতা';
-            if (d.spreadBtn) d.spreadBtn.classList.remove('active');
-            if (d.wrapper) d.wrapper.classList.remove('dual-spread-active');
-        } else {
+        if (isSpread) {
             this.currentSpread = 'always';
             this.rendition.spread('always');
             if (d.spreadIcon) d.spreadIcon.className = 'fa-solid fa-book-open';
             if (d.spreadText) d.spreadText.textContent = '২ পাতা';
             if (d.spreadBtn) d.spreadBtn.classList.add('active');
             if (d.wrapper) d.wrapper.classList.add('dual-spread-active');
+        } else {
+            this.currentSpread = 'none';
+            this.rendition.spread('none');
+            if (d.spreadIcon) d.spreadIcon.className = 'fa-solid fa-book';
+            if (d.spreadText) d.spreadText.textContent = '১ পাতা';
+            if (d.spreadBtn) d.spreadBtn.classList.remove('active');
+            if (d.wrapper) d.wrapper.classList.remove('dual-spread-active');
         }
     }
 
-    toggleFlow() {
+    toggleSpread() {
+        this.setSpreadMode(this.currentSpread !== 'always');
+    }
+
+    setFlowMode(flowType) {
         if (!this.rendition) return;
         const d = this.dom;
-        if (this.currentFlow === 'paginated') {
+        if (flowType === 'scrolled-doc') {
             this.currentFlow = 'scrolled-doc';
             this.rendition.flow('scrolled-doc');
             if (d.flowIcon) d.flowIcon.className = 'fa-solid fa-table-columns';
@@ -772,6 +829,10 @@ class IdeaEpubReader {
             if (d.flowText) d.flowText.textContent = 'স্ক্রোল';
             if (d.flowBtn) d.flowBtn.classList.remove('active');
         }
+    }
+
+    toggleFlow() {
+        this.setFlowMode(this.currentFlow === 'paginated' ? 'scrolled-doc' : 'paginated');
     }
 
     toggleFullscreen() {

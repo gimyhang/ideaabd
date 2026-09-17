@@ -10,6 +10,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <!-- Kalpurush Bangla Web Font -->
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <!-- Google Fonts: Hind Siliguri, Tiro Bangla, Noto Serif Bengali, Inter & Merriweather -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,9 +29,10 @@
 </head>
 <body class="reader-active">
 
-    <!-- Top Header Navigation -->
+    <!-- Top Header Navigation (Clean, Responsive, Non-Breaking) -->
     <header class="reader-head">
-        <div class="d-flex align-items-center gap-1.5">
+        <!-- Left Side Controls -->
+        <div class="reader-head-left">
             <a href="{{ route('ebook.show', $ebook->slug) }}" class="reader-btn" title="ই-বুক পেজে ফিরে যান">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span class="d-none d-sm-inline">ফিরে যান</span>
@@ -44,7 +48,7 @@
                 <span class="d-none d-md-inline">সার্চ</span>
             </button>
 
-            <button type="button" class="reader-btn" id="btn-toggle-bookmarks" title="বুকমার্ক তালিকা (B)">
+            <button type="button" class="reader-btn" id="btn-toggle-bookmarks" title="সংরক্ষিত বুকমার্ক (B)">
                 <i class="fa-solid fa-bookmark text-info"></i>
                 <span class="d-none d-lg-inline">বুকমার্ক</span>
             </button>
@@ -55,65 +59,52 @@
             </button>
 
             <!-- Bengali Audiobook (TTS) Player Button -->
-            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-audiobook" title="বইটি শুনুন (বাংলা অডিওপাঠ / Text-to-Speech)">
+            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-audiobook" title="বইটি শুনুন (বাংলা অডিওপাঠ)">
                 <i class="fa-solid fa-headphones text-primary"></i>
-                <span class="d-none d-sm-inline">অডিওপাঠ</span>
+                <span class="d-none d-md-inline">অডিওপাঠ</span>
             </button>
         </div>
 
-        <!-- Center Book Title -->
-        <div class="text-center px-2 overflow-hidden text-truncate mx-2" style="max-width: 380px;">
-            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.92rem;">{{ $ebook->title }}</h6>
+        <!-- Center Book Title & Author -->
+        <div class="reader-head-center">
+            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.92rem; font-family: 'Kalpurush', 'Hind Siliguri', sans-serif;">{{ $ebook->title }}</h6>
             <small class="text-muted text-truncate d-block" style="font-size: 0.72rem;">{{ $ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}</small>
         </div>
 
         <!-- Right Side Settings & Controls -->
-        <div class="d-flex align-items-center gap-1.5">
-            <!-- Spread Toggle (1 Page vs 2 Page Spread) -->
-            <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-spread" title="১ পাতা / ২ পাতা স্প্রেড ভিউ">
-                <i class="fa-solid fa-book-open" id="spread-icon"></i>
-                <span id="spread-text">২ পাতা</span>
-            </button>
-
-            <!-- Scroll Flow Toggle (Paginated vs Continuous Scroll) -->
-            <button type="button" class="reader-btn d-none d-lg-inline-flex" id="btn-toggle-flow" title="পাতা উল্টানো / স্ক্রোল মোড">
-                <i class="fa-solid fa-file-lines" id="flow-icon"></i>
-                <span id="flow-text">স্ক্রোল</span>
-            </button>
-
-            <!-- Font Size Scaling with Dynamic Percentage -->
+        <div class="reader-head-right">
+            <!-- Font Zoom Controls -->
             <div class="btn-group btn-group-sm d-none d-sm-inline-flex align-items-center">
                 <button type="button" class="reader-btn px-2" id="btn-font-dec" title="ফন্ট ছোট করুন (-)">A-</button>
                 <span id="font-scale-display" class="reader-btn px-1.5 fw-bold font-monospace text-primary border-start-0 border-end-0" style="cursor: default; min-width: 44px; text-align: center;">100%</span>
                 <button type="button" class="reader-btn px-2" id="btn-font-inc" title="ফন্ট বড় করুন (+)">A+</button>
             </div>
 
-            <!-- 5 Reading Themes -->
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="reader-btn px-2 active" id="theme-light" title="Light (সাদা ব্যাকগ্রাউন্ড)">☀️</button>
-                <button type="button" class="reader-btn px-2" id="theme-sepia" title="Sepia (চোখের আরামদায়ক কাগজ)">📜</button>
-                <button type="button" class="reader-btn px-2" id="theme-dark" title="Dark Mode (ডার্ক মোড)">🌙</button>
-                <button type="button" class="reader-btn px-2" id="theme-sand" title="Sand (মরুভূমি বালুকা)">🏜️</button>
-                <button type="button" class="reader-btn px-2" id="theme-mint" title="Mint (নরম সবুজ)">🍃</button>
+            <!-- Quick Theme Dots Dropdown / Switches -->
+            <div class="btn-group btn-group-sm d-none d-lg-inline-flex">
+                <button type="button" class="reader-btn px-2 active" id="theme-light" title="Light (সাদা)">☀️</button>
+                <button type="button" class="reader-btn px-2" id="theme-sepia" title="Sepia (সেপিয়া কাগজ)">📜</button>
+                <button type="button" class="reader-btn px-2" id="theme-dark" title="Dark (ডার্ক মোড)">🌙</button>
             </div>
 
-            <!-- Display Settings Drawer Trigger -->
-            <button type="button" class="reader-btn" id="btn-toggle-settings" title="ফন্ট ও ডিসপ্লে সেটিংস">
-                <i class="fa-solid fa-sliders"></i>
-            </button>
-
-            <!-- Reading Stats Drawer Trigger -->
-            <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-toggle-analytics" title="পড়ার সময় ও পরিসংখ্যান">
-                <i class="fa-solid fa-chart-simple"></i>
-            </button>
-
             <!-- Add Bookmark Button -->
-            <button type="button" class="reader-btn text-warning" id="btn-add-bookmark" title="এই পৃষ্ঠাটি বুকমার্ক করুন (B)">
+            <button type="button" class="reader-btn text-warning" id="btn-add-bookmark" title="পৃষ্ঠা বুকমার্ক করুন (B)">
                 <i class="fa-solid fa-bookmark"></i>
             </button>
 
+            <!-- Settings Drawer Trigger -->
+            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-settings" title="ফন্ট ও রিডিং সেটিংস">
+                <i class="fa-solid fa-sliders"></i>
+                <span class="d-none d-md-inline">সেটিংস</span>
+            </button>
+
+            <!-- Reading Stats Trigger -->
+            <button type="button" class="reader-btn d-none d-xl-inline-flex" id="btn-toggle-analytics" title="পড়ার সময় ও পরিসংখ্যান">
+                <i class="fa-solid fa-chart-simple"></i>
+            </button>
+
             <!-- Zen Mode Toggle -->
-            <button type="button" class="reader-btn" id="btn-zen-mode" title="জেন মোড / ফুল ফোকাস (Z)">
+            <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-zen-mode" title="ফুল ফোকাস জেন মোড (Z)">
                 <i class="fa-solid fa-feather"></i>
             </button>
 
@@ -190,23 +181,89 @@
             <ul class="drawer-body drawer-list" id="highlights-list"></ul>
         </div>
 
-        <!-- 5. Display & Typography Settings Drawer -->
+        <!-- 5. Display & Typography Settings Drawer (Robust, Beautiful, Unbreakable) -->
         <div class="reader-drawer reader-drawer-right" id="settings-drawer">
             <div class="drawer-header">
                 <span><i class="fa-solid fa-sliders text-primary me-2"></i>ফন্ট ও রিডিং সেটিংস</span>
                 <button type="button" class="btn-close btn-sm" id="btn-close-settings"></button>
             </div>
             <div class="drawer-body p-3">
-                <!-- Font Family -->
+                <!-- Theme Selector Cards -->
+                <div class="mb-3.5">
+                    <label class="form-label small fw-bold text-muted mb-1.5">রিডিং থিম নির্বাচন করুন:</label>
+                    <div class="theme-grid">
+                        <div class="theme-card-option active" data-theme="light">
+                            <span class="theme-dot" style="background: #ffffff; border-color: #cbd5e1;"></span>
+                            <span>দিনের আলো (Light)</span>
+                        </div>
+                        <div class="theme-card-option" data-theme="sepia">
+                            <span class="theme-dot" style="background: #fdf6ec; border-color: #e2d1bc;"></span>
+                            <span>সেপিয়া (Sepia)</span>
+                        </div>
+                        <div class="theme-card-option" data-theme="dark">
+                            <span class="theme-dot" style="background: #111827; border-color: #374151;"></span>
+                            <span>ডার্ক ওলেড (Dark)</span>
+                        </div>
+                        <div class="theme-card-option" data-theme="sand">
+                            <span class="theme-dot" style="background: #fdf6e3; border-color: #dcd4be;"></span>
+                            <span>বালুকা (Sand)</span>
+                        </div>
+                        <div class="theme-card-option" data-theme="mint" style="grid-column: span 2;">
+                            <span class="theme-dot" style="background: #f0fdf4; border-color: #bbf7d0;"></span>
+                            <span>নরম সবুজ (Mint Green - চোখের আরাম)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-3 text-muted opacity-25">
+
+                <!-- Font Family Selection -->
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted mb-1">বাংলা ও ইংরেজি ফন্ট:</label>
-                    <select class="form-select form-select-sm" id="select-font-family">
-                        <option value="Hind Siliguri">হিন্দ শিলিগুড়ি (Hind Siliguri - ডিফল্ট)</option>
-                        <option value="Tiro Bangla">তিরো বাংলা (Tiro Bangla - ক্লাসিক)</option>
-                        <option value="Noto Serif Bengali">নোটো সেরিফ (Noto Serif Bengali - সাহিত্য)</option>
-                        <option value="Inter">ইন্টার (Inter - মডার্ন সান্স)</option>
-                        <option value="Merriweather">মেরিওয়েদার (Merriweather - সেরিফ)</option>
+                    <select class="form-select form-select-sm fw-semibold" id="select-font-family">
+                        <option value="Kalpurush" selected>কালপুরুষ (Kalpurush - ডিফল্ট)</option>
+                        <option value="Hind Siliguri">হিন্দ শিলিগুড়ি (Hind Siliguri)</option>
+                        <option value="Tiro Bangla">তিরো বাংলা (Tiro Bangla)</option>
+                        <option value="Noto Serif Bengali">নোটো সেরিফ (Noto Serif Bengali)</option>
+                        <option value="Inter">ইন্টার (Inter - Modern Sans)</option>
+                        <option value="Merriweather">মেরিওয়েদার (Merriweather - Serif)</option>
                     </select>
+                </div>
+
+                <!-- Font Size Scaling in Drawer -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted mb-1">ফন্ট সাইজ (Font Scaling):</label>
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light border">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" id="drawer-font-dec"><i class="fa-solid fa-minus"></i> ছোট</button>
+                        <span class="fw-bold font-monospace text-primary fs-6" id="drawer-font-scale-display">100%</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" id="drawer-font-inc"><i class="fa-solid fa-plus"></i> বড়</button>
+                    </div>
+                </div>
+
+                <!-- Page Layout / Spread Controls -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted mb-1">বই পড়ার লেআউট / স্প্রেড:</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-spread-choice" data-spread="none">
+                            <i class="fa-solid fa-book me-1"></i> ১ পাতা
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-spread-choice" data-spread="always">
+                            <i class="fa-solid fa-book-open me-1"></i> ২ পাতা স্প্রেড
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scroll vs Flip Mode -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted mb-1">পাতা উল্টানো / স্ক্রোলিং মোড:</label>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill btn-flow-choice" data-flow="paginated">
+                            <i class="fa-solid fa-file-lines me-1"></i> পৃষ্ঠা মোড
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill btn-flow-choice" data-flow="scrolled-doc">
+                            <i class="fa-solid fa-table-columns me-1"></i> স্ক্রোল মোড
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Line Height -->
@@ -288,7 +345,7 @@
         <div id="reader-loader">
             <div class="spinner-border text-primary mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
             <div class="fw-bold text-dark mb-1" id="loader-title">ই-বুক প্রস্তুত হচ্ছে...</div>
-            <small class="text-muted" id="loader-subtitle">ফন্ট সামঞ্জস্য ও বাংলা লেআউট রেন্ডারিং হচ্ছে</small>
+            <small class="text-muted" id="loader-subtitle">কালপুরুষ ফন্ট ও বাংলা লেআউট রেন্ডারিং হচ্ছে</small>
         </div>
 
         <!-- EPUB Mode Container -->
