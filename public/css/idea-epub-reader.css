@@ -251,7 +251,7 @@ body.zen-mode .reader-main {
 #epub-viewer-wrapper {
     width: 100%;
     height: 100%;
-    max-width: 1280px;
+    max-width: 960px;
     margin: 0 auto;
     background-color: var(--reader-surface);
     box-shadow: var(--reader-shadow-lg);
@@ -259,7 +259,12 @@ body.zen-mode .reader-main {
     position: relative;
     overflow: hidden;
     border: 1px solid var(--reader-border);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 0;
+}
+
+#epub-viewer-wrapper.dual-spread-active {
+    max-width: 1440px;
 }
 
 /* Dual Page Spread Center Spine Shadow Effect */

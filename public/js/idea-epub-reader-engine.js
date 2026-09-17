@@ -3,7 +3,7 @@
  * Supports: Kalpurush & Multi-Font Bengali Typography, 5 Themes, Single & 2-Page Spread,
  * In-Book Search, 5-Color Highlights & Notes, DRM Watermarks.
  * Author: Antigravity AI Engineering Team
- * Version: 2.2.0
+ * Version: 2.3.0
  */
 
 class IdeaEpubReader {
@@ -358,7 +358,7 @@ class IdeaEpubReader {
             this.book = ePub(buffer);
             window.book = this.book;
 
-            // Default to 1-page clean spread ('none') unless explicitly set to 'always'
+            // Manage container spread class
             if (this.dom.wrapper) {
                 if (this.currentSpread === 'always') this.dom.wrapper.classList.add('dual-spread-active');
                 else this.dom.wrapper.classList.remove('dual-spread-active');
@@ -368,8 +368,8 @@ class IdeaEpubReader {
                 width: "100%",
                 height: "100%",
                 spread: this.currentSpread,
-                minSpreadWidth: 800,
                 flow: this.currentFlow,
+                manager: "default",
                 allowScriptedContent: true
             });
             window.rendition = this.rendition;
@@ -413,6 +413,13 @@ class IdeaEpubReader {
             this.renderBookmarksList();
             this.renderHighlightsList();
 
+            // Global window resize listener to maintain exact column calculations
+            window.addEventListener('resize', () => {
+                if (this.rendition) {
+                    this.rendition.resize();
+                }
+            });
+
         } catch (e) {
             console.error("EPUB engine error:", e);
             if (this.dom.loader) this.dom.loader.style.display = 'none';
@@ -438,11 +445,20 @@ class IdeaEpubReader {
                 fontLink.href = 'https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&family=Noto+Serif+Bengali:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap';
                 head.appendChild(fontLink);
 
-                // 3. Inject Reader Dynamic Stylesheet with local Kalpurush fallback
+                // 3. Inject Reader Dynamic Stylesheet with exact pixel column alignment
                 const style = doc.createElement('style');
                 style.id = 'idea-reader-injected-style';
                 style.textContent = this.generateIframeCSS();
                 head.appendChild(style);
+
+                // Re-sync layout when webfonts finish loading
+                if (doc.fonts && doc.fonts.ready) {
+                    doc.fonts.ready.then(() => {
+                        if (this.rendition) {
+                            this.rendition.resize();
+                        }
+                    });
+                }
 
                 // DRM Protection inside iframe
                 doc.addEventListener('contextmenu', e => e.preventDefault());
@@ -509,10 +525,6 @@ class IdeaEpubReader {
     }
 
     generateIframeCSS() {
-        let paddingX = '28px';
-        if (this.marginPadding === 'narrow') paddingX = '16px';
-        if (this.marginPadding === 'wide') paddingX = '48px';
-
         return `
             @font-face {
                 font-family: 'Kalpurush';
@@ -522,42 +534,51 @@ class IdeaEpubReader {
                 font-style: normal;
                 font-display: swap;
             }
-            * {
-                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
-                -webkit-font-smoothing: antialiased !important;
-                text-rendering: optimizeLegibility !important;
-                -webkit-touch-callout: none !important;
+            html {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
                 box-sizing: border-box !important;
             }
             body {
                 font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
                 line-height: ${this.lineHeight} !important;
-                padding: 24px ${paddingX} !important;
-                margin: 0 auto !important;
+                margin: 0 !important;
+                padding: 20px 24px !important;
+                box-sizing: border-box !important;
                 word-wrap: break-word !important;
                 overflow-wrap: break-word !important;
                 text-align: ${this.textAlign} !important;
-                max-width: 920px !important;
+                -webkit-column-break-inside: auto !important;
+                break-inside: auto !important;
+            }
+            * {
+                font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
+                -webkit-font-smoothing: antialiased !important;
+                text-rendering: optimizeLegibility !important;
+                -webkit-touch-callout: none !important;
             }
             p {
                 font-size: 1.06rem !important;
                 line-height: ${this.lineHeight} !important;
                 margin-top: 0 !important;
-                margin-bottom: 0.9em !important;
+                margin-bottom: 0.85em !important;
                 text-align: ${this.textAlign} !important;
+                word-wrap: break-word !important;
             }
             h1, h2, h3, h4, h5, h6 {
                 font-family: '${this.fontFamily}', 'Kalpurush', sans-serif !important;
                 font-weight: 700 !important;
                 line-height: 1.35 !important;
-                margin-top: 1em !important;
-                margin-bottom: 0.5em !important;
+                margin-top: 0.8em !important;
+                margin-bottom: 0.4em !important;
             }
             img, svg {
                 max-width: 100% !important;
                 height: auto !important;
                 display: block !important;
-                margin: 14px auto !important;
+                margin: 12px auto !important;
                 border-radius: 4px !important;
             }
             ::selection {
@@ -580,6 +601,9 @@ class IdeaEpubReader {
             }
         });
         this.rendition.themes.fontSize(this.fontSize + "%");
+        setTimeout(() => {
+            if (this.rendition) this.rendition.resize();
+        }, 50);
     }
 
     handleRelocation(location) {
@@ -764,7 +788,12 @@ class IdeaEpubReader {
         const drawerScale = document.getElementById('drawer-font-scale-display');
         if (drawerScale) drawerScale.textContent = this.fontSize + '%';
         try { localStorage.setItem('idea_reader_font_size_' + this.config.ebookId, this.fontSize); } catch (e) {}
-        if (this.rendition) this.rendition.themes.fontSize(this.fontSize + "%");
+        if (this.rendition) {
+            this.rendition.themes.fontSize(this.fontSize + "%");
+            setTimeout(() => {
+                if (this.rendition) this.rendition.resize();
+            }, 50);
+        }
     }
 
     applyLineHeight(lh) {
