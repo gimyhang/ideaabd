@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+    <head>
+        <meta name="dtb:uid" content="urn:uuid:6021ddade12b53a0b542511477bbad43"/>
+        <meta name="dtb:depth" content="1"/>
+        <meta name="dtb:totalPageCount" content="0"/>
+        <meta name="dtb:maxPageNumber" content="0"/>
+    </head>
+    <docTitle>
+        <text>বৃক্ষ যখন কথা বলে</text>
+    </docTitle>
+    <navMap>
+        <navPoint id="navPoint-1" playOrder="1">
+            <navLabel><text>ভূমিকা ও বৃক্ষের নীরব ভাষা</text></navLabel>
+            <content src="chapter1.xhtml"/>
+        </navPoint>
+        <navPoint id="navPoint-2" playOrder="2">
+            <navLabel><text>অরণ্যের অনুভূতির জগৎ</text></navLabel>
+            <content src="chapter2.xhtml"/>
+        </navPoint>
+        <navPoint id="navPoint-3" playOrder="3">
+            <navLabel><text>মানব জীবনে বৃক্ষের সান্নিধ্য</text></navLabel>
+            <content src="chapter3.xhtml"/>
+        </navPoint>
+    </navMap>
+</ncx>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package version="2.0" unique-identifier="bookid" xmlns="http://www.idpf.org/2007/opf">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <meta name="generator" content="Adobe InDesign 15.0.3"/>
+    <meta name="cover" content="x1.png"/>
+    <dc:title>brikkho</dc:title>
+    <dc:creator/>
+    <dc:subject/>
+    <dc:description/>
+    <dc:publisher/>
+    <dc:date>2026-08-08T18:29:44Z</dc:date>
+    <dc:source/>
+    <dc:relation/>
+    <dc:coverage/>
+    <dc:rights/>
+    <dc:language>bn-IN</dc:language>
+    <dc:language>en-GB</dc:language>
+    <dc:language>en-US</dc:language>
+    <dc:language>hi-IN</dc:language>
+    <dc:identifier id="bookid">urn:uuid:ad41411e-9152-4327-a9c5-a6a0eb2134b8</dc:identifier>
+    <meta name="Sigil version" content="2.7.6"/>
+    <dc:date opf:event="modification" xmlns:opf="http://www.idpf.org/2007/opf">2026-08-09</dc:date>
+  </metadata>
+  <manifest>
+    <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho" href="brikkho.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-1" href="brikkho-1.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-2" href="brikkho-2.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-3" href="brikkho-3.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-4" href="brikkho-4.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-5" href="brikkho-5.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-6" href="brikkho-6.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-7" href="brikkho-7.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-8" href="brikkho-8.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-9" href="brikkho-9.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-10" href="brikkho-10.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-11" href="brikkho-11.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-12" href="brikkho-12.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-13" href="brikkho-13.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-14" href="brikkho-14.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-15" href="brikkho-15.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-16" href="brikkho-16.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-17" href="brikkho-17.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-18" href="brikkho-18.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-19" href="brikkho-19.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-20" href="brikkho-20.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-21" href="brikkho-21.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-22" href="brikkho-22.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-23" href="brikkho-23.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-24" href="brikkho-24.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-25" href="brikkho-25.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-26" href="brikkho-26.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-27" href="brikkho-27.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-28" href="brikkho-28.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-29" href="brikkho-29.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-30" href="brikkho-30.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-31" href="brikkho-31.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-32" href="brikkho-32.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-33" href="brikkho-33.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-34" href="brikkho-34.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-35" href="brikkho-35.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-36" href="brikkho-36.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-37" href="brikkho-37.xhtml" media-type="application/xhtml+xml"/>
+    <item id="brikkho-38" href="brikkho-38.xhtml" media-type="application/xhtml+xml"/>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="idGeneratedStyles.css" href="css/idGeneratedStyles.css" media-type="text/css"/>
+    <item id="icofont.ttf" href="font/icofont.ttf" media-type="application/x-font-ttf"/>
+    <item id="Nikosh.ttf" href="font/Nikosh.ttf" media-type="application/x-font-ttf"/>
+    <item id="SutonnyMJ.ttf" href="font/SutonnyMJ.ttf" media-type="application/x-font-ttf"/>
+    <item id="SutonnyOMJ.ttf" href="font/SutonnyOMJ.ttf" media-type="application/x-font-ttf"/>
+    <item id="SymbolMT.ttf" href="font/SymbolMT.ttf" media-type="application/vnd.ms-opentype"/>
+    <item id="TimesNewRomanPS-BoldMT.ttf" href="font/TimesNewRomanPS-BoldMT.ttf" media-type="application/vnd.ms-opentype"/>
+    <item id="TimesNewRomanPSMT.ttf" href="font/TimesNewRomanPSMT.ttf" media-type="application/vnd.ms-opentype"/>
+    <item id="Wingdings-Regular.ttf" href="font/Wingdings-Regular.ttf" media-type="application/vnd.ms-opentype"/>
+    <item id="x1.png" href="image/1.png" media-type="image/png"/>
+    <item id="inner.jpg" href="image/inner.jpg" media-type="image/jpeg"/>
+    <item id="Untitled-2.png" href="image/Untitled-2.png" media-type="image/png"/>
+    <item id="Untitled-21.png" href="image/Untitled-21.png" media-type="image/png"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="cover" linear="no"/>
+    <itemref idref="brikkho"/>
+    <itemref idref="brikkho-1"/>
+    <itemref idref="brikkho-2"/>
+    <itemref idref="brikkho-3"/>
+    <itemref idref="brikkho-4"/>
+    <itemref idref="brikkho-5"/>
+    <itemref idref="brikkho-6"/>
+    <itemref idref="brikkho-7"/>
+    <itemref idref="brikkho-8"/>
+    <itemref idref="brikkho-9"/>
+    <itemref idref="brikkho-10"/>
+    <itemref idref="brikkho-11"/>
+    <itemref idref="brikkho-12"/>
+    <itemref idref="brikkho-13"/>
+    <itemref idref="brikkho-14"/>
+    <itemref idref="brikkho-15"/>
+    <itemref idref="brikkho-16"/>
+    <itemref idref="brikkho-17"/>
+    <itemref idref="brikkho-18"/>
+    <itemref idref="brikkho-19"/>
+    <itemref idref="brikkho-20"/>
+    <itemref idref="brikkho-21"/>
+    <itemref idref="brikkho-22"/>
+    <itemref idref="brikkho-23"/>
+    <itemref idref="brikkho-24"/>
+    <itemref idref="brikkho-25"/>
+    <itemref idref="brikkho-26"/>
+    <itemref idref="brikkho-27"/>
+    <itemref idref="brikkho-28"/>
+    <itemref idref="brikkho-29"/>
+    <itemref idref="brikkho-30"/>
+    <itemref idref="brikkho-31"/>
+    <itemref idref="brikkho-32"/>
+    <itemref idref="brikkho-33"/>
+    <itemref idref="brikkho-34"/>
+    <itemref idref="brikkho-35"/>
+    <itemref idref="brikkho-36"/>
+    <itemref idref="brikkho-37"/>
+    <itemref idref="brikkho-38"/>
+  </spine>
+  <guide>
+    <reference type="cover" title="Cover" href="cover.xhtml"/>
+  </guide>
+</package>

@@ -1,0 +1,187 @@
+@charset "utf-8";
+
+@font-face {
+    font-family: 'Nikosh';
+    font-style: normal;
+    font-weight: normal;
+    src: url('../font/Nikosh.ttf');
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Nikosh', 'Kalpurush', 'Hind Siliguri', serif, sans-serif;
+    color: #1a1a1a;
+    background: transparent;
+    line-height: 1.8;
+}
+
+body {
+    padding: 16px 20px;
+    box-sizing: border-box;
+}
+
+/* Cover Page */
+.cover-page {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 95vh;
+}
+.cover-img {
+    max-width: 100%;
+    max-height: 95vh;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+/* Title Page */
+.title-page {
+    text-align: center;
+    padding: 40px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 85vh;
+}
+.title-page .inner-art {
+    max-width: 220px;
+    height: auto;
+    margin: 0 auto 25px;
+    display: block;
+}
+.title-page .book-main-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #1e293b;
+    margin: 0 0 12px;
+    line-height: 1.3;
+}
+.title-page .book-author {
+    font-size: 1.3rem;
+    color: #475569;
+    margin: 0 0 40px;
+    font-weight: 600;
+}
+.title-page .publisher-logo-text {
+    margin-top: auto;
+    font-size: 1.05rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Imprint / Printers Page */
+.imprint-page {
+    padding: 24px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #334155;
+}
+.imprint-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.imprint-header .title {
+    font-size: 1.35rem;
+    font-weight: bold;
+    color: #0f172a;
+    margin: 0 0 4px;
+}
+.imprint-header .subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    margin: 0;
+}
+.imprint-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0 20px;
+}
+.imprint-table td {
+    padding: 5px 8px;
+    vertical-align: top;
+    font-size: 0.92rem;
+}
+.imprint-table td.label {
+    width: 28%;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+}
+.imprint-table td.colon {
+    width: 4%;
+    text-align: center;
+    font-weight: bold;
+    color: #64748b;
+}
+.imprint-table td.value {
+    width: 68%;
+    color: #334155;
+}
+.imprint-notice {
+    font-size: 0.84rem;
+    color: #64748b;
+    background: rgba(0,0,0,0.02);
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin-top: 20px;
+    line-height: 1.6;
+    text-align: justify;
+}
+
+/* Dedication Page */
+.dedication-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: 40px 20px;
+}
+.dedication-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #0f172a;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+}
+.dedication-names {
+    font-size: 1.1rem;
+    line-height: 2.2;
+    color: #334155;
+}
+
+/* Story Content */
+.story-page {
+    padding: 10px 4px;
+}
+.story-page p {
+    text-indent: 1.5em;
+    margin: 0 0 0.85em 0;
+    text-align: justify;
+    line-height: 1.85;
+    font-size: 1.05rem;
+}
+.story-page p.no-indent {
+    text-indent: 0;
+}
+.story-page .section-ornament {
+    text-align: center;
+    margin: 28px auto 24px;
+    display: block;
+    max-width: 140px;
+    height: auto;
+}

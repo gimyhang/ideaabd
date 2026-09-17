@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>বৃক্ষ যখন কথা বলে</dc:title>
+        <dc:creator opf:role="aut">আদিল ফকির</dc:creator>
+        <dc:language>bn</dc:language>
+        <dc:publisher>আইডিয়া প্রকাশন</dc:publisher>
+        <dc:identifier id="BookId">urn:uuid:briksh-zkhn-ktha-ble-v2</dc:identifier>
+        <meta name="cover" content="cover-image"/>
+    </metadata>
+    <manifest>
+        <item id="style" href="css/style.css" media-type="text/css"/>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        <item id="cover-image" href="image/1.png" media-type="image/png"/>
+        <item id="inner-image" href="image/inner.jpg" media-type="image/jpeg"/>
+        <item id="ornament-image" href="image/Untitled-21.png" media-type="image/png"/>
+        <item id="ornament-2-image" href="image/Untitled-2.png" media-type="image/png"/>
+        <item id="font-nikosh" href="font/Nikosh.ttf" media-type="application/x-font-ttf"/>
+        <item id="font-kalpurush" href="font/SutonnyOMJ.ttf" media-type="application/x-font-ttf"/>
+        <item id="cover-page" href="cover.xhtml" media-type="application/xhtml+xml"/>
+        <item id="title-page" href="titlepage.xhtml" media-type="application/xhtml+xml"/>
+        <item id="imprint-page" href="imprint.xhtml" media-type="application/xhtml+xml"/>
+        <item id="dedication-page" href="dedication.xhtml" media-type="application/xhtml+xml"/>
+        <item id="chapter1" href="chapter1.xhtml" media-type="application/xhtml+xml"/>
+    </manifest>
+    <spine toc="ncx">
+        <itemref idref="cover-page"/>
+        <itemref idref="title-page"/>
+        <itemref idref="imprint-page"/>
+        <itemref idref="dedication-page"/>
+        <itemref idref="chapter1"/>
+    </spine>
+</package>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<encryption xmlns="urn:oasis:names:tc:opendocument:xmlns:container" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/TimesNewRomanPS-BoldMT.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/icofont.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/SutonnyOMJ.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/Nikosh.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/TimesNewRomanPSMT.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/Wingdings-Regular.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/SymbolMT.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+  <enc:EncryptedData>
+    <enc:EncryptionMethod Algorithm="http://www.idpf.org/2008/embedding"/>
+    <enc:CipherData>
+      <enc:CipherReference URI="OEBPS/font/SutonnyMJ.ttf"/>
+    </enc:CipherData>
+  </enc:EncryptedData>
+</encryption>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>বৃক্ষ যখন কথা বলে</dc:title>
+        <dc:creator opf:role="aut">ড. শামসুজ্জামান খান</dc:creator>
+        <dc:language>bn</dc:language>
+        <dc:publisher>আইডিয়া প্রকাশন (Idea Prokashon)</dc:publisher>
+        <dc:identifier id="BookId">urn:uuid:6021ddade12b53a0b542511477bbad43</dc:identifier>
+    </metadata>
+    <manifest>
+        <item id="style" href="style.css" media-type="text/css"/>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        <item id="chapter1" href="chapter1.xhtml" media-type="application/xhtml+xml"/>
+        <item id="chapter2" href="chapter2.xhtml" media-type="application/xhtml+xml"/>
+        <item id="chapter3" href="chapter3.xhtml" media-type="application/xhtml+xml"/>
+    </manifest>
+    <spine toc="ncx">
+        <itemref idref="chapter1"/>
+        <itemref idref="chapter2"/>
+        <itemref idref="chapter3"/>
+    </spine>
+</package>

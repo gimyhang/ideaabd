@@ -549,7 +549,7 @@ class IdeaEpubReader {
                 box-sizing: border-box !important;
                 word-wrap: break-word !important;
                 overflow-wrap: break-word !important;
-                text-align: ${this.textAlign} !important;
+                text-align: ${this.textAlign};
                 -webkit-column-break-inside: auto !important;
                 break-inside: auto !important;
             }
@@ -564,7 +564,7 @@ class IdeaEpubReader {
                 line-height: ${this.lineHeight} !important;
                 margin-top: 0 !important;
                 margin-bottom: 0.85em !important;
-                text-align: ${this.textAlign} !important;
+                text-align: inherit;
                 word-wrap: break-word !important;
             }
             h1, h2, h3, h4, h5, h6 {
@@ -580,6 +580,19 @@ class IdeaEpubReader {
                 display: block !important;
                 margin: 12px auto !important;
                 border-radius: 4px !important;
+            }
+            .text-center, .title-page, .title-page *, .cover-page, .dedication-page, .dedication-page *, .imprint-header, .imprint-header * {
+                text-align: center !important;
+            }
+            table.imprint-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin: 12px 0 16px !important;
+            }
+            table.imprint-table td {
+                text-align: left !important;
+                padding: 4px 6px !important;
+                vertical-align: top !important;
             }
             ::selection {
                 background: rgba(254, 240, 138, 0.6);
