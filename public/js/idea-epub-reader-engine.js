@@ -1,9 +1,9 @@
 /**
  * Idea Prokashon - World-Class International EPUB & PDF Reader Engine
- * Supports: Kalpurush & Multi-Font Bengali Typography, 5 Themes, 2-Page Spread,
+ * Supports: Kalpurush & Multi-Font Bengali Typography, 5 Themes, Single & 2-Page Spread,
  * In-Book Search, 5-Color Highlights & Notes, DRM Watermarks.
  * Author: Antigravity AI Engineering Team
- * Version: 2.1.0
+ * Version: 2.2.0
  */
 
 class IdeaEpubReader {
@@ -28,8 +28,8 @@ class IdeaEpubReader {
         this.currentCfi = null;
         this.currentLocation = 1;
         this.totalLocations = 100;
-        this.currentFlow = 'paginated'; // 'paginated' or 'scrolled-doc'
-        this.currentSpread = window.innerWidth < 768 ? 'none' : 'always';
+        this.currentFlow = localStorage.getItem('idea_reader_flow') || 'paginated'; // 'paginated' or 'scrolled-doc'
+        this.currentSpread = localStorage.getItem('idea_reader_spread') || 'none'; // 'none' (1 page) or 'always' (2 page)
         this.theme = localStorage.getItem('idea_reader_theme') || 'light';
         this.fontFamily = localStorage.getItem('idea_reader_font') || 'Kalpurush';
         this.fontSize = parseInt(localStorage.getItem('idea_reader_font_size_' + this.config.ebookId) || '100');
@@ -74,12 +74,6 @@ class IdeaEpubReader {
             progressInfo: document.getElementById('progress-info'),
             readingTimer: document.getElementById('reading-timer-display'),
             fontScaleDisplay: document.getElementById('font-scale-display'),
-            spreadBtn: document.getElementById('btn-toggle-spread'),
-            spreadText: document.getElementById('spread-text'),
-            spreadIcon: document.getElementById('spread-icon'),
-            flowBtn: document.getElementById('btn-toggle-flow'),
-            flowText: document.getElementById('flow-text'),
-            flowIcon: document.getElementById('flow-icon'),
             fullscreenBtn: document.getElementById('btn-fullscreen'),
             zenBtn: document.getElementById('btn-zen-mode'),
             tocDrawer: document.getElementById('toc-drawer'),
@@ -120,8 +114,7 @@ class IdeaEpubReader {
         // Zen Mode
         if (d.zenBtn) d.zenBtn.addEventListener('click', () => this.toggleZenMode());
 
-        // Spread Mode Toggle
-        if (d.spreadBtn) d.spreadBtn.addEventListener('click', () => this.toggleSpread());
+        // Spread Mode Choices inside Settings Drawer
         document.querySelectorAll('.btn-spread-choice').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const choice = e.currentTarget.getAttribute('data-spread');
@@ -129,8 +122,7 @@ class IdeaEpubReader {
             });
         });
 
-        // Flow Mode Toggle (Paginated vs Scroll)
-        if (d.flowBtn) d.flowBtn.addEventListener('click', () => this.toggleFlow());
+        // Flow Mode Choices inside Settings Drawer
         document.querySelectorAll('.btn-flow-choice').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const choice = e.currentTarget.getAttribute('data-flow');
@@ -366,9 +358,7 @@ class IdeaEpubReader {
             this.book = ePub(buffer);
             window.book = this.book;
 
-            const isMobile = window.innerWidth < 768;
-            this.currentSpread = isMobile ? 'none' : (this.currentSpread || 'always');
-
+            // Default to 1-page clean spread ('none') unless explicitly set to 'always'
             if (this.dom.wrapper) {
                 if (this.currentSpread === 'always') this.dom.wrapper.classList.add('dual-spread-active');
                 else this.dom.wrapper.classList.remove('dual-spread-active');
@@ -378,7 +368,7 @@ class IdeaEpubReader {
                 width: "100%",
                 height: "100%",
                 spread: this.currentSpread,
-                minSpreadWidth: 720,
+                minSpreadWidth: 800,
                 flow: this.currentFlow,
                 allowScriptedContent: true
             });
@@ -396,6 +386,8 @@ class IdeaEpubReader {
                 this.applyTheme(this.theme);
                 this.updateTypographyInViewer();
                 this.restoreHighlights();
+                this.updateSpreadButtonsUI();
+                this.updateFlowButtonsUI();
             }).catch(() => {
                 this.rendition.display();
                 if (this.dom.loader) this.dom.loader.style.display = 'none';
@@ -504,7 +496,6 @@ class IdeaEpubReader {
                     const diffX = touchEndX - touchStartX;
                     const diffY = touchEndY - touchStartY;
 
-                    // Horizontal Swipe
                     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
                         if (diffX < 0) this.nextPage();
                         else this.prevPage();
@@ -518,9 +509,9 @@ class IdeaEpubReader {
     }
 
     generateIframeCSS() {
-        let paddingX = '32px';
+        let paddingX = '28px';
         if (this.marginPadding === 'narrow') paddingX = '16px';
-        if (this.marginPadding === 'wide') paddingX = '56px';
+        if (this.marginPadding === 'wide') paddingX = '48px';
 
         return `
             @font-face {
@@ -536,33 +527,38 @@ class IdeaEpubReader {
                 -webkit-font-smoothing: antialiased !important;
                 text-rendering: optimizeLegibility !important;
                 -webkit-touch-callout: none !important;
+                box-sizing: border-box !important;
             }
             body {
                 font-family: '${this.fontFamily}', 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
                 line-height: ${this.lineHeight} !important;
-                padding: 18px ${paddingX} !important;
+                padding: 24px ${paddingX} !important;
+                margin: 0 auto !important;
                 word-wrap: break-word !important;
                 overflow-wrap: break-word !important;
                 text-align: ${this.textAlign} !important;
+                max-width: 920px !important;
             }
-            p, div, span, li {
-                font-size: 1.05rem !important;
+            p {
+                font-size: 1.06rem !important;
                 line-height: ${this.lineHeight} !important;
-                margin-bottom: 1.15em !important;
+                margin-top: 0 !important;
+                margin-bottom: 0.9em !important;
                 text-align: ${this.textAlign} !important;
             }
             h1, h2, h3, h4, h5, h6 {
+                font-family: '${this.fontFamily}', 'Kalpurush', sans-serif !important;
                 font-weight: 700 !important;
                 line-height: 1.35 !important;
-                margin-top: 1.2em !important;
+                margin-top: 1em !important;
                 margin-bottom: 0.5em !important;
             }
             img, svg {
                 max-width: 100% !important;
                 height: auto !important;
                 display: block !important;
-                margin: 16px auto !important;
-                border-radius: 6px !important;
+                margin: 14px auto !important;
+                border-radius: 4px !important;
             }
             ::selection {
                 background: rgba(254, 240, 138, 0.6);
@@ -789,50 +785,54 @@ class IdeaEpubReader {
         this.updateTypographyInViewer();
     }
 
-    setSpreadMode(isSpread) {
-        if (!this.rendition) return;
-        const d = this.dom;
-        if (isSpread) {
-            this.currentSpread = 'always';
-            this.rendition.spread('always');
-            if (d.spreadIcon) d.spreadIcon.className = 'fa-solid fa-book-open';
-            if (d.spreadText) d.spreadText.textContent = '২ পাতা';
-            if (d.spreadBtn) d.spreadBtn.classList.add('active');
-            if (d.wrapper) d.wrapper.classList.add('dual-spread-active');
-        } else {
-            this.currentSpread = 'none';
-            this.rendition.spread('none');
-            if (d.spreadIcon) d.spreadIcon.className = 'fa-solid fa-book';
-            if (d.spreadText) d.spreadText.textContent = '১ পাতা';
-            if (d.spreadBtn) d.spreadBtn.classList.remove('active');
-            if (d.wrapper) d.wrapper.classList.remove('dual-spread-active');
-        }
+    updateSpreadButtonsUI() {
+        document.querySelectorAll('.btn-spread-choice').forEach(btn => {
+            const spreadVal = btn.getAttribute('data-spread');
+            if (spreadVal === this.currentSpread) {
+                btn.classList.add('btn-primary', 'text-white');
+                btn.classList.remove('btn-outline-primary');
+            } else {
+                btn.classList.remove('btn-primary', 'text-white');
+                btn.classList.add('btn-outline-primary');
+            }
+        });
     }
 
-    toggleSpread() {
-        this.setSpreadMode(this.currentSpread !== 'always');
+    setSpreadMode(isSpread) {
+        if (!this.rendition) return;
+        this.currentSpread = isSpread ? 'always' : 'none';
+        try { localStorage.setItem('idea_reader_spread', this.currentSpread); } catch (e) {}
+        
+        this.rendition.spread(this.currentSpread);
+        if (this.dom.wrapper) {
+            if (this.currentSpread === 'always') this.dom.wrapper.classList.add('dual-spread-active');
+            else this.dom.wrapper.classList.remove('dual-spread-active');
+        }
+        this.updateSpreadButtonsUI();
+        this.showDrmToast(isSpread ? '২ পাতা স্প্রেড মোড সক্রিয়' : '১ পাতা মোড সক্রিয়');
+    }
+
+    updateFlowButtonsUI() {
+        document.querySelectorAll('.btn-flow-choice').forEach(btn => {
+            const flowVal = btn.getAttribute('data-flow');
+            if (flowVal === this.currentFlow) {
+                btn.classList.add('btn-primary', 'text-white');
+                btn.classList.remove('btn-outline-secondary');
+            } else {
+                btn.classList.remove('btn-primary', 'text-white');
+                btn.classList.add('btn-outline-secondary');
+            }
+        });
     }
 
     setFlowMode(flowType) {
         if (!this.rendition) return;
-        const d = this.dom;
-        if (flowType === 'scrolled-doc') {
-            this.currentFlow = 'scrolled-doc';
-            this.rendition.flow('scrolled-doc');
-            if (d.flowIcon) d.flowIcon.className = 'fa-solid fa-table-columns';
-            if (d.flowText) d.flowText.textContent = 'পৃষ্ঠা মোড';
-            if (d.flowBtn) d.flowBtn.classList.add('active');
-        } else {
-            this.currentFlow = 'paginated';
-            this.rendition.flow('paginated');
-            if (d.flowIcon) d.flowIcon.className = 'fa-solid fa-file-lines';
-            if (d.flowText) d.flowText.textContent = 'স্ক্রোল';
-            if (d.flowBtn) d.flowBtn.classList.remove('active');
-        }
-    }
+        this.currentFlow = flowType;
+        try { localStorage.setItem('idea_reader_flow', this.currentFlow); } catch (e) {}
 
-    toggleFlow() {
-        this.setFlowMode(this.currentFlow === 'paginated' ? 'scrolled-doc' : 'paginated');
+        this.rendition.flow(this.currentFlow);
+        this.updateFlowButtonsUI();
+        this.showDrmToast(flowType === 'scrolled-doc' ? 'স্ক্রোল মোড সক্রিয়' : 'পৃষ্ঠা মোড সক্রিয়');
     }
 
     toggleFullscreen() {

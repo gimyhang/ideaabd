@@ -1,7 +1,7 @@
 /**
- * Idea Prokashon - International Standard Dynamic EPUB & PDF Reader Engine Stylesheet
- * Supports: 5 Reading Themes, Kalpurush & Curated Bengali Typography, Spread Layouts,
- * Continuous Scroll, In-Book Search, 5-Color Highlights & Notes, DRM Watermarks.
+ * Idea Prokashon - World-Class International EPUB & PDF Reader Engine Stylesheet
+ * Supports: 5 Reading Themes, Kalpurush & Curated Bengali Typography,
+ * Spread & Scroll Layouts, In-Book Search, 5-Color Highlights & Notes, DRM Watermarks.
  */
 
 /* Kalpurush Local & WebFont Declaration */
@@ -22,15 +22,15 @@
     --reader-text-muted: #64748b;
     --reader-border: #e2e8f0;
     --reader-border-subtle: #f1f5f9;
-    --reader-nav-bg: rgba(255, 255, 255, 0.95);
+    --reader-nav-bg: rgba(255, 255, 255, 0.96);
     --reader-nav-border: #e2e8f0;
     --reader-primary: #0284c7;
     --reader-primary-hover: #0369a1;
     --reader-primary-light: rgba(2, 132, 199, 0.12);
     --reader-accent: #0ea5e9;
     --reader-watermark-color: rgba(15, 23, 42, 0.08);
-    --reader-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    --reader-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --reader-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    --reader-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.10);
     --reader-highlight-yellow: rgba(254, 240, 138, 0.55);
     --reader-highlight-green: rgba(167, 243, 208, 0.55);
     --reader-highlight-pink: rgba(251, 207, 232, 0.55);
@@ -47,33 +47,33 @@
     --reader-text-muted: #7c6753;
     --reader-border: #e2d1bc;
     --reader-border-subtle: #ece1d1;
-    --reader-nav-bg: rgba(253, 246, 236, 0.95);
+    --reader-nav-bg: rgba(253, 246, 236, 0.96);
     --reader-nav-border: #e2d1bc;
     --reader-primary: #8b5e3c;
     --reader-primary-hover: #6d4629;
     --reader-primary-light: rgba(139, 94, 60, 0.14);
     --reader-accent: #b45309;
     --reader-watermark-color: rgba(60, 42, 26, 0.08);
-    --reader-shadow: 0 4px 20px rgba(60, 42, 26, 0.08);
+    --reader-shadow: 0 2px 12px rgba(60, 42, 26, 0.08);
 }
 
 /* 2. Theme: Dark Mode (OLED) */
 [data-theme="dark"] {
-    --reader-bg: #0b0f19;
+    --reader-bg: #090d16;
     --reader-surface: #111827;
     --reader-surface-subtle: #1f2937;
     --reader-text: #f3f4f6;
     --reader-text-muted: #9ca3af;
     --reader-border: #1f2937;
     --reader-border-subtle: #1e293b;
-    --reader-nav-bg: rgba(17, 24, 39, 0.95);
+    --reader-nav-bg: rgba(17, 24, 39, 0.96);
     --reader-nav-border: #1f2937;
     --reader-primary: #38bdf8;
     --reader-primary-hover: #7dd3fc;
     --reader-primary-light: rgba(56, 189, 248, 0.16);
     --reader-accent: #0ea5e9;
     --reader-watermark-color: rgba(243, 244, 246, 0.07);
-    --reader-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --reader-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* 3. Theme: Solarized Sand */
@@ -85,14 +85,14 @@
     --reader-text-muted: #839496;
     --reader-border: #dcd4be;
     --reader-border-subtle: #e3dbc5;
-    --reader-nav-bg: rgba(253, 246, 227, 0.95);
+    --reader-nav-bg: rgba(253, 246, 227, 0.96);
     --reader-nav-border: #dcd4be;
     --reader-primary: #b58900;
     --reader-primary-hover: #967000;
     --reader-primary-light: rgba(181, 137, 0, 0.14);
     --reader-accent: #cb4b16;
     --reader-watermark-color: rgba(88, 110, 117, 0.08);
-    --reader-shadow: 0 4px 20px rgba(88, 110, 117, 0.08);
+    --reader-shadow: 0 2px 12px rgba(88, 110, 117, 0.08);
 }
 
 /* 4. Theme: Mint Green */
@@ -104,14 +104,14 @@
     --reader-text-muted: #166534;
     --reader-border: #bbf7d0;
     --reader-border-subtle: #d1fae5;
-    --reader-nav-bg: rgba(240, 253, 244, 0.95);
+    --reader-nav-bg: rgba(240, 253, 244, 0.96);
     --reader-nav-border: #bbf7d0;
     --reader-primary: #16a34a;
     --reader-primary-hover: #15803d;
     --reader-primary-light: rgba(22, 163, 74, 0.14);
     --reader-accent: #059669;
     --reader-watermark-color: rgba(20, 83, 45, 0.08);
-    --reader-shadow: 0 4px 20px rgba(20, 83, 45, 0.08);
+    --reader-shadow: 0 2px 12px rgba(20, 83, 45, 0.08);
 }
 
 /* Global Reset & Typography */
@@ -139,7 +139,7 @@ body.reader-active {
 
 /* Top Header Navbar */
 .reader-head {
-    height: 56px;
+    height: 54px;
     background-color: var(--reader-nav-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -147,7 +147,7 @@ body.reader-active {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 0.85rem;
+    padding: 0 0.75rem;
     z-index: 100;
     box-shadow: var(--reader-shadow);
     flex-shrink: 0;
@@ -167,7 +167,7 @@ body.reader-active {
 .reader-head-center {
     flex: 1;
     min-width: 0;
-    max-width: 420px;
+    max-width: 440px;
     text-align: center;
     padding: 0 0.6rem;
     overflow: hidden;
@@ -194,12 +194,12 @@ body.zen-mode .reader-main {
     border: 1px solid var(--reader-border);
     color: var(--reader-text);
     border-radius: 8px;
-    padding: 0.35rem 0.65rem;
+    padding: 0.32rem 0.62rem;
     font-size: 0.82rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.38rem;
+    gap: 0.35rem;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     font-weight: 500;
@@ -216,11 +216,16 @@ body.zen-mode .reader-main {
 .reader-btn:active {
     transform: translateY(0);
 }
-.reader-btn.active {
+
+.reader-btn-primary {
+    background-color: var(--reader-primary-light);
+    color: var(--reader-primary);
+    border-color: var(--reader-primary);
+    font-weight: 600;
+}
+.reader-btn-primary:hover {
     background-color: var(--reader-primary);
     color: #ffffff !important;
-    border-color: var(--reader-primary);
-    box-shadow: 0 2px 8px var(--reader-primary-light);
 }
 
 .reader-btn-icon {
@@ -239,18 +244,18 @@ body.zen-mode .reader-main {
     display: flex;
     position: relative;
     overflow: hidden;
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.65rem;
     transition: padding 0.3s ease;
 }
 
 #epub-viewer-wrapper {
     width: 100%;
     height: 100%;
-    max-width: 1440px;
+    max-width: 1280px;
     margin: 0 auto;
     background-color: var(--reader-surface);
     box-shadow: var(--reader-shadow-lg);
-    border-radius: 12px;
+    border-radius: 10px;
     position: relative;
     overflow: hidden;
     border: 1px solid var(--reader-border);
@@ -301,18 +306,17 @@ body.zen-mode .reader-main {
     align-items: center;
     justify-items: center;
     overflow: hidden;
-    opacity: 0.85;
+    opacity: 0.75;
 }
 .watermark-unit {
     transform: rotate(-24deg);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--reader-watermark-color);
     white-space: nowrap;
     padding: 20px;
     user-select: none;
     letter-spacing: 0.5px;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 /* Side Navigation Arrows (Flip Buttons) */
@@ -359,16 +363,16 @@ body.zen-mode .nav-arrow:hover {
         height: 36px;
         font-size: 0.82rem;
     }
-    .nav-prev { left: 6px; }
-    .nav-next { right: 6px; }
-    .reader-head { padding: 0 0.5rem; }
-    .reader-main { padding: 0.25rem; }
-    #epub-viewer-wrapper { border-radius: 8px; }
+    .nav-prev { left: 4px; }
+    .nav-next { right: 4px; }
+    .reader-head { padding: 0 0.4rem; }
+    .reader-main { padding: 0.2rem; }
+    #epub-viewer-wrapper { border-radius: 6px; }
 }
 
 /* Bottom Footer Status */
 .reader-foot {
-    height: 40px;
+    height: 38px;
     background-color: var(--reader-nav-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -376,7 +380,7 @@ body.zen-mode .nav-arrow:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1rem;
+    padding: 0 0.85rem;
     font-size: 0.78rem;
     color: var(--reader-text-muted);
     z-index: 50;
@@ -389,7 +393,7 @@ body.zen-mode .nav-arrow:hover {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
-    height: 6px;
+    height: 5px;
     background: var(--reader-border);
     border-radius: 999px;
     outline: none;
@@ -398,8 +402,8 @@ body.zen-mode .nav-arrow:hover {
 .reader-scrubber::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     background: var(--reader-primary);
     border: 2px solid var(--reader-surface);
     border-radius: 50%;
@@ -411,11 +415,11 @@ body.zen-mode .nav-arrow:hover {
     transform: scale(1.25);
 }
 
-/* Slide-out Drawers (TOC, Search, Bookmarks, Highlights, Settings, Analytics) */
+/* Slide-out Drawers */
 .reader-drawer {
     position: fixed;
-    top: 56px;
-    bottom: 40px;
+    top: 54px;
+    bottom: 38px;
     width: 380px;
     max-width: 90vw;
     background-color: var(--reader-surface);
@@ -443,7 +447,7 @@ body.zen-mode .nav-arrow:hover {
 }
 
 .drawer-header {
-    padding: 0.9rem 1.1rem;
+    padding: 0.85rem 1.1rem;
     border-bottom: 1px solid var(--reader-border);
     display: flex;
     align-items: center;
@@ -455,7 +459,7 @@ body.zen-mode .nav-arrow:hover {
 .drawer-body {
     flex: 1;
     overflow-y: auto;
-    padding: 0.75rem;
+    padding: 0.85rem;
 }
 .drawer-list {
     list-style: none;
@@ -495,12 +499,12 @@ body.zen-mode .nav-arrow:hover {
 .theme-card-option {
     border: 1.5px solid var(--reader-border);
     border-radius: 10px;
-    padding: 8px 10px;
+    padding: 9px 11px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     font-weight: 600;
     font-size: 0.82rem;
     background: var(--reader-surface);
@@ -602,19 +606,6 @@ body.zen-mode .nav-arrow:hover {
 }
 .reader-modal .modal-footer {
     border-top: 1px solid var(--reader-border);
-}
-.reader-modal .form-control,
-.reader-modal .form-select {
-    background-color: var(--reader-surface-subtle);
-    color: var(--reader-text);
-    border-color: var(--reader-border);
-}
-.reader-modal .form-control:focus,
-.reader-modal .form-select:focus {
-    background-color: var(--reader-surface);
-    color: var(--reader-text);
-    border-color: var(--reader-primary);
-    box-shadow: 0 0 0 3px var(--reader-primary-light);
 }
 
 /* PDF Mode Viewport */

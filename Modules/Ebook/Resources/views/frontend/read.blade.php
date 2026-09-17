@@ -29,9 +29,9 @@
 </head>
 <body class="reader-active">
 
-    <!-- Top Header Navigation (Clean, Responsive, Non-Breaking) -->
+    <!-- Top Header Navigation (Clean, Aesthetic, Non-Overcrowded) -->
     <header class="reader-head">
-        <!-- Left Side Controls -->
+        <!-- Left Side Primary Navigation -->
         <div class="reader-head-left">
             <a href="{{ route('ebook.show', $ebook->slug) }}" class="reader-btn" title="ই-বুক পেজে ফিরে যান">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -67,7 +67,7 @@
 
         <!-- Center Book Title & Author -->
         <div class="reader-head-center">
-            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.92rem; font-family: 'Kalpurush', 'Hind Siliguri', sans-serif;">{{ $ebook->title }}</h6>
+            <h6 class="mb-0 fw-bold text-truncate" style="font-size: 0.94rem; font-family: 'Kalpurush', 'Hind Siliguri', sans-serif;">{{ $ebook->title }}</h6>
             <small class="text-muted text-truncate d-block" style="font-size: 0.72rem;">{{ $ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন') }}</small>
         </div>
 
@@ -80,32 +80,15 @@
                 <button type="button" class="reader-btn px-2" id="btn-font-inc" title="ফন্ট বড় করুন (+)">A+</button>
             </div>
 
-            <!-- Quick Theme Dots Dropdown / Switches -->
-            <div class="btn-group btn-group-sm d-none d-lg-inline-flex">
-                <button type="button" class="reader-btn px-2 active" id="theme-light" title="Light (সাদা)">☀️</button>
-                <button type="button" class="reader-btn px-2" id="theme-sepia" title="Sepia (সেপিয়া কাগজ)">📜</button>
-                <button type="button" class="reader-btn px-2" id="theme-dark" title="Dark (ডার্ক মোড)">🌙</button>
-            </div>
-
             <!-- Add Bookmark Button -->
             <button type="button" class="reader-btn text-warning" id="btn-add-bookmark" title="পৃষ্ঠা বুকমার্ক করুন (B)">
                 <i class="fa-solid fa-bookmark"></i>
             </button>
 
-            <!-- Settings Drawer Trigger -->
-            <button type="button" class="reader-btn text-primary fw-bold" id="btn-toggle-settings" title="ফন্ট ও রিডিং সেটিংস">
+            <!-- Settings Drawer Trigger (Prominently Accessible) -->
+            <button type="button" class="reader-btn reader-btn-primary" id="btn-toggle-settings" title="ফন্ট, থিম ও রিডিং সেটিংস">
                 <i class="fa-solid fa-sliders"></i>
-                <span class="d-none d-md-inline">সেটিংস</span>
-            </button>
-
-            <!-- Reading Stats Trigger -->
-            <button type="button" class="reader-btn d-none d-xl-inline-flex" id="btn-toggle-analytics" title="পড়ার সময় ও পরিসংখ্যান">
-                <i class="fa-solid fa-chart-simple"></i>
-            </button>
-
-            <!-- Zen Mode Toggle -->
-            <button type="button" class="reader-btn d-none d-md-inline-flex" id="btn-zen-mode" title="ফুল ফোকাস জেন মোড (Z)">
-                <i class="fa-solid fa-feather"></i>
+                <span>সেটিংস</span>
             </button>
 
             <!-- Fullscreen Toggle -->
@@ -181,7 +164,7 @@
             <ul class="drawer-body drawer-list" id="highlights-list"></ul>
         </div>
 
-        <!-- 5. Display & Typography Settings Drawer (Robust, Beautiful, Unbreakable) -->
+        <!-- 5. Display & Typography Settings Drawer (World-Class, Complete & Responsive) -->
         <div class="reader-drawer reader-drawer-right" id="settings-drawer">
             <div class="drawer-header">
                 <span><i class="fa-solid fa-sliders text-primary me-2"></i>ফন্ট ও রিডিং সেটিংস</span>
@@ -242,10 +225,10 @@
 
                 <!-- Page Layout / Spread Controls -->
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted mb-1">বই পড়ার লেআউট / স্প্রেড:</label>
+                    <label class="form-label small fw-bold text-muted mb-1">বই পড়ার বিন্যাস (Page Layout):</label>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-spread-choice" data-spread="none">
-                            <i class="fa-solid fa-book me-1"></i> ১ পাতা
+                        <button type="button" class="btn btn-sm btn-primary text-white flex-fill btn-spread-choice" data-spread="none">
+                            <i class="fa-solid fa-book me-1"></i> ১ পাতা মোড
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-primary flex-fill btn-spread-choice" data-spread="always">
                             <i class="fa-solid fa-book-open me-1"></i> ২ পাতা স্প্রেড
@@ -257,7 +240,7 @@
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted mb-1">পাতা উল্টানো / স্ক্রোলিং মোড:</label>
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary flex-fill btn-flow-choice" data-flow="paginated">
+                        <button type="button" class="btn btn-sm btn-primary text-white flex-fill btn-flow-choice" data-flow="paginated">
                             <i class="fa-solid fa-file-lines me-1"></i> পৃষ্ঠা মোড
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary flex-fill btn-flow-choice" data-flow="scrolled-doc">
@@ -297,31 +280,12 @@
                         <label class="btn btn-outline-secondary" for="align-left"><i class="fa-solid fa-align-left"></i> বামে</label>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- 6. Reading Analytics Drawer -->
-        <div class="reader-drawer reader-drawer-right" id="analytics-drawer">
-            <div class="drawer-header">
-                <span><i class="fa-solid fa-chart-simple text-info me-2"></i>পড়ার পরিসংখ্যান ও সময়</span>
-                <button type="button" class="btn-close btn-sm" id="btn-close-analytics"></button>
-            </div>
-            <div class="drawer-body p-3">
-                <div class="card border-0 bg-primary bg-opacity-10 p-3 rounded-3 mb-3 text-center">
-                    <div class="small text-muted mb-1">বর্তমান সেশনে পড়ার সময়</div>
-                    <h3 class="fw-bold text-primary mb-0" id="stat-total-time">০ মিনিট ০ সেকেন্ড</h3>
-                </div>
-
-                <div class="card border-0 bg-light p-3 rounded-3 mb-3">
-                    <div class="d-flex justify-content-between small text-muted mb-1">
-                        <span>বইটি শেষ হতে অবশিষ্ট সময়</span>
-                    </div>
-                    <h6 class="fw-bold text-dark mb-0" id="est-time-remaining">হিসাব করা হচ্ছে...</h6>
-                </div>
-
-                <div class="card border-0 bg-light p-3 rounded-3">
-                    <div class="small text-muted mb-1">পড়ার গতি (Reading Speed)</div>
-                    <div class="fw-bold text-dark">গড়ে ১৬০ শব্দ / মিনিট</div>
+                <!-- Zen Mode Button inside Drawer -->
+                <div class="pt-2 border-top">
+                    <button type="button" class="btn btn-sm btn-outline-dark w-100 fw-bold" id="btn-zen-mode">
+                        <i class="fa-solid fa-feather me-1"></i> ফুল ফোকাস জেন মোড (Zen Mode)
+                    </button>
                 </div>
             </div>
         </div>
@@ -349,7 +313,7 @@
         </div>
 
         <!-- EPUB Mode Container -->
-        <div id="epub-viewer-wrapper" class="dual-spread-active">
+        <div id="epub-viewer-wrapper">
             <div id="epub-viewer"></div>
             <!-- Dynamic Anti-Piracy Watermark Layer -->
             <div class="drm-watermark-layer" id="watermarkOverlay">
