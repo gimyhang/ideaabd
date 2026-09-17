@@ -552,7 +552,14 @@
                     </a>
                 </li>
 
-                {{-- 3. [ই-বুক] --}}
+                {{-- 3. [বুকশপ] --}}
+                <li class="nav-item site-nav__item">
+                    <a class="nav-link site-nav__link {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('book.index') }}">
+                        <span>বুকশপ</span>
+                    </a>
+                </li>
+
+                {{-- 4. [ই-বুক] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('ebook.index') }}">
                         <span>ই-বুক</span>
@@ -1089,6 +1096,10 @@
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('home') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('home') }}" style="font-size: 13.5px;">
                     <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-house text-primary"></i> <span>হোম</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
+                </a>
+                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('book.index') }}" style="font-size: 13.5px;">
+                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-book-open text-primary"></i> <span>বুকশপ</span></span>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">বই সম্ভার</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('ebook.index') }}" style="font-size: 13.5px;">
                     <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-tablet-screen-button text-info"></i> <span>ই-বুক</span></span>

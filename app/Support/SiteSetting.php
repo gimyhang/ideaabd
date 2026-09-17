@@ -369,7 +369,7 @@ class SiteSetting
     {
         return [
             ['id' => '1', 'label' => 'হোম', 'route' => 'home', 'url' => '/', 'icon' => 'house', 'active' => 'home', 'is_active' => true, 'target' => '_self', 'badge' => ''],
-            ['id' => '2', 'label' => 'বইসমূহ', 'route' => 'book.index', 'url' => '/books', 'icon' => 'book', 'active' => 'book.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
+            ['id' => '2', 'label' => 'বুকশপ', 'route' => 'book.index', 'url' => '/books', 'icon' => 'book', 'active' => 'book.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
             ['id' => '3', 'label' => 'ই-বুক', 'route' => 'ebook.index', 'url' => '/ebooks', 'icon' => 'tablet-screen-button', 'active' => 'ebook.*', 'is_active' => true, 'target' => '_self', 'badge' => 'নতুন'],
             ['id' => '4', 'label' => 'লেখক', 'route' => 'authors.index', 'url' => '/authors', 'icon' => 'pen-fancy', 'active' => 'authors.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],
             ['id' => '5', 'label' => 'প্রকাশক', 'route' => 'publishers.index', 'url' => '/publishers', 'icon' => 'building', 'active' => 'publishers.*', 'is_active' => true, 'target' => '_self', 'badge' => ''],

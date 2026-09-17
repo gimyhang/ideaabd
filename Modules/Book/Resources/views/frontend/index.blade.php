@@ -639,7 +639,7 @@
                 @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
                     @foreach($dynamicCategories as $cat)
                         @php
-                            $subCatIds = \Illuminate\Support\Facades\DB::table('categories')->where('parent_id', $cat->id)->whereNull('deleted_at')->pluck('id')->all();
+                            $subCatIds = \Modules\Book\Models\Category::where('parent_id', $cat->id)->pluck('id')->all();
                             $allCatIds = array_merge([$cat->id], $subCatIds);
                             $catBooks = \Modules\Book\Models\Book::with(['authors', 'category'])
                                 ->withAvg('reviews', 'rating')

@@ -695,7 +695,7 @@
                 @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
                     @foreach($dynamicCategories as $cat)
                         @php
-                            $subCatIds = \Illuminate\Support\Facades\DB::table('categories')->where('parent_id', $cat->id)->whereNull('deleted_at')->pluck('id')->all();
+                            $subCatIds = \Modules\Book\Models\Category::where('parent_id', $cat->id)->pluck('id')->all();
                             $allCatIds = array_merge([$cat->id], $subCatIds);
                             $catEbooks = \Modules\Ebook\Models\Ebook::with(['author', 'publisher', 'category'])
                                 ->withAvg('reviews', 'rating')
