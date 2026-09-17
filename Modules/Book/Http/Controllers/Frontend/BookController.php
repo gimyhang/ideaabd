@@ -101,8 +101,8 @@ class BookController extends Controller
                 ->whereHas('books', fn($q) => $q->where('is_active', true))
                 ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                 ->orderByDesc('books_count')
-                ->take(16)
-                ->get(['id', 'name', 'slug']);
+                ->take(24)
+                ->get(['id', 'name', 'slug', 'icon_or_image']);
 
             // Resolve human-readable active filter title
             if ($request->filled('category')) {

@@ -16,6 +16,9 @@ class UserController extends Controller
     public function dashboard(Request $request)
     {
         $user = auth()->user();
+        $regData = is_array($user->reg_data) 
+            ? $user->reg_data 
+            : (is_string($user->reg_data) ? (json_decode($user->reg_data, true) ?: []) : []);
 
         // 1. Orders Query with Filtering
         $orderSearch = $request->string('order_search')->trim()->value();
@@ -62,41 +65,51 @@ class UserController extends Controller
 
         $author = method_exists($user, 'getAuthorRecord') ? $user->getAuthorRecord() : null;
 
-        $authorPostsQuery = BlogPost::where(function($q) use ($user, $author) {
-            $q->where('author_id', $user->id)
-              ->orWhere('submitted_by', $user->id);
+        try {
+            if (class_exists(BlogPost::class)) {
+                $authorPostsQuery = BlogPost::where(function($q) use ($user, $author) {
+                    $q->where('author_id', $user->id)
+                      ->orWhere('submitted_by', $user->id);
 
-            if ($author) {
-                $q->orWhere('author_id', $author->id);
-            }
+                    if ($author) {
+                        $q->orWhere('author_id', $author->id);
+                    }
 
-            $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
-            if (!empty($phones)) {
-                $q->orWhereIn('owner_phone', $phones);
-            }
+                    $phones = array_unique(array_filter([$user->phone ?? null, $author->phone ?? null]));
+                    if (!empty($phones)) {
+                        $q->orWhereIn('owner_phone', $phones);
+                    }
 
-            $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
-            if (!empty($names)) {
-                $q->orWhereIn('owner_name', $names);
-            }
-        });
+                    $names = array_unique(array_filter([$user->name ?? null, $author->name ?? null]));
+                    if (!empty($names)) {
+                        $q->orWhereIn('owner_name', $names);
+                    }
+                });
 
-        if ($user->role === 'author' || $user->reg_type === 'author' || $author || (clone $authorPostsQuery)->exists()) {
-            $authorPosts = (clone $authorPostsQuery)
-                ->with('category')
-                ->latest('id')
-                ->get();
+                if ($user->role === 'author' || $user->reg_type === 'author' || $author || (clone $authorPostsQuery)->exists()) {
+                    $authorPosts = (clone $authorPostsQuery)
+                        ->with('category')
+                        ->latest('id')
+                        ->get();
 
-            $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+                    if (class_exists(BlogCategory::class)) {
+                        $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
+                    }
 
-            if ($request->filled('edit_post_id')) {
-                $candidate = (clone $authorPostsQuery)
-                    ->where('id', $request->edit_post_id)
-                    ->first();
-                if ($candidate && ($candidate->status === 'draft' || $candidate->status === 'rejected' || $candidate->mod_status === 'rejected')) {
-                    $editPost = $candidate;
+                    if ($request->filled('edit_post_id')) {
+                        $candidate = (clone $authorPostsQuery)
+                            ->where('id', $request->edit_post_id)
+                            ->first();
+                        if ($candidate && ($candidate->status === 'draft' || $candidate->status === 'rejected' || $candidate->mod_status === 'rejected')) {
+                            $editPost = $candidate;
+                        }
+                    }
                 }
             }
+        } catch (\Throwable $e) {
+            $authorPosts = collect();
+            $blogCategories = collect();
+            $editPost = null;
         }
 
         // 6. Default Shipping Info from Last Order or Reg Data
@@ -104,23 +117,27 @@ class UserController extends Controller
         $defaultAddress = [
             'name'     => $lastOrder?->customer_name ?: $user->name,
             'phone'    => $lastOrder?->customer_phone ?: $user->phone,
-            'district' => $lastOrder?->district ?: ($user->reg_data['district'] ?? ''),
-            'thana'    => $lastOrder?->thana ?: ($user->reg_data['thana'] ?? ''),
-            'address'  => $lastOrder?->customer_address ?: ($user->reg_data['address'] ?? ''),
+            'district' => $lastOrder?->district ?: ($regData['district'] ?? ''),
+            'thana'    => $lastOrder?->thana ?: ($regData['thana'] ?? ''),
+            'address'  => $lastOrder?->customer_address ?: ($regData['address'] ?? ''),
         ];
 
         // 7. User's E-Book Library (Strictly verified purchases and claimed free books)
         $myEbooks = collect();
         if (\Illuminate\Support\Facades\Schema::hasTable('user_ebook_library')) {
-            $myEbooks = \App\Models\UserEbookLibrary::where('user_id', $user->id)
-                ->with(['ebook.author', 'ebook.category'])
-                ->where('is_active', true)
-                ->where(function ($q) {
-                    $q->where('access_type', 'purchased')
-                      ->orWhereHas('ebook', fn ($eq) => $eq->where('price', '<=', 0));
-                })
-                ->latest('id')
-                ->get();
+            try {
+                $myEbooks = \App\Models\UserEbookLibrary::where('user_id', $user->id)
+                    ->with(['ebook.author', 'ebook.category'])
+                    ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('access_type', 'purchased')
+                          ->orWhereHas('ebook', fn ($eq) => $eq->where('price', '<=', 0));
+                    })
+                    ->latest('id')
+                    ->get();
+            } catch (\Throwable $e) {
+                $myEbooks = collect();
+            }
         }
 
         // 8. Recommended Books for Account Hub Carousel
@@ -160,7 +177,6 @@ class UserController extends Controller
         }
 
         // 12. KYC Checklist & Percentage Calculation
-        $regData = is_array($user->reg_data) ? $user->reg_data : [];
         $kycItems = [
             'photo'   => !empty($user->avatar) || !empty($regData['avatar']),
             'name'    => !empty($user->name) || !empty($regData['name_bn']) || !empty($regData['name_en']),

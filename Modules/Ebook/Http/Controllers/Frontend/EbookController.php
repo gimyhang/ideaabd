@@ -78,13 +78,16 @@ class EbookController extends Controller
         $sidebarPublishers = collect();
         $featuredEbooks = collect();
         $bestsellingEbooks = collect();
+        $flashSales = collect();
         $freeEbooks = collect();
         $newReleaseEbooks = collect();
         $dynamicCategories = collect();
         $matchedBlogPosts = collect();
         $matchedResearchPapers = collect();
         $matchedWebzineArticles = collect();
-        $matchedPages = collect();
+        $matchedAuthors = collect();
+        $matchedCategories = collect();
+        $matchedPages = [];
         $spotlightEbook = null;
         $userLibraryIds = [];
         $activeFilterTitle = null;
@@ -100,7 +103,7 @@ class EbookController extends Controller
         $rawSearch = trim((string)($request->input('search') ?: $request->input('q') ?: ''));
         $isSearchMode = $request->anyFilled([
             'search', 'q', 'category', 'author', 'publisher', 'format', 
-            'min_price', 'max_price', 'free_only', 'discount_min', 'sort'
+            'min_price', 'max_price', 'free_only', 'discount_min', 'sort', 'letter'
         ]) || ($request->has('page') && (int)$request->get('page') > 1);
 
         if (auth()->check()) {
@@ -139,15 +142,15 @@ class EbookController extends Controller
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderBy('sort_order')
                         ->orderByDesc('ebooks_count')
-                        ->get(['id', 'name', 'slug', 'parent_id', 'ebooks_count']);
+                        ->get();
 
                     if ($categories->isEmpty()) {
                         $categories = Category::query()
                             ->where('is_active', true)
                             ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                             ->orderByDesc('ebooks_count')
-                            ->orderBy('sort_order')
-                            ->get(['id', 'name', 'slug', 'ebooks_count']);
+                            ->orderBy('name')
+                            ->get();
                     }
                 }
             } catch (\Throwable) {}
@@ -160,8 +163,8 @@ class EbookController extends Controller
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderByDesc('ebooks_count')
                         ->orderBy('name')
-                        ->take(30)
-                        ->get(['id', 'name', 'slug', 'ebooks_count']);
+                        ->take(50)
+                        ->get(['id', 'name', 'slug']);
                 }
             } catch (\Throwable) {}
 
@@ -173,21 +176,43 @@ class EbookController extends Controller
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderByDesc('ebooks_count')
                         ->orderBy('name')
-                        ->take(30)
-                        ->get(['id', 'name', 'slug', 'ebooks_count']);
+                        ->take(50)
+                        ->get(['id', 'name', 'slug']);
                 }
             } catch (\Throwable) {}
 
             // Curated Shelves (when browsing landing catalog)
             if (!$isSearchMode) {
+                // Shelf 1: Flash Sales / Special Discounts
+                $flashSales = Ebook::query()
+                    ->with(['author', 'publisher', 'category'])
+                    ->where('is_active', true)
+                    ->whereNotNull('discount_price')
+                    ->where('discount_price', '>', 0)
+                    ->whereColumn('discount_price', '<', 'price')
+                    ->latest('id')
+                    ->take(15)
+                    ->get();
+
+                // Shelf 2: Bestsellers & Popular Ebooks
                 $bestsellingEbooks = Ebook::query()
                     ->with(['author', 'publisher', 'category'])
                     ->where('is_active', true)
                     ->orderByDesc('sales_count')
                     ->orderByDesc('read_count')
-                    ->take(10)
+                    ->latest('id')
+                    ->take(15)
                     ->get();
 
+                // Shelf 3: New Releases
+                $newReleaseEbooks = Ebook::query()
+                    ->with(['author', 'publisher', 'category'])
+                    ->where('is_active', true)
+                    ->latest('id')
+                    ->take(15)
+                    ->get();
+
+                // Shelf 4: Free E-Books
                 $freeEbooks = Ebook::query()
                     ->with(['author', 'publisher', 'category'])
                     ->where('is_active', true)
@@ -195,56 +220,79 @@ class EbookController extends Controller
                         $q->where('price', '<=', 0)->orWhere('discount_price', '=', 0);
                     })
                     ->latest('id')
-                    ->take(10)
+                    ->take(15)
                     ->get();
 
-                $newReleaseEbooks = Ebook::query()
-                    ->with(['author', 'publisher', 'category'])
-                    ->where('is_active', true)
-                    ->latest('id')
-                    ->take(10)
-                    ->get();
-
-                // Dynamic Category Shelves
+                // Shelves 5+: Dynamic Category Shelves
                 try {
                     $dynamicCategories = Category::query()
                         ->where('is_active', true)
                         ->whereHas('ebooks', fn ($q) => $q->where('is_active', true))
-                        ->with(['ebooks' => fn ($q) => $q->where('is_active', true)->with(['author', 'publisher', 'category'])->take(10)])
                         ->withCount(['ebooks' => fn ($q) => $q->where('is_active', true)])
                         ->orderByDesc('ebooks_count')
-                        ->take(6)
-                        ->get();
+                        ->take(24)
+                        ->get(['id', 'name', 'slug', 'icon_or_image']);
                 } catch (\Throwable) {}
 
                 $featuredEbooks = $bestsellingEbooks->take(4);
                 $spotlightEbook = $bestsellingEbooks->first() ?: $newReleaseEbooks->first();
-            }
+            } else {
+                // Cross-Entity Matches on Search
+                if (!empty($rawSearch) && mb_strlen($rawSearch) >= 2) {
+                    $matchedPages = $this->matchSitePages($rawSearch);
+                    $tokens = array_filter(preg_split('/\s+/', $rawSearch));
 
-            // Cross-Entity Matches on Search
-            if (!empty($rawSearch) && mb_strlen($rawSearch) >= 2) {
-                try {
-                    if (DB::getSchemaBuilder()->hasTable('blog_posts')) {
-                        $matchedBlogPosts = \Modules\Blog\Models\BlogPost::query()
-                            ->with(['author', 'category'])
-                            ->where(fn ($q) => $q->where('status', 'published')->orWhere('mod_status', 'approved'))
-                            ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('content', 'LIKE', "%{$rawSearch}%"))
-                            ->latest('id')
-                            ->take(4)
-                            ->get();
-                    }
-                } catch (\Throwable) {}
+                    try {
+                        if (class_exists(\Modules\Book\Models\Category::class)) {
+                            $matchedCategories = Category::query()
+                                ->where('is_active', true)
+                                ->where(function ($q) use ($rawSearch) {
+                                    $q->where('name', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('slug', 'LIKE', "%{$rawSearch}%");
+                                })
+                                ->withCount(['ebooks' => fn($q) => $q->where('is_active', true)])
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
 
-                try {
-                    if (DB::getSchemaBuilder()->hasTable('research_papers')) {
-                        $matchedResearchPapers = \App\Models\ResearchPaper::query()
-                            ->where('status', 'published')
-                            ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('abstract', 'LIKE', "%{$rawSearch}%"))
-                            ->latest('id')
-                            ->take(3)
-                            ->get();
-                    }
-                } catch (\Throwable) {}
+                    try {
+                        if (class_exists(\Modules\Author\Models\Author::class)) {
+                            $matchedAuthors = Author::query()
+                                ->where('is_active', true)
+                                ->where(function ($q) use ($rawSearch) {
+                                    $q->where('name', 'LIKE', "%{$rawSearch}%")
+                                      ->orWhere('slug', 'LIKE', "%{$rawSearch}%");
+                                })
+                                ->withCount(['ebooks' => fn($q) => $q->where('is_active', true)])
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (DB::getSchemaBuilder()->hasTable('blog_posts')) {
+                            $matchedBlogPosts = \Modules\Blog\Models\BlogPost::query()
+                                ->with(['author', 'category'])
+                                ->where(fn ($q) => $q->where('status', 'published')->orWhere('mod_status', 'approved')->orWhereNull('status'))
+                                ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('content', 'LIKE', "%{$rawSearch}%")->orWhere('slug', 'LIKE', "%{$rawSearch}%"))
+                                ->latest('id')
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+
+                    try {
+                        if (DB::getSchemaBuilder()->hasTable('research_papers')) {
+                            $matchedResearchPapers = \App\Models\ResearchPaper::query()
+                                ->where('status', 'published')
+                                ->where(fn ($q) => $q->where('title', 'LIKE', "%{$rawSearch}%")->orWhere('abstract', 'LIKE', "%{$rawSearch}%"))
+                                ->latest('id')
+                                ->take(6)
+                                ->get();
+                        }
+                    } catch (\Throwable) {}
+                }
             }
 
             // Resolve Active Filter Title
@@ -256,13 +304,17 @@ class EbookController extends Controller
                 if ($authObj) $activeFilterTitle = $authObj->name . ' এর ই-বুক';
             } elseif ($request->filled('publisher')) {
                 $pubObj = Publisher::where('slug', $request->string('publisher'))->orWhere('id', $request->input('publisher'))->first();
-                if ($pubObj) $activeFilterTitle = $pubObj->name . ' এর ই-বুক';
+                if ($pubObj) $activeFilterTitle = $pubObj->name . ' এর প্রকাশিত ই-বুক';
+            } elseif ($request->filled('letter') && $request->get('letter') !== 'all') {
+                $activeFilterTitle = '"' . $request->get('letter') . '" বর্ণ দিয়ে শুরু ই-বুকসমূহ';
             } elseif ($request->filled('format')) {
                 $fmt = strtolower($request->string('format')->value());
                 $activeFilterTitle = ($fmt === 'epub') ? 'EPUB ফরম্যাটের ই-বুক' : (($fmt === 'pdf') ? 'PDF সংস্করণের ই-বুক' : (($fmt === 'free') ? '১০০% বিনামূল্যে পড়ার ই-বুক' : 'ই-বুক তালিকা'));
             } elseif ($request->boolean('free_only')) {
                 $activeFilterTitle = 'বিনামূল্যে পড়ার ই-বুক সংগ্রহ';
-            } elseif ($request->filled('search') || $request->filled('q')) {
+            } elseif ($request->filled('discount_min')) {
+                $activeFilterTitle = 'বিশেষ ছাড়ের ই-বুক';
+            } elseif (!empty($rawSearch)) {
                 $activeFilterTitle = '"' . $rawSearch . '" সম্পর্কিত ই-বুক ফলাফল';
             } elseif ($request->string('sort') === 'bestselling') {
                 $activeFilterTitle = 'জনপ্রিয় ও সর্বাধিক বিক্রিত ই-বুক';
@@ -278,19 +330,38 @@ class EbookController extends Controller
             // Filter: Category
             if ($request->filled('category')) {
                 $catVal = $request->string('category')->trim()->value();
-                $query->where(function ($sub) use ($catVal) {
-                    $sub->where('category_id', $catVal)
-                        ->orWhereHas('category', fn ($c) => $c->where('slug', $catVal)->orWhere('name', 'LIKE', "%{$catVal}%"));
+                $matchedCat = Category::where('slug', $catVal)
+                    ->orWhere('id', is_numeric($catVal) ? (int)$catVal : 0)
+                    ->orWhere('name', $catVal)
+                    ->first();
+                $catIds = [];
+                if ($matchedCat) {
+                    $catIds = array_merge([$matchedCat->id], $matchedCat->children()->pluck('id')->all());
+                }
+
+                $query->where(function ($sub) use ($catVal, $catIds) {
+                    if (!empty($catIds)) {
+                        $sub->whereIn('category_id', $catIds);
+                    } else {
+                        $sub->where('category_id', $catVal);
+                    }
+                    $sub->orWhereHas('category', function ($cat) use ($catVal) {
+                        $cat->where('slug', $catVal)->orWhere('name', 'LIKE', "%{$catVal}%");
+                    });
                 });
             }
 
             // Filter: Author
             if ($request->filled('author')) {
                 $authorVal = $request->string('author')->trim()->value();
-                $query->where(function ($q) use ($authorVal) {
-                    $q->where('author_id', $authorVal)
-                      ->orWhere('author_name', 'LIKE', "%{$authorVal}%")
-                      ->orWhereHas('author', fn ($a) => $a->where('slug', $authorVal)->orWhere('name', 'LIKE', "%{$authorVal}%"));
+                $query->where(function ($sub) use ($authorVal) {
+                    $sub->where('author_id', $authorVal)
+                        ->orWhere('author_name', 'LIKE', "%{$authorVal}%")
+                        ->orWhereHas('author', function ($auth) use ($authorVal) {
+                            $auth->where('slug', $authorVal)
+                                ->orWhere('name', $authorVal)
+                                ->orWhere('id', $authorVal);
+                        });
                 });
             }
 
@@ -299,7 +370,7 @@ class EbookController extends Controller
                 $pubVal = $request->string('publisher')->trim()->value();
                 $query->where(function ($p) use ($pubVal) {
                     $p->where('publisher_id', $pubVal)
-                      ->orWhereHas('publisher', fn ($sq) => $sq->where('slug', $pubVal)->orWhere('name', 'LIKE', "%{$pubVal}%"));
+                      ->orWhereHas('publisher', fn ($sq) => $sq->where('slug', $pubVal)->orWhere('name', 'LIKE', "%{$pubVal}%")->orWhere('id', $pubVal));
                 });
             }
 
@@ -352,10 +423,30 @@ class EbookController extends Controller
                 }
             }
 
+            // Filter: Letter
+            if ($request->filled('letter') && $request->get('letter') !== 'all') {
+                $letter = $request->string('letter')->trim()->value();
+                if ($letter === 'A-Z') {
+                    $query->where(function($sub) {
+                        $sub->where('title', 'REGEXP', '^[A-Za-z]')
+                            ->orWhere('subtitle', 'REGEXP', '^[A-Za-z]')
+                            ->orWhere('author_name', 'REGEXP', '^[A-Za-z]');
+                    });
+                } else {
+                    $query->where(function($sub) use ($letter) {
+                        $sub->where('title', 'LIKE', "{$letter}%")
+                            ->orWhere('subtitle', 'LIKE', "{$letter}%")
+                            ->orWhere('author_name', 'LIKE', "{$letter}%")
+                            ->orWhereHas('author', fn($a) => $a->where('name', 'LIKE', "{$letter}%"));
+                    });
+                }
+            }
+
             // Filter: Search Keyword
             if (!empty($rawSearch)) {
-                $query->where(function ($sub) use ($rawSearch) {
-                    $sub->where('title', 'LIKE', "%{$rawSearch}%")
+                $tokens = array_filter(preg_split('/\s+/', $rawSearch));
+                $query->where(function ($master) use ($rawSearch, $tokens) {
+                    $master->where('title', 'LIKE', "%{$rawSearch}%")
                         ->orWhere('subtitle', 'LIKE', "%{$rawSearch}%")
                         ->orWhere('author_name', 'LIKE', "%{$rawSearch}%")
                         ->orWhere('isbn', 'LIKE', "%{$rawSearch}%")
@@ -363,25 +454,32 @@ class EbookController extends Controller
                         ->orWhereHas('author', fn ($a) => $a->where('name', 'LIKE', "%{$rawSearch}%"))
                         ->orWhereHas('publisher', fn ($p) => $p->where('name', 'LIKE', "%{$rawSearch}%"))
                         ->orWhereHas('category', fn ($c) => $c->where('name', 'LIKE', "%{$rawSearch}%"));
+
+                    foreach ($tokens as $token) {
+                        $like = "%{$token}%";
+                        $master->orWhere(function ($sub) use ($like) {
+                            $sub->where('title', 'LIKE', $like)
+                                ->orWhere('subtitle', 'LIKE', $like)
+                                ->orWhere('author_name', 'LIKE', $like)
+                                ->orWhereHas('author', fn($a) => $a->where('name', 'LIKE', $like))
+                                ->orWhereHas('category', fn($c) => $c->where('name', 'LIKE', $like));
+                        });
+                    }
                 });
             }
 
             // Sorting
-            if ($request->filled('sort')) {
-                match ($request->string('sort')->value()) {
-                    'price_low'   => $query->orderBy('price', 'asc'),
-                    'price_high'  => $query->orderBy('price', 'desc'),
-                    'discount_high'=> $query->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
-                    'bestselling' => $query->orderByDesc('sales_count'),
-                    'popular'     => $query->orderByDesc('read_count'),
-                    'oldest'      => $query->oldest(),
-                    default       => $query->latest(),
-                };
-            } else {
-                $query->latest();
-            }
+            match ($request->string('sort')->value()) {
+                'price_low'     => $query->orderBy('price', 'asc'),
+                'price_high'    => $query->orderBy('price', 'desc'),
+                'discount_high' => $query->orderByRaw('(price - COALESCE(discount_price, price)) desc'),
+                'bestselling'   => $query->orderByDesc('sales_count'),
+                'popular'       => $query->orderByDesc('read_count'),
+                'oldest'        => $query->oldest('id'),
+                default         => $query->latest('id'),
+            };
 
-            $ebooks = $query->paginate(15)->withQueryString();
+            $ebooks = $query->paginate(20)->withQueryString();
         }
 
         return view('ebook::frontend.index', compact(
@@ -391,6 +489,7 @@ class EbookController extends Controller
             'sidebarPublishers',
             'featuredEbooks',
             'bestsellingEbooks',
+            'flashSales',
             'freeEbooks',
             'newReleaseEbooks',
             'dynamicCategories',
@@ -402,6 +501,8 @@ class EbookController extends Controller
             'matchedBlogPosts',
             'matchedResearchPapers',
             'matchedWebzineArticles',
+            'matchedAuthors',
+            'matchedCategories',
             'matchedPages'
         ));
     }
@@ -982,5 +1083,170 @@ class EbookController extends Controller
         })->first();
 
         return $found;
+    }
+
+    /**
+     * স্মার্ট দ্বিভাষিক পেজ ম্যাচিং ইঞ্জিন (বাংলা ও ইংরেজি)
+     */
+    private function matchSitePages(string $query): array
+    {
+        $q = mb_strtolower(trim($query));
+        if (empty($q)) {
+            return [];
+        }
+
+        $pages = $this->getSitePagesList();
+        $tokens = array_filter(preg_split('/\s+/', $q));
+        $matched = [];
+
+        foreach ($pages as $page) {
+            $score = 0;
+            $titleBn = mb_strtolower($page['title']);
+            $titleEn = mb_strtolower($page['title_en'] ?? '');
+            $desc = mb_strtolower($page['description'] ?? '');
+            $category = mb_strtolower($page['category'] ?? '');
+
+            // 1. Direct match on Bangla or English title
+            if (mb_stripos($titleBn, $q) !== false) {
+                $score += 150;
+            }
+            if (!empty($titleEn) && mb_stripos($titleEn, $q) !== false) {
+                $score += 130;
+            }
+
+            // 2. Keyword exact / partial matches
+            if (isset($page['keywords']) && is_array($page['keywords'])) {
+                foreach ($page['keywords'] as $kw) {
+                    $kwLower = mb_strtolower($kw);
+                    if ($kwLower === $q) {
+                        $score += 140;
+                    } elseif (mb_stripos($kwLower, $q) !== false || mb_stripos($q, $kwLower) !== false) {
+                        $score += 60;
+                    }
+                }
+            }
+
+            // 3. Multi-token partial analysis
+            foreach ($tokens as $token) {
+                if (mb_stripos($titleBn, $token) !== false) {
+                    $score += 40;
+                }
+                if (!empty($titleEn) && mb_stripos($titleEn, $token) !== false) {
+                    $score += 35;
+                }
+                if (mb_stripos($desc, $token) !== false || mb_stripos($category, $token) !== false) {
+                    $score += 20;
+                }
+                if (isset($page['keywords']) && is_array($page['keywords'])) {
+                    foreach ($page['keywords'] as $kw) {
+                        if (mb_stripos(mb_strtolower($kw), $token) !== false) {
+                            $score += 25;
+                        }
+                    }
+                }
+            }
+
+            if ($score > 0) {
+                $page['score'] = $score;
+                $matched[] = $page;
+            }
+        }
+
+        // Sort by relevance score descending
+        usort($matched, fn($a, $b) => $b['score'] <=> $a['score']);
+
+        return array_map(function($p) {
+            unset($p['score']);
+            return $p;
+        }, $matched);
+    }
+
+    /**
+     * সাইটের সকল স্ট্যাটিক ও ডায়নামিক পেজের সমৃদ্ধ দ্বিভাষিক ডিরেক্টরি
+     */
+    private function getSitePagesList(): array
+    {
+        return [
+            [
+                'id'          => 'ebooks',
+                'title'       => 'ডিজিটাল ই-বুক সম্ভার',
+                'title_en'    => 'Digital E-Books Library',
+                'description' => 'অনলাইনে যেকোনো ডিভাইস থেকে সরাসরি ই-বুক পড়ুন ও সংগ্রহ করুন',
+                'category'    => 'বই ও প্রকাশনা',
+                'url'         => route('ebook.index'),
+                'icon'        => 'fa-tablet-screen-button',
+                'keywords'    => ['ইবুক', 'ই-বুক', 'ডিজিটাল বই', 'পিডিএফ', 'অনলাইন বই', 'ebook', 'ebooks', 'pdf', 'digital books', 'online reading'],
+            ],
+            [
+                'id'          => 'books_catalog',
+                'title'       => 'সকল বিষয় ও অনলাইন বই সম্ভার',
+                'title_en'    => 'All Books & Catalog',
+                'description' => 'আইডিয়া প্রকাশনের সকল ক্যাটাগরির মুদ্রিত বইয়ের পূর্ণাঙ্গ ক্যাটালগ',
+                'category'    => 'বই ও প্রকাশনা',
+                'url'         => route('book.index'),
+                'icon'        => 'fa-book-open',
+                'keywords'    => ['বইসমূহ', 'সকল বই', 'বই সম্ভার', 'বইয়ের দোকান', 'শপ', 'books', 'all books', 'bookstore', 'shop', 'catalog', 'boi'],
+            ],
+            [
+                'id'          => 'ideapatra',
+                'title'       => 'আইডিয়াপত্র ও ব্লগ',
+                'title_en'    => 'Ideapatra & Literary Blog',
+                'description' => 'সাহিত্য, প্রবন্ধ, কবিতা ও চিন্তামূলক লেখার উন্মুক্ত প্ল্যাটফর্ম',
+                'category'    => 'সাহিত্য ও কন্টেন্ট',
+                'url'         => route('blog.index'),
+                'icon'        => 'fa-newspaper',
+                'keywords'    => ['আইডিয়াপত্র', 'আইডিয়া পত্র', 'আইডিয়া পত্র', 'ব্লগ', 'লেখালেখি', 'সাহিত্য', 'নিবন্ধ', 'কবিতা', 'প্রবন্ধ', 'ideapatra', 'idea patra', 'blog', 'articles', 'literature', 'essay', 'poetry', 'aydiapatro'],
+            ],
+            [
+                'id'          => 'ideapatra_write',
+                'title'       => 'নিজের লেখা প্রকাশ করুন',
+                'title_en'    => 'Write for Ideapatra / Publish Article',
+                'description' => 'আইডিয়াপত্রে আপনার স্বরচিত সাহিত্যকর্ম ও প্রবন্ধ জমা দিন',
+                'category'    => 'লেখক ও সেবা',
+                'url'         => route('blog.write'),
+                'icon'        => 'fa-pen-nib',
+                'keywords'    => ['লেখা পোস্ট', 'লেখা প্রকাশ', 'লেখা পাঠান', 'নিজের লেখা', 'ব্লগ লিখুন', 'কবিতা প্রকাশ', 'গল্প প্রকাশ', 'write', 'publish article', 'submit post', 'author write', 'lekha'],
+            ],
+            [
+                'id'          => 'authors',
+                'title'       => 'লেখকবৃন্দ ও সাহিত্যিক তালিকা',
+                'title_en'    => 'Authors & Writers Directory',
+                'description' => 'সকল সম্মানিত লেখক ও কবিদের প্রোফাইল এবং প্রকাশিত বইসমূহ',
+                'category'    => 'লেখক ও কমিউনিটি',
+                'url'         => route('authors.index'),
+                'icon'        => 'fa-feather-pointed',
+                'keywords'    => ['লেখক', 'লেখকবৃন্দ', 'লেখক তালিকা', 'কবি', 'সাহিত্যিক', 'authors', 'writers', 'author list', 'poets', 'lekhok'],
+            ],
+            [
+                'id'          => 'publishers',
+                'title'       => 'প্রকাশনা সংস্থা ও ডিস্ট্রিবিউটরস',
+                'title_en'    => 'Publishers & Distributors',
+                'description' => 'আইডিয়া প্রকাশনের অংশীদার প্রকাশনী ও সহযোগী প্রতিষ্ঠানসমূহ',
+                'category'    => 'প্রকাশক ও ডিস্ট্রিবিউশন',
+                'url'         => route('publishers.index'),
+                'icon'        => 'fa-building',
+                'keywords'    => ['প্রকাশক', 'প্রকাশনী', 'পাবলিশার্স', 'প্রেস', 'প্রকাশনা সংস্থা', 'publishers', 'publications', 'press', 'prokashoni'],
+            ],
+            [
+                'id'          => 'webzines',
+                'title'       => 'অনলাইন ওয়েবজিন ও সাহিত্য সাময়িকী',
+                'title_en'    => 'Online Webzines & Periodicals',
+                'description' => 'আইডিয়া প্রকাশন ডিজিটাল সাহিত্য সাময়িকী ও নিয়মিত সংখ্যাসমূহ',
+                'category'    => 'সাহিত্য ও কন্টেন্ট',
+                'url'         => Route::has('webzine.index') ? route('webzine.index') : url('/webzines'),
+                'icon'        => 'fa-book-journal-whills',
+                'keywords'    => ['ওয়েবজিন', 'ওয়েবজিন', 'ম্যাগাজিন', 'সাহিত্য সাময়িকী', 'পত্রিকা', 'webzine', 'webzines', 'magazine', 'periodical', 'samoyiki'],
+            ],
+            [
+                'id'          => 'research',
+                'title'       => 'গবেষণা ও উন্নয়ন প্রবন্ধ',
+                'title_en'    => 'Research Papers & Journals',
+                'description' => 'একাডেমিক গবেষণা, জার্নাল ও বিশ্লেষণধর্মী গবেষণাপত্র',
+                'category'    => 'গবেষণা ও শিক্ষা',
+                'url'         => Route::has('research.index') ? route('research.index') : url('/research'),
+                'icon'        => 'fa-flask',
+                'keywords'    => ['গবেষণা', 'গবেষণাপত্র', 'জার্নাল', 'প্রবন্ধ', 'research', 'paper', 'journal', 'thesis'],
+            ],
+        ];
     }
 }

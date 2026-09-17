@@ -1,140 +1,170 @@
 @php
-    $isOwned = !empty($userLibraryIds) && in_array($ebook->id, $userLibraryIds);
-    $authorName = $ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া লেখক');
-    $authorUrl = $ebook->author ? route('authors.show', $ebook->author->id ?? $ebook->author->slug) : '#';
-    $cleanDesc = $ebook->description ? Str::limit(trim(strip_tags(html_entity_decode((string)$ebook->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 160) : ($ebook->title . ' — ' . $authorName);
+    $item = $ebook ?? ($book ?? null);
+    if (!$item) return;
+
+    $cover = $item->cover_image ?? null;
+    $coverUrl = $item->cover_url ?? null;
+    if (!$coverUrl && $cover) {
+        if (str_starts_with($cover, 'http')) {
+            $coverUrl = $cover;
+        } elseif (str_starts_with($cover, 'storage/')) {
+            $coverUrl = asset($cover);
+        } elseif (str_starts_with($cover, '/storage/')) {
+            $coverUrl = asset(ltrim($cover, '/'));
+        } else {
+            $coverUrl = asset('storage/' . $cover);
+        }
+    }
+    
+    // Resolve Author from Author relation or directory fallback
+    $firstAuthor = (method_exists($item, 'authors') && $item->relationLoaded('authors')) ? $item->authors->first() : ($item->author ?? null);
+    if (!$firstAuthor && !empty($item->author_id)) {
+        $firstAuthor = \Modules\Author\Models\Author::find($item->author_id);
+    }
+    if (!$firstAuthor && !empty($item->author_link_id)) {
+        $firstAuthor = \Modules\Author\Models\Author::find($item->author_link_id);
+    }
+    if (!$firstAuthor && !empty($item->author_name)) {
+        $firstAuthor = \Modules\Author\Models\Author::where('name', $item->author_name)->first();
+    }
+    
+    $authorName = $firstAuthor ? $firstAuthor->name : ($item->author_name ?: 'আইডিয়া প্রকাশন');
+    $authorUrl = $firstAuthor ? route('authors.show', $firstAuthor->slug ?? $firstAuthor->id) : null;
+    
+    $isOwned = !empty($userLibraryIds) && in_array($item->id, $userLibraryIds);
+    $cardRegularPrice = (float)($item->price ?: 0);
+    $cardDiscPrice = ($item->discount_price > 0 && $item->discount_price < $cardRegularPrice) 
+        ? (float)$item->discount_price 
+        : null;
+    $isFree = (!empty($item->is_free)) || ($cardRegularPrice <= 0) || (isset($cardDiscPrice) && $cardDiscPrice <= 0);
+
+    $discountPercentage = ($cardRegularPrice > 0 && $cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
+        ? round((($cardRegularPrice - $cardDiscPrice) / $cardRegularPrice) * 100)
+        : ($item->discount_percentage ?? null);
+
+    $avgRating = isset($item->reviews_avg_rating) ? (float)$item->reviews_avg_rating : null;
+    if ($avgRating === null && method_exists($item, 'reviews') && $item->relationLoaded('reviews')) {
+        $avgRating = $item->reviews->avg('rating');
+    }
+    $ratingScore = ($avgRating !== null && $avgRating > 0) ? round($avgRating, 1) : 4.8;
+    $reviewsCount = $item->reviews_count ?? ($item->relationLoaded('reviews') ? $item->reviews->count() : 0);
 @endphp
 
-<div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden ebook-card-modern position-relative bg-white d-flex flex-column">
+<div class="card h-100 w-100 border-0 shadow-none rounded-3 p-1.5 p-sm-2 d-flex flex-column text-center position-relative bg-white amz-bookshelf-item hover-lift" 
+     style="transition: transform 0.2s ease, box-shadow 0.2s ease; min-width: 0; overflow: hidden;">
     
-    {{-- 3D Book Cover & Action Overlay Area --}}
-    <div class="position-relative overflow-hidden ebook-cover-container" style="aspect-ratio: 7/10;">
-        <a href="{{ route('ebook.show', $ebook->slug) }}" class="d-block w-100 h-100 text-decoration-none">
-            @if($ebook->cover_url)
-                <img src="{{ $ebook->cover_url }}" alt="{{ $ebook->title }}" 
-                     class="w-100 h-100 object-fit-cover ebook-cover-img" loading="lazy">
+    <!-- 1. Book Cover Image (Clickable Link to Detail Page - Fluid Aspect Ratio & Responsive Height) -->
+    <div class="position-relative overflow-hidden rounded-2 mb-1.5 w-100 mx-auto book-cover-frame shadow-xs" 
+         style="aspect-ratio: 1 / 1.48; width: 100%; height: auto; max-height: 350px; background: #0f172a;">
+        
+        <a href="{{ route('ebook.show', $item->slug ?: $item->id) }}" class="d-block w-100 h-100 text-decoration-none">
+            @if($coverUrl)
+                <img src="{{ $coverUrl }}" 
+                     alt="{{ $item->title }}" 
+                     class="w-100 h-100 object-fit-cover d-block"
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'140\' height=\'200\' viewBox=\'0 0 140 200\'><rect width=\'140\' height=\'200\' fill=\'%231e293b\'/><text x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%2338bdf8\' font-size=\'28\' font-weight=\'bold\' font-family=\'sans-serif\'>{{ mb_substr($item->title ?? 'বই', 0, 1, 'UTF-8') }}</text></svg>';">
             @else
-                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-muted p-3 text-center bg-light">
-                    <i class="fa-solid fa-tablet-screen-button fs-1 text-primary opacity-40 mb-2"></i>
-                    <span class="small fw-bold text-dark line-clamp-2">{{ $ebook->title }}</span>
+                <div class="w-100 h-100 d-flex flex-column justify-content-between p-2 text-center position-relative" 
+                     style="background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%); border-top: 3px solid #38bdf8;">
+                    <span class="badge bg-primary bg-opacity-25 text-info px-1.5 py-0.5 rounded-pill mx-auto" style="font-size: 0.60rem;">
+                        {{ $item->category->name ?? 'ডিজিটাল ই-বুক' }}
+                    </span>
+                    <div class="my-auto py-1">
+                        <h6 class="fw-bold text-white text-truncate" style="font-size: 0.78rem; line-height: 1.3; font-family: 'Hind Siliguri', serif; margin: 0; padding: 0;">
+                            {{ $item->title }}
+                        </h6>
+                        <p class="text-white-50 small mb-0 text-truncate" style="font-size: 0.68rem; margin: 0; padding: 0;">
+                            {{ $authorName }}
+                        </p>
+                    </div>
+                    <span class="text-white-50 small" style="font-size: 0.60rem;">আইডিয়া প্রকাশন</span>
                 </div>
             @endif
-
-            {{-- 3D Spine Lighting Overlay --}}
-            <div class="book-spine-lighting"></div>
         </a>
 
-        {{-- Format Badge (EPUB vs PDF) --}}
-        <span class="badge position-absolute top-0 start-0 m-2 shadow-xs rounded-pill px-2.5 py-1 font-monospace z-1 {{ $ebook->format_badge === 'EPUB' ? 'bg-info text-white' : ($ebook->format_badge === 'EPUB + PDF' ? 'bg-primary text-white' : 'bg-dark bg-opacity-80 text-white') }}" style="font-size: 0.68rem; letter-spacing: 0.3px;">
-            @if(str_contains($ebook->format_badge, 'EPUB'))
-                <i class="fa-solid fa-book-open me-1"></i>
-            @else
-                <i class="fa-solid fa-file-pdf me-1 text-warning"></i>
-            @endif
-            {{ $ebook->format_badge }}
-        </span>
-
-        {{-- Top Right Status Badges --}}
-        <div class="position-absolute top-0 end-0 m-2 d-flex flex-column gap-1 align-items-end z-1">
-            @if($isOwned)
-                <span class="badge bg-success text-white shadow-xs rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
-                    <i class="fa-solid fa-check-double me-0.5"></i> সংগৃহীত
-                </span>
-            @elseif($ebook->is_free)
-                <span class="badge bg-success text-white shadow-xs rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                    <i class="fa-solid fa-gift me-0.5"></i> ফ্রি
-                </span>
-            @elseif($ebook->discount_percentage > 0)
-                <span class="badge bg-danger text-white shadow-xs rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
-                    -{{ $ebook->discount_percentage }}%
-                </span>
-            @endif
-        </div>
-
-        {{-- Hover Action Overlay Bar --}}
-        <div class="ebook-card-overlay position-absolute start-0 end-0 bottom-0 p-2 d-flex align-items-center justify-content-center gap-1.5 z-2">
-            <button type="button" class="btn btn-sm btn-light rounded-pill shadow-sm fw-bold px-2.5 py-1 text-primary d-inline-flex align-items-center gap-1"
-                    style="font-size: 0.75rem;"
-                    onclick="openQuickLookModal(@js($ebook->id), @js($ebook->title), @js($authorName), @js($ebook->category?->name ?? 'সাধারণ'), @js($ebook->price), @js($ebook->discount_price), @js($ebook->is_free), @js($ebook->cover_url), @js($ebook->format_badge), @js(route('ebook.show', $ebook->slug)), @js(route('ebook.read', $ebook->slug)), @js(route('ebook.preview', $ebook->slug)), @js($ebook->pages), @js($cleanDesc))"
-                    title="একনজরে পড়ুন">
-                <i class="fa-regular fa-eye"></i>
-                <span class="d-none d-sm-inline">একনজরে</span>
-            </button>
-            <a href="{{ route('ebook.read', $ebook->slug) }}" class="btn btn-sm btn-primary rounded-pill shadow-sm fw-bold px-3 py-1 text-white d-inline-flex align-items-center gap-1" style="font-size: 0.75rem;">
-                <i class="fa-solid fa-book-open-reader"></i>
-                <span>পড়ুন</span>
-            </a>
-        </div>
-    </div>
-
-    {{-- Card Body: Title, Author, Category & Price --}}
-    <div class="card-body p-2.5 p-md-3 d-flex flex-column flex-grow-1">
-        
-        {{-- Category --}}
-        @if($ebook->category)
-            <div class="small text-muted mb-1 text-truncate" style="font-size: 0.72rem;">
-                <span class="text-primary opacity-75 fw-semibold">{{ $ebook->category->name }}</span>
-            </div>
-        @else
-            <div class="small text-muted mb-1" style="font-size: 0.72rem;">ডিজিটাল বই</div>
+        @if($isOwned)
+            <span class="position-absolute top-0 end-0 m-1 m-sm-1.5 badge bg-success rounded-pill shadow-xs fw-bold px-1.5 py-0.5" style="font-size: 0.62rem;">
+                <i class="fa-solid fa-check-double me-0.5"></i> সংগৃহীত
+            </span>
+        @elseif($isFree)
+            <span class="position-absolute top-0 end-0 m-1 m-sm-1.5 badge bg-success text-white rounded-pill shadow-xs fw-bold px-1.5 py-0.5" style="font-size: 0.62rem;">
+                <i class="fa-solid fa-gift me-0.5"></i> ফ্রি
+            </span>
+        @elseif($discountPercentage)
+            <span class="position-absolute top-0 start-0 m-1 m-sm-1.5 badge bg-danger rounded-pill shadow-xs fw-bold px-1.5 py-0.5" style="font-size: 0.62rem;">
+                -{{ $discountPercentage }}%
+            </span>
         @endif
 
-        {{-- Title --}}
-        <h6 class="fw-bold text-dark mb-1 line-clamp-2" style="font-size: 0.92rem; min-height: 2.5em; line-height: 1.3;" title="{{ $ebook->title }}">
-            <a href="{{ route('ebook.show', $ebook->slug) }}" class="text-decoration-none text-dark hover-text-primary">
-                {{ $ebook->title }}
+        @if(!empty($item->format_badge))
+            <span class="position-absolute bottom-0 end-0 m-1 badge bg-dark bg-opacity-75 text-white rounded-pill px-1.5 py-0.2" style="font-size: 0.58rem; font-family: monospace;">
+                {{ $item->format_badge }}
+            </span>
+        @endif
+    </div>
+    
+    <!-- 2. Book Info (Centered, Reviews, Title, Author, Price - ZERO GAP MARGINS) -->
+    <div class="d-flex flex-column flex-grow-1 justify-content-start align-items-center text-center w-100 min-w-0" style="margin: 0; padding: 0; gap: 0 !important;">
+        
+        <!-- A. Customer Rating Stars & Reader Review Count (Centered) -->
+        <div class="d-flex align-items-center justify-content-center gap-1 w-100" style="font-size: 11px; line-height: 1.1; margin: 0; padding: 0; margin-bottom: 2px !important;">
+            <div class="d-inline-flex gap-0.5 text-warning">
+                @for($s = 1; $s <= 5; $s++)
+                    @if($ratingScore >= $s)
+                        <i class="fa-solid fa-star" style="font-size: 9px;"></i>
+                    @elseif($ratingScore >= ($s - 0.5))
+                        <i class="fa-solid fa-star-half-stroke" style="font-size: 9px;"></i>
+                    @else
+                        <i class="fa-regular fa-star text-secondary opacity-35" style="font-size: 9px;"></i>
+                    @endif
+                @endfor
+            </div>
+            <a href="{{ route('ebook.show', $item->slug ?: $item->id) }}#tab-reviews" class="text-secondary text-decoration-none hover-underline" style="font-size: 10px; line-height: 1; margin: 0; padding: 0;">
+                @if($reviewsCount > 0)
+                    @bn($reviewsCount)
+                @else
+                    @bn(number_format($ratingScore, 1))
+                @endif
+            </a>
+        </div>
+
+        <!-- B. Book Title (Centered, Single line with ellipsis, zero margin/padding) -->
+        <h6 class="fw-bold text-truncate w-100" style="font-size: clamp(0.78rem, 2.8vw, 0.86rem); line-height: 1.25; margin: 0 !important; padding: 0 !important;">
+            <a href="{{ route('ebook.show', $item->slug ?: $item->id) }}" class="text-dark text-decoration-none hover-primary d-block text-truncate" title="{{ $item->title }}">
+                {{ $item->title }}
             </a>
         </h6>
-
-        {{-- Author --}}
-        <div class="small text-muted text-truncate mb-2.5" style="font-size: 0.8rem;">
-            <i class="fa-solid fa-feather-pointed opacity-50 me-1"></i>
-            @if($ebook->author)
-                <a href="{{ $authorUrl }}" class="text-decoration-none text-muted hover-text-primary">
+        
+        <!-- C. Author Name (Centered, Single line with ellipsis, tight zero margin) -->
+        <div class="text-truncate w-100" style="font-size: clamp(0.68rem, 2.2vw, 0.73rem); line-height: 1.15; margin: 0 !important; padding: 0 !important;">
+            @if($authorUrl)
+                <a href="{{ $authorUrl }}" class="text-secondary text-decoration-none hover-primary d-block text-truncate">
                     {{ $authorName }}
                 </a>
             @else
-                <span>{{ $authorName }}</span>
+                <span class="text-secondary d-block text-truncate">{{ $authorName }}</span>
             @endif
         </div>
 
-        {{-- Price & Bottom Actions --}}
-        <div class="mt-auto pt-2 border-top d-flex align-items-center justify-content-between">
-            <div>
-                @if($isOwned)
-                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold px-2 py-0.5 rounded-pill" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-circle-check me-1"></i> আপনার বই
-                    </span>
-                @elseif($ebook->is_free)
-                    <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1 rounded-pill" style="font-size: 0.78rem;">
-                        বিনামূল্যে
-                    </span>
-                @else
-                    @if($ebook->discount_price && $ebook->discount_price < $ebook->price)
-                        <div class="d-flex flex-column" style="line-height: 1.15;">
-                            <span class="text-muted text-decoration-line-through small font-monospace" style="font-size: 0.72rem;">৳{{ round($ebook->price) }}</span>
-                            <span class="fw-bold text-primary font-monospace fs-6">৳{{ round($ebook->discount_price) }}</span>
-                        </div>
-                    @else
-                        <span class="fw-bold text-primary font-monospace fs-6">৳{{ round($ebook->price) }}</span>
-                    @endif
-                @endif
-            </div>
-
-            {{-- Quick Audio & Read Action --}}
-            <div class="d-flex align-items-center gap-1">
-                <button type="button" class="btn btn-sm btn-light border text-primary rounded-circle d-inline-flex align-items-center justify-content-center btn-quick-audio shadow-xs"
-                        style="width: 28px; height: 28px; font-size: 0.72rem;"
-                        onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($ebook->title), @js($cleanDesc), @js(route('ebook.show', $ebook->slug)))"
-                        title="ই-বুক বিবরণ শুনুন">
-                    <i class="fa-solid fa-volume-high text-primary"></i>
-                </button>
-                <a href="{{ route('ebook.read', $ebook->slug) }}" 
-                   class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-semibold shadow-xs text-nowrap" 
-                   style="font-size: 0.78rem;">
-                    <i class="fa-solid fa-book-open me-1"></i> পড়ুন
-                </a>
-            </div>
+        <!-- D. Price Row (Centered, Zero Margin) -->
+        <div class="d-flex align-items-baseline justify-content-center gap-1 w-100 mt-0.5" style="line-height: 1.1; margin: 0 !important; padding: 0 !important;">
+            @if($isFree)
+                <span class="fw-bold text-success" style="font-size: clamp(0.85rem, 3.2vw, 0.95rem); line-height: 1.1;">
+                    বিনামূল্যে
+                </span>
+            @elseif($cardDiscPrice && $cardDiscPrice < $cardRegularPrice)
+                <span class="fw-bold text-dark" style="font-size: clamp(0.88rem, 3.2vw, 1rem); line-height: 1.1;">
+                    ৳@bn(round($cardDiscPrice))
+                </span>
+                <span class="text-muted text-decoration-line-through small" style="font-size: clamp(0.70rem, 2.4vw, 0.75rem); line-height: 1.1;">
+                    ৳@bn(round($cardRegularPrice))
+                </span>
+            @else
+                <span class="fw-bold text-dark" style="font-size: clamp(0.88rem, 3.2vw, 1rem); line-height: 1.1;">
+                    ৳@bn(round($cardRegularPrice))
+                </span>
+            @endif
         </div>
 
     </div>

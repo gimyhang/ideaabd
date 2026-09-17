@@ -210,7 +210,7 @@ class HomeController extends Controller
                     ->whereHas('books', fn($q) => $q->where('is_active', true))
                     ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                     ->orderByDesc('books_count')
-                    ->take(16)
+                    ->take(24)
                     ->get();
 
                 $sidebarAuthors = \Modules\Author\Models\Author::query()

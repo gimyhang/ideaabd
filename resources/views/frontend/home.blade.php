@@ -818,22 +818,56 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="text-muted small" style="font-size: 0.78rem;">পছন্দের বিষয় অনুযায়ী বই খুঁজে নিন</span>
                     </div>
                 </div>
-                <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold" style="font-size: 0.80rem;">
-                    সকল বিষয় <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('popularCategorySlider', -1)" title="পূর্ববর্তী">
+                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('popularCategorySlider', 1)" title="পরবর্তী">
+                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
+                    </button>
+                    <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
+                        সকল বিষয় <i class="fa-solid fa-arrow-right ms-0.5"></i>
+                    </a>
+                </div>
             </div>
 
-            {{-- Category Grid --}}
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2.5">
-                @foreach($dynamicCategories->take(12) as $cat)
-                    <div class="col">
+            {{-- 75px Dynamic Category Icon Slider --}}
+            <div class="idea-slider-wrapper position-relative">
+                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('popularCategorySlider', -1)" aria-label="পূর্ববর্তী">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="idea-category-slider d-flex gap-3 overflow-x-auto text-nowrap scrollbar-none py-2 px-1" id="popularCategorySlider">
+                    @foreach($dynamicCategories as $cat)
+                        @php
+                            $iconData = $cat->icon_details ?? [
+                                'type' => 'icon',
+                                'value' => 'fa-solid fa-book',
+                                'bg' => 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                                'shadow' => 'rgba(2, 132, 199, 0.35)',
+                                'color' => '#ffffff'
+                            ];
+                        @endphp
                         <a href="{{ route('book.index', ['category' => $cat->slug]) }}" 
-                           class="card h-100 p-2.5 border-0 shadow-2xs rounded-3 text-decoration-none text-center bg-light hover-bg-primary hover-white transition-all hover-lift">
-                            <div class="fw-bold text-dark text-truncate mb-1" style="font-size: 0.88rem;">{{ $cat->name }}</div>
-                            <span class="badge bg-white text-muted border rounded-pill small" style="font-size: 0.70rem;">{{ $cat->books_count }}টি বই</span>
+                           class="idea-category-item text-decoration-none text-center flex-shrink-0 d-flex flex-column align-items-center p-2 rounded-4 transition-all" 
+                           style="width: 112px;"
+                           title="{{ $cat->name }}">
+                            <div class="idea-cat-icon-box rounded-circle shadow-sm mb-2 position-relative d-flex align-items-center justify-content-center" 
+                                 style="width: 75px; height: 75px; min-width: 75px; min-height: 75px; aspect-ratio: 1/1; background: {{ $iconData['bg'] }}; box-shadow: 0 8px 20px -4px {{ $iconData['shadow'] }};">
+                                @if($iconData['type'] === 'image')
+                                    <img src="{{ $iconData['value'] }}" alt="{{ $cat->name }}" class="w-100 h-100 rounded-circle object-fit-cover p-1">
+                                @else
+                                    <i class="{{ $iconData['value'] }} text-white" style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.18));"></i>
+                                @endif
+                                <span class="idea-cat-glow"></span>
+                            </div>
+                            <div class="fw-bold text-dark text-truncate w-100 idea-cat-title" style="font-size: 0.84rem; line-height: 1.35;">{{ $cat->name }}</div>
+                            <span class="badge bg-light text-muted border rounded-pill mt-1 small idea-cat-badge" style="font-size: 0.68rem; font-weight: 600;">{{ $cat->books_count ?? 0 }}টি বই</span>
                         </a>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
+                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('popularCategorySlider', 1)" aria-label="পরবর্তী">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
 
         </div>
@@ -1543,8 +1577,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 2. Continuous Gentle Auto-Move for all Book & Author Sliders
-        const autoScrollSliders = document.querySelectorAll('.idea-book-slider, .idea-author-slider');
+        // 2. Continuous Gentle Auto-Move for all Book, Author & Category Sliders
+        const autoScrollSliders = document.querySelectorAll('.idea-book-slider, .idea-author-slider, .idea-category-slider');
         autoScrollSliders.forEach((slider, idx) => {
             let isHovered = false;
             let isTouching = false;
@@ -1590,8 +1624,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const maxScroll = slider.scrollWidth - slider.clientWidth;
                 if (maxScroll <= 15) return;
 
-                const singleItem = slider.querySelector('.idea-slider-item');
-                const scrollStep = singleItem ? (singleItem.offsetWidth + 14) : Math.max(180, slider.clientWidth * 0.45);
+                const singleItem = slider.querySelector('.idea-slider-item, .idea-category-item, a');
+                const scrollStep = singleItem ? (singleItem.offsetWidth + 14) : Math.max(160, slider.clientWidth * 0.45);
                 
                 if (slider.scrollLeft >= maxScroll - 10) {
                     slider.scrollTo({ left: 0, behavior: 'smooth' });

@@ -534,6 +534,15 @@ class LoginController extends Controller
                     return redirect()->route('my-account')->with('warning', 'আপনি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। অনুগ্রহ করে প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
                 }
 
+                if ($matchedUser->isAdmin()) {
+                    $intended = session('url.intended');
+                    if ($intended && str_contains($intended, '/admin')) {
+                        return redirect()->intended(route('admin.dashboard'));
+                    }
+                    session()->forget('url.intended');
+                    return redirect()->route('admin.dashboard');
+                }
+
                 return redirect()->intended($redirectUrl);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
