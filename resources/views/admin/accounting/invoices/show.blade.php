@@ -557,109 +557,74 @@
                 @endif
             </div>
 
-            {{-- Signature, QR Code & Banking Footer (Positioned at A4/Letter page bottom) --}}
+            {{-- Signature, QR Code & Banking Footer (Positioned at A4/Letter page bottom in 1 Single Line) --}}
             <div class="invoice-footer-compact pt-2 mt-auto border-top">
-                @if($invoice->type === 'invoice')
-                    {{-- Responsive 5 Columns Layout: Customer Sig | Scan to Verify | bKash/Nagad/Rocket QR | Bank Payment QR | Authorized Sig --}}
-                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
-                        {{-- 1. Customer Signature --}}
-                        <div class="col-6 col-md-3 col-print-3 text-center">
-                            <div class="signature-box" style="margin-top: 24px;">
-                                <div class="border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9px;">
-                                    Customer's Signature
-                                </div>
+                <div class="invoice-signature-row d-flex justify-content-between align-items-end w-100" style="font-size: 10px;">
+                    {{-- 1. Left: Customer Signature --}}
+                    <div class="signature-col customer-sign-col text-center">
+                        <div class="signature-box">
+                            <div class="signature-line border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                Customer's Signature
                             </div>
                         </div>
+                    </div>
 
-                        {{-- 2. Scan to Verify QR --}}
-                        <div class="col-6 col-md-2 col-print-2 text-center">
+                    {{-- 2. Center: QR Codes (Scan to verify + Payment QRs) --}}
+                    <div class="signature-col qr-col text-center d-flex justify-content-center align-items-end">
+                        <div class="d-flex align-items-end justify-content-center gap-2 flex-nowrap">
+                            {{-- Scan to Verify QR --}}
                             <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
                                 <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
                                     <img src="{{ $qrCodeUrl }}" alt="Verify QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
                                 </div>
-                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 7.5px; line-height: 1.1;">
-                                    Scan to Verify: #{{ $invoice->invoice_no }}
+                                <div class="text-primary fw-bold text-nowrap mt-0.5" style="font-size: 7.5px; line-height: 1.1;">
+                                    Scan: #{{ $invoice->invoice_no }}
                                 </div>
                             </a>
-                        </div>
 
-                        {{-- 3. bKash / Nagad / Rocket QR --}}
-                        <div class="col-6 col-md-2 col-print-2 text-center">
-                            <div class="d-inline-flex flex-column align-items-center">
-                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
-                                </div>
-                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
-                                    {{ $settings['mfs_qr_note'] ?? 'bkash/nagad/roket' }}
-                                </div>
+                            @if($invoice->type === 'invoice')
+                                {{-- bKash / Nagad / Rocket QR --}}
+                                @if(!empty($settings['mfs_qr_image']))
+                                    <div class="d-inline-flex flex-column align-items-center">
+                                        <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                            <img src="{{ $mfsQrSrc }}" alt="MFS QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
+                                        </div>
+                                        <div class="text-dark fw-bold text-nowrap mt-0.5 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                            {{ $settings['mfs_qr_note'] ?? 'bkash/nagad' }}
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- Bank Payment QR --}}
+                                @if(!empty($settings['bank_qr_image']))
+                                    <div class="d-inline-flex flex-column align-items-center">
+                                        <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
+                                            <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
+                                        </div>
+                                        <div class="text-dark fw-bold text-nowrap mt-0.5 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
+                                            {{ $settings['bank_qr_note'] ?? 'bank payment' }}
+                                        </div>
+                                    </div>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- 3. Right: Authorized Signature --}}
+                    <div class="signature-col auth-sign-col text-center">
+                        <div class="signature-box">
+                            <div class="fw-bold text-dark" style="font-size: 10.5px; line-height: 1.25; white-space: normal;">
+                                {{ $creatorName }}
                             </div>
-                        </div>
-
-                        {{-- 4. Bank Payment QR --}}
-                        <div class="col-6 col-md-2 col-print-2 text-center">
-                            <div class="d-inline-flex flex-column align-items-center">
-                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $bankQrSrc }}" alt="Bank QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
-                                </div>
-                                <div class="text-dark fw-bold text-nowrap mt-1 font-monospace" style="font-size: 7.5px; line-height: 1.1;">
-                                    {{ $settings['bank_qr_note'] ?? 'bank payment' }}
-                                </div>
+                            <div class="text-muted fw-semibold" style="font-size: 9px; line-height: 1.2; white-space: normal;">
+                                {{ $creatorDesignation }}
                             </div>
-                        </div>
-
-                        {{-- 5. Authorized Signature --}}
-                        <div class="col-12 col-md-3 col-print-3 text-center mt-3 mt-md-0">
-                            <div class="signature-box" style="margin-top: 14px;">
-                                <div class="fw-bold text-dark text-truncate" style="font-size: 10.5px; line-height: 1.2;">
-                                    {{ $creatorName }}
-                                </div>
-                                <div class="text-muted fw-semibold text-truncate" style="font-size: 9px; line-height: 1.2;">
-                                    {{ $creatorDesignation }}
-                                </div>
-                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9px;">
-                                    Authorized Signature
-                                </div>
+                            <div class="signature-line border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9px;">
+                                Authorized Signature
                             </div>
                         </div>
                     </div>
-                @else
-                    {{-- 3 Columns Layout for Delivery Challan / Quotation / Tender --}}
-                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
-                        <div class="col-6 col-md-4 col-print-4">
-                            <div class="signature-box" style="margin-top: 24px;">
-                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
-                                    Customer's Signature
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- QR Code & Verification Box --}}
-                        <div class="col-6 col-md-4 col-print-4 text-center">
-                            <a href="{{ $invoiceUrl }}" target="_blank" class="text-decoration-none d-inline-flex flex-column align-items-center">
-                                <div class="p-1 rounded border bg-white shadow-2xs d-inline-block">
-                                    <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain; display: block;">
-                                </div>
-                                <div class="text-primary fw-bold text-nowrap mt-1" style="font-size: 8px; line-height: 1.1;">
-                                    Scan to Verify: #{{ $invoice->invoice_no }}
-                                </div>
-                            </a>
-                        </div>
-
-                        <div class="col-12 col-md-4 col-print-4 text-center mt-3 mt-md-0">
-                            <div class="signature-box" style="margin-top: 14px;">
-                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
-                                    {{ $creatorName }}
-                                </div>
-                                <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
-                                    {{ $creatorDesignation }}
-                                </div>
-                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
-                                    Authorized Signature
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                </div>
 
                 <div class="text-center text-muted mt-2 d-flex justify-content-between align-items-center" style="font-size: 8.5px; line-height: 1;">
                     <span>Page 1 / {{ $invoice->type === 'invoice' ? '2 (Invoice Copy)' : '1' }}</span>
@@ -874,19 +839,20 @@
                     @endif
                 </div>
 
-                {{-- Challan Signatures & QR Code --}}
+                {{-- Challan Signatures & QR Code (1 Single Row) --}}
                 <div class="invoice-footer-compact pt-2 mt-auto border-top">
-                    <div class="row g-2 align-items-end text-center footer-signature-grid" style="font-size: 10px;">
-                        <div class="col-6 col-md-4 col-print-4">
-                            <div class="signature-box" style="margin-top: 24px;">
-                                <div class="border-top border-dark pt-1 fw-semibold text-dark">
+                    <div class="invoice-signature-row d-flex justify-content-between align-items-end w-100" style="font-size: 10px;">
+                        {{-- 1. Left: Recipient Signature --}}
+                        <div class="signature-col customer-sign-col text-center">
+                            <div class="signature-box">
+                                <div class="signature-line border-top border-dark pt-1 fw-semibold text-dark" style="font-size: 9.5px;">
                                     Recipient's Signature
                                 </div>
                             </div>
                         </div>
 
-                        {{-- QR Code & Verification Box --}}
-                        <div class="col-6 col-md-4 col-print-4 text-center">
+                        {{-- 2. Center: QR Code & Verification Box --}}
+                        <div class="signature-col qr-col text-center d-flex justify-content-center align-items-end">
                             <div class="d-inline-flex align-items-center gap-1.5 px-2 py-1 rounded border bg-white shadow-xs">
                                 <img src="{{ $qrCodeUrl }}" alt="QR" style="width: {{ $qrCodeSize }}; height: {{ $qrCodeSize }}; object-fit: contain;">
                                 <div class="text-start" style="line-height: 1.15;">
@@ -896,15 +862,16 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-md-4 col-print-4 text-center mt-3 mt-md-0">
-                            <div class="signature-box" style="margin-top: 14px;">
-                                <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.25;">
+                        {{-- 3. Right: Authorized Signature --}}
+                        <div class="signature-col auth-sign-col text-center">
+                            <div class="signature-box">
+                                <div class="fw-bold text-dark" style="font-size: 10.5px; line-height: 1.25; white-space: normal;">
                                     {{ $creatorName }}
                                 </div>
-                                <div class="text-muted fw-semibold" style="font-size: 9.5px; line-height: 1.25;">
+                                <div class="text-muted fw-semibold" style="font-size: 9px; line-height: 1.2; white-space: normal;">
                                     {{ $creatorDesignation }}
                                 </div>
-                                <div class="border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
+                                <div class="signature-line border-top border-dark pt-1 mt-1 fw-semibold text-dark" style="font-size: 9.5px;">
                                     Authorized Signature / Bill Creator
                                 </div>
                             </div>
@@ -3251,7 +3218,38 @@ function resetCrop() {
 }
 
 .signature-box {
-    margin-top: 24px;
+    margin-top: 14px;
+}
+
+.invoice-signature-row {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+.invoice-signature-row .signature-col {
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.invoice-signature-row .customer-sign-col {
+    width: 28% !important;
+    max-width: 28% !important;
+}
+
+.invoice-signature-row .qr-col {
+    width: 44% !important;
+    max-width: 44% !important;
+}
+
+.invoice-signature-row .auth-sign-col {
+    width: 28% !important;
+    max-width: 28% !important;
 }
 
 .destination-box,

@@ -467,7 +467,16 @@ class LoginController extends Controller
                 if ($cleanLower === 'admin' || $cleanLower === $adminUsername) {
                     $query->orWhere('role', \App\Models\User::ROLE_ADMIN);
                 }
-            })->get();
+            })
+            ->orderByRaw("CASE 
+                WHEN LOWER(email) = ? THEN 1 
+                WHEN phone = ? THEN 2 
+                WHEN role = 'admin' THEN 3 
+                ELSE 4 
+            END", [$cleanLower, $normalizedInput])
+            ->orderByDesc('is_active')
+            ->orderByDesc('id')
+            ->get();
 
             $matchedUser = null;
             foreach ($candidates as $candidate) {

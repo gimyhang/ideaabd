@@ -686,7 +686,7 @@
                                     <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-primary" title="View">
                                         <i class="fas fa-eye me-1"></i> Read
                                     </a>
-                                    @if($post->status !== 'published' && $post->mod_status !== 'approved' && $post->status !== 'pending')
+                                    @if($post->status !== 'published' && $post->mod_status !== 'approved')
                                         <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-secondary" title="Edit">
                                             <i class="fas fa-pen"></i>
                                         </a>
@@ -737,7 +737,7 @@
                             <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
                                 <i class="fas fa-eye me-0.5"></i> Read
                             </a>
-                            @if($post->status !== 'published' && $post->mod_status !== 'approved' && $post->status !== 'pending')
+                            @if($post->status !== 'published' && $post->mod_status !== 'approved')
                                 <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="font-size: 10.5px;">
                                     <i class="fas fa-pen"></i>
                                 </a>

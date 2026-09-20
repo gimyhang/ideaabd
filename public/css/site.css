@@ -1208,8 +1208,80 @@ body {
     border-color: #38bdf8 !important;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   MODERN UI UTILITIES & TOAST NOTIFICATION STYLES
+   ══════════════════════════════════════════════════════════════════════════ */
 
+/* Toast Container & Notification Cards */
+.idea-toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    pointer-events: none;
+}
 
+.idea-toast {
+    pointer-events: auto;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--sh-brand, #0066cc);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+.idea-toast-success { border-left-color: #10b981; }
+.idea-toast-error   { border-left-color: #ef4444; }
+.idea-toast-warning { border-left-color: #f59e0b; }
+.idea-toast-info    { border-left-color: #0099ff; }
 
+[data-bs-theme="dark"] .idea-toast,
+.dark-mode .idea-toast {
+    background: #111c38;
+    color: #f8fafc;
+    border-color: rgba(255, 255, 255, 0.12);
+}
 
+/* Glassmorphism Surface Cards */
+.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 102, 204, 0.06);
+}
+
+[data-bs-theme="dark"] .glass-card,
+.dark-mode .glass-card {
+    background: rgba(17, 28, 56, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* Modern Skeleton Loading Shimmer */
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite linear;
+    border-radius: 6px;
+}
+
+[data-bs-theme="dark"] .skeleton-shimmer,
+.dark-mode .skeleton-shimmer {
+    background: linear-gradient(90deg, #182240 25%, #24325a 50%, #182240 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Accessible Interactive Focus Rings */
+.ring-primary {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.35) !important;
+}

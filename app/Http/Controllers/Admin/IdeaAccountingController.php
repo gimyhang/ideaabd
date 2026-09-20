@@ -2201,6 +2201,7 @@ class IdeaAccountingController extends Controller
         ];
     }
 
+
     /**
      * Update Memo / Invoice Header Business Settings.
      */

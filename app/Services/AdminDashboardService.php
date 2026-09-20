@@ -144,20 +144,29 @@ class AdminDashboardService
         $submissions = collect();
         if (Schema::hasTable('author_submissions')) {
             $submissions = $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')
-                ->with('user')
+                ->with(['author', 'category'])
                 ->latest()
                 ->limit($limit)
                 ->get(), collect());
         }
 
+        $authorUpdates = $this->safe(fn () => User::where('role', 'author')
+            ->where(function ($q) {
+                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%');
+            })
+            ->latest()
+            ->limit($limit)
+            ->get(), collect());
+
         return [
-            'orders'        => $orders,
-            'registrations' => $registrations,
-            'blogs'         => $blogs,
-            'books'         => $books,
-            'ebooks'        => $ebooks,
-            'book_requests' => $bookRequests,
-            'submissions'   => $submissions,
+            'orders'         => $orders,
+            'registrations'  => $registrations,
+            'author_updates' => $authorUpdates,
+            'blogs'          => $blogs,
+            'books'          => $books,
+            'ebooks'         => $ebooks,
+            'book_requests'  => $bookRequests,
+            'submissions'    => $submissions,
         ];
     }
 

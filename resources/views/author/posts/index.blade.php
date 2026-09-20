@@ -195,6 +195,16 @@
                                         <a href="{{ route('blog.show', $post->slug ?: $post->id) }}" target="_blank" class="btn btn-outline-secondary" title="প্রিভিউ দেখুন">
                                             <i class="fas fa-eye me-1"></i> প্রিভিউ
                                         </a>
+                                        <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-warning text-dark fw-bold" title="অনুমোদনের পূর্বে লেখাটি এডিট করুন">
+                                            <i class="fas fa-pen me-1"></i> এডিট
+                                        </a>
+                                        <form action="{{ route('author.posts.destroy', $post->id) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই অপেক্ষমাণ লেখাটি প্রত্যাহার ও মুছে ফেলতে চান?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" title="মুছে ফেলুন">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
                                     @else
                                         <a href="{{ route('author.posts.edit', $post->id) }}" class="btn btn-outline-warning text-dark fw-bold" title="এডিট করুন">
                                             <i class="fas fa-pen"></i>

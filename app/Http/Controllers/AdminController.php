@@ -156,7 +156,7 @@ class AdminController extends Controller
     public function dashboardQuickAction(Request $request): \Illuminate\Http\JsonResponse
     {
         $validated = $request->validate([
-            'type'   => ['required', 'string', 'in:user,order,blog,book,ebook,book_request,submission'],
+            'type'   => ['required', 'string', 'in:user,order,blog,book,ebook,book_request,submission,author_update'],
             'id'     => ['required'],
             'action' => ['required', 'string', 'in:approve,reject,delete,cancel,process,complete'],
             'reason' => ['nullable', 'string', 'max:500'],
@@ -334,6 +334,47 @@ class AdminController extends Controller
                             $sub->delete();
                             $message = "পাণ্ডুলিপি রেকর্ডটি মুছে ফেলা হয়েছে।";
                         }
+                    }
+                    break;
+
+                case 'author_update':
+                    $authorUser = User::findOrFail($id);
+                    $regData = is_array($authorUser->reg_data) ? $authorUser->reg_data : [];
+                    if ($action === 'approve') {
+                        $regData['profile_update_status'] = 'approved';
+                        $regData['profile_update_approved_at'] = now()->toDateTimeString();
+                        $authorUser->reg_data = $regData;
+                        $authorUser->save();
+
+                        // Sync to authors table if needed
+                        try {
+                            $penName = !empty($regData['pen_name']) ? trim($regData['pen_name']) : $authorUser->name;
+                            \Modules\Author\Models\Author::updateOrCreate(
+                                ['user_id' => $authorUser->id],
+                                [
+                                    'name'        => $penName,
+                                    'name_en'     => $authorUser->name,
+                                    'name_bn'     => !empty($regData['name_bn']) ? trim($regData['name_bn']) : $penName,
+                                    'bio'         => $regData['bio'] ?? null,
+                                    'website'     => $regData['website'] ?? null,
+                                    'avatar'      => $authorUser->avatar ?: ($regData['avatar'] ?? null),
+                                    'is_verified' => true,
+                                ]
+                            );
+                        } catch (\Throwable $e) {}
+
+                        $message = "{$authorUser->name} এর প্রোফাইল আপডেট সফলভাবে অনুমোদন করা হয়েছে।";
+                    } elseif ($action === 'reject') {
+                        $regData['profile_update_status'] = 'rejected';
+                        $regData['profile_update_rejection_reason'] = $reason ?: 'তথ্য যাচাইকৃত নয়';
+                        $authorUser->reg_data = $regData;
+                        $authorUser->save();
+                        $message = "{$authorUser->name} এর প্রোফাইল আপডেট আবেদন বাতিল করা হয়েছে।";
+                    } elseif ($action === 'delete') {
+                        unset($regData['profile_update_status']);
+                        $authorUser->reg_data = $regData;
+                        $authorUser->save();
+                        $message = "প্রোফাইল আপডেট অনুরোধ মুছে ফেলা হয়েছে।";
                     }
                     break;
             }

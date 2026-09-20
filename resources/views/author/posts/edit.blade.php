@@ -23,6 +23,19 @@
         </div>
     </div>
 
+    {{-- Notice when editing a pending post --}}
+    @if($post->status === 'pending')
+        <div class="alert alert-warning d-flex align-items-center gap-3 p-3 rounded-3 shadow-xs mb-4 border border-warning-subtle">
+            <i class="fas fa-hourglass-half fs-4 text-warning-emphasis flex-shrink-0"></i>
+            <div>
+                <h6 class="fw-bold mb-0 text-dark">পোস্টটি বর্তমানে পর্যালোচনার জন্য অপেক্ষমাণ</h6>
+                <p class="small mb-0 text-muted">
+                    লেখাটি এখনও অ্যাডমিন অনুমোদন করেনি। আপনি চাইলে বানান, তথ্য বা ছবি সম্পাদন করে পুনরায় জমা দিতে পারেন।
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- Rejection Reason Notice if post was rejected --}}
     @if($post->status === 'rejected' && $post->rejection_reason)
         <div class="alert alert-danger d-flex align-items-start gap-3 p-3 rounded-3 shadow-xs mb-4">
@@ -37,7 +50,7 @@
     @endif
 
     {{-- Form Submission Card --}}
-    <form action="{{ route('author.posts.update', $post->id) }}" method="POST" enctype="multipart/form-data" id="authorPostEditForm">
+    <form action="{{ route('author.posts.update', $post->id) }}" method="POST" enctype="multipart/form-data" id="authorPostEditForm" data-autosave-key="author_edit_post_{{ $post->id }}">
         @csrf
         @method('PUT')
 

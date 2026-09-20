@@ -143,14 +143,9 @@ class AuthorBlogController extends Controller
         $author = $user->getAuthorRecord();
         $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
-        // If post is published or approved, open the dedicated edit request / correction form
-        if ($post->status === 'published' || $post->mod_status === 'approved') {
+        // If post is already published and approved, open the dedicated edit request / correction form
+        if ($post->status === 'published' && $post->mod_status === 'approved') {
             return redirect()->route('author.posts.edit-request', $id);
-        }
-
-        if ($post->status === 'pending') {
-            return redirect()->route('author.posts.index')
-                ->with('warning', 'পোস্টটি অ্যাডমিন অনুমোদনের জন্য অপেক্ষমাণ রয়েছে।');
         }
 
         $blogCategories = BlogCategory::where('is_active', true)->orderBy('name')->get();
@@ -378,10 +373,10 @@ class AuthorBlogController extends Controller
         $author = $user->getAuthorRecord();
         $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
-        // Lock check: Once submitted or approved/published, author cannot edit directly
-        if ($post->status === 'pending' || $post->status === 'published' || $post->mod_status === 'approved') {
-            return redirect()->route('author.posts.index')
-                ->with('error', 'পোস্টটি অনুমোদনের জন্য অপেক্ষমাণ বা ইতোমধ্যে প্রকাশিত হয়েছে। তাই এটি আর সম্পাদনা করা যাবে না।');
+        // Lock check: Once approved/published, author cannot edit directly (must use correction edit-request)
+        if ($post->status === 'published' && $post->mod_status === 'approved') {
+            return redirect()->route('author.posts.edit-request', $id)
+                ->with('warning', 'পোস্টটি ইতোমধ্যে প্রকাশিত ও অনুমোদিত হয়েছে। কোনো সংশোধনী প্রয়োজন হলে কারেকশন রিকোয়েস্ট পাঠান।');
         }
 
         $hasAiImage = !empty($request->input('ai_photocard_data'));
@@ -532,9 +527,9 @@ class AuthorBlogController extends Controller
         $author = $user->getAuthorRecord();
         $post = $this->getAuthorPostsBaseQuery($user, $author)->where('id', $id)->firstOrFail();
 
-        if ($post->status === 'published' || $post->mod_status === 'approved' || $post->status === 'pending') {
+        if ($post->status === 'published' && $post->mod_status === 'approved') {
             return redirect()->route('author.posts.index')
-                ->with('error', 'অনুমোদিত বা প্রকাশিত লেখা লেখক ডিলিট করতে পারবেন না। অনুমোদিত পোস্ট ডিলিট বা পরিবর্তন শুধুমাত্র অ্যাডমিন করতে পারবেন।');
+                ->with('error', 'অনুমোদিত ও প্রকাশিত লেখা লেখক সরাসরি ডিলিট করতে পারবেন না। অনুমোদিত পোস্ট ডিলিট বা পরিবর্তনের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।');
         }
 
         if ($post->featured_image) {

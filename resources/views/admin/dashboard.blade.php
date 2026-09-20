@@ -236,11 +236,11 @@
                                         </div>
                                         <div>
                                             <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
-                                            <span class="text-dark fw-bold font-monospace small">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
+                                            <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" onclick="openPendingCenterTab('users')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
+                                <button type="button" onclick="openPendingCenterTab('submissions')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
                                     <i class="fa-solid fa-file-pen"></i> রিভিউ ও সিঙ্ক <i class="fa-solid fa-arrow-right ms-auto"></i>
                                 </button>
                             </div>
@@ -1791,6 +1791,16 @@
                             </button>
                         </li>
 
+                        {{-- Tab 6: Submissions & Author Updates --}}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
+                                    id="tab-submissions-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-submissions" type="button" role="tab">
+                                <i class="fa-solid fa-file-signature text-dark"></i>
+                                <span>পাণ্ডুলিপি ও লেখক</span>
+                                <span class="badge bg-dark text-white rounded-pill ms-1" id="tabBadge-submissions">{{ $submissionCount + $authorUpdateCount }}</span>
+                            </button>
+                        </li>
+
                     </ul>
                 </div>
 
@@ -2152,6 +2162,117 @@
                                     কোনো পেন্ডিং বই রিকোয়েস্ট নেই।
                                 </div>
                             @endforelse
+                        </div>
+                    </div>
+
+                    {{-- ══ PANE 6: SUBMISSIONS & AUTHOR UPDATES ═══════════════════════ --}}
+                    <div class="tab-pane fade" id="pane-pending-submissions" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">অপেক্ষমাণ পাণ্ডুলিপি ও লেখক প্রোফাইল আপডেট</h6>
+                                <small class="text-muted">পাণ্ডুলিপি পর্যালোচনা ও লেখকদের হালনাগাদকৃত তথ্য সরাসরি অনুমোদন বা বাতিল করুন</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2.5" id="pendingSubmissionsListContainer">
+                            @php
+                                $pSubmissions = $pendingData['submissions'] ?? collect();
+                                $pAuthorUpdates = $pendingData['author_updates'] ?? collect();
+                            @endphp
+
+                            @forelse($pSubmissions as $pSub)
+                                <div class="card p-3 border rounded-3 bg-white shadow-2xs pending-row-item" id="pendingRow-submission-{{ $pSub->id }}">
+                                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                <span class="badge bg-dark text-white rounded-pill px-2 py-0.5 small">পাণ্ডুলিপি</span>
+                                                <h6 class="fw-bold text-dark mb-0">{{ $pSub->title }}</h6>
+                                                @if($pSub->category)
+                                                    <span class="badge bg-light text-primary border rounded-pill small">{{ $pSub->category->name }}</span>
+                                                @endif
+                                            </div>
+                                            <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
+                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pSub->author?->name ?: 'লেখক' }}</span>
+                                                @if($pSub->author?->phone)
+                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pSub->author->phone }}</span>
+                                                @endif
+                                                <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pSub->created_at ? $pSub->created_at->diffForHumans() : '' }}</span>
+                                            </div>
+                                            @if($pSub->excerpt)
+                                                <div class="small text-secondary mt-1" style="font-size: 11.5px;">{{ Str::limit($pSub->excerpt, 150) }}</div>
+                                            @endif
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
+                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'approve', '', this)" title="অনুমোদন করুন">
+                                                <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
+                                                    onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ $pSub->title }}')" title="বাতিল করুন">
+                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
+                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                            @endforelse
+
+                            @forelse($pAuthorUpdates as $pAuthorUser)
+                                @php
+                                    $uRegData = is_array($pAuthorUser->reg_data) ? $pAuthorUser->reg_data : [];
+                                    $pName = $uRegData['pen_name'] ?? ($uRegData['name_bn'] ?? $pAuthorUser->name);
+                                @endphp
+                                <div class="card p-3 border rounded-3 bg-white shadow-2xs pending-row-item" id="pendingRow-author_update-{{ $pAuthorUser->id }}">
+                                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle bg-info bg-opacity-10 text-info fw-bold d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" style="width: 44px; height: 44px;">
+                                                <i class="fa-solid fa-user-pen fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small">প্রোফাইল আপডেট</span>
+                                                    <h6 class="fw-bold text-dark mb-0">{{ $pAuthorUser->name }} ({{ $pName }})</h6>
+                                                </div>
+                                                <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
+                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pAuthorUser->phone ?: 'নেই' }}</span>
+                                                    <span><i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $pAuthorUser->email }}</span>
+                                                    @if(!empty($uRegData['bio']))
+                                                        <span><i class="fa-solid fa-quote-left text-secondary me-1"></i>{{ Str::limit($uRegData['bio'], 60) }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                            <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
+                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'approve', '', this)" title="প্রোফাইল আপডেট অনুমোদন করুন">
+                                                <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
+                                                    onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ $pAuthorUser->name }}')" title="বাতিল করুন">
+                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
+                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                            @endforelse
+
+                            @if($pSubmissions->isEmpty() && $pAuthorUpdates->isEmpty())
+                                <div class="p-4 text-center text-muted bg-white rounded-3 border">
+                                    <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                    কোনো অপেক্ষমাণ পাণ্ডুলিপি বা লেখক আপডেট নেই।
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -2570,7 +2691,9 @@ function openPendingCenterTab(tabName) {
     modal.show();
 
     if (tabName) {
-        const tabTriggerEl = document.querySelector(`#pendingActionCenterModal button[data-bs-target="#tab-pending-${tabName}"]`);
+        const tabTriggerEl = document.querySelector(`#pendingActionCenterModal button[data-bs-target="#pane-pending-${tabName}"]`) ||
+                             document.querySelector(`#pendingActionCenterModal button[data-bs-target="#tab-pending-${tabName}"]`) ||
+                             document.getElementById(`tab-${tabName}-btn`);
         if (tabTriggerEl) {
             const tab = bootstrap.Tab.getOrCreateInstance(tabTriggerEl);
             tab.show();
@@ -2640,22 +2763,21 @@ function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = n
             showDashboardToast(data.message, 'success');
             
             // Animate and remove matching rows in both modal & alert widget
-            const rowEls = document.querySelectorAll(`.pending-row-${type}-${id}`);
+            const rowEls = document.querySelectorAll(`.pending-row-${type}-${id}, #pendingRow-${type}-${id}`);
             rowEls.forEach(row => {
                 row.classList.add('item-removing');
+                row.style.transition = 'all 0.35s ease';
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.95)';
                 setTimeout(() => {
-                    const parentTable = row.closest('tbody');
+                    const parentContainer = row.parentElement;
                     row.remove();
-                    
-                    // Check if parent table has remaining rows
-                    if (parentTable && parentTable.querySelectorAll('tr').length === 0) {
-                        parentTable.innerHTML = `
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">
-                                    <i class="fa-solid fa-check-double text-success fa-2x mb-2 d-block"></i>
-                                    কোনো পেন্ডিং রিকোয়েস্ট অবশিষ্ট নেই!
-                                </td>
-                            </tr>
+                    if (parentContainer && parentContainer.querySelectorAll('.pending-row-item').length === 0) {
+                        parentContainer.innerHTML = `
+                            <div class="p-4 text-center text-muted bg-white rounded-3 border">
+                                <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+                                কোনো অপেক্ষমাণ রিকোয়েস্ট অবশিষ্ট নেই!
+                            </div>
                         `;
                     }
                 }, 350);
@@ -2690,12 +2812,20 @@ function updateDashboardAlertCounts(alerts) {
 
     // Update individual tabs
     const typeCountMap = {
+        'users': alerts.registrations ?? 0,
         'user': alerts.registrations ?? 0,
+        'orders': alerts.orders ?? 0,
         'order': alerts.orders ?? 0,
+        'blogs': alerts.blogs ?? 0,
         'blog': alerts.blogs ?? 0,
+        'books': (alerts.books ?? 0) + (alerts.ebooks ?? 0),
         'book': alerts.books ?? 0,
         'ebook': alerts.ebooks ?? 0,
-        'book_request': alerts.book_requests ?? 0
+        'requests': alerts.book_requests ?? 0,
+        'book_request': alerts.book_requests ?? 0,
+        'submissions': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
+        'submission': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
+        'author_update': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
     };
 
     for (const [t, cnt] of Object.entries(typeCountMap)) {
@@ -2706,7 +2836,15 @@ function updateDashboardAlertCounts(alerts) {
         }
         const cardBadge = document.getElementById(`pendingCardCount-${t}`);
         if (cardBadge) {
-            cardBadge.textContent = cnt;
+            cardBadge.textContent = `${cnt}টি পেন্ডিং`;
+        }
+        const summaryCard = document.getElementById(`pendingSummaryCard-${t}`);
+        if (summaryCard) {
+            if (cnt === 0) {
+                summaryCard.style.display = 'none';
+            } else {
+                summaryCard.style.display = '';
+            }
         }
     }
 

@@ -860,6 +860,9 @@
     {{-- Universal Theme Controller Script --}}
     <script src="{{ asset('js/theme.js') }}?v={{ @filemtime(public_path('js/theme.js')) ?: 1 }}"></script>
 
+    {{-- Modern Site Enhancements & Utility Engine (Toast, Shortcuts, Auto-Draft) --}}
+    <script src="{{ asset('js/site-enhancements.js') }}?v={{ @filemtime(public_path('js/site-enhancements.js')) ?: 1 }}"></script>
+
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')
     @stack('scripts')

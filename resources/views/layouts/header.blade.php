@@ -23,54 +23,61 @@
         $nav[] = $item;
     }
 
-    // Category mega-menu & dropdown dynamically fetched from categories table with hierarchy
-    $headerCategories = collect();
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
-            $headerCategories = \Modules\Book\Models\Category::query()
-                ->where('is_active', true)
-                ->whereNull('parent_id')
-                ->with(['children' => fn($q) => $q->where('is_active', true)->withCount(['books' => fn($bq) => $bq->where('is_active', true)])->orderBy('name')])
-                ->withCount(['books' => fn($q) => $q->where('is_active', true)])
-                ->orderBy('sort_order')
-                ->orderByDesc('books_count')
-                ->get();
-
-            if ($headerCategories->isEmpty()) {
-                $headerCategories = \Modules\Book\Models\Category::query()
+    // Category mega-menu & dropdown dynamically fetched and cached for high performance
+    $headerCategories = \Illuminate\Support\Facades\Cache::remember('site_header_categories_v3', 1800, function() {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
+                $cats = \Modules\Book\Models\Category::query()
                     ->where('is_active', true)
+                    ->whereNull('parent_id')
+                    ->with(['children' => fn($q) => $q->where('is_active', true)->withCount(['books' => fn($bq) => $bq->where('is_active', true)])->orderBy('name')])
                     ->withCount(['books' => fn($q) => $q->where('is_active', true)])
                     ->orderBy('sort_order')
                     ->orderByDesc('books_count')
                     ->get();
+
+                if ($cats->isEmpty()) {
+                    $cats = \Modules\Book\Models\Category::query()
+                        ->where('is_active', true)
+                        ->withCount(['books' => fn($q) => $q->where('is_active', true)])
+                        ->orderBy('sort_order')
+                        ->orderByDesc('books_count')
+                        ->get();
+                }
+                return $cats;
             }
-        }
-    } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {}
+        return collect();
+    });
 
-    // Popular authors for hover dropdown
-    $headerAuthors = collect();
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
-            $headerAuthors = \Modules\Author\Models\Author::query()
-                ->withCount('books')
-                ->orderByDesc('books_count')
-                ->take(10)
-                ->get();
-        }
-    } catch (\Throwable $e) {}
+    // Popular authors for hover dropdown cached for performance
+    $headerAuthors = \Illuminate\Support\Facades\Cache::remember('site_header_authors_v3', 1800, function() {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
+                return \Modules\Author\Models\Author::query()
+                    ->withCount('books')
+                    ->orderByDesc('books_count')
+                    ->take(10)
+                    ->get();
+            }
+        } catch (\Throwable $e) {}
+        return collect();
+    });
 
-    // Ideapatra / Blog categories for hover dropdown
-    $headerBlogCats = collect();
-    try {
-        if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
-            $headerBlogCats = \Modules\Blog\Models\BlogCategory::query()
-                ->where('is_active', true)
-                ->withCount(['posts' => fn($q) => $q->where('status', 'published')])
-                ->orderByDesc('posts_count')
-                ->take(8)
-                ->get();
-        }
-    } catch (\Throwable $e) {}
+    // Ideapatra / Blog categories for hover dropdown cached for performance
+    $headerBlogCats = \Illuminate\Support\Facades\Cache::remember('site_header_blog_cats_v3', 1800, function() {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
+                return \Modules\Blog\Models\BlogCategory::query()
+                    ->where('is_active', true)
+                    ->withCount(['posts' => fn($q) => $q->where('status', 'published')])
+                    ->orderByDesc('posts_count')
+                    ->take(8)
+                    ->get();
+            }
+        } catch (\Throwable $e) {}
+        return collect();
+    });
 @endphp
 
 <header class="site-head" id="siteHead">

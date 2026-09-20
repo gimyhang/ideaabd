@@ -24,7 +24,7 @@
     </div>
 
     {{-- Form Submission Card --}}
-    <form action="{{ route('author.posts.store') }}" method="POST" enctype="multipart/form-data" id="authorPostForm">
+    <form action="{{ route('author.posts.store') }}" method="POST" enctype="multipart/form-data" id="authorPostForm" data-autosave-key="author_new_post">
         @csrf
 
         <div class="row g-4">
