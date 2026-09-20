@@ -3027,18 +3027,33 @@ function viewPendingUserDetails(userId) {
 }
 
 function reloadPendingData() {
+    const refreshBtns = document.querySelectorAll('button[onclick="reloadPendingData()"]');
+    refreshBtns.forEach(btn => {
+        const icon = btn.querySelector('i');
+        if (icon) icon.classList.add('fa-spin');
+    });
+
     fetch("{{ route('admin.dashboard.pending-data') }}")
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showDashboardToast('পেন্ডিং ডাটা রিফ্রেশ করা হয়েছে!', 'info');
+                showDashboardToast('পেন্ডিং ডাটা সফলভাবে রিফ্রেশ করা হয়েছে!', 'info');
                 if (data.alerts) {
                     updateDashboardAlertCounts(data.alerts);
                 }
+            } else {
+                showDashboardToast('ডাটা রিফ্রেশ করতে সমস্যা হয়েছে।', 'danger');
             }
         })
         .catch(err => {
             console.error('Failed to reload pending data', err);
+            showDashboardToast('সার্ভার থেকে ডাটা লোড করতে সমস্যা হয়েছে।', 'danger');
+        })
+        .finally(() => {
+            refreshBtns.forEach(btn => {
+                const icon = btn.querySelector('i');
+                if (icon) icon.classList.remove('fa-spin');
+            });
         });
 }
 </script>

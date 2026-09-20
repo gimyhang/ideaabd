@@ -72,7 +72,10 @@ class AdminDashboardService
 
         $authorUpdates = (int) $this->safe(fn () => User::where('role', 'author')
             ->where(function ($q) {
-                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%');
+                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
             })->count(), 0);
 
         $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions + $authorUpdates;
@@ -152,7 +155,10 @@ class AdminDashboardService
 
         $authorUpdates = $this->safe(fn () => User::where('role', 'author')
             ->where(function ($q) {
-                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%');
+                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
+                  ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
             })
             ->latest()
             ->limit($limit)

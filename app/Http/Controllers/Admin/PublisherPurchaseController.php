@@ -1073,7 +1073,7 @@ class PublisherPurchaseController extends Controller
     /**
      * Show single purchase invoice with items and repayment history.
      */
-    public function show(PublisherPurchase $purchase): View
+    public function show(PublisherPurchase $purchase): View|JsonResponse
     {
         $purchase->load(['publisher', 'items.book.category', 'payments.recorder', 'creator']);
         $paymentMethods = PublisherPayment::paymentMethods();
@@ -1090,6 +1090,20 @@ class PublisherPurchaseController extends Controller
         $currentPaid = (float) $purchase->paid_amount;
         $currentDue = (float) $purchase->due_amount;
         $netTotalDue = max(0, $previousDue + $currentDue);
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success'           => true,
+                'purchase'          => $purchase,
+                'party_name'        => $purchase->party_name,
+                'party_phone'       => $purchase->party_phone,
+                'party_address'     => $purchase->party_address,
+                'items'             => $purchase->items,
+                'payments'          => $purchase->payments,
+                'previous_due'      => $previousDue,
+                'net_total_due'     => $netTotalDue,
+            ]);
+        }
 
         return view('admin.purchases.show', compact(
             'purchase', 'paymentMethods', 'settings',
@@ -1307,6 +1321,19 @@ class PublisherPurchaseController extends Controller
                 $purchase->recalculate();
 
                 $party = $purchase->party_name;
+
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success'        => true,
+                        'message'        => "Payment of ৳" . number_format($amount, 2) . " recorded for invoice #{$purchase->purchase_no} (Voucher #{$payNo})",
+                        'purchase_id'    => $purchase->id,
+                        'purchase_no'    => $purchase->purchase_no,
+                        'paid_amount'    => (float)$purchase->paid_amount,
+                        'due_amount'     => (float)$purchase->due_amount,
+                        'payment_status' => $purchase->payment_status,
+                    ]);
+                }
+
                 return back()->with('success', "ইনভয়েস #{$purchase->purchase_no} ({$party})-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা সফলভাবে পরিশোধ রেকর্ড করা হয়েছে (ভাউচার #{$payNo})।");
             }
 
@@ -1315,6 +1342,12 @@ class PublisherPurchaseController extends Controller
             $vendorName = trim((string)($validated['vendor_name'] ?? ''));
 
             if (!$publisherId && empty($vendorName)) {
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'অনুগ্রহ করে একটি ক্রয় ইনভয়েস নির্বাচন করুন অথবা সরবরাহকারী/ভেন্ডরের নাম দিন।',
+                    ], 422);
+                }
                 return back()->withInput()->withErrors(['purchase_id' => 'অনুগ্রহ করে একটি ক্রয় ইনভয়েস নির্বাচন করুন অথবা সরবরাহকারী/ভেন্ডরের নাম দিন।']);
             }
 
@@ -1389,6 +1422,14 @@ class PublisherPurchaseController extends Controller
             }
 
             $settledSummary = !empty($settledInvoices) ? ' (' . implode(', ', $settledInvoices) . ')' : '';
+
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Payment of ৳" . number_format($amount, 2) . " recorded for {$partyDisplayName}{$settledSummary}",
+                ]);
+            }
+
             return back()->with('success', "{$partyDisplayName}-এর চলতি খাতায় ৳" . number_format($amount, 2) . " টাকা সফলভাবে জমা ও সমন্বয় করা হয়েছে{$settledSummary}!");
         });
     }
