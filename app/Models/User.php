@@ -118,25 +118,28 @@ class User extends Authenticatable
         };
     }
 
-    public function isAdmin(): bool      { return $this->role === self::ROLE_ADMIN; }
-    public function isSuperAdmin(): bool { return $this->role === self::ROLE_ADMIN; }
+    public function isAdmin(): bool      { return in_array($this->role, [self::ROLE_ADMIN, 'super_admin'], true); }
+    public function isSuperAdmin(): bool { return in_array($this->role, [self::ROLE_ADMIN, 'super_admin'], true); }
     public function hasAdminPermission(string $permissionKey): bool { return $this->hasPermission($permissionKey); }
-    public function isSubAdmin(): bool   { return in_array($this->role, [self::ROLE_SUB_ADMIN, self::ROLE_ADMIN], true) || ($this->custom_role_id !== null); }
-    public function isSeller(): bool     { return in_array($this->role, [self::ROLE_SELLER, self::ROLE_SUB_ADMIN]); }
-    public function isPublisher(): bool  { return $this->role === self::ROLE_PUBLISHER; }
-    public function isAuthor(): bool     { return $this->role === self::ROLE_AUTHOR; }
-    public function isBuyer(): bool      { return in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER]); }
-    public function hasRole(string $role): bool { return $this->role === $role || ($this->customRole && $this->customRole->slug === $role); }
+    public function isSubAdmin(): bool   { return $this->isAdmin() || in_array($this->role, [self::ROLE_SUB_ADMIN, self::ROLE_ADMIN], true) || ($this->custom_role_id !== null); }
+    public function isSeller(): bool     { return $this->isAdmin() || in_array($this->role, [self::ROLE_SELLER, self::ROLE_SUB_ADMIN], true) || ($this->reg_type === 'seller'); }
+    public function isPublisher(): bool  { return $this->isAdmin() || $this->role === self::ROLE_PUBLISHER || ($this->reg_type === 'publisher'); }
+    public function isAuthor(): bool     { return $this->isAdmin() || $this->role === self::ROLE_AUTHOR || ($this->reg_type === 'author'); }
+    public function isBuyer(): bool      { return true; }
+    public function hasRole(string $role): bool { return $this->isAdmin() || $this->role === $role || ($this->customRole && $this->customRole->slug === $role); }
 
     // Registration status helpers
-    public function isPending(): bool  { return $this->reg_status === self::STATUS_PENDING; }
+    public function isPending(): bool  { return $this->isAdmin() ? false : ($this->reg_status === self::STATUS_PENDING); }
     public function isApproved(): bool { 
+        if ($this->isAdmin()) {
+            return true;
+        }
         if (in_array($this->role, [self::ROLE_AUTHOR, self::ROLE_SELLER, self::ROLE_PUBLISHER], true)) {
             return $this->reg_status === self::STATUS_APPROVED && (bool) $this->is_active;
         }
         return $this->reg_status === self::STATUS_APPROVED || in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER, self::ROLE_ADMIN], true); 
     }
-    public function isRejected(): bool { return $this->reg_status === self::STATUS_REJECTED; }
+    public function isRejected(): bool { return $this->isAdmin() ? false : ($this->reg_status === self::STATUS_REJECTED); }
 
     // ─── Relationships ───────────────────────────────────────────────
     public function orders()

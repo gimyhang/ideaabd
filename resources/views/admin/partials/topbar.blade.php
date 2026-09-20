@@ -254,6 +254,17 @@
                 @if (Route::has('admin.users'))
                     <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}"><i class="fa-solid fa-users me-2 text-secondary"></i>Users Management</a></li>
                 @endif
+
+                @if($me && $me->isAdmin())
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li class="dropdown-header text-uppercase small text-muted px-3" style="font-size: 10px;">Switch Portal View (সুপার এডমিন)</li>
+                    <li><a class="dropdown-item py-1.5 text-success fw-semibold" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed me-2"></i>লেখক স্টুডিও (Author Studio)</a></li>
+                    <li><a class="dropdown-item py-1.5 text-primary fw-semibold" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building me-2"></i>প্রকাশক পোর্টাল (Publisher Portal)</a></li>
+                    <li><a class="dropdown-item py-1.5 text-warning fw-semibold" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store me-2"></i>সেলার ড্যাশবোর্ড (Seller Panel)</a></li>
+                    <li><a class="dropdown-item py-1.5 text-dark fw-semibold" href="{{ route('my-account') }}"><i class="fa-solid fa-user-tag me-2"></i>বায়ার / কাস্টমার একাউন্ট (Buyer View)</a></li>
+                @endif
+
+                <li><hr class="dropdown-divider my-1"></li>
                 <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-2 text-muted"></i>View Website</a></li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <li>

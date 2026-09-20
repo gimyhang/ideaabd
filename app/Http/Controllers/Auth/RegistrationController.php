@@ -229,18 +229,55 @@ class RegistrationController extends Controller
             ->first();
 
         if ($user) {
-            // If user exists, log in and update category if previously default buyer
+            if ($user->isAdmin()) {
+                \Illuminate\Support\Facades\Auth::login($user, true);
+                return response()->json([
+                    'success'      => true,
+                    'redirect_url' => route('admin.dashboard'),
+                    'message'      => 'স্বাগতম অ্যাডমিন! অ্যাডমিন ড্যাশবোর্ডে প্রবেশ করানো হচ্ছে...',
+                ]);
+            }
+
+            // If user exists, update category if previously default buyer
             if ($user->role === 'buyer' && $category !== 'buyer') {
                 $user->role = $category;
                 $user->reg_type = $category;
                 $user->reg_status = 'pending';
+                $user->is_active = false;
                 $user->save();
+
+                return response()->json([
+                    'success'      => true,
+                    'redirect_url' => route('register.success'),
+                    'message'      => 'আপনার অ্যাকাউন্ট আপগ্রেড আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদনের পর সক্রিয় হবে।',
+                    'is_approved'  => false,
+                ]);
             }
+
+            if (!$user->is_active && !$user->isAdmin()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'এই তথ্য দিয়ে নিবন্ধিত অ্যাকাউন্টটি এখনও অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।',
+                ], 422);
+            }
+
             \Illuminate\Support\Facades\Auth::login($user, true);
+
+            $redir = route('my-account');
+            if ($user->isAdmin()) {
+                $redir = route('admin.dashboard');
+            } elseif ($user->isPublisher() && $user->isApproved()) {
+                $redir = route('publisher.dashboard');
+            } elseif ($user->isAuthor() && $user->isApproved()) {
+                $redir = route('author.dashboard');
+            } elseif ($user->isSeller() && $user->isApproved()) {
+                $redir = route('subadmin.dashboard');
+            }
+
             return response()->json([
-                'success' => true,
-                'redirect_url' => route('my-account'),
-                'message' => 'Welcome back! You have successfully signed in.',
+                'success'      => true,
+                'redirect_url' => $redir,
+                'message'      => 'Welcome back! You have successfully signed in.',
             ]);
         }
 
