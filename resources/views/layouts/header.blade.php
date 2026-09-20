@@ -341,49 +341,92 @@
                                 </div>
                                 <div class="fw-bold text-dark fs-6">{{ $me->name }}</div>
                                 <div class="text-muted small text-truncate">{{ $me->email }}</div>
-                                <div class="badge bg-primary mt-2 px-3 py-1 rounded-pill small">
-                                    {{ ['admin' => '👑 অ্যাডমিন', 'sub_admin' => '🛡️ সাব-অ্যাডমিন', 'seller' => '💼 সেলার',
-                                        'publisher' => '🏢 প্রকাশক', 'author' => '✍️ লেখক'][$me->role] ?? '👤 গ্রাহক' }}
-                                </div>
+                                @if($me->isAdmin())
+                                    <div class="badge bg-warning text-dark border border-warning-subtle mt-2 px-3 py-1 rounded-pill fw-bold shadow-2xs">
+                                        👑 সুপার অ্যাডমিন
+                                    </div>
+                                @else
+                                    <div class="badge bg-primary mt-2 px-3 py-1 rounded-pill small">
+                                        {{ ['sub_admin' => '🛡️ সাব-অ্যাডমিন', 'seller' => '💼 সেলার',
+                                            'publisher' => '🏢 প্রকাশক', 'author' => '✍️ লেখক'][$me->role] ?? '👤 গ্রাহক / পাঠক' }}
+                                    </div>
+                                @endif
                             </li>
 
                             @php
-                                $isMeApproved = ($me->reg_status === 'approved');
+                                $isMeApproved = ($me->reg_status === 'approved') || $me->isAdmin();
                             @endphp
 
-                            @if ($me->isAdmin() && Route::has('admin.dashboard'))
-                                <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="fas fa-gauge-high text-primary me-2"></i>অ্যাডমিন প্যানেল</a></li>
-                            @endif
+                            @if ($me->isAdmin())
+                                {{-- Complete Dashboard Hub for Super Admin --}}
+                                <div class="px-2 py-1 mb-1 bg-light bg-opacity-75 rounded-3 border">
+                                    <div class="text-uppercase fw-bold text-muted px-2 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
+                                        <i class="fa-solid fa-layer-group text-primary me-1"></i> ড্যাশবোর্ড হাব (Dashboard Hub)
+                                    </div>
+                                    @if(Route::has('admin.dashboard'))
+                                        <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-danger d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
+                                            <span><i class="fas fa-gauge-high me-2 text-danger"></i>অ্যাডমিন প্যানেল</span>
+                                            <span class="badge bg-danger text-white rounded-pill" style="font-size: 9.5px;">এডমিন</span>
+                                        </a>
+                                    @endif
+                                    @if(Route::has('author.dashboard'))
+                                        <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-success d-flex align-items-center justify-content-between" href="{{ route('author.dashboard') }}">
+                                            <span><i class="fas fa-feather-pointed me-2 text-success"></i>লেখক ড্যাশবোর্ড</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 9.5px;">লেখক</span>
+                                        </a>
+                                    @endif
+                                    @if(Route::has('publisher.dashboard'))
+                                        <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-primary d-flex align-items-center justify-content-between" href="{{ route('publisher.dashboard') }}">
+                                            <span><i class="fas fa-building me-2 text-primary"></i>পাবলিশার ড্যাশবোর্ড</span>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 9.5px;">প্রকাশক</span>
+                                        </a>
+                                    @endif
+                                    @if(Route::has('subadmin.dashboard'))
+                                        <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-warning-emphasis d-flex align-items-center justify-content-between" href="{{ route('subadmin.dashboard') }}">
+                                            <span><i class="fas fa-store me-2 text-warning"></i>সেলার ড্যাশবোর্ড</span>
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill" style="font-size: 9.5px;">সেলার</span>
+                                        </a>
+                                    @endif
+                                    @if(Route::has('my-account'))
+                                        <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-dark d-flex align-items-center justify-content-between" href="{{ route('my-account') }}">
+                                            <span><i class="fas fa-user-tag me-2 text-secondary"></i>বায়ার / কাস্টমার একাউন্ট</span>
+                                            <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9.5px;">পাঠক</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @else
+                                {{-- Role-specific links for standard non-admin users --}}
+                                @if ((($me->isSeller() || $me->isSubAdmin() || $me->reg_type === 'seller') && $isMeApproved) && Route::has('subadmin.dashboard'))
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('subadmin.dashboard') }}">
+                                            <i class="fas fa-store me-2 text-primary"></i>সেলার ড্যাশবোর্ড
+                                        </a>
+                                    </li>
+                                @endif
 
-                            @if (($me->isAdmin() || (($me->isSeller() || $me->isSubAdmin() || $me->reg_type === 'seller') && $isMeApproved)) && Route::has('subadmin.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('subadmin.dashboard') }}">
-                                        <i class="fas fa-store me-2 text-primary"></i>সেলার ড্যাশবোর্ড
-                                    </a>
-                                </li>
-                            @endif
+                                @if ((($me->isPublisher() || $me->reg_type === 'publisher') && $isMeApproved) && Route::has('publisher.dashboard'))
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('publisher.dashboard') }}">
+                                            <i class="fas fa-building me-2 text-success"></i>পাবলিশার ড্যাশবোর্ড
+                                        </a>
+                                    </li>
+                                @endif
 
-                            @if (($me->isAdmin() || (($me->isPublisher() || $me->reg_type === 'publisher') && $isMeApproved)) && Route::has('publisher.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('publisher.dashboard') }}">
-                                        <i class="fas fa-building me-2 text-success"></i>পাবলিশার ড্যাশবোর্ড
-                                    </a>
-                                </li>
-                            @endif
+                                @if ((($me->isAuthor() || $me->reg_type === 'author') && $isMeApproved) && Route::has('author.dashboard'))
+                                    <li>
+                                        <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">
+                                            <i class="fas fa-feather-pointed me-2"></i>লেখক ড্যাশবোর্ড
+                                        </a>
+                                    </li>
+                                @endif
 
-                            @if (($me->isAdmin() || (($me->isAuthor() || $me->reg_type === 'author') && $isMeApproved)) && Route::has('author.dashboard'))
-                                <li>
-                                    <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">
-                                        <i class="fas fa-feather-pointed me-2"></i>লেখক ড্যাশবোর্ড
-                                    </a>
-                                </li>
+                                <li><a class="dropdown-item py-2" href="{{ route('my-account') }}"><i class="fas fa-user text-primary me-2"></i>আমার একাউন্ট</a></li>
                             @endif
 
                             @if (Route::has('wishlist'))
                                 <li><a class="dropdown-item py-2" href="{{ route('wishlist') }}"><i class="fas fa-heart text-danger me-2"></i>পছন্দের তালিকা</a></li>
                             @endif
                             <li><a class="dropdown-item py-2" href="{{ route('cart') }}"><i class="fas fa-bag-shopping text-info me-2"></i>আমার কার্ট</a></li>
-                            <li><a class="dropdown-item py-2" href="{{ route('my-account') }}"><i class="fas fa-user text-primary me-2"></i>আমার একাউন্ট</a></li>
 
                             <li><hr class="dropdown-divider my-2"></li>
                             <li>

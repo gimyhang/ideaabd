@@ -462,10 +462,11 @@ class LoginController extends Controller
                         ->orWhere('phone', '880' . $last10);
                 }
 
-                // 4. Admin identifier fallback: allow logging in with 'admin' or ADMIN_USERNAME even if real name is set
+                // 4. Admin identifier fallback: allow logging in with 'admin', ADMIN_USERNAME, or admin emails
                 $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
-                if ($cleanLower === 'admin' || $cleanLower === $adminUsername) {
-                    $query->orWhere('role', \App\Models\User::ROLE_ADMIN);
+                if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com'], true)) {
+                    $query->orWhere('role', \App\Models\User::ROLE_ADMIN)
+                          ->orWhere('id', 1);
                 }
             })
             ->orderByRaw("CASE 
@@ -530,26 +531,11 @@ class LoginController extends Controller
                 $request->session()->regenerate();
 
                 $redirectUrl = route('home');
-                $isApproved = ($matchedUser->reg_status === 'approved');
-
-                if (!empty($matchedUser->must_change_password)) {
-                    $redirectUrl = route('my-account');
-                } elseif ($matchedUser->isAdmin()) {
-                    $redirectUrl = route('admin.dashboard');
-                } elseif ($isApproved && ($matchedUser->isSeller() || $matchedUser->isSubAdmin() || $matchedUser->reg_type === 'seller')) {
-                    $redirectUrl = route('subadmin.dashboard');
-                } elseif ($isApproved && ($matchedUser->isPublisher() || $matchedUser->reg_type === 'publisher')) {
-                    $redirectUrl = route('publisher.dashboard');
-                } elseif ($isApproved && ($matchedUser->isAuthor() || $matchedUser->reg_type === 'author')) {
-                    $redirectUrl = route('author.dashboard');
-                } else {
-                    $redirectUrl = route('my-account');
-                }
 
                 if ($isAjax) {
                     return response()->json([
                         'success'  => true,
-                        'message'  => 'লগইন সফল হয়েছে! ড্যাশবোর্ডে রিডাইরেক্ট করা হচ্ছে...',
+                        'message'  => 'লগইন সফল হয়েছে! হোমপেজে প্রবেশ করানো হচ্ছে...',
                         'redirect' => $redirectUrl,
                     ]);
                 }
@@ -558,16 +544,7 @@ class LoginController extends Controller
                     return redirect()->route('my-account')->with('warning', 'আপনি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। অনুগ্রহ করে প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
                 }
 
-                if ($matchedUser->isAdmin()) {
-                    $intended = session('url.intended');
-                    if ($intended && str_contains($intended, '/admin')) {
-                        return redirect()->intended(route('admin.dashboard'));
-                    }
-                    session()->forget('url.intended');
-                    return redirect()->route('admin.dashboard');
-                }
-
-                return redirect()->intended($redirectUrl);
+                return redirect()->route('home');
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
