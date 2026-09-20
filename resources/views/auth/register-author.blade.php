@@ -1,16 +1,16 @@
 @php
-     = app(\Modules\Author\Http\Controllers\Frontend\AuthorController::class);
-     =  ?? (function() use () {
-         = new \ReflectionClass();
-        if (->hasMethod('getAllCountryCodes')) {
-             = ->getMethod('getAllCountryCodes');
-            ->setAccessible(true);
-            return ->invoke();
+    $authorController = app(\Modules\Author\Http\Controllers\Frontend\AuthorController::class);
+    $countries = $countries ?? (function() use ($authorController) {
+        $ref = new \ReflectionClass($authorController);
+        if ($ref->hasMethod('getAllCountryCodes')) {
+            $m = $ref->getMethod('getAllCountryCodes');
+            $m->setAccessible(true);
+            return $m->invoke($authorController);
         }
         return [];
     })();
 
-     =  ?? [
+    $genresList = $genresList ?? [
         'কবিতা (Poetry)',
         'উপন্যাস (Novel)',
         'ছোটগল্প (Short Story)',
@@ -28,4 +28,4 @@
     ];
 @endphp
 
-@include('author::register', ['countries' => , 'genresList' => ])
+@include('author::register', ['countries' => $countries, 'genresList' => $genresList])

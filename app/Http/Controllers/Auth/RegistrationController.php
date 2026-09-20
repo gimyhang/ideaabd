@@ -77,6 +77,17 @@ class RegistrationController extends Controller
             ], 422);
         }
 
+        // Check if phone verification is temporarily disabled by admin
+        if (!\App\Support\SiteSetting::isPhoneVerificationEnabled()) {
+            session(['phone_verified_' . md5($fullPhone) => true]);
+            return response()->json([
+                'success' => true,
+                'bypassed' => true,
+                'message' => 'Mobile verification is currently bypassed/disabled by administration.',
+                'cooldown' => 0,
+            ]);
+        }
+
         // Generate 6-digit OTP
         $otpCode = (string) rand(100000, 999999);
         $cacheKey = 'reg_otp_' . md5($fullPhone);
@@ -128,6 +139,16 @@ class RegistrationController extends Controller
         } else {
             $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
             $fullPhone = $prefix . ltrim($cleanDigits, '0');
+        }
+
+        // Auto bypass if phone verification is disabled
+        if (!\App\Support\SiteSetting::isPhoneVerificationEnabled()) {
+            session(['phone_verified_' . md5($fullPhone) => true]);
+            return response()->json([
+                'success' => true,
+                'bypassed' => true,
+                'message' => 'Mobile number verified successfully!',
+            ]);
         }
 
         $cacheKey = 'reg_otp_' . md5($fullPhone);
@@ -261,16 +282,21 @@ class RegistrationController extends Controller
             'registered_at'   => now()->toIso8601String(),
         ];
 
+        $isCustomer = in_array($category, ['buyer', 'customer']);
+        $isActive = $isCustomer;
+        $regStatus = $isCustomer ? User::STATUS_APPROVED : User::STATUS_PENDING;
+
         $user = User::create([
-            'name'       => $displayName,
-            'email'      => $email,
-            'phone'      => $fullPhone,
-            'password'   => Hash::make($request->input('password')),
-            'role'       => $category,
-            'reg_type'   => $category,
-            'reg_status' => ($category === 'buyer' ? 'approved' : 'pending'),
-            'reg_data'   => $regData,
-            'is_active'  => true,
+            'name'              => $displayName,
+            'email'             => $email,
+            'phone'             => $fullPhone,
+            'password'          => Hash::make($request->input('password')),
+            'role'              => $category,
+            'reg_type'          => $category,
+            'reg_status'        => $regStatus,
+            'reg_data'          => $regData,
+            'is_active'         => $isActive,
+            'email_verified_at' => (!\App\Support\SiteSetting::isEmailVerificationEnabled() || $isCustomer) ? now() : null,
         ]);
 
         // If author category, sync unified author record so that all books, ebooks, ideapatra, and author directory link directly here
@@ -283,7 +309,7 @@ class RegistrationController extends Controller
                     'email'       => $user->email,
                     'phone'       => $user->phone,
                     'user_id'     => $user->id,
-                    'is_active'   => true,
+                    'is_active'   => false, // Pending admin approval
                     'is_verified' => false,
                 ]);
 
@@ -314,7 +340,7 @@ class RegistrationController extends Controller
                     'phone'       => $user->phone,
                     'address'     => $fullAddress,
                     'country'     => $request->input('country', 'Bangladesh'),
-                    'is_active'   => true,
+                    'is_active'   => false, // Pending admin approval
                     'is_verified' => false,
                 ]);
 
@@ -330,13 +356,47 @@ class RegistrationController extends Controller
             }
         }
 
-        // Auto login and redirect to my-account
-        \Illuminate\Support\Facades\Auth::login($user, true);
+        if ($isCustomer) {
+            // Auto login customer and redirect to my-account
+            \Illuminate\Support\Facades\Auth::login($user, true);
+
+            return response()->json([
+                'success'      => true,
+                'redirect_url' => route('my-account'),
+                'message'      => 'আপনার কাস্টমার অ্যাকাউন্ট সফলভাবে তৈরি ও সক্রিয় হয়েছে!',
+                'is_approved'  => true,
+            ]);
+        }
+
+        // Format role label for pending notice
+        $typeLabels = [
+            'author'    => 'লেখক (Author)',
+            'publisher' => 'প্রকাশক (Publisher)',
+            'seller'    => 'সেলার (Seller)',
+        ];
+        $typeLabel = $typeLabels[$category] ?? ucfirst($category);
+
+        session(['registration_summary' => [
+            'user_id'        => $user->id,
+            'name'           => $user->name,
+            'email'          => $user->email,
+            'phone'          => $user->phone,
+            'type'           => $category,
+            'type_label'     => $typeLabel,
+            'is_active'      => false,
+            'reg_status'     => 'pending',
+            'created_at'     => now()->format('d M, Y - h:i A'),
+            'shop_name'      => $regData['shop_name'] ?? null,
+            'publisher_name' => $regData['publishing_house_name'] ?? null,
+            'pen_name'       => $regData['author_name'] ?? null,
+        ]]);
 
         return response()->json([
             'success'      => true,
-            'redirect_url' => route('my-account'),
-            'message'      => 'Your account has been created successfully!',
+            'redirect_url' => route('register.success'),
+            'message'      => "আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে অ্যাকাউন্টটি সক্রিয় হবে।",
+            'is_approved'  => false,
+            'pending'      => true,
         ]);
     }
 

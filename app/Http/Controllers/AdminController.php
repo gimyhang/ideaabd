@@ -407,6 +407,60 @@ class AdminController extends Controller
     }
 
     /**
+     * AJAX endpoint to quickly toggle system verification settings (Phone OTP / Email verification).
+     */
+    public function toggleVerificationSetting(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'type'   => ['required', 'string', 'in:phone,email,both'],
+            'status' => ['required'],
+        ]);
+
+        $type = $validated['type'];
+        $status = filter_var($validated['status'], FILTER_VALIDATE_BOOLEAN);
+        $valStr = $status ? '1' : '0';
+
+        try {
+            if ($type === 'phone' || $type === 'both') {
+                \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')->updateOrInsert(
+                    ['key' => 'phone_verification_enabled'],
+                    ['value' => json_encode($valStr), 'updated_at' => now()]
+                );
+            }
+
+            if ($type === 'email' || $type === 'both') {
+                \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')->updateOrInsert(
+                    ['key' => 'email_verification_enabled'],
+                    ['value' => json_encode($valStr), 'updated_at' => now()]
+                );
+            }
+
+            \App\Support\SiteSetting::clearCache();
+
+            $statusText = $status ? 'Active (সক্রিয়)' : 'Disabled (সাময়িক বন্ধ)';
+            $typeLabel = match ($type) {
+                'phone' => 'Mobile / Phone OTP Verification',
+                'email' => 'Email Verification',
+                default => 'Email & Mobile Verification',
+            };
+
+            return response()->json([
+                'success'       => true,
+                'message'       => "{$typeLabel} is now {$statusText}.",
+                'type'          => $type,
+                'status'        => $status,
+                'phone_enabled' => \App\Support\SiteSetting::isPhoneVerificationEnabled(),
+                'email_enabled' => \App\Support\SiteSetting::isEmailVerificationEnabled(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Settings update error: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * AJAX endpoint to fetch full pending records data dynamically.
      */
     public function dashboardPendingData(Request $request): \Illuminate\Http\JsonResponse

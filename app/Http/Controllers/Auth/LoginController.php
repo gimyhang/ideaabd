@@ -502,11 +502,26 @@ class LoginController extends Controller
                 Session::forget('login_visual_challenge');
                 Session::forget('show_captcha');
 
-                // Check active status
+                // Check active status & pending approval for non-customer roles
+                $roleName = $matchedUser->getRoleDisplayName();
+                $isPendingAccount = ($matchedUser->reg_status === 'pending') || in_array($matchedUser->role, ['author', 'publisher', 'seller', 'vendor'], true);
+
                 if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
-                    $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।';
+                    if ($isPendingAccount) {
+                        $msg = "আপনার {$roleName} অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।";
+                    } else {
+                        $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।';
+                    }
                     if ($isAjax) {
-                        return response()->json(['success' => false, 'message' => $msg], 422);
+                        return response()->json(['success' => false, 'message' => $msg, 'pending_approval' => true], 422);
+                    }
+                    throw ValidationException::withMessages(['email' => $msg]);
+                }
+
+                if ($matchedUser->reg_status === 'pending' && in_array($matchedUser->role, ['author', 'publisher', 'seller', 'vendor'], true)) {
+                    $msg = "আপনার {$roleName} অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।";
+                    if ($isAjax) {
+                        return response()->json(['success' => false, 'message' => $msg, 'pending_approval' => true], 422);
                     }
                     throw ValidationException::withMessages(['email' => $msg]);
                 }
@@ -598,9 +613,29 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/');
+        try {
+            if (Auth::check()) {
+                Auth::logout();
+            }
+        } catch (\Throwable $e) {
+            // Ignore auth driver exceptions
+        }
+
+        try {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        } catch (\Throwable $e) {
+            // Ignore session invalidation exceptions
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => 'Logged out successfully.',
+                'redirect' => url('/'),
+            ]);
+        }
+
+        return redirect('/')->with('success', 'Logged out successfully.');
     }
 }

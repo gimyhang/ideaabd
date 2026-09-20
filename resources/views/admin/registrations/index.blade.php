@@ -135,6 +135,10 @@
             <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 d-flex flex-column justify-content-center">
                 <div class="small fw-bold text-muted mb-2">Role Breakdown:</div>
                 <div class="d-flex flex-wrap gap-1.5">
+                    <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'buyer'])) }}" 
+                       class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ (request('type') === 'buyer' || request('type') === 'customer') ? 'bg-dark text-white' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }}">
+                        <i class="fa-solid fa-users me-1"></i>Customers: {{ number_format($counts['customers'] ?? 0) }}
+                    </a>
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'author'])) }}" 
                        class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'author' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' }}">
                         <i class="fa-solid fa-pen-fancy me-1"></i>Authors: {{ number_format($counts['authors'] ?? 0) }}
@@ -183,6 +187,7 @@
                 <div class="col-6 col-md-3 col-lg-2">
                     <select name="type" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
                         <option value="" @selected(request('type') === null || request('type') === '')>All Roles</option>
+                        <option value="buyer" @selected(request('type') === 'buyer' || request('type') === 'customer')>Customer / Buyer</option>
                         <option value="author" @selected(request('type') === 'author')>Author</option>
                         <option value="publisher" @selected(request('type') === 'publisher')>Publisher</option>
                         <option value="seller" @selected(request('type') === 'seller')>Seller</option>
@@ -255,9 +260,9 @@
                                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
                                 $bioText = $regData['bio'] ?? null;
                                 $cleanBio = !empty($bioText) ? trim(strip_tags($bioText)) : null;
-                                $roleIcons = ['seller' => 'store', 'publisher' => 'building', 'author' => 'pen-fancy', 'buyer' => 'user'];
-                                $roleColors = ['seller' => 'primary', 'publisher' => 'info', 'author' => 'success', 'buyer' => 'secondary'];
-                                $roleLabels = ['seller' => 'Seller', 'publisher' => 'Publisher', 'author' => 'Author', 'buyer' => 'Buyer'];
+                                $roleIcons = ['seller' => 'store', 'publisher' => 'building', 'author' => 'pen-fancy', 'buyer' => 'user-tag', 'customer' => 'user-tag'];
+                                $roleColors = ['seller' => 'primary', 'publisher' => 'info', 'author' => 'success', 'buyer' => 'dark', 'customer' => 'dark'];
+                                $roleLabels = ['seller' => 'Seller', 'publisher' => 'Publisher', 'author' => 'Author', 'buyer' => 'Customer', 'customer' => 'Customer'];
                                 $currColor = $roleColors[$user->role] ?? 'secondary';
                             @endphp
                             <tr id="regRow-{{ $user->id }}" class="{{ $user->reg_status === 'pending' ? 'table-warning-subtle' : '' }}">
@@ -310,6 +315,11 @@
                                                 <span class="text-muted" style="font-size: 11px;">শপ:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['shop_name'] }}</strong>
                                             @elseif(!empty($regData['publisher_name']))
                                                 <span class="text-muted" style="font-size: 11px;">প্রকাশনী:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['publisher_name'] }}</strong>
+                                            @elseif(in_array($user->role, ['buyer', 'customer']))
+                                                <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-location-dot me-0.5 text-secondary"></i></span>
+                                                <span class="text-dark text-truncate" style="max-width: 170px;" title="{{ $regData['address'] ?? ($regData['district'] ?? 'General Customer') }}">
+                                                    {{ !empty($regData['district']) ? ($regData['district'] . (!empty($regData['thana']) ? ', ' . $regData['thana'] : '')) : ($regData['address'] ?? 'General Customer') }}
+                                                </span>
                                             @else
                                                 <span class="text-muted fst-italic" style="font-size: 11px;">সাধারণ তথ্য</span>
                                             @endif

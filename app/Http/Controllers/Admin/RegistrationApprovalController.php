@@ -16,7 +16,8 @@ class RegistrationApprovalController extends Controller
     // List all registrations with rich filtering & stats
     public function index(Request $request)
     {
-        $query = User::whereIn('role', ['seller', 'publisher', 'author']);
+        $allowedRoles = ['seller', 'publisher', 'author', 'buyer', 'customer'];
+        $query = User::whereIn('role', $allowedRoles);
 
         // Status filter
         if ($request->filled('status')) {
@@ -25,9 +26,15 @@ class RegistrationApprovalController extends Controller
 
         // Type / Role filter
         if ($request->filled('type')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('reg_type', $request->type)
-                  ->orWhere('role', $request->type);
+            $type = $request->type;
+            $query->where(function ($q) use ($type) {
+                if ($type === 'buyer' || $type === 'customer') {
+                    $q->whereIn('role', ['buyer', 'customer'])
+                      ->orWhere('reg_type', 'buyer');
+                } else {
+                    $q->where('reg_type', $type)
+                      ->orWhere('role', $type);
+                }
             });
         }
 
@@ -64,12 +71,13 @@ class RegistrationApprovalController extends Controller
         $perPage = in_array((int) $request->input('per_page'), [10, 20, 25, 50, 100], true) ? (int) $request->input('per_page') : 20;
         $registrations = $query->paginate($perPage)->withQueryString();
 
-        $baseRoleScope = User::whereIn('role', ['seller', 'publisher', 'author']);
+        $baseRoleScope = User::whereIn('role', $allowedRoles);
         $counts = [
             'all'        => (clone $baseRoleScope)->count(),
             'pending'    => (clone $baseRoleScope)->where('reg_status', 'pending')->count(),
             'approved'   => (clone $baseRoleScope)->where('reg_status', 'approved')->count(),
             'rejected'   => (clone $baseRoleScope)->where('reg_status', 'rejected')->count(),
+            'customers'  => User::whereIn('role', ['buyer', 'customer'])->orWhere('reg_type', 'buyer')->count(),
             'authors'    => User::where('role', 'author')->count(),
             'publishers' => User::where('role', 'publisher')->count(),
             'sellers'    => User::where('role', 'seller')->count(),

@@ -245,6 +245,36 @@
             <span>Quick Actions:</span>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
+            {{-- Phone Verification Switch --}}
+            @php
+                $isPhoneVerEnabled = \App\Support\SiteSetting::isPhoneVerificationEnabled();
+                $isEmailVerEnabled = \App\Support\SiteSetting::isEmailVerificationEnabled();
+            @endphp
+            <div class="d-flex align-items-center gap-2 p-1.5 px-3 bg-light border rounded-pill shadow-2xs">
+                <i class="fa-solid fa-mobile-screen {{ $isPhoneVerEnabled ? 'text-success' : 'text-danger' }}" id="phoneVerIcon"></i>
+                <span class="small fw-semibold text-dark" style="font-size: 12px;">Mobile OTP:</span>
+                <div class="form-check form-switch m-0 d-flex align-items-center">
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="phoneVerToggle" 
+                           @checked($isPhoneVerEnabled) onchange="toggleVerificationSetting('phone', this.checked, this)">
+                </div>
+                <span class="badge {{ $isPhoneVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10px;" id="phoneVerBadge">
+                    {{ $isPhoneVerEnabled ? 'Active' : 'Bypassed' }}
+                </span>
+            </div>
+
+            {{-- Email Verification Switch --}}
+            <div class="d-flex align-items-center gap-2 p-1.5 px-3 bg-light border rounded-pill shadow-2xs">
+                <i class="fa-solid fa-envelope {{ $isEmailVerEnabled ? 'text-success' : 'text-danger' }}" id="emailVerIcon"></i>
+                <span class="small fw-semibold text-dark" style="font-size: 12px;">Email Verification:</span>
+                <div class="form-check form-switch m-0 d-flex align-items-center">
+                    <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="emailVerToggle" 
+                           @checked($isEmailVerEnabled) onchange="toggleVerificationSetting('email', this.checked, this)">
+                </div>
+                <span class="badge {{ $isEmailVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10px;" id="emailVerBadge">
+                    {{ $isEmailVerEnabled ? 'Active' : 'Bypassed' }}
+                </span>
+            </div>
+
             <a href="{{ route('admin.sms.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold shadow-xs">
                 <i class="fa-solid fa-comment-sms me-1 text-primary"></i>Bulk SMS
                 @if(isset($smsInfo['balance']) && $smsInfo['balance'] !== null)
@@ -3250,6 +3280,51 @@ function reloadPendingData() {
                 if (icon) icon.classList.remove('fa-spin');
             });
         });
+}
+
+function toggleVerificationSetting(type, isChecked, toggleEl) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    const badge = document.getElementById(`${type}VerBadge`);
+    const icon = document.getElementById(`${type}VerIcon`);
+
+    if (toggleEl) toggleEl.disabled = true;
+
+    fetch("{{ route('admin.settings.toggle-verification') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            type: type,
+            status: isChecked
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showDashboardToast(data.message, isChecked ? 'success' : 'warning');
+            if (badge) {
+                badge.className = `badge ${isChecked ? 'bg-success' : 'bg-danger'} rounded-pill font-monospace`;
+                badge.textContent = isChecked ? 'Active' : 'Bypassed';
+            }
+            if (icon) {
+                icon.className = `fa-solid ${type === 'phone' ? 'fa-mobile-screen' : 'fa-envelope'} ${isChecked ? 'text-success' : 'text-danger'}`;
+            }
+        } else {
+            showDashboardToast(data.message || 'Failed to update verification setting.', 'danger');
+            if (toggleEl) toggleEl.checked = !isChecked;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showDashboardToast('Server error updating setting.', 'danger');
+        if (toggleEl) toggleEl.checked = !isChecked;
+    })
+    .finally(() => {
+        if (toggleEl) toggleEl.disabled = false;
+    });
 }
 </script>
 @endpush
