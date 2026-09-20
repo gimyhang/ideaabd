@@ -34,11 +34,13 @@ class IdeaAccountingController extends Controller
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $paymentMethod = $request->input('payment_method');
 
         $query = IdeaAccountingEntry::query()
             ->with('creator', 'invoice')
             ->when($type, fn($q) => $q->where('type', $type))
             ->when($category, fn($q) => $q->where('category', $category))
+            ->when($paymentMethod, fn($q) => $q->where('payment_method', $paymentMethod))
             ->when($dateFrom, fn($q) => $q->whereDate('entry_date', '>=', $dateFrom))
             ->when($dateTo, fn($q) => $q->whereDate('entry_date', '<=', $dateTo))
             ->when($search, function ($q, $term) {
@@ -53,11 +55,33 @@ class IdeaAccountingController extends Controller
             ->latest('entry_date')
             ->latest('id');
 
-        $entries = $query->paginate(20)->withQueryString();
+        $entries = $query->paginate(25)->withQueryString();
 
         $totalIncome = (float) IdeaAccountingEntry::where('type', 'income')->sum('amount');
         $totalExpense = (float) IdeaAccountingEntry::where('type', 'expense')->sum('amount');
         $netBalance = $totalIncome - $totalExpense;
+
+        // Today & Current Month Stats
+        $today = Carbon::today();
+        $thisMonth = Carbon::now();
+
+        $todayIncome = (float) IdeaAccountingEntry::where('type', 'income')->whereDate('entry_date', $today)->sum('amount');
+        $todayExpense = (float) IdeaAccountingEntry::where('type', 'expense')->whereDate('entry_date', $today)->sum('amount');
+
+        $thisMonthIncome = (float) IdeaAccountingEntry::where('type', 'income')
+            ->whereYear('entry_date', $thisMonth->year)
+            ->whereMonth('entry_date', $thisMonth->month)
+            ->sum('amount');
+        $thisMonthExpense = (float) IdeaAccountingEntry::where('type', 'expense')
+            ->whereYear('entry_date', $thisMonth->year)
+            ->whereMonth('entry_date', $thisMonth->month)
+            ->sum('amount');
+        $thisMonthNet = $thisMonthIncome - $thisMonthExpense;
+
+        // Invoice stats overview
+        $totalInvoiced = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('grand_total');
+        $totalInvoicePaid = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('paid_amount');
+        $totalInvoiceDue = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('due_amount');
 
         $categories = IdeaAccountingEntry::categories();
 
@@ -66,18 +90,52 @@ class IdeaAccountingController extends Controller
             ->select('category', DB::raw('SUM(amount) as total'))
             ->groupBy('category')
             ->orderByDesc('total')
+            ->take(8)
             ->get();
+
+        // Sector wise income breakdown
+        $incomeBreakdown = IdeaAccountingEntry::where('type', 'income')
+            ->select('category', DB::raw('SUM(amount) as total'))
+            ->groupBy('category')
+            ->orderByDesc('total')
+            ->take(6)
+            ->get();
+
+        // 6-month historical trend for visual chart
+        $trendMonths = [];
+        $trendIncome = [];
+        $trendExpense = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $m = Carbon::now()->subMonths($i);
+            $trendMonths[] = $m->format('M Y');
+
+            $inc = (float) IdeaAccountingEntry::where('type', 'income')
+                ->whereYear('entry_date', $m->year)
+                ->whereMonth('entry_date', $m->month)
+                ->sum('amount');
+            $exp = (float) IdeaAccountingEntry::where('type', 'expense')
+                ->whereYear('entry_date', $m->year)
+                ->whereMonth('entry_date', $m->month)
+                ->sum('amount');
+
+            $trendIncome[] = $inc;
+            $trendExpense[] = $exp;
+        }
 
         return view('admin.accounting.index', compact(
             'entries', 'totalIncome', 'totalExpense', 'netBalance',
-            'categories', 'expenseBreakdown', 'type', 'category', 'search', 'dateFrom', 'dateTo'
+            'todayIncome', 'todayExpense', 'thisMonthIncome', 'thisMonthExpense', 'thisMonthNet',
+            'totalInvoiced', 'totalInvoicePaid', 'totalInvoiceDue',
+            'categories', 'expenseBreakdown', 'incomeBreakdown',
+            'trendMonths', 'trendIncome', 'trendExpense',
+            'type', 'category', 'search', 'dateFrom', 'dateTo', 'paymentMethod'
         ));
     }
 
     /**
      * Store new income or expense transaction entry.
      */
-    public function storeEntry(Request $request): RedirectResponse
+    public function storeEntry(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'type'           => 'required|in:income,expense',
@@ -103,7 +161,7 @@ class IdeaAccountingController extends Controller
 
         $category = !empty($validated['custom_category']) 
             ? trim($validated['custom_category']) 
-            : ($validated['category'] ?? 'বিবিধ খরচ (Miscellaneous Expense)');
+            : ($validated['category'] ?? ($validated['type'] === 'income' ? 'সাধারণ বিক্রয় ও আয়' : 'বিবিধ খরচ (Miscellaneous Expense)'));
 
         // Format dynamic line items if provided
         $notesText = $validated['notes'] ?? '';
@@ -127,7 +185,7 @@ class IdeaAccountingController extends Controller
         $dateStr = date('Ymd', strtotime($validated['entry_date']));
         $entryNo = $prefix . $dateStr . '-' . rand(1000, 9999);
 
-        IdeaAccountingEntry::create([
+        $entry = IdeaAccountingEntry::create([
             'entry_no'       => $entryNo,
             'type'           => $validated['type'],
             'category'       => $category,
@@ -142,6 +200,14 @@ class IdeaAccountingController extends Controller
         ]);
 
         $msg = $validated['type'] === 'income' ? 'নতুন আয় এন্ট্রি সংরক্ষিত হয়েছে।' : 'নতুন ব্যয় / ক্রয়ের হিসাব সফলভাবে সংরক্ষিত হয়েছে।';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'entry'   => $entry,
+            ]);
+        }
 
         return back()->with('success', $msg);
     }
