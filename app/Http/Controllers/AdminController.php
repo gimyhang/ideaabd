@@ -249,7 +249,6 @@ class AdminController extends Controller
                         $message = "অর্ডার #{$order->order_number} বাতিল (Cancelled) করা হয়েছে।";
                     } elseif ($action === 'delete') {
                         $orderNum = $order->order_number;
-                        $order->items()->delete();
                         $order->delete();
                         $message = "অর্ডার #{$orderNum} স্থায়ীভাবে মুছে ফেলা হয়েছে।";
                     }
@@ -258,18 +257,27 @@ class AdminController extends Controller
                 case 'blog':
                     $post = \Modules\Blog\Models\BlogPost::findOrFail($id);
                     if ($action === 'approve') {
-                        $post->update([
-                            'status'       => 'published',
-                            'mod_status'   => 'approved',
-                            'published_at' => $post->published_at ?: now(),
-                        ]);
+                        if ($post->edit_request_status === 'pending') {
+                            $post->applyEditRequest(auth()->id());
+                        } else {
+                            $post->update([
+                                'status'       => 'published',
+                                'mod_status'   => 'approved',
+                                'published_at' => $post->published_at ?: now(),
+                            ]);
+                        }
                         $message = "'{$post->title}' পোস্টটি সফলভাবে অনুমোদন ও প্রকাশ করা হয়েছে।";
                     } elseif ($action === 'reject') {
-                        $post->update([
-                            'status'     => 'draft',
-                            'mod_status' => 'rejected',
-                        ]);
-                        $message = "'{$post->title}' পোস্টটি বাতিল ও ড্রাফট করা হয়েছে।";
+                        if ($post->edit_request_status === 'pending') {
+                            $post->rejectEditRequest($reason, auth()->id());
+                        } else {
+                            $post->update([
+                                'status'           => 'draft',
+                                'mod_status'       => 'rejected',
+                                'rejection_reason' => $reason,
+                            ]);
+                        }
+                        $message = "'{$post->title}' পোস্টটি বাতিল করা হয়েছে।";
                     } elseif ($action === 'delete') {
                         $postTitle = $post->title;
                         $post->delete();

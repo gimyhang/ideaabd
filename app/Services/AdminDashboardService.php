@@ -56,7 +56,9 @@ class AdminDashboardService
         $pendingBlogs = 0;
         if (Schema::hasTable('blog_posts')) {
             $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
-                $q->where('status', 'pending')->orWhere('mod_status', 'pending');
+                $q->where('status', 'pending')
+                  ->orWhere('mod_status', 'pending')
+                  ->orWhere('edit_request_status', 'pending');
             })->count(), 0);
         }
 
@@ -100,7 +102,7 @@ class AdminDashboardService
     public function getPendingRecordsData(int $limit = 10): array
     {
         $orders = $this->safe(fn () => Order::where('status', 'pending')
-            ->with(['items.book'])
+            ->with(['book', 'user'])
             ->latest()
             ->limit($limit)
             ->get(), collect());
@@ -114,8 +116,10 @@ class AdminDashboardService
         $blogs = collect();
         if (Schema::hasTable('blog_posts')) {
             $blogs = $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
-                $q->where('status', 'pending')->orWhere('mod_status', 'pending');
-            })->with(['authorUser', 'category'])->latest()->limit($limit)->get(), collect());
+                $q->where('status', 'pending')
+                  ->orWhere('mod_status', 'pending')
+                  ->orWhere('edit_request_status', 'pending');
+            })->with(['author', 'submitter', 'category'])->latest()->limit($limit)->get(), collect());
         }
 
         $books = collect();

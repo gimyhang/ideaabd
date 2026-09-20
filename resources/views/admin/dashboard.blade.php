@@ -1886,14 +1886,14 @@
                                         <div>
                                             <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                                                 <span class="badge bg-warning text-dark font-monospace fw-bold">#{{ $pOrder->order_number }}</span>
-                                                <h6 class="fw-bold text-dark mb-0">{{ $pOrder->shipping_name ?: ($pOrder->user?->name ?: 'Customer') }}</h6>
+                                                <h6 class="fw-bold text-dark mb-0">{{ $pOrder->customer_name ?: ($pOrder->user?->name ?: 'Customer') }}</h6>
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pOrder->total_amount, 2) }}</span>
                                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $pOrder->payment_method ?: 'Cash On Delivery' }}</span>
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pOrder->shipping_phone ?: ($pOrder->user?->phone ?: '—') }}</span>
-                                                <span><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ Str::limit($pOrder->shipping_address ?: '—', 35) }}</span>
-                                                <span><i class="fa-solid fa-boxes-stacked text-secondary me-1"></i>{{ $pOrder->items?->count() ?? 0 }} Books</span>
+                                                <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pOrder->customer_phone ?: ($pOrder->user?->phone ?: '—') }}</span>
+                                                <span><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ Str::limit($pOrder->customer_address ?: ($pOrder->full_address ?: '—'), 35) }}</span>
+                                                <span><i class="fa-solid fa-boxes-stacked text-secondary me-1"></i>{{ $pOrder->quantity ?? 1 }} Book(s) {{ $pOrder->book ? '('.$pOrder->book->title.')' : '' }}</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pOrder->created_at ? $pOrder->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
@@ -1918,9 +1918,6 @@
                                                     onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', '', this)" title="Delete Order">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
-                                            <a href="{{ route('admin.ecommerce-orders.invoice', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="View Invoice">
-                                                <i class="fa-solid fa-file-invoice"></i>
-                                            </a>
                                         </div>
 
                                     </div>
@@ -1957,7 +1954,7 @@
                                                 @endif
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pBlog->owner_name ?: ($pBlog->authorUser?->name ?: 'Author') }}</span>
+                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pBlog->owner_name ?: ($pBlog->author?->name ?: ($pBlog->submitter?->name ?: 'Author')) }}</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pBlog->created_at ? $pBlog->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
@@ -2873,7 +2870,8 @@ function updateDashboardAlertCounts(alerts) {
     const regCount = alerts.registrations ?? 0;
     const orderCount = alerts.orders ?? 0;
     const blogCount = alerts.blogs ?? 0;
-    const bookCount = (alerts.books ?? 0) + (alerts.ebooks ?? 0);
+    const bookCount = alerts.books ?? 0;
+    const ebookCount = alerts.ebooks ?? 0;
     const reqCount = alerts.book_requests ?? 0;
     const subCount = (alerts.submissions ?? 0) + (alerts.author_updates ?? 0);
 
@@ -2885,8 +2883,9 @@ function updateDashboardAlertCounts(alerts) {
         'blogs': blogCount,
         'blog': blogCount,
         'books': bookCount,
-        'book': alerts.books ?? 0,
-        'ebook': alerts.ebooks ?? 0,
+        'book': bookCount,
+        'ebooks': ebookCount,
+        'ebook': ebookCount,
         'requests': reqCount,
         'book_request': reqCount,
         'submissions': subCount,
@@ -2903,6 +2902,10 @@ function updateDashboardAlertCounts(alerts) {
         const cardBadge = document.getElementById(`pendingCardCount-${t}`);
         if (cardBadge) {
             cardBadge.textContent = `${cnt} Pending`;
+        }
+        const summaryCard = document.getElementById(`pendingSummaryCard-${t}`);
+        if (summaryCard) {
+            summaryCard.style.display = cnt > 0 ? '' : 'none';
         }
     }
 
@@ -2926,6 +2929,26 @@ function updateDashboardAlertCounts(alerts) {
             hub.classList.add('border-warning');
         }
     }
+}
+
+function reloadPendingData() {
+    const icon = document.getElementById('pendingDataRefreshIcon');
+    if (icon) icon.classList.add('fa-spin');
+
+    fetch("{{ route('admin.dashboard.pending-data') }}")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.alerts) {
+                updateDashboardAlertCounts(data.alerts);
+                showDashboardToast('Pending requests updated live.', 'success');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+        })
+        .finally(() => {
+            if (icon) icon.classList.remove('fa-spin');
+        });
 }
 
 function promptRejectReason(type, id, title) {
