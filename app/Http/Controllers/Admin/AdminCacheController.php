@@ -309,17 +309,81 @@ class AdminCacheController extends Controller
     }
 
     /**
+     * Inspect a specific cache key content for live modal debugging.
+     */
+    public function inspectKey(Request $request): JsonResponse
+    {
+        $key = (string) $request->input('key');
+        if (empty($key)) {
+            return response()->json(['success' => false, 'message' => 'Key parameter is missing.'], 400);
+        }
+
+        $exists = Cache::has($key);
+        $value = $exists ? Cache::get($key) : null;
+        $type = gettype($value);
+        $sizeBytes = $exists ? strlen(serialize($value)) : 0;
+
+        $preview = null;
+        if ($exists) {
+            if (is_array($value) || is_object($value)) {
+                $preview = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            } else {
+                $preview = (string) $value;
+            }
+        }
+
+        return response()->json([
+            'success'   => true,
+            'key'       => $key,
+            'exists'    => $exists,
+            'type'      => $type,
+            'size'      => $this->formatBytes($sizeBytes),
+            'sizeBytes' => $sizeBytes,
+            'preview'   => $preview,
+        ]);
+    }
+
+    /**
+     * Bulk delete selected cache keys.
+     */
+    public function bulkDeleteKeys(Request $request): JsonResponse|RedirectResponse
+    {
+        $keys = (array) $request->input('keys', []);
+        if (empty($keys)) {
+            return response()->json(['success' => false, 'message' => 'No cache keys selected.'], 400);
+        }
+
+        $deletedCount = 0;
+        foreach ($keys as $k) {
+            if (is_string($k) && !empty($k)) {
+                Cache::forget($k);
+                $deletedCount++;
+            }
+        }
+
+        $msg = "Successfully purged {$deletedCount} selected cache key(s).";
+        $this->logAction('bulk_delete_cache_keys', $msg);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $msg, 'count' => $deletedCount]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * Delete a single specific cache key.
      */
     public function deleteKey(Request $request): JsonResponse|RedirectResponse
     {
         $key = (string) $request->input('key');
         if (empty($key)) {
-            return back()->with('error', 'ক্যাশ কী নির্ধারিত হয়নি।');
+            return back()->with('error', 'Cache key is missing.');
         }
 
         Cache::forget($key);
-        $msg = "ক্যাশ কী '{$key}' সফলভাবে মুছে ফেলা হয়েছে!";
+        $msg = "Cache key '{$key}' successfully purged!";
+        $this->logAction('delete_cache_key', "Purged key: {$key}");
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => $msg]);
@@ -350,14 +414,19 @@ class AdminCacheController extends Controller
         $opcacheEnabled = function_exists('opcache_get_status') && !empty(@opcache_get_status()['opcache_enabled']);
         $opcacheMemoryUsed = 'N/A';
         $opcacheMemoryFree = 'N/A';
+        $opcacheMemoryPercent = 0;
         $opcacheHitRate = 'N/A';
         $opcacheScripts = 0;
 
         if ($opcacheEnabled) {
             $status = @opcache_get_status(false);
             if (isset($status['memory_usage'])) {
-                $opcacheMemoryUsed = round($status['memory_usage']['used_memory'] / (1024 * 1024), 1) . ' MB';
-                $opcacheMemoryFree = round($status['memory_usage']['free_memory'] / (1024 * 1024), 1) . ' MB';
+                $used = $status['memory_usage']['used_memory'] ?? 0;
+                $free = $status['memory_usage']['free_memory'] ?? 0;
+                $total = $used + $free;
+                $opcacheMemoryUsed = round($used / (1024 * 1024), 1) . ' MB';
+                $opcacheMemoryFree = round($free / (1024 * 1024), 1) . ' MB';
+                $opcacheMemoryPercent = $total > 0 ? round(($used / $total) * 100, 1) : 0;
             }
             if (isset($status['opcache_statistics'])) {
                 $opcacheHitRate = round($status['opcache_statistics']['opcache_hit_rate'], 1) . '%';
@@ -366,24 +435,25 @@ class AdminCacheController extends Controller
         }
 
         return [
-            'view_files_count'      => $viewFilesCount,
-            'view_cache_size'       => $this->formatBytes($viewCacheSize),
-            'view_cache_bytes'      => $viewCacheSize,
-            'data_cache_size'       => $this->formatBytes($dataCacheSize),
-            'data_cache_bytes'      => $dataCacheSize,
-            'bootstrap_cache_count' => $bootstrapCacheFiles,
-            'is_config_cached'      => $isConfigCached,
-            'is_route_cached'       => $isRouteCached,
-            'is_events_cached'      => $isEventsCached,
-            'opcache_enabled'       => $opcacheEnabled,
-            'opcache_memory_used'   => $opcacheMemoryUsed,
-            'opcache_memory_free'   => $opcacheMemoryFree,
-            'opcache_hit_rate'      => $opcacheHitRate,
-            'opcache_scripts'       => $opcacheScripts,
-            'cache_driver'          => config('cache.default', 'file'),
-            'session_driver'        => config('session.driver', 'file'),
-            'php_version'           => PHP_VERSION,
-            'server_os'             => PHP_OS_FAMILY,
+            'view_files_count'       => $viewFilesCount,
+            'view_cache_size'        => $this->formatBytes($viewCacheSize),
+            'view_cache_bytes'       => $viewCacheSize,
+            'data_cache_size'        => $this->formatBytes($dataCacheSize),
+            'data_cache_bytes'       => $dataCacheSize,
+            'bootstrap_cache_count'  => $bootstrapCacheFiles,
+            'is_config_cached'       => $isConfigCached,
+            'is_route_cached'        => $isRouteCached,
+            'is_events_cached'       => $isEventsCached,
+            'opcache_enabled'        => $opcacheEnabled,
+            'opcache_memory_used'    => $opcacheMemoryUsed,
+            'opcache_memory_free'    => $opcacheMemoryFree,
+            'opcache_memory_percent' => $opcacheMemoryPercent,
+            'opcache_hit_rate'       => $opcacheHitRate,
+            'opcache_scripts'        => $opcacheScripts,
+            'cache_driver'           => config('cache.default', 'file'),
+            'session_driver'         => config('session.driver', 'file'),
+            'php_version'            => PHP_VERSION,
+            'server_os'              => PHP_OS_FAMILY,
         ];
     }
 
@@ -395,32 +465,32 @@ class AdminCacheController extends Controller
         $knownKeys = [
             [
                 'key'         => 'site_settings_all',
-                'label'       => 'গ্লোবাল সাইট সেটিংস',
-                'description' => 'ওয়েবসাইটের লোগো, ফোন, পেমেন্ট গেটওয়ে ও সোশ্যাল লিংক কনফিগ',
+                'label'       => 'Site Settings',
+                'description' => 'Global branding, contact info, payment gateways, and social channels',
                 'type'        => 'Settings',
             ],
             [
                 'key'         => 'warm_bestseller_books',
-                'label'       => 'বেস্টসেলার বই প্রি-লোড',
-                'description' => 'হোমপেজের টপ ১২ বেস্টসেলার বইয়ের মেটাডাটা ও কভার ক্যাশ',
+                'label'       => 'Bestseller Books',
+                'description' => 'Top 12 bestseller books metadata and cover images for homepage',
                 'type'        => 'Catalog',
             ],
             [
                 'key'         => 'warm_featured_authors',
-                'label'       => 'শীর্ষ লেখক ও গবেষক তালিকা',
-                'description' => 'সর্বোচ্চ বইযুক্ত বিশিষ্ট লেখকদের প্রোফাইল ক্যাশ',
+                'label'       => 'Featured Authors',
+                'description' => 'Top book authors, researchers, and bio metadata',
                 'type'        => 'Authors',
             ],
             [
                 'key'         => 'categories_nav_tree',
-                'label'       => 'ক্যাটাগরি নেভিগেশন ট্রি',
-                'description' => 'মেগা মেনুর সমস্ত বইয়ের বিষয় ও সাব-ক্যাটাগরি তালিকা',
+                'label'       => 'Categories Tree',
+                'description' => 'Main navigation menu categories, subjects, and sub-genres',
                 'type'        => 'Navigation',
             ],
             [
                 'key'         => 'homepage_hero_sliders',
-                'label'       => 'হোমপেজ ব্যানার ও স্লাইডার',
-                'description' => 'বইমেলার স্পেশাল ব্যানার ও প্রমোশনাল অফার স্লাইডার',
+                'label'       => 'Hero Sliders',
+                'description' => 'Homepage promotional banners, sliders, and featured campaigns',
                 'type'        => 'Marketing',
             ],
         ];

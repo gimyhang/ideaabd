@@ -1838,7 +1838,11 @@
                                         </div>
 
                                         {{-- Action Buttons --}}
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
+                                                    onclick="viewPendingUserDetails({{ $pUser->id }})" title="Preview KYC Profile">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', '', this)" title="Approve">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -1847,13 +1851,9 @@
                                                     onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ addslashes($pUser->name) }}')" title="Reject">
                                                 <i class="fa-solid fa-ban text-warning"></i> <span>Reject</span>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" 
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
                                                     onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" 
-                                                    onclick="viewPendingUserDetails({{ $pUser->id }})" title="KYC Preview">
-                                                <i class="fa-solid fa-id-card"></i>
                                             </button>
                                         </div>
 
@@ -1898,7 +1898,10 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <a href="{{ route('admin.ecommerce-orders.show', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Order Details">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', '', this)" title="Confirm Order">
                                                 <i class="fa-solid fa-check"></i> <span>Confirm</span>
@@ -1959,7 +1962,10 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Blog Post">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', '', this)" title="Approve & Publish">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -1972,9 +1978,6 @@
                                                     onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
-                                            <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="Preview">
-                                                <i class="fa-solid fa-eye"></i>
-                                            </a>
                                         </div>
 
                                     </div>
@@ -2016,7 +2019,10 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <a href="{{ route('book.show', $pBook->slug ?: $pBook->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview Book">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', '', this)" title="Approve & Publish">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -2050,7 +2056,10 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <a href="{{ route('ebook.show', $pEbook->slug ?: $pEbook->id) }}" target="_blank" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold" title="Preview E-Book">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </a>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', '', this)" title="Approve">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -2099,7 +2108,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
+                                                    onclick="previewBookRequestModal({{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}', '{{ addslashes($pReq->author_name ?? '') }}', '{{ addslashes($pReq->name ?? '') }}', '{{ addslashes($pReq->phone ?? '') }}', '{{ addslashes($pReq->notes ?? '') }}', '{{ $pReq->created_at ? $pReq->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Request Details">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', '', this)" title="Start Sourcing">
                                                 <i class="fa-solid fa-check"></i> <span>Sourcing</span>
@@ -2159,7 +2172,11 @@
                                             @endif
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
+                                                    onclick="previewSubmissionModal({{ $pSub->id }}, '{{ addslashes($pSub->title) }}', '{{ addslashes($pSub->author?->name ?? 'Author') }}', '{{ addslashes($pSub->author?->phone ?? '') }}', '{{ addslashes($pSub->category?->name ?? '') }}', '{{ addslashes(str_replace(["\r", "\n"], ' ', $pSub->excerpt ?? '')) }}', '{{ $pSub->file_path ? asset('storage/' . $pSub->file_path) : '' }}', '{{ $pSub->created_at ? $pSub->created_at->format('M d, Y h:i A') : '' }}')" title="Preview Manuscript">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'approve', '', this)" title="Approve">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -2204,7 +2221,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
+                                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end flex-wrap">
+                                            <button type="button" class="btn btn-sm btn-outline-info text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
+                                                    onclick="viewPendingUserDetails({{ $pAuthorUser->id }})" title="Preview Profile Changes">
+                                                <i class="fa-solid fa-eye text-info"></i> <span>Preview</span>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
                                                     onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'approve', '', this)" title="Approve Profile Update">
                                                 <i class="fa-solid fa-check"></i> <span>Approve</span>
@@ -2260,11 +2281,31 @@
             <div class="modal-body p-4" id="pendingUserDetailModalBody">
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <div class="mt-2 text-muted small">Loading user details...</div>
+                    <div class="mt-2 text-muted small">Loading KYC profile...</div>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2.5 px-4" id="pendingUserDetailModalFooter">
                 <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL: GENERIC ITEM PREVIEW (BOOK REQUEST & SUBMISSION)                   --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="pendingItemPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3 px-4 border-0">
+                <h6 class="modal-title fw-bold text-white mb-0" id="pendingItemPreviewModalTitle">
+                    <i class="fa-solid fa-eye text-primary me-2"></i>Item Preview
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4" id="pendingItemPreviewModalBody"></div>
+            <div class="modal-footer bg-light py-2.5 px-4" id="pendingItemPreviewModalFooter">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -3034,6 +3075,127 @@ function viewPendingUserDetails(userId) {
         console.error(err);
         bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Error loading profile data.</div>`;
     });
+}
+
+function previewBookRequestModal(id, title, author, customer, phone, notes, date) {
+    const modalEl = document.getElementById('pendingItemPreviewModal');
+    const titleEl = document.getElementById('pendingItemPreviewModalTitle');
+    const bodyEl = document.getElementById('pendingItemPreviewModalBody');
+    const footerEl = document.getElementById('pendingItemPreviewModalFooter');
+    if (!modalEl || !bodyEl) return;
+
+    titleEl.innerHTML = `<i class="fa-solid fa-book-bookmark text-info me-2"></i>Book Request Preview`;
+    bodyEl.innerHTML = `
+        <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="small text-muted mb-1">Requested Book Title</div>
+            <h5 class="fw-bold text-dark mb-1">${title}</h5>
+            <div class="small text-muted">Author / Writer: <strong>${author || 'Not specified'}</strong></div>
+        </div>
+        <div class="row g-3">
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-user me-1 text-secondary"></i>Customer Name</div>
+                    <div class="fw-semibold text-dark">${customer || '—'}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-phone me-1 text-secondary"></i>Phone Number</div>
+                    <div class="fw-semibold text-dark">${phone || '—'}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-calendar me-1 text-secondary"></i>Request Date</div>
+                    <div class="fw-semibold text-dark">${date || '—'}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-info-circle me-1 text-secondary"></i>Status</div>
+                    <span class="badge bg-warning text-dark">Pending Sourcing</span>
+                </div>
+            </div>
+            ${notes ? `
+            <div class="col-12">
+                <div class="p-3 bg-light rounded-3">
+                    <div class="small text-muted mb-1"><i class="fa-solid fa-note-sticky me-1 text-secondary"></i>Customer Notes</div>
+                    <div class="small text-dark lh-base">${notes}</div>
+                </div>
+            </div>` : ''}
+        </div>
+    `;
+
+    footerEl.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingItemPreviewModal'))?.hide(); promptRejectReason('book_request', ${id}, '${title.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-ban me-1"></i> Reject
+                </button>
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingItemPreviewModal'))?.hide(); executeDashboardQuickAction('book_request', ${id}, 'approve', '', this)">
+                    <i class="fa-solid fa-check me-1"></i> Start Sourcing
+                </button>
+            </div>
+        </div>
+    `;
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+function previewSubmissionModal(id, title, author, phone, category, excerpt, fileUrl, date) {
+    const modalEl = document.getElementById('pendingItemPreviewModal');
+    const titleEl = document.getElementById('pendingItemPreviewModalTitle');
+    const bodyEl = document.getElementById('pendingItemPreviewModalBody');
+    const footerEl = document.getElementById('pendingItemPreviewModalFooter');
+    if (!modalEl || !bodyEl) return;
+
+    titleEl.innerHTML = `<i class="fa-solid fa-file-signature text-primary me-2"></i>Manuscript Submission Preview`;
+    bodyEl.innerHTML = `
+        <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="badge bg-dark text-white rounded-pill px-2.5 py-1">Manuscript</span>
+                ${category ? `<span class="badge bg-light text-primary border rounded-pill">${category}</span>` : ''}
+            </div>
+            <h5 class="fw-bold text-dark mb-1">${title}</h5>
+            <div class="small text-muted">Author: <strong>${author || '—'}</strong> ${phone ? `(${phone})` : ''}</div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-calendar me-1 text-secondary"></i>Submission Date</div>
+                    <div class="fw-semibold text-dark">${date || '—'}</div>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="p-2.5 bg-light rounded-3">
+                    <div class="small text-muted mb-0.5"><i class="fa-solid fa-file-arrow-down me-1 text-secondary"></i>Manuscript File</div>
+                    ${fileUrl ? `<a href="${fileUrl}" target="_blank" class="btn btn-xs btn-primary rounded-pill px-2.5 py-0.5 small fw-semibold"><i class="fa-solid fa-download me-1"></i> Download File</a>` : '<span class="text-muted small">No file attached</span>'}
+                </div>
+            </div>
+        </div>
+        ${excerpt ? `
+        <div class="p-3 bg-light rounded-3 border">
+            <div class="small fw-bold text-dark mb-1.5"><i class="fa-solid fa-align-left me-1 text-secondary"></i>Synopsis / Excerpt</div>
+            <div class="small text-secondary lh-base" style="white-space: pre-line;">${excerpt}</div>
+        </div>` : ''}
+    `;
+
+    footerEl.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+            <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingItemPreviewModal'))?.hide(); promptRejectReason('submission', ${id}, '${title.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-ban me-1"></i> Reject
+                </button>
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingItemPreviewModal'))?.hide(); executeDashboardQuickAction('submission', ${id}, 'approve', '', this)">
+                    <i class="fa-solid fa-check me-1"></i> Approve
+                </button>
+            </div>
+        </div>
+    `;
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function reloadPendingData() {

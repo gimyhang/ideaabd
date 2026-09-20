@@ -640,6 +640,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/clear-images', 'clearImages')->name('clear-images');
         Route::post('/warmup', 'warmup')->name('warmup');
         Route::post('/delete-key', 'deleteKey')->name('delete-key');
+        Route::post('/bulk-delete-keys', 'bulkDeleteKeys')->name('bulk-delete-keys');
+        Route::post('/inspect-key', 'inspectKey')->name('inspect-key');
         Route::get('/stats-json', 'statsJson')->name('stats-json');
         Route::post('/optimize', 'optimize')->name('optimize');
     });
