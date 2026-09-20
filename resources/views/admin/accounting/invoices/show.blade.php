@@ -184,12 +184,27 @@
                         <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
                             <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                             <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
-                            <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
-                                <span class="mx-1 text-muted">·</span>
-                                <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
-                                <span class="mx-1 text-muted">·</span>
-                                <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                            <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center" style="font-size: 9.5px; line-height: 1.4; margin-top: 3px; gap: 6px;">
+                                <span class="d-inline-flex align-items-center">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                    </span>
+                                    <span class="text-dark">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
+                                </span>
+                                <span class="text-muted">·</span>
+                                <span class="d-inline-flex align-items-center">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-phone"></i>
+                                    </span>
+                                    <span class="text-dark">{{ $settings['phone'] ?? '01726976982' }}</span>
+                                </span>
+                                <span class="text-muted">·</span>
+                                <span class="d-inline-flex align-items-center">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-envelope"></i>
+                                    </span>
+                                    <span class="text-dark">{{ $settings['email'] ?? 'ideapbd@gmail.com' }}</span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -264,11 +279,12 @@
                 </div>
             @endif
 
-            {{-- Customer & Billed To Info (Structured Format with Vertical Colon Alignment) --}}
+            {{-- Customer & Billed To Info (Strict 2-Column Responsive Layout) --}}
             <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                 <div class="row g-2 align-items-start m-0">
-                    <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
-                        <div class="fw-bold text-dark mb-1" style="font-size: 12px;"><i class="fa-solid fa-user-tag me-1 text-primary"></i>Client / Customer Information:</div>
+                    {{-- Left Column: Client / Customer Information --}}
+                    <div class="col-7 col-print-7 p-0 pe-2.5 border-end">
+                        <div class="fw-bold text-dark mb-1" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.2px;"><i class="fa-solid fa-user-tag me-1.5 text-primary"></i>Client / Customer Information:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             @if($invoice->customer_name)
                                 <tr>
@@ -307,8 +323,9 @@
                             @endif
                         </table>
                     </div>
-                    <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
-                        <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fa-solid fa-file-invoice me-1 text-primary"></i>Order & Payment Details:</div>
+                    {{-- Right Column: ORDER & PAYMENT DETAILS --}}
+                    <div class="col-5 col-print-5 p-0 ps-2.5">
+                        <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="fa-solid fa-file-invoice me-1.5 text-primary"></i>ORDER & PAYMENT DETAILS:</div>
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             <tr>
                                 <td class="colon-label" style="width: 85px;">Doc Type</td>
@@ -651,12 +668,27 @@
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.3; padding-left: 2px;">
                                 <div class="fw-bold text-primary invoice-brand-name" style="font-size: 15.5px; margin-bottom: 2px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted invoice-tagline" style="font-size: 10px; margin-bottom: 2px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
-                                <div class="text-muted invoice-contact-info" style="font-size: 9.5px; line-height: 1.35;">
-                                    <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i>{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span>
-                                    <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fa-solid fa-phone me-0.5 text-primary"></i>{{ $settings['phone'] ?? '018XXXXXXXX' }}</span>
-                                    <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i>{{ $settings['email'] ?? 'info@ideaabd.com' }}</span>
+                                <div class="text-muted invoice-contact-info d-flex flex-wrap align-items-center" style="font-size: 9.5px; line-height: 1.4; margin-top: 3px; gap: 6px;">
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                        </span>
+                                        <span class="text-dark">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
+                                    </span>
+                                    <span class="text-muted">·</span>
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                            <i class="fa-solid fa-phone"></i>
+                                        </span>
+                                        <span class="text-dark">{{ $settings['phone'] ?? '01726976982' }}</span>
+                                    </span>
+                                    <span class="text-muted">·</span>
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-1.5 shadow-2xs" style="width: 17px; height: 17px; font-size: 8px; flex-shrink: 0;">
+                                            <i class="fa-solid fa-envelope"></i>
+                                        </span>
+                                        <span class="text-dark">{{ $settings['email'] ?? 'ideapbd@gmail.com' }}</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -692,12 +724,13 @@
                     </div>
                 @endif
 
-                {{-- Delivery Destination & Client Details --}}
+                {{-- Delivery Destination & Client Details (Strict 2-Column Responsive Layout) --}}
                 <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                     <div class="row g-2 align-items-start m-0">
-                        <div class="col-12 col-md-7 col-print-7 p-0 pe-md-2 border-end-md border-bottom border-bottom-md-0 pb-2 pb-md-0 mb-2 mb-md-0">
-                            <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 12px;">
-                                <span><i class="fa-solid fa-truck-ramp-box me-1 text-primary"></i>Delivery Destination & Recipient:</span>
+                        {{-- Left Column: Delivery Destination & Recipient --}}
+                        <div class="col-7 col-print-7 p-0 pe-2.5 border-end">
+                            <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.2px;">
+                                <span><i class="fa-solid fa-truck-ramp-box me-1.5 text-primary"></i>Delivery Destination & Recipient:</span>
                             </div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table recipient-info-table" style="line-height: 1.45;">
                                 @if($invoice->customer_name)
@@ -737,8 +770,8 @@
                                 @endif
                             </table>
                         </div>
-                        <div class="col-12 col-md-5 col-print-5 p-0 ps-md-2">
-                            <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 11px;"><i class="fa-solid fa-truck-fast me-1 text-primary"></i>Challan Tracking & Dispatch Info:</div>
+                        <div class="col-5 col-print-5 p-0 ps-2.5">
+                        <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="fa-solid fa-truck-fast me-1.5 text-primary"></i>Challan Tracking & Dispatch Info:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 <tr>
                                     <td class="colon-label" style="width: 90px;">Challan Type</td>
@@ -2577,12 +2610,27 @@ function updateCalcDisplays(net, deductions, gross) {
                             <div class="d-flex flex-column justify-content-center" style="line-height: 1.35; padding-left: 2px;">
                                 <div class="fw-bold text-primary mb-0" id="previewHeaderTitle" style="font-size: 15.5px;">{{ $settings['business_name'] ?? 'Idea Publication' }}</div>
                                 <div class="text-muted small mb-0" id="previewHeaderTagline" style="font-size: 10.5px;">{{ $settings['tagline'] ?? 'Book Publication, Printing & Distribution' }}</div>
-                                <div class="text-muted small mt-0.5" id="previewHeaderMeta" style="font-size: 10px;">
-                                    <span><i class="fa-solid fa-location-dot me-0.5 text-danger"></i><span id="previewMetaAddr">{{ $settings['address'] ?? 'Dhaka, Bangladesh' }}</span></span>
-                                    <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fa-solid fa-phone me-0.5 text-primary"></i><span id="previewMetaPhone">{{ $settings['phone'] ?? '018XXXXXXXX' }}</span></span>
-                                    <span class="mx-1 text-muted">·</span>
-                                    <span><i class="fa-solid fa-envelope me-0.5 text-primary"></i><span id="previewMetaEmail">{{ $settings['email'] ?? 'info@ideaabd.com' }}</span></span>
+                                <div class="text-muted small mt-1 d-flex flex-wrap align-items-center" id="previewHeaderMeta" style="font-size: 10px; gap: 6px;">
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-1 shadow-2xs" style="width: 16px; height: 16px; font-size: 7.5px;">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                        </span>
+                                        <span id="previewMetaAddr">{{ $settings['address'] ?? 'Central Road, Rangpur 5400' }}</span>
+                                    </span>
+                                    <span class="text-muted">·</span>
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary-subtle text-primary me-1 shadow-2xs" style="width: 16px; height: 16px; font-size: 7.5px;">
+                                            <i class="fa-solid fa-phone"></i>
+                                        </span>
+                                        <span id="previewMetaPhone">{{ $settings['phone'] ?? '01726976982' }}</span>
+                                    </span>
+                                    <span class="text-muted">·</span>
+                                    <span class="d-inline-flex align-items-center">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success me-1 shadow-2xs" style="width: 16px; height: 16px; font-size: 7.5px;">
+                                            <i class="fa-solid fa-envelope"></i>
+                                        </span>
+                                        <span id="previewMetaEmail">{{ $settings['email'] ?? 'ideapbd@gmail.com' }}</span>
+                                    </span>
                                 </div>
                             </div>
                         </div>

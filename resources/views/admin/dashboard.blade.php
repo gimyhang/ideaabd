@@ -88,173 +88,157 @@
             </div>
         </div>
 
-        @if($totalAlertsCount > 0)
-            {{-- Column Grid Presentation of Pending Notifications with direct Action Center Tab Launchers --}}
-            <div class="card-body p-3 p-md-3.5" id="pendingSummaryCardsGrid">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
-                    
-                    {{-- 1. Pending Registrations (Author / Publisher / Seller) --}}
-                    @if($regCount > 0)
-                        <div class="col" id="pendingSummaryCard-users">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-user-clock"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">রেজিস্ট্রেশন অনুরোধ</div>
-                                            <span class="text-danger fw-bold font-monospace small" id="pendingCardCount-users">{{ $regCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
+        {{-- Column Grid Presentation of Pending Notifications with direct Action Center Tab Launchers --}}
+        <div class="card-body p-3 p-md-3.5" id="pendingSummaryCardsGrid" style="display: {{ $totalAlertsCount > 0 ? 'block' : 'none' }};">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
+                
+                {{-- 1. Pending Registrations (Author / Publisher / Seller) --}}
+                <div class="col" id="pendingSummaryCard-users" style="display: {{ $regCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-danger bg-opacity-10 text-danger p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-user-clock"></i>
                                 </div>
-                                <button type="button" onclick="openPendingCenterTab('users')" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-user-check"></i> অনুমোদন / ডিলিট <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
+                                <div>
+                                    <div class="fw-bold text-dark small">রেজিস্ট্রেশন অনুরোধ</div>
+                                    <span class="text-danger fw-bold font-monospace small" id="pendingCardCount-users">{{ $regCount }}টি পেন্ডিং</span>
+                                </div>
                             </div>
                         </div>
-                    @endif
-
-                    {{-- 2. Pending Orders --}}
-                    @if($orderCount > 0)
-                        <div class="col" id="pendingSummaryCard-orders">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-warning bg-opacity-20 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-cart-shopping"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
-                                            <span class="text-warning-emphasis fw-bold font-monospace small" id="pendingCardCount-orders">{{ $orderCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('orders')" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-boxes-packing"></i> কনফার্ম / ডিলিট <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 3. Pending Blog Posts --}}
-                    @if($blogCount > 0)
-                        <div class="col" id="pendingSummaryCard-blogs">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-feather-pointed"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">ব্লগ পোস্ট</div>
-                                            <span class="text-success fw-bold font-monospace small" id="pendingCardCount-blogs">{{ $blogCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('blogs')" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-spell-check"></i> প্রকাশ / ডিলিট <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 4. Pending Books Moderation --}}
-                    @if($bookCount > 0)
-                        <div class="col" id="pendingSummaryCard-books">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-book-open"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">বই অনুমোদন</div>
-                                            <span class="text-primary fw-bold font-monospace small" id="pendingCardCount-books">{{ $bookCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-circle-check"></i> বই মডারেশন <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 5. Pending E-Books Moderation --}}
-                    @if($ebookCount > 0)
-                        <div class="col" id="pendingSummaryCard-ebooks">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-tablet-screen-button"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">ই-বুক মডারেশন</div>
-                                            <span class="text-secondary fw-bold font-monospace small" id="pendingCardCount-ebooks">{{ $ebookCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-tablet"></i> ই-বুক অ্যাকশন <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 6. Pending Book Requests --}}
-                    @if($bookReqCount > 0)
-                        <div class="col" id="pendingSummaryCard-requests">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-book-bookmark"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">বই রিকোয়েস্ট</div>
-                                            <span class="text-info-emphasis fw-bold font-monospace small" id="pendingCardCount-requests">{{ $bookReqCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('requests')" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-magnifying-glass"></i> সোর্সিং <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- 7. Pending Submissions --}}
-                    @if($submissionCount > 0 || $authorUpdateCount > 0)
-                        <div class="col" id="pendingSummaryCard-submissions">
-                            <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
-                                <div class="d-flex align-items-center justify-content-between mb-2.5">
-                                    <div class="d-flex align-items-center gap-2.5">
-                                        <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="fa-solid fa-file-signature"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
-                                            <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" onclick="openPendingCenterTab('submissions')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1">
-                                    <i class="fa-solid fa-file-pen"></i> রিভিউ ও সিঙ্ক <i class="fa-solid fa-arrow-right ms-auto"></i>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
+                        <button type="button" onclick="openPendingCenterTab('users')" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-user-check"></i> অনুমোদন / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
                 </div>
+
+                {{-- 2. Pending Orders --}}
+                <div class="col" id="pendingSummaryCard-orders" style="display: {{ $orderCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-warning bg-opacity-20 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
+                                    <span class="text-warning-emphasis fw-bold font-monospace small" id="pendingCardCount-orders">{{ $orderCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('orders')" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-boxes-packing"></i> কনফার্ম / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 3. Pending Blog Posts --}}
+                <div class="col" id="pendingSummaryCard-blogs" style="display: {{ $blogCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-feather-pointed"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">ব্লগ পোস্ট</div>
+                                    <span class="text-success fw-bold font-monospace small" id="pendingCardCount-blogs">{{ $blogCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('blogs')" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-spell-check"></i> প্রকাশ / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 4. Pending Books Moderation --}}
+                <div class="col" id="pendingSummaryCard-books" style="display: {{ $bookCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">বই অনুমোদন</div>
+                                    <span class="text-primary fw-bold font-monospace small" id="pendingCardCount-books">{{ $bookCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-circle-check"></i> বই মডারেশন <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 5. Pending E-Books Moderation --}}
+                <div class="col" id="pendingSummaryCard-ebooks" style="display: {{ $ebookCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-tablet-screen-button"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">ই-বুক মডারেশন</div>
+                                    <span class="text-secondary fw-bold font-monospace small" id="pendingCardCount-ebooks">{{ $ebookCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-tablet"></i> ই-বুক অ্যাকশন <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 6. Pending Book Requests --}}
+                <div class="col" id="pendingSummaryCard-requests" style="display: {{ $bookReqCount > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-info bg-opacity-10 text-info p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-book-bookmark"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">বই রিকোয়েস্ট</div>
+                                    <span class="text-info-emphasis fw-bold font-monospace small" id="pendingCardCount-requests">{{ $bookReqCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('requests')" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-magnifying-glass"></i> সোর্সিং <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 7. Pending Submissions --}}
+                <div class="col" id="pendingSummaryCard-submissions" style="display: {{ ($submissionCount + $authorUpdateCount) > 0 ? '' : 'none' }};">
+                    <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between transition-all hover-shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between mb-2.5">
+                            <div class="d-flex align-items-center gap-2.5">
+                                <div class="rounded-circle bg-dark bg-opacity-10 text-dark p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                                    <i class="fa-solid fa-file-signature"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
+                                    <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPendingCenterTab('submissions')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
+                            <i class="fa-solid fa-file-pen"></i> রিভিউ ও সিঙ্ক <i class="fa-solid fa-arrow-right ms-auto"></i>
+                        </button>
+                    </div>
+                </div>
+
             </div>
-        @else
-            <div class="card-body p-3 text-center text-muted small" id="pendingEmptyState">
-                <i class="fa-solid fa-circle-check text-success fs-5 me-1 align-middle"></i>
-                <span class="fw-semibold text-dark">সব পেন্ডিং রিকোয়েস্ট সম্পন্ন হয়েছে!</span> নতুন কোনো আবেদন বা অর্ডার পেন্ডিং নেই।
-            </div>
-        @endif
+        </div>
+
+        <div class="card-body p-4 text-center text-muted small" id="pendingEmptyState" style="display: {{ $totalAlertsCount > 0 ? 'none' : 'block' }};">
+            <i class="fa-solid fa-circle-check text-success fs-4 me-1 align-middle"></i>
+            <span class="fw-semibold text-dark">সব পেন্ডিং রিকোয়েস্ট সম্পন্ন হয়েছে!</span> নতুন কোনো আবেদন বা অর্ডার পেন্ডিং নেই।
+        </div>
     </div>
 
     {{-- ========================================================================= --}}
@@ -1869,15 +1853,15 @@
                                         {{-- Action Buttons --}}
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', this)" title="অনুমোদন ও সক্রিয় করুন">
+                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', '', this)" title="অনুমোদন ও সক্রিয় করুন">
                                                 <i class="fa-solid fa-check"></i> <span>এপ্রুভ</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
-                                                    onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ $pUser->name }}', this)" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ addslashes($pUser->name) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban text-warning"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', this)" title="সম্পূর্ণ মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', '', this)" title="সম্পূর্ণ মুছে ফেলুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" 
@@ -1932,19 +1916,19 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', this)" title="অর্ডার কনফার্ম ও প্রসেসিংয়ে নিন">
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', '', this)" title="অর্ডার কনফার্ম ও প্রসেসিংয়ে নিন">
                                                 <i class="fa-solid fa-check"></i> <span>কনফার্ম</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'complete', this)" title="সম্পন্ন চিহ্নিত করুন">
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'complete', '', this)" title="সম্পন্ন চিহ্নিত করুন">
                                                 <i class="fa-solid fa-circle-check"></i> <span>সম্পন্ন</span>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'reject', this)" title="বাতিল করুন">
-                                                <i class="fa-solid fa-xmark"></i>
+                                            <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
+                                                    onclick="promptRejectReason('order', {{ $pOrder->id }}, 'অর্ডার #{{ $pOrder->order_number }}')" title="বাতিল করুন">
+                                                <i class="fa-solid fa-xmark"></i> <span>বাতিল</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', this)" title="অর্ডার ডিলিট করুন">
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', '', this)" title="অর্ডার ডিলিট করুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                             <a href="{{ route('admin.ecommerce-orders.invoice', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="ইনভয়েস দেখুন">
@@ -1996,15 +1980,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', this)" title="প্রকাশ ও লাইভ করুন">
+                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', '', this)" title="প্রকাশ ও লাইভ করুন">
                                                 <i class="fa-solid fa-check"></i> <span>প্রকাশ করুন</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'reject', this)" title="ড্রাফট/বাতিল করুন">
+                                                    onclick="promptRejectReason('blog', {{ $pBlog->id }}, '{{ addslashes($pBlog->title) }}')" title="ড্রাফট/বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', '', this)" title="মুছে ফেলুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                             <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="প্রিভিউ দেখুন">
@@ -2056,15 +2040,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', this)" title="অনুমোদন ও লাইভ করুন">
+                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', '', this)" title="অনুমোদন ও লাইভ করুন">
                                                 <i class="fa-solid fa-check"></i> <span>লাইভ করুন</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'reject', this)" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('book', {{ $pBook->id }}, '{{ addslashes($pBook->title) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'delete', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'delete', '', this)" title="মুছে ফেলুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2090,15 +2074,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', this)" title="অনুমোদন ও লাইভ করুন">
+                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', '', this)" title="অনুমোদন ও লাইভ করুন">
                                                 <i class="fa-solid fa-check"></i> <span>লাইভ করুন</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'reject', this)" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('ebook', {{ $pEbook->id }}, '{{ addslashes($pEbook->title) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'delete', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'delete', '', this)" title="মুছে ফেলুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2142,15 +2126,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', this)" title="সোর্সিংয়ে নিন">
+                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', '', this)" title="সোর্সিংয়ে নিন">
                                                 <i class="fa-solid fa-check"></i> <span>সোর্সিং শুরু</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'reject', this)" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('book_request', {{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>বাতিল</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'delete', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'delete', '', this)" title="মুছে ফেলুন">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2209,7 +2193,7 @@
                                                 <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ $pSub->title }}')" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ addslashes($pSub->title) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
@@ -2254,7 +2238,7 @@
                                                 <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ $pAuthorUser->name }}')" title="বাতিল করুন">
+                                                    onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ addslashes($pAuthorUser->name) }}')" title="বাতিল করুন">
                                                 <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
@@ -2319,23 +2303,41 @@
 {{-- ========================================================================= --}}
 <div class="modal fade" id="pendingRejectReasonModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header bg-warning text-dark py-2.5">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header bg-danger text-white py-3 px-4">
                 <h6 class="modal-title fw-bold mb-0">
                     <i class="fa-solid fa-ban me-1.5"></i> আবেদন বা অর্ডার বাতিলের কারণ
                 </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="pendingRejectReasonForm" onsubmit="submitRejectWithReason(event)">
                 <input type="hidden" id="rejectItemType">
                 <input type="hidden" id="rejectItemId">
                 <div class="modal-body p-4">
-                    <p class="small text-muted mb-2">আপনি <strong id="rejectItemName">—</strong> বাতিল করতে যাচ্ছেন। অনুগ্রহ করে কারণ উল্লেখ করুন:</p>
-                    <textarea class="form-control" id="rejectReasonText" rows="3" placeholder="বাতিলের কারণ লিখুন (উদাঃ ভুল মোবাইল নম্বর, অসম্পূর্ণ পাণ্ডুলিপি বা ঠিকানা)..." required></textarea>
+                    <div class="mb-3">
+                        <span class="text-muted small">আপনি বাতিল করতে যাচ্ছেন:</span>
+                        <div class="fw-bold text-dark fs-6 mt-0.5" id="rejectItemName">—</div>
+                    </div>
+                    
+                    {{-- Quick preset chips --}}
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-muted mb-1">কুইক কারণ নির্বাচন:</label>
+                        <div class="d-flex flex-wrap gap-1">
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('অসম্পূর্ণ বা ত্রুটিপূর্ণ তথ্য')">অসম্পূর্ণ তথ্য</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('ভুল অথবা অপ্রাপ্য মোবাইল নম্বর')">ভুল মোবাইল</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('পণ্য বর্তমানে স্টকে নেই বা অপ্রাপ্য')">স্টকে নেই</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('আইডিয়া প্রকাশন নীতিমালা অনুযায়ী যাচাইকৃত নয়')">নীতিমালা ব্যত্যয়</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label small fw-semibold text-dark">বাতিলের কারণ / মন্তব্য <span class="text-danger">*</span></label>
+                        <textarea class="form-control rounded-3" id="rejectReasonText" rows="3" placeholder="বাতিলের নির্দিষ্ট কারণ লিখুন (গ্রাহক/লেখককে জানানো হবে)..." required></textarea>
+                    </div>
                 </div>
-                <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" id="rejectSubmitBtn" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">
+                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" id="rejectSubmitBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">
                         <i class="fa-solid fa-circle-xmark me-1"></i> রিজেক্ট নিশ্চিত করুন
                     </button>
                 </div>
@@ -2709,27 +2711,33 @@ function showDashboardToast(message, type = 'success') {
     }
     const toastId = 'toast_' + Date.now();
     const bgClass = type === 'success' ? 'bg-success text-white' : (type === 'danger' ? 'bg-danger text-white' : 'bg-primary text-white');
-    const icon = type === 'success' ? 'fa-check-circle' : (type === 'danger' ? 'fa-triangle-exclamation' : 'fa-info-circle');
+    const icon = type === 'success' ? 'fa-circle-check' : (type === 'danger' ? 'fa-triangle-exclamation' : 'fa-circle-info');
     
     const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body d-flex align-items-center gap-2">
+        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex align-items-center">
+                <div class="toast-body d-flex align-items-center gap-2 py-2.5 px-3">
                     <i class="fa-solid ${icon} fs-5"></i>
-                    <div>${message}</div>
+                    <div class="fw-semibold small">${message}</div>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     `;
     container.insertAdjacentHTML('beforeend', toastHtml);
     const toastEl = document.getElementById(toastId);
-    const bsToast = new bootstrap.Toast(toastEl, { delay: 4000 });
-    bsToast.show();
-    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    if (toastEl && typeof bootstrap !== 'undefined') {
+        const bsToast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        bsToast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
 }
 
 function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = null) {
+    if (typeof reason !== 'string') {
+        reason = '';
+    }
+
     if (action === 'delete' && !confirm('আপনি কি নিশ্চিত যে এই রিকোয়েস্টটি মুছে ফেলতে চান? এই অ্যাকশনটি অপরিবর্তনযোগ্য।')) {
         return;
     }
@@ -2810,22 +2818,29 @@ function updateDashboardAlertCounts(alerts) {
     const totalBadges = document.querySelectorAll('#totalPendingCountBadge, #actionPanelCountBadge');
     totalBadges.forEach(b => b.textContent = totalCount);
 
-    // Update individual tabs
+    // Update individual tabs and card badges
+    const regCount = alerts.registrations ?? 0;
+    const orderCount = alerts.orders ?? 0;
+    const blogCount = alerts.blogs ?? 0;
+    const bookCount = (alerts.books ?? 0) + (alerts.ebooks ?? 0);
+    const reqCount = alerts.book_requests ?? 0;
+    const subCount = (alerts.submissions ?? 0) + (alerts.author_updates ?? 0);
+
     const typeCountMap = {
-        'users': alerts.registrations ?? 0,
-        'user': alerts.registrations ?? 0,
-        'orders': alerts.orders ?? 0,
-        'order': alerts.orders ?? 0,
-        'blogs': alerts.blogs ?? 0,
-        'blog': alerts.blogs ?? 0,
-        'books': (alerts.books ?? 0) + (alerts.ebooks ?? 0),
+        'users': regCount,
+        'user': regCount,
+        'orders': orderCount,
+        'order': orderCount,
+        'blogs': blogCount,
+        'blog': blogCount,
+        'books': bookCount,
         'book': alerts.books ?? 0,
         'ebook': alerts.ebooks ?? 0,
-        'requests': alerts.book_requests ?? 0,
-        'book_request': alerts.book_requests ?? 0,
-        'submissions': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
-        'submission': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
-        'author_update': (alerts.submissions ?? 0) + (alerts.author_updates ?? 0),
+        'requests': reqCount,
+        'book_request': reqCount,
+        'submissions': subCount,
+        'submission': subCount,
+        'author_update': subCount,
     };
 
     for (const [t, cnt] of Object.entries(typeCountMap)) {
@@ -2838,94 +2853,177 @@ function updateDashboardAlertCounts(alerts) {
         if (cardBadge) {
             cardBadge.textContent = `${cnt}টি পেন্ডিং`;
         }
-        const summaryCard = document.getElementById(`pendingSummaryCard-${t}`);
-        if (summaryCard) {
-            if (cnt === 0) {
-                summaryCard.style.display = 'none';
-            } else {
-                summaryCard.style.display = '';
-            }
-        }
     }
 
+    // Toggle Summary Grid vs Empty State
+    const gridEl = document.getElementById('pendingSummaryCardsGrid');
+    const emptyEl = document.getElementById('pendingEmptyState');
+    const hub = document.getElementById('dashboardPendingAlertsHub');
+
     if (totalCount === 0) {
-        const hub = document.getElementById('dashboardPendingAlertsHub');
+        if (gridEl) gridEl.style.display = 'none';
+        if (emptyEl) emptyEl.style.display = 'flex';
         if (hub) {
             hub.classList.remove('border-warning');
             hub.classList.add('border-success');
+        }
+    } else {
+        if (gridEl) gridEl.style.display = 'grid';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (hub) {
+            hub.classList.remove('border-success');
+            hub.classList.add('border-warning');
         }
     }
 }
 
 function promptRejectReason(type, id, title) {
-    document.getElementById('rejectModalType').value = type;
-    document.getElementById('rejectModalId').value = id;
-    document.getElementById('rejectModalTargetTitle').textContent = title || 'এই রিকোয়েস্টটি';
-    document.getElementById('rejectModalReason').value = '';
+    const typeEl = document.getElementById('rejectItemType');
+    const idEl = document.getElementById('rejectItemId');
+    const nameEl = document.getElementById('rejectItemName');
+    const reasonEl = document.getElementById('rejectReasonText');
+
+    if (typeEl) typeEl.value = type;
+    if (idEl) idEl.value = id;
+    if (nameEl) nameEl.textContent = title || 'এই রিকোয়েস্টটি';
+    if (reasonEl) reasonEl.value = '';
 
     const modalEl = document.getElementById('pendingRejectReasonModal');
-    if (modalEl) {
+    if (modalEl && typeof bootstrap !== 'undefined') {
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+}
+
+function setRejectPresetReason(reasonText) {
+    const reasonEl = document.getElementById('rejectReasonText');
+    if (reasonEl) {
+        reasonEl.value = reasonText;
+        reasonEl.focus();
     }
 }
 
 function submitRejectWithReason(e) {
     e.preventDefault();
-    const type = document.getElementById('rejectModalType').value;
-    const id = document.getElementById('rejectModalId').value;
-    const reason = document.getElementById('rejectModalReason').value;
-    const btn = document.getElementById('rejectModalSubmitBtn');
+    const type = document.getElementById('rejectItemType')?.value;
+    const id = document.getElementById('rejectItemId')?.value;
+    const reason = document.getElementById('rejectReasonText')?.value || '';
+    const btn = document.getElementById('rejectSubmitBtn');
+
+    if (!type || !id) return;
 
     executeDashboardQuickAction(type, id, 'reject', reason, btn);
 
     const modalEl = document.getElementById('pendingRejectReasonModal');
-    if (modalEl) {
+    if (modalEl && typeof bootstrap !== 'undefined') {
         bootstrap.Modal.getInstance(modalEl)?.hide();
     }
 }
 
-function viewPendingUserDetails(user) {
-    if (typeof user === 'string') {
-        try {
-            user = JSON.parse(user);
-        } catch(e) {
-            console.error('Failed to parse user JSON', e);
+function viewPendingUserDetails(userId) {
+    const modalEl = document.getElementById('pendingUserDetailModal');
+    const bodyEl = document.getElementById('pendingUserDetailModalBody');
+    const footerEl = document.getElementById('pendingUserDetailModalFooter');
+    
+    if (!modalEl || !bodyEl) return;
+    
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    bodyEl.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2 text-muted small">ইউজার ও ভেরিফিকেশন তথ্য লোড হচ্ছে...</div>
+        </div>
+    `;
+
+    fetch(`{{ url('admin/registrations') }}/${userId}/details`, {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success || !data.user) {
+            bodyEl.innerHTML = `<div class="alert alert-danger mb-0">ব্যবহারকারীর তথ্য পাওয়া যায়নি।</div>`;
             return;
         }
-    }
 
-    document.getElementById('pud_name').textContent = user.name || 'N/A';
-    document.getElementById('pud_email').textContent = user.email || 'N/A';
-    document.getElementById('pud_phone').textContent = user.phone || 'N/A';
-    document.getElementById('pud_role').textContent = (user.requested_role || user.role || 'লেখক').toUpperCase();
-    document.getElementById('pud_created').textContent = user.created_at ? new Date(user.created_at).toLocaleString('bn-BD') : 'N/A';
-    document.getElementById('pud_bio').textContent = user.bio || 'কোনো বিবরণ দেওয়া নেই।';
+        const u = data.user;
+        const regData = u.reg_data || {};
+        const avatarSrc = u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'User')}&background=0D8ABC&color=fff`;
+        const roleBn = u.role === 'author' ? 'লেখক' : (u.role === 'publisher' ? 'প্রকাশক' : (u.role === 'seller' ? 'বিক্রেতা' : u.role));
+        const statusBadge = u.reg_status === 'approved' 
+            ? '<span class="badge bg-success">অনুমোদিত</span>' 
+            : (u.reg_status === 'rejected' ? '<span class="badge bg-danger">বাতিল</span>' : '<span class="badge bg-warning text-dark">অপেক্ষমাণ (Pending)</span>');
 
-    const avatar = document.getElementById('pud_avatar');
-    if (avatar) {
-        avatar.src = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=0D8ABC&color=fff`;
-    }
+        bodyEl.innerHTML = `
+            <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
+                <img src="${avatarSrc}" alt="${u.name}" class="rounded-circle border shadow-xs" style="width: 64px; height: 64px; object-fit: cover;">
+                <div>
+                    <h5 class="fw-bold mb-1 text-dark">${u.name}</h5>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">${roleBn}</span>
+                        ${statusBadge}
+                        ${regData.pen_name ? `<span class="badge bg-light text-dark border">কলম নাম: ${regData.pen_name}</span>` : ''}
+                    </div>
+                </div>
+            </div>
 
-    const approveBtn = document.getElementById('pud_approveBtn');
-    if (approveBtn) {
-        approveBtn.onclick = function() {
-            executeDashboardQuickAction('user', user.id, 'approve', '', approveBtn);
-            bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide();
-        };
-    }
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <div class="p-2.5 bg-light rounded-3">
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-envelope me-1.5 text-secondary"></i>ইমেইল অ্যাড্রেস</div>
+                        <div class="fw-semibold text-dark text-break">${u.email || '—'}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-2.5 bg-light rounded-3">
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-phone me-1.5 text-secondary"></i>মোবাইল নম্বর</div>
+                        <div class="fw-semibold text-dark">${u.phone || '—'}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-2.5 bg-light rounded-3">
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-location-dot me-1.5 text-secondary"></i>ঠিকানা / শহর</div>
+                        <div class="fw-semibold text-dark">${regData.address || regData.city || '—'}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="p-2.5 bg-light rounded-3">
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-calendar me-1.5 text-secondary"></i>আবেদনের তারিখ</div>
+                        <div class="fw-semibold text-dark">${u.created_at ? new Date(u.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                    </div>
+                </div>
+                ${regData.bio ? `
+                <div class="col-12">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="small text-muted mb-1"><i class="fa-solid fa-quote-left me-1.5 text-secondary"></i>লেখক পরিচিতি / বায়ো</div>
+                        <div class="small text-dark lh-base">${regData.bio}</div>
+                    </div>
+                </div>` : ''}
+            </div>
+        `;
 
-    const rejectBtn = document.getElementById('pud_rejectBtn');
-    if (rejectBtn) {
-        rejectBtn.onclick = function() {
-            bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide();
-            promptRejectReason('user', user.id, user.name);
-        };
-    }
-
-    const modalEl = document.getElementById('pendingUserDetailModal');
-    if (modalEl) {
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-    }
+        if (footerEl) {
+            footerEl.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
+                    <a href="{{ url('admin/registrations') }}/${u.id}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                        <i class="fa-solid fa-up-right-from-square me-1"></i> ফুল প্রোফাইল
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide(); promptRejectReason('user', ${u.id}, '${u.name.replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-ban me-1"></i> রিজেক্ট
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide(); executeDashboardQuickAction('user', ${u.id}, 'approve', '', this)">
+                            <i class="fa-solid fa-check me-1"></i> এপ্রুভ করুন
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        bodyEl.innerHTML = `<div class="alert alert-danger mb-0">তথ্য লোড করার সময় সমস্যা হয়েছে।</div>`;
+    });
 }
 
 function reloadPendingData() {
