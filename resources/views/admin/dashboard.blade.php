@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Smart Dashboard & Control Panel')
-@section('heading', 'Smart Dashboard & Control Panel')
+@section('title', 'Dashboard')
+@section('heading', 'Dashboard')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
@@ -10,7 +10,7 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.reports.print', request()->all()) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
-            <i class="fa-solid fa-print me-1.5"></i> Print & PDF Report
+            <i class="fa-solid fa-print me-1.5"></i> Print Report
         </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" data-theme-toggle title="Theme Switcher">
             <i class="fa-solid fa-moon"></i>
@@ -55,34 +55,29 @@
         $authorUpdateCount = $pendingAlerts['author_updates'] ?? 0;
     @endphp
 
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-3" id="dashboardPendingAlertsHub">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-1" id="dashboardPendingAlertsHub">
         <div class="card-header bg-warning-subtle bg-opacity-40 py-2.5 px-3 px-md-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
                 <span class="badge {{ $totalAlertsCount > 0 ? 'bg-warning text-dark badge-pulse' : 'bg-success text-white' }} p-2 rounded-circle shadow-xs">
                     <i class="fa-solid {{ $totalAlertsCount > 0 ? 'fa-bell' : 'fa-circle-check' }}"></i>
                 </span>
-                <div>
-                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                        <span>পেন্ডিং রিকোয়েস্ট</span>
-                        <span class="badge {{ $totalAlertsCount > 0 ? 'bg-danger text-white' : 'bg-success text-white' }} rounded-pill font-monospace" id="totalPendingCountBadge">
-                            {{ $totalAlertsCount }}
-                        </span>
-                    </h6>
-                    <small class="text-muted" style="font-size: 11px;">লেখক রেজিস্ট্রেশন, পোস্ট, অর্ডার ও কনটেন্ট সরাসরি অনুমোদন বা বাতিল করুন</small>
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="fw-bold mb-0 text-dark">Pending Hub</h6>
+                    <span class="badge {{ $totalAlertsCount > 0 ? 'bg-danger text-white' : 'bg-success text-white' }} rounded-pill font-monospace" id="totalPendingCountBadge">
+                        {{ $totalAlertsCount }}
+                    </span>
                 </div>
             </div>
             
             <div class="d-flex align-items-center gap-2">
-                {{-- Refresh Button --}}
-                <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted hover-dark shadow-2xs" onclick="reloadPendingData()" title="রিফ্রেশ করুন">
+                <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted hover-dark shadow-2xs" onclick="reloadPendingData()" title="Refresh">
                     <i class="fa-solid fa-rotate" id="pendingDataRefreshIcon"></i>
                 </button>
 
-                {{-- Action Required Interactive Modal Launcher --}}
-                <button class="btn btn-warning btn-sm rounded-pill px-3.5 py-1.5 fw-bold text-dark shadow-xs d-flex align-items-center gap-1.5 hover-lift" 
+                <button class="btn btn-warning btn-sm rounded-pill px-3 py-1.5 fw-bold text-dark shadow-xs d-flex align-items-center gap-1.5 hover-lift" 
                         type="button" data-bs-toggle="modal" data-bs-target="#pendingActionCenterModal">
                     <i class="fa-solid fa-bolt-lightning text-danger"></i>
-                    <span>অ্যাকশন প্যানেল</span>
+                    <span>Action Center</span>
                     <span class="badge bg-danger text-white rounded-pill ms-1" id="actionPanelCountBadge">{{ $totalAlertsCount }}</span>
                 </button>
             </div>
@@ -101,13 +96,13 @@
                                     <i class="fa-solid fa-user-clock"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">রেজিস্ট্রেশন অনুরোধ</div>
-                                    <span class="text-danger fw-bold font-monospace small" id="pendingCardCount-users">{{ $regCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Registrations</div>
+                                    <span class="text-danger fw-bold font-monospace small" id="pendingCardCount-users">{{ $regCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('users')" class="btn btn-danger btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-user-check"></i> অনুমোদন / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-user-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -121,13 +116,13 @@
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">নতুন বই অর্ডার</div>
-                                    <span class="text-warning-emphasis fw-bold font-monospace small" id="pendingCardCount-orders">{{ $orderCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Orders</div>
+                                    <span class="text-warning-emphasis fw-bold font-monospace small" id="pendingCardCount-orders">{{ $orderCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('orders')" class="btn btn-warning btn-sm rounded-pill w-100 py-1 fw-bold small text-dark mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-boxes-packing"></i> কনফার্ম / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-boxes-packing"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -141,13 +136,13 @@
                                     <i class="fa-solid fa-feather-pointed"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">ব্লগ পোস্ট</div>
-                                    <span class="text-success fw-bold font-monospace small" id="pendingCardCount-blogs">{{ $blogCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Blogs</div>
+                                    <span class="text-success fw-bold font-monospace small" id="pendingCardCount-blogs">{{ $blogCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('blogs')" class="btn btn-success btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-spell-check"></i> প্রকাশ / বাতিল <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-spell-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -161,13 +156,13 @@
                                     <i class="fa-solid fa-book-open"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">বই অনুমোদন</div>
-                                    <span class="text-primary fw-bold font-monospace small" id="pendingCardCount-books">{{ $bookCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Books</div>
+                                    <span class="text-primary fw-bold font-monospace small" id="pendingCardCount-books">{{ $bookCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-primary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-circle-check"></i> বই মডারেশন <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-circle-check"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -181,13 +176,13 @@
                                     <i class="fa-solid fa-tablet-screen-button"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">ই-বুক মডারেশন</div>
-                                    <span class="text-secondary fw-bold font-monospace small" id="pendingCardCount-ebooks">{{ $ebookCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">E-Books</div>
+                                    <span class="text-secondary fw-bold font-monospace small" id="pendingCardCount-ebooks">{{ $ebookCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('books')" class="btn btn-secondary btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-tablet"></i> ই-বুক অ্যাকশন <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-tablet"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -201,13 +196,13 @@
                                     <i class="fa-solid fa-book-bookmark"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">বই রিকোয়েস্ট</div>
-                                    <span class="text-info-emphasis fw-bold font-monospace small" id="pendingCardCount-requests">{{ $bookReqCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Book Requests</div>
+                                    <span class="text-info-emphasis fw-bold font-monospace small" id="pendingCardCount-requests">{{ $bookReqCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('requests')" class="btn btn-info btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-magnifying-glass"></i> সোর্সিং <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-magnifying-glass"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -221,13 +216,13 @@
                                     <i class="fa-solid fa-file-signature"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold text-dark small">পাণ্ডুলিপি ও লেখক</div>
-                                    <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }}টি পেন্ডিং</span>
+                                    <div class="fw-bold text-dark small">Submissions</div>
+                                    <span class="text-dark fw-bold font-monospace small" id="pendingCardCount-submissions">{{ $submissionCount + $authorUpdateCount }} Pending</span>
                                 </div>
                             </div>
                         </div>
                         <button type="button" onclick="openPendingCenterTab('submissions')" class="btn btn-dark btn-sm rounded-pill w-100 py-1 fw-bold small text-white mt-1 d-flex align-items-center justify-content-center gap-1 shadow-2xs">
-                            <i class="fa-solid fa-file-pen"></i> রিভিউ ও সিঙ্ক <i class="fa-solid fa-arrow-right ms-auto"></i>
+                            <i class="fa-solid fa-file-pen"></i> Manage <i class="fa-solid fa-arrow-right ms-auto"></i>
                         </button>
                     </div>
                 </div>
@@ -237,7 +232,7 @@
 
         <div class="card-body p-4 text-center text-muted small" id="pendingEmptyState" style="display: {{ $totalAlertsCount > 0 ? 'none' : 'block' }};">
             <i class="fa-solid fa-circle-check text-success fs-4 me-1 align-middle"></i>
-            <span class="fw-semibold text-dark">সব পেন্ডিং রিকোয়েস্ট সম্পন্ন হয়েছে!</span> নতুন কোনো আবেদন বা অর্ডার পেন্ডিং নেই।
+            <span class="fw-semibold text-dark">All pending requests cleared!</span> No pending requests at this moment.
         </div>
     </div>
 
@@ -247,29 +242,29 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 bg-white border-0 shadow-xs rounded-4">
         <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-1">
             <span class="badge bg-primary text-white rounded-circle p-1.5"><i class="fa-solid fa-bolt"></i></span>
-            <span>কুইক অ্যাকশন:</span>
+            <span>Quick Actions:</span>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
             <a href="{{ route('admin.sms.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold shadow-xs">
-                <i class="fa-solid fa-comment-sms me-1 text-primary"></i>বাল্ক এসএমএস
+                <i class="fa-solid fa-comment-sms me-1 text-primary"></i>Bulk SMS
                 @if(isset($smsInfo['balance']) && $smsInfo['balance'] !== null)
                     <span class="badge bg-primary text-white rounded-pill ms-1 font-monospace">{{ number_format((float)$smsInfo['balance']) }}</span>
                 @endif
             </a>
-            <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-cash-register me-1"></i>বইমেলা POS
+            <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-semibold">
+                <i class="fa-solid fa-cash-register me-1"></i>POS
             </a>
             <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-circle-plus me-1"></i>নতুন বই
+                <i class="fa-solid fa-circle-plus me-1"></i>New Book
             </a>
             <a href="{{ route('admin.accounting.index') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-calculator me-1"></i>অ্যাকাউন্টিং
+                <i class="fa-solid fa-calculator me-1"></i>Accounting
             </a>
             <a href="{{ route('admin.backup.index') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-database me-1"></i>ডাটাবেজ ব্যাকআপ
+                <i class="fa-solid fa-database me-1"></i>Backup
             </a>
             <a href="{{ route('admin.cache.manage') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                <i class="fa-solid fa-broom me-1"></i>ক্যাশ ক্লিয়ার
+                <i class="fa-solid fa-broom me-1"></i>Clear Cache
             </a>
         </div>
     </div>
@@ -328,11 +323,11 @@
         <div class="d-flex align-items-center justify-content-between mt-2.5 pt-2.5 border-top small text-muted">
             <div>
                 <i class="fa-solid fa-clock-rotate-left me-1 text-primary"></i> 
-                সময়কাল: <strong>{{ $stats['filter_label'] ?? 'All Time' }}</strong>
+                Period: <strong>{{ $stats['filter_label'] ?? 'All Time' }}</strong>
             </div>
             <div>
-                ভিজিটর: <strong>{{ number_format($stats['visitor']['filtered_uniques'] ?? 0) }}</strong> | 
-                মোট সেলস: <strong>৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</strong>
+                Visitors: <strong>{{ number_format($stats['visitor']['filtered_uniques'] ?? 0) }}</strong> | 
+                Revenue: <strong>৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</strong>
             </div>
         </div>
     </div>
@@ -348,7 +343,7 @@
                 <div class="kpi__icon bg-success-subtle text-success">
                     <i class="fa-solid fa-sack-dollar"></i>
                 </div>
-                <p class="kpi__label">আজকের বিক্রয়</p>
+                <p class="kpi__label">Today Sales</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot d-flex align-items-center justify-content-between">
                     <span class="badge bg-light text-primary border font-monospace small">≈ ${{ number_format($stats['today_revenue_usd'] ?? 0, 2) }} USD</span>
@@ -367,11 +362,11 @@
                 <div class="kpi__icon bg-primary-subtle text-primary">
                     <i class="fa-solid fa-cart-shopping"></i>
                 </div>
-                <p class="kpi__label">মোট অর্ডার</p>
+                <p class="kpi__label">Orders</p>
                 <h3 class="kpi__value text-dark">{{ $stats['filtered_orders'] ?? 0 }}</h3>
                 <p class="kpi__foot">
-                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">পেন্ডিং: {{ $stats['pending_orders'] ?? 0 }}</span>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1">ডেলিভার্ড: {{ $stats['delivered_orders'] ?? 0 }}</span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">Pending: {{ $stats['pending_orders'] ?? 0 }}</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1">Delivered: {{ $stats['delivered_orders'] ?? 0 }}</span>
                 </p>
             </div>
         </div>
@@ -382,10 +377,10 @@
                 <div class="kpi__icon bg-warning-subtle text-warning">
                     <i class="fa-solid fa-cash-register"></i>
                 </div>
-                <p class="kpi__label">বইমেলা POS সেল</p>
+                <p class="kpi__label">POS Sales</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['pos']['today_sales'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot">
-                    আজকের বিল: <strong>{{ $stats['pos']['today_count'] ?? 0 }}</strong> | <a href="{{ route('admin.pos.index') }}" class="text-decoration-none fw-semibold">POS ওপেন</a>
+                    Bills: <strong>{{ $stats['pos']['today_count'] ?? 0 }}</strong> | <a href="{{ route('admin.pos.index') }}" class="text-decoration-none fw-semibold">Open POS</a>
                 </p>
             </div>
         </div>
@@ -396,7 +391,7 @@
                 <div class="kpi__icon bg-primary-subtle text-primary">
                     <i class="fa-solid fa-globe"></i>
                 </div>
-                <p class="kpi__label">সর্বমোট বিক্রয়</p>
+                <p class="kpi__label">Total Revenue</p>
                 <h3 class="kpi__value text-dark">৳{{ number_format($stats['filtered_revenue'] ?? 0, 2) }}</h3>
                 <p class="kpi__foot">
                     <span class="badge bg-light text-dark border font-monospace">≈ ${{ number_format($stats['revenue_usd'] ?? 0, 2) }} USD</span>
@@ -420,20 +415,20 @@
                             <span class="position-absolute w-100 h-100 rounded-circle bg-success opacity-75 animate-ping" style="animation: pulse 1.5s cubic-bezier(0,0,.2,1) infinite;"></span>
                             <span class="position-relative w-100 h-100 rounded-circle bg-success"></span>
                         </span>
-                        <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tower-broadcast me-1.5 text-success"></i>লাইভ সেলস ফিড</h6>
+                        <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-tower-broadcast me-1.5 text-success"></i>Live Sales Feed</h6>
                     </div>
-                    <span class="badge bg-light text-muted border small">স্বয়ংক্রিয়</span>
+                    <span class="badge bg-light text-muted border small">Realtime</span>
                 </div>
                 <div class="adm-card__body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0 small">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="ps-3.5">চ্যানেল</th>
-                                    <th>ক্রেতা</th>
-                                    <th>পরিমাণ</th>
-                                    <th>স্ট্যাটাস</th>
-                                    <th class="text-end pe-3.5">সময়</th>
+                                    <th class="ps-3.5">Channel</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3.5">Time</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -453,7 +448,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-3 text-muted">আজকে এখনো নতুন ট্রানজেকশন হয়নি।</td>
+                                        <td colspan="5" class="text-center py-3 text-muted">No transactions today yet.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -467,7 +462,7 @@
         <div class="col-12 col-xl-5">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-bullseye me-2 text-danger"></i>বিক্রয় লক্ষ্যমাত্রা ও চ্যানেল শেয়ার</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-bullseye me-2 text-danger"></i>Sales Target & Channels</h6>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php
@@ -477,25 +472,25 @@
                     
                     {{-- Target Progress --}}
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small fw-semibold text-muted">টার্গেট প্রগ্রেস:</span>
-                        <span class="fw-bold text-primary font-monospace">{{ $target['achievement_percent'] }}% অর্জিত</span>
+                        <span class="small fw-semibold text-muted">Target Progress:</span>
+                        <span class="fw-bold text-primary font-monospace">{{ $target['achievement_percent'] }}% Achieved</span>
                     </div>
                     <div class="progress mb-3" style="height: 10px; border-radius: 6px;">
                         <div class="progress-bar bg-gradient bg-primary" role="progressbar" style="width: {{ $target['achievement_percent'] }}%;" aria-valuenow="{{ $target['achievement_percent'] }}" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                     <div class="d-flex justify-content-between text-muted small mb-3">
-                        <span>অর্জিত: <strong>৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</strong></span>
-                        <span>টার্গেট: <strong>৳{{ number_format($target['daily_target'] ?? 50000, 2) }}</strong></span>
+                        <span>Achieved: <strong>৳{{ number_format($stats['today_revenue'] ?? 0, 2) }}</strong></span>
+                        <span>Target: <strong>৳{{ number_format($target['daily_target'] ?? 50000, 2) }}</strong></span>
                     </div>
 
                     <hr class="my-2.5">
 
                     {{-- Channel Split Progress Bars --}}
-                    <div class="small fw-bold text-dark mb-2">রেভিনিউ শেয়ার:</div>
+                    <div class="small fw-bold text-dark mb-2">Revenue Share:</div>
                     <div class="d-flex flex-column gap-2 small">
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-cart-shopping text-primary me-1"></i>ই-কমার্স স্টোর</span>
+                                <span><i class="fa-solid fa-cart-shopping text-primary me-1"></i>E-Commerce Store</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ecom']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -504,7 +499,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-cash-register text-success me-1"></i>বইমেলা ও শোরুম POS</span>
+                                <span><i class="fa-solid fa-cash-register text-success me-1"></i>POS & Showroom</span>
                                 <span class="fw-bold font-monospace">{{ $channels['pos']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -513,7 +508,7 @@
                         </div>
                         <div>
                             <div class="d-flex justify-content-between mb-0.5">
-                                <span><i class="fa-solid fa-tablet-screen-button text-info me-1"></i>ই-বুক সাবস্ক্রিপশন</span>
+                                <span><i class="fa-solid fa-tablet-screen-button text-info me-1"></i>E-Book Subscriptions</span>
                                 <span class="fw-bold font-monospace">{{ $channels['ebook']['share'] ?? 0 }}%</span>
                             </div>
                             <div class="progress" style="height: 5px;">
@@ -536,7 +531,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>বিক্রয় ও আয় ট্রেন্ড</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-chart-line me-2 text-primary"></i>Sales Trend</h6>
                     <div class="btn-group btn-group-sm">
                         <a href="{{ request()->fullUrlWithQuery(['sales_period' => 'daily']) }}" 
                            class="btn {{ ($salesPeriod === 'daily') ? 'btn-primary' : 'btn-outline-secondary' }}">Daily</a>
@@ -558,8 +553,8 @@
         <div class="col-12 col-xl-4">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-credit-card me-2 text-purple"></i>পেমেন্ট মেথড শেয়ার</h6>
-                    <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">গেটওয়ে</a>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-credit-card me-2 text-purple"></i>Payment Methods</h6>
+                    <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2 small">Gateways</a>
                 </div>
                 <div class="adm-card__body d-flex flex-column align-items-center justify-content-center">
                     <div class="chart-box w-100" style="position: relative; height: 200px;">
@@ -579,7 +574,7 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-info"></i>ভিজিটর ও পেজভিউ ট্রাফিক</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-users-viewfinder me-2 text-info"></i>Visitor Traffic</h6>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group btn-group-sm">
                             <a href="{{ request()->fullUrlWithQuery(['traffic_period' => 'daily']) }}" 
@@ -603,13 +598,12 @@
         <div class="col-12 col-xl-4">
             <div class="adm-card h-100 d-flex flex-column">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-earth-americas me-2 text-primary"></i>গ্লোবাল ট্রাফিক ম্যাপ</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-earth-americas me-2 text-primary"></i>Global Traffic</h6>
                 </div>
                 
                 <!-- Interactive SVG World Vector Canvas -->
                 <div class="p-3 bg-dark text-center rounded-3 mx-3 my-2 position-relative overflow-hidden" style="background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);">
                     <svg viewBox="0 0 800 400" class="w-100" style="max-height: 140px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));">
-                        <!-- World Map Continents Outline (Abstract SVG) -->
                         <path d="M150,120 Q180,100 240,110 Q280,130 260,180 Q240,210 200,220 Q160,190 140,150 Z" fill="#334155" opacity="0.6"/>
                         <path d="M220,240 Q260,250 280,310 Q260,370 230,380 Q210,340 210,280 Z" fill="#334155" opacity="0.6"/>
                         <path d="M420,100 Q480,90 510,130 Q490,160 450,150 Q430,130 420,100 Z" fill="#334155" opacity="0.6"/>
@@ -617,7 +611,6 @@
                         <path d="M520,100 Q650,80 720,140 Q690,200 620,210 Q560,190 530,140 Z" fill="#334155" opacity="0.6"/>
                         <path d="M630,280 Q710,270 720,330 Q680,360 630,340 Z" fill="#334155" opacity="0.6"/>
 
-                        <!-- Glowing City Node Pulses -->
                         <circle cx="585" cy="185" r="7" fill="#10b981" opacity="0.3" class="animate-ping"/>
                         <circle cx="585" cy="185" r="4" fill="#10b981"><title>Dhaka, Bangladesh</title></circle>
                         <circle cx="230" cy="135" r="5" fill="#38bdf8" opacity="0.3"/>
@@ -672,9 +665,9 @@
         <div class="col-12 col-xl-8">
             <div class="adm-card h-100">
                 <div class="adm-card__head flex-wrap gap-2">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-receipt me-2 text-primary"></i>সাম্প্রতিক অর্ডার</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-receipt me-2 text-primary"></i>Recent Orders</h6>
                     <a href="{{ route('admin.ecommerce-orders') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                        সব অর্ডার <i class="fa-solid fa-arrow-right ms-1"></i>
+                        View All <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
                 </div>
                 <div class="adm-card__body p-0">
@@ -682,12 +675,12 @@
                         <table class="table adm-table align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-3.5">অর্ডার নং</th>
-                                    <th>ক্রেতা</th>
-                                    <th>পেমেন্ট</th>
-                                    <th>পরিমাণ</th>
-                                    <th>স্ট্যাটাস</th>
-                                    <th class="text-end pe-3.5">ইনভয়েস</th>
+                                    <th class="ps-3.5">Order #</th>
+                                    <th>Customer</th>
+                                    <th>Payment</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th class="text-end pe-3.5">Invoice</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -729,7 +722,7 @@
                                         <td colspan="6">
                                             <div class="empty-state py-4">
                                                 <i class="fa-solid fa-receipt"></i>
-                                                <p class="mb-0 fw-semibold">কোনো সাম্প্রতিক অর্ডার নেই</p>
+                                                <p class="mb-0 fw-semibold">No recent orders</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -746,7 +739,7 @@
             <div class="adm-card h-100 border-start border-4 border-warning">
                 <div class="adm-card__head">
                     <h6 class="mb-0 fw-bold text-warning-emphasis">
-                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-warning"></i>কম স্টক সতর্কতা (Low Stock)
+                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-warning"></i>Low Stock Alert
                     </h6>
                 </div>
                 <div class="adm-card__body p-0">
@@ -763,7 +756,7 @@
                                     </span>
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2.5"
                                             onclick="openQuickStockModal({{ $b->id }}, '{{ addslashes($b->title) }}', {{ $b->stock_quantity }})"
-                                            title="স্টক রিফিল">
+                                            title="Stock Refill">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
                                 </div>
@@ -771,14 +764,14 @@
                         @empty
                             <div class="p-4 text-center text-muted small">
                                 <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                সকল বইয়ের স্টক স্বাভাবিক রয়েছে!
+                                All inventory stock levels are healthy!
                             </div>
                         @endforelse
                     </div>
                 </div>
                 <div class="adm-card__foot text-center py-2.5">
                     <a href="{{ route('admin.books') }}" class="small text-decoration-none fw-semibold">
-                        সকল ক্যাটালগ দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                        View All Books <i class="fa-solid fa-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -795,7 +788,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-trophy me-2 text-warning"></i>টপ বেস্ট সেলার</h6>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-trophy me-2 text-warning"></i>Top Selling Books</h6>
                 </div>
                 <div class="adm-card__body p-0">
                     <div class="list-group list-group-flush">
@@ -812,13 +805,13 @@
                                 </div>
                                 <div class="text-end">
                                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold">
-                                        {{ $tb->sales_count ?? 0 }} কপি
+                                        {{ $tb->sales_count ?? 0 }} copies
                                     </span>
                                     <div class="small fw-bold text-dark mt-0.5">৳{{ number_format($tb->discount_price ?? $tb->price, 2) }}</div>
                                 </div>
                             </div>
                         @empty
-                            <div class="p-4 text-center text-muted small">কোনো বিক্রয় তথ্য পাওয়া যায়নি</div>
+                            <div class="p-4 text-center text-muted small">No sales records found</div>
                         @endforelse
                     </div>
                 </div>
@@ -829,8 +822,8 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100">
                 <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-primary"></i>বই রিকোয়েস্ট ফিড</h6>
-                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2.5 small">সবগুলো</a>
+                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-primary"></i>Book Requests</h6>
+                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2.5 small">View All</a>
                 </div>
                 <div class="adm-card__body p-0">
                     <div class="list-group list-group-flush">
@@ -838,15 +831,15 @@
                             <div class="list-group-item d-flex align-items-center justify-content-between p-3">
                                 <div>
                                     <div class="fw-semibold text-dark">{{ $req->book_title }}</div>
-                                    <small class="text-muted">অনুরোধকারী: {{ $req->customer_name ?? 'Customer' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})</small>
+                                    <small class="text-muted">{{ $req->customer_name ?? 'Customer' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})</small>
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
-                                   class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" title="ক্যাটালগে যুক্ত করুন">
-                                    <i class="fa-solid fa-plus me-1"></i> ক্যাটালগে যোগ
+                                   class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" title="Add to Catalog">
+                                    <i class="fa-solid fa-plus me-1"></i> Add
                                 </a>
                             </div>
                         @empty
-                            <div class="p-4 text-center text-muted small">কোনো পেন্ডিং বই রিকোয়েস্ট নেই</div>
+                            <div class="p-4 text-center text-muted small">No pending book requests</div>
                         @endforelse
                     </div>
                 </div>
@@ -878,26 +871,26 @@
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
                     <span class="badge bg-gradient text-white rounded-pill px-3 py-1 small fw-bold shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                        <i class="fa-solid fa-crown me-1 text-warning"></i> CEO HR & Talent Hub
+                        <i class="fa-solid fa-crown me-1 text-warning"></i> Team & HR Hub
                     </span>
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold">
-                        <i class="fa-solid fa-circle-check me-1"></i> সক্রিয় টিম
+                        <i class="fa-solid fa-circle-check me-1"></i> Active
                     </span>
                 </div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6"><i class="fa-solid fa-sitemap"></i></span>
-                    <span>সিইও অ্যাডমিন: বিভাগীয় টিম ও কর্মী ব্যবস্থাপনা</span>
+                    <span>Staff & Departments</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#dashboardQuickAddEmployeeModal">
-                    <i class="fa-solid fa-user-plus me-1.5"></i> নতুন কর্মী
+                    <i class="fa-solid fa-user-plus me-1.5"></i> Add Staff
                 </button>
                 <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
-                    <i class="fa-solid fa-users me-1.5"></i> কর্মী ডিরেক্টরি (@bn($empStats['total_employees']) জন)
+                    <i class="fa-solid fa-users me-1.5"></i> Directory ({{ $empStats['total_employees'] }})
                 </a>
                 <a href="{{ route('admin.accounting.salary.index') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                    <i class="fa-solid fa-money-check-dollar me-1.5"></i> পে-রোল
+                    <i class="fa-solid fa-money-check-dollar me-1.5"></i> Payroll
                 </a>
             </div>
         </div>
@@ -919,19 +912,19 @@
                                 </span>
                                 <span class="badge bg-white text-primary border rounded-pill small font-monospace">{{ $dm['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">ডিজিটাল মার্কেটিং</h6>
+                            <h6 class="fw-bold text-dark mb-2">Marketing</h6>
                             
                             <div class="d-flex align-items-baseline gap-2 mb-1">
                                 <h4 class="fw-bold text-primary font-monospace mb-0">{{ $dm['count'] }}</h4>
-                                <span class="small text-muted">জন (সক্রিয়: <strong class="text-success">{{ $dm['active'] }}</strong>)</span>
+                                <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $dm['active'] }}</strong>)</span>
                             </div>
                             <div class="small text-muted font-monospace">
-                                বাজেট: <strong class="text-dark">৳{{ number_format($dm['payroll'], 2) }}</strong>
+                                Payroll: <strong class="text-dark">৳{{ number_format($dm['payroll'], 2) }}</strong>
                             </div>
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
+                                Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -945,23 +938,23 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #fef08a; color: #854d0e;">
-                                    <i class="fa-solid fa-feather-pointed me-1"></i> Content & Editorial
+                                    <i class="fa-solid fa-feather-pointed me-1"></i> Editorial
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace">{{ $ce['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">কনটেন্ট ও সম্পাদকীয়</h6>
+                            <h6 class="fw-bold text-dark mb-2">Content & Editorial</h6>
                             
                             <div class="d-flex align-items-baseline gap-2 mb-1">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ca8a04;">{{ $ce['count'] }}</h4>
-                                <span class="small text-muted">জন (সক্রিয়: <strong class="text-success">{{ $ce['active'] }}</strong>)</span>
+                                <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $ce['active'] }}</strong>)</span>
                             </div>
                             <div class="small text-muted font-monospace">
-                                বাজেট: <strong class="text-dark">৳{{ number_format($ce['payroll'], 2) }}</strong>
+                                Payroll: <strong class="text-dark">৳{{ number_format($ce['payroll'], 2) }}</strong>
                             </div>
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ca8a04;">
-                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
+                                Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -975,23 +968,23 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dcfce7; color: #15803d;">
-                                    <i class="fa-solid fa-laptop-code me-1"></i> Technical & IT
+                                    <i class="fa-solid fa-laptop-code me-1"></i> Tech & IT
                                 </span>
                                 <span class="badge bg-white text-success border rounded-pill small font-monospace">{{ $ti['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">টেকনিক্যাল ও আইটি</h6>
+                            <h6 class="fw-bold text-dark mb-2">Technical & IT</h6>
                             
                             <div class="d-flex align-items-baseline gap-2 mb-1">
                                 <h4 class="fw-bold text-success font-monospace mb-0">{{ $ti['count'] }}</h4>
-                                <span class="small text-muted">জন (সক্রিয়: <strong class="text-success">{{ $ti['active'] }}</strong>)</span>
+                                <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $ti['active'] }}</strong>)</span>
                             </div>
                             <div class="small text-muted font-monospace">
-                                বাজেট: <strong class="text-dark">৳{{ number_format($ti['payroll'], 2) }}</strong>
+                                Payroll: <strong class="text-dark">৳{{ number_format($ti['payroll'], 2) }}</strong>
                             </div>
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
+                                Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1005,23 +998,23 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #ffedd5; color: #c2410c;">
-                                    <i class="fa-solid fa-headset me-1"></i> Operations & Support
+                                    <i class="fa-solid fa-headset me-1"></i> Operations
                                 </span>
                                 <span class="badge bg-white text-danger border rounded-pill small font-monospace">{{ $os['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">অপারেশন্স ও সাপোর্ট</h6>
+                            <h6 class="fw-bold text-dark mb-2">Operations & Support</h6>
                             
                             <div class="d-flex align-items-baseline gap-2 mb-1">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ea580c;">{{ $os['count'] }}</h4>
-                                <span class="small text-muted">জন (সক্রিয়: <strong class="text-success">{{ $os['active'] }}</strong>)</span>
+                                <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $os['active'] }}</strong>)</span>
                             </div>
                             <div class="small text-muted font-monospace">
-                                বাজেট: <strong class="text-dark">৳{{ number_format($os['payroll'], 2) }}</strong>
+                                Payroll: <strong class="text-dark">৳{{ number_format($os['payroll'], 2) }}</strong>
                             </div>
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ea580c;">
-                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
+                                Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1039,19 +1032,19 @@
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace">{{ $pa['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">ছাপাখানা ও বাঁধাই</h6>
+                            <h6 class="fw-bold text-dark mb-2">Press & Production</h6>
                             
                             <div class="d-flex align-items-baseline gap-2 mb-1">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #9333ea;">{{ $pa['count'] }}</h4>
-                                <span class="small text-muted">জন (সক্রিয়: <strong class="text-success">{{ $pa['active'] }}</strong>)</span>
+                                <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $pa['active'] }}</strong>)</span>
                             </div>
                             <div class="small text-muted font-monospace">
-                                বাজেট: <strong class="text-dark">৳{{ number_format($pa['payroll'], 2) }}</strong>
+                                Payroll: <strong class="text-dark">৳{{ number_format($pa['payroll'], 2) }}</strong>
                             </div>
                         </div>
                         <div class="mt-2.5 pt-2 border-top">
                             <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
-                                ফিল্টার <i class="fa-solid fa-filter ms-1"></i>
+                                Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
                     </div>
@@ -1065,10 +1058,10 @@
                 <div class="col-12 col-lg-5">
                     <div class="p-3.5 bg-light rounded-4 border h-100 d-flex flex-column justify-content-between">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie me-1.5 text-primary"></i>বিভাগীয় জনবল ও পে-রোল</h6>
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie me-1.5 text-primary"></i>Department & Payroll</h6>
                             <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-white border" role="group">
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptHeadcount" onclick="switchDeptChartMetric('headcount')">জনবল</button>
-                                <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptPayroll" onclick="switchDeptChartMetric('payroll')">পে-রোল (৳)</button>
+                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptHeadcount" onclick="switchDeptChartMetric('headcount')">Headcount</button>
+                                <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptPayroll" onclick="switchDeptChartMetric('payroll')">Payroll (৳)</button>
                             </div>
                         </div>
 
@@ -1078,15 +1071,15 @@
 
                         <div class="mt-3 pt-2.5 border-top d-flex justify-content-around text-center small">
                             <div>
-                                <span class="text-muted d-block" style="font-size: 11px;">মোট কর্মী</span>
-                                <strong class="text-dark font-monospace fs-6">@bn($empStats['total_employees']) জন</strong>
+                                <span class="text-muted d-block" style="font-size: 11px;">Total Staff</span>
+                                <strong class="text-dark font-monospace fs-6">{{ $empStats['total_employees'] }}</strong>
                             </div>
                             <div class="border-start ps-3">
-                                <span class="text-muted d-block" style="font-size: 11px;">সক্রিয় জনবল</span>
-                                <strong class="text-success font-monospace fs-6">@bn($empStats['active_employees']) জন</strong>
+                                <span class="text-muted d-block" style="font-size: 11px;">Active Staff</span>
+                                <strong class="text-success font-monospace fs-6">{{ $empStats['active_employees'] }}</strong>
                             </div>
                             <div class="border-start ps-3">
-                                <span class="text-muted d-block" style="font-size: 11px;">মাসিক পে-রোল</span>
+                                <span class="text-muted d-block" style="font-size: 11px;">Monthly Payroll</span>
                                 <strong class="text-primary font-monospace fs-6">৳{{ number_format($empStats['total_monthly_payroll'], 0) }}</strong>
                             </div>
                         </div>
@@ -1097,18 +1090,18 @@
                 <div class="col-12 col-lg-7">
                     <div class="p-3.5 bg-light rounded-4 border h-100">
                         <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-table-columns me-1.5 text-secondary"></i>বিভাগভিত্তিক বাজেট বিবরণী</h6>
-                            <span class="badge bg-white text-muted border small">৫টি শ্রেণি</span>
+                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-table-columns me-1.5 text-secondary"></i>Budget & Departments</h6>
+                            <span class="badge bg-white text-muted border small">5 Categories</span>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-sm table-borderless align-middle mb-0 small">
                                 <thead>
                                     <tr class="text-muted border-bottom">
-                                        <th class="ps-2">বিভাগ</th>
-                                        <th class="text-center">জনবল</th>
-                                        <th class="text-end">মাসিক বেতন</th>
-                                        <th>দায়িত্ব / স্কিল</th>
-                                        <th class="text-end pe-2">অ্যাকশন</th>
+                                        <th class="ps-2">Department</th>
+                                        <th class="text-center">Headcount</th>
+                                        <th class="text-end">Payroll</th>
+                                        <th>Skills</th>
+                                        <th class="text-end pe-2">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1123,7 +1116,7 @@
                                                 </div>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge bg-white text-dark border font-monospace">{{ $dData['count'] }} জন</span>
+                                                <span class="badge bg-white text-dark border font-monospace">{{ $dData['count'] }}</span>
                                             </td>
                                             <td class="text-end font-monospace fw-bold text-dark">
                                                 ৳{{ number_format($dData['payroll'], 2) }}
@@ -1151,22 +1144,22 @@
                     {{-- Live Filter Tabs --}}
                     <div class="d-flex flex-wrap gap-1.5" id="dashboardStaffFilterTabs">
                         <button type="button" onclick="filterDashboardStaffTable('all')" class="btn btn-sm rounded-pill px-3 py-1 fw-bold btn-dark text-white staff-filter-btn" data-filter="all">
-                            🌐 সকল (@bn($empStats['total_employees']))
+                            All ({{ $empStats['total_employees'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="digital_marketing">
-                            📱 Digital Marketing ({{ $dm['count'] }})
+                            Digital Marketing ({{ $dm['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="content_editorial">
-                            ✍️ Content & Editorial ({{ $ce['count'] }})
+                            Content & Editorial ({{ $ce['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="technical_it">
-                            💻 Technical & IT ({{ $ti['count'] }})
+                            Technical & IT ({{ $ti['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="operations_support">
-                            ⚙️ Operations & Support ({{ $os['count'] }})
+                            Operations & Support ({{ $os['count'] }})
                         </button>
                         <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="press_artisans">
-                            📚 Press & Artisans ({{ $pa['count'] }})
+                            Press & Artisans ({{ $pa['count'] }})
                         </button>
                     </div>
 
@@ -1174,7 +1167,7 @@
                     <div class="w-100 w-md-auto" style="min-width: 250px;">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control rounded-end-pill" placeholder="স্টাফ নাম, পদবী, মোবাইল...">
+                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control rounded-end-pill" placeholder="Search staff, role, phone...">
                         </div>
                     </div>
                 </div>
@@ -1183,13 +1176,13 @@
                     <table class="table table-hover align-middle mb-0 small" id="dashboardStaffTable">
                         <thead class="table-light text-secondary">
                             <tr>
-                                <th class="ps-3.5" style="min-width: 220px;">স্টাফ / কর্মকর্তা নাম</th>
-                                <th style="min-width: 170px;">বিভাগ ও শ্রেণি</th>
-                                <th style="min-width: 180px;">পদবী ও দায়িত্ব</th>
-                                <th style="min-width: 130px;">বেতন স্কেল / রেট</th>
-                                <th style="min-width: 140px;">যোগাযোগ</th>
-                                <th class="text-center" style="width: 90px;">স্ট্যাটাস</th>
-                                <th class="text-end pe-3.5" style="width: 150px;">অ্যাকশন</th>
+                                <th class="ps-3.5" style="min-width: 220px;">Staff Name</th>
+                                <th style="min-width: 170px;">Department</th>
+                                <th style="min-width: 180px;">Designation</th>
+                                <th style="min-width: 130px;">Rate / Salary</th>
+                                <th style="min-width: 140px;">Contact</th>
+                                <th class="text-center" style="width: 90px;">Status</th>
+                                <th class="text-end pe-3.5" style="width: 150px;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="dashboardStaffTableBody">
@@ -1246,19 +1239,19 @@
                                     </td>
                                     <td class="text-center">
                                         @if($emp->status === 'active')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">সক্রিয়</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Active</span>
                                         @elseif($emp->status === 'on_leave')
-                                            <span class="badge bg-warning-subtle text-warning border rounded-pill px-2 py-0.5">ছুটিতে</span>
+                                            <span class="badge bg-warning-subtle text-warning border rounded-pill px-2 py-0.5">On Leave</span>
                                         @else
-                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">নিষ্ক্রিয়</span>
+                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">Inactive</span>
                                         @endif
                                     </td>
                                     <td class="text-end pe-3.5">
                                         <div class="d-inline-flex align-items-center gap-1">
-                                            <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px;" title="কাজের লগ ও লেজার">
-                                                <i class="fa-solid fa-book-bookmark me-1"></i>লেজার
+                                            <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px;" title="Ledger">
+                                                <i class="fa-solid fa-book-bookmark me-1"></i>Ledger
                                             </a>
-                                            <a href="{{ route('admin.accounting.salary.index', ['employee_id' => $emp->id]) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" style="font-size: 11px;" title="বেতন বিবরণী">
+                                            <a href="{{ route('admin.accounting.salary.index', ['employee_id' => $emp->id]) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" style="font-size: 11px;" title="Salary History">
                                                 <i class="fa-solid fa-money-check-dollar text-success"></i>
                                             </a>
                                         </div>
@@ -1268,7 +1261,7 @@
                                 <tr id="noStaffFoundRow">
                                     <td colspan="7" class="text-center py-4 text-muted">
                                         <i class="fa-solid fa-users-slash text-muted fs-3 mb-2 d-block opacity-50"></i>
-                                        কোনো কর্মী পাওয়া যায়নি।
+                                        No staff records found.
                                     </td>
                                 </tr>
                             @endforelse
@@ -1289,7 +1282,7 @@
                 @csrf
                 <div class="modal-header bg-dark text-white border-0 py-3">
                     <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-user-plus text-primary"></i> সিইও অ্যাডমিন: নতুন কর্মকর্তা / কর্মী যোগ করুন
+                        <i class="fa-solid fa-user-plus text-primary"></i> Add New Employee
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -1297,72 +1290,72 @@
                     {{-- 1-Click Role Presets --}}
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="small fw-bold text-dark mb-1.5 d-block">
-                            <i class="fa-solid fa-bolt text-warning me-1"></i> কুইক ১-ক্লিক পদবী প্রিসেট:
+                            <i class="fa-solid fa-bolt text-warning me-1"></i> Quick Role Presets:
                         </label>
                         <select class="form-select form-select-sm rounded-pill border-primary fw-semibold" id="dashRolePresetSelect" onchange="applyDashEmployeePreset(this.value)">
-                            <option value="">-- দ্রুত রোল ও বেতন স্কেল নির্বাচন করুন --</option>
-                            <optgroup label="📱 1. Digital Marketing (ডিজিটাল মার্কেটিং)">
-                                <option value='{"name":"","desig":"Digital Marketing Specialist & Media Buyer","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"Digital Marketing Specialist & Media Buyer (ডিজিটাল মার্কেটিং ও মিডিয়া বায়ার)","rate_type":"monthly","unit":"Month","rate":25000.00,"schedule":"monthly"}'>📱 Digital Marketing Specialist (Monthly: ৳25,000)</option>
-                                <option value='{"name":"","desig":"SEO & Social Media Campaign Manager","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"SEO & Social Media Campaign Manager (এসইও ও সোশ্যাল মিডিয়া ম্যানেজার)","rate_type":"monthly","unit":"Month","rate":20000.00,"schedule":"monthly"}'>📱 SEO & Social Media Manager (Monthly: ৳20,000)</option>
+                            <option value="">-- Select Preset Role & Salary Scale --</option>
+                            <optgroup label="Digital Marketing">
+                                <option value='{"name":"","desig":"Digital Marketing Specialist & Media Buyer","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"Digital Marketing Specialist & Media Buyer","rate_type":"monthly","unit":"Month","rate":25000.00,"schedule":"monthly"}'>Digital Marketing Specialist (Monthly: ৳25,000)</option>
+                                <option value='{"name":"","desig":"SEO & Social Media Campaign Manager","dept":"Digital Marketing (ডিজিটাল মার্কেটিং)","type":"monthly","skill":"SEO & Social Media Campaign Manager","rate_type":"monthly","unit":"Month","rate":20000.00,"schedule":"monthly"}'>SEO & Social Media Manager (Monthly: ৳20,000)</option>
                             </optgroup>
-                            <optgroup label="✍️ 2. Content & Editorial (কনটেন্ট ও সম্পাদকীয়)">
-                                <option value='{"name":"","desig":"Executive Editor & Content Lead","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"monthly","skill":"Executive Editor & Content Lead (প্রধান সম্পাদক ও কনটেন্ট লিড)","rate_type":"monthly","unit":"Month","rate":25000.00,"schedule":"monthly"}'>✍️ Executive Editor & Content Lead (Monthly: ৳25,000)</option>
-                                <option value='{"name":"","desig":"Proofreader & Sub-Editor","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"contract_piece","skill":"Proofreader & Sub-Editor (প্রুফ রিডার ও সাব-এডিটর)","rate_type":"per_forma","unit":"Forma","rate":25.00,"schedule":"weekly"}'>✍️ Proofreader & Sub-Editor (Piece-rate: ৳25.00 / Forma)</option>
+                            <optgroup label="Content & Editorial">
+                                <option value='{"name":"","desig":"Executive Editor & Content Lead","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"monthly","skill":"Executive Editor & Content Lead","rate_type":"monthly","unit":"Month","rate":25000.00,"schedule":"monthly"}'>Executive Editor & Content Lead (Monthly: ৳25,000)</option>
+                                <option value='{"name":"","desig":"Proofreader & Sub-Editor","dept":"Content & Editorial (কনটেন্ট ও সম্পাদকীয়)","type":"contract_piece","skill":"Proofreader & Sub-Editor","rate_type":"per_forma","unit":"Forma","rate":25.00,"schedule":"weekly"}'>Proofreader & Sub-Editor (Piece-rate: ৳25.00 / Forma)</option>
                             </optgroup>
-                            <optgroup label="💻 3. Technical & IT (টেকনিক্যাল ও আইটি)">
-                                <option value='{"name":"","desig":"Full-Stack Web & Software Developer","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"Full-Stack Web & Software Developer (সফটওয়্যার ও ওয়েব ডেভেলপার)","rate_type":"monthly","unit":"Month","rate":35000.00,"schedule":"monthly"}'>💻 Full-Stack Web & Software Developer (Monthly: ৳35,000)</option>
-                                <option value='{"name":"","desig":"IT Support & System Administrator","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"IT Support & System Administrator (আইটি সাপোর্ট ও সিস্টেম অ্যাডমিন)","rate_type":"monthly","unit":"Month","rate":22000.00,"schedule":"monthly"}'>💻 IT Support & Systems Admin (Monthly: ৳22,000)</option>
+                            <optgroup label="Technical & IT">
+                                <option value='{"name":"","desig":"Full-Stack Web & Software Developer","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"Full-Stack Web & Software Developer","rate_type":"monthly","unit":"Month","rate":35000.00,"schedule":"monthly"}'>Full-Stack Web & Software Developer (Monthly: ৳35,000)</option>
+                                <option value='{"name":"","desig":"IT Support & System Administrator","dept":"Technical & IT (টেকনিক্যাল ও আইটি)","type":"monthly","skill":"IT Support & System Administrator","rate_type":"monthly","unit":"Month","rate":22000.00,"schedule":"monthly"}'>IT Support & Systems Admin (Monthly: ৳22,000)</option>
                             </optgroup>
-                            <optgroup label="⚙️ 4. Operations & Support (অপারেশন্স ও কাস্টমার সাপোর্ট)">
-                                <option value='{"name":"","desig":"Customer Support & CRM Executive","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Customer Support & CRM Executive (কাস্টমার সাপোর্ট ও সিআরএম এক্সিকিউটিভ)","rate_type":"monthly","unit":"Month","rate":18000.00,"schedule":"monthly"}'>⚙️ Customer Support & CRM Executive (Monthly: ৳18,000)</option>
-                                <option value='{"name":"","desig":"Order Fulfillment & Dispatch Officer","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Order Fulfillment & Dispatch Officer (অর্ডার প্রসেসিং ও ডিসপ্যাচ অফিসার)","rate_type":"monthly","unit":"Month","rate":16000.00,"schedule":"monthly"}'>⚙️ Order Fulfillment & Dispatch Officer (Monthly: ৳16,000)</option>
-                                <option value='{"name":"","desig":"Office Assistant / Peon","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"daily","skill":"Office Assistant / Peon / MLSS (অফিস সহায়ক / পিওন)","rate_type":"daily","unit":"Day","rate":650.00,"schedule":"daily"}'>🏃 Office Assistant / Peon (Daily: ৳650 / Day)</option>
+                            <optgroup label="Operations & Support">
+                                <option value='{"name":"","desig":"Customer Support & CRM Executive","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Customer Support & CRM Executive","rate_type":"monthly","unit":"Month","rate":18000.00,"schedule":"monthly"}'>Customer Support & CRM Executive (Monthly: ৳18,000)</option>
+                                <option value='{"name":"","desig":"Order Fulfillment & Dispatch Officer","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"monthly","skill":"Order Fulfillment & Dispatch Officer","rate_type":"monthly","unit":"Month","rate":16000.00,"schedule":"monthly"}'>Order Fulfillment & Dispatch Officer (Monthly: ৳16,000)</option>
+                                <option value='{"name":"","desig":"Office Assistant / Peon","dept":"Operations & Support (অপারেশনস ও সাপোর্ট)","type":"daily","skill":"Office Assistant / Peon","rate_type":"daily","unit":"Day","rate":650.00,"schedule":"daily"}'>Office Assistant / Peon (Daily: ৳650 / Day)</option>
                             </optgroup>
-                            <optgroup label="📚 5. Press & Production Artisans (ছাপাখানা ও বাঁধাই)">
-                                <option value='{"name":"","desig":"Master Book Binder","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Master Book Binder (মাস্টার বুক বাইন্ডার ও বাঁধাই কারিগর)","rate_type":"per_book","unit":"Book","rate":4.50,"schedule":"per_job"}'>📚 Master Book Binder (৳4.50 / Book Binding)</option>
+                            <optgroup label="Press & Production Artisans">
+                                <option value='{"name":"","desig":"Master Book Binder","dept":"ছাপাখানা ও বাঁধাই (Press & Book Binding)","type":"contract_piece","skill":"Master Book Binder","rate_type":"per_book","unit":"Book","rate":4.50,"schedule":"per_job"}'>Master Book Binder (৳4.50 / Book Binding)</option>
                             </optgroup>
                         </select>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">কর্মকর্তা / কর্মীর নাম *</label>
-                            <input type="text" name="name" id="dash_emp_name" class="form-control rounded-3" required placeholder="নাম লিখুন">
+                            <label class="form-label small fw-bold text-dark">Staff Name *</label>
+                            <input type="text" name="name" id="dash_emp_name" class="form-control rounded-3" required placeholder="Full Name">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">পদবী / Designation *</label>
+                            <label class="form-label small fw-bold text-dark">Designation *</label>
                             <input type="text" name="designation" id="dash_emp_designation" class="form-control rounded-3" required placeholder="e.g. SEO Specialist">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">বিভাগ / Department *</label>
+                            <label class="form-label small fw-bold text-dark">Department *</label>
                             <select name="department" id="dash_emp_department" class="form-select rounded-3" required>
-                                <option value="Digital Marketing (ডিজিটাল মার্কেটিং)">Digital Marketing (ডিজিটাল মার্কেটিং)</option>
-                                <option value="Content & Editorial (কনটেন্ট ও সম্পাদকীয়)">Content & Editorial (কনটেন্ট ও সম্পাদকীয়)</option>
-                                <option value="Technical & IT (টেকনিক্যাল ও আইটি)">Technical & IT (টেকনিক্যাল ও আইটি)</option>
-                                <option value="Operations & Support (অপারেশনস ও সাপোর্ট)">Operations & Support (অপারেশনস ও সাপোর্ট)</option>
-                                <option value="কম্পিউটার ও টাইপসেটিং (Computer & Typesetting)">কম্পিউটার ও টাইপসেটিং (Computer & Typesetting)</option>
-                                <option value="প্রুফ রিডিং ও সম্পাদনা (Proofreading & Editorial)">প্রুফ রিডিং ও সম্পাদনা (Proofreading & Editorial)</option>
-                                <option value="ছাপাখানা ও বাঁধাই (Press & Book Binding)">ছাপাখানা ও বাঁধাই (Press & Book Binding)</option>
-                                <option value="গ্রাফিক্স ও কভার ডিজাইন (Graphics & Cover Design)">গ্রাফিক্স ও কভার ডিজাইন (Graphics & Cover Design)</option>
-                                <option value="সাধারণ প্রশাসন (General Office & Admin)">সাধারণ প্রশাসন (General Office & Admin)</option>
+                                <option value="Digital Marketing (ডিজিটাল মার্কেটিং)">Digital Marketing</option>
+                                <option value="Content & Editorial (কনটেন্ট ও সম্পাদকীয়)">Content & Editorial</option>
+                                <option value="Technical & IT (টেকনিক্যাল ও আইটি)">Technical & IT</option>
+                                <option value="Operations & Support (অপারেশনস ও সাপোর্ট)">Operations & Support</option>
+                                <option value="কম্পিউটার ও টাইপসেটিং (Computer & Typesetting)">Computer & Typesetting</option>
+                                <option value="প্রুফ রিডিং ও সম্পাদনা (Proofreading & Editorial)">Proofreading & Editorial</option>
+                                <option value="ছাপাখানা ও বাঁধাই (Press & Book Binding)">Press & Book Binding</option>
+                                <option value="গ্রাফিক্স ও কভার ডিজাইন (Graphics & Cover Design)">Graphics & Cover Design</option>
+                                <option value="সাধারণ প্রশাসন (General Office & Admin)">General Office & Admin</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">স্কিল ক্যাটাগরি</label>
+                            <label class="form-label small fw-bold text-dark">Skill Category</label>
                             <input type="text" name="skill_category" id="dash_emp_skill" class="form-control rounded-3" placeholder="e.g. Full-Stack Web Developer">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">চুক্তির ধরন (Nature) *</label>
+                            <label class="form-label small fw-bold text-dark">Employment Nature *</label>
                             <select name="employment_type" id="dash_emp_type" class="form-select rounded-3 fw-semibold border-primary shadow-2xs" required>
-                                <option value="monthly">Monthly Salary (মাসিক স্থায়ী বেতন)</option>
-                                <option value="contract_piece">Piece-Rate / Unit-Based (কাজ বা ইউনিট চুক্তি)</option>
-                                <option value="daily">Daily Wage (দৈনিক হাজিরা)</option>
-                                <option value="weekly">Weekly Wage (সাপ্তাহিক মজুরি)</option>
-                                <option value="contract_project">Project Basis (প্রজেক্ট চুক্তি)</option>
+                                <option value="monthly">Monthly Fixed Salary</option>
+                                <option value="contract_piece">Piece-Rate / Unit-Based</option>
+                                <option value="daily">Daily Wage</option>
+                                <option value="weekly">Weekly Wage</option>
+                                <option value="contract_project">Project Basis</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">রেট টাইপ *</label>
+                            <label class="form-label small fw-bold text-dark">Rate Type *</label>
                             <select name="salary_rate_type" id="dash_emp_rate_type" class="form-select rounded-3 fw-semibold" required>
                                 <option value="monthly">Monthly Fixed Salary</option>
                                 <option value="per_page">Per Page Rate</option>
@@ -1373,18 +1366,18 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">মূল বেতন / রেট (৳) *</label>
+                            <label class="form-label small fw-bold text-dark">Salary / Rate (৳) *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light fw-bold">৳</span>
                                 <input type="number" step="0.01" name="basic_salary" id="dash_emp_basic_salary" class="form-control font-monospace fw-bold" required placeholder="25000">
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold text-muted">ইউনিট</label>
+                            <label class="form-label small fw-semibold text-muted">Unit</label>
                             <input type="text" name="rate_unit_name" id="dash_emp_unit" class="form-control rounded-3" value="Month">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small fw-semibold text-muted">পেমেন্ট শিডিউল</label>
+                            <label class="form-label small fw-semibold text-muted">Schedule</label>
                             <select name="payment_schedule" id="dash_emp_schedule" class="form-select rounded-3">
                                 <option value="monthly">Monthly</option>
                                 <option value="weekly">Weekly</option>
@@ -1393,21 +1386,21 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">মোবাইল নম্বর</label>
+                            <label class="form-label small fw-semibold text-muted">Phone Number</label>
                             <input type="text" name="phone" id="dash_emp_phone" class="form-control rounded-3" placeholder="01XXXXXXXXX">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">ইমেইল</label>
+                            <label class="form-label small fw-semibold text-muted">Email</label>
                             <input type="email" name="email" id="dash_emp_email" class="form-control rounded-3" placeholder="staff@example.com">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">যোগদানের তারিখ</label>
+                            <label class="form-label small fw-semibold text-muted">Joining Date</label>
                             <input type="date" name="joining_date" value="{{ date('Y-m-d') }}" class="form-control rounded-3">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">স্ট্যাটাস</label>
+                            <label class="form-label small fw-semibold text-muted">Status</label>
                             <select name="status" class="form-select rounded-3">
-                                <option value="active">Active (সক্রিয়)</option>
+                                <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="on_leave">On Leave</option>
                             </select>
@@ -1415,9 +1408,9 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-top p-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-circle-check me-1"></i> সংরক্ষণ
+                        <i class="fa-solid fa-circle-check me-1"></i> Save
                     </button>
                 </div>
             </form>
@@ -1425,7 +1418,7 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 6. ALL SELLERS & DEALERS ACCOUNTING & REVENUE HUB (অল সেলার বিক্রয় হিসাব)   --}}
+    {{-- 6. ALL SELLERS & DEALERS ACCOUNTING & REVENUE HUB                         --}}
     {{-- ========================================================================= --}}
     @php
         $sSummary = $sellersSummary ?? [];
@@ -1436,18 +1429,18 @@
             <div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
                     <span class="badge bg-success-subtle text-success p-2 rounded-circle"><i class="fa-solid fa-store"></i></span>
-                    <span>সেলার ও ডিলার বিক্রয় হিসাব</span>
+                    <span>Sellers Accounting</span>
                 </h5>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route('subadmin.dashboard') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                    <i class="fa-solid fa-gauge-high me-1"></i> সেলার সেন্ট্রাল ড্যাশবোর্ড
+                    <i class="fa-solid fa-gauge-high me-1"></i> Seller Central
                 </a>
                 <a href="{{ route('subadmin.bills.index') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
-                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> সকল বিল (@bn($sSummary['total_bills'] ?? 0))
+                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> All Bills ({{ $sSummary['total_bills'] ?? 0 }})
                 </a>
                 <a href="{{ route('subadmin.accounts') }}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
-                    <i class="fa-solid fa-wallet me-1"></i> হিসাব বিবরণী
+                    <i class="fa-solid fa-wallet me-1"></i> Statements
                 </a>
             </div>
         </div>
@@ -1457,30 +1450,30 @@
             <div class="row g-2.5 mb-4">
                 <div class="col-6 col-md-3">
                     <div class="p-3 bg-light rounded-3 border h-100 border-start border-4 border-primary">
-                        <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">মোট সেলার বিক্রয়</small>
+                        <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">Total Sales</small>
                         <div class="fs-5 fw-bold text-primary font-monospace mt-1">৳{{ number_format($sSummary['total_sales'] ?? 0, 2) }}</div>
-                        <small class="text-muted" style="font-size: 0.75rem;">মোট বিল: @bn($sSummary['total_bills'] ?? 0)টি</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Bills: {{ $sSummary['total_bills'] ?? 0 }}</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="p-3 bg-success-subtle bg-opacity-40 rounded-3 border border-success-subtle h-100 border-start border-4 border-success">
-                        <small class="text-success-emphasis d-block fw-semibold" style="font-size: 0.8rem;">পরিশোধিত ক্যাশ</small>
+                        <small class="text-success-emphasis d-block fw-semibold" style="font-size: 0.8rem;">Total Paid</small>
                         <div class="fs-5 fw-bold text-success font-monospace mt-1">৳{{ number_format($sSummary['total_paid'] ?? 0, 2) }}</div>
-                        <small class="text-success-emphasis" style="font-size: 0.75rem;">সংগৃহীত মূল্য</small>
+                        <small class="text-success-emphasis" style="font-size: 0.75rem;">Collected</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="p-3 bg-danger-subtle bg-opacity-40 rounded-3 border border-danger-subtle h-100 border-start border-4 border-danger">
-                        <small class="text-danger-emphasis d-block fw-semibold" style="font-size: 0.8rem;">বকেয়া ব্যালেন্স</small>
+                        <small class="text-danger-emphasis d-block fw-semibold" style="font-size: 0.8rem;">Total Due</small>
                         <div class="fs-5 fw-bold text-danger font-monospace mt-1">৳{{ number_format($sSummary['total_due'] ?? 0, 2) }}</div>
-                        <small class="text-danger-emphasis" style="font-size: 0.75rem;">বাকি পাওনা</small>
+                        <small class="text-danger-emphasis" style="font-size: 0.75rem;">Outstanding</small>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="p-3 bg-warning-subtle bg-opacity-40 rounded-3 border border-warning-subtle h-100 border-start border-4 border-warning">
-                        <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 0.8rem;">চলতি মাসের বিক্রয়</small>
+                        <small class="text-warning-emphasis d-block fw-semibold" style="font-size: 0.8rem;">This Month Sales</small>
                         <div class="fs-5 fw-bold text-warning-emphasis font-monospace mt-1">৳{{ number_format($sSummary['this_month_sales'] ?? 0, 2) }}</div>
-                        <small class="text-muted" style="font-size: 0.75rem;">আজকের সেল: ৳{{ number_format($sSummary['today_sales'] ?? 0, 0) }}</small>
+                        <small class="text-muted" style="font-size: 0.75rem;">Today: ৳{{ number_format($sSummary['today_sales'] ?? 0, 0) }}</small>
                     </div>
                 </div>
             </div>
@@ -1490,20 +1483,20 @@
                 <table class="table table-hover align-middle mb-0 small">
                     <thead class="table-light text-secondary">
                         <tr>
-                            <th class="ps-3.5">সেলার / শপ</th>
-                            <th>মোবাইল</th>
-                            <th>মোট বিল</th>
-                            <th>মোট বিক্রয়</th>
-                            <th>পরিশোধিত</th>
-                            <th>বকেয়া</th>
-                            <th class="text-end pe-3.5">অ্যাকশন</th>
+                            <th class="ps-3.5">Seller / Shop</th>
+                            <th>Phone</th>
+                            <th>Bills</th>
+                            <th>Sales</th>
+                            <th>Paid</th>
+                            <th>Due</th>
+                            <th class="text-end pe-3.5">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($sBreakdown as $sb)
                             @php
                                 $sUser = $sb->seller;
-                                $sName = $sUser ? ($sUser->reg_data['shop_name'] ?? $sUser->name) : 'অজানা বিক্রেতা';
+                                $sName = $sUser ? ($sUser->reg_data['shop_name'] ?? $sUser->name) : 'Unknown Seller';
                             @endphp
                             <tr>
                                 <td class="ps-3.5">
@@ -1516,7 +1509,7 @@
                                                 {{ $sName }}
                                             </a>
                                             @if($sUser && $sUser->name !== $sName)
-                                                <small class="text-muted d-block" style="font-size: 11px;">প্রোপাইটার: {{ $sUser->name }}</small>
+                                                <small class="text-muted d-block" style="font-size: 11px;">Owner: {{ $sUser->name }}</small>
                                             @endif
                                         </div>
                                     </div>
@@ -1525,7 +1518,7 @@
                                     <span class="font-monospace text-muted">{{ $sUser->phone ?? '—' }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border font-monospace px-2.5 py-1">@bn($sb->total_bills)টি</span>
+                                    <span class="badge bg-light text-dark border font-monospace px-2.5 py-1">{{ $sb->total_bills }}</span>
                                 </td>
                                 <td>
                                     <span class="fw-bold text-dark font-monospace">৳{{ number_format($sb->total_sales, 2) }}</span>
@@ -1537,15 +1530,15 @@
                                     @if($sb->due_amount > 0)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace px-2.5 py-1">৳{{ number_format($sb->due_amount, 2) }}</span>
                                     @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fa-solid fa-check"></i> পরিশোধিত</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5"><i class="fa-solid fa-check"></i> Paid</span>
                                     @endif
                                 </td>
                                 <td class="text-end pe-3.5">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-primary" title="ড্যাশবোর্ড দেখুন">
-                                            <i class="fa-solid fa-gauge-high me-1"></i> ড্যাশবোর্ড
+                                        <a href="{{ route('subadmin.dashboard', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-primary" title="View Dashboard">
+                                            <i class="fa-solid fa-gauge-high me-1"></i> Dashboard
                                         </a>
-                                        <a href="{{ route('subadmin.bills.index', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-secondary" title="বিল তালিকা">
+                                        <a href="{{ route('subadmin.bills.index', ['seller_id' => $sb->seller_id]) }}" class="btn btn-outline-secondary" title="View Bills">
                                             <i class="fa-solid fa-file-invoice"></i>
                                         </a>
                                     </div>
@@ -1555,7 +1548,7 @@
                             <tr>
                                 <td colspan="7" class="text-center py-4 text-muted">
                                     <i class="fa-solid fa-store-slash text-muted fs-3 mb-2 d-block"></i>
-                                    কোনো সেলারের বিল রেকর্ড নেই।
+                                    No seller billing records found.
                                 </td>
                             </tr>
                         @endforelse
@@ -1573,7 +1566,7 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-server me-2 text-primary"></i>সার্ভার ও সিস্টেম হেলথ</h6>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-server me-2 text-primary"></i>System Health</h6>
                     <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
                         <i class="fa-solid fa-circle-check me-1"></i>{{ $stats['system_health']['status'] ?? 'Optimal' }}
                     </span>
@@ -1581,7 +1574,7 @@
                 <div class="adm-card__body p-3.5">
                     @php $health = $stats['system_health'] ?? []; @endphp
                     <div class="d-flex justify-content-between align-items-center mb-1.5 small">
-                        <span class="text-muted"><i class="fa-solid fa-hard-drive me-1 text-secondary"></i>ডিস্ক স্টোরেজ ব্যবহার:</span>
+                        <span class="text-muted"><i class="fa-solid fa-hard-drive me-1 text-secondary"></i>Disk Usage:</span>
                         <span class="fw-bold text-dark font-monospace">{{ $health['disk_used_gb'] ?? 0 }} GB / {{ $health['disk_total_gb'] ?? 0 }} GB ({{ $health['disk_used_percent'] ?? 0 }}%)</span>
                     </div>
                     <div class="progress mb-3" style="height: 7px;">
@@ -1614,34 +1607,34 @@
         <div class="col-12 col-md-6">
             <div class="adm-card h-100 bg-white">
                 <div class="adm-card__head d-flex align-items-center justify-content-between">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-nib me-2 text-warning"></i>লেখক রয়্যালটি পাইপলাইন</h6>
-                    <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2.5 small">লেখক তালিকা</a>
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fa-solid fa-pen-nib me-2 text-warning"></i>Author Royalties</h6>
+                    <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-outline-warning rounded-pill py-0 px-2.5 small">Authors List</a>
                 </div>
                 <div class="adm-card__body p-3.5">
                     @php $royalty = $stats['royalties_pipeline'] ?? []; @endphp
                     <div class="row g-2 text-center mb-3">
                         <div class="col-4">
                             <div class="p-2 bg-light rounded-3 border">
-                                <small class="text-muted d-block" style="font-size: 0.72rem;">মোট পুল</small>
+                                <small class="text-muted d-block" style="font-size: 0.72rem;">Total Pool</small>
                                 <div class="fw-bold text-dark font-monospace small">৳{{ number_format($royalty['accrued_pool'] ?? 0, 2) }}</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-warning-subtle rounded-3 border border-warning-subtle">
-                                <small class="text-warning-emphasis d-block" style="font-size: 0.72rem;">পেন্ডিং পে-আউট</small>
+                                <small class="text-warning-emphasis d-block" style="font-size: 0.72rem;">Pending Payouts</small>
                                 <div class="fw-bold text-warning font-monospace small">৳{{ number_format($royalty['pending_payouts'] ?? 0, 2) }}</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-success-subtle rounded-3 border border-success-subtle">
-                                <small class="text-success-emphasis d-block" style="font-size: 0.72rem;">পরিশোধিত</small>
+                                <small class="text-success-emphasis d-block" style="font-size: 0.72rem;">Paid This Month</small>
                                 <div class="fw-bold text-success font-monospace small">৳{{ number_format($royalty['paid_this_month'] ?? 0, 2) }}</div>
                             </div>
                         </div>
                     </div>
                     <div class="p-2.5 bg-light rounded-3 border d-flex align-items-center justify-content-between small">
-                        <span class="text-muted"><i class="fa-solid fa-money-bill-transfer text-primary me-1"></i>সর্বমোট লেখক:</span>
-                        <span class="fw-bold text-dark">{{ $stats['total_authors'] ?? 0 }} জন</span>
+                        <span class="text-muted"><i class="fa-solid fa-money-bill-transfer text-primary me-1"></i>Total Authors:</span>
+                        <span class="fw-bold text-dark">{{ $stats['total_authors'] ?? 0 }}</span>
                     </div>
                 </div>
             </div>
@@ -1703,16 +1696,13 @@
                     <div class="rounded-circle bg-warning bg-opacity-20 text-warning p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                         <i class="fa-solid fa-bolt-lightning fs-5"></i>
                     </div>
-                    <div>
-                        <h5 class="modal-title fw-bold text-white mb-0" id="pendingActionCenterModalLabel">
-                            পেন্ডিং রিকোয়েস্ট অ্যান্ড অ্যাকশন সেন্টার
-                        </h5>
-                        <small class="text-light opacity-75" style="font-size: 11.5px;">রেজিস্ট্রেশন অনুমোদন, অর্ডার প্রসেসিং ও কনটেন্ট মডারেশন লাইভ প্যানেল</small>
-                    </div>
+                    <h5 class="modal-title fw-bold text-white mb-0" id="pendingActionCenterModalLabel">
+                        Pending Action Center
+                    </h5>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-semibold" onclick="reloadPendingData()" title="ডাটা রিফ্রেশ">
-                        <i class="fa-solid fa-rotate me-1"></i> রিফ্রেশ
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-semibold" onclick="reloadPendingData()" title="Refresh">
+                        <i class="fa-solid fa-rotate me-1"></i> Refresh
                     </button>
                     <button type="button" class="btn-close btn-close-white ms-1" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1730,7 +1720,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap active d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-users-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-users" type="button" role="tab">
                                 <i class="fa-solid fa-user-clock text-danger"></i>
-                                <span>লেখক ও ইউজার</span>
+                                <span>Users</span>
                                 <span class="badge bg-danger text-white rounded-pill ms-1" id="tabBadge-users">{{ $regCount }}</span>
                             </button>
                         </li>
@@ -1740,7 +1730,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-orders-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-orders" type="button" role="tab">
                                 <i class="fa-solid fa-cart-shopping text-warning"></i>
-                                <span>নতুন অর্ডার</span>
+                                <span>Orders</span>
                                 <span class="badge bg-warning-subtle text-dark border rounded-pill ms-1" id="tabBadge-orders">{{ $orderCount }}</span>
                             </button>
                         </li>
@@ -1750,7 +1740,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-blogs-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-blogs" type="button" role="tab">
                                 <i class="fa-solid fa-feather-pointed text-success"></i>
-                                <span>ব্লগ ও সাহিত্য</span>
+                                <span>Blogs</span>
                                 <span class="badge bg-success-subtle text-success border rounded-pill ms-1" id="tabBadge-blogs">{{ $blogCount }}</span>
                             </button>
                         </li>
@@ -1760,7 +1750,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-books-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-books" type="button" role="tab">
                                 <i class="fa-solid fa-book-open text-primary"></i>
-                                <span>বই ও ই-বুক</span>
+                                <span>Books & E-Books</span>
                                 <span class="badge bg-primary-subtle text-primary border rounded-pill ms-1" id="tabBadge-books">{{ $bookCount + $ebookCount }}</span>
                             </button>
                         </li>
@@ -1770,7 +1760,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-requests-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-requests" type="button" role="tab">
                                 <i class="fa-solid fa-book-bookmark text-info"></i>
-                                <span>বই রিকোয়েস্ট</span>
+                                <span>Book Requests</span>
                                 <span class="badge bg-info-subtle text-info border rounded-pill ms-1" id="tabBadge-requests">{{ $bookReqCount }}</span>
                             </button>
                         </li>
@@ -1780,7 +1770,7 @@
                             <button class="nav-link rounded-pill py-2 px-3 fw-bold small text-nowrap d-flex align-items-center justify-content-center gap-1.5" 
                                     id="tab-submissions-btn" data-bs-toggle="pill" data-bs-target="#pane-pending-submissions" type="button" role="tab">
                                 <i class="fa-solid fa-file-signature text-dark"></i>
-                                <span>পাণ্ডুলিপি ও লেখক</span>
+                                <span>Submissions & Authors</span>
                                 <span class="badge bg-dark text-white rounded-pill ms-1" id="tabBadge-submissions">{{ $submissionCount + $authorUpdateCount }}</span>
                             </button>
                         </li>
@@ -1794,12 +1784,9 @@
                     {{-- ══ PANE 1: USERS & AUTHORS REGISTRATIONS ═══════════════════ --}}
                     <div class="tab-pane fade show active" id="pane-pending-users" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">অপেক্ষমাণ লেখক ও ইউজার রেজিস্ট্রেশন</h6>
-                                <small class="text-muted">অনুমোদন দিলে সংশ্লিষ্ট ড্যাশবোর্ড ও ডিরেক্টরিতে তাৎক্ষণিক সক্রিয় হবে</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Pending Users & Authors</h6>
                             <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-decoration-none fw-semibold small">
-                                সম্পূর্ণ তালিকা <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
+                                View All <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                             </a>
                         </div>
 
@@ -1816,9 +1803,9 @@
                                         default     => 'bg-secondary-subtle text-secondary',
                                     };
                                     $roleNameBn = match($pUser->role) {
-                                        'author'    => 'লেখক',
-                                        'publisher' => 'প্রকাশক',
-                                        'seller'    => 'বিক্রেতা',
+                                        'author'    => 'Author',
+                                        'publisher' => 'Publisher',
+                                        'seller'    => 'Seller',
                                         default     => ucfirst($pUser->role),
                                     };
                                 @endphp
@@ -1839,11 +1826,11 @@
                                                     <h6 class="fw-bold text-dark mb-0">{{ $pUser->name }}</h6>
                                                     <span class="badge border rounded-pill px-2 py-0.5 small {{ $roleBadgeClass }}">{{ $roleNameBn }}</span>
                                                     @if($penName)
-                                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small">কলম নাম: {{ $penName }}</span>
+                                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small">Pen Name: {{ $penName }}</span>
                                                     @endif
                                                 </div>
                                                 <div class="d-flex align-items-center gap-3 mt-1 small text-muted flex-wrap" style="font-size: 12px;">
-                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pUser->phone ?: 'নেই' }}</span>
+                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pUser->phone ?: '—' }}</span>
                                                     <span><i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $pUser->email }}</span>
                                                     <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pUser->created_at ? $pUser->created_at->diffForHumans() : '' }}</span>
                                                 </div>
@@ -1853,20 +1840,20 @@
                                         {{-- Action Buttons --}}
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', '', this)" title="অনুমোদন ও সক্রিয় করুন">
-                                                <i class="fa-solid fa-check"></i> <span>এপ্রুভ</span>
+                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'approve', '', this)" title="Approve">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1" 
-                                                    onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ addslashes($pUser->name) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban text-warning"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('user', {{ $pUser->id }}, '{{ addslashes($pUser->name) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban text-warning"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1" 
-                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', '', this)" title="সম্পূর্ণ মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('user', {{ $pUser->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" 
-                                                    onclick="viewPendingUserDetails({{ $pUser->id }})" title="বিস্তারিত দেখুন">
-                                                <i class="fa-solid fa-eye"></i>
+                                                    onclick="viewPendingUserDetails({{ $pUser->id }})" title="KYC Preview">
+                                                <i class="fa-solid fa-id-card"></i>
                                             </button>
                                         </div>
 
@@ -1875,7 +1862,7 @@
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-user-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো পেন্ডিং রেজিস্ট্রেশন নেই। সকল ইউজার অনুমোদিত।
+                                    No pending user registrations.
                                 </div>
                             @endforelse
                         </div>
@@ -1884,12 +1871,9 @@
                     {{-- ══ PANE 2: ORDERS ═══════════════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-orders" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">নতুন অপেক্ষমাণ বই অর্ডার</h6>
-                                <small class="text-muted">অর্ডার কনফার্ম বা সম্পন্ন করে কাস্টমারকে এসএমএস নোটিফিকেশন পাঠান</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Pending Orders</h6>
                             <a href="{{ route('admin.ecommerce-orders', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-decoration-none fw-semibold small">
-                                সকল অর্ডার <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
+                                View All <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                             </a>
                         </div>
 
@@ -1902,36 +1886,36 @@
                                         <div>
                                             <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                                                 <span class="badge bg-warning text-dark font-monospace fw-bold">#{{ $pOrder->order_number }}</span>
-                                                <h6 class="fw-bold text-dark mb-0">{{ $pOrder->shipping_name ?: ($pOrder->user?->name ?: 'গ্রাহক') }}</h6>
+                                                <h6 class="fw-bold text-dark mb-0">{{ $pOrder->shipping_name ?: ($pOrder->user?->name ?: 'Customer') }}</h6>
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pOrder->total_amount, 2) }}</span>
                                                 <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $pOrder->payment_method ?: 'Cash On Delivery' }}</span>
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
                                                 <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pOrder->shipping_phone ?: ($pOrder->user?->phone ?: '—') }}</span>
                                                 <span><i class="fa-solid fa-location-dot text-secondary me-1"></i>{{ Str::limit($pOrder->shipping_address ?: '—', 35) }}</span>
-                                                <span><i class="fa-solid fa-boxes-stacked text-secondary me-1"></i>{{ $pOrder->items?->count() ?? 0 }}টি বই</span>
+                                                <span><i class="fa-solid fa-boxes-stacked text-secondary me-1"></i>{{ $pOrder->items?->count() ?? 0 }} Books</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pOrder->created_at ? $pOrder->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', '', this)" title="অর্ডার কনফার্ম ও প্রসেসিংয়ে নিন">
-                                                <i class="fa-solid fa-check"></i> <span>কনফার্ম</span>
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'approve', '', this)" title="Confirm Order">
+                                                <i class="fa-solid fa-check"></i> <span>Confirm</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'complete', '', this)" title="সম্পন্ন চিহ্নিত করুন">
-                                                <i class="fa-solid fa-circle-check"></i> <span>সম্পন্ন</span>
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'complete', '', this)" title="Mark Delivered">
+                                                <i class="fa-solid fa-circle-check"></i> <span>Complete</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('order', {{ $pOrder->id }}, 'অর্ডার #{{ $pOrder->order_number }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-xmark"></i> <span>বাতিল</span>
+                                                    onclick="promptRejectReason('order', {{ $pOrder->id }}, 'Order #{{ $pOrder->order_number }}')" title="Cancel Order">
+                                                <i class="fa-solid fa-xmark"></i> <span>Cancel</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', '', this)" title="অর্ডার ডিলিট করুন">
+                                                    onclick="executeDashboardQuickAction('order', {{ $pOrder->id }}, 'delete', '', this)" title="Delete Order">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
-                                            <a href="{{ route('admin.ecommerce-orders.invoice', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="ইনভয়েস দেখুন">
+                                            <a href="{{ route('admin.ecommerce-orders.invoice', $pOrder->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="View Invoice">
                                                 <i class="fa-solid fa-file-invoice"></i>
                                             </a>
                                         </div>
@@ -1941,7 +1925,7 @@
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো অপেক্ষমাণ বই অর্ডার নেই।
+                                    No pending orders.
                                 </div>
                             @endforelse
                         </div>
@@ -1950,12 +1934,9 @@
                     {{-- ══ PANE 3: BLOG POSTS ═══════════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-blogs" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">অপেক্ষমাণ ব্লগ ও আইডিয়াপত্র সাহিত্যিক পোস্ট</h6>
-                                <small class="text-muted">অনুমোদন দিলে সরাসরি আইডিয়াপত্র ব্লগে প্রকাশিত হবে</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Pending Blogs & Articles</h6>
                             <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-decoration-none fw-semibold small">
-                                সকল ব্লগ <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
+                                View All <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                             </a>
                         </div>
 
@@ -1973,25 +1954,25 @@
                                                 @endif
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pBlog->owner_name ?: ($pBlog->authorUser?->name ?: 'লেখক') }}</span>
+                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pBlog->owner_name ?: ($pBlog->authorUser?->name ?: 'Author') }}</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pBlog->created_at ? $pBlog->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', '', this)" title="প্রকাশ ও লাইভ করুন">
-                                                <i class="fa-solid fa-check"></i> <span>প্রকাশ করুন</span>
+                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'approve', '', this)" title="Approve & Publish">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('blog', {{ $pBlog->id }}, '{{ addslashes($pBlog->title) }}')" title="ড্রাফট/বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('blog', {{ $pBlog->id }}, '{{ addslashes($pBlog->title) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('blog', {{ $pBlog->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
-                                            <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="প্রিভিউ দেখুন">
+                                            <a href="{{ route('blog.show', $pBlog->slug ?: $pBlog->id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-muted" title="Preview">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>
                                         </div>
@@ -2001,7 +1982,7 @@
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো অপেক্ষমাণ ব্লগ পোস্ট নেই।
+                                    No pending blog posts.
                                 </div>
                             @endforelse
                         </div>
@@ -2010,10 +1991,7 @@
                     {{-- ══ PANE 4: BOOKS & E-BOOKS ══════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-books" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">অপেক্ষমাণ বই ও ই-বুক মডারেশন</h6>
-                                <small class="text-muted">প্রকাশক বা লেখক কর্তৃক যুক্ত নতুন বই সাইটে লাইভ অনুমোদন করুন</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Pending Books & E-Books</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingBooksListContainer">
@@ -2027,28 +2005,28 @@
                                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                         <div>
                                             <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                <span class="badge bg-primary text-white rounded-pill px-2 py-0.5 small">কাগজের বই</span>
+                                                <span class="badge bg-primary text-white rounded-pill px-2 py-0.5 small">Paperback</span>
                                                 <h6 class="fw-bold text-dark mb-0">{{ $pBook->title }}</h6>
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pBook->price, 2) }}</span>
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
                                                 <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pBook->author_name ?: '—' }}</span>
-                                                <span><i class="fa-solid fa-building text-secondary me-1"></i>{{ $pBook->publisher?->name ?: 'আইডিয়া প্রকাশন' }}</span>
+                                                <span><i class="fa-solid fa-building text-secondary me-1"></i>{{ $pBook->publisher?->name ?: 'Idea Prokashon' }}</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pBook->created_at ? $pBook->created_at->diffForHumans() : '' }}</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', '', this)" title="অনুমোদন ও লাইভ করুন">
-                                                <i class="fa-solid fa-check"></i> <span>লাইভ করুন</span>
+                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'approve', '', this)" title="Approve & Publish">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('book', {{ $pBook->id }}, '{{ addslashes($pBook->title) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('book', {{ $pBook->id }}, '{{ addslashes($pBook->title) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('book', {{ $pBook->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2062,7 +2040,7 @@
                                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                         <div>
                                             <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5 small">ই-বুক</span>
+                                                <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5 small">E-Book</span>
                                                 <h6 class="fw-bold text-dark mb-0">{{ $pEbook->title }}</h6>
                                                 <span class="badge bg-light text-primary border font-monospace">৳{{ number_format((float)$pEbook->price, 2) }}</span>
                                             </div>
@@ -2074,15 +2052,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', '', this)" title="অনুমোদন ও লাইভ করুন">
-                                                <i class="fa-solid fa-check"></i> <span>লাইভ করুন</span>
+                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'approve', '', this)" title="Approve">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('ebook', {{ $pEbook->id }}, '{{ addslashes($pEbook->title) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('ebook', {{ $pEbook->id }}, '{{ addslashes($pEbook->title) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('ebook', {{ $pEbook->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2094,7 +2072,7 @@
                             @if($pBooks->isEmpty() && $pEbooks->isEmpty())
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো বই বা ই-বুক মডারেশনের অপেক্ষায় নেই।
+                                    No pending books or e-books.
                                 </div>
                             @endif
                         </div>
@@ -2103,10 +2081,7 @@
                     {{-- ══ PANE 5: BOOK REQUESTS ════════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-requests" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">গ্রাহকদের বই রিকোয়েস্ট</h6>
-                                <small class="text-muted">অনুরোধকৃত বই সোর্সিংয়ে নিয়ে গ্রাহককে অবহিত করুন</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Customer Book Requests</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingRequestsListContainer">
@@ -2117,8 +2092,8 @@
                                         <div>
                                             <h6 class="fw-bold text-dark mb-1">{{ $pReq->book_title }}</h6>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pReq->author_name ?: 'লেখক অপ্রকাশিত' }}</span>
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pReq->name ?: 'গ্রাহক' }}</span>
+                                                <span><i class="fa-solid fa-pen-nib text-secondary me-1"></i>{{ $pReq->author_name ?: 'Author Unknown' }}</span>
+                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pReq->name ?: 'Customer' }}</span>
                                                 <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pReq->phone ?: '—' }}</span>
                                                 <span><i class="fa-solid fa-clock text-secondary me-1"></i>{{ $pReq->created_at ? $pReq->created_at->diffForHumans() : '' }}</span>
                                             </div>
@@ -2126,15 +2101,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', '', this)" title="সোর্সিংয়ে নিন">
-                                                <i class="fa-solid fa-check"></i> <span>সোর্সিং শুরু</span>
+                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'approve', '', this)" title="Start Sourcing">
+                                                <i class="fa-solid fa-check"></i> <span>Sourcing</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('book_request', {{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>বাতিল</span>
+                                                    onclick="promptRejectReason('book_request', {{ $pReq->id }}, '{{ addslashes($pReq->book_title) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('book_request', {{ $pReq->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2143,7 +2118,7 @@
                             @empty
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো পেন্ডিং বই রিকোয়েস্ট নেই।
+                                    No pending book requests.
                                 </div>
                             @endforelse
                         </div>
@@ -2152,10 +2127,7 @@
                     {{-- ══ PANE 6: SUBMISSIONS & AUTHOR UPDATES ═══════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-submissions" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-0">অপেক্ষমাণ পাণ্ডুলিপি ও লেখক প্রোফাইল আপডেট</h6>
-                                <small class="text-muted">পাণ্ডুলিপি পর্যালোচনা ও লেখকদের হালনাগাদকৃত তথ্য সরাসরি অনুমোদন বা বাতিল করুন</small>
-                            </div>
+                            <h6 class="fw-bold text-dark mb-0">Submissions & Author Profile Updates</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingSubmissionsListContainer">
@@ -2169,14 +2141,14 @@
                                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                         <div>
                                             <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                <span class="badge bg-dark text-white rounded-pill px-2 py-0.5 small">পাণ্ডুলিপি</span>
+                                                <span class="badge bg-dark text-white rounded-pill px-2 py-0.5 small">Manuscript</span>
                                                 <h6 class="fw-bold text-dark mb-0">{{ $pSub->title }}</h6>
                                                 @if($pSub->category)
                                                     <span class="badge bg-light text-primary border rounded-pill small">{{ $pSub->category->name }}</span>
                                                 @endif
                                             </div>
                                             <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pSub->author?->name ?: 'লেখক' }}</span>
+                                                <span><i class="fa-solid fa-user text-secondary me-1"></i>{{ $pSub->author?->name ?: 'Author' }}</span>
                                                 @if($pSub->author?->phone)
                                                     <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pSub->author->phone }}</span>
                                                 @endif
@@ -2189,15 +2161,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'approve', '', this)" title="অনুমোদন করুন">
-                                                <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
+                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'approve', '', this)" title="Approve">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ addslashes($pSub->title) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('submission', {{ $pSub->id }}, '{{ addslashes($pSub->title) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('submission', {{ $pSub->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2219,11 +2191,11 @@
                                             </div>
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small">প্রোফাইল আপডেট</span>
+                                                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5 small">Profile Update</span>
                                                     <h6 class="fw-bold text-dark mb-0">{{ $pAuthorUser->name }} ({{ $pName }})</h6>
                                                 </div>
                                                 <div class="small text-muted d-flex align-items-center gap-3 flex-wrap" style="font-size: 12px;">
-                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pAuthorUser->phone ?: 'নেই' }}</span>
+                                                    <span><i class="fa-solid fa-phone text-secondary me-1"></i>{{ $pAuthorUser->phone ?: '—' }}</span>
                                                     <span><i class="fa-solid fa-envelope text-secondary me-1"></i>{{ $pAuthorUser->email }}</span>
                                                     @if(!empty($uRegData['bio']))
                                                         <span><i class="fa-solid fa-quote-left text-secondary me-1"></i>{{ Str::limit($uRegData['bio'], 60) }}</span>
@@ -2234,15 +2206,15 @@
 
                                         <div class="d-flex align-items-center gap-1.5 flex-shrink-0 justify-content-end">
                                             <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-bold shadow-xs d-inline-flex align-items-center gap-1 hover-lift" 
-                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'approve', '', this)" title="প্রোফাইল আপডেট অনুমোদন করুন">
-                                                <i class="fa-solid fa-check"></i> <span>অনুমোদন</span>
+                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'approve', '', this)" title="Approve Profile Update">
+                                                <i class="fa-solid fa-check"></i> <span>Approve</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2.5 py-1" 
-                                                    onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ addslashes($pAuthorUser->name) }}')" title="বাতিল করুন">
-                                                <i class="fa-solid fa-ban"></i> <span>রিজেক্ট</span>
+                                                    onclick="promptRejectReason('author_update', {{ $pAuthorUser->id }}, '{{ addslashes($pAuthorUser->name) }}')" title="Reject">
+                                                <i class="fa-solid fa-ban"></i> <span>Reject</span>
                                             </button>
                                             <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" 
-                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'delete', '', this)" title="মুছে ফেলুন">
+                                                    onclick="executeDashboardQuickAction('author_update', {{ $pAuthorUser->id }}, 'delete', '', this)" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </div>
@@ -2254,7 +2226,7 @@
                             @if($pSubmissions->isEmpty() && $pAuthorUpdates->isEmpty())
                                 <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                     <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                    কোনো অপেক্ষমাণ পাণ্ডুলিপি বা লেখক আপডেট নেই।
+                                    No pending submissions or author updates.
                                 </div>
                             @endif
                         </div>
@@ -2265,8 +2237,8 @@
 
             {{-- Footer --}}
             <div class="modal-footer bg-white border-top py-2.5 px-4 d-flex align-items-center justify-content-between">
-                <small class="text-muted"><i class="fa-solid fa-shield-halved text-success me-1"></i> সরাসরি একশন নেওয়ার সাথে সাথে ডাটাবেজ ও নোটিফিকেশন আপডেট হবে</small>
-                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <small class="text-muted"><i class="fa-solid fa-shield-halved text-success me-1"></i> Actions sync live to database and notifications</small>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
 
         </div>
@@ -2281,18 +2253,18 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-dark text-white py-3 px-4 border-0">
                 <h6 class="modal-title fw-bold text-white mb-0">
-                    <i class="fa-solid fa-id-card text-primary me-2"></i>রেজিস্ট্রেশন ও প্রোফাইল বিবরণ
+                    <i class="fa-solid fa-id-card text-primary me-2"></i>User KYC & Profile Details
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4" id="pendingUserDetailModalBody">
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <div class="mt-2 text-muted small">তথ্য লোড হচ্ছে...</div>
+                    <div class="mt-2 text-muted small">Loading user details...</div>
                 </div>
             </div>
             <div class="modal-footer bg-light py-2.5 px-4" id="pendingUserDetailModalFooter">
-                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -2306,7 +2278,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-danger text-white py-3 px-4">
                 <h6 class="modal-title fw-bold mb-0">
-                    <i class="fa-solid fa-ban me-1.5"></i> আবেদন বা অর্ডার বাতিলের কারণ
+                    <i class="fa-solid fa-ban me-1.5"></i> Reject Reason
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -2315,30 +2287,30 @@
                 <input type="hidden" id="rejectItemId">
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <span class="text-muted small">আপনি বাতিল করতে যাচ্ছেন:</span>
+                        <span class="text-muted small">Item to reject:</span>
                         <div class="fw-bold text-dark fs-6 mt-0.5" id="rejectItemName">—</div>
                     </div>
                     
                     {{-- Quick preset chips --}}
                     <div class="mb-2">
-                        <label class="form-label small fw-semibold text-muted mb-1">কুইক কারণ নির্বাচন:</label>
+                        <label class="form-label small fw-semibold text-muted mb-1">Preset Reason:</label>
                         <div class="d-flex flex-wrap gap-1">
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('অসম্পূর্ণ বা ত্রুটিপূর্ণ তথ্য')">অসম্পূর্ণ তথ্য</button>
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('ভুল অথবা অপ্রাপ্য মোবাইল নম্বর')">ভুল মোবাইল</button>
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('পণ্য বর্তমানে স্টকে নেই বা অপ্রাপ্য')">স্টকে নেই</button>
-                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('আইডিয়া প্রকাশন নীতিমালা অনুযায়ী যাচাইকৃত নয়')">নীতিমালা ব্যত্যয়</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('Incomplete or invalid information')">Incomplete Info</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('Invalid or unreachable phone number')">Invalid Phone</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('Item currently out of stock')">Out of Stock</button>
+                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 small" onclick="setRejectPresetReason('Does not meet publication guidelines')">Policy Violation</button>
                         </div>
                     </div>
 
                     <div class="mb-1">
-                        <label class="form-label small fw-semibold text-dark">বাতিলের কারণ / মন্তব্য <span class="text-danger">*</span></label>
-                        <textarea class="form-control rounded-3" id="rejectReasonText" rows="3" placeholder="বাতিলের নির্দিষ্ট কারণ লিখুন (গ্রাহক/লেখককে জানানো হবে)..." required></textarea>
+                        <label class="form-label small fw-semibold text-dark">Reason / Remarks <span class="text-danger">*</span></label>
+                        <textarea class="form-control rounded-3" id="rejectReasonText" rows="3" placeholder="Enter reason for rejection..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3.5" data-bs-dismiss="modal">Close</button>
                     <button type="submit" id="rejectSubmitBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fa-solid fa-circle-xmark me-1"></i> রিজেক্ট নিশ্চিত করুন
+                        <i class="fa-solid fa-circle-xmark me-1"></i> Confirm Reject
                     </button>
                 </div>
             </form>
@@ -2360,14 +2332,18 @@
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
 }
 .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
 }
 .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
 }
 .pending-row-item {
-    transition: all 0.35s ease;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.pending-row-item:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
 .pending-row-item.item-removing {
     opacity: 0;
@@ -2377,6 +2353,39 @@
     padding-bottom: 0 !important;
     margin: 0 !important;
     overflow: hidden;
+}
+#pendingActionTabs .nav-link {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    color: #475569;
+}
+#pendingActionTabs .nav-link:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+#pendingActionTabs .nav-link.active {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    border-color: transparent;
+}
+#pendingActionTabs .nav-link.active .badge {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 </style>
 @endpush
@@ -2497,6 +2506,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+    }
+
     // 4. CEO Executive Department Distribution Chart (Interactive Doughnut)
     const deptCtx = document.getElementById('deptDistributionChart');
     if (deptCtx) {
@@ -2510,7 +2521,7 @@ document.addEventListener('DOMContentLoaded', function () {
             data: {
                 labels: deptLabels,
                 datasets: [{
-                    label: 'জনবল (Headcount)',
+                    label: 'Headcount',
                     data: deptCounts,
                     backgroundColor: deptColors,
                     borderWidth: 2,
@@ -2533,7 +2544,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             label: function(ctx) {
                                 const isPayroll = window.currentDeptMetric === 'payroll';
                                 const val = ctx.raw || 0;
-                                return isPayroll ? ` মাসিক পে-রোল: ৳${Number(val).toLocaleString('en-US')}` : ` জনবল: ${val} জন`;
+                                return isPayroll ? ` Payroll: ৳${Number(val).toLocaleString('en-US')}` : ` Headcount: ${val}`;
                             }
                         }
                     }
@@ -2550,12 +2561,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 btnPay.className = 'btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold';
                 btnHead.className = 'btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold';
                 window.deptChartInstance.data.datasets[0].data = deptPayrolls;
-                window.deptChartInstance.data.datasets[0].label = 'মাসিক পে-রোল (৳)';
+                window.deptChartInstance.data.datasets[0].label = 'Payroll (৳)';
             } else {
                 btnHead.className = 'btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold';
                 btnPay.className = 'btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold';
                 window.deptChartInstance.data.datasets[0].data = deptCounts;
-                window.deptChartInstance.data.datasets[0].label = 'জনবল (Headcount)';
+                window.deptChartInstance.data.datasets[0].label = 'Headcount';
             }
             window.deptChartInstance.update();
         };
@@ -2564,7 +2575,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Live Department Filter for Staff Table
 function filterDashboardStaffTable(filterKey) {
-    // Update active tab buttons
     document.querySelectorAll('.staff-filter-btn').forEach(btn => {
         if (btn.getAttribute('data-filter') === filterKey) {
             btn.className = 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-dark text-white staff-filter-btn';
@@ -2738,7 +2748,7 @@ function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = n
         reason = '';
     }
 
-    if (action === 'delete' && !confirm('আপনি কি নিশ্চিত যে এই রিকোয়েস্টটি মুছে ফেলতে চান? এই অ্যাকশনটি অপরিবর্তনযোগ্য।')) {
+    if (action === 'delete' && !confirm('Are you sure you want to permanently delete this item?')) {
         return;
     }
 
@@ -2768,7 +2778,7 @@ function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = n
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showDashboardToast(data.message, 'success');
+            showDashboardToast(data.message || 'Action completed successfully.', 'success');
             
             // Animate and remove matching rows in both modal & alert widget
             const rowEls = document.querySelectorAll(`.pending-row-${type}-${id}, #pendingRow-${type}-${id}`);
@@ -2784,7 +2794,7 @@ function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = n
                         parentContainer.innerHTML = `
                             <div class="p-4 text-center text-muted bg-white rounded-3 border">
                                 <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                                কোনো অপেক্ষমাণ রিকোয়েস্ট অবশিষ্ট নেই!
+                                No pending items in this category.
                             </div>
                         `;
                     }
@@ -2796,12 +2806,12 @@ function executeDashboardQuickAction(type, id, action, reason = '', buttonEl = n
                 updateDashboardAlertCounts(data.newAlerts);
             }
         } else {
-            showDashboardToast(data.message || 'অ্যাকশন সম্পন্ন করতে ব্যর্থ হয়েছে।', 'danger');
+            showDashboardToast(data.message || 'Failed to complete action.', 'danger');
         }
     })
     .catch(err => {
         console.error(err);
-        showDashboardToast('সার্ভারে যোগাযোগ করতে সমস্যা হয়েছে।', 'danger');
+        showDashboardToast('Server communication error.', 'danger');
     })
     .finally(() => {
         if (buttonEl) {
@@ -2851,7 +2861,7 @@ function updateDashboardAlertCounts(alerts) {
         }
         const cardBadge = document.getElementById(`pendingCardCount-${t}`);
         if (cardBadge) {
-            cardBadge.textContent = `${cnt}টি পেন্ডিং`;
+            cardBadge.textContent = `${cnt} Pending`;
         }
     }
 
@@ -2862,13 +2872,13 @@ function updateDashboardAlertCounts(alerts) {
 
     if (totalCount === 0) {
         if (gridEl) gridEl.style.display = 'none';
-        if (emptyEl) emptyEl.style.display = 'flex';
+        if (emptyEl) emptyEl.style.display = 'block';
         if (hub) {
             hub.classList.remove('border-warning');
             hub.classList.add('border-success');
         }
     } else {
-        if (gridEl) gridEl.style.display = 'grid';
+        if (gridEl) gridEl.style.display = 'block';
         if (emptyEl) emptyEl.style.display = 'none';
         if (hub) {
             hub.classList.remove('border-success');
@@ -2885,7 +2895,7 @@ function promptRejectReason(type, id, title) {
 
     if (typeEl) typeEl.value = type;
     if (idEl) idEl.value = id;
-    if (nameEl) nameEl.textContent = title || 'এই রিকোয়েস্টটি';
+    if (nameEl) nameEl.textContent = title || 'this request';
     if (reasonEl) reasonEl.value = '';
 
     const modalEl = document.getElementById('pendingRejectReasonModal');
@@ -2932,7 +2942,7 @@ function viewPendingUserDetails(userId) {
     bodyEl.innerHTML = `
         <div class="text-center py-4">
             <div class="spinner-border text-primary" role="status"></div>
-            <div class="mt-2 text-muted small">ইউজার ও ভেরিফিকেশন তথ্য লোড হচ্ছে...</div>
+            <div class="mt-2 text-muted small">Loading KYC profile...</div>
         </div>
     `;
 
@@ -2942,17 +2952,17 @@ function viewPendingUserDetails(userId) {
     .then(res => res.json())
     .then(data => {
         if (!data.success || !data.user) {
-            bodyEl.innerHTML = `<div class="alert alert-danger mb-0">ব্যবহারকারীর তথ্য পাওয়া যায়নি।</div>`;
+            bodyEl.innerHTML = `<div class="alert alert-danger mb-0">User profile could not be loaded.</div>`;
             return;
         }
 
         const u = data.user;
         const regData = u.reg_data || {};
         const avatarSrc = u.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'User')}&background=0D8ABC&color=fff`;
-        const roleBn = u.role === 'author' ? 'লেখক' : (u.role === 'publisher' ? 'প্রকাশক' : (u.role === 'seller' ? 'বিক্রেতা' : u.role));
+        const roleLabel = (u.role || 'User').toUpperCase();
         const statusBadge = u.reg_status === 'approved' 
-            ? '<span class="badge bg-success">অনুমোদিত</span>' 
-            : (u.reg_status === 'rejected' ? '<span class="badge bg-danger">বাতিল</span>' : '<span class="badge bg-warning text-dark">অপেক্ষমাণ (Pending)</span>');
+            ? '<span class="badge bg-success">Approved</span>' 
+            : (u.reg_status === 'rejected' ? '<span class="badge bg-danger">Rejected</span>' : '<span class="badge bg-warning text-dark">Pending</span>');
 
         bodyEl.innerHTML = `
             <div class="d-flex align-items-center gap-3 pb-3 mb-3 border-bottom">
@@ -2960,9 +2970,9 @@ function viewPendingUserDetails(userId) {
                 <div>
                     <h5 class="fw-bold mb-1 text-dark">${u.name}</h5>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">${roleBn}</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">${roleLabel}</span>
                         ${statusBadge}
-                        ${regData.pen_name ? `<span class="badge bg-light text-dark border">কলম নাম: ${regData.pen_name}</span>` : ''}
+                        ${regData.pen_name ? `<span class="badge bg-light text-dark border">Pen Name: ${regData.pen_name}</span>` : ''}
                     </div>
                 </div>
             </div>
@@ -2970,32 +2980,32 @@ function viewPendingUserDetails(userId) {
             <div class="row g-3">
                 <div class="col-sm-6">
                     <div class="p-2.5 bg-light rounded-3">
-                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-envelope me-1.5 text-secondary"></i>ইমেইল অ্যাড্রেস</div>
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-envelope me-1.5 text-secondary"></i>Email</div>
                         <div class="fw-semibold text-dark text-break">${u.email || '—'}</div>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="p-2.5 bg-light rounded-3">
-                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-phone me-1.5 text-secondary"></i>মোবাইল নম্বর</div>
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-phone me-1.5 text-secondary"></i>Phone</div>
                         <div class="fw-semibold text-dark">${u.phone || '—'}</div>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="p-2.5 bg-light rounded-3">
-                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-location-dot me-1.5 text-secondary"></i>ঠিকানা / শহর</div>
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-location-dot me-1.5 text-secondary"></i>Address / City</div>
                         <div class="fw-semibold text-dark">${regData.address || regData.city || '—'}</div>
                     </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="p-2.5 bg-light rounded-3">
-                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-calendar me-1.5 text-secondary"></i>আবেদনের তারিখ</div>
-                        <div class="fw-semibold text-dark">${u.created_at ? new Date(u.created_at).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                        <div class="small text-muted mb-0.5"><i class="fa-solid fa-calendar me-1.5 text-secondary"></i>Registered Date</div>
+                        <div class="fw-semibold text-dark">${u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</div>
                     </div>
                 </div>
                 ${regData.bio ? `
                 <div class="col-12">
                     <div class="p-3 bg-light rounded-3">
-                        <div class="small text-muted mb-1"><i class="fa-solid fa-quote-left me-1.5 text-secondary"></i>লেখক পরিচিতি / বায়ো</div>
+                        <div class="small text-muted mb-1"><i class="fa-solid fa-quote-left me-1.5 text-secondary"></i>Biography</div>
                         <div class="small text-dark lh-base">${regData.bio}</div>
                     </div>
                 </div>` : ''}
@@ -3006,14 +3016,14 @@ function viewPendingUserDetails(userId) {
             footerEl.innerHTML = `
                 <div class="d-flex align-items-center justify-content-between w-100 flex-wrap gap-2">
                     <a href="{{ url('admin/registrations') }}/${u.id}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                        <i class="fa-solid fa-up-right-from-square me-1"></i> ফুল প্রোফাইল
+                        <i class="fa-solid fa-up-right-from-square me-1"></i> Full Profile
                     </a>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide(); promptRejectReason('user', ${u.id}, '${u.name.replace(/'/g, "\\'")}')">
-                            <i class="fa-solid fa-ban me-1"></i> রিজেক্ট
+                            <i class="fa-solid fa-ban me-1"></i> Reject
                         </button>
                         <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="bootstrap.Modal.getInstance(document.getElementById('pendingUserDetailModal'))?.hide(); executeDashboardQuickAction('user', ${u.id}, 'approve', '', this)">
-                            <i class="fa-solid fa-check me-1"></i> এপ্রুভ করুন
+                            <i class="fa-solid fa-check me-1"></i> Approve
                         </button>
                     </div>
                 </div>
@@ -3022,7 +3032,7 @@ function viewPendingUserDetails(userId) {
     })
     .catch(err => {
         console.error(err);
-        bodyEl.innerHTML = `<div class="alert alert-danger mb-0">তথ্য লোড করার সময় সমস্যা হয়েছে।</div>`;
+        bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Error loading profile data.</div>`;
     });
 }
 
@@ -3037,17 +3047,17 @@ function reloadPendingData() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showDashboardToast('পেন্ডিং ডাটা সফলভাবে রিফ্রেশ করা হয়েছে!', 'info');
+                showDashboardToast('Pending data refreshed successfully!', 'info');
                 if (data.alerts) {
                     updateDashboardAlertCounts(data.alerts);
                 }
             } else {
-                showDashboardToast('ডাটা রিফ্রেশ করতে সমস্যা হয়েছে।', 'danger');
+                showDashboardToast('Failed to refresh data.', 'danger');
             }
         })
         .catch(err => {
             console.error('Failed to reload pending data', err);
-            showDashboardToast('সার্ভার থেকে ডাটা লোড করতে সমস্যা হয়েছে।', 'danger');
+            showDashboardToast('Error contacting server.', 'danger');
         })
         .finally(() => {
             refreshBtns.forEach(btn => {
