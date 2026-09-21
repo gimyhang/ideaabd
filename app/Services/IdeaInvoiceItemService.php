@@ -81,7 +81,8 @@ class IdeaInvoiceItemService
                 'paper', 'ream', 'raw',
                 'service', 'maintenance',
                 'product', 'merchandise',
-                'other', 'bill', 'custom'
+                'other', 'bill', 'custom',
+                'receipt', 'card', 'challan', 'memo', 'pad', 'voucher', 'banner', 'leaflet', 'brochure'
             ];
 
             foreach ($nonBookKeywords as $keyword) {
@@ -91,7 +92,7 @@ class IdeaInvoiceItemService
             }
 
             // Recognized book types
-            if (str_contains($lower, 'book') || str_contains($lower, 'hardcover') || str_contains($lower, 'paperback') || str_contains($lower, 'standard')) {
+            if (str_contains($lower, 'book (hardcover)') || str_contains($lower, 'book (paperback)') || str_contains($lower, 'book (standard)') || $lower === 'book' || $lower === 'বই') {
                 return true;
             }
         }
@@ -177,7 +178,7 @@ class IdeaInvoiceItemService
     /**
      * Process and sanitize invoice items before saving to database.
      */
-    public static function processItems(array $rawItems, string $salesCategory = 'books', bool $autoCreateBooks = true): array
+    public static function processItems(array $rawItems, string $salesCategory = 'books', bool $autoCreateBooks = false): array
     {
         $processed = [];
         $subtotal = 0.0;
@@ -212,37 +213,11 @@ class IdeaInvoiceItemService
             $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
 
             if ($isBook) {
-                // Auto create in /admin/books only if it's a book and enabled
-                if (!$bookId && !empty($title) && $autoCreateBooks) {
+                // If not explicitly linked, check if an existing book matches by exact title
+                if (!$bookId && !empty($title)) {
                     $existingBook = Book::where('title', $title)->first();
                     if ($existingBook) {
                         $bookId = $existingBook->id;
-                    } else {
-                        $slugBase = Str::slug($title);
-                        $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
-                        $counter = 1;
-                        while (Book::where('slug', $slug)->exists()) {
-                            $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
-                        }
-
-                        $coverType = 'paperback';
-                        $itemTypeLower = mb_strtolower((string)$itemType);
-                        if (str_contains($itemTypeLower, 'hardcover')) {
-                            $coverType = 'hardcover';
-                        }
-
-                        $createdBook = Book::create([
-                            'title'          => $title,
-                            'slug'           => $slug,
-                            'author_name'    => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
-                            'cover_type'     => $coverType,
-                            'price'          => $regularPrice ?: $price,
-                            'discount_price' => ($discPct > 0 && $price < $regularPrice) ? $price : null,
-                            'stock_quantity' => 50,
-                            'is_active'      => true,
-                            'format'         => 'printed',
-                        ]);
-                        $bookId = $createdBook->id;
                     }
                 }
             } else {

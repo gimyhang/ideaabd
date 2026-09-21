@@ -780,7 +780,7 @@ class IdeaAccountingController extends Controller
         ]);
 
         $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', 'books');
-        $autoCreateBooks = $request->boolean('auto_create_books', true);
+        $autoCreateBooks = $request->boolean('auto_create_books', false);
 
         try {
             return DB::transaction(function () use ($validated, $salesCategory, $autoCreateBooks, $request) {
@@ -1008,7 +1008,7 @@ class IdeaAccountingController extends Controller
         try {
             return DB::transaction(function () use ($validated, $invoice, $request) {
                 $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
-                $autoCreateBooks = $request->boolean('auto_create_books', true);
+                $autoCreateBooks = $request->boolean('auto_create_books', false);
 
                 $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, $autoCreateBooks);
                 $itemsProcessed = $itemResult['items'];

@@ -527,12 +527,6 @@
                     <h6 class="fw-bold mb-0 text-dark">
                         <i class="fa-solid fa-file-contract me-2 text-primary"></i>Terms, Conditions & Notes
                     </h6>
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input ms-0 me-1.5" type="checkbox" name="auto_create_books" id="autoCreateBooksSwitch" value="1" checked>
-                        <label class="form-check-label small fw-bold text-dark" for="autoCreateBooksSwitch" style="font-size: 12px;">
-                            <i class="fa-solid fa-cloud-arrow-up text-primary me-1"></i> Auto-post new books to Bookshop
-                        </label>
-                    </div>
                 </div>
                 <div class="card-body p-3.5">
                     <div class="mb-3">
