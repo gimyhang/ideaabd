@@ -761,7 +761,7 @@
                                         </button>
                                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle btn-reject-action" 
                                                 style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                                                onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')" title="Reject / Request Revision">
+                                                onclick="openBookRejectModal({{ $book->id }})" title="Reject / Request Revision">
                                             <i class="fa-solid fa-xmark" style="font-size: 10px;"></i>
                                         </button>
                                     </div>
@@ -787,7 +787,7 @@
                                             <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook({{ $book->id }})"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
                                             <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending({{ $book->id }})"><i class="fa-solid fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
                                             <li><hr class="dropdown-divider my-1"></li>
-                                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
+                                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal({{ $book->id }})"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
                                         </ul>
                                     </div>
                                 @endif
@@ -812,7 +812,7 @@
                                         </button>
                                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle shadow-xs btn-reject-action" 
                                                 style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                                                onclick="openBookRejectModal({{ $book->id }}, '{{ addslashes($book->title) }}')" title="Reject / Request Revision">
+                                                onclick="openBookRejectModal({{ $book->id }})" title="Reject / Request Revision">
                                             <i class="fa-solid fa-xmark" style="font-size: 11px;"></i>
                                         </button>
                                     @elseif($book->mod_status === 'rejected')
@@ -858,15 +858,15 @@
                                     </button>
 
                                     {{-- Delete Action --}}
-                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn" 
+                                    <button type="button" class="btn btn-sm btn-light border text-danger rounded-circle shadow-xs adm-icon-action-btn btn-delete-book" 
                                             style="width: 29px; height: 29px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" 
-                                            onclick="confirmDeleteBook({{ $book->id }}, '{{ addslashes($book->title) }}')" 
+                                            onclick="confirmDeleteBook({{ $book->id }})" 
                                             title="Delete Book">
                                         <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                     </button>
 
                                     {{-- Hidden Delete Form --}}
-                                    <form id="deleteBookForm_{{ $book->id }}" action="{{ route('admin.content.destroy', ['type' => 'books', 'id' => $book->id]) }}" method="POST" class="d-none">
+                                    <form id="deleteBookForm_{{ $book->id }}" action="{{ route('admin.books.destroy', $book->id) }}" method="POST" class="d-none">
                                         @csrf
                                         @method('DELETE')
                                     </form>
@@ -1135,6 +1135,99 @@
     </div>
 </div>
 
+{{-- Universal Book Barcode & QR Code Modal --}}
+<div class="modal fade" id="bookBarcodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-dark text-white py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fa-solid fa-barcode"></i></span>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0 text-white">Product Barcode & QR Code</h6>
+                        <small class="text-white-50" style="font-size: 11px;">মোবাইল ক্যামেরা ও বারকোড রিডার কম্প্যাটিবল</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                {{-- Book Info Header --}}
+                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
+                    <h6 class="fw-bold text-dark mb-1" id="barcodeModalTitle">Book Title</h6>
+                    <div class="small text-muted mb-2" id="barcodeModalAuthor">Author Name</div>
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP001</span>
+                        <span class="badge bg-success text-white px-2.5 py-1 fw-bold fs-6 font-monospace" id="barcodeModalPrice">৳350</span>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" id="barcodeModalCopyBtn" title="Copy Serial Code">
+                            <i class="fa-solid fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Barcode (Code 128) Container --}}
+                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Vector Barcode (Code 128)</small>
+                    <div id="barcodeModalSvgBox" class="d-flex justify-content-center align-items-center" style="min-height: 70px;">
+                        <!-- SVG injected here -->
+                    </div>
+                </div>
+
+                {{-- QR Code Container --}}
+                <div class="bg-white p-3 rounded-3 border text-center">
+                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Smartphone Scannable QR Code</small>
+                    <div id="barcodeModalQrBox" class="d-flex justify-content-center align-items-center" style="min-height: 110px;">
+                        <!-- SVG injected here -->
+                    </div>
+                    <small class="text-muted d-block mt-2" style="font-size: 11px;">যেকোনো মোবাইল ক্যামেরা দিয়ে স্ক্যান করলে বইটির পেজ ও চেকআউট চলে আসবে</small>
+                </div>
+            </div>
+            <div class="modal-footer bg-white py-2.5 d-flex justify-content-between">
+                <a href="#" target="_blank" id="barcodeModalStoreLink" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Book
+                </a>
+                <div class="d-flex gap-2">
+                    <a href="#" target="_blank" id="barcodeModalPrint1x" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                        <i class="fa-solid fa-print me-1"></i> Print 1x Label
+                    </a>
+                    <a href="#" target="_blank" id="barcodeModalPrint5x" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
+                        <i class="fa-solid fa-tags me-1"></i> Print 5x Labels
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Book Reject Modal --}}
+<div class="modal fade" id="rejectBookModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title fs-6 fw-bold">
+                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="rejectBookId">
+                <p class="small text-muted mb-2">
+                    Book: <strong class="text-dark" id="rejectBookTitle"></strong>
+                </p>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark">Rejection Reason / Required Revisions:</label>
+                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3" placeholder="e.g. Low cover resolution, incorrect page count, incomplete ISBN..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBookSubmit()">
+                    <i class="fa-solid fa-circle-xmark me-1"></i> Confirm Rejection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
 @push('scripts')
 <script>
 // Dynamic Search & Clean Form Submission Engine
@@ -1368,12 +1461,12 @@ function recalcSaleCommissionFromPrice() {
 // 2. Hardcover Dual Commission Calculators
 function recalcHardcoverPricingFromMrp() {
     const mrp = parseFloat(document.getElementById('qeHardcoverPrice').value) || 0;
-    const saleComm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
-    const discountPrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
+    const comm = parseFloat(document.getElementById('qeHardcoverSaleCommission').value) || 0;
+    const salePrice = parseFloat(document.getElementById('qeHardcoverDiscountPrice').value) || 0;
 
-    if (saleComm > 0) {
+    if (comm > 0) {
         recalcHardcoverSalePriceFromCommission();
-    } else if (discountPrice > 0 && mrp > 0) {
+    } else if (salePrice > 0 && mrp > 0) {
         recalcHardcoverSaleCommissionFromPrice();
     }
 
@@ -1457,7 +1550,7 @@ function handleQuickBookEditSubmit(e) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving changes...';
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
     fetch("{{ route('admin.books.quick-update') }}", {
         method: 'POST',
@@ -1518,23 +1611,98 @@ function exportBooksToCSV() {
     document.body.removeChild(link);
 }
 
-// Confirmation Dialog for Safe Book Deletion
-function confirmDeleteBook(bookId, bookTitle) {
-    SwalConfirm({
-        title: 'Delete this book?',
-        html: `Are you sure you want to delete <strong>‘${bookTitle}’</strong>?<br><span class="text-danger small">This book will be permanently removed from catalog & storefront.</span>`,
-        icon: 'warning',
-        confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete',
-        confirmButtonColor: '#ef4444',
-        cancelButtonText: 'Cancel'
-    }).then(function(result) {
-        if (result.isConfirmed) {
-            const form = document.getElementById(`deleteBookForm_${bookId}`);
-            if (form) {
-                form.submit();
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// Confirmation Dialog & Fast AJAX / Form Delete for Books
+async function confirmDeleteBook(bookId) {
+    let bookTitle = 'this book';
+    const row = document.getElementById('bookRow_' + bookId);
+    if (row) {
+        const titleEl = row.querySelector('#bookTitleDisplay_' + bookId);
+        if (titleEl && titleEl.textContent) {
+            bookTitle = titleEl.textContent.trim();
+        } else if (window.booksDataMap && window.booksDataMap[bookId]) {
+            bookTitle = window.booksDataMap[bookId].title;
+        }
+    }
+
+    let isConfirmed = false;
+    if (typeof SwalConfirm === 'function') {
+        const result = await SwalConfirm({
+            title: 'Delete this book?',
+            html: `Are you sure you want to delete <strong>‘${escapeHtml(bookTitle)}’</strong>?<br><span class="text-danger small">This book will be permanently removed from catalog & storefront.</span>`,
+            icon: 'warning',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'Cancel'
+        });
+        isConfirmed = result.isConfirmed;
+    } else if (typeof Swal !== 'undefined' && typeof Swal.fire === 'function') {
+        const result = await Swal.fire({
+            title: 'Delete this book?',
+            html: `Are you sure you want to delete <strong>‘${escapeHtml(bookTitle)}’</strong>?<br><span class="text-danger small">This book will be permanently removed from catalog & storefront.</span>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete',
+            confirmButtonColor: '#ef4444',
+            cancelButtonText: 'Cancel'
+        });
+        isConfirmed = result.isConfirmed;
+    } else {
+        isConfirmed = window.confirm(`Are you sure you want to delete "${bookTitle}"?`);
+    }
+
+    if (!isConfirmed) return;
+
+    // Send AJAX DELETE request
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+    try {
+        const res = await fetch(`/admin/books/${bookId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (res.ok) {
+            const data = await res.json().catch(() => ({ success: true }));
+            if (data.success) {
+                if (row) {
+                    row.style.transition = 'all 0.35s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.95)';
+                    setTimeout(() => row.remove(), 350);
+                }
+                if (typeof SwalToast === 'function') {
+                    SwalToast('success', data.message || `‘${bookTitle}’ বইটি সফলভাবে মুছে ফেলা হয়েছে।`);
+                } else if (typeof showBookToast === 'function') {
+                    showBookToast('success', data.message || `‘${bookTitle}’ বইটি সফলভাবে মুছে ফেলা হয়েছে।`);
+                }
+                return;
             }
         }
-    });
+    } catch (e) {
+        console.warn('AJAX delete failed, falling back to form submit:', e);
+    }
+
+    // Fallback: Submit hidden form
+    const form = document.getElementById(`deleteBookForm_${bookId}`);
+    if (form) {
+        form.submit();
+    }
 }
 
 function scrollAdminBooksTable(dx) {
@@ -1553,15 +1721,21 @@ function syncTableScrollFromBar(bar) {
 
 // 1-Click Instant AJAX Book Approval
 async function ajaxApproveBook(bookId) {
-    const result = await SwalConfirm({
-        title: 'Approve & Publish Book',
-        text: 'Do you want to approve this book and make it live in the storefront?',
-        icon: 'question',
-        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> Yes, Approve',
-        confirmButtonColor: '#10b981',
-        cancelButtonText: 'Cancel'
-    });
-    if (!result.isConfirmed) return;
+    let isConfirmed = false;
+    if (typeof SwalConfirm === 'function') {
+        const result = await SwalConfirm({
+            title: 'Approve & Publish Book',
+            text: 'Do you want to approve this book and make it live in the storefront?',
+            icon: 'question',
+            confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> Yes, Approve',
+            confirmButtonColor: '#10b981',
+            cancelButtonText: 'Cancel'
+        });
+        isConfirmed = result.isConfirmed;
+    } else {
+        isConfirmed = window.confirm('Do you want to approve this book and make it live in the storefront?');
+    }
+    if (!isConfirmed) return;
 
     try {
         const res = await fetch(`/admin/books/${bookId}/approve`, {
@@ -1588,7 +1762,7 @@ async function ajaxApproveBook(bookId) {
                             <li><a class="dropdown-item text-success fw-semibold py-1.5" href="javascript:void(0)" onclick="ajaxApproveBook(${bookId})"><i class="fa-solid fa-circle-check me-1.5 text-success"></i> Re-Approve & Live</a></li>
                             <li><a class="dropdown-item text-warning-emphasis py-1.5" href="javascript:void(0)" onclick="ajaxSetBookPending(${bookId})"><i class="fa-solid fa-hourglass-half me-1.5 text-warning"></i> Mark Pending</a></li>
                             <li><hr class="dropdown-divider my-1"></li>
-                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal(${bookId}, '')"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
+                            <li><a class="dropdown-item text-danger py-1.5" href="javascript:void(0)" onclick="openBookRejectModal(${bookId})"><i class="fa-solid fa-circle-xmark me-1.5 text-danger"></i> Reject / Revision</a></li>
                         </ul>
                     </div>
                 `;
@@ -1645,7 +1819,7 @@ async function ajaxSetBookPending(bookId) {
                         </button>
                         <button type="button" class="btn btn-sm btn-light border border-danger-subtle text-danger rounded-circle btn-reject-action" 
                                 style="width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center;"
-                                onclick="openBookRejectModal(${bookId}, '')" title="Reject / Request Revision">
+                                onclick="openBookRejectModal(${bookId})" title="Reject / Request Revision">
                             <i class="fa-solid fa-xmark" style="font-size: 10px;"></i>
                         </button>
                     </div>
@@ -1662,9 +1836,20 @@ async function ajaxSetBookPending(bookId) {
 }
 
 // Open Book Reject Modal
-function openBookRejectModal(bookId, bookTitle) {
+function openBookRejectModal(bookId) {
+    let bookTitle = 'Book';
+    const row = document.getElementById('bookRow_' + bookId);
+    if (row) {
+        const titleEl = row.querySelector('#bookTitleDisplay_' + bookId);
+        if (titleEl && titleEl.textContent) {
+            bookTitle = titleEl.textContent.trim();
+        } else if (window.booksDataMap && window.booksDataMap[bookId]) {
+            bookTitle = window.booksDataMap[bookId].title;
+        }
+    }
+
     document.getElementById('rejectBookId').value = bookId;
-    document.getElementById('rejectBookTitle').textContent = bookTitle || 'Book';
+    document.getElementById('rejectBookTitle').textContent = bookTitle;
     document.getElementById('rejectBookReason').value = '';
     const modalEl = document.getElementById('rejectBookModal');
     if (modalEl) {
@@ -1703,7 +1888,7 @@ async function ajaxRejectBookSubmit() {
             if (badgeEl) {
                 badgeEl.innerHTML = `
                     <div class="d-inline-flex align-items-center gap-1">
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="${reason}">
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;" title="${escapeHtml(reason)}">
                             <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
                         </span>
                         <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold shadow-2xs" 
@@ -1769,24 +1954,36 @@ function showBookToast(type, msg) {
 }
 
 function syncAllBookSerials() {
-    SwalConfirm({
-        title: 'বইয়ের সিরিয়াল সিঙ্ক',
-        text: 'আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?',
-        icon: 'info',
-        confirmButtonText: '<i class="fa-solid fa-rotate me-1"></i> হ্যাঁ, সিঙ্ক করুন',
-        cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
-    }).then(function(result) {
-        if (!result.isConfirmed) return;
-
-        fetch('{{ route("admin.books.sync-serials") }}', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+    let isConfirmed = false;
+    if (typeof SwalConfirm === 'function') {
+        SwalConfirm({
+            title: 'বইয়ের সিরিয়াল সিঙ্ক',
+            text: 'আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর (আইডিয়া প্রকাশন ও অন্যান্য পাবলিশার) সিঙ্ক করতে চান?',
+            icon: 'info',
+            confirmButtonText: '<i class="fa-solid fa-rotate me-1"></i> হ্যাঁ, সিঙ্ক করুন',
+            cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                executeSyncSerials();
             }
-        })
-        .then(res => res.json())
+        });
+    } else {
+        if (window.confirm('আপনি কি সব বইয়ের জন্য স্বয়ংক্রিয় সিরিয়াল নম্বর সিঙ্ক করতে চান?')) {
+            executeSyncSerials();
+        }
+    }
+}
+
+function executeSyncSerials() {
+    fetch('{{ route("admin.books.sync-serials") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
     .then(data => {
         if (data.success) {
             showBookToast('success', data.message || 'সিরিয়াল নম্বর সফলভাবে সিঙ্ক হয়েছে!');
@@ -1812,7 +2009,7 @@ function openBarcodeModal(bookId) {
     document.getElementById('barcodeModalSvgBox').innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
     document.getElementById('barcodeModalQrBox').innerHTML = '<div class="spinner-border text-primary" role="status"></div>';
 
-    const bsModal = new bootstrap.Modal(modalEl);
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
 
     fetch(`/admin/books/${bookId}/barcode-data`)
@@ -1820,17 +2017,17 @@ function openBarcodeModal(bookId) {
         .then(data => {
             if (data.success) {
                 document.getElementById('barcodeModalTitle').textContent = data.title;
-                document.getElementById('barcodeModalAuthor').textContent = data.author + ' | ' + data.publisher;
+                document.getElementById('barcodeModalAuthor').textContent = (data.author || 'Author') + ' | ' + (data.publisher || 'IDEA');
                 document.getElementById('barcodeModalSku').textContent = data.idea_serial_no || (data.sku || 'IP001');
                 document.getElementById('barcodeModalPrice').textContent = '৳' + Math.round(data.effective_price || 0);
                 
-                document.getElementById('barcodeModalSvgBox').innerHTML = data.barcode_svg;
-                document.getElementById('barcodeModalQrBox').innerHTML = data.qr_svg;
+                document.getElementById('barcodeModalSvgBox').innerHTML = data.barcode_svg || '';
+                document.getElementById('barcodeModalQrBox').innerHTML = data.qr_svg || '';
 
                 // Setup print buttons
                 document.getElementById('barcodeModalPrint1x').href = `{{ route('admin.books.print-labels') }}?ids=${data.id}&copies=1`;
                 document.getElementById('barcodeModalPrint5x').href = `{{ route('admin.books.print-labels') }}?ids=${data.id}&copies=5`;
-                document.getElementById('barcodeModalStoreLink').href = data.store_url;
+                document.getElementById('barcodeModalStoreLink').href = data.store_url || `/books/${data.id}`;
 
                 document.getElementById('barcodeModalCopyBtn').onclick = function() {
                     const copyVal = data.idea_serial_no || data.sku || data.id;
@@ -1862,97 +2059,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-
-{{-- Universal Book Barcode & QR Code Modal --}}
-<div class="modal fade" id="bookBarcodeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-dark text-white py-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="p-2 bg-primary rounded-circle text-white"><i class="fa-solid fa-barcode"></i></span>
-                    <div>
-                        <h6 class="modal-title fw-bold mb-0 text-white">Product Barcode & QR Code</h6>
-                        <small class="text-white-50" style="font-size: 11px;">মোবাইল ক্যামেরা ও বারকোড রিডার কম্প্যাটিবল</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4 bg-light">
-                {{-- Book Info Header --}}
-                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
-                    <h6 class="fw-bold text-dark mb-1" id="barcodeModalTitle">Book Title</h6>
-                    <div class="small text-muted mb-2" id="barcodeModalAuthor">Author Name</div>
-                    <div class="d-flex align-items-center justify-content-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 font-monospace fw-bold" id="barcodeModalSku">IP001</span>
-                        <span class="badge bg-success text-white px-2.5 py-1 fw-bold fs-6 font-monospace" id="barcodeModalPrice">৳350</span>
-                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2" id="barcodeModalCopyBtn" title="Copy Serial Code">
-                            <i class="fa-solid fa-copy me-1"></i>Copy
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Barcode (Code 128) Container --}}
-                <div class="bg-white p-3 rounded-3 border mb-3 text-center">
-                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Vector Barcode (Code 128)</small>
-                    <div id="barcodeModalSvgBox" class="d-flex justify-content-center align-items-center" style="min-height: 70px;">
-                        <!-- SVG injected here -->
-                    </div>
-                </div>
-
-                {{-- QR Code Container --}}
-                <div class="bg-white p-3 rounded-3 border text-center">
-                    <small class="text-muted d-block mb-2 fw-semibold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">Smartphone Scannable QR Code</small>
-                    <div id="barcodeModalQrBox" class="d-flex justify-content-center align-items-center" style="min-height: 110px;">
-                        <!-- SVG injected here -->
-                    </div>
-                    <small class="text-muted d-block mt-2" style="font-size: 11px;">যেকোনো মোবাইল ক্যামেরা দিয়ে স্ক্যান করলে বইটির পেজ ও চেকআউট চলে আসবে</small>
-                </div>
-            </div>
-            <div class="modal-footer bg-white py-2.5 d-flex justify-content-between">
-                <a href="#" target="_blank" id="barcodeModalStoreLink" class="btn btn-sm btn-outline-dark rounded-pill px-3">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Book
-                </a>
-                <div class="d-flex gap-2">
-                    <a href="#" target="_blank" id="barcodeModalPrint1x" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
-                        <i class="fa-solid fa-print me-1"></i> Print 1x Label
-                    </a>
-                    <a href="#" target="_blank" id="barcodeModalPrint5x" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                        <i class="fa-solid fa-tags me-1"></i> Print 5x Labels
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Book Reject Modal --}}
-<div class="modal fade" id="rejectBookModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-danger text-white py-3">
-                <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Reject or Request Revision
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <input type="hidden" id="rejectBookId">
-                <p class="small text-muted mb-2">
-                    Book: <strong class="text-dark" id="rejectBookTitle"></strong>
-                </p>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark">Rejection Reason / Required Revisions:</label>
-                    <textarea id="rejectBookReason" class="form-control rounded-3" rows="3" placeholder="e.g. Low cover resolution, incorrect page count, incomplete ISBN..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer bg-light py-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBookSubmit()">
-                    <i class="fa-solid fa-circle-xmark me-1"></i> Confirm Rejection
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@endsection

@@ -407,6 +407,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/books/{id}/toggle-status', [AdminController::class, 'toggleBookStatus'])->name('books.toggle-status');
     Route::post('/books/{id}/approve', [AdminController::class, 'approveBook'])->name('books.approve');
     Route::post('/books/{id}/reject', [AdminController::class, 'rejectBook'])->name('books.reject');
+    Route::delete('/books/{id}', [AdminController::class, 'destroyBook'])->name('books.destroy');
     Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
     Route::get('/blog', [AdminController::class, 'blog'])->name('blog');
     Route::get('/blog-categories', [AdminController::class, 'blogCategories'])->name('blog-categories');

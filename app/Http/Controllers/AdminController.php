@@ -1130,6 +1130,39 @@ class AdminController extends Controller
         return back()->with('success', "‘{$book->title}’ বইটি বাতিল করা হয়েছে।");
     }
 
+    public function destroyBook(Request $request, int $id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $book = \Modules\Book\Models\Book::find($id);
+        if (!$book) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'বইটি খুঁজে পাওয়া যায়নি বা ইতিমধ্যে অপসারিত হয়েছে।',
+                ], 404);
+            }
+            return back()->with('error', 'বইটি খুঁজে পাওয়া যায়নি বা ইতিমধ্যে অপসারিত হয়েছে।');
+        }
+
+        $title = $book->title;
+        $book->delete();
+
+        $this->accessService->log('book_deleted', "বই '{$title}' মুছে ফেলা হয়েছে (ID: {$id})");
+
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable $e) {}
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'id'      => $id,
+                'message' => "“{$title}” বইটি সফলভাবে মুছে ফেলা হয়েছে।",
+            ]);
+        }
+
+        return redirect()->route('admin.books')->with('success', "“{$title}” বইটি সফলভাবে মুছে ফেলা হয়েছে।");
+    }
+
     /**
      * Auto-generate next serial number (SKU / Idea Serial) dynamically via AJAX
      */
