@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use App\Services\IdeaInvoiceItemService;
 use Modules\Book\Models\Book;
 
 class IdeaAccountingController extends Controller
@@ -783,69 +784,9 @@ class IdeaAccountingController extends Controller
 
         try {
             return DB::transaction(function () use ($validated, $salesCategory, $autoCreateBooks, $request) {
-                $subtotal = 0.0;
-                $itemsProcessed = [];
-
-                foreach ($validated['items'] as $item) {
-                    $qty = (float) $item['quantity'];
-                    $price = (float) $item['price'];
-                    $regularPrice = isset($item['regular_price']) && is_numeric($item['regular_price']) && (float)$item['regular_price'] > 0 
-                        ? (float)$item['regular_price'] 
-                        : $price;
-                    $discPct = isset($item['discount_percent']) && is_numeric($item['discount_percent']) 
-                        ? (float)$item['discount_percent'] 
-                        : 0.0;
-
-                    if ($discPct == 0 && $regularPrice > $price && $regularPrice > 0) {
-                        $discPct = round((($regularPrice - $price) / $regularPrice) * 100, 2);
-                    }
-
-                    $lineTotal = $qty * $price;
-                    $subtotal += $lineTotal;
-
-                    $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
-                    $itemTitle = trim((string)$item['title']);
-
-                    // Auto create book in Bookshop if sales category is books, book_id is missing, and title is provided
-                    if (!$bookId && $salesCategory === 'books' && !empty($itemTitle) && $autoCreateBooks) {
-                        $existingBook = Book::where('title', $itemTitle)->first();
-                        if ($existingBook) {
-                            $bookId = $existingBook->id;
-                        } else {
-                            $slugBase = Str::slug($itemTitle);
-                            $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
-                            $counter = 1;
-                            while (Book::where('slug', $slug)->exists()) {
-                                $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
-                            }
-                            $createdBook = Book::create([
-                                'title'          => $itemTitle,
-                                'slug'           => $slug,
-                                'author_name'    => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
-                                'cover_type'     => ($item['item_type'] ?? '') === 'Book (Hardcover)' ? 'hardcover' : 'paperback',
-                                'price'          => $regularPrice ?: $price,
-                                'discount_price' => ($discPct > 0 && $price < $regularPrice) ? $price : null,
-                                'stock_quantity' => 50,
-                                'is_active'      => true,
-                                'format'         => 'printed',
-                            ]);
-                            $bookId = $createdBook->id;
-                        }
-                    }
-
-                    $itemsProcessed[] = [
-                        'title'            => $item['title'],
-                        'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
-                        'item_type'        => $item['item_type'] ?? 'বই (Book)',
-                        'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
-                        'book_id'          => $bookId,
-                        'quantity'         => $qty,
-                        'regular_price'    => $regularPrice,
-                        'discount_percent' => $discPct,
-                        'unit_price'       => $price,
-                        'subtotal'         => $lineTotal,
-                    ];
-                }
+                $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, $autoCreateBooks);
+                $itemsProcessed = $itemResult['items'];
+                $subtotal = $itemResult['subtotal'];
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
@@ -1066,72 +1007,12 @@ class IdeaAccountingController extends Controller
 
         try {
             return DB::transaction(function () use ($validated, $invoice, $request) {
-                $subtotal = 0.0;
-                $itemsProcessed = [];
-
                 $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
                 $autoCreateBooks = $request->boolean('auto_create_books', true);
 
-                foreach ($validated['items'] as $item) {
-                    $qty = (float) $item['quantity'];
-                    $price = (float) $item['price'];
-                    $regularPrice = isset($item['regular_price']) && is_numeric($item['regular_price']) && (float)$item['regular_price'] > 0 
-                        ? (float)$item['regular_price'] 
-                        : $price;
-                    $discPct = isset($item['discount_percent']) && is_numeric($item['discount_percent']) 
-                        ? (float)$item['discount_percent'] 
-                        : 0.0;
-
-                    if ($discPct == 0 && $regularPrice > $price && $regularPrice > 0) {
-                        $discPct = round((($regularPrice - $price) / $regularPrice) * 100, 2);
-                    }
-
-                    $lineTotal = $qty * $price;
-                    $subtotal += $lineTotal;
-
-                    $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
-                    $itemTitle = trim((string)$item['title']);
-
-                    // Auto create book in Bookshop if sales category is books, book_id is missing, and title is provided
-                    if (!$bookId && $salesCategory === 'books' && !empty($itemTitle) && $autoCreateBooks) {
-                        $existingBook = Book::where('title', $itemTitle)->first();
-                        if ($existingBook) {
-                            $bookId = $existingBook->id;
-                        } else {
-                            $slugBase = Str::slug($itemTitle);
-                            $slug = $slugBase ?: ('book-' . time() . '-' . rand(100, 999));
-                            $counter = 1;
-                            while (Book::where('slug', $slug)->exists()) {
-                                $slug = ($slugBase ?: 'book') . '-' . time() . '-' . $counter++;
-                            }
-                            $createdBook = Book::create([
-                                'title'          => $itemTitle,
-                                'slug'           => $slug,
-                                'author_name'    => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
-                                'cover_type'     => ($item['item_type'] ?? '') === 'Book (Hardcover)' ? 'hardcover' : 'paperback',
-                                'price'          => $regularPrice ?: $price,
-                                'discount_price' => ($discPct > 0 && $price < $regularPrice) ? $price : null,
-                                'stock_quantity' => 50,
-                                'is_active'      => true,
-                                'format'         => 'printed',
-                            ]);
-                            $bookId = $createdBook->id;
-                        }
-                    }
-
-                    $itemsProcessed[] = [
-                        'title'            => $item['title'],
-                        'author_name'      => !empty($item['author_name']) ? trim((string)$item['author_name']) : null,
-                        'item_type'        => $item['item_type'] ?? 'বই (Book)',
-                        'unit'             => !empty($item['unit']) ? trim((string)$item['unit']) : 'কপি',
-                        'book_id'          => $bookId,
-                        'quantity'         => $qty,
-                        'regular_price'    => $regularPrice,
-                        'discount_percent' => $discPct,
-                        'unit_price'       => $price,
-                        'subtotal'         => $lineTotal,
-                    ];
-                }
+                $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, $autoCreateBooks);
+                $itemsProcessed = $itemResult['items'];
+                $subtotal = $itemResult['subtotal'];
 
                 $discount = (float) ($validated['discount'] ?? 0);
                 $tax = (float) ($validated['tax'] ?? 0);
@@ -3634,13 +3515,13 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Printable Salary Slip / Pay Receipt.
+     * Check if an invoice item qualifies as a Book in Bookshop inventory (/admin/books).
+     * Non-book items (printing, stationery / educational materials, general products, services, etc.)
+     * must never be registered as books.
      */
-    public function salarySlip($id): View
+    public static function isBookItem(?string $itemType, string $salesCategory = 'books'): bool
     {
-        $salary = IdeaSalaryPayment::with('employee', 'creator')->findOrFail($id);
-        $invoiceSettings = self::getInvoiceSettings();
-
-        return view('admin.accounting.salary.slip', compact('salary', 'invoiceSettings'));
+        return IdeaInvoiceItemService::isBookItem($itemType, $salesCategory);
     }
 }
+

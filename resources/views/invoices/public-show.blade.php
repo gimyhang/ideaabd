@@ -376,10 +376,15 @@
         $totalQuantity += (float)($it['quantity'] ?? 1);
     }
 
-    $bookIds = collect($invoice->items ?? [])->pluck('book_id')->filter()->unique()->toArray();
-    $bookTitles = collect($invoice->items ?? [])->pluck('title')->filter()->unique()->toArray();
+    // Fetch books map for rich details like author_name, cover price etc. (only for book items)
+    $bookItems = collect($invoice->items ?? [])->filter(function($it) use ($invoice) {
+        $type = $it['item_type'] ?? '';
+        return \App\Http\Controllers\Admin\IdeaAccountingController::isBookItem($type, $invoice->sales_category ?? 'books');
+    });
+    $bookIds = $bookItems->pluck('book_id')->filter()->unique()->toArray();
+    $bookTitles = $bookItems->pluck('title')->filter()->unique()->toArray();
     $matchedBooks = \Modules\Book\Models\Book::whereIn('id', $bookIds)
-        ->orWhereIn('title', $bookTitles)
+        ->when(!empty($bookTitles), fn($q) => $q->orWhereIn('title', $bookTitles))
         ->get()
         ->keyBy('id');
     $matchedBooksByTitle = $matchedBooks->keyBy('title');
@@ -668,14 +673,16 @@
                         <tbody>
                             @foreach($invoice->items as $idx => $item)
                                 @php
-                                    $matchedBook = (!empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
+                                    $isItemBook = \App\Http\Controllers\Admin\IdeaAccountingController::isBookItem($item['item_type'] ?? null, $invoice->sales_category ?? 'books');
+                                    $matchedBook = ($isItemBook && !empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
                                         ? $matchedBooks[$item['book_id']]
-                                        : ($matchedBooksByTitle[$item['title']] ?? null);
+                                        : ($isItemBook && isset($matchedBooksByTitle[$item['title']]) ? $matchedBooksByTitle[$item['title']] : null);
                                     
                                     $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
                                     
                                     $qty = (float)($item['quantity'] ?? 1);
                                     $netUnitPrice = (float)($item['unit_price'] ?? 0);
+                                    $unitName = $item['unit'] ?? ($isItemBook ? 'Copy' : 'Pcs');
                                     
                                     $coverPrice = (float)($item['cover_price'] ?? $item['regular_price'] ?? $item['original_price'] ?? ($matchedBook->price ?? $netUnitPrice));
                                     if ($coverPrice <= 0) {
@@ -1090,11 +1097,12 @@
                             <tbody>
                                 @foreach($invoice->items as $idx => $item)
                                     @php
-                                        $matchedBook = (!empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
+                                        $isItemBook = \App\Http\Controllers\Admin\IdeaAccountingController::isBookItem($item['item_type'] ?? null, $invoice->sales_category ?? 'books');
+                                        $matchedBook = ($isItemBook && !empty($item['book_id']) && isset($matchedBooks[$item['book_id']]))
                                             ? $matchedBooks[$item['book_id']]
-                                            : ($matchedBooksByTitle[$item['title']] ?? null);
+                                            : ($isItemBook && isset($matchedBooksByTitle[$item['title']]) ? $matchedBooksByTitle[$item['title']] : null);
                                         $authorName = $item['author'] ?? $item['author_name'] ?? ($matchedBook->author_name ?? ($matchedBook->author->name ?? null)) ?? '—';
-                                        $unitName = $item['unit'] ?? ($invoice->sales_category === 'books' ? 'কপি' : 'পিস');
+                                        $unitName = $item['unit'] ?? ($isItemBook ? 'Copy' : 'Pcs');
                                     @endphp
                                     <tr>
                                         <td class="text-center py-0.5 px-1 text-muted">{{ $idx + 1 }}</td>

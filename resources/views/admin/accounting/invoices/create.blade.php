@@ -411,20 +411,28 @@
                             </td>
                             <td>
                                 <select name="items[0][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, 0)">
-                                    <option value="Book (Hardcover)" selected>Book (Hardcover)</option>
-                                    <option value="Book (Paperback)">Book (Paperback)</option>
-                                    <option value="Book (Standard)">Book (Standard)</option>
-                                    <option value="Stationery">Stationery</option>
-                                    <option value="Product">Product</option>
-                                    <option value="Paper / Raw Materials">Paper / Raw Materials</option>
-                                    <option value="Printing & Binding">Printing & Binding</option>
-                                    <option value="Service">Service</option>
-                                    <option value="Other">Other</option>
+                                    <optgroup label="Books & Publications">
+                                        <option value="Book (Hardcover)" selected>Book (Hardcover)</option>
+                                        <option value="Book (Paperback)">Book (Paperback)</option>
+                                        <option value="Book (Standard)">Book (Standard)</option>
+                                    </optgroup>
+                                    <optgroup label="Stationery & Supplies">
+                                        <option value="Stationery">Stationery & Materials</option>
+                                    </optgroup>
+                                    <optgroup label="Printing & Press">
+                                        <option value="Printing & Binding">Printing & Binding</option>
+                                        <option value="Paper / Raw Materials">Paper / Raw Materials</option>
+                                    </optgroup>
+                                    <optgroup label="Products & Services">
+                                        <option value="Product">General Product</option>
+                                        <option value="Service">Service & Support</option>
+                                        <option value="Other">Other Items</option>
+                                    </optgroup>
                                 </select>
                             </td>
                             <td>
                                 <input type="text" name="items[0][unit]" class="form-control item-unit text-center font-monospace" 
-                                       value="কপি" placeholder="একক" autocomplete="off">
+                                       value="Copy" placeholder="Unit" autocomplete="off">
                             </td>
                             <td>
                                 <input type="number" step="0.01" name="items[0][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
@@ -708,6 +716,8 @@
     </div>
 </div>
 
+<link rel="stylesheet" href="{{ asset('css/invoice-management.css') }}">
+<script src="{{ asset('js/invoice-manager.js') }}"></script>
 <script>
     let rowCounter = 1;
     let activeHighlightIndex = -1;
@@ -970,6 +980,12 @@
         const dropdown = row.querySelector('.book-search-dropdown');
         if (!dropdown) return;
 
+        const typeSelect = row.querySelector('.item-type-select');
+        if (typeSelect && typeof isBookTypeVal === 'function' && !isBookTypeVal(typeSelect.value)) {
+            dropdown.classList.add('d-none');
+            return;
+        }
+
         activeHighlightIndex = -1;
 
         // If field is empty on focus/click, show top 10 catalog books immediately
@@ -1222,6 +1238,34 @@
         const tbody = document.getElementById('itemsBody');
         if (!tbody) return;
 
+        const catSelect = document.getElementById('salesCategorySelect');
+        const currentSalesCat = catSelect ? catSelect.value : 'books';
+        let defaultItemType = 'Book (Hardcover)';
+        let defaultUnit = 'Copy';
+        let defaultTitlePlaceholder = 'Search book title, author, ISBN...';
+        let defaultAuthorPlaceholder = 'Author / Spec';
+        let isBook = true;
+
+        if (currentSalesCat === 'stationery') {
+            defaultItemType = 'Stationery';
+            defaultUnit = 'Pcs';
+            defaultTitlePlaceholder = 'Item / Stationery title & description...';
+            defaultAuthorPlaceholder = 'Model / Specification';
+            isBook = false;
+        } else if (currentSalesCat === 'printing_goods') {
+            defaultItemType = 'Printing & Binding';
+            defaultUnit = 'Copy';
+            defaultTitlePlaceholder = 'Printing job / Item description...';
+            defaultAuthorPlaceholder = 'Size / GSM / Specification';
+            isBook = false;
+        } else if (currentSalesCat === 'other') {
+            defaultItemType = 'Product';
+            defaultUnit = 'Pcs';
+            defaultTitlePlaceholder = 'Product / Item description...';
+            defaultAuthorPlaceholder = 'Specification / Notes';
+            isBook = false;
+        }
+
         const i = rowCounter++;
         const tr = document.createElement('tr');
         tr.className = 'item-row';
@@ -1230,12 +1274,12 @@
             <td class="position-relative book-search-container" style="min-width: 340px;">
                 <div class="input-group input-group-sm">
                     <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
-                              placeholder="Search book title, author, ISBN..." required 
+                              placeholder="${defaultTitlePlaceholder}" required 
                               oninput="handleLiveBookSearch(this, ${i})" 
                               onfocus="handleLiveBookSearch(this, ${i})" 
                               onkeydown="handleBookSearchKeydown(event, ${i})" 
                               autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;"></textarea>
-                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                    <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBook ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
@@ -1244,24 +1288,32 @@
             </td>
             <td>
                 <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
-                       placeholder="Author / Spec" autocomplete="off">
+                       placeholder="${defaultAuthorPlaceholder}" autocomplete="off">
             </td>
             <td>
                 <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
-                    <option value="Book (Hardcover)" selected>Book (Hardcover)</option>
-                    <option value="Book (Paperback)">Book (Paperback)</option>
-                    <option value="Book (Standard)">Book (Standard)</option>
-                    <option value="Stationery">Stationery</option>
-                    <option value="Product">Product</option>
-                    <option value="Paper / Raw Materials">Paper / Raw Materials</option>
-                    <option value="Printing & Binding">Printing & Binding</option>
-                    <option value="Service">Service</option>
-                    <option value="Other">Other</option>
+                    <optgroup label="Books & Publications">
+                        <option value="Book (Hardcover)" ${defaultItemType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
+                        <option value="Book (Paperback)" ${defaultItemType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
+                        <option value="Book (Standard)" ${defaultItemType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
+                    </optgroup>
+                    <optgroup label="Stationery & Supplies">
+                        <option value="Stationery" ${defaultItemType === 'Stationery' ? 'selected' : ''}>Stationery & Materials</option>
+                    </optgroup>
+                    <optgroup label="Printing & Press">
+                        <option value="Printing & Binding" ${defaultItemType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
+                        <option value="Paper / Raw Materials" ${defaultItemType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                    </optgroup>
+                    <optgroup label="Products & Services">
+                        <option value="Product" ${defaultItemType === 'Product' ? 'selected' : ''}>General Product</option>
+                        <option value="Service" ${defaultItemType === 'Service' ? 'selected' : ''}>Service & Support</option>
+                        <option value="Other" ${defaultItemType === 'Other' ? 'selected' : ''}>Other Items</option>
+                    </optgroup>
                 </select>
             </td>
             <td>
                 <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                       value="কপি" placeholder="একক" autocomplete="off">
+                       value="${defaultUnit}" placeholder="Unit" autocomplete="off">
             </td>
             <td>
                 <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
@@ -1395,32 +1447,78 @@
         handleLiveBookSearch(input, index);
     }
 
+    function isBookTypeVal(val) {
+        if (window.InvoiceManager && typeof window.InvoiceManager.isBookType === 'function') {
+            return window.InvoiceManager.isBookType(val);
+        }
+        if (!val) return false;
+        const lower = val.toLowerCase();
+        const nonBook = ['stationery', 'supply', 'printing', 'binding', 'paper', 'service', 'product', 'other', 'bill', 'raw'];
+        for (let k of nonBook) {
+            if (lower.includes(k)) return false;
+        }
+        return lower.includes('book') || lower.includes('hardcover') || lower.includes('paperback') || lower.includes('standard');
+    }
+
     function onTypeChange(selectEl, index) {
         const row = document.querySelector(`tr[data-row="${index}"]`);
         if (!row) return;
 
         const hiddenId = row.querySelector('.item-book-id');
         const bookId = hiddenId ? hiddenId.value : null;
+        const val = selectEl.value;
+        const isBook = isBookTypeVal(val);
+        const titleInput = row.querySelector('.item-title');
+        const authorInput = row.querySelector('.item-author');
+        const unitInput = row.querySelector('.item-unit');
+        const dropdown = row.querySelector('.book-search-dropdown');
+        const quickAddBtn = row.querySelector('.book-search-container button');
 
-        if (bookId && booksCatalog[bookId]) {
-            const book = booksCatalog[bookId];
-            const val = selectEl.value;
-            const regPriceInput = row.querySelector('.item-regular-price');
-            const discPctInput = row.querySelector('.item-discount-percent');
-            const priceInput = row.querySelector('.item-price');
-
-            let editionData = null;
-            if (val === 'Book (Hardcover)' || val.toLowerCase().includes('hardcover')) {
-                editionData = book.hardcover;
-            } else if (val === 'Book (Paperback)' || val.toLowerCase().includes('paperback') || val.toLowerCase().includes('book')) {
-                editionData = book.paperback;
+        if (!isBook) {
+            if (hiddenId) hiddenId.value = '';
+            if (dropdown) dropdown.classList.add('d-none');
+            if (quickAddBtn) quickAddBtn.classList.add('d-none');
+            if (titleInput) titleInput.placeholder = 'Item / Product description...';
+            if (authorInput) authorInput.placeholder = 'Specification / Model / Notes';
+            if (unitInput && (!unitInput.value || unitInput.value === 'Copy' || unitInput.value === 'কপি')) {
+                const lower = val.toLowerCase();
+                if (lower.includes('paper')) {
+                    unitInput.value = 'Ream';
+                } else if (lower.includes('printing')) {
+                    unitInput.value = 'Copy';
+                } else if (lower.includes('service')) {
+                    unitInput.value = 'Item';
+                } else {
+                    unitInput.value = 'Pcs';
+                }
+            }
+        } else {
+            if (quickAddBtn) quickAddBtn.classList.remove('d-none');
+            if (titleInput) titleInput.placeholder = 'Search book title, author, ISBN...';
+            if (authorInput) authorInput.placeholder = 'Author / Spec';
+            if (unitInput && (!unitInput.value || unitInput.value === 'Pcs' || unitInput.value === 'Ream' || unitInput.value === 'Item' || unitInput.value === 'পিস' || unitInput.value === 'রিম')) {
+                unitInput.value = 'Copy';
             }
 
-            if (editionData) {
-                if (regPriceInput) regPriceInput.value = editionData.regularPrice;
-                if (discPctInput) discPctInput.value = editionData.discountPercent;
-                if (priceInput) priceInput.value = editionData.sellingPrice;
-                calcRow(index, 'book_select');
+            if (bookId && booksCatalog[bookId]) {
+                const book = booksCatalog[bookId];
+                const regPriceInput = row.querySelector('.item-regular-price');
+                const discPctInput = row.querySelector('.item-discount-percent');
+                const priceInput = row.querySelector('.item-price');
+
+                let editionData = null;
+                if (val === 'Book (Hardcover)' || val.toLowerCase().includes('hardcover')) {
+                    editionData = book.hardcover;
+                } else if (val === 'Book (Paperback)' || val.toLowerCase().includes('paperback') || val.toLowerCase().includes('book')) {
+                    editionData = book.paperback;
+                }
+
+                if (editionData) {
+                    if (regPriceInput) regPriceInput.value = editionData.regularPrice;
+                    if (discPctInput) discPctInput.value = editionData.discountPercent;
+                    if (priceInput) priceInput.value = editionData.sellingPrice;
+                    calcRow(index, 'book_select');
+                }
             }
         }
     }
@@ -1899,7 +1997,7 @@
             const typeSelect = firstRow.querySelector('.item-type-select');
             if (typeSelect) typeSelect.value = defType;
             const unitInput = firstRow.querySelector('.item-unit');
-            if (unitInput) unitInput.value = unit || 'কপি';
+            if (unitInput) unitInput.value = unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs');
             const qtyInput = firstRow.querySelector('.item-qty');
             if (qtyInput) qtyInput.value = qtyVal;
             const regInput = firstRow.querySelector('.item-regular-price');
@@ -1919,12 +2017,12 @@
                 <td class="position-relative book-search-container" style="min-width: 340px;">
                     <div class="input-group input-group-sm">
                         <textarea name="items[${i}][title]" class="form-control item-title fw-bold" rows="2" 
-                                  placeholder="Search book title, author, ISBN..." required 
+                                  placeholder="${isBookTypeVal(defType) ? 'Search book title, author, ISBN...' : 'Item / Product description...'}" required 
                                   oninput="handleLiveBookSearch(this, ${i})" 
                                   onfocus="handleLiveBookSearch(this, ${i})" 
                                   onkeydown="handleBookSearchKeydown(event, ${i})" 
                                   autocomplete="off" style="font-size: 13.5px; min-height: 52px; line-height: 1.4; resize: vertical;">${escapeHtml(title)}</textarea>
-                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
+                        <button type="button" class="btn btn-outline-primary px-2.5 d-flex align-items-center justify-content-center ${isBookTypeVal(defType) ? '' : 'd-none'}" onclick="openQuickAddBookModal(${i})" title="Add new book to Bookshop" style="min-height: 52px;">
                             <i class="fa-solid fa-plus"></i>
                         </button>
                     </div>
@@ -1933,24 +2031,32 @@
                 </td>
                 <td>
                     <input type="text" name="items[${i}][author_name]" class="form-control item-author" 
-                           value="${authorSpec || ''}" placeholder="Author / Spec" autocomplete="off">
+                           value="${authorSpec || ''}" placeholder="${isBookTypeVal(defType) ? 'Author / Spec' : 'Model / Specification / Notes'}" autocomplete="off">
                 </td>
                 <td>
                     <select name="items[${i}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, ${i})">
-                        <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
-                        <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
-                        <option value="Book (Standard)" ${defType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
-                        <option value="Stationery" ${defType === 'Stationery' ? 'selected' : ''}>Stationery</option>
-                        <option value="Product" ${defType === 'Product' ? 'selected' : ''}>Product</option>
-                        <option value="Paper / Raw Materials" ${defType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
-                        <option value="Printing & Binding" ${defType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
-                        <option value="Service" ${defType === 'Service' ? 'selected' : ''}>Service</option>
-                        <option value="Other" ${defType === 'Other' ? 'selected' : ''}>Other</option>
+                        <optgroup label="Books & Publications">
+                            <option value="Book (Hardcover)" ${defType === 'Book (Hardcover)' ? 'selected' : ''}>Book (Hardcover)</option>
+                            <option value="Book (Paperback)" ${defType === 'Book (Paperback)' ? 'selected' : ''}>Book (Paperback)</option>
+                            <option value="Book (Standard)" ${defType === 'Book (Standard)' ? 'selected' : ''}>Book (Standard)</option>
+                        </optgroup>
+                        <optgroup label="Stationery & Supplies">
+                            <option value="Stationery" ${defType === 'Stationery' ? 'selected' : ''}>Stationery & Materials</option>
+                        </optgroup>
+                        <optgroup label="Printing & Press">
+                            <option value="Printing & Binding" ${defType === 'Printing & Binding' ? 'selected' : ''}>Printing & Binding</option>
+                            <option value="Paper / Raw Materials" ${defType === 'Paper / Raw Materials' ? 'selected' : ''}>Paper / Raw Materials</option>
+                        </optgroup>
+                        <optgroup label="Products & Services">
+                            <option value="Product" ${defType === 'Product' ? 'selected' : ''}>General Product</option>
+                            <option value="Service" ${defType === 'Service' ? 'selected' : ''}>Service & Support</option>
+                            <option value="Other" ${defType === 'Other' ? 'selected' : ''}>Other Items</option>
+                        </optgroup>
                     </select>
                 </td>
                 <td>
                     <input type="text" name="items[${i}][unit]" class="form-control item-unit text-center font-monospace" 
-                           value="${unit || 'কপি'}" placeholder="একক" autocomplete="off">
+                           value="${unit || (isBookTypeVal(defType) ? 'Copy' : 'Pcs')}" placeholder="Unit" autocomplete="off">
                 </td>
                 <td>
                     <input type="number" step="0.01" name="items[${i}][quantity]" class="form-control item-qty text-center font-monospace fw-bold" 
