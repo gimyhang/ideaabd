@@ -117,6 +117,14 @@ class PasswordResetController extends Controller
         Cache::put($cacheKeyToken, $payload, $expireAt);
         Cache::put('pwd_reset_otp_user_' . $user->id, $payload, $expireAt);
 
+        // Also store OTP in session for immediate browser verification
+        session([
+            'pwd_reset_active_otp'      => $otpCode,
+            'pwd_reset_active_user_id'  => $user->id,
+            'pwd_reset_active_identity' => $input,
+            'pwd_reset_expires_at'      => $expireAt->timestamp,
+        ]);
+
         // Also store OTP in cache keyed by clean phone & email
         if (!empty($user->phone)) {
             $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
@@ -131,15 +139,14 @@ class PasswordResetController extends Controller
 
         // Store hashed OTP code in password_reset_tokens table with 2-minute expiry
         try {
-            if (!empty($user->email)) {
-                DB::table('password_reset_tokens')->updateOrInsert(
-                    ['email' => $user->email],
-                    [
-                        'token'      => Hash::make($otpCode),
-                        'created_at' => now(),
-                    ]
-                );
-            }
+            $identKey = !empty($user->email) ? strtolower(trim($user->email)) : ('phone_' . $user->phone);
+            DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $identKey],
+                [
+                    'token'      => Hash::make($otpCode),
+                    'created_at' => now(),
+                ]
+            );
         } catch (\Throwable $e) {
             Log::warning("password_reset_tokens update note: " . $e->getMessage());
         }
@@ -293,16 +300,19 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Strict OTP Validator: Verifies 6-digit OTP against Cache and DB within 2-minute validity.
+     * Strict OTP Validator: Verifies 6-digit OTP against Session, Cache and DB within 2-minute validity.
      * Returns User instance if strictly valid, null otherwise.
      */
     protected function validateAndGetUserFromOtp(string $phoneOrEmail, string $otpInput): ?User
     {
-        $input = trim($phoneOrEmail);
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        $input = trim(str_replace($bn, $en, $phoneOrEmail));
         $cleanPhone = preg_replace('/[^0-9]/', '', $input);
         $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
-        $otp = trim($otpInput);
+        $otp = trim(str_replace($bn, $en, $otpInput));
 
+        // Strict 6-digit numeric check
         if (strlen($otp) !== 6 || !ctype_digit($otp)) {
             return null;
         }
@@ -314,7 +324,10 @@ class PasswordResetController extends Controller
             ->orWhere(function ($query) use ($cleanPhone, $last10) {
                 if (!empty($cleanPhone) && strlen($cleanPhone) >= 8) {
                     $query->where('phone', $cleanPhone)
-                          ->orWhere('phone', 'LIKE', '%' . $last10);
+                          ->orWhere('phone', 'LIKE', '%' . $last10)
+                          ->orWhere('phone', '0' . $last10)
+                          ->orWhere('phone', '+880' . $last10)
+                          ->orWhere('phone', '880' . $last10);
                 }
             })
             ->first();
@@ -332,7 +345,20 @@ class PasswordResetController extends Controller
             return null;
         }
 
-        // 2. Check Cache keys
+        // 2. Check Session (if verifying in same active session)
+        $sessOtp = (string) session('pwd_reset_active_otp');
+        $sessUser = session('pwd_reset_active_user_id');
+        $sessExp = (int) session('pwd_reset_expires_at');
+        if (!empty($sessOtp) && $sessUser == $user->id) {
+            if ($sessExp > 0 && now()->timestamp > $sessExp) {
+                return null; // Expired
+            }
+            if ($sessOtp === $otp) {
+                return $user;
+            }
+        }
+
+        // 3. Check Cache keys
         $cleanUserPhone = preg_replace('/[^0-9]/', '', (string)$user->phone);
         $last10User = (strlen($cleanUserPhone) >= 10) ? substr($cleanUserPhone, -10) : $cleanUserPhone;
         $cachedKeys = array_unique(array_filter([
@@ -348,18 +374,25 @@ class PasswordResetController extends Controller
         foreach ($cachedKeys as $cacheKey) {
             $cached = Cache::get($cacheKey);
             if ($cached && is_array($cached) && isset($cached['otp'])) {
+                if (isset($cached['expires_at']) && now()->timestamp > $cached['expires_at']) {
+                    return null; // Expired
+                }
                 if ((string)$cached['otp'] === $otp) {
-                    if (isset($cached['expires_at']) && now()->timestamp > $cached['expires_at']) {
-                        return null; // Expired
-                    }
                     return $user;
                 }
             }
         }
 
-        // 3. Check DB password_reset_tokens table with strict 2-minute expiry
-        if (!empty($user->email)) {
-            $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
+        // 4. Check DB password_reset_tokens table with strict 2-minute expiry
+        $identKeys = array_filter([
+            $user->email ? strtolower(trim($user->email)) : null,
+            $user->phone ? ('phone_' . $user->phone) : null,
+            $cleanUserPhone ? ('phone_' . $cleanUserPhone) : null,
+            $cleanPhone ? ('phone_' . $cleanPhone) : null,
+        ]);
+
+        foreach ($identKeys as $ident) {
+            $tokenRow = DB::table('password_reset_tokens')->where('email', $ident)->first();
             if ($tokenRow && !empty($tokenRow->token)) {
                 if (Hash::check($otp, $tokenRow->token)) {
                     $createdAt = Carbon::parse($tokenRow->created_at);

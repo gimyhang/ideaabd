@@ -511,22 +511,37 @@
         alertBox.classList.add('d-none');
     }
 
+    function normalizeDigits(str) {
+        const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        const en = ['0','1','2','3','4','5','6','7','8','9'];
+        let res = str || '';
+        for (let i = 0; i < 10; i++) {
+            res = res.replaceAll(bn[i], en[i]);
+        }
+        return res;
+    }
+
     function handleVerifyOtp(e) {
         e.preventDefault();
         hideAlert();
 
-        const phone = document.getElementById('phone').value.trim();
-        const otp = document.getElementById('otp').value.trim();
+        const phoneInput = document.getElementById('phone');
+        const otpInput = document.getElementById('otp');
+        const phone = normalizeDigits(phoneInput.value.trim());
+        const otp = normalizeDigits(otpInput.value.trim());
         const btn = document.getElementById('btnVerifyOtp');
         const btnText = document.getElementById('btnVerifyText');
+
+        phoneInput.value = phone;
+        otpInput.value = otp;
 
         if (!phone) {
             showAlert('danger', 'Please enter your email or mobile phone number.');
             return;
         }
 
-        if (!otp || otp.length !== 6) {
-            showAlert('danger', 'Please enter the valid 6-digit verification code.');
+        if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
+            showAlert('danger', 'Please enter the exact 6-digit verification code received on your phone/email.');
             return;
         }
 
@@ -543,12 +558,16 @@
             },
             body: JSON.stringify({ phone: phone, otp: otp })
         })
-        .then(response => response.json().then(data => ({ status: response.status, body: data })))
-        .then(({ status, body }) => {
+        .then(async response => {
+            const isJson = response.headers.get('content-type')?.includes('application/json');
+            const data = isJson ? await response.json() : null;
+            return { ok: response.ok, status: response.status, data: data };
+        })
+        .then(({ ok, status, data }) => {
             btn.disabled = false;
             btnText.innerHTML = 'Continue';
 
-            if (status >= 200 && status < 300 && body.success) {
+            if (ok && data && data.success === true) {
                 // Success: Transition to Step 2
                 document.getElementById('finalPhone').value = phone;
                 document.getElementById('finalOtp').value = otp;
@@ -562,8 +581,8 @@
                 document.getElementById('step1Panel').classList.add('d-none');
                 document.getElementById('step2Panel').classList.remove('d-none');
 
-                if (body.user_name) {
-                    document.getElementById('step2Subtext').innerText = 'Verified for ' + body.user_name + ' (' + phone + '). Please create your new password.';
+                if (data.user_name) {
+                    document.getElementById('step2Subtext').innerText = 'Verified for ' + data.user_name + ' (' + phone + '). Please create your new password.';
                 } else {
                     document.getElementById('step2Subtext').innerText = 'Verified for ' + phone + '. Please create your new password.';
                 }
@@ -571,13 +590,14 @@
                 showAlert('success', 'Verification code confirmed. Please set your new password.');
                 document.getElementById('new_password').focus();
             } else {
-                showAlert('danger', body.message || 'Invalid verification code. Please check your SMS and try again.');
+                const errMsg = (data && data.message) ? data.message : 'Invalid verification code. Please enter the exact 6-digit OTP code sent to your phone.';
+                showAlert('danger', errMsg);
             }
         })
         .catch(err => {
             btn.disabled = false;
             btnText.innerHTML = 'Continue';
-            showAlert('danger', 'Network error. Please try again.');
+            showAlert('danger', 'Verification failed. Please check your connection and try again.');
         });
     }
 
