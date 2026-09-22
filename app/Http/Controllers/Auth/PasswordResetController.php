@@ -180,14 +180,12 @@ class PasswordResetController extends Controller
         $maskedPhone = !empty($user->phone) ? substr($user->phone, 0, 3) . '****' . substr($user->phone, -4) : '';
         $maskedEmail = !empty($user->email) ? $this->maskEmail($user->email) : '';
 
-        // 1. DISPATCH VIA MOBILE SMS
+        // 1. ALWAYS DISPATCH VIA MOBILE SMS (BulkSMSBD)
         if (!empty($user->phone)) {
             try {
                 $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
                 $sentViaSms = !empty($smsResult['success']);
-                if (!$sentViaSms) {
-                    Log::warning("Password reset SMS dispatch did not complete: " . json_encode($smsResult));
-                }
+                Log::info("Password reset SMS dispatch to {$user->phone}: " . json_encode($smsResult));
             } catch (\Throwable $smsEx) {
                 Log::warning("Password reset SMS error: " . $smsEx->getMessage());
             }
@@ -219,21 +217,11 @@ class PasswordResetController extends Controller
             }
         }
 
-        // If specific method was requested but not possible
-        if ($deliveryMethod === 'sms' && empty($user->phone)) {
-            return back()->withInput()->withErrors([
-                'identity' => 'No mobile phone number is linked to this account. Please select Email.',
-            ]);
-        }
-        if ($deliveryMethod === 'email' && empty($user->email)) {
-            return back()->withInput()->withErrors([
-                'identity' => 'No email address is linked to this account. Please select SMS.',
-            ]);
-        }
-
-        // Prepare accurate status message in clean English without exposing the OTP code
+        // Status banner in clean English
         if ($sentViaSms && $sentViaEmail) {
             $msg = "A 6-digit verification code has been sent to your mobile ({$maskedPhone}) and email ({$maskedEmail}). Please check your SMS and enter the code below.";
+        } elseif ($sentViaSms) {
+            $msg = "A 6-digit verification code has been sent to your mobile ({$maskedPhone}). Please check your SMS and enter the code below.";
         } elseif ($sentViaEmail) {
             $msg = "A 6-digit verification code has been sent to your email ({$maskedEmail}). Please check your inbox and enter the code below.";
         } else {

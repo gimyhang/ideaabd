@@ -317,22 +317,6 @@
         <form method="POST" action="{{ route('password.email') }}">
             @csrf
 
-            <!-- Delivery Channel Toggle -->
-            <div class="method-toggle">
-                <div>
-                    <input type="radio" class="btn-check" name="delivery_method" id="deliveryEmail" value="email" checked>
-                    <label class="method-btn" for="deliveryEmail">
-                        <i class="fa-solid fa-envelope"></i> Email
-                    </label>
-                </div>
-                <div>
-                    <input type="radio" class="btn-check" name="delivery_method" id="deliverySms" value="sms">
-                    <label class="method-btn" for="deliverySms">
-                        <i class="fa-solid fa-mobile-screen"></i> SMS
-                    </label>
-                </div>
-            </div>
-
             <div class="form-group-item">
                 <label for="identity" class="form-label-custom">Email or mobile phone number</label>
                 <input type="text" 
