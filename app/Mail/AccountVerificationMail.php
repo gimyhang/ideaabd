@@ -21,11 +21,13 @@ class AccountVerificationMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $fromEmail = config('mail.from.address') ?: 'ideapbd@gmail.com';
+        $fromEmail = config('mail.from.address') ?: 'noreply@ideaabd.com';
         $fromName = config('mail.from.name') ?: 'Idea Prokashon';
+        $replyTo = config('mail.reply_to.address') ?: 'ideapbd@gmail.com';
 
         return new Envelope(
             from: new Address($fromEmail, $fromName),
+            replyTo: [new Address($replyTo, $fromName)],
             subject: 'আইডিয়া প্রকাশন — আপনার অ্যাকাউন্ট ভেরিফিকেশন কোড: ' . $this->otpCode,
         );
     }
