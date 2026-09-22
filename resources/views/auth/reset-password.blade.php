@@ -1,210 +1,368 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="en" class="notranslate" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Reset Password — ideaabd</title>
 
-@section('title', 'Reset Password')
+    {{-- Favicon --}}
+    @php $siteFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp
+    @if ($siteFaviconUrl)
+        <link rel="icon" href="{{ $siteFaviconUrl }}">
+    @else
+        <link rel="icon" href="{{ asset('favicon.ico') }}">
+    @endif
 
-@section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5 col-md-7 col-sm-10">
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header border-0 py-4 text-center" style="background: linear-gradient(135deg, #003366 0%, #0066cc 100%);">
-                    <div class="rounded-circle bg-white bg-opacity-20 d-inline-flex align-items-center justify-content-center mb-2 shadow-xs" style="width: 55px; height: 55px;">
-                        <i class="fa-solid fa-lock-open text-white fs-4"></i>
-                    </div>
-                    <h4 class="fw-bold text-white mb-1">নতুন পাসওয়ার্ড সেট করুন</h4>
-                    <p class="text-white text-opacity-75 small mb-0">নিচের ফর্মে আপনার পছন্দমতো নতুন পাসওয়ার্ড দিন</p>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 Pro / Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ══════════════════════════════════════════════════════════════════
+           CLEAN SKY-BLUE AUTHENTICATION ARCHITECTURE
+           ══════════════════════════════════════════════════════════════════ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        html, body {
+            min-height: 100%;
+            background-color: #ffffff;
+            color: #0f1111;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto;
+            padding: 24px 16px 40px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 1. Header Logo */
+        .auth-header {
+            margin-top: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .brand-link {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #0f1111;
+        }
+
+        .brand-logo-img {
+            max-height: 48px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand-title-text {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+            text-transform: uppercase;
+            line-height: 1.2;
+            display: block;
+            text-align: center;
+        }
+
+        /* 2. Main Box Card */
+        .auth-box {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #d5d9d9;
+            border-radius: 8px;
+            padding: 24px 26px 26px 26px;
+            box-shadow: 0 1px 2px rgba(15, 17, 17, 0.05);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .auth-heading {
+            font-size: 26px;
+            font-weight: 500;
+            line-height: 1.2;
+            color: #0f1111;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .auth-subtext {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+
+        /* Form Controls */
+        .form-group-item {
+            margin-bottom: 14px;
+        }
+
+        .form-label-custom {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f1111;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .input-text-custom {
+            width: 100%;
+            height: 34px;
+            background-color: #ffffff;
+            border: 1px solid #888c8c;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(15, 17, 17, 0.15) inset;
+            font-size: 13.5px;
+            padding: 3px 8px;
+            color: #0f1111;
+            outline: 0;
+            transition: all 0.15s ease;
+        }
+
+        .input-text-custom:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 3px 2px rgba(14, 165, 233, 0.45), 0 1px 2px rgba(15, 17, 17, 0.15) inset;
+        }
+
+        .pwd-field-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .pwd-field-wrap .input-text-custom {
+            padding-right: 36px;
+        }
+
+        .pwd-eye-btn {
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            bottom: 1px;
+            width: 32px;
+            background: transparent;
+            border: none;
+            color: #565959;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .pwd-eye-btn:hover {
+            color: #0f1111;
+        }
+
+        .custom-link {
+            color: #007185;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.15s;
+        }
+
+        .custom-link:hover {
+            color: #c7511f;
+            text-decoration: underline;
+        }
+
+        /* 3. Primary Button (Sky-Blue Action) */
+        .btn-action-primary {
+            width: 100%;
+            height: 34px;
+            background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
+            border: 1px solid #0369a1;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px 0 rgba(2, 132, 199, 0.3);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            margin-top: 14px;
+        }
+
+        .btn-action-primary:hover {
+            background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            border-color: #075985;
+        }
+
+        /* 4. Footer */
+        .auth-footer {
+            width: 100%;
+            border-top: 1px solid #eaeded;
+            margin-top: 20px;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link-item {
+            font-size: 11.5px;
+            color: #007185;
+            text-decoration: none;
+        }
+
+        .footer-link-item:hover {
+            color: #c7511f;
+            text-decoration: underline;
+        }
+
+        .footer-copy {
+            font-size: 11px;
+            color: #555555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    
+    {{-- Header Logo --}}
+    <div class="auth-header">
+        <a href="{{ url('/') }}" class="brand-link" title="Idea Publication">
+            @php $siteLogoUrl = \App\Support\SiteSetting::loginLogoUrl() ?: \App\Support\SiteSetting::logoUrl(); @endphp
+            @if ($siteLogoUrl)
+                <img src="{{ $siteLogoUrl }}" alt="Idea Logo" class="brand-logo-img">
+            @else
+                <span class="brand-title-text">{{ config('app.name', 'Idea Prokashon') }}</span>
+            @endif
+        </a>
+    </div>
+
+    {{-- Main Box --}}
+    <div class="auth-box">
+        <h1 class="auth-heading">Create new password</h1>
+        <p class="auth-subtext">We'll ask for this password whenever you sign in.</p>
+
+        @if(isset($errors) && $errors->any())
+            <div class="alert alert-danger py-2 px-3 small rounded-2 mb-3 border-0 bg-danger bg-opacity-10 text-danger">
+                <ul class="mb-0 ps-3">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('password.update') }}">
+            @csrf
+
+            <input type="hidden" name="token" value="{{ $token }}">
+            <input type="hidden" name="email" value="{{ old('email', $email ?? '') }}">
+
+            <div class="form-group-item">
+                <label for="new_password" class="form-label-custom">New password</label>
+                <div class="pwd-field-wrap">
+                    <input type="password" 
+                           id="new_password" 
+                           name="password" 
+                           class="input-text-custom @error('password') is-invalid @enderror" 
+                           required 
+                           minlength="6" 
+                           placeholder="At least 6 characters">
+                    <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('new_password', this)">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
                 </div>
-                
-                <div class="card-body p-4 p-md-4.5">
-                    <!-- Live Countdown Timer Alert -->
-                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10 rounded-3 p-2.5 mb-3 text-center d-flex align-items-center justify-content-center gap-2">
-                        <i class="fa-solid fa-stopwatch text-warning fs-5"></i>
-                        <span class="small fw-semibold text-dark">
-                            লিংকের মেয়াদ অবশিষ্ট আছে: <span id="timerBadge" class="badge bg-warning text-dark px-2.5 py-1.5 fs-6 fw-bold">03:00</span>
-                        </span>
-                    </div>
+                @error('password')
+                    <div class="text-danger small mt-1" style="font-size: 11.5px;">{{ $message }}</div>
+                @enderror
+            </div>
 
-                    @if(isset($errors) && $errors->any())
-                        <div class="alert alert-danger rounded-3 small mb-3 p-3 border-0 bg-danger bg-opacity-10 text-danger">
-                            <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> অনুগ্রহ করে নিচের ত্রুটিগুলো সংশোধন করুন:</div>
-                            <ul class="mb-0 ps-3">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('password.update') }}" id="resetPasswordForm">
-                        @csrf
-                        <input type="hidden" name="token" value="{{ $token }}">
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label fw-semibold text-dark">ইমেইল অ্যাড্রেস</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-muted"></i></span>
-                                <input type="email" 
-                                       id="email" 
-                                       name="email" 
-                                       class="form-control bg-light @error('email') is-invalid @enderror" 
-                                       value="{{ old('email', $email) }}" 
-                                       readonly 
-                                       required>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="password" class="form-label fw-semibold text-dark">
-                                নতুন পাসওয়ার্ড <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-primary"></i></span>
-                                <input type="password" 
-                                       id="password" 
-                                       name="password" 
-                                       class="form-control @error('password') is-invalid @enderror" 
-                                       placeholder="নতুন পাসওয়ার্ড (ন্যূনতম ৬ অক্ষর)" 
-                                       required 
-                                       autofocus 
-                                       autocomplete="new-password"
-                                       oninput="checkPasswordStrength(this.value, 'resetPwdStrengthBar', 'resetPwdStrengthText')">
-                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('password', this)" title="পাসওয়ার্ড দেখুন">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between my-1" style="font-size: 11.5px;">
-                                <span class="text-muted">পাসওয়ার্ডের শক্তি: <strong id="resetPwdStrengthText" class="text-secondary">টাইপ করুন...</strong></span>
-                            </div>
-                            <div class="progress mb-2" style="height: 4px;">
-                                <div id="resetPwdStrengthBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%; transition: width 0.3s ease;"></div>
-                            </div>
-                            @error('password')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="password_confirmation" class="form-label fw-semibold text-dark">
-                                নতুন পাসওয়ার্ড নিশ্চিত করুন <span class="text-danger">*</span>
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-shield-check text-success"></i></span>
-                                <input type="password" 
-                                       id="password_confirmation" 
-                                       name="password_confirmation" 
-                                       class="form-control" 
-                                       placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন" 
-                                       required 
-                                       autocomplete="new-password">
-                                <button type="button" class="btn btn-outline-secondary" onclick="togglePasswordVisibility('password_confirmation', this)" title="পাসওয়ার্ড দেখুন">
-                                    <i class="fa-regular fa-eye"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" id="submitBtn" class="btn btn-success w-100 py-2.5 rounded-pill fw-bold shadow-sm mb-3">
-                            <i class="fa-solid fa-check-double me-1.5"></i> পাসওয়ার্ড সংরক্ষণ করুন
-                        </button>
-
-                        <div class="text-center">
-                            <a href="{{ route('password.request') }}" class="text-decoration-none small text-muted hover-primary">
-                                <i class="fa-solid fa-arrow-rotate-left me-1"></i> নতুন লিংক রিকোয়েস্ট করুন
-                            </a>
-                        </div>
-                    </form>
+            <div class="form-group-item">
+                <label for="password_confirmation" class="form-label-custom">Confirm new password</label>
+                <div class="pwd-field-wrap">
+                    <input type="password" 
+                           id="password_confirmation" 
+                           name="password_confirmation" 
+                           class="input-text-custom" 
+                           required 
+                           minlength="6" 
+                           placeholder="Re-enter new password">
+                    <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('password_confirmation', this)">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
                 </div>
             </div>
-        </div>
+
+            <button type="submit" class="btn-action-primary">
+                Save changes and sign in
+            </button>
+        </form>
     </div>
+
+    {{-- Back to sign-in --}}
+    <div class="text-center mb-3">
+        <a href="{{ route('login') }}" class="custom-link">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Sign In
+        </a>
+    </div>
+
+    {{-- Footer --}}
+    <footer class="auth-footer">
+        <div class="footer-links">
+            <a href="{{ url('/pages/terms') }}" class="footer-link-item">Conditions of Use</a>
+            <a href="{{ url('/pages/privacy') }}" class="footer-link-item">Privacy Notice</a>
+            <a href="{{ url('/pages/help') }}" class="footer-link-item">Help</a>
+        </div>
+        <p class="footer-copy">© {{ date('Y') }}, Idea Publication or its affiliates. All rights reserved.</p>
+    </footer>
+
 </div>
 
 <script>
-    // Password visibility toggle
     function togglePasswordVisibility(inputId, btn) {
         const input = document.getElementById(inputId);
         const icon = btn.querySelector('i');
+        if (!input) return;
+
         if (input.type === 'password') {
             input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+            icon.className = 'fa-regular fa-eye-slash';
         } else {
             input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.className = 'fa-regular fa-eye';
         }
     }
-
-    function checkPasswordStrength(password, barId, textId) {
-        const bar = document.getElementById(barId);
-        const text = document.getElementById(textId);
-        if (!bar || !text) return;
-
-        if (!password) {
-            bar.style.width = '0%';
-            bar.className = 'progress-bar bg-danger';
-            text.textContent = 'টাইপ করুন...';
-            text.className = 'text-secondary';
-            return;
-        }
-
-        let score = 0;
-        if (password.length >= 6) score += 25;
-        if (password.length >= 8) score += 25;
-        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 25;
-        if (/[0-9]/.test(password)) score += 15;
-        if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 10;
-
-        if (score < 40) {
-            bar.style.width = '30%';
-            bar.className = 'progress-bar bg-danger';
-            text.textContent = 'দুর্বল (Weak)';
-            text.className = 'text-danger fw-bold';
-        } else if (score < 75) {
-            bar.style.width = '65%';
-            bar.className = 'progress-bar bg-warning';
-            text.textContent = 'মাঝারি (Medium)';
-            text.className = 'text-warning fw-bold';
-        } else {
-            bar.style.width = '100%';
-            bar.className = 'progress-bar bg-success';
-            text.textContent = 'খুব শক্তিশালী (Strong)';
-            text.className = 'text-success fw-bold';
-        }
-    }
-
-    // 3-Minute Live Countdown Timer
-    let secondsLeft = {{ (int) ($remainingSeconds ?? 180) }};
-    const timerBadge = document.getElementById('timerBadge');
-    const submitBtn = document.getElementById('submitBtn');
-
-    function updateTimer() {
-        if (secondsLeft <= 0) {
-            timerBadge.textContent = '00:00 (মেয়াদ শেষ)';
-            timerBadge.classList.remove('bg-warning', 'text-dark');
-            timerBadge.classList.add('bg-danger', 'text-white');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-clock-rotate-left me-1"></i> লিংকের মেয়াদ শেষ হয়েছে';
-            
-            setTimeout(() => {
-                alert('পাসওয়ার্ড রিসেট লিংকের ৩ মিনিট মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে নতুন লিংকের জন্য রিকোয়েস্ট করুন।');
-                window.location.href = "{{ route('password.request') }}";
-            }, 500);
-            return;
-        }
-
-        const mins = Math.floor(secondsLeft / 60);
-        const secs = secondsLeft % 60;
-        timerBadge.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        
-        if (secondsLeft <= 30) {
-            timerBadge.classList.remove('bg-warning', 'text-dark');
-            timerBadge.classList.add('bg-danger', 'text-white');
-        }
-
-        secondsLeft--;
-    }
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
 </script>
-@endsection
+
+</body>
+</html>

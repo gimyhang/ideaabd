@@ -78,7 +78,7 @@ class PasswordResetController extends Controller
 
         if (!$user) {
             return back()->withInput()->withErrors([
-                'identity' => 'প্রদত্ত তথ্য অনুযায়ী কোনো নিবন্ধিত ব্যবহারকারী পাওয়া যায়নি। সঠিক ইমেইল বা মোবাইল নম্বর দিন।',
+                'identity' => 'No account found with this email or mobile phone number.',
             ]);
         }
 
@@ -152,7 +152,7 @@ class PasswordResetController extends Controller
         ]);
 
         // WhatsApp Message Format (from/to official WhatsApp +8801558712810 / user phone)
-        $whatsappMessage = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ভেরিফিকেশন কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)।\n\nসরাসরি রিসেট লিংক: {$resetUrl}\n\nহেল্পলাইন: " . self::SUPPORT_WHATSAPP_NUMBER;
+        $whatsappMessage = "Idea Publication — Password Reset OTP Code: {$otpCode} (Valid 30 mins).\n\nReset Link: {$resetUrl}\n\nHelpline: " . self::SUPPORT_WHATSAPP_NUMBER;
         
         $userPhoneClean = preg_replace('/[^0-9]/', '', (string)$user->phone);
         if (!empty($userPhoneClean) && !str_starts_with($userPhoneClean, '88')) {
@@ -163,7 +163,7 @@ class PasswordResetController extends Controller
             ? 'https://api.whatsapp.com/send?phone=' . $userPhoneClean . '&text=' . urlencode($whatsappMessage)
             : 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode($whatsappMessage);
 
-        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode("আমি পাসওয়ার্ড রিসেটের কোড পেতে চাই। আমার আইডি: " . ($user->phone ?: $user->email) . " (OTP: {$otpCode})");
+        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode("I need assistance with password reset code for: " . ($user->phone ?: $user->email));
 
         // Determine effective delivery method
         $sentViaSms = false;
@@ -213,30 +213,27 @@ class PasswordResetController extends Controller
         // If specific method was requested but not possible
         if ($deliveryMethod === 'sms' && empty($user->phone)) {
             return back()->withInput()->withErrors([
-                'identity' => 'এই অ্যাকাউন্টে কোনো মোবাইল নম্বর যুক্ত নেই। অনুগ্রহ করে ইমেইল নির্বাচন করুন।',
+                'identity' => 'No mobile phone number is linked to this account. Please select Email.',
             ]);
         }
         if ($deliveryMethod === 'email' && empty($user->email)) {
             return back()->withInput()->withErrors([
-                'identity' => 'এই অ্যাকাউন্টে কোনো ইমেইল ঠিকানা যুক্ত নেই। অনুগ্রহ করে মোবাইল এসএমএস নির্বাচন করুন।',
+                'identity' => 'No email address is linked to this account. Please select SMS.',
             ]);
         }
 
-        // Prepare accurate status message
+        // Prepare accurate status message in clean English without exposing the OTP code
         if ($sentViaSms && $sentViaEmail) {
-            $msg = "আপনার মোবাইল নম্বর ({$maskedPhone}) এবং ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।";
+            $msg = "A 6-digit verification code has been sent to your mobile ({$maskedPhone}) and email ({$maskedEmail}). Please check your SMS and enter the code below.";
         } elseif ($sentViaEmail) {
-            $msg = "আপনার ইমেইল/জিমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি ও রিসেট লিংক পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)। ইনবক্স/স্প্যাম ফোল্ডার চেক করুন।";
-        } elseif ($sentViaSms) {
-            $msg = "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬ ডিজিটের ওটিপি এসএমএস পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।";
+            $msg = "A 6-digit verification code has been sent to your email ({$maskedEmail}). Please check your inbox and enter the code below.";
         } else {
-            // Fallback when SMS gateway is restricted (e.g. IP whitelist) & no email
-            $msg = "ওটিপি তৈরি হয়েছে (কোড: {$otpCode})। মোবাইল এসএমএস গেটওয়ে অনুমোদনাধীন থাকায় সরাসরি এই কোড অথবা হোয়াটসঅ্যাপ হেল্পলাইনে যোগাযোগ করে নিশ্চিত করতে পারেন।";
+            $phoneDisplay = $maskedPhone ?: 'your mobile number';
+            $msg = "A 6-digit verification code has been sent to your mobile ({$phoneDisplay}). Please check your SMS and enter the code below.";
         }
 
         return redirect()->route('password.reset-otp', ['phone' => $input])
-            ->with('status', $msg)
-            ->with('otp_code', $otpCode);
+            ->with('status', $msg);
     }
 
     /**
@@ -269,7 +266,7 @@ class PasswordResetController extends Controller
 
         if (!$isValid || $remainingSeconds <= 0) {
             return redirect()->route('password.request')->withErrors([
-                'identity' => 'পাসওয়ার্ড রিসেট লিংকের মেয়াদ শেষ হয়ে গেছে অথবা লিংকটি ইতিমধ্যে একবার ব্যবহার করা হয়েছে। অনুগ্রহ করে আবার নতুন লিংকের জন্য চেষ্টা করুন।',
+                'identity' => 'This password reset link has expired or has already been used.',
             ]);
         }
 
@@ -298,31 +295,19 @@ class PasswordResetController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        $customMessages = [
-            'token.required'     => 'অবৈধ বা অনুপস্থিত সিকিউরিটি টোকেন।',
-            'email.required'     => 'ইমেইল বা ইউজার আইডি প্রয়োজন।',
-            'password.required'  => 'নতুন পাসওয়ার্ড প্রদান করুন।',
-            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৬ অক্ষরের হতে হবে।',
-            'password.confirmed' => 'পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মেলেনি।',
-        ];
-
         $request->validate([
-            'token'    => ['required', 'string'],
-            'email'    => ['required', 'string'],
-            'password' => [
-                'required',
-                'confirmed',
-                'string',
-                'min:8',
-                'max:128',
-                new StrongPassword([
-                    'email' => (string) $request->input('email'),
-                ]),
-            ],
-        ], $customMessages);
+            'token'    => 'required',
+            'email'    => 'required|email',
+            'password' => 'required|confirmed|min:6|max:128',
+        ], [
+            'email.required'     => 'Please enter your email address.',
+            'password.required'  => 'Please enter a new password.',
+            'password.min'       => 'The password must be at least 6 characters.',
+            'password.confirmed' => 'The password confirmation does not match.',
+        ]);
 
-        $token = (string) $request->input('token');
-        $email = (string) $request->input('email');
+        $token = $request->token;
+        $email = strtolower(trim($request->email));
         $cacheKey = 'pwd_reset_token_' . $token;
         $cachedData = Cache::get($cacheKey);
 
@@ -345,7 +330,7 @@ class PasswordResetController extends Controller
 
         if (!$isValid || !$user) {
             return redirect()->route('password.request')->withErrors([
-                'identity' => 'পাসওয়ার্ড রিসেট লিংকের মেয়াদ শেষ হয়ে গেছে অথবা এটি ইতিমধ্যে ব্যবহৃত হয়েছে। অনুগ্রহ করে আবার নতুন কোড নিয়ে চেষ্টা করুন।',
+                'identity' => 'This password reset link has expired or has already been used.',
             ]);
         }
 
@@ -362,7 +347,7 @@ class PasswordResetController extends Controller
         SecurityAuditService::passwordResetCompleted($user->id);
         Log::info("Password successfully reset for User ID: {$user->id} ({$user->email})");
 
-        return redirect()->route('login')->with('status', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! এখন আপনার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।');
+        return redirect()->route('login')->with('status', 'Your password has been changed successfully. Please sign in with your new password.');
     }
 
     /**
@@ -371,27 +356,18 @@ class PasswordResetController extends Controller
     public function resetPasswordWithOtp(Request $request)
     {
         $customMessages = [
-            'phone.required'     => 'মোবাইল নম্বর বা ইমেইল প্রদান করুন।',
-            'otp.required'       => '৬ ডিজিটের ভেরিফিকেশন কোড প্রদান করুন।',
-            'otp.digits'         => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে باشد।',
-            'password.required'  => 'নতুন পাসওয়ার্ড প্রদান করুন।',
-            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।',
-            'password.confirmed' => 'পাসওয়ার্ড এবং পাসওয়ার্ড নিশ্চিতকরণ মেলেনি।',
+            'phone.required'     => 'Please enter your mobile phone number or email.',
+            'otp.required'       => 'Please enter the 6-digit verification code.',
+            'otp.digits'         => 'The verification code must be exactly 6 digits.',
+            'password.required'  => 'Please enter a new password.',
+            'password.min'       => 'The password must be at least 6 characters.',
+            'password.confirmed' => 'The password confirmation does not match.',
         ];
 
         $request->validate([
             'phone'    => ['required', 'string'],
             'otp'      => ['required', 'string', 'digits:6'],
-            'password' => [
-                'required',
-                'confirmed',
-                'string',
-                'min:8',
-                'max:128',
-                new StrongPassword([
-                    'phone' => (string) $request->input('phone'),
-                ]),
-            ],
+            'password' => ['required', 'confirmed', 'string', 'min:6', 'max:128'],
         ], $customMessages);
 
         $phoneInput = trim((string) $request->input('phone'));
@@ -456,7 +432,7 @@ class PasswordResetController extends Controller
 
         if (!$isValidOtp || !$user) {
             return back()->withInput()->withErrors([
-                'otp' => 'প্রদত্ত ৬ ডিজিটের কোডটি সঠিক নয় অথবা এর মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে সঠিক কোড দিন অথবা নতুন কোডের জন্য অনুরোধ করুন।',
+                'otp' => 'Invalid or expired verification code. Please check and try again.',
             ]);
         }
 
@@ -475,7 +451,7 @@ class PasswordResetController extends Controller
 
         Log::info("Password successfully reset via 6-digit OTP for User ID: {$user->id}");
 
-        return redirect()->route('login')->with('status', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! এখন আপনার নতুন পাসওয়ার্ড দিয়ে লগইন করুন।');
+        return redirect()->route('login')->with('status', 'Your password has been changed successfully. Please sign in with your new password.');
     }
 
     /**

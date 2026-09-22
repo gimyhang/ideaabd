@@ -648,9 +648,9 @@ BASH,
     /**
      * Send password reset OTP SMS.
      */
-    public static function sendPasswordResetOtp(string $phone, string $otpCode, string $resetUrl): array
+    public static function sendPasswordResetOtp(string $phone, string $otpCode, string $resetUrl = ''): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার পাসওয়ার্ড রিসেট ওটিপি কোড: {$otpCode} (মেয়াদ ৩০ মিনিট)। লিংক: {$resetUrl}";
+        $message = "ideaabd.com: Your password reset verification code is {$otpCode} (Valid for 30 minutes). Do not share this code.";
         return self::send($phone, $message);
     }
 
@@ -659,7 +659,7 @@ BASH,
      */
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার অ্যাকাউন্ট ভেরিফিকেশন ওটিপি কোড: {$otpCode} (মেয়াদ ১৫ মিনিট)। কোডটি গোপন রাখুন।";
+        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 15 minutes). Do not share this code.";
         return self::send($phone, $message);
     }
 
@@ -668,7 +668,7 @@ BASH,
      */
     public static function sendLoginOtp(string $phone, string $otpCode): array
     {
-        $message = "আইডিয়া প্রকাশন — আপনার লগইন সিকিউরিটি ওটিপি কোড: {$otpCode} (মেয়াদ ৫ মিনিট)।";
+        $message = "ideaabd.com: Your login security OTP code is {$otpCode} (Valid for 5 minutes).";
         return self::send($phone, $message);
     }
 
@@ -678,7 +678,7 @@ BASH,
     public static function sendOrderOtp(string $phone, string $otpCode, ?string $orderNumber = null): array
     {
         $orderLabel = $orderNumber ? " #{$orderNumber}" : '';
-        $message = "আইডিয়া প্রকাশন — আপনার বই অর্ডার{$orderLabel} নিশ্চিত করার ওটিপি কোড: {$otpCode}।";
+        $message = "ideaabd.com: Your order{$orderLabel} verification code is {$otpCode}.";
         return self::send($phone, $message);
     }
 
