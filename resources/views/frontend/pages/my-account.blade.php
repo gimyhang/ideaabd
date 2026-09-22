@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'আপনার অ্যাকাউন্ট — ' . ($user->name ?? 'Idea Prokashon'))
+@section('title', 'Account')
 
 @push('head')
 <link rel="stylesheet" href="{{ asset('css/my-account.css') }}?v={{ @filemtime(public_path('css/my-account.css')) ?: time() }}">

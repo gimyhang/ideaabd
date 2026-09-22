@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'আমাদের সম্পর্কে - IdeaABD')
+@section('title', 'About')
 
 @section('content')
 <div class="min-h-screen bg-classic px-4 py-16 sm:px-6 lg:px-8">

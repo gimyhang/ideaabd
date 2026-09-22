@@ -86,7 +86,7 @@ class AdminProfileController extends Controller
         $user->reg_data = $regData;
         $user->save();
 
-        return back()->with('success', 'আপনার এডমিন প্রোফাইল সফলভাবে আপডেট করা হয়েছে।');
+        return back()->with('success', 'Profile updated successfully.');
     }
 
     /**
@@ -105,7 +105,7 @@ class AdminProfileController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back()->with('success', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।');
+        return back()->with('success', 'Password changed successfully.');
     }
 
     /**
@@ -138,7 +138,7 @@ class AdminProfileController extends Controller
         $user->save();
 
         return redirect()->to(route('admin.profile') . '#preferences')
-            ->with('success', 'ড্যাশবোর্ড প্রেফারেন্স ও কাস্টমাইজেশন সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে।');
+            ->with('success', 'Preferences saved successfully.');
     }
 
     /**
@@ -164,7 +164,7 @@ class AdminProfileController extends Controller
         $user->save();
 
         return redirect()->to(route('admin.profile') . '#signature')
-            ->with('success', 'ডিজিটাল স্বাক্ষর ও সিল সফলভাবে আপলোড করা হয়েছে।');
+            ->with('success', 'Digital signature uploaded successfully.');
     }
 
     /**
@@ -184,7 +184,7 @@ class AdminProfileController extends Controller
         $user->save();
 
         return redirect()->to(route('admin.profile') . '#signature')
-            ->with('success', 'ডিজিটাল স্বাক্ষর সফলভাবে মুছে ফেলা হয়েছে।');
+            ->with('success', 'Digital signature removed successfully.');
     }
 
     /**
@@ -200,7 +200,7 @@ class AdminProfileController extends Controller
         $user->save();
 
         return redirect()->to(route('admin.profile') . '#general')
-            ->with('success', 'প্রোফাইল ছবি সফলভাবে মুছে ফেলা হয়েছে।');
+            ->with('success', 'Profile avatar removed successfully.');
     }
 
     /**
@@ -215,6 +215,6 @@ class AdminProfileController extends Controller
         Auth::logoutOtherDevices($request->password);
 
         return redirect()->to(route('admin.profile') . '#security')
-            ->with('success', 'অন্যান্য সমস্ত ডিভাইস ও ব্রাউজার সেশন থেকে লগআউট সম্পন্ন হয়েছে।');
+            ->with('success', 'Logged out from all other device sessions.');
     }
 }

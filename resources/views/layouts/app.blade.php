@@ -31,7 +31,7 @@
             } catch(e) {}
         })();
     </script>
-    <title>@yield('title', \App\Support\SiteSetting::name() . ' — ' . \App\Support\SiteSetting::tagline())</title>
+    <title>@hasSection('title')@yield('title') — ideaabd@else{{ config('app.name', 'Idea Publication') }}@endif</title>
 
     {{-- Universal Social Media Open Graph (Facebook, WhatsApp, LinkedIn) & Twitter / X Cards --}}
     @php

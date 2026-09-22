@@ -38,40 +38,42 @@
         $grandTotal = $order->total_amount > 0 ? $order->total_amount : ($itemSubtotal + $shippingCost + $giftFee - $discountAmount);
 
         // Convert number to English words helper
-        function numberToWordsEn($num) {
-            $num = (int)$num;
-            if ($num == 0) return 'Zero Taka Only';
+        if (!function_exists('numberToWordsEnInvoice')) {
+            function numberToWordsEnInvoice($num) {
+                $num = (int)$num;
+                if ($num == 0) return 'Zero Taka Only';
 
-            $units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-            $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+                $units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+                $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
-            $crore = floor($num / 10000000);
-            $num %= 10000000;
-            $lakh = floor($num / 100000);
-            $num %= 100000;
-            $thousand = floor($num / 1000);
-            $num %= 1000;
-            $hundred = floor($num / 100);
-            $remainder = $num % 100;
+                $crore = floor($num / 10000000);
+                $num %= 10000000;
+                $lakh = floor($num / 100000);
+                $num %= 100000;
+                $thousand = floor($num / 1000);
+                $num %= 1000;
+                $hundred = floor($num / 100);
+                $remainder = $num % 100;
 
-            $words = [];
-            if ($crore > 0) $words[] = ($crore < 20 ? $units[$crore] : $tens[floor($crore/10)] . ($crore%10 ? ' ' . $units[$crore%10] : '')) . ' Crore';
-            if ($lakh > 0) $words[] = ($lakh < 20 ? $units[$lakh] : $tens[floor($lakh/10)] . ($lakh%10 ? ' ' . $units[$lakh%10] : '')) . ' Lakh';
-            if ($thousand > 0) $words[] = ($thousand < 20 ? $units[$thousand] : $tens[floor($thousand/10)] . ($thousand%10 ? ' ' . $units[$thousand%10] : '')) . ' Thousand';
-            if ($hundred > 0) $words[] = $units[$hundred] . ' Hundred';
-            if ($remainder > 0) {
-                if ($remainder < 20) {
-                    $words[] = $units[$remainder];
-                } else {
-                    $t = floor($remainder / 10);
-                    $u = $remainder % 10;
-                    $words[] = $tens[$t] . ($u > 0 ? ' ' . $units[$u] : '');
+                $words = [];
+                if ($crore > 0) $words[] = ($crore < 20 ? $units[$crore] : $tens[floor($crore/10)] . ($crore%10 ? ' ' . $units[$crore%10] : '')) . ' Crore';
+                if ($lakh > 0) $words[] = ($lakh < 20 ? $units[$lakh] : $tens[floor($lakh/10)] . ($lakh%10 ? ' ' . $units[$lakh%10] : '')) . ' Lakh';
+                if ($thousand > 0) $words[] = ($thousand < 20 ? $units[$thousand] : $tens[floor($thousand/10)] . ($thousand%10 ? ' ' . $units[$thousand%10] : '')) . ' Thousand';
+                if ($hundred > 0) $words[] = $units[$hundred] . ' Hundred';
+                if ($remainder > 0) {
+                    if ($remainder < 20) {
+                        $words[] = $units[$remainder];
+                    } else {
+                        $t = floor($remainder / 10);
+                        $u = $remainder % 10;
+                        $words[] = $tens[$t] . ($u > 0 ? ' ' . $units[$u] : '');
+                    }
                 }
+                return implode(' ', $words) . ' Taka Only';
             }
-            return implode(' ', $words) . ' Taka Only';
         }
 
-        $amountInWordsEn = numberToWordsEn($grandTotal);
+        $amountInWordsEn = numberToWordsEnInvoice($grandTotal);
 
         // Payment method in English
         $paymentMethodEn = match(strtolower($order->payment_method ?? 'cod')) {
@@ -91,6 +93,10 @@
             'partial' => 'PARTIAL PAID',
             default => strtoupper($order->payment_status ?? 'PENDING'),
         };
+
+        // Digital signature of logged in user
+        $userSignature = auth()->user()?->reg_data['signature'] ?? null;
+        $hasSignature = !empty($userSignature) && \Illuminate\Support\Facades\Storage::disk('public')->exists($userSignature);
 
         // Clean phone for WhatsApp
         $cleanPhone = preg_replace('/[^0-9]/', '', $order->customer_phone);
@@ -132,12 +138,33 @@
             --theme-border: #e9d5ff;
         }
 
+        [data-theme="crimson"] {
+            --theme-primary: #991b1b;
+            --theme-gradient: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
+            --theme-accent: #ef4444;
+            --theme-border: #fecaca;
+        }
+
+        [data-theme="teal"] {
+            --theme-primary: #115e59;
+            --theme-gradient: linear-gradient(135deg, #134e4a 0%, #0d9488 100%);
+            --theme-accent: #14b8a6;
+            --theme-border: #99f6e4;
+        }
+
+        [data-theme="amber"] {
+            --theme-primary: #92400e;
+            --theme-gradient: linear-gradient(135deg, #78350f 0%, #d97706 100%);
+            --theme-accent: #f59e0b;
+            --theme-border: #fde68a;
+        }
+
         * {
             box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f1f5f9;
             color: #1e293b;
             font-size: 13.5px;
@@ -148,7 +175,7 @@
 
         /* Top Action Bar Styling */
         .action-dock {
-            max-width: 860px;
+            max-width: 880px;
             margin: 0 auto 16px auto;
             background: #ffffff;
             border-radius: 16px;
@@ -174,7 +201,7 @@
 
         /* Main Invoice Card */
         .invoice-card {
-            max-width: 860px;
+            max-width: 880px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 16px;
@@ -199,6 +226,7 @@
             z-index: 1;
             user-select: none;
             white-space: nowrap;
+            transition: opacity 0.3s ease;
         }
 
         .invoice-header-strip {
@@ -300,116 +328,85 @@
             margin-bottom: 20px;
             border-collapse: separate;
             border-spacing: 0;
-            border: 1px solid #cbd5e1;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             overflow: hidden;
         }
 
         .table-memo thead th {
-            background: var(--theme-primary);
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 12.5px;
-            padding: 11px 14px;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background: #f8fafc;
+            color: #334155;
+            font-weight: 700;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        .table-memo thead th:last-child {
-            border-right: none;
+            padding: 12px 14px;
+            border-bottom: 1.5px solid #cbd5e1;
         }
 
         .table-memo tbody td {
-            padding: 12px 14px;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
+            padding: 14px;
             vertical-align: middle;
-            background: #ffffff;
-        }
-
-        .table-memo tbody td:last-child {
-            border-right: none;
-        }
-
-        .table-memo tbody tr:last-child td {
-            border-bottom: none;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .summary-box {
             background: #f8fafc;
-            border: 1.5px solid #cbd5e1;
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 16px 20px;
+            padding: 18px;
         }
 
         .summary-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 5px 0;
             font-size: 13.5px;
-            color: #475569;
         }
 
         .summary-item.total-due {
-            border-top: 2px dashed #94a3b8;
+            border-top: 2px dashed #cbd5e1;
             margin-top: 8px;
-            padding-top: 10px;
-            font-size: 17px;
-            font-weight: 700;
+            padding-top: 12px;
+            font-size: 16px;
+            font-weight: 800;
             color: var(--theme-primary);
         }
 
         .paid-stamp {
-            display: inline-block;
             border: 2px solid #059669;
             color: #059669;
             font-weight: 800;
-            text-transform: uppercase;
-            padding: 4px 14px;
-            border-radius: 6px;
-            letter-spacing: 1px;
             font-size: 12px;
-            transform: rotate(-3deg);
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
         }
 
         .due-stamp {
-            display: inline-block;
             border: 2px solid #d97706;
             color: #d97706;
             font-weight: 800;
-            text-transform: uppercase;
-            padding: 4px 14px;
-            border-radius: 6px;
-            letter-spacing: 1px;
             font-size: 12px;
-            transform: rotate(-3deg);
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
         }
 
         .in-words-box {
-            background: #f1f5f9;
+            background: #ffffff;
             border: 1px dashed #cbd5e1;
-            padding: 8px 14px;
             border-radius: 8px;
-            font-size: 12.5px;
-            color: #334155;
-            margin-top: 12px;
+            padding: 8px 12px;
+            font-size: 12px;
+            margin-top: 10px;
+            color: #475569;
         }
-
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 11.5px;
-            text-transform: uppercase;
-        }
-        .badge-pending { background: #fef3c7; color: #92400e; }
-        .badge-processing { background: #e0f2fe; color: #0369a1; }
-        .badge-confirmed { background: #e0e7ff; color: #3730a3; }
-        .badge-shipped { background: #ede9fe; color: #5b21b6; }
-        .badge-delivered { background: #dcfce7; color: #166534; }
-        .badge-cancelled { background: #fee2e2; color: #991b1b; }
 
         .theme-dot {
             width: 18px;
@@ -418,85 +415,44 @@
             display: inline-block;
             cursor: pointer;
             border: 2px solid #ffffff;
-            box-shadow: 0 0 0 1px #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             transition: transform 0.2s ease;
         }
+
         .theme-dot:hover {
-            transform: scale(1.2);
+            transform: scale(1.25);
         }
 
-        /* Print Specific Optimizations */
+        /* Print Settings Optimization */
         @media print {
             body {
                 background: #ffffff !important;
                 padding: 0 !important;
-                margin: 0 !important;
                 color: #000000 !important;
-                font-size: 12px !important;
             }
-            .d-print-none, .action-dock, .modal {
+            .action-dock, .offcanvas, .modal, .d-print-none {
                 display: none !important;
             }
             .invoice-card {
-                max-width: 100% !important;
                 box-shadow: none !important;
-                border: none !important;
+                border: 1px solid #94a3b8 !important;
+                max-width: 100% !important;
                 border-radius: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
             }
             .invoice-header-strip {
-                background: #0f172a !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                padding: 14px 20px !important;
-            }
-            .brand-logo-img {
-                background: #ffffff !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            .invoice-inner {
-                padding: 16px 20px !important;
-            }
-            .party-card {
-                background: #ffffff !important;
-                border: 1px solid #64748b !important;
+            .meta-strip, .party-card, .table-memo, .summary-box {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-            }
-            .table-memo thead th {
-                background: #0f172a !important;
-                color: #ffffff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                padding: 8px 10px !important;
-            }
-            .table-memo tbody td {
-                padding: 8px 10px !important;
-                border-color: #cbd5e1 !important;
-            }
-            .summary-box {
-                background: #f8fafc !important;
-                border: 1px solid #64748b !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            .watermark-overlay {
-                display: block !important;
-                color: rgba(0,0,0,0.04) !important;
-            }
-            @page {
-                size: A4 portrait;
-                margin: 6mm 8mm;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Dynamic Action Toolbar (Hidden in Print) -->
+    <!-- Action Dock (Top Controls Bar) -->
     <div class="action-dock d-print-none">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
             
@@ -513,8 +469,11 @@
                 </a>
             </div>
 
-            <!-- Middle Controls: WhatsApp, Share Link -->
+            <!-- Middle Controls: Memo Settings, WhatsApp, Share Link -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-dark btn-sm btn-action-pill text-white shadow-xs" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMemoSettings">
+                    <i class="fa-solid fa-sliders text-warning"></i> Memo Settings
+                </button>
                 <a href="{{ $whatsappUrl }}" target="_blank" class="btn btn-success btn-sm btn-action-pill text-white shadow-xs">
                     <i class="fa-brands fa-whatsapp"></i> WhatsApp Memo
                 </a>
@@ -531,6 +490,9 @@
                     <span class="theme-dot" style="background:#059669;" onclick="setInvoiceTheme('emerald')" title="Emerald Green"></span>
                     <span class="theme-dot" style="background:#18181b;" onclick="setInvoiceTheme('noir')" title="Corporate Noir"></span>
                     <span class="theme-dot" style="background:#7e22ce;" onclick="setInvoiceTheme('purple')" title="Royal Purple"></span>
+                    <span class="theme-dot" style="background:#dc2626;" onclick="setInvoiceTheme('crimson')" title="Crimson Red"></span>
+                    <span class="theme-dot" style="background:#0d9488;" onclick="setInvoiceTheme('teal')" title="Modern Teal"></span>
+                    <span class="theme-dot" style="background:#d97706;" onclick="setInvoiceTheme('amber')" title="Amber Gold"></span>
                 </div>
 
                 <!-- Print Button -->
@@ -546,29 +508,29 @@
     <div class="invoice-card" id="invoiceCard">
         
         <!-- Watermark -->
-        <div class="watermark-overlay" id="watermarkText">
+        <div class="watermark-overlay" id="watermarkOverlay">
             {{ $order->payment_status === 'paid' ? 'PAID' : 'OFFICIAL' }}
         </div>
 
         <!-- Header Banner & Logo -->
-        <div class="invoice-header-strip">
+        <div class="invoice-header-strip" id="invoiceHeaderStrip">
             <div class="row align-items-center">
                 <div class="col-7 d-flex align-items-center gap-3">
-                    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="brand-logo-img" onerror="this.src='/images/logo.png'; this.onerror=null;">
+                    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="brand-logo-img" id="invoiceBrandLogo" onerror="this.src='/images/logo.png'; this.onerror=null;">
                     <div>
-                        <h4 class="fw-bold mb-0 text-white" style="letter-spacing: -0.2px;">{{ $siteName }}</h4>
-                        <div class="text-white text-opacity-80 small mt-0.5">
-                            <i class="fa-solid fa-globe me-1"></i> {{ $siteWebsite }} | Digital Lighthouse of Knowledge & Creativity
+                        <h4 class="fw-bold mb-0 text-white" id="displayCompanyName" style="letter-spacing: -0.2px;">{{ $siteName }}</h4>
+                        <div class="text-white text-opacity-80 small mt-0.5" id="displayCompanyTagline">
+                            <i class="fa-solid fa-globe me-1"></i> <span id="displayCompanyWebsite">{{ $siteWebsite }}</span> | Digital Lighthouse of Knowledge & Creativity
                         </div>
                     </div>
                 </div>
                 <div class="col-5 text-end">
-                    <div class="invoice-badge-pill">
+                    <div class="invoice-badge-pill" id="invoiceBadgePill">
                         <i class="fa-solid fa-file-invoice-dollar text-warning"></i>
-                        <span>CASH MEMO & INVOICE</span>
+                        <span id="displayInvoiceTitle">CASH MEMO & INVOICE</span>
                     </div>
                     <div>
-                        <span class="barcode-pill">#{{ $order->order_number ?? $order->id }}</span>
+                        <span class="barcode-pill" id="invoiceBarcodePill">#{{ $order->order_number ?? $order->id }}</span>
                     </div>
                 </div>
             </div>
@@ -577,7 +539,7 @@
         <div class="invoice-inner">
 
             <!-- Meta Quick Strip -->
-            <div class="meta-strip">
+            <div class="meta-strip" id="invoiceMetaStrip">
                 <div class="row g-2 align-items-center text-center text-md-start">
                     <div class="col-6 col-md-3">
                         <span class="text-muted small d-block">Invoice / Memo No:</span>
@@ -610,26 +572,26 @@
             </div>
 
             <!-- Sender & Recipient Two-Column Layout -->
-            <div class="row g-3 mb-4">
+            <div class="row g-3 mb-4" id="partiesSection">
                 
                 <!-- Left: Sender (From) -->
-                <div class="col-md-6">
-                    <div class="party-card sender">
+                <div class="col-md-6" id="senderCardCol">
+                    <div class="party-card sender" id="senderPartyCard">
                         <div class="party-tag" style="color: var(--theme-primary);">
                             <span><i class="fa-solid fa-paper-plane me-1"></i> FROM / SENDER</span>
                             <span class="badge text-white" style="background: var(--theme-primary);">HEAD OFFICE</span>
                         </div>
-                        <h6 class="fw-bold text-dark mb-1">{{ $siteName }}</h6>
-                        <div class="text-muted small mb-1">
+                        <h6 class="fw-bold text-dark mb-1" id="senderDisplayTitle">{{ $siteName }}</h6>
+                        <div class="text-muted small mb-1" id="senderDisplayAddress">
                             <i class="fa-solid fa-location-dot text-danger me-1"></i>
                             {{ $siteAddress }}
                         </div>
-                        <div class="text-dark small mb-1">
+                        <div class="text-dark small mb-1" id="senderDisplayPhone">
                             <i class="fa-solid fa-phone text-success me-1"></i>
                             <strong>Hotline:</strong> {{ $sitePhone }}
                         </div>
                         @if(!empty($siteEmail))
-                        <div class="text-muted small">
+                        <div class="text-muted small" id="senderDisplayEmail">
                             <i class="fa-solid fa-envelope text-primary me-1"></i>
                             {{ $siteEmail }}
                         </div>
@@ -638,8 +600,8 @@
                 </div>
 
                 <!-- Right: Recipient (To / Customer) -->
-                <div class="col-md-6">
-                    <div class="party-card recipient">
+                <div class="col-md-6" id="recipientCardCol">
+                    <div class="party-card recipient" id="recipientPartyCard">
                         <div class="party-tag text-success">
                             <span><i class="fa-solid fa-user-check me-1"></i> TO / RECIPIENT</span>
                             <span class="badge bg-success text-white">CUSTOMER</span>
@@ -673,7 +635,7 @@
 
             <!-- Gift Notice Ribbon (If applicable) -->
             @if($order->is_gift)
-            <div class="p-3 bg-amber-50 rounded-3 border border-warning mb-4" style="background-color: #fffbeb; border-color: #fde68a;">
+            <div class="p-3 bg-amber-50 rounded-3 border border-warning mb-4" id="giftNoticeRibbon" style="background-color: #fffbeb; border-color: #fde68a;">
                 <div class="d-flex align-items-start gap-2.5">
                     <i class="fa-solid fa-gift text-warning fs-4 mt-0.5"></i>
                     <div>
@@ -694,7 +656,7 @@
             @endif
 
             <!-- Items Table -->
-            <table class="table-memo">
+            <table class="table-memo" id="itemsTable">
                 <thead>
                     <tr>
                         <th class="text-center" style="width: 6%;">SL #</th>
@@ -711,16 +673,18 @@
                             @if($order->book)
                                 <div class="d-flex align-items-center gap-2.5">
                                     @if($order->book->cover_image)
-                                        <img src="{{ asset('storage/' . $order->book->cover_image) }}" alt="{{ $order->book->title }}" style="width: 38px; height: 50px; object-fit: cover; border-radius: 4px;" class="border d-none d-sm-inline-block">
+                                        <img src="{{ asset('storage/' . $order->book->cover_image) }}" alt="{{ $order->book->title }}" id="bookCoverImg" style="width: 38px; height: 50px; object-fit: cover; border-radius: 4px;" class="border d-none d-sm-inline-block">
                                     @endif
                                     <div>
                                         <div class="fw-bold text-dark fs-6">{{ $order->book->title }}</div>
-                                        @if($order->book->authors && $order->book->authors->count())
-                                            <div class="text-muted small">Author: <strong>{{ $order->book->authors->pluck('name')->implode(', ') }}</strong></div>
-                                        @endif
-                                        @if($order->book->isbn)
-                                            <div class="text-muted small">ISBN: {{ $order->book->isbn }}</div>
-                                        @endif
+                                        <div id="bookAuthorIsbnSection">
+                                            @if($order->book->authors && $order->book->authors->count())
+                                                <div class="text-muted small">Author: <strong>{{ $order->book->authors->pluck('name')->implode(', ') }}</strong></div>
+                                            @endif
+                                            @if($order->book->isbn)
+                                                <div class="text-muted small">ISBN: {{ $order->book->isbn }}</div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @else
@@ -747,7 +711,7 @@
                 <div class="col-md-6">
                     
                     @if($order->courier_name || $order->tracking_code)
-                    <div class="p-3 bg-light rounded-3 border mb-3">
+                    <div class="p-3 bg-light rounded-3 border mb-3" id="courierInfoBox">
                         <div class="fw-bold text-dark mb-1 small d-flex align-items-center gap-1.5">
                             <i class="fa-solid fa-truck-fast text-primary"></i> Courier & Shipping Info:
                         </div>
@@ -758,11 +722,11 @@
                     </div>
                     @endif
 
-                    <div class="p-3 bg-light rounded-3 border mb-3" style="font-size: 12px;">
+                    <div class="p-3 bg-light rounded-3 border mb-3" id="termsPolicyBox" style="font-size: 12px;">
                         <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-shield-halved text-primary"></i> Terms & Policy:
+                            <i class="fa-solid fa-shield-halved text-primary"></i> <span id="displayTermsTitle">Terms & Policy:</span>
                         </div>
-                        <p class="text-muted mb-0">
+                        <p class="text-muted mb-0" id="displayTermsText">
                             Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.
                         </p>
                         @if($order->admin_notes)
@@ -773,7 +737,7 @@
                     </div>
 
                     <!-- Live Dynamic QR Code Box -->
-                    <div class="d-flex align-items-center gap-3 p-2.5 bg-white rounded-3 border">
+                    <div class="d-flex align-items-center gap-3 p-2.5 bg-white rounded-3 border" id="qrCodeSection">
                         <div id="invoiceQrCode" style="width: 58px; height: 58px;"></div>
                         <div class="small">
                             <strong class="d-block text-dark">Digital Order Verification</strong>
@@ -785,7 +749,7 @@
 
                 <!-- Right Column: Financial Breakdown -->
                 <div class="col-md-6">
-                    <div class="summary-box">
+                    <div class="summary-box" id="summaryBox">
                         <div class="summary-item">
                             <span>Items Subtotal:</span>
                             <span class="fw-bold text-dark font-monospace">BDT {{ number_format($itemSubtotal, 2) }}</span>
@@ -818,18 +782,18 @@
                         </div>
 
                         <!-- Amount in Words -->
-                        <div class="in-words-box">
+                        <div class="in-words-box" id="inWordsBox">
                             <strong>In Words:</strong> {{ $amountInWordsEn }}
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top" id="paymentStampContainer">
                             <span class="small text-muted">Payment Status:</span>
                             @if($order->payment_status === 'paid')
-                                <span class="paid-stamp">
+                                <span class="paid-stamp" id="statusStampBadge">
                                     <i class="fa-solid fa-check-double me-1"></i> PAID
                                 </span>
                             @else
-                                <span class="due-stamp">
+                                <span class="due-stamp" id="statusStampBadge">
                                     <i class="fa-solid fa-hand-holding-dollar me-1"></i> DUE (CASH ON DELIVERY)
                                 </span>
                             @endif
@@ -840,26 +804,180 @@
             </div>
 
             <!-- Footer Signature & Thank You Greeting -->
-            <div class="pt-3 border-top mt-4">
+            <div class="pt-3 border-top mt-4" id="footerSection">
                 <div class="row align-items-end">
                     <div class="col-7">
-                        <p class="small text-muted mb-0 fw-semibold">
+                        <p class="small text-muted mb-0 fw-semibold" id="displayFooterGreeting">
                             <i class="fa-solid fa-heart text-danger me-1"></i>
                             May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!
                         </p>
-                        <div class="text-muted" style="font-size: 11px;">
+                        <div class="text-muted" id="displayPrintDate" style="font-size: 11px;">
                             Print Date: {{ date('d M, Y — h:i A') }} | Computer Generated Official Digital Invoice
                         </div>
                     </div>
-                    <div class="col-5 text-end">
-                        <div class="d-inline-block text-center" style="min-width: 150px;">
-                            <div style="height: 40px;"></div>
-                            <div class="border-top border-dark pt-1 small fw-bold text-dark">
+                    <div class="col-5 text-end" id="signatureSection">
+                        <div class="d-inline-block text-center position-relative" style="min-width: 170px;">
+                            @if($hasSignature)
+                                <div id="displaySignatureImgContainer" class="mb-1">
+                                    <img src="{{ asset('storage/' . $userSignature) }}" alt="Authorized Signature" style="max-height: 48px; max-width: 150px; object-fit: contain;">
+                                </div>
+                            @else
+                                <div style="height: 40px;" id="signaturePlaceholder"></div>
+                            @endif
+                            <div class="border-top border-dark pt-1 small fw-bold text-dark" id="displaySignatureTitle">
                                 Authorized Signature
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- OFFCANVAS: ADVANCED MEMO CUSTOMIZATION SETTINGS                           -->
+    <!-- ========================================================================= -->
+    <div class="offcanvas offcanvas-end d-print-none shadow-lg border-0" tabindex="-1" id="offcanvasMemoSettings" aria-labelledby="offcanvasMemoSettingsLabel" style="width: 420px;">
+        <div class="offcanvas-header bg-dark text-white p-3.5">
+            <h5 class="offcanvas-title fw-bold fs-6 d-flex align-items-center gap-2" id="offcanvasMemoSettingsLabel">
+                <i class="fa-solid fa-sliders text-warning"></i> Memo & Invoice Customizer
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-3.5 space-y-4">
+            
+            <!-- 1. Theme & Color Accents -->
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
+                    <span><i class="fa-solid fa-palette text-primary me-1.5"></i> Color Palette Theme</span>
+                </label>
+                <div class="d-grid grid-cols-4 gap-2 text-center" style="grid-template-columns: repeat(4, 1fr);">
+                    <button type="button" class="btn btn-sm btn-outline-primary py-2 fw-semibold" onclick="setInvoiceTheme('navy')">
+                        <span class="theme-dot me-1" style="background:#1e3a8a;"></span> Navy
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success py-2 fw-semibold" onclick="setInvoiceTheme('emerald')">
+                        <span class="theme-dot me-1" style="background:#059669;"></span> Emerald
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark py-2 fw-semibold" onclick="setInvoiceTheme('noir')">
+                        <span class="theme-dot me-1" style="background:#18181b;"></span> Noir
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-2 fw-semibold" onclick="setInvoiceTheme('purple')" style="color:#7e22ce; border-color:#7e22ce;">
+                        <span class="theme-dot me-1" style="background:#7e22ce;"></span> Purple
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-2 fw-semibold" onclick="setInvoiceTheme('crimson')">
+                        <span class="theme-dot me-1" style="background:#dc2626;"></span> Crimson
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info py-2 fw-semibold" onclick="setInvoiceTheme('teal')">
+                        <span class="theme-dot me-1" style="background:#0d9488;"></span> Teal
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-2 fw-semibold" onclick="setInvoiceTheme('amber')">
+                        <span class="theme-dot me-1" style="background:#d97706;"></span> Amber
+                    </button>
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <!-- 2. Section Visibility Toggles -->
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark small mb-2.5"><i class="fa-solid fa-eye me-1.5 text-primary"></i> Show / Hide Invoice Sections</h6>
+                
+                <div class="p-3 bg-light rounded-3 border space-y-2">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleLogo" checked onchange="updateMemoSetting('showLogo', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleLogo">Company Brand Logo</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleWatermark" checked onchange="updateMemoSetting('showWatermark', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleWatermark">Background Watermark</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleSenderCard" checked onchange="updateMemoSetting('showSenderCard', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleSenderCard">Sender (From) Office Card</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleRecipientCard" checked onchange="updateMemoSetting('showRecipientCard', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleRecipientCard">Recipient (To) Customer Card</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleBookThumbnail" checked onchange="updateMemoSetting('showBookThumbnail', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleBookThumbnail">Book Cover Thumbnail Image</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleBookAuthor" checked onchange="updateMemoSetting('showBookAuthor', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleBookAuthor">Book Author & ISBN Details</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleQrCode" checked onchange="updateMemoSetting('showQrCode', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleQrCode">Digital QR Code Verification Box</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleCourierInfo" checked onchange="updateMemoSetting('showCourierInfo', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleCourierInfo">Courier & Tracking ID Box</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleInWords" checked onchange="updateMemoSetting('showInWords', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleInWords">Amount in Words Box</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleTermsPolicy" checked onchange="updateMemoSetting('showTermsPolicy', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleTermsPolicy">Terms & Conditions Policy Box</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggleSignature" checked onchange="updateMemoSetting('showSignature', this.checked)">
+                        <label class="form-check-label small fw-semibold text-dark" for="toggleSignature">Authorized Signature Block</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <!-- 3. Custom Text & Labels -->
+            <div class="mb-4">
+                <h6 class="fw-bold text-dark small mb-2.5"><i class="fa-solid fa-pen-nib me-1.5 text-success"></i> Custom Memo Labels & Text</h6>
+                
+                <div class="space-y-3">
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Invoice Header Title</label>
+                        <input type="text" id="inputInvoiceTitle" class="form-control form-control-sm" value="CASH MEMO & INVOICE" oninput="updateMemoSetting('invoiceTitle', this.value)">
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Watermark Text</label>
+                        <input type="text" id="inputWatermarkText" class="form-control form-control-sm" value="{{ $order->payment_status === 'paid' ? 'PAID' : 'OFFICIAL' }}" oninput="updateMemoSetting('watermarkText', this.value)">
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Company / Publisher Display Name</label>
+                        <input type="text" id="inputCompanyName" class="form-control form-control-sm" value="{{ $siteName }}" oninput="updateMemoSetting('companyName', this.value)">
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Head Office Address</label>
+                        <textarea id="inputCompanyAddress" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('companyAddress', this.value)">{{ $siteAddress }}</textarea>
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Hotline Phone Number</label>
+                        <input type="text" id="inputCompanyPhone" class="form-control form-control-sm" value="{{ $sitePhone }}" oninput="updateMemoSetting('companyPhone', this.value)">
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Terms & Policy Text</label>
+                        <textarea id="inputTermsText" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('termsText', this.value)">Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.</textarea>
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Signatory Title</label>
+                        <input type="text" id="inputSignatureTitle" class="form-control form-control-sm" value="Authorized Signature" oninput="updateMemoSetting('signatureTitle', this.value)">
+                    </div>
+                    <div class="mb-2.5">
+                        <label class="form-label small fw-semibold text-muted">Footer Greeting Note</label>
+                        <textarea id="inputFooterGreeting" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('footerGreeting', this.value)">May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <div class="pt-2">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-2 fw-semibold" onclick="resetMemoSettings()">
+                    <i class="fa-solid fa-rotate-left me-1.5"></i> Reset All Settings to Default
+                </button>
             </div>
 
         </div>
@@ -937,6 +1055,9 @@
                     correctLevel : QRCode.CorrectLevel.M
                 });
             }
+
+            // Load Memo Settings from LocalStorage
+            loadMemoSettings();
         });
 
         // Dynamic Theme Switcher
@@ -949,6 +1070,153 @@
         const savedTheme = localStorage.getItem('invoice_theme_pref');
         if (savedTheme) {
             document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+
+        // Memo Customization Settings Engine
+        const DEFAULT_MEMO_SETTINGS = {
+            showLogo: true,
+            showWatermark: true,
+            showSenderCard: true,
+            showRecipientCard: true,
+            showBookThumbnail: true,
+            showBookAuthor: true,
+            showQrCode: true,
+            showCourierInfo: true,
+            showInWords: true,
+            showTermsPolicy: true,
+            showSignature: true,
+            invoiceTitle: 'CASH MEMO & INVOICE',
+            watermarkText: '{{ $order->payment_status === "paid" ? "PAID" : "OFFICIAL" }}',
+            companyName: '{{ $siteName }}',
+            companyAddress: '{{ $siteAddress }}',
+            companyPhone: '{{ $sitePhone }}',
+            termsText: 'Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.',
+            signatureTitle: 'Authorized Signature',
+            footerGreeting: 'May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!'
+        };
+
+        function getMemoSettings() {
+            try {
+                const saved = localStorage.getItem('idea_memo_customizer_settings');
+                return saved ? Object.assign({}, DEFAULT_MEMO_SETTINGS, JSON.parse(saved)) : Object.assign({}, DEFAULT_MEMO_SETTINGS);
+            } catch (e) {
+                return Object.assign({}, DEFAULT_MEMO_SETTINGS);
+            }
+        }
+
+        function updateMemoSetting(key, value) {
+            const settings = getMemoSettings();
+            settings[key] = value;
+            localStorage.setItem('idea_memo_customizer_settings', JSON.stringify(settings));
+            applyMemoSettings(settings);
+        }
+
+        function applyMemoSettings(s) {
+            // Visibility Toggles
+            const logo = document.getElementById('invoiceBrandLogo');
+            if (logo) logo.style.display = s.showLogo ? '' : 'none';
+
+            const watermark = document.getElementById('watermarkOverlay');
+            if (watermark) {
+                watermark.style.display = s.showWatermark ? '' : 'none';
+                watermark.textContent = s.watermarkText || 'OFFICIAL';
+            }
+
+            const senderCol = document.getElementById('senderCardCol');
+            if (senderCol) senderCol.style.display = s.showSenderCard ? '' : 'none';
+
+            const recipientCol = document.getElementById('recipientCardCol');
+            if (recipientCol) {
+                recipientCol.style.display = s.showRecipientCard ? '' : 'none';
+                if (!s.showSenderCard) {
+                    recipientCol.className = 'col-12';
+                } else {
+                    recipientCol.className = 'col-md-6';
+                    if (senderCol) senderCol.className = 'col-md-6';
+                }
+            }
+
+            const bookCover = document.getElementById('bookCoverImg');
+            if (bookCover) bookCover.style.display = s.showBookThumbnail ? '' : 'none';
+
+            const authorIsbn = document.getElementById('bookAuthorIsbnSection');
+            if (authorIsbn) authorIsbn.style.display = s.showBookAuthor ? '' : 'none';
+
+            const qrCode = document.getElementById('qrCodeSection');
+            if (qrCode) qrCode.style.display = s.showQrCode ? '' : 'none';
+
+            const courierBox = document.getElementById('courierInfoBox');
+            if (courierBox) courierBox.style.display = s.showCourierInfo ? '' : 'none';
+
+            const inWords = document.getElementById('inWordsBox');
+            if (inWords) inWords.style.display = s.showInWords ? '' : 'none';
+
+            const termsBox = document.getElementById('termsPolicyBox');
+            if (termsBox) termsBox.style.display = s.showTermsPolicy ? '' : 'none';
+
+            const sigSection = document.getElementById('signatureSection');
+            if (sigSection) sigSection.style.display = s.showSignature ? '' : 'none';
+
+            // Custom Text
+            const invTitle = document.getElementById('displayInvoiceTitle');
+            if (invTitle) invTitle.textContent = s.invoiceTitle;
+
+            const compName = document.getElementById('displayCompanyName');
+            if (compName) compName.textContent = s.companyName;
+
+            const senderTitle = document.getElementById('senderDisplayTitle');
+            if (senderTitle) senderTitle.textContent = s.companyName;
+
+            const senderAddr = document.getElementById('senderDisplayAddress');
+            if (senderAddr) senderAddr.innerHTML = `<i class="fa-solid fa-location-dot text-danger me-1"></i> ${s.companyAddress}`;
+
+            const senderPhone = document.getElementById('senderDisplayPhone');
+            if (senderPhone) senderPhone.innerHTML = `<i class="fa-solid fa-phone text-success me-1"></i> <strong>Hotline:</strong> ${s.companyPhone}`;
+
+            const termsText = document.getElementById('displayTermsText');
+            if (termsText) termsText.textContent = s.termsText;
+
+            const sigTitle = document.getElementById('displaySignatureTitle');
+            if (sigTitle) sigTitle.textContent = s.signatureTitle;
+
+            const footerGreeting = document.getElementById('displayFooterGreeting');
+            if (footerGreeting) footerGreeting.innerHTML = `<i class="fa-solid fa-heart text-danger me-1"></i> ${s.footerGreeting}`;
+        }
+
+        function loadMemoSettings() {
+            const s = getMemoSettings();
+
+            // Populate form inputs
+            const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+            setCheck('toggleLogo', s.showLogo);
+            setCheck('toggleWatermark', s.showWatermark);
+            setCheck('toggleSenderCard', s.showSenderCard);
+            setCheck('toggleRecipientCard', s.showRecipientCard);
+            setCheck('toggleBookThumbnail', s.showBookThumbnail);
+            setCheck('toggleBookAuthor', s.showBookAuthor);
+            setCheck('toggleQrCode', s.showQrCode);
+            setCheck('toggleCourierInfo', s.showCourierInfo);
+            setCheck('toggleInWords', s.showInWords);
+            setCheck('toggleTermsPolicy', s.showTermsPolicy);
+            setCheck('toggleSignature', s.showSignature);
+
+            setVal('inputInvoiceTitle', s.invoiceTitle);
+            setVal('inputWatermarkText', s.watermarkText);
+            setVal('inputCompanyName', s.companyName);
+            setVal('inputCompanyAddress', s.companyAddress);
+            setVal('inputCompanyPhone', s.companyPhone);
+            setVal('inputTermsText', s.termsText);
+            setVal('inputSignatureTitle', s.signatureTitle);
+            setVal('inputFooterGreeting', s.footerGreeting);
+
+            applyMemoSettings(s);
+        }
+
+        function resetMemoSettings() {
+            localStorage.removeItem('idea_memo_customizer_settings');
+            loadMemoSettings();
         }
 
         // Copy Invoice Track Link

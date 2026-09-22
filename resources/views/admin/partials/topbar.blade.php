@@ -232,17 +232,17 @@
                 @if (Route::has('admin.profile'))
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}">
-                            <i class="fa-solid fa-user-gear me-2 text-primary"></i>এডমিন প্রোফাইল সেটিংস
+                            <i class="fa-solid fa-user-gear me-2 text-primary"></i>Profile Settings
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#security">
-                            <i class="fa-solid fa-key me-2 text-danger"></i>পাসওয়ার্ড ও সিকিউরিটি
+                            <i class="fa-solid fa-key me-2 text-danger"></i>Password & Security
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#preferences">
-                            <i class="fa-solid fa-sliders me-2 text-success"></i>ড্যাশবোর্ড প্রেফারেন্স
+                            <i class="fa-solid fa-sliders me-2 text-success"></i>Preferences
                         </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>

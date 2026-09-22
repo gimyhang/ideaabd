@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'সার্ভার সমস্যা (৫০০) — আইডিয়া প্রকাশন')
+@section('title', 'Server Error')
 
 @section('content')
 <div class="container py-5 my-md-5">

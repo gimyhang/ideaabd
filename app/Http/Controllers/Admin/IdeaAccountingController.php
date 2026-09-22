@@ -3027,6 +3027,9 @@ class IdeaAccountingController extends Controller
                 Log::warning("Pre-rendering invoice PDF failed: " . $pdfEx->getMessage());
             }
 
+            // Apply dynamic runtime SMTP config from SiteSetting / DB
+            \App\Services\EmailService::applyRuntimeSmtpConfig();
+
             // Send individual direct emails to all valid recipients
             foreach ($validEmails as $singleRecipient) {
                 try {
@@ -3444,6 +3447,53 @@ class IdeaAccountingController extends Controller
         $employee->delete();
 
         return back()->with('success', 'কর্মচারী সফলভাবে মুছে ফেলা হয়েছে।');
+    }
+
+    /**
+     * Quick toggle employee status via AJAX.
+     */
+    public function quickStatusEmployee(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'id'     => 'required|exists:idea_employees,id',
+            'status' => 'required|in:active,inactive,on_leave',
+        ]);
+
+        $employee = IdeaEmployee::findOrFail($validated['id']);
+        $employee->status = $validated['status'];
+        $employee->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Staff status updated to ' . ucfirst($employee->status),
+            'status'  => $employee->status,
+            'status_badge' => match($employee->status) {
+                'active'   => '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Active</span>',
+                'on_leave' => '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5">On Leave</span>',
+                default    => '<span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">Inactive</span>',
+            }
+        ]);
+    }
+
+    /**
+     * Get quick details of employee for modal preview.
+     */
+    public function quickDetailsEmployee($id): \Illuminate\Http\JsonResponse
+    {
+        $employee = IdeaEmployee::with(['workLogs' => fn($q) => $q->latest('log_date')->limit(5)])->findOrFail($id);
+        $totalEarned = (float) $employee->totalWorkEarned();
+        $totalPaid = (float) $employee->totalWorkPaid();
+        $balanceDue = $totalEarned - $totalPaid;
+
+        return response()->json([
+            'success' => true,
+            'employee' => $employee,
+            'total_earned' => $totalEarned,
+            'total_paid' => $totalPaid,
+            'balance_due' => $balanceDue,
+            'formatted_rate' => $employee->formatted_rate,
+            'category_cfg' => $employee->getRoleConfig(),
+        ]);
     }
 
     /**

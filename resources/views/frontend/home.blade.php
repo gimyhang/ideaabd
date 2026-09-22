@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'আইডিয়া প্রকাশন — অনলাইন বই এবং প্রকাশনা প্ল্যাটফর্ম')
+@section('title', 'Home')
 
 @section('content')
 

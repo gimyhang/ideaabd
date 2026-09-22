@@ -20,7 +20,7 @@
     <meta name="theme-color" content="{{ $adminPrimary }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'Admin Panel') — {{ \App\Support\SiteSetting::name() }}</title>
+    <title>@yield('title', 'Admin') — ideaabd</title>
 
     {{-- Dynamic Site Favicon --}}
     @php $adminFaviconUrl = \App\Support\SiteSetting::faviconUrl(); @endphp

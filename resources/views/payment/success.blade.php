@@ -1,6 +1,6 @@
 @extends('layouts.frontend')
 
-@section('title', 'পেমেন্ট সফল — আইডিয়া প্রকাশন')
+@section('title', 'Payment Successful')
 
 @section('content')
 <div class="container py-5 my-md-4">

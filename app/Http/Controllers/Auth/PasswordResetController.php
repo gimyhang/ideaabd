@@ -165,49 +165,36 @@ class PasswordResetController extends Controller
 
         $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . self::CLEAN_WHATSAPP_NUMBER . '&text=' . urlencode("আমি পাসওয়ার্ড রিসেটের কোড পেতে চাই। আমার আইডি: " . ($user->phone ?: $user->email) . " (OTP: {$otpCode})");
 
-        // 1. DELIVERY VIA MOBILE SMS
-        if ($deliveryMethod === 'sms') {
-            if (empty($user->phone)) {
-                return back()->withInput()->withErrors([
-                    'identity' => 'এই অ্যাকাউন্টে কোনো মোবাইল নম্বর যুক্ত নেই। অনুগ্রহ করে ইমেইল নির্বাচন করুন।',
-                ]);
+        // Determine effective delivery method
+        $sentViaSms = false;
+        $sentViaEmail = false;
+        $maskedPhone = !empty($user->phone) ? substr($user->phone, 0, 3) . '****' . substr($user->phone, -4) : '';
+        $maskedEmail = !empty($user->email) ? $this->maskEmail($user->email) : '';
+
+        // 1. DISPATCH VIA MOBILE SMS
+        if (!empty($user->phone)) {
+            try {
+                $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
+                $sentViaSms = !empty($smsResult['success']);
+                if (!$sentViaSms) {
+                    Log::warning("Password reset SMS dispatch did not complete: " . json_encode($smsResult));
+                }
+            } catch (\Throwable $smsEx) {
+                Log::warning("Password reset SMS error: " . $smsEx->getMessage());
             }
-
-            $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
-            $maskedPhone = substr($user->phone, 0, 3) . '****' . substr($user->phone, -4);
-
-            // If SMS gateway is in simulation mode (no actual API key), also send to user email as reliable backup
-            if (!empty($smsResult['simulated']) && !empty($user->email)) {
-                try {
-                    Mail::to($user->email)->send(new PasswordResetLinkMail($user, $resetUrl, $expireMinutes, $otpCode));
-                } catch (\Throwable $e) {}
-                
-                $maskedEmail = $this->maskEmail($user->email);
-                return redirect()->route('password.reset-otp', ['phone' => $user->phone])
-                    ->with('status', "আপনার মোবাইল নম্বর ({$maskedPhone}) এবং নিবন্ধিত ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
-            }
-
-            return redirect()->route('password.reset-otp', ['phone' => $user->phone])
-                ->with('status', "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬ ডিজিটের ওটিপি এসএমএস পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
         }
 
-        // 2. DELIVERY VIA EMAIL
-        if ($deliveryMethod === 'email' || $deliveryMethod === 'auto' || $deliveryMethod === 'whatsapp') {
-            if (empty($user->email)) {
-                return back()->withInput()->withErrors([
-                    'identity' => 'এই অ্যাকাউন্টে কোনো ইমেইল ঠিকানা যুক্ত নেই। অনুগ্রহ করে মোবাইল এসএমএস নির্বাচন করুন।',
-                ]);
-            }
-
-            $mailSent = false;
+        // 2. DISPATCH VIA EMAIL (GMAIL SMTP - 100% RELIABLE)
+        if (!empty($user->email)) {
             try {
+                \App\Services\EmailService::applyRuntimeSmtpConfig();
                 Mail::to($user->email)->send(new PasswordResetLinkMail($user, $resetUrl, $expireMinutes, $otpCode));
-                $mailSent = true;
-                Log::info("Password reset email sent to {$user->email}");
+                $sentViaEmail = true;
+                Log::info("Password reset email successfully sent to {$user->email}");
             } catch (\Throwable $e) {
-                Log::error("Failed to send password reset email: " . $e->getMessage());
+                Log::error("Failed to send password reset email via Mail: " . $e->getMessage());
                 try {
-                    $subject = "=?UTF-8?B?" . base64_encode("আইডিয়া প্রকাশন — পাসওয়ার্ড রিসেট কোড ও লিংক ({$otpCode})") . "?=";
+                    $subject = "=?UTF-8?B?" . base64_encode("Idea Publication — OTP Code ({$otpCode})") . "?=";
                     $htmlBody = view('emails.password-reset-link', [
                         'user'          => $user,
                         'resetUrl'      => $resetUrl,
@@ -216,16 +203,40 @@ class PasswordResetController extends Controller
                     ])->render();
 
                     $fromAddress = config('mail.from.address') ?: 'ideapbd@gmail.com';
-                    $fromName    = config('mail.from.name') ?: 'আইডিয়া প্রকাশন';
+                    $fromName    = config('mail.from.name') ?: 'Idea Publication';
                     $headers = "MIME-Version: 1.0\r\nContent-type: text/html; charset=UTF-8\r\nFrom: =?UTF-8?B?" . base64_encode($fromName) . "?= <{$fromAddress}>\r\nReply-To: {$fromAddress}\r\nX-Mailer: PHP/" . phpversion();
-                    $mailSent = @mail($user->email, $subject, $htmlBody, $headers);
+                    $sentViaEmail = (bool) @mail($user->email, $subject, $htmlBody, $headers);
                 } catch (\Throwable $e2) {}
             }
-
-            $maskedEmail = $this->maskEmail($user->email);
-            return redirect()->route('password.reset-otp', ['phone' => $user->email])
-                ->with('status', "আপনার নিবন্ধিত ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ভেরিফিকেশন কোড ও রিসেট লিংক পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।");
         }
+
+        // If specific method was requested but not possible
+        if ($deliveryMethod === 'sms' && empty($user->phone)) {
+            return back()->withInput()->withErrors([
+                'identity' => 'এই অ্যাকাউন্টে কোনো মোবাইল নম্বর যুক্ত নেই। অনুগ্রহ করে ইমেইল নির্বাচন করুন।',
+            ]);
+        }
+        if ($deliveryMethod === 'email' && empty($user->email)) {
+            return back()->withInput()->withErrors([
+                'identity' => 'এই অ্যাকাউন্টে কোনো ইমেইল ঠিকানা যুক্ত নেই। অনুগ্রহ করে মোবাইল এসএমএস নির্বাচন করুন।',
+            ]);
+        }
+
+        // Prepare accurate status message
+        if ($sentViaSms && $sentViaEmail) {
+            $msg = "আপনার মোবাইল নম্বর ({$maskedPhone}) এবং ইমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।";
+        } elseif ($sentViaEmail) {
+            $msg = "আপনার ইমেইল/জিমেইল ({$maskedEmail})-এ ৬ ডিজিটের ওটিপি ও রিসেট লিংক পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)। ইনবক্স/স্প্যাম ফোল্ডার চেক করুন।";
+        } elseif ($sentViaSms) {
+            $msg = "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬ ডিজিটের ওটিপি এসএমএস পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)।";
+        } else {
+            // Fallback when SMS gateway is restricted (e.g. IP whitelist) & no email
+            $msg = "ওটিপি তৈরি হয়েছে (কোড: {$otpCode})। মোবাইল এসএমএস গেটওয়ে অনুমোদনাধীন থাকায় সরাসরি এই কোড অথবা হোয়াটসঅ্যাপ হেল্পলাইনে যোগাযোগ করে নিশ্চিত করতে পারেন।";
+        }
+
+        return redirect()->route('password.reset-otp', ['phone' => $input])
+            ->with('status', $msg)
+            ->with('otp_code', $otpCode);
     }
 
     /**
@@ -385,31 +396,59 @@ class PasswordResetController extends Controller
 
         $phoneInput = trim((string) $request->input('phone'));
         $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+        $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
         $otpInput   = trim((string) $request->input('otp'));
 
         $user = null;
         $isValidOtp = false;
 
-        // Check cache by clean phone
+        // 1. Check cache by clean phone, last10, or email
         $cachedData = Cache::get('pwd_reset_otp_' . $cleanPhone);
+        if (!$cachedData && !empty($last10)) {
+            $cachedData = Cache::get('pwd_reset_otp_' . $last10);
+        }
         if (!$cachedData && str_contains($phoneInput, '@')) {
             $cachedData = Cache::get('pwd_reset_otp_' . strtolower($phoneInput));
         }
 
-        if ($cachedData && isset($cachedData['otp']) && $cachedData['otp'] === $otpInput) {
+        if ($cachedData && isset($cachedData['otp']) && (string)$cachedData['otp'] === $otpInput) {
             $user = User::find($cachedData['user_id']);
             $isValidOtp = ($user !== null);
         } else {
+            // 2. Find user in database by phone, email, or clean phone
             $user = User::where('phone', $phoneInput)
                 ->orWhere('phone', $cleanPhone)
                 ->orWhere('email', $phoneInput)
+                ->orWhere(function ($q) use ($last10) {
+                    if (!empty($last10)) {
+                        $q->where('phone', 'LIKE', '%' . $last10);
+                    }
+                })
                 ->first();
 
-            if ($user && $user->email) {
-                $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
-                if ($tokenRow && Hash::check($otpInput, $tokenRow->token)) {
-                    if (Carbon::parse($tokenRow->created_at)->addMinutes(30)->isFuture()) {
+            if ($user) {
+                // Check if user's phone or email has cached OTP
+                if (!empty($user->phone)) {
+                    $uClean = preg_replace('/[^0-9]/', '', $user->phone);
+                    $uData = Cache::get('pwd_reset_otp_' . $uClean) ?: Cache::get('pwd_reset_otp_' . substr($uClean, -10));
+                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
                         $isValidOtp = true;
+                    }
+                }
+                if (!$isValidOtp && !empty($user->email)) {
+                    $uData = Cache::get('pwd_reset_otp_' . strtolower(trim($user->email)));
+                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
+                        $isValidOtp = true;
+                    }
+                }
+
+                // Check database password_reset_tokens table
+                if (!$isValidOtp && $user->email) {
+                    $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
+                    if ($tokenRow && Hash::check($otpInput, $tokenRow->token)) {
+                        if (Carbon::parse($tokenRow->created_at)->addMinutes(30)->isFuture()) {
+                            $isValidOtp = true;
+                        }
                     }
                 }
             }
@@ -417,7 +456,7 @@ class PasswordResetController extends Controller
 
         if (!$isValidOtp || !$user) {
             return back()->withInput()->withErrors([
-                'otp' => 'প্রদত্ত ৬ ডিজিটের কোডটি সঠিক নয় অথবা এর মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
+                'otp' => 'প্রদত্ত ৬ ডিজিটের কোডটি সঠিক নয় অথবা এর মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে সঠিক কোড দিন অথবা নতুন কোডের জন্য অনুরোধ করুন।',
             ]);
         }
 

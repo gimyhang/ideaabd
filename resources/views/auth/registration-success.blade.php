@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'রেজিস্ট্রেশন সম্পন্ন — আইডিয়া প্রকাশন')
+@section('title', 'Registration Complete')
 
 @section('content')
 <div class="container py-4 py-md-5">

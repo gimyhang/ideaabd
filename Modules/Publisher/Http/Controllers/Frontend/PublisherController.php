@@ -252,6 +252,14 @@ class PublisherController extends Controller
             ]);
         }
 
+        // Send registration confirmation SMS
+        try {
+            $pubMsg = "আইডিয়া প্রকাশন — সম্মানিত প্রকাশক ({$validated['name']}), প্রকাশনী হিসেবে আপনার রেজিস্ট্রেশন আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদনের পর পাবলিশার পোর্টাল সক্রিয় হবে। হেল্পলাইন: 01726976982";
+            \App\Services\SmsService::send($fullPhone, $pubMsg);
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Publisher registration SMS notice: " . $smsEx->getMessage());
+        }
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success'      => true,

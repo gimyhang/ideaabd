@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'যোগাযোগ ও সহায়তা — আইডিয়া প্রকাশন')
+@section('title', 'Contact')
 @section('meta_description', 'আইডিয়া প্রকাশন কাস্টমার কেয়ার, বই অর্ডার, লেখক প্রকাশনা, পাইকারি বুকশপ ও হেল্পলাইন। সরাসরি কথা বলুন বা বার্তা পাঠান।')
 
 @section('content')

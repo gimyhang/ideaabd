@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে — আইডিয়া প্রকাশন')
+@section('title', 'Pending Approval')
 
 @section('content')
 @include('auth.registration-success')

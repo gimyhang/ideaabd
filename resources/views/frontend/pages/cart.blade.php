@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'শপিং কার্ট ও চেকআউট — ' . config('brand.name'))
+@section('title', 'Cart')
 
 @section('content')
 <div class="container py-4 py-md-5">

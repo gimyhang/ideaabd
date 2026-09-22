@@ -62,13 +62,25 @@ class SiteSetting
     public static function isPhoneVerificationEnabled(): bool
     {
         $val = self::get('phone_verification_enabled', '1');
-        return !in_array((string)$val, ['0', 'false', 'off', 'disabled'], true);
+        if (is_bool($val)) {
+            return $val;
+        }
+        if (is_array($val)) {
+            $val = reset($val);
+        }
+        return !in_array(strtolower(trim((string)$val)), ['0', 'false', 'off', 'disabled', 'null', ''], true);
     }
 
     public static function isEmailVerificationEnabled(): bool
     {
         $val = self::get('email_verification_enabled', '1');
-        return !in_array((string)$val, ['0', 'false', 'off', 'disabled'], true);
+        if (is_bool($val)) {
+            return $val;
+        }
+        if (is_array($val)) {
+            $val = reset($val);
+        }
+        return !in_array(strtolower(trim((string)$val)), ['0', 'false', 'off', 'disabled', 'null', ''], true);
     }
 
     public static function name(): string

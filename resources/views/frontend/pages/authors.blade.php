@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'লেখক ডিরেক্টরি')
+@section('title', 'Authors')
 
 @section('content')
     <section class="px-6 py-10 mx-auto max-w-7xl">

@@ -393,6 +393,16 @@ class RegistrationController extends Controller
             }
         }
 
+        // Send registration SMS notification
+        try {
+            if ($isCustomer) {
+                $welcomeMsg = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার কাস্টমার অ্যাকাউন্ট সফলভাবে সক্রিয় হয়েছে। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
+                \App\Services\SmsService::send($user->phone, $welcomeMsg);
+            }
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Customer welcome SMS note: " . $smsEx->getMessage());
+        }
+
         if ($isCustomer) {
             // Auto login customer and redirect to my-account
             \Illuminate\Support\Facades\Auth::login($user, true);
@@ -412,6 +422,13 @@ class RegistrationController extends Controller
             'seller'    => 'সেলার (Seller)',
         ];
         $typeLabel = $typeLabels[$category] ?? ucfirst($category);
+
+        try {
+            $pendingMsg = "আইডিয়া প্রকাশন — আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে অ্যাকাউন্টটি সক্রিয় হবে। হেল্পলাইন: 01726976982";
+            \App\Services\SmsService::send($user->phone, $pendingMsg);
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Partner pending SMS note: " . $smsEx->getMessage());
+        }
 
         session(['registration_summary' => [
             'user_id'        => $user->id,

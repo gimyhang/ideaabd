@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'পাসওয়ার্ড রিসেট — ideaabd')
+@section('title', 'Forgot Password')
 
 @section('content')
 <div class="container py-5">

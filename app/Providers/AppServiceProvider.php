@@ -52,6 +52,16 @@ class AppServiceProvider extends ServiceProvider
         // Set modern customized pagination across all views
         \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
         \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.custom');
+
+        // Apply dynamic SMTP settings for web requests
+        if (!app()->runningInConsole()) {
+            try {
+                \App\Services\EmailService::applyRuntimeSmtpConfig();
+            } catch (\Throwable $e) {
+                // Ignore if DB not ready yet
+            }
+        }
+
         // Auto-heal/verify blog_posts subtitle column if missing (cached check to avoid slowing down HTTP requests)
         if (!app()->runningInConsole()) {
             \Illuminate\Support\Facades\Cache::remember('db_schema_auto_healed_v2', 86400, function () {

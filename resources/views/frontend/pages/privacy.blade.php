@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'গোপনীয়তা নীতিমালা (Privacy Policy) — আইডিয়া প্রকাশন')
+@section('title', 'Privacy Policy')
 @section('meta_description', 'আইডিয়া প্রকাশন (ideaabd.com) গ্রাহক, লেখক ও পাঠকদের ব্যক্তিগত তথ্যের সর্বোচ্চ নিরাপত্তা এবং গোপনীয়তা বজায় রাখতে প্রতিশ্রুতিবদ্ধ। আমাদের পূর্ণাঙ্গ ডেটা পলিসি পড়ুন।')
 
 @section('content')

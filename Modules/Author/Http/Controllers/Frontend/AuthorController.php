@@ -228,6 +228,14 @@ class AuthorController extends Controller
             'is_verified'            => false,
         ]);
 
+        // Send registration confirmation SMS
+        try {
+            $authorMsg = "আইডিয়া প্রকাশন — সম্মানিত লেখক ({$validated['name']}), লেখক হিসেবে আপনার রেজিস্ট্রেশন আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদনের পর লেখক স্টুডিও সক্রিয় হবে। হেল্পলাইন: 01726976982";
+            \App\Services\SmsService::send($fullPhone, $authorMsg);
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Author registration SMS notice: " . $smsEx->getMessage());
+        }
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success'      => true,

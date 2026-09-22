@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'রিটার্ন ও রিফান্ড পলিসি (Return & Refund Policy) — আইডিয়া প্রকাশন')
+@section('title', 'Refund Policy')
 @section('meta_description', 'আইডিয়া প্রকাশন (ideaabd.com) এর রিটার্ন, রিফান্ড ও ক্ষতিগ্রস্ত বই প্রতিস্থাপন নীতিমালা। সহজ ৭ দিনের রিটার্ন গ্যারান্টি ও দ্রুততম রিফান্ড ব্যবস্থা।')
 
 @section('content')

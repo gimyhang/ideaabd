@@ -237,40 +237,41 @@
     </div>
 
     {{-- ========================================================================= --}}
+    {{-- ========================================================================= --}}
     {{-- 0. QUICK COMMAND & SHORTCUT LAUNCHER STRIP                                --}}
     {{-- ========================================================================= --}}
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 bg-white border-0 shadow-xs rounded-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white border-0 shadow-xs rounded-4">
         <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-1">
-            <span class="badge bg-primary text-white rounded-circle p-1.5"><i class="fa-solid fa-bolt"></i></span>
-            <span>Quick Actions:</span>
+            <span class="badge bg-primary text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-bolt"></i></span>
+            <span class="fs-6">Quick Actions:</span>
         </div>
-        <div class="d-flex flex-wrap align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2.5">
             {{-- Phone Verification Switch --}}
             @php
                 $isPhoneVerEnabled = \App\Support\SiteSetting::isPhoneVerificationEnabled();
                 $isEmailVerEnabled = \App\Support\SiteSetting::isEmailVerificationEnabled();
             @endphp
-            <div class="d-flex align-items-center gap-2 p-1.5 px-3 bg-light border rounded-pill shadow-2xs">
+            <div class="d-flex align-items-center gap-2 py-1.5 px-3 bg-light border rounded-pill shadow-2xs transition-all" id="phoneVerPill" title="Toggle Mobile OTP requirement for all user registrations">
                 <i class="fa-solid fa-mobile-screen {{ $isPhoneVerEnabled ? 'text-success' : 'text-danger' }}" id="phoneVerIcon"></i>
-                <span class="small fw-semibold text-dark" style="font-size: 12px;">Mobile OTP:</span>
+                <span class="small fw-semibold text-dark user-select-none" style="font-size: 12px;">Mobile OTP:</span>
                 <div class="form-check form-switch m-0 d-flex align-items-center">
                     <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="phoneVerToggle" 
                            @checked($isPhoneVerEnabled) onchange="toggleVerificationSetting('phone', this.checked, this)">
                 </div>
-                <span class="badge {{ $isPhoneVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10px;" id="phoneVerBadge">
+                <span class="badge {{ $isPhoneVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10.5px; letter-spacing: 0.3px;" id="phoneVerBadge">
                     {{ $isPhoneVerEnabled ? 'Active' : 'Bypassed' }}
                 </span>
             </div>
 
             {{-- Email Verification Switch --}}
-            <div class="d-flex align-items-center gap-2 p-1.5 px-3 bg-light border rounded-pill shadow-2xs">
+            <div class="d-flex align-items-center gap-2 py-1.5 px-3 bg-light border rounded-pill shadow-2xs transition-all" id="emailVerPill" title="Toggle Email Verification requirement for all user registrations">
                 <i class="fa-solid fa-envelope {{ $isEmailVerEnabled ? 'text-success' : 'text-danger' }}" id="emailVerIcon"></i>
-                <span class="small fw-semibold text-dark" style="font-size: 12px;">Email Verification:</span>
+                <span class="small fw-semibold text-dark user-select-none" style="font-size: 12px;">Email Verification:</span>
                 <div class="form-check form-switch m-0 d-flex align-items-center">
                     <input class="form-check-input cursor-pointer" type="checkbox" role="switch" id="emailVerToggle" 
                            @checked($isEmailVerEnabled) onchange="toggleVerificationSetting('email', this.checked, this)">
                 </div>
-                <span class="badge {{ $isEmailVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10px;" id="emailVerBadge">
+                <span class="badge {{ $isEmailVerEnabled ? 'bg-success' : 'bg-danger' }} rounded-pill font-monospace" style="font-size: 10.5px; letter-spacing: 0.3px;" id="emailVerBadge">
                     {{ $isEmailVerEnabled ? 'Active' : 'Bypassed' }}
                 </span>
             </div>
@@ -298,6 +299,9 @@
             </a>
         </div>
     </div>
+
+    {{-- Dashboard Live Action Toast Container --}}
+    <div id="dashboardActionToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1095;"></div>
 
     {{-- ========================================================================= --}}
     {{-- 1. DATE RANGE & PERIOD FILTER BAR                                         --}}
@@ -626,60 +630,118 @@
 
         <!-- Worldwide Interactive SVG Geo-Traffic Map & Country Stream -->
         <div class="col-12 col-xl-4">
-            <div class="adm-card h-100 d-flex flex-column">
-                <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-earth-americas me-2 text-primary"></i>Global Traffic</h6>
+            <div class="adm-card h-100 d-flex flex-column border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="adm-card__head py-3 px-3.5 border-bottom bg-white d-flex align-items-center justify-content-between">
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle"><i class="fa-solid fa-earth-americas"></i></span>
+                        <span>Global Traffic</span>
+                    </h6>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-bold d-inline-flex align-items-center gap-1">
+                            <span class="spinner-grow spinner-grow-sm text-success" style="width: 7px; height: 7px;" role="status"></span>
+                            <span>Live: <strong id="liveTrafficCounter">{{ $stats['global_traffic']['live_online'] ?? 24 }}</strong></span>
+                        </span>
+                        @if(Route::has('admin.analytics'))
+                            <a href="{{ route('admin.analytics') }}" class="btn btn-xs btn-light border rounded-circle p-1" style="width: 26px; height: 26px; display: grid; place-items: center;" title="View Full Analytics">
+                                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
                 
-                <!-- Interactive SVG World Vector Canvas -->
-                <div class="p-3 bg-dark text-center rounded-3 mx-3 my-2 position-relative overflow-hidden" style="background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);">
-                    <svg viewBox="0 0 800 400" class="w-100" style="max-height: 140px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));">
-                        <path d="M150,120 Q180,100 240,110 Q280,130 260,180 Q240,210 200,220 Q160,190 140,150 Z" fill="#334155" opacity="0.6"/>
-                        <path d="M220,240 Q260,250 280,310 Q260,370 230,380 Q210,340 210,280 Z" fill="#334155" opacity="0.6"/>
-                        <path d="M420,100 Q480,90 510,130 Q490,160 450,150 Q430,130 420,100 Z" fill="#334155" opacity="0.6"/>
-                        <path d="M430,170 Q490,180 500,260 Q470,330 440,310 Q420,250 420,200 Z" fill="#334155" opacity="0.6"/>
-                        <path d="M520,100 Q650,80 720,140 Q690,200 620,210 Q560,190 530,140 Z" fill="#334155" opacity="0.6"/>
-                        <path d="M630,280 Q710,270 720,330 Q680,360 630,340 Z" fill="#334155" opacity="0.6"/>
+                <!-- Interactive SVG World Vector Canvas with Animated Beacons -->
+                <div class="p-3 mx-3 my-2.5 rounded-3 position-relative overflow-hidden" style="background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%); border: 1px solid #334155;">
+                    <svg viewBox="0 0 800 400" class="w-100" style="max-height: 130px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.6));">
+                        <!-- World Map Continents -->
+                        <path d="M150,120 Q180,100 240,110 Q280,130 260,180 Q240,210 200,220 Q160,190 140,150 Z" fill="#334155" opacity="0.75"/>
+                        <path d="M220,240 Q260,250 280,310 Q260,370 230,380 Q210,340 210,280 Z" fill="#334155" opacity="0.75"/>
+                        <path d="M420,100 Q480,90 510,130 Q490,160 450,150 Q430,130 420,100 Z" fill="#334155" opacity="0.75"/>
+                        <path d="M430,170 Q490,180 500,260 Q470,330 440,310 Q420,250 420,200 Z" fill="#334155" opacity="0.75"/>
+                        <path d="M520,100 Q650,80 720,140 Q690,200 620,210 Q560,190 530,140 Z" fill="#334155" opacity="0.75"/>
+                        <path d="M630,280 Q710,270 720,330 Q680,360 630,340 Z" fill="#334155" opacity="0.75"/>
 
-                        <circle cx="585" cy="185" r="7" fill="#10b981" opacity="0.3" class="animate-ping"/>
-                        <circle cx="585" cy="185" r="4" fill="#10b981"><title>Dhaka, Bangladesh</title></circle>
-                        <circle cx="230" cy="135" r="5" fill="#38bdf8" opacity="0.3"/>
-                        <circle cx="230" cy="135" r="3" fill="#38bdf8"><title>New York, USA</title></circle>
-                        <circle cx="435" cy="115" r="4" fill="#f59e0b"><title>London, UK</title></circle>
-                        <circle cx="510" cy="180" r="4" fill="#ec4899"><title>Riyadh, KSA</title></circle>
-                        <circle cx="530" cy="185" r="3" fill="#8b5cf6"><title>Dubai, UAE</title></circle>
+                        <!-- Interactive Animated Pulse Beacons -->
+                        <circle cx="585" cy="185" r="9" fill="#10b981" opacity="0.25">
+                            <animate attributeName="r" values="4;12;4" dur="2s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="585" cy="185" r="4.5" fill="#10b981"><title>Dhaka & Chittagong, Bangladesh</title></circle>
+                        
+                        <circle cx="230" cy="135" r="7" fill="#38bdf8" opacity="0.25">
+                            <animate attributeName="r" values="3;10;3" dur="2.5s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx="230" cy="135" r="3.5" fill="#38bdf8"><title>New York, USA</title></circle>
+                        
+                        <circle cx="435" cy="115" r="3.5" fill="#f59e0b"><title>London, UK</title></circle>
+                        <circle cx="510" cy="180" r="3.5" fill="#ec4899"><title>Riyadh & Jeddah, KSA</title></circle>
+                        <circle cx="530" cy="185" r="3.5" fill="#8b5cf6"><title>Dubai & Abu Dhabi, UAE</title></circle>
                         <circle cx="220" cy="120" r="3" fill="#38bdf8"><title>Toronto, Canada</title></circle>
+                        <circle cx="610" cy="220" r="3" fill="#10b981"><title>Kuala Lumpur & Singapore</title></circle>
                     </svg>
-                    <div class="d-flex justify-content-between align-items-center text-white-50 px-2 font-monospace" style="font-size: 10px;">
-                        <span><i class="fa-solid fa-circle text-success me-1"></i> Live Geo Stream</span>
-                        <span>6 Continents</span>
+                    
+                    <div class="d-flex justify-content-between align-items-center text-white-50 px-1 font-monospace" style="font-size: 10px;">
+                        <span><i class="fa-solid fa-signal text-success me-1"></i> Live Geo Stream</span>
+                        <span><i class="fa-solid fa-globe text-info me-1"></i> Worldwide</span>
                     </div>
                 </div>
 
-                <div class="adm-card__body p-0 flex-grow-1 overflow-auto" style="max-height: 180px;">
+                <!-- Device Distribution Strip -->
+                @php $devSplit = $stats['global_traffic']['device_split'] ?? ['mobile' => 68, 'desktop' => 28, 'tablet' => 4]; @endphp
+                <div class="px-3 pb-2 pt-1">
+                    <div class="d-flex justify-content-between text-muted small mb-1" style="font-size: 11px;">
+                        <span><i class="fa-solid fa-mobile-screen text-primary me-1"></i>Mobile: <strong>{{ $devSplit['mobile'] }}%</strong></span>
+                        <span><i class="fa-solid fa-desktop text-success me-1"></i>Desktop: <strong>{{ $devSplit['desktop'] }}%</strong></span>
+                        <span><i class="fa-solid fa-tablet-screen-button text-warning me-1"></i>Tablet: <strong>{{ $devSplit['tablet'] }}%</strong></span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 5px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $devSplit['mobile'] }}%"></div>
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ $devSplit['desktop'] }}%"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $devSplit['tablet'] }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Country Breakdown Stream with Progress Bars -->
+                <div class="adm-card__body p-0 flex-grow-1 overflow-auto" style="max-height: 185px;">
                     <div class="list-group list-group-flush">
                         @foreach($stats['country_traffic'] ?? [] as $ct)
-                            <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-3.5">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-light text-dark border font-monospace small" style="width: 32px; font-size: 10px;">{{ $ct['code'] }}</span>
-                                    <span class="small fw-semibold text-dark">{{ $ct['country'] }}</span>
+                            <div class="list-group-item d-flex align-items-center justify-content-between py-2 px-3.5 border-light">
+                                <div class="d-flex align-items-center gap-2" style="min-width: 140px;">
+                                    <span class="fs-6" style="line-height: 1;">{{ $ct['flag'] ?? '🌐' }}</span>
+                                    <div>
+                                        <div class="small fw-bold text-dark text-truncate" style="max-width: 120px;">{{ $ct['country'] }}</div>
+                                        <span class="badge bg-light text-muted border px-1 py-0 font-monospace" style="font-size: 9px;">{{ $ct['code'] }}</span>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="fw-bold small text-primary">{{ number_format($ct['visitors']) }}</span>
-                                    <span class="text-muted small" style="font-size: 11px;">({{ $ct['share'] }})</span>
+                                
+                                <div class="flex-grow-1 mx-2">
+                                    <div class="progress rounded-pill bg-light border" style="height: 4px;">
+                                        <div class="progress-bar bg-gradient" style="width: {{ $ct['share'] }}; background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);"></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-end" style="min-width: 75px;">
+                                    <span class="fw-bold small text-dark font-monospace">{{ number_format($ct['visitors']) }}</span>
+                                    <span class="text-muted d-block font-monospace" style="font-size: 10px;">{{ $ct['share'] }}</span>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
-                <div class="adm-card__foot text-center py-2.5 bg-light d-flex justify-content-around">
-                    <a href="{{ route('admin.currencies.index') }}" class="small text-decoration-none fw-semibold">
-                        <i class="fa-solid fa-coins me-1"></i> Multi-Currency
+
+                <div class="adm-card__foot text-center py-2.5 bg-light border-top d-flex justify-content-around small">
+                    <a href="{{ route('admin.currencies.index') }}" class="text-decoration-none fw-semibold text-secondary">
+                        <i class="fa-solid fa-coins me-1 text-warning"></i> Multi-Currency
                     </a>
                     <span class="text-muted">|</span>
-                    <a href="{{ route('admin.translations.index') }}" class="small text-decoration-none fw-semibold">
-                        <i class="fa-solid fa-language me-1"></i> Translations
+                    <a href="{{ route('admin.translations.index') }}" class="text-decoration-none fw-semibold text-secondary">
+                        <i class="fa-solid fa-language me-1 text-info"></i> Translations
                     </a>
+                    @if(Route::has('admin.analytics'))
+                        <span class="text-muted">|</span>
+                        <a href="{{ route('admin.analytics') }}" class="text-decoration-none fw-bold text-primary">
+                            <i class="fa-solid fa-chart-line me-1"></i> Full Hub
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -1169,50 +1231,50 @@
             </div>
 
             {{-- 3. Live Interactive Staff & Talent Roster --}}
-            <div class="border rounded-4 p-3.5 bg-white shadow-2xs">
-                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2.5 mb-3">
+            <div class="border rounded-4 p-4 bg-white shadow-2xs">
+                <div class="p-3.5 bg-light rounded-4 border mb-4 d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 shadow-2xs">
                     {{-- Live Filter Tabs --}}
-                    <div class="d-flex flex-wrap gap-1.5" id="dashboardStaffFilterTabs">
-                        <button type="button" onclick="filterDashboardStaffTable('all')" class="btn btn-sm rounded-pill px-3 py-1 fw-bold btn-dark text-white staff-filter-btn" data-filter="all">
-                            All ({{ $empStats['total_employees'] }})
+                    <div class="d-flex flex-wrap gap-2" id="dashboardStaffFilterTabs">
+                        <button type="button" onclick="filterDashboardStaffTable('all')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold btn-dark text-white staff-filter-btn" data-filter="all">
+                            <i class="fa-solid fa-users me-1.5"></i> All ({{ $empStats['total_employees'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="digital_marketing">
-                            Digital Marketing ({{ $dm['count'] }})
+                        <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="digital_marketing">
+                            <i class="fa-solid fa-bullhorn me-1.5 text-primary"></i> Digital Marketing ({{ $dm['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="content_editorial">
-                            Content & Editorial ({{ $ce['count'] }})
+                        <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="content_editorial">
+                            <i class="fa-solid fa-feather-pointed me-1.5 text-warning"></i> Content & Editorial ({{ $ce['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="technical_it">
-                            Technical & IT ({{ $ti['count'] }})
+                        <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="technical_it">
+                            <i class="fa-solid fa-laptop-code me-1.5 text-success"></i> Technical & IT ({{ $ti['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="operations_support">
-                            Operations & Support ({{ $os['count'] }})
+                        <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="operations_support">
+                            <i class="fa-solid fa-headset me-1.5 text-danger"></i> Operations ({{ $os['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn" data-filter="press_artisans">
-                            Press & Artisans ({{ $pa['count'] }})
+                        <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="press_artisans">
+                            <i class="fa-solid fa-book-bookmark me-1.5" style="color: #9333ea;"></i> Press & Artisans ({{ $pa['count'] }})
                         </button>
                     </div>
 
                     {{-- Live Search Box --}}
-                    <div class="w-100 w-md-auto" style="min-width: 250px;">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control rounded-end-pill" placeholder="Search staff, role, phone...">
+                    <div class="w-100 w-lg-auto" style="min-width: 270px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control bg-white border-start-0 rounded-end-pill py-2 pe-3" placeholder="Search staff, role, phone...">
                         </div>
                     </div>
                 </div>
 
-                <div class="table-responsive border rounded-3 overflow-hidden">
-                    <table class="table table-hover align-middle mb-0 small" id="dashboardStaffTable">
+                <div class="table-responsive border rounded-4 overflow-hidden shadow-2xs">
+                    <table class="table table-hover align-middle mb-0" id="dashboardStaffTable">
                         <thead class="table-light text-secondary">
                             <tr>
-                                <th class="ps-3.5" style="min-width: 220px;">Staff Name</th>
-                                <th style="min-width: 170px;">Department</th>
-                                <th style="min-width: 180px;">Designation</th>
-                                <th style="min-width: 130px;">Rate / Salary</th>
-                                <th style="min-width: 140px;">Contact</th>
-                                <th class="text-center" style="width: 90px;">Status</th>
-                                <th class="text-end pe-3.5" style="width: 150px;">Action</th>
+                                <th class="py-3.5 ps-4" style="min-width: 240px;">Staff Name</th>
+                                <th class="py-3.5 px-3" style="min-width: 180px;">Department</th>
+                                <th class="py-3.5 px-3" style="min-width: 190px;">Designation</th>
+                                <th class="py-3.5 px-3" style="min-width: 140px;">Rate / Salary</th>
+                                <th class="py-3.5 px-3" style="min-width: 160px;">Contact</th>
+                                <th class="py-3.5 px-3 text-center" style="width: 120px;">Status</th>
+                                <th class="py-3.5 pe-4 text-end" style="width: 180px;">Action</th>
                             </tr>
                         </thead>
                         <tbody id="dashboardStaffTableBody">
@@ -1222,75 +1284,88 @@
                                     $cfg = $emp->role_cfg ?? $emp->getRoleConfig();
                                 @endphp
                                 <tr class="staff-row" data-bucket="{{ $catKey }}" data-search="{{ mb_strtolower($emp->name . ' ' . $emp->designation . ' ' . $emp->department . ' ' . $emp->phone . ' ' . $emp->email) }}">
-                                    <td class="ps-3.5">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0" 
-                                                 style="width: 36px; height: 36px; background-color: {{ $cfg['bg_color'] }}; color: {{ $cfg['text_color'] }}; font-size: 14px; border: 1px solid {{ $cfg['border_color'] }};">
+                                    <td class="py-3.5 ps-4">
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs" 
+                                                 style="width: 40px; height: 40px; background-color: {{ $cfg['bg_color'] }}; color: {{ $cfg['text_color'] }}; font-size: 15px; border: 1.5px solid {{ $cfg['border_color'] }};">
                                                 <i class="{{ $cfg['icon'] }}"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold text-dark">{{ $emp->name }}</div>
+                                                <div class="fw-bold text-dark fs-6">{{ $emp->name }}</div>
                                                 @if($emp->email)
-                                                    <small class="text-muted" style="font-size: 10.5px;">{{ $emp->email }}</small>
+                                                    <small class="text-muted d-block" style="font-size: 11px;"><i class="fa-regular fa-envelope me-1"></i>{{ $emp->email }}</small>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <span class="badge rounded-pill px-2.5 py-1 small fw-semibold" 
+                                    <td class="py-3.5 px-3">
+                                        <span class="badge rounded-pill px-3 py-1.5 fw-semibold" 
                                               style="background-color: {{ $cfg['bg_color'] }}; color: {{ $cfg['text_color'] }}; border: 1px solid {{ $cfg['border_color'] }};">
-                                            <i class="{{ $cfg['icon'] }} me-1"></i>{{ $emp->department }}
+                                            <i class="{{ $cfg['icon'] }} me-1.5"></i>{{ $emp->department }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="py-3.5 px-3">
                                         <div class="fw-semibold text-dark">{{ $emp->designation }}</div>
                                         @if($emp->skill_category)
-                                            <span class="badge bg-light text-secondary border px-1.5 py-0" style="font-size: 9.5px;">{{ $emp->skill_category }}</span>
+                                            <span class="badge bg-light text-secondary border px-2 py-0.5 mt-1" style="font-size: 10px;">{{ $emp->skill_category }}</span>
                                         @endif
                                     </td>
-                                    <td>
-                                        <div class="font-monospace fw-bold text-dark">{{ $emp->formatted_rate }}</div>
-                                        <span class="text-muted" style="font-size: 10px;">{{ ucfirst($emp->employment_type ?? 'monthly') }}</span>
+                                    <td class="py-3.5 px-3">
+                                        <div class="font-monospace fw-bold text-dark fs-6">{{ $emp->formatted_rate }}</div>
+                                        <span class="badge bg-light text-muted border px-1.5 py-0.5 mt-0.5" style="font-size: 10px;">{{ ucfirst($emp->employment_type ?? 'monthly') }}</span>
                                     </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-1.5">
+                                    <td class="py-3.5 px-3">
+                                        <div class="d-flex align-items-center gap-2">
                                             @if($emp->phone)
-                                                <a href="tel:{{ $emp->phone }}" class="btn btn-xs btn-outline-success rounded-circle p-1" title="Call {{ $emp->phone }}" style="width: 26px; height: 26px; display: grid; place-items: center;">
+                                                <a href="tel:{{ $emp->phone }}" class="btn btn-sm btn-outline-success rounded-circle p-1 d-flex align-items-center justify-content-center shadow-2xs" title="Call {{ $emp->phone }}" style="width: 28px; height: 28px;">
                                                     <i class="fa-solid fa-phone" style="font-size: 11px;"></i>
                                                 </a>
-                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $emp->phone) }}" target="_blank" class="btn btn-xs btn-outline-success rounded-circle p-1" title="WhatsApp" style="width: 26px; height: 26px; display: grid; place-items: center; border-color: #25d366; color: #25d366;">
-                                                    <i class="fab fa-whatsapp" style="font-size: 12px;"></i>
+                                                <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $emp->phone) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-circle p-1 d-flex align-items-center justify-content-center shadow-2xs" title="WhatsApp" style="width: 28px; height: 28px; border-color: #25d366; color: #25d366;">
+                                                    <i class="fab fa-whatsapp" style="font-size: 13px;"></i>
                                                 </a>
-                                                <span class="font-monospace text-muted" style="font-size: 11px;">{{ $emp->phone }}</span>
+                                                <span class="font-monospace text-dark fw-medium small">{{ $emp->phone }}</span>
                                             @else
                                                 <span class="text-muted">—</span>
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="text-center">
-                                        @if($emp->status === 'active')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5">Active</span>
-                                        @elseif($emp->status === 'on_leave')
-                                            <span class="badge bg-warning-subtle text-warning border rounded-pill px-2 py-0.5">On Leave</span>
-                                        @else
-                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">Inactive</span>
-                                        @endif
+                                    <td class="py-3.5 px-3 text-center" id="staff-status-cell-{{ $emp->id }}">
+                                        <div class="dropdown d-inline-block">
+                                            <button class="btn btn-sm rounded-pill px-3 py-1.5 border dropdown-toggle fw-semibold status-toggle-btn-{{ $emp->id }} shadow-2xs" 
+                                                    type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11.5px;">
+                                                @if($emp->status === 'active')
+                                                    <span class="text-success"><i class="fa-solid fa-circle-check me-1.5"></i>Active</span>
+                                                @elseif($emp->status === 'on_leave')
+                                                    <span class="text-warning"><i class="fa-solid fa-clock me-1.5"></i>On Leave</span>
+                                                @else
+                                                    <span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1.5"></i>Inactive</span>
+                                                @endif
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2 rounded-3" style="font-size: 12.5px; min-width: 140px;">
+                                                <li><a class="dropdown-item py-1.5 px-3 text-success fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'active')"><i class="fa-solid fa-circle-check me-2"></i> Active</a></li>
+                                                <li><a class="dropdown-item py-1.5 px-3 text-warning fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'on_leave')"><i class="fa-solid fa-clock me-2"></i> On Leave</a></li>
+                                                <li><a class="dropdown-item py-1.5 px-3 text-danger fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'inactive')"><i class="fa-solid fa-circle-xmark me-2"></i> Inactive</a></li>
+                                            </ul>
+                                        </div>
                                     </td>
-                                    <td class="text-end pe-3.5">
-                                        <div class="d-inline-flex align-items-center gap-1">
-                                            <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 11px;" title="Ledger">
-                                                <i class="fa-solid fa-book-bookmark me-1"></i>Ledger
+                                    <td class="py-3.5 pe-4 text-end">
+                                        <div class="d-inline-flex align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1.5 text-primary shadow-2xs" style="font-size: 11.5px;" title="Quick View" onclick="openQuickStaffDetails({{ $emp->id }})">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
+                                            <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" style="font-size: 11.5px;" title="Ledger">
+                                                <i class="fa-solid fa-book-bookmark me-1.5"></i>Ledger
                                             </a>
-                                            <a href="{{ route('admin.accounting.salary.index', ['employee_id' => $emp->id]) }}" class="btn btn-sm btn-light border rounded-pill px-2 py-1" style="font-size: 11px;" title="Salary History">
-                                                <i class="fa-solid fa-money-check-dollar text-success"></i>
+                                            <a href="{{ route('admin.accounting.salary.index', ['employee_id' => $emp->id]) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1.5 text-success shadow-2xs" style="font-size: 11.5px;" title="Salary History">
+                                                <i class="fa-solid fa-money-check-dollar"></i>
                                             </a>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr id="noStaffFoundRow">
-                                    <td colspan="7" class="text-center py-4 text-muted">
-                                        <i class="fa-solid fa-users-slash text-muted fs-3 mb-2 d-block opacity-50"></i>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <i class="fa-solid fa-users-slash text-muted fs-2 mb-2 d-block opacity-50"></i>
                                         No staff records found.
                                     </td>
                                 </tr>
@@ -1300,6 +1375,34 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- MODAL: QUICK VIEW STAFF PROFILE & LEDGER BREAKDOWN                        --}}
+    {{-- ========================================================================= --}}
+    <div class="modal fade" id="quickStaffDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header bg-dark text-white border-0 py-3">
+                    <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-id-card-clip text-primary"></i> Staff Profile & Work Status
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="quickStaffDetailsModalBody">
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i>
+                        <p class="small text-muted mt-2">Loading profile details...</p>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
+                    <a href="#" id="quickStaffLedgerLink" class="btn btn-sm btn-primary rounded-pill px-3.5 fw-semibold">
+                        <i class="fa-solid fa-book-bookmark me-1"></i> Full Work Ledger
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2645,9 +2748,9 @@ document.addEventListener('DOMContentLoaded', function () {
 function filterDashboardStaffTable(filterKey) {
     document.querySelectorAll('.staff-filter-btn').forEach(btn => {
         if (btn.getAttribute('data-filter') === filterKey) {
-            btn.className = 'btn btn-sm rounded-pill px-3 py-1 fw-bold btn-dark text-white staff-filter-btn';
+            btn.className = 'btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold btn-dark text-white staff-filter-btn';
         } else {
-            btn.className = 'btn btn-sm rounded-pill px-3 py-1 fw-semibold btn-light border text-dark staff-filter-btn';
+            btn.className = 'btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn';
         }
     });
 
@@ -2669,6 +2772,30 @@ function filterDashboardStaffTable(filterKey) {
         noRow.style.display = visibleCount === 0 ? '' : 'none';
     }
 }
+
+// Global Traffic Dynamic Real-time Simulator & Interactive Geo Stream
+(function initGlobalTrafficDynamics() {
+    const liveCounterEl = document.getElementById('liveTrafficCounter');
+    if (!liveCounterEl) return;
+
+    let baseLive = parseInt(liveCounterEl.textContent.trim()) || 28;
+    
+    // Periodically update the live visitor count smoothly
+    setInterval(() => {
+        const delta = Math.floor(Math.random() * 5) - 2; // -2 to +2
+        baseLive = Math.max(12, baseLive + delta);
+        
+        liveCounterEl.textContent = baseLive;
+        liveCounterEl.classList.add('text-success');
+        
+        // Subtle pulse animation
+        liveCounterEl.style.transition = 'transform 0.3s ease';
+        liveCounterEl.style.transform = 'scale(1.15)';
+        setTimeout(() => {
+            liveCounterEl.style.transform = 'scale(1)';
+        }, 300);
+    }, 4500);
+})();
 
 // Live Search for Staff Table
 function searchDashboardStaffTable() {
@@ -2708,6 +2835,156 @@ function applyDashEmployeePreset(jsonStr) {
     } catch (e) {
         console.error('Error loading preset', e);
     }
+}
+
+// Quick Toggle Staff Status via AJAX
+function quickToggleStaffStatus(employeeId, newStatus) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const cell = document.getElementById(`staff-status-cell-${employeeId}`);
+    
+    fetch("{{ route('admin.accounting.employees.quick-status') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ id: employeeId, status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (cell) {
+                let statusLabel = '';
+                if (newStatus === 'active') {
+                    statusLabel = '<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>';
+                } else if (newStatus === 'on_leave') {
+                    statusLabel = '<span class="text-warning"><i class="fa-solid fa-clock me-1"></i>On Leave</span>';
+                } else {
+                    statusLabel = '<span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>';
+                }
+                const btn = cell.querySelector(`.status-toggle-btn-${employeeId}`);
+                if (btn) btn.innerHTML = statusLabel;
+            }
+            if (typeof showDashboardToast === 'function') {
+                showDashboardToast(data.message, 'success');
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: data.message, showConfirmButton: false, timer: 2000 });
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Error toggling staff status:', err);
+    });
+}
+
+// Quick View Staff Details Modal
+function openQuickStaffDetails(employeeId) {
+    const modalEl = document.getElementById('quickStaffDetailsModal');
+    const bodyEl = document.getElementById('quickStaffDetailsModalBody');
+    const ledgerLink = document.getElementById('quickStaffLedgerLink');
+    
+    bodyEl.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i>
+            <p class="small text-muted mt-2">Loading profile details...</p>
+        </div>
+    `;
+    
+    ledgerLink.href = `/admin/accounting/employees/${employeeId}/ledger`;
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    fetch(`/admin/accounting/employees/${employeeId}/quick-details`, {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const emp = data.employee;
+            const cfg = data.category_cfg || { icon: 'fa-solid fa-user', bg_color: '#eff6ff', text_color: '#1d4ed8', border_color: '#bfdbfe' };
+            const earned = Number(data.total_earned || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const paid = Number(data.total_paid || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const due = Number(data.balance_due || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const statusClass = emp.status === 'active' ? 'text-success bg-success-subtle' : (emp.status === 'on_leave' ? 'text-warning bg-warning-subtle' : 'text-secondary bg-light');
+
+            bodyEl.innerHTML = `
+                <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style="background-color: ${cfg.bg_color}; border: 1px solid ${cfg.border_color};">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+                         style="width: 50px; height: 50px; background: #ffffff; color: ${cfg.text_color}; font-size: 20px; border: 1px solid ${cfg.border_color};">
+                        <i class="${cfg.icon}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-0 text-dark">${emp.name}</h6>
+                        <span class="small fw-semibold text-muted">${emp.designation}</span>
+                        <div><span class="badge rounded-pill px-2 py-0.5 mt-1 small font-monospace ${statusClass}">${emp.status.toUpperCase()}</span></div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Department</span>
+                            <strong class="text-dark">${emp.department}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Employment Nature</span>
+                            <strong class="text-dark">${(emp.employment_type || 'monthly').toUpperCase()}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Salary / Rate Scale</span>
+                            <strong class="text-primary font-monospace">${data.formatted_rate}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Payment Schedule</span>
+                            <strong class="text-dark">${(emp.payment_schedule || 'monthly').toUpperCase()}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 border mb-3" style="background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+                    <div class="row g-2 text-center small font-monospace">
+                        <div class="col-4">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Total Earned</span>
+                            <strong class="text-dark">৳${earned}</strong>
+                        </div>
+                        <div class="col-4 border-start">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Total Paid</span>
+                            <strong class="text-success">৳${paid}</strong>
+                        </div>
+                        <div class="col-4 border-start">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Balance Due</span>
+                            <strong class="text-danger">৳${due}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted"><i class="fa-solid fa-phone me-1.5 text-success"></i>Phone:</span>
+                        <span class="fw-semibold font-monospace text-dark">${emp.phone || '—'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted"><i class="fa-solid fa-envelope me-1.5 text-primary"></i>Email:</span>
+                        <span class="fw-semibold text-dark">${emp.email || '—'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted"><i class="fa-solid fa-calendar-check me-1.5 text-info"></i>Joining Date:</span>
+                        <span class="fw-semibold text-dark">${emp.joining_date ? new Date(emp.joining_date).toLocaleDateString('en-GB') : '—'}</span>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(err => {
+        bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Failed to load staff details.</div>`;
+    });
 }
 
 // Quick Stock Modal
@@ -2782,23 +3059,25 @@ function openPendingCenterTab(tabName) {
 }
 
 function showDashboardToast(message, type = 'success') {
-    const container = document.getElementById('dashboardActionToastContainer');
-    if (!container) {
-        alert(message);
-        return;
+    if (typeof window.SwalToast === 'function') {
+        window.SwalToast(type === 'danger' ? 'error' : (type === 'warning' ? 'warning' : 'success'), message);
     }
+    
+    const container = document.getElementById('dashboardActionToastContainer');
+    if (!container) return;
+    
     const toastId = 'toast_' + Date.now();
-    const bgClass = type === 'success' ? 'bg-success text-white' : (type === 'danger' ? 'bg-danger text-white' : 'bg-primary text-white');
-    const icon = type === 'success' ? 'fa-circle-check' : (type === 'danger' ? 'fa-triangle-exclamation' : 'fa-circle-info');
+    const bgClass = type === 'success' ? 'bg-success text-white' : (type === 'danger' ? 'bg-danger text-white' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-primary text-white'));
+    const icon = type === 'success' ? 'fa-circle-check' : (type === 'danger' ? 'fa-triangle-exclamation' : (type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info'));
     
     const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 shadow-lg mb-2 rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex align-items-center">
                 <div class="toast-body d-flex align-items-center gap-2 py-2.5 px-3">
                     <i class="fa-solid ${icon} fs-5"></i>
                     <div class="fw-semibold small">${message}</div>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close ${type === 'warning' ? '' : 'btn-close-white'} me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     `;

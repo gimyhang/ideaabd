@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ওয়েবজিন')
+@section('title', 'Webzine')
 
 @section('content')
 

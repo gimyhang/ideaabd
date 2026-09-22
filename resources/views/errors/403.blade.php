@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'অনুমতি নেই (৪০৩) — আইডিয়া প্রকাশন')
+@section('title', 'Access Denied')
 
 @section('content')
 <div class="container py-5 my-md-5">

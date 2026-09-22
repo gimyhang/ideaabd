@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'সেশন মেয়াদোত্তীর্ণ (৪১৯) — আইডিয়া প্রকাশন')
+@section('title', 'Session Expired')
 
 @section('content')
 <div class="container py-5 my-md-5">

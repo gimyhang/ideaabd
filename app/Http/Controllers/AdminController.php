@@ -436,10 +436,11 @@ class AdminController extends Controller
             }
 
             \App\Support\SiteSetting::clearCache();
+            \Illuminate\Support\Facades\Cache::forget('site_global_settings_cache');
 
-            $statusText = $status ? 'Active (সক্রিয়)' : 'Disabled (সাময়িক বন্ধ)';
+            $statusText = $status ? 'Active (সক্রিয়)' : 'Bypassed (সাময়িক বন্ধ/বাইপাস)';
             $typeLabel = match ($type) {
-                'phone' => 'Mobile / Phone OTP Verification',
+                'phone' => 'Mobile OTP Verification',
                 'email' => 'Email Verification',
                 default => 'Email & Mobile Verification',
             };

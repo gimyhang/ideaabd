@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'গবেষণা ও নিবন্ধ — আইডিয়া প্রকাশন')
+@section('title', 'Research')
 
 @section('content')
 <div class="container py-4 mb-5">

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'নতুন অ্যাকাউন্ট তৈরি করুন — আইডিয়া প্রকাশন')
+@section('title', 'Register')
 
 @section('content')
 <div class="container py-4 py-md-5">

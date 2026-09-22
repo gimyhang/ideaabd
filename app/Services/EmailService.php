@@ -36,17 +36,33 @@ class EmailService
     {
         $smtp = self::getSmtpSettings();
 
-        if (!empty($smtp['host'])) {
+        if (!empty($smtp['host']) && $smtp['host'] !== '127.0.0.1') {
+            $encryption = $smtp['encryption'];
+            if ($encryption === 'none' || empty($encryption)) {
+                $encryption = null;
+            } elseif (in_array((int)$smtp['port'], [465], true) && $encryption === 'tls') {
+                $encryption = 'ssl';
+            } elseif (in_array((int)$smtp['port'], [587], true) && $encryption === 'ssl') {
+                $encryption = 'tls';
+            }
+
             Config::set('mail.default', $smtp['mailer'] ?: 'smtp');
             Config::set('mail.mailers.smtp.host', $smtp['host']);
             Config::set('mail.mailers.smtp.port', (int) $smtp['port']);
-            Config::set('mail.mailers.smtp.encryption', $smtp['encryption'] === 'none' ? null : $smtp['encryption']);
+            Config::set('mail.mailers.smtp.encryption', $encryption);
             Config::set('mail.mailers.smtp.username', $smtp['username']);
             Config::set('mail.mailers.smtp.password', $smtp['password']);
             
             if (!empty($smtp['from_address'])) {
                 Config::set('mail.from.address', $smtp['from_address']);
                 Config::set('mail.from.name', $smtp['from_name']);
+            }
+
+            try {
+                Mail::purge('smtp');
+                Mail::purge(config('mail.default'));
+            } catch (\Throwable $e) {
+                // Ignore purge errors
             }
         }
     }

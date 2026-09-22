@@ -239,22 +239,47 @@
                                     @endif
                                 </td>
                                 <td class="small text-muted">
-                                    <div><i class="fa-solid fa-phone me-1 text-primary"></i>{{ $emp->phone ?: 'N/A' }}</div>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        @if($emp->phone)
+                                            <a href="tel:{{ $emp->phone }}" class="btn btn-xs btn-outline-success rounded-circle p-1" title="Call {{ $emp->phone }}" style="width: 26px; height: 26px; display: grid; place-items: center;">
+                                                <i class="fa-solid fa-phone" style="font-size: 11px;"></i>
+                                            </a>
+                                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $emp->phone) }}" target="_blank" class="btn btn-xs btn-outline-success rounded-circle p-1" title="WhatsApp" style="width: 26px; height: 26px; display: grid; place-items: center; border-color: #25d366; color: #25d366;">
+                                                <i class="fab fa-whatsapp" style="font-size: 12px;"></i>
+                                            </a>
+                                            <span class="font-monospace text-dark fw-semibold" style="font-size: 11px;">{{ $emp->phone }}</span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </div>
                                     @if($emp->email)
-                                        <div style="font-size: 11px;"><i class="fa-solid fa-envelope me-1 text-info"></i>{{ $emp->email }}</div>
+                                        <div class="mt-0.5 text-muted" style="font-size: 10.5px;"><i class="fa-solid fa-envelope me-1 text-primary"></i>{{ $emp->email }}</div>
                                     @endif
                                 </td>
-                                <td class="text-center">
-                                    @if($emp->status === 'active')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small">Active</span>
-                                    @elseif($emp->status === 'inactive')
-                                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1 small">Inactive</span>
-                                    @else
-                                        <span class="badge bg-warning-subtle text-warning border rounded-pill px-2.5 py-1 small">On Leave</span>
-                                    @endif
+                                <td class="text-center" id="staff-status-cell-{{ $emp->id }}">
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-xs rounded-pill px-2.5 py-0.5 border dropdown-toggle fw-semibold status-toggle-btn-{{ $emp->id }}" 
+                                                type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11px;">
+                                            @if($emp->status === 'active')
+                                                <span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                                            @elseif($emp->status === 'on_leave')
+                                                <span class="text-warning"><i class="fa-solid fa-clock me-1"></i>On Leave</span>
+                                            @else
+                                                <span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>
+                                            @endif
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-1" style="font-size: 12px; min-width: 130px;">
+                                            <li><a class="dropdown-item py-1 text-success fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'active')"><i class="fa-solid fa-circle-check me-1.5"></i> Active</a></li>
+                                            <li><a class="dropdown-item py-1 text-warning fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'on_leave')"><i class="fa-solid fa-clock me-1.5"></i> On Leave</a></li>
+                                            <li><a class="dropdown-item py-1 text-danger fw-semibold" href="javascript:void(0)" onclick="quickToggleStaffStatus({{ $emp->id }}, 'inactive')"><i class="fa-solid fa-circle-xmark me-1.5"></i> Inactive</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                                 <td class="text-end pe-3.5">
                                     <div class="d-inline-flex align-items-center gap-1.5">
+                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1 text-primary shadow-2xs" style="font-size: 11px;" title="Quick View Profile" onclick="openQuickStaffDetails({{ $emp->id }})">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
                                         <a href="{{ route('admin.accounting.employees.ledger', $emp->id) }}" 
                                            class="btn btn-sm rounded-pill px-2.5 py-1 small fw-semibold shadow-2xs {{ $empType === 'contract_piece' ? 'btn-purple text-white' : 'btn-outline-primary' }}"
                                            style="{{ $empType === 'contract_piece' ? 'background-color: #7e22ce; border-color: #7e22ce;' : '' }}"
@@ -624,6 +649,32 @@
     </div>
 </div>
 
+{{-- MODAL: QUICK VIEW STAFF PROFILE & LEDGER BREAKDOWN --}}
+<div class="modal fade" id="quickStaffDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-id-card-clip text-primary"></i> Staff Profile & Work Status
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="quickStaffDetailsModalBody">
+                <div class="text-center py-4">
+                    <i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i>
+                    <p class="small text-muted mt-2">Loading profile details...</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
+                <a href="#" id="quickStaffLedgerLink" class="btn btn-sm btn-primary rounded-pill px-3.5 fw-semibold">
+                    <i class="fa-solid fa-book-bookmark me-1"></i> Full Work Ledger
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 function onEmploymentTypeChanged(prefix, empType) {
@@ -748,6 +799,154 @@ function openEditEmployeeModal(emp) {
 
     const modal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
     modal.show();
+}
+
+// Quick Toggle Staff Status via AJAX
+function quickToggleStaffStatus(employeeId, newStatus) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const cell = document.getElementById(`staff-status-cell-${employeeId}`);
+    
+    fetch("{{ route('admin.accounting.employees.quick-status') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ id: employeeId, status: newStatus })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (cell) {
+                let statusLabel = '';
+                if (newStatus === 'active') {
+                    statusLabel = '<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>';
+                } else if (newStatus === 'on_leave') {
+                    statusLabel = '<span class="text-warning"><i class="fa-solid fa-clock me-1"></i>On Leave</span>';
+                } else {
+                    statusLabel = '<span class="text-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>';
+                }
+                const btn = cell.querySelector(`.status-toggle-btn-${employeeId}`);
+                if (btn) btn.innerHTML = statusLabel;
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: data.message, showConfirmButton: false, timer: 2000 });
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Error toggling staff status:', err);
+    });
+}
+
+// Quick View Staff Details Modal
+function openQuickStaffDetails(employeeId) {
+    const modalEl = document.getElementById('quickStaffDetailsModal');
+    const bodyEl = document.getElementById('quickStaffDetailsModalBody');
+    const ledgerLink = document.getElementById('quickStaffLedgerLink');
+    
+    bodyEl.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i>
+            <p class="small text-muted mt-2">Loading profile details...</p>
+        </div>
+    `;
+    
+    ledgerLink.href = `/admin/accounting/employees/${employeeId}/ledger`;
+    const bsModal = new bootstrap.Modal(modalEl);
+    bsModal.show();
+
+    fetch(`/admin/accounting/employees/${employeeId}/quick-details`, {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const emp = data.employee;
+            const cfg = data.category_cfg || { icon: 'fa-solid fa-user', bg_color: '#eff6ff', text_color: '#1d4ed8', border_color: '#bfdbfe' };
+            const earned = Number(data.total_earned || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const paid = Number(data.total_paid || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const due = Number(data.balance_due || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
+            const statusClass = emp.status === 'active' ? 'text-success bg-success-subtle' : (emp.status === 'on_leave' ? 'text-warning bg-warning-subtle' : 'text-secondary bg-light');
+
+            bodyEl.innerHTML = `
+                <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style="background-color: ${cfg.bg_color}; border: 1px solid ${cfg.border_color};">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" 
+                         style="width: 50px; height: 50px; background: #ffffff; color: ${cfg.text_color}; font-size: 20px; border: 1px solid ${cfg.border_color};">
+                        <i class="${cfg.icon}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="fw-bold mb-0 text-dark">${emp.name}</h6>
+                        <span class="small fw-semibold text-muted">${emp.designation}</span>
+                        <div><span class="badge rounded-pill px-2 py-0.5 mt-1 small font-monospace ${statusClass}">${emp.status.toUpperCase()}</span></div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Department</span>
+                            <strong class="text-dark">${emp.department}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Employment Nature</span>
+                            <strong class="text-dark">${(emp.employment_type || 'monthly').toUpperCase()}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Salary / Rate Scale</span>
+                            <strong class="text-primary font-monospace">${data.formatted_rate}</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2.5 bg-light rounded-3 border">
+                            <span class="text-muted d-block" style="font-size: 11px;">Payment Schedule</span>
+                            <strong class="text-dark">${(emp.payment_schedule || 'monthly').toUpperCase()}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 border mb-3" style="background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+                    <div class="row g-2 text-center small font-monospace">
+                        <div class="col-4">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Total Earned</span>
+                            <strong class="text-dark">৳${earned}</strong>
+                        </div>
+                        <div class="col-4 border-start">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Total Paid</span>
+                            <strong class="text-success">৳${paid}</strong>
+                        </div>
+                        <div class="col-4 border-start">
+                            <span class="text-muted d-block" style="font-size: 10.5px;">Balance Due</span>
+                            <strong class="text-danger">৳${due}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted"><i class="fa-solid fa-phone me-1.5 text-success"></i>Phone:</span>
+                        <span class="fw-semibold font-monospace text-dark">${emp.phone || '—'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted"><i class="fa-solid fa-envelope me-1.5 text-primary"></i>Email:</span>
+                        <span class="fw-semibold text-dark">${emp.email || '—'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted"><i class="fa-solid fa-calendar-check me-1.5 text-info"></i>Joining Date:</span>
+                        <span class="fw-semibold text-dark">${emp.joining_date ? new Date(emp.joining_date).toLocaleDateString('en-GB') : '—'}</span>
+                    </div>
+                </div>
+            `;
+        }
+    })
+    .catch(err => {
+        bodyEl.innerHTML = `<div class="alert alert-danger mb-0">Failed to load staff details.</div>`;
+    });
 }
 </script>
 @endpush

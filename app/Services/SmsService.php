@@ -9,9 +9,9 @@ class SmsService
 {
     public const DEFAULT_API_KEY   = 'NDZQOR8CI0fWSxqk1go8';
     public const DEFAULT_SENDER_ID = '8809617634835';
-    public const DEFAULT_API_URL   = 'http://bulksmsbd.net/api/smsapi';
-    public const DEFAULT_MANY_URL  = 'http://bulksmsbd.net/api/smsapimany';
-    public const DEFAULT_BAL_URL   = 'http://bulksmsbd.net/api/getBalanceApi';
+    public const DEFAULT_API_URL   = 'https://bulksmsbd.net/api/smsapi';
+    public const DEFAULT_MANY_URL  = 'https://bulksmsbd.net/api/smsapimany';
+    public const DEFAULT_BAL_URL   = 'https://bulksmsbd.net/api/getBalanceApi';
 
     /**
      * Normalize a phone number to standard Bangladeshi international format (8801XXXXXXXXX).
