@@ -469,6 +469,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/entries', 'storeEntry')->name('entries.store');
         Route::delete('/entries/{entry}', 'destroyEntry')->name('entries.destroy');
         Route::get('/invoices', 'invoices')->name('invoices.index');
+        Route::get('/invoices/export', 'exportInvoices')->name('invoices.export');
+        Route::post('/invoices/bulk-action', 'bulkActionInvoices')->name('invoices.bulk-action');
         Route::get('/invoices/search-books', 'searchBooks')->name('invoices.search-books');
         Route::get('/invoices/customer-search', 'searchCustomers')->name('invoices.customer-search');
         Route::get('/invoices/customer-due-info', 'getCustomerDueInfo')->name('invoices.customer-due-info');
@@ -478,6 +480,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/{invoice}', 'showInvoice')->name('invoices.show');
         Route::get('/invoices/{invoice}/edit', 'editInvoice')->name('invoices.edit');
         Route::put('/invoices/{invoice}', 'updateInvoice')->name('invoices.update');
+        Route::post('/invoices/{invoice}/quick-payment', 'quickPayment')->name('invoices.quick-payment');
+        Route::post('/invoices/{invoice}/duplicate', 'duplicateInvoice')->name('invoices.duplicate');
+        Route::post('/invoices/{invoice}/quick-sms', 'quickSendSms')->name('invoices.quick-sms');
         Route::post('/invoices/{invoice}/payments', 'storeInvoicePayment')->name('invoices.payments.store');
         Route::put('/invoices/payments/{payment}', 'updateInvoicePayment')->name('invoices.payments.update');
         Route::delete('/invoices/payments/{payment}', 'destroyInvoicePayment')->name('invoices.payments.destroy');

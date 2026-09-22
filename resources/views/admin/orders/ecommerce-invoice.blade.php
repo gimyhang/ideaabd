@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="bn" data-theme="navy" data-lang="bn">
+<html lang="en" data-theme="navy">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>ক্যাশ মেমো / ইনভয়েস #{{ $order->order_number ?? $order->id }} — {{ \App\Support\SiteSetting::name() ?? 'আইডিয়া প্রকাশন' }}</title>
+    <title>Invoice #{{ $order->order_number ?? $order->id }} — {{ \App\Support\SiteSetting::name() ?? 'Idea Publication' }}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -22,11 +22,11 @@
 
     @php
         $siteLogo    = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.png');
-        $siteName    = \App\Support\SiteSetting::name() ?: ($invoiceSettings['sender_name'] ?? 'আইডিয়া প্রকাশন');
-        $siteAddress = \App\Support\SiteSetting::get('contact_address') ?: ($invoiceSettings['sender_address'] ?? 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ');
-        $sitePhone   = \App\Support\SiteSetting::get('contact_phone') ?: ($invoiceSettings['sender_phone'] ?? '01558712870');
-        $siteEmail   = \App\Support\SiteSetting::get('contact_email') ?: ($invoiceSettings['sender_email'] ?? 'ideapbd@gmail.com');
-        $siteWebsite = $invoiceSettings['sender_website'] ?? 'www.ideaabd.com';
+        $siteName    = \App\Support\SiteSetting::name() ?: 'Idea Publication';
+        $siteAddress = \App\Support\SiteSetting::get('contact_address') ?: 'Central Road, Rangpur 5400, Bangladesh';
+        $sitePhone   = \App\Support\SiteSetting::get('contact_phone') ?: '01558712870';
+        $siteEmail   = \App\Support\SiteSetting::get('contact_email') ?: 'ideapbd@gmail.com';
+        $siteWebsite = 'www.ideaabd.com';
 
         // Calculation
         $itemUnit = $order->unit_price > 0 ? $order->unit_price : ($order->book->discount_price ?? $order->book->price ?? 0);
@@ -37,14 +37,13 @@
         $discountAmount = $order->discount_amount ?? 0;
         $grandTotal = $order->total_amount > 0 ? $order->total_amount : ($itemSubtotal + $shippingCost + $giftFee - $discountAmount);
 
-        // Convert number to Bengali words helper
-        function numberToWordsBn($num) {
-            $bnDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        // Convert number to English words helper
+        function numberToWordsEn($num) {
             $num = (int)$num;
-            if ($num == 0) return 'শূন্য টাকা মাত্র';
-            
-            $units = ['', 'এক', 'দুই', 'তিন', 'চার', 'পাঁচ', 'ছয়', 'সাত', 'আট', 'নয়', 'দশ', 'এগারো', 'বারো', 'তেরো', 'চৌদ্দ', 'পনেরো', 'ষোলো', 'সতেরো', 'আঠারো', 'উনিশ', 'বিশ'];
-            $tens = ['', '', 'বিশ', 'ত্রিশ', 'চল্লিশ', 'পঞ্চাশ', 'ষাট', 'সত্তর', 'আশি', 'নব্বই'];
+            if ($num == 0) return 'Zero Taka Only';
+
+            $units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            $tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
             $crore = floor($num / 10000000);
             $num %= 10000000;
@@ -56,12 +55,12 @@
             $remainder = $num % 100;
 
             $words = [];
-            if ($crore > 0) $words[] = ($crore <= 20 ? $units[$crore] : $crore) . ' কোটি';
-            if ($lakh > 0) $words[] = ($lakh <= 20 ? $units[$lakh] : $lakh) . ' লাখ';
-            if ($thousand > 0) $words[] = ($thousand <= 20 ? $units[$thousand] : $thousand) . ' হাজার';
-            if ($hundred > 0) $words[] = ($hundred <= 20 ? $units[$hundred] : $hundred) . 'শত';
+            if ($crore > 0) $words[] = ($crore < 20 ? $units[$crore] : $tens[floor($crore/10)] . ($crore%10 ? ' ' . $units[$crore%10] : '')) . ' Crore';
+            if ($lakh > 0) $words[] = ($lakh < 20 ? $units[$lakh] : $tens[floor($lakh/10)] . ($lakh%10 ? ' ' . $units[$lakh%10] : '')) . ' Lakh';
+            if ($thousand > 0) $words[] = ($thousand < 20 ? $units[$thousand] : $tens[floor($thousand/10)] . ($thousand%10 ? ' ' . $units[$thousand%10] : '')) . ' Thousand';
+            if ($hundred > 0) $words[] = $units[$hundred] . ' Hundred';
             if ($remainder > 0) {
-                if ($remainder <= 20) {
+                if ($remainder < 20) {
                     $words[] = $units[$remainder];
                 } else {
                     $t = floor($remainder / 10);
@@ -69,15 +68,36 @@
                     $words[] = $tens[$t] . ($u > 0 ? ' ' . $units[$u] : '');
                 }
             }
-            return implode(' ', $words) . ' টাকা মাত্র';
+            return implode(' ', $words) . ' Taka Only';
         }
 
-        $amountInWordsBn = numberToWordsBn($grandTotal);
+        $amountInWordsEn = numberToWordsEn($grandTotal);
+
+        // Payment method in English
+        $paymentMethodEn = match(strtolower($order->payment_method ?? 'cod')) {
+            'cod' => 'Cash On Delivery (COD)',
+            'bkash' => 'bKash Online Payment',
+            'nagad' => 'Nagad Online Payment',
+            'rocket' => 'Rocket Mobile Banking',
+            'card' => 'Debit / Credit Card',
+            default => strtoupper($order->payment_method ?? 'COD'),
+        };
+
+        // Payment status in English
+        $paymentStatusEn = match(strtolower($order->payment_status ?? 'pending')) {
+            'paid' => 'PAID',
+            'pending' => 'DUE ON DELIVERY',
+            'unpaid' => 'UNPAID',
+            'partial' => 'PARTIAL PAID',
+            default => strtoupper($order->payment_status ?? 'PENDING'),
+        };
+
+        // Clean phone for WhatsApp
         $cleanPhone = preg_replace('/[^0-9]/', '', $order->customer_phone);
         if (str_starts_with($cleanPhone, '01')) {
             $cleanPhone = '88' . $cleanPhone;
         }
-        $whatsappMessage = "আসসালামু আলাইকুম {$order->customer_name}!\nআইডিয়া প্রকাশনে আপনার বই অর্ডার #{$order->order_number} এর মেমো ও বিস্তারিত নিচে দেওয়া হলো:\n\nসর্বমোট প্রদেয়: ৳ " . number_format($grandTotal) . "\nপেমেন্ট স্ট্যাটাস: " . ($order->payment_status === 'paid' ? 'পরিশোধিত (PAID)' : 'ক্যাশ অন ডেলিভারি (COD)') . "\n\nঅনলাইন মেমো ও অর্ডার ট্র্যাকিং লিংক:\n" . url('/track-order?order_no=' . ($order->order_number ?? $order->id)) . "\n\nআইডিয়া প্রকাশনের সাথে থাকার জন্য ধন্যবাদ!";
+        $whatsappMessage = "Hello {$order->customer_name}!\nThank you for ordering with Idea Publication. Your invoice #{$order->order_number} details:\n\nTotal Payable: BDT " . number_format($grandTotal, 2) . "\nPayment Status: {$paymentStatusEn}\n\nTrack order / View invoice online:\n" . url('/track-order?order_no=' . ($order->order_number ?? $order->id)) . "\n\nWarm regards,\nIdea Publication";
         $whatsappUrl = "https://api.whatsapp.com/send?phone={$cleanPhone}&text=" . urlencode($whatsappMessage);
     @endphp
 
@@ -117,7 +137,7 @@
         }
 
         body {
-            font-family: 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: #f1f5f9;
             color: #1e293b;
             font-size: 13.5px;
@@ -170,7 +190,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 5rem;
+            font-size: 5.5rem;
             font-weight: 900;
             color: rgba(15, 23, 42, 0.035);
             text-transform: uppercase;
@@ -179,13 +199,12 @@
             z-index: 1;
             user-select: none;
             white-space: nowrap;
-            font-family: 'Inter', sans-serif;
         }
 
         .invoice-header-strip {
             background: var(--theme-gradient);
             color: #ffffff;
-            padding: 22px 36px;
+            padding: 24px 36px;
             position: relative;
             z-index: 2;
             transition: background 0.3s ease;
@@ -198,7 +217,7 @@
         }
 
         .brand-logo-img {
-            max-height: 54px;
+            max-height: 56px;
             width: auto;
             max-width: 190px;
             object-fit: contain;
@@ -215,11 +234,12 @@
             padding: 6px 16px;
             border-radius: 30px;
             font-weight: 700;
-            font-size: 13.5px;
+            font-size: 13px;
             letter-spacing: 0.5px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            text-transform: uppercase;
         }
 
         .barcode-pill {
@@ -289,9 +309,11 @@
             background: var(--theme-primary);
             color: #ffffff;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12.5px;
             padding: 11px 14px;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .table-memo thead th:last-child {
@@ -380,6 +402,7 @@
             border-radius: 6px;
             font-weight: 600;
             font-size: 11.5px;
+            text-transform: uppercase;
         }
         .badge-pending { background: #fef3c7; color: #92400e; }
         .badge-processing { background: #e0f2fe; color: #0369a1; }
@@ -480,27 +503,27 @@
             <!-- Left Controls: Back, Status, Quick Edit -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <a href="{{ route('admin.ecommerce-orders') }}" class="btn btn-outline-secondary btn-sm btn-action-pill">
-                    <i class="fa-solid fa-arrow-left"></i> সকল অর্ডার
+                    <i class="fa-solid fa-arrow-left"></i> All Orders
                 </a>
                 <button type="button" class="btn btn-warning btn-sm btn-action-pill text-dark shadow-xs" data-bs-toggle="modal" data-bs-target="#modalQuickEdit">
-                    <i class="fa-solid fa-pen-to-square"></i> তথ্য সম্পাদন
+                    <i class="fa-solid fa-pen-to-square"></i> Quick Edit Info
                 </button>
                 <a href="{{ route('admin.ecommerce-orders.slip', $order) }}" target="_blank" class="btn btn-outline-primary btn-sm btn-action-pill">
-                    <i class="fa-solid fa-tag"></i> পার্সেল স্লিপ
+                    <i class="fa-solid fa-tag"></i> Parcel Slip
                 </a>
             </div>
 
-            <!-- Middle Controls: WhatsApp, Share, Direct SMS -->
+            <!-- Middle Controls: WhatsApp, Share Link -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <a href="{{ $whatsappUrl }}" target="_blank" class="btn btn-success btn-sm btn-action-pill text-white shadow-xs">
-                    <i class="fa-brands fa-whatsapp"></i> WhatsApp মেমো
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp Memo
                 </a>
                 <button type="button" class="btn btn-outline-info btn-sm btn-action-pill text-dark" onclick="copyInvoiceLink()">
-                    <i class="fa-solid fa-link" id="copyLinkIcon"></i> লিংক কপি
+                    <i class="fa-solid fa-link" id="copyLinkIcon"></i> Copy Link
                 </button>
             </div>
 
-            <!-- Right Controls: Themes, Language, Print -->
+            <!-- Right Controls: Themes, Print -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <!-- Theme Palette -->
                 <div class="d-flex align-items-center gap-1.5 px-2 py-1 bg-light rounded-pill border">
@@ -510,14 +533,9 @@
                     <span class="theme-dot" style="background:#7e22ce;" onclick="setInvoiceTheme('purple')" title="Royal Purple"></span>
                 </div>
 
-                <!-- Language Toggle -->
-                <button type="button" class="btn btn-outline-secondary btn-sm btn-action-pill" onclick="toggleLanguage()" id="btnLangToggle">
-                    <i class="fa-solid fa-language"></i> <span id="langLabel">English</span>
-                </button>
-
                 <!-- Print Button -->
                 <button onclick="window.print()" class="btn btn-primary btn-sm btn-action-pill px-3.5 fw-bold shadow-xs">
-                    <i class="fa-solid fa-print"></i> প্রিন্ট ইনভয়েস
+                    <i class="fa-solid fa-print"></i> Print Invoice
                 </button>
             </div>
 
@@ -540,14 +558,14 @@
                     <div>
                         <h4 class="fw-bold mb-0 text-white" style="letter-spacing: -0.2px;">{{ $siteName }}</h4>
                         <div class="text-white text-opacity-80 small mt-0.5">
-                            <i class="fa-solid fa-globe me-1"></i> {{ $siteWebsite }} | <span data-bn="জ্ঞান ও সৃজনশীলতার ডিজিটাল বাতিঘর" data-en="Digital Lighthouse of Knowledge & Creativity">জ্ঞান ও সৃজনশীলতার ডিজিটাল বাতিঘর</span>
+                            <i class="fa-solid fa-globe me-1"></i> {{ $siteWebsite }} | Digital Lighthouse of Knowledge & Creativity
                         </div>
                     </div>
                 </div>
                 <div class="col-5 text-end">
                     <div class="invoice-badge-pill">
                         <i class="fa-solid fa-file-invoice-dollar text-warning"></i>
-                        <span data-bn="{{ $invoiceSettings['invoice_title'] ?? 'অফিসিয়াল ক্যাশ মেমো' }}" data-en="OFFICIAL CASH MEMO & INVOICE">{{ $invoiceSettings['invoice_title'] ?? 'অফিসিয়াল ক্যাশ মেমো' }}</span>
+                        <span>CASH MEMO & INVOICE</span>
                     </div>
                     <div>
                         <span class="barcode-pill">#{{ $order->order_number ?? $order->id }}</span>
@@ -562,29 +580,29 @@
             <div class="meta-strip">
                 <div class="row g-2 align-items-center text-center text-md-start">
                     <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block" data-bn="ইনভয়েস / মেমো নম্বর:" data-en="Invoice / Memo No:">ইনভয়েস / মেমো নম্বর:</span>
+                        <span class="text-muted small d-block">Invoice / Memo No:</span>
                         <strong class="text-dark font-monospace fs-6">#{{ $order->order_number ?? $order->id }}</strong>
                     </div>
                     <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block" data-bn="অর্ডারের তারিখ ও সময়:" data-en="Order Date & Time:">অর্ডারের তারিখ ও সময়:</span>
+                        <span class="text-muted small d-block">Order Date & Time:</span>
                         <strong class="text-dark">{{ $order->created_at->format('d M, Y — h:i A') }}</strong>
                     </div>
                     <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block" data-bn="পেমেন্ট মাধ্যম:" data-en="Payment Method:">পেমেন্ট মাধ্যম:</span>
-                        <strong class="text-dark">{{ $order->payment_method_label }}</strong>
+                        <span class="text-muted small d-block">Payment Method:</span>
+                        <strong class="text-dark">{{ $paymentMethodEn }}</strong>
                         @if($order->transaction_id)
                             <div class="small font-monospace text-primary" style="font-size: 11px;">TrxID: <strong>{{ $order->transaction_id }}</strong></div>
                         @endif
                     </div>
                     <div class="col-6 col-md-3 text-md-end">
-                        <span class="text-muted small d-block" data-bn="পেমেন্ট অবস্থা:" data-en="Payment Status:">পেমেন্ট অবস্থা:</span>
+                        <span class="text-muted small d-block">Payment Status:</span>
                         @if($order->payment_status === 'paid')
                             <span class="badge bg-success px-2.5 py-1 fw-bold">
-                                <i class="fa-solid fa-circle-check me-1"></i> <span data-bn="পরিশোধিত (PAID)" data-en="PAID">পরিশোধিত (PAID)</span>
+                                <i class="fa-solid fa-circle-check me-1"></i> PAID
                             </span>
                         @else
                             <span class="badge bg-warning text-dark px-2.5 py-1 fw-bold">
-                                <i class="fa-solid fa-clock me-1"></i> <span data-bn="ক্যাশ অন ডেলিভারি (COD)" data-en="Cash On Delivery (COD)">ক্যাশ অন ডেলিভারি (COD)</span>
+                                <i class="fa-solid fa-clock me-1"></i> CASH ON DELIVERY
                             </span>
                         @endif
                     </div>
@@ -594,12 +612,12 @@
             <!-- Sender & Recipient Two-Column Layout -->
             <div class="row g-3 mb-4">
                 
-                <!-- Left: Sender (প্রেরক) -->
+                <!-- Left: Sender (From) -->
                 <div class="col-md-6">
                     <div class="party-card sender">
                         <div class="party-tag" style="color: var(--theme-primary);">
-                            <span><i class="fa-solid fa-paper-plane me-1"></i> <span data-bn="প্রেরক (From / Sender)" data-en="From / Sender">প্রেরক (From / Sender)</span></span>
-                            <span class="badge text-white" style="background: var(--theme-primary);">হেড অফিস</span>
+                            <span><i class="fa-solid fa-paper-plane me-1"></i> FROM / SENDER</span>
+                            <span class="badge text-white" style="background: var(--theme-primary);">HEAD OFFICE</span>
                         </div>
                         <h6 class="fw-bold text-dark mb-1">{{ $siteName }}</h6>
                         <div class="text-muted small mb-1">
@@ -608,7 +626,7 @@
                         </div>
                         <div class="text-dark small mb-1">
                             <i class="fa-solid fa-phone text-success me-1"></i>
-                            <strong>হটলাইন:</strong> {{ $sitePhone }}
+                            <strong>Hotline:</strong> {{ $sitePhone }}
                         </div>
                         @if(!empty($siteEmail))
                         <div class="text-muted small">
@@ -619,21 +637,21 @@
                     </div>
                 </div>
 
-                <!-- Right: Recipient (প্রাপক / গ্রাহক) -->
+                <!-- Right: Recipient (To / Customer) -->
                 <div class="col-md-6">
                     <div class="party-card recipient">
                         <div class="party-tag text-success">
-                            <span><i class="fa-solid fa-user-check me-1"></i> <span data-bn="প্রাপক (To / Recipient)" data-en="To / Recipient">প্রাপক (To / Recipient)</span></span>
-                            <span class="badge bg-success text-white">গ্রাহক</span>
+                            <span><i class="fa-solid fa-user-check me-1"></i> TO / RECIPIENT</span>
+                            <span class="badge bg-success text-white">CUSTOMER</span>
                         </div>
                         <h6 class="fw-bold text-dark mb-1">{{ $order->customer_name }}</h6>
                         <div class="text-dark mb-1">
                             <i class="fa-solid fa-phone text-success me-1"></i>
-                            <strong>মোবাইল:</strong> <span class="fw-bold fs-6 font-monospace">{{ $order->customer_phone }}</span>
+                            <strong>Mobile:</strong> <span class="fw-bold fs-6 font-monospace">{{ $order->customer_phone }}</span>
                         </div>
                         <div class="text-dark small mb-1">
                             <i class="fa-solid fa-map-location-dot text-primary me-1"></i>
-                            <strong>ডেলিভারি ঠিকানা:</strong>
+                            <strong>Delivery Address:</strong>
                             @if($order->house_road)
                                 {{ $order->house_road }},
                             @endif
@@ -641,12 +659,12 @@
                         </div>
                         <div class="text-muted small">
                             @if($order->thana)
-                                <span class="me-2"><strong>থানা:</strong> {{ $order->thana }}</span>
+                                <span class="me-2"><strong>Thana / Area:</strong> {{ $order->thana }}</span>
                             @endif
                             @if($order->post_code)
-                                <span class="me-2"><strong>পোস্ট:</strong> {{ $order->post_code }}</span>
+                                <span class="me-2"><strong>Postal Code:</strong> {{ $order->post_code }}</span>
                             @endif
-                            <span><strong>জেলা:</strong> {{ $order->district_label }}</span>
+                            <span><strong>District:</strong> {{ $order->district ?? $order->district_label }}</span>
                         </div>
                     </div>
                 </div>
@@ -659,15 +677,15 @@
                 <div class="d-flex align-items-start gap-2.5">
                     <i class="fa-solid fa-gift text-warning fs-4 mt-0.5"></i>
                     <div>
-                        <strong class="d-block text-amber-900 fs-6" style="color: #92400e;">উপহার প্যাকেজ ও প্রাপকের তথ্য (Gift Package):</strong>
-                        <span class="me-3"><strong>নাম:</strong> {{ $order->gift_recipient_name }}</span>
-                        <span class="me-3"><strong>মোবাইল:</strong> {{ $order->gift_recipient_phone }}</span>
+                        <strong class="d-block text-amber-900 fs-6" style="color: #92400e;">GIFT PACKAGE RECIPIENT DETAILS:</strong>
+                        <span class="me-3"><strong>Name:</strong> {{ $order->gift_recipient_name }}</span>
+                        <span class="me-3"><strong>Mobile:</strong> {{ $order->gift_recipient_phone }}</span>
                         @if($order->gift_recipient_address)
-                            <span class="d-block mt-1"><strong>উপহার ঠিকানা:</strong> {{ $order->gift_recipient_address }}</span>
+                            <span class="d-block mt-1"><strong>Gift Address:</strong> {{ $order->gift_recipient_address }}</span>
                         @endif
                         @if($order->gift_message)
                             <div class="mt-2 small p-2 bg-white rounded border border-warning text-dark fst-italic">
-                                <strong>উপহার বার্তা:</strong> "{{ $order->gift_message }}"
+                                <strong>Gift Note:</strong> "{{ $order->gift_message }}"
                             </div>
                         @endif
                     </div>
@@ -675,20 +693,20 @@
             </div>
             @endif
 
-            <!-- Items Table (বিলের পণ্যের বিবরণ) -->
+            <!-- Items Table -->
             <table class="table-memo">
                 <thead>
                     <tr>
-                        <th class="text-center" style="width: 6%;">#</th>
-                        <th style="width: 52%;" data-bn="বই / পণ্যের বিবরণ" data-en="Book / Item Description">বই / পণ্যের বিবরণ</th>
-                        <th class="text-center" style="width: 14%;" data-bn="একক মূল্য" data-en="Unit Price">একক মূল্য</th>
-                        <th class="text-center" style="width: 12%;" data-bn="পরিমাণ" data-en="Quantity">পরিমাণ</th>
-                        <th class="text-end" style="width: 16%;" data-bn="মোট টাকা" data-en="Total (BDT)">মোট টাকা</th>
+                        <th class="text-center" style="width: 6%;">SL #</th>
+                        <th style="width: 52%;">Book / Item Description</th>
+                        <th class="text-center" style="width: 14%;">Unit Price</th>
+                        <th class="text-center" style="width: 12%;">Qty</th>
+                        <th class="text-end" style="width: 16%;">Total (BDT)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="text-center fw-bold">১</td>
+                        <td class="text-center fw-bold">1</td>
                         <td>
                             @if($order->book)
                                 <div class="d-flex align-items-center gap-2.5">
@@ -698,7 +716,7 @@
                                     <div>
                                         <div class="fw-bold text-dark fs-6">{{ $order->book->title }}</div>
                                         @if($order->book->authors && $order->book->authors->count())
-                                            <div class="text-muted small">লেখক: <strong>{{ $order->book->authors->pluck('name')->implode(', ') }}</strong></div>
+                                            <div class="text-muted small">Author: <strong>{{ $order->book->authors->pluck('name')->implode(', ') }}</strong></div>
                                         @endif
                                         @if($order->book->isbn)
                                             <div class="text-muted small">ISBN: {{ $order->book->isbn }}</div>
@@ -706,17 +724,17 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="fw-bold text-dark fs-6">বইয়ের অর্ডার #{{ $order->order_number ?? $order->id }}</div>
+                                <div class="fw-bold text-dark fs-6">Book Order #{{ $order->order_number ?? $order->id }}</div>
                             @endif
                         </td>
                         <td class="text-center fw-semibold font-monospace">
-                            ৳ {{ number_format($itemUnit, 2) }}
+                            BDT {{ number_format($itemUnit, 2) }}
                         </td>
                         <td class="text-center fw-bold">
-                            {{ $itemQty }} টি
+                            {{ $itemQty }}
                         </td>
                         <td class="text-end fw-bold text-dark font-monospace">
-                            ৳ {{ number_format($itemSubtotal, 2) }}
+                            BDT {{ number_format($itemSubtotal, 2) }}
                         </td>
                     </tr>
                 </tbody>
@@ -731,25 +749,25 @@
                     @if($order->courier_name || $order->tracking_code)
                     <div class="p-3 bg-light rounded-3 border mb-3">
                         <div class="fw-bold text-dark mb-1 small d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-truck-fast text-primary"></i> <span data-bn="ডেলিভারি ও কুরিয়ার তথ্য:" data-en="Courier & Shipping Details:">ডেলিভারি ও কুরিয়ার তথ্য:</span>
+                            <i class="fa-solid fa-truck-fast text-primary"></i> Courier & Shipping Info:
                         </div>
-                        <div class="small"><strong>কুরিয়ার পার্টনার:</strong> <span id="displayCourier">{{ $order->courier_name ?? 'নির্ধারিত কুরিয়ার' }}</span></div>
+                        <div class="small"><strong>Courier Partner:</strong> <span id="displayCourier">{{ $order->courier_name ?? 'Assigned Courier' }}</span></div>
                         @if($order->tracking_code)
-                            <div class="small mt-1"><strong>ট্র্যাকিং আইডি:</strong> <span class="font-monospace text-primary fw-bold" id="displayTracking">{{ $order->tracking_code }}</span></div>
+                            <div class="small mt-1"><strong>Tracking ID:</strong> <span class="font-monospace text-primary fw-bold" id="displayTracking">{{ $order->tracking_code }}</span></div>
                         @endif
                     </div>
                     @endif
 
                     <div class="p-3 bg-light rounded-3 border mb-3" style="font-size: 12px;">
                         <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-shield-halved text-primary"></i> <span data-bn="পলিসি ও শর্তাবলী:" data-en="Terms & Policy:">পলিসি ও শর্তাবলী:</span>
+                            <i class="fa-solid fa-shield-halved text-primary"></i> Terms & Policy:
                         </div>
                         <p class="text-muted mb-0">
-                            {{ $invoiceSettings['invoice_terms'] ?? 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন। কোনো ত্রুটি থাকলে ডেলিভারি ম্যানের সামনেই আমাদের হেল্পলাইনে যোগাযোগ করুন।' }}
+                            Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.
                         </p>
                         @if($order->admin_notes)
                         <div class="mt-2 text-dark fw-semibold pt-1 border-top" id="displayAdminNotes">
-                            <strong>অ্যাডমিন নোট:</strong> {{ $order->admin_notes }}
+                            <strong>Admin Note:</strong> {{ $order->admin_notes }}
                         </div>
                         @endif
                     </div>
@@ -758,8 +776,8 @@
                     <div class="d-flex align-items-center gap-3 p-2.5 bg-white rounded-3 border">
                         <div id="invoiceQrCode" style="width: 58px; height: 58px;"></div>
                         <div class="small">
-                            <strong class="d-block text-dark" data-bn="ডিজিটাল ভেরিফিকেশন কিউআর" data-en="Digital Verification QR">ডিজিটাল ভেরিফিকেশন কিউআর</strong>
-                            <span class="text-muted" style="font-size: 11px;">মোবাইল দিয়ে স্ক্যান করে অর্ডারের বর্তমান অবস্থা ট্র্যাক করুন।</span>
+                            <strong class="d-block text-dark">Digital Order Verification</strong>
+                            <span class="text-muted" style="font-size: 11px;">Scan with smartphone camera to track order status online.</span>
                         </div>
                     </div>
 
@@ -769,50 +787,50 @@
                 <div class="col-md-6">
                     <div class="summary-box">
                         <div class="summary-item">
-                            <span data-bn="পণ্যের সাবটোটাল:" data-en="Items Subtotal:">পণ্যের সাবটোটাল:</span>
-                            <span class="fw-bold text-dark font-monospace">৳ {{ number_format($itemSubtotal, 2) }}</span>
+                            <span>Items Subtotal:</span>
+                            <span class="fw-bold text-dark font-monospace">BDT {{ number_format($itemSubtotal, 2) }}</span>
                         </div>
                         <div class="summary-item">
-                            <span data-bn="ডেলিভারি চার্জ:" data-en="Shipping Cost:">ডেলিভারি চার্জ:</span>
+                            <span>Shipping / Delivery Fee:</span>
                             <span class="fw-semibold text-dark font-monospace">
                                 @if($shippingCost > 0)
-                                    ৳ {{ number_format($shippingCost, 2) }}
+                                    BDT {{ number_format($shippingCost, 2) }}
                                 @else
-                                    <span class="text-success fw-bold" data-bn="ফ্রি ডেলিভারি" data-en="Free Delivery">ফ্রি ডেলিভারি</span>
+                                    <span class="text-success fw-bold">FREE DELIVERY</span>
                                 @endif
                             </span>
                         </div>
                         @if($order->is_gift)
                         <div class="summary-item">
-                            <span data-bn="উপহার মোড়কীকরণ (Gift Wrap):" data-en="Gift Wrap Fee:">উপহার মোড়কীকরণ (Gift Wrap):</span>
-                            <span class="fw-semibold text-dark font-monospace">৳ {{ number_format($giftFee, 2) }}</span>
+                            <span>Gift Wrapping Fee:</span>
+                            <span class="fw-semibold text-dark font-monospace">BDT {{ number_format($giftFee, 2) }}</span>
                         </div>
                         @endif
                         @if($discountAmount > 0)
                         <div class="summary-item text-danger">
-                            <span data-bn="বিশেষ ছাড় (Discount):" data-en="Discount:">বিশেষ ছাড় (Discount):</span>
-                            <span class="font-monospace">- ৳ {{ number_format($discountAmount, 2) }}</span>
+                            <span>Special Discount:</span>
+                            <span class="font-monospace">- BDT {{ number_format($discountAmount, 2) }}</span>
                         </div>
                         @endif
                         <div class="summary-item total-due">
-                            <span data-bn="সর্বমোট প্রদেয় (Grand Total):" data-en="Grand Total (Due):">সর্বমোট প্রদেয় (Grand Total):</span>
-                            <span class="font-monospace">৳ {{ number_format($grandTotal, 2) }}</span>
+                            <span>Grand Total (Payable):</span>
+                            <span class="font-monospace">BDT {{ number_format($grandTotal, 2) }}</span>
                         </div>
 
                         <!-- Amount in Words -->
                         <div class="in-words-box">
-                            <strong>কথায়:</strong> {{ $amountInWordsBn }}
+                            <strong>In Words:</strong> {{ $amountInWordsEn }}
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                            <span class="small text-muted" data-bn="পেমেন্ট অবস্থা:" data-en="Payment Status:">পেমেন্ট অবস্থা:</span>
+                            <span class="small text-muted">Payment Status:</span>
                             @if($order->payment_status === 'paid')
                                 <span class="paid-stamp">
-                                    <i class="fa-solid fa-check-double me-1"></i> PAID (পরিশোধিত)
+                                    <i class="fa-solid fa-check-double me-1"></i> PAID
                                 </span>
                             @else
                                 <span class="due-stamp">
-                                    <i class="fa-solid fa-hand-holding-dollar me-1"></i> DUE (ডেলিভারিতে প্রদেয়)
+                                    <i class="fa-solid fa-hand-holding-dollar me-1"></i> DUE (CASH ON DELIVERY)
                                 </span>
                             @endif
                         </div>
@@ -827,17 +845,17 @@
                     <div class="col-7">
                         <p class="small text-muted mb-0 fw-semibold">
                             <i class="fa-solid fa-heart text-danger me-1"></i>
-                            <span data-bn="{{ $invoiceSettings['invoice_footer'] ?? 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!' }}" data-en="May the joy of reading books spread to everyone. Thank you for choosing ideaabd!">{{ $invoiceSettings['invoice_footer'] ?? 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!' }}</span>
+                            May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!
                         </p>
                         <div class="text-muted" style="font-size: 11px;">
-                            প্রিন্ট তারিখ: {{ date('d M, Y — h:i A') }} | কম্পিউটার জেনারেটেড ডিজিটাল ইনভয়েস
+                            Print Date: {{ date('d M, Y — h:i A') }} | Computer Generated Official Digital Invoice
                         </div>
                     </div>
                     <div class="col-5 text-end">
                         <div class="d-inline-block text-center" style="min-width: 150px;">
                             <div style="height: 40px;"></div>
-                            <div class="border-top border-dark pt-1 small fw-bold text-dark" data-bn="অনুমোদিত স্বাক্ষরকারী" data-en="Authorized Signature">
-                                অনুমোদিত স্বাক্ষরকারী
+                            <div class="border-top border-dark pt-1 small fw-bold text-dark">
+                                Authorized Signature
                             </div>
                         </div>
                     </div>
@@ -853,47 +871,47 @@
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-light border-bottom p-3">
                     <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalQuickEditLabel">
-                        <i class="fa-solid fa-pen-to-square text-primary"></i> ইনভয়েস ও অর্ডার তথ্য দ্রুত সম্পাদন
+                        <i class="fa-solid fa-pen-to-square text-primary"></i> Edit Order & Invoice Details
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="formQuickEdit" onsubmit="handleQuickEditSubmit(event)">
                     <div class="modal-body p-4 space-y-3">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">পেমেন্ট অবস্থা <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small text-muted">Payment Status <span class="text-danger">*</span></label>
                             <select name="payment_status" id="editPaymentStatus" class="form-select">
-                                <option value="pending" @selected($order->payment_status === 'pending')>অপেক্ষমান (Pending / COD)</option>
-                                <option value="paid" @selected($order->payment_status === 'paid')>পরিশোধিত (Paid)</option>
-                                <option value="unpaid" @selected($order->payment_status === 'unpaid')>অপরিশোধিত (Unpaid)</option>
-                                <option value="partial" @selected($order->payment_status === 'partial')>আংশিক পরিশোধিত (Partial)</option>
+                                <option value="pending" @selected($order->payment_status === 'pending')>Pending (COD)</option>
+                                <option value="paid" @selected($order->payment_status === 'paid')>Paid</option>
+                                <option value="unpaid" @selected($order->payment_status === 'unpaid')>Unpaid</option>
+                                <option value="partial" @selected($order->payment_status === 'partial')>Partial Paid</option>
                             </select>
                         </div>
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label fw-semibold small text-muted">কুরিয়ার পার্টনার</label>
-                                <input type="text" name="courier_name" id="editCourierName" class="form-control" value="{{ $order->courier_name }}" placeholder="যেমন: সুন্দরবন, পাঠাও, স্টেডফাস্ট">
+                                <label class="form-label fw-semibold small text-muted">Courier Partner</label>
+                                <input type="text" name="courier_name" id="editCourierName" class="form-control" value="{{ $order->courier_name }}" placeholder="e.g. Sundarban, Pathao, Steadfast">
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-semibold small text-muted">ট্র্যাকিং কোড</label>
+                                <label class="form-label fw-semibold small text-muted">Tracking Code</label>
                                 <input type="text" name="tracking_code" id="editTrackingCode" class="form-control font-monospace" value="{{ $order->tracking_code }}" placeholder="TRACK123456">
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">অর্ডার ট্রানজেকশন আইডি (TrxID)</label>
-                            <input type="text" name="transaction_id" id="editTrxId" class="form-control font-monospace" value="{{ $order->transaction_id }}" placeholder="যেমন: 8N7K5A...">
+                            <label class="form-label fw-semibold small text-muted">Transaction ID (TrxID)</label>
+                            <input type="text" name="transaction_id" id="editTrxId" class="form-control font-monospace" value="{{ $order->transaction_id }}" placeholder="e.g. 8N7K5A...">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">অ্যাডমিন নোট (মেমোতে প্রদর্শিত)</label>
-                            <textarea name="admin_notes" id="editAdminNotes" class="form-control" rows="2" placeholder="প্রয়োজনীয় নির্দেশনা...">{{ $order->admin_notes }}</textarea>
+                            <label class="form-label fw-semibold small text-muted">Admin Note (Shown on Invoice)</label>
+                            <textarea name="admin_notes" id="editAdminNotes" class="form-control" rows="2" placeholder="Special delivery notes...">{{ $order->admin_notes }}</textarea>
                         </div>
                     </div>
                     <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold" id="btnSaveQuickEdit">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
                         </button>
                     </div>
                 </form>
@@ -933,21 +951,6 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
 
-        // Dynamic Language Switcher (বাংলা ↔ English)
-        let currentLang = 'bn';
-        function toggleLanguage() {
-            currentLang = (currentLang === 'bn') ? 'en' : 'bn';
-            document.documentElement.setAttribute('data-lang', currentLang);
-            document.getElementById('langLabel').textContent = (currentLang === 'bn') ? 'English' : 'বাংলা';
-
-            document.querySelectorAll('[data-bn]').forEach(el => {
-                const text = el.getAttribute('data-' + currentLang);
-                if (text) {
-                    el.textContent = text;
-                }
-            });
-        }
-
         // Copy Invoice Track Link
         function copyInvoiceLink() {
             const link = '{{ url("/track-order?order_no=" . ($order->order_number ?? $order->id)) }}';
@@ -965,7 +968,7 @@
             e.preventDefault();
             const btn = document.getElementById('btnSaveQuickEdit');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
 
             const payload = {
                 _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -989,21 +992,20 @@
             .then(res => res.json())
             .then(data => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন';
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes';
 
                 if (data.success) {
-                    // Hide Modal & reload to display updated values
                     const modal = bootstrap.Modal.getInstance(document.getElementById('modalQuickEdit'));
                     if (modal) modal.hide();
                     window.location.reload();
                 } else {
-                    alert(data.message || 'সংরক্ষণে সমস্যা হয়েছে।');
+                    alert(data.message || 'Failed to save changes.');
                 }
             })
             .catch(err => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন';
-                alert('সার্ভার যোগাযোগ ত্রুটি: ' + err.message);
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes';
+                alert('Server error: ' + err.message);
             });
         }
     </script>

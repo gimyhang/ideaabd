@@ -370,6 +370,23 @@ class CartController extends Controller
         // Process e-book royalty split and user library access if applicable
         \App\Services\RoyaltyService::processOrderRoyalties($order);
 
+        // Send instant short English SMS to customer with order number
+        try {
+            if (!empty($order->customer_phone)) {
+                \App\Services\SmsService::sendOrderPlacementSms(
+                    $order->customer_phone,
+                    $order->order_number,
+                    $order->customer_name,
+                    $order->total_amount
+                );
+            }
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Order placement SMS notification error: " . $smsEx->getMessage(), [
+                'order_id' => $order->id,
+                'phone'    => $order->customer_phone,
+            ]);
+        }
+
         // Check if automated PGW redirection is active
         $gwSettings = [];
         if (Schema::hasTable('admin_dashboard_settings')) {

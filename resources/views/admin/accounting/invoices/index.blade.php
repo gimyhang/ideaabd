@@ -36,9 +36,12 @@
         'other'          => $stats['other_count'],
         default          => $stats['total_invoices']
     };
+
+    $collectionRate = ($stats['total_amount'] > 0) ? round(($stats['total_paid'] / $stats['total_amount']) * 100, 1) : 0;
 @endphp
 
 @section('title', 'Invoices & Documents')
+
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         {{-- Filter Document Type Dropdown --}}
@@ -83,7 +86,7 @@
             </ul>
         </div>
 
-        {{-- Sales Category Dropdown (বুকস, স্টেশনারি, প্রিন্টিং...) --}}
+        {{-- Sales Category Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs dropdown-toggle fw-bold text-dark rounded-pill px-3 py-1.5 fs-6 d-inline-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-tags text-info"></i>
@@ -126,6 +129,7 @@
         </div>
     </div>
 @endsection
+
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.accounting.index') }}">Accounting</a></li>
     <li class="breadcrumb-item active" aria-current="page">Invoices</li>
@@ -161,6 +165,33 @@
                 </li>
             </ul>
         </div>
+
+        {{-- Export / Print Menu --}}
+        <div class="dropdown">
+            <button class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-file-export me-1 text-primary"></i> Export / Print
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 210px;">
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Export Data:</h6></li>
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.export', array_merge(request()->all(), ['format' => 'csv'])) }}">
+                        <i class="fa-solid fa-file-csv text-success fs-6"></i> Export to Excel (CSV)
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.accounting.invoices.export', array_merge(request()->all(), ['format' => 'json'])) }}" target="_blank">
+                        <i class="fa-solid fa-code text-info fs-6"></i> Export Data (JSON)
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold d-flex align-items-center gap-2" href="javascript:void(0)" onclick="window.print()">
+                        <i class="fa-solid fa-print text-primary fs-6"></i> Print This List
+                    </a>
+                </li>
+            </ul>
+        </div>
+
         <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="গ্রাহকদের খতিয়ান ও বকেয়া জের">
             <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledgers
         </a>
@@ -200,7 +231,7 @@
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
                     <span>বিল ও ইনভয়েস</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">নিয়মিত বিক্রয় বিল ও মেমো</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">নিয়মিত বিক্রয় ও মেমো</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted" style="font-size: 10.5px;">মোট বিল:</span>
                     <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($stats['bills_amount']) }}</span>
@@ -321,177 +352,48 @@
     </div>
 </div>
 
-{{-- 2. Context-Aware Sub-Dashboard Metrics (সক্রিয় ফোল্ডারের নির্দিষ্ট ড্যাশবোর্ড) --}}
-@if($currentType === 'invoice')
-    {{-- Invoice / Bills Sub-Dashboard --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-                <span class="text-muted small fw-semibold">মোট ইনভয়েস / বিল</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['total_bills']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">নিয়মিত বিক্রয় ও ক্যাশ মেমো</div>
+{{-- 2. Financial Collection Visualizer & Summary Metrics --}}
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie text-primary"></i>
+                    <span>আদায় ও বকেয়া অগ্রগতি (Collection Performance):</span>
+                </span>
+                <span class="badge bg-primary text-white font-monospace fs-7 px-2.5 py-1 rounded-pill">
+                    {{ $collectionRate }}% আদায় সম্পন্ন
+                </span>
+            </div>
+            <div class="progress rounded-pill overflow-hidden shadow-inner" style="height: 12px; background-color: #fee2e2;">
+                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
+                     style="width: {{ $collectionRate }}%;" 
+                     aria-valuenow="{{ $collectionRate }}" aria-valuemin="0" aria-valuemax="100" 
+                     title="আদায়: {{ $collectionRate }}%"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
+                <div><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>আদায়কৃত: <strong class="text-success font-monospace">৳{{ number_format($stats['total_paid'], 2) }}</strong></div>
+                <div><i class="fa-solid fa-circle text-danger me-1" style="font-size: 8px;"></i>বকেয়া জের: <strong class="text-danger font-monospace">৳{{ number_format($stats['total_due'], 2) }}</strong></div>
+                <div><i class="fa-solid fa-circle text-primary me-1" style="font-size: 8px;"></i>সর্বমোট বিক্রয়: <strong class="text-dark font-monospace">৳{{ number_format($stats['total_amount'], 2) }}</strong></div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
-                <span class="text-muted small fw-semibold">মোট বিক্রয় মূল্য</span>
-                <h3 class="fw-bold mb-0 text-dark font-monospace">৳{{ number_format($stats['bills_amount'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট বিলের পরিমাণ</div>
+        <div class="col-lg-4 border-start-lg ps-lg-4">
+            <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light">
+                <span class="small text-muted fw-semibold">বই ও প্রকাশনা:</span>
+                <span class="badge bg-white text-primary border rounded-pill font-monospace fw-bold">{{ number_format($stats['books_count']) }} টি</span>
             </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-                <span class="text-muted small fw-semibold">মোট আদায়কৃত টাকা</span>
-                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['bills_paid'], 2) }}</h3>
-                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fa-solid fa-circle-check me-1"></i>ক্যাশ ও ব্যাংক জমা</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
-                <span class="text-muted small fw-semibold">মোট বকেয়া জের</span>
-                <h3 class="fw-bold mb-0 text-danger font-monospace">৳{{ number_format($stats['bills_due'], 2) }}</h3>
-                <div class="text-muted small mt-1 text-danger" style="font-size: 11.5px;"><i class="fa-solid fa-clock me-1"></i>গ্রাহক থেকে প্রাপ্য</div>
-            </div>
-        </div>
-    </div>
-@elseif($currentType === 'challan')
-    {{-- Delivery Challans Sub-Dashboard --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
-                <span class="text-muted small fw-semibold">মোট ডেলিভারি চালান</span>
-                <h3 class="fw-bold mb-0 text-info font-monospace">{{ number_format($stats['total_challans']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">পণ্য সরবরাহ মেমো</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-                <span class="text-muted small fw-semibold">বই ও প্রকাশনা চালান</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['challans_books_count']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">আইডিয়া প্রকাশন বুক চালান</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
-                <span class="text-muted small fw-semibold">স্টেশনারি ও প্রিন্টিং চালান</span>
-                <h3 class="fw-bold mb-0 text-warning-emphasis font-monospace">{{ number_format($stats['challans_other_count']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">অন্যান্য পণ্য ও সেবা</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-                <span class="text-muted small fw-semibold">চালান পণ্যের মূল্যমান</span>
-                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['challans_amount'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">আদায়: ৳{{ number_format($stats['challans_paid'], 2) }}</div>
+            <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light mt-1.5">
+                <span class="small text-muted fw-semibold">স্টেশনারি ও মুদ্রণ:</span>
+                <span class="badge bg-white text-info-emphasis border rounded-pill font-monospace fw-bold">{{ number_format($stats['stationery_count'] + $stats['printing_count']) }} টি</span>
             </div>
         </div>
     </div>
-@elseif($currentType === 'quotation')
-    {{-- Quotations Sub-Dashboard --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning">
-                <span class="text-muted small fw-semibold">মোট কোটেশন ফাইল</span>
-                <h3 class="fw-bold mb-0 text-warning-emphasis font-monospace">{{ number_format($stats['total_quotations']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">মূল্য প্রস্তাবনা সমূহ</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-                <span class="text-muted small fw-semibold">প্রস্তাবিত মোট মূল্য</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace">৳{{ number_format($stats['quotations_amount'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">কোটেশন সম্ভাব্য বিক্রয় মান</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-                <span class="text-muted small fw-semibold">সক্রিয় ও বৈধ কোটেশন</span>
-                <h3 class="fw-bold mb-0 text-success font-monospace">{{ number_format($stats['quotations_active']) }}</h3>
-                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fa-solid fa-circle-check me-1"></i>মেয়াদ অবশিষ্ট আছে</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
-                <span class="text-muted small fw-semibold">মেয়াদোত্তীর্ণ / ফলোআপ</span>
-                <h3 class="fw-bold mb-0 text-danger font-monospace">{{ number_format($stats['quotations_expired']) }}</h3>
-                <div class="text-muted small mt-1 text-danger" style="font-size: 11.5px;"><i class="fa-solid fa-triangle-exclamation me-1"></i>রিভিউ বা ফলোআপ প্রয়োজন</div>
-            </div>
-        </div>
-    </div>
-@elseif($currentType === 'tender')
-    {{-- Tenders Sub-Dashboard --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4" style="border-left-color: #9333ea !important;">
-                <span class="text-muted small fw-semibold">মোট টেন্ডার ফাইল</span>
-                <h3 class="fw-bold mb-0 font-monospace" style="color: #7e22ce;">{{ number_format($stats['total_tenders']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">প্রাতিষ্ঠানিক দরপত্র ও বিড</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-                <span class="text-muted small fw-semibold">টেন্ডারে প্রস্তাবিত মূল্য</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace">৳{{ number_format($stats['tenders_amount'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট প্রস্তাবিত প্রকল্প মূল্য</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info">
-                <span class="text-muted small fw-semibold">অংশীদারী প্রতিষ্ঠান/দপ্তর</span>
-                <h3 class="fw-bold mb-0 text-info font-monospace">{{ number_format($stats['tenders_orgs']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">সরকারি/বেসরকারি প্রতিষ্ঠান</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-                <span class="text-muted small fw-semibold">সক্রিয় টেন্ডার প্রস্তাবনা</span>
-                <h3 class="fw-bold mb-0 text-success font-monospace">{{ number_format($stats['tenders_active']) }}</h3>
-                <div class="text-muted small mt-1 text-success" style="font-size: 11.5px;"><i class="fa-solid fa-bolt me-1"></i>চলমান প্রক্রিয়ায় আছে</div>
-            </div>
-        </div>
-    </div>
-@else
-    {{-- All Documents Overview --}}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary">
-                <span class="text-muted small fw-semibold">সর্বমোট ফাইল</span>
-                <h3 class="fw-bold mb-0 text-primary font-monospace">{{ number_format($stats['total_invoices']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">
-                    বিল: {{ number_format($stats['total_bills']) }} | চালান: {{ number_format($stats['total_challans']) }}
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4" style="border-left-color: #6f42c1 !important;">
-                <span class="text-muted small fw-semibold">কোটেশন ও টেন্ডার</span>
-                <h3 class="fw-bold mb-0 font-monospace" style="color: #6f42c1;">{{ number_format($stats['total_quotations'] + $stats['total_tenders']) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">
-                    কোটেশন: {{ number_format($stats['total_quotations']) }} | টেন্ডার: {{ number_format($stats['total_tenders']) }}
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
-                <span class="text-muted small fw-semibold">মোট আদায়কৃত টাকা</span>
-                <h3 class="fw-bold mb-0 text-success font-monospace">৳{{ number_format($stats['total_paid'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">মোট বিক্রয়: ৳{{ number_format($stats['total_amount'], 2) }}</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger">
-                <span class="text-muted small fw-semibold">মোট বকেয়া জের</span>
-                <h3 class="fw-bold mb-0 text-danger font-monospace">৳{{ number_format($stats['total_due'], 2) }}</h3>
-                <div class="text-muted small mt-1" style="font-size: 11.5px;">গ্রাহকদের থেকে মোট পাওনা</div>
-            </div>
-        </div>
-    </div>
-@endif
+</div>
 
 {{-- 3. Filter & Search Toolbar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4">
     <div class="card-body p-3">
-        <form action="{{ route('admin.accounting.invoices.index') }}" method="GET" class="row g-2 align-items-center">
+        <form action="{{ route('admin.accounting.invoices.index') }}" method="GET" class="row g-2 align-items-center" id="invoiceFilterForm">
             @if($type)
                 <input type="hidden" name="type" value="{{ $type }}">
             @endif
@@ -499,7 +401,7 @@
             <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" class="form-control border-start-0 ps-1" placeholder="ডকুমেন্ট # / গ্রাহক / প্রতিষ্ঠান / বিষয়..." value="{{ $search }}">
+                    <input type="text" name="search" id="liveSearchInput" class="form-control border-start-0 ps-1" placeholder="ডকুমেন্ট # / গ্রাহক / প্রতিষ্ঠান / বিষয়..." value="{{ $search }}">
                 </div>
             </div>
             
@@ -539,7 +441,7 @@
 </div>
 
 {{-- 4. Documents Data Table --}}
-<div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+<div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white position-relative">
     <div class="card-header bg-white border-bottom py-3 px-3.5 d-flex flex-wrap align-items-center justify-content-between gap-2">
         <div class="d-flex align-items-center gap-2">
             @if($currentType === 'invoice')
@@ -561,7 +463,7 @@
             <span class="badge bg-light text-muted border rounded-pill font-monospace">{{ $invoices->total() }} টি ফাইল</span>
         </div>
 
-        <div>
+        <div class="d-flex align-items-center gap-2">
             @if($currentType === 'quotation')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold shadow-xs">
                     <i class="fa-solid fa-circle-plus me-1"></i> নতুন কোটেশন তৈরি
@@ -574,7 +476,7 @@
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'challan']) }}" class="btn btn-info btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs">
                     <i class="fa-solid fa-circle-plus me-1"></i> নতুন ডেলিভারি চালান
                 </a>
-            @elseif($currentType === 'invoice')
+            @else
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
                     <i class="fa-solid fa-circle-plus me-1"></i> নতুন বিক্রয় বিল
                 </a>
@@ -609,109 +511,213 @@
         </div>
     @else
         <div class="table-responsive">
-            @if(in_array($currentType, ['quotation', 'tender']))
-                {{-- Quotation & Tender Specialized Table Layout --}}
-                <table class="table adm-table align-middle mb-0" style="min-width: 1000px;">
-                    <thead>
-                        <tr>
-                            <th class="ps-3 py-3" style="width: 160px;">{{ $currentType === 'tender' ? 'Tender #' : 'Quotation #' }}</th>
-                            <th class="py-3 text-center" style="width: 110px;">Date</th>
-                            <th class="py-3" style="min-width: 220px;">Client</th>
-                            <th class="py-3" style="min-width: 200px;">Subject</th>
-                            <th class="py-3 text-end" style="width: 130px;">Total</th>
-                            <th class="py-3 text-center" style="width: 120px;">Status</th>
-                            <th class="text-center pe-3 py-3" style="width: 140px;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($invoices as $inv)
-                            @php
-                                $isExpired = $inv->valid_until && $inv->valid_until->isPast() && !$inv->valid_until->isToday();
-                            @endphp
-                            <tr class="{{ $isExpired ? 'table-warning-subtle' : '' }}">
-                                <td class="ps-3 fw-bold font-monospace">
-                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary fw-bold">
-                                        {{ $inv->invoice_no }}
-                                    </a>
-                                    @if($inv->reference_no)
-                                        <div class="text-muted small fw-normal" style="font-size: 11px;">সূত্র: {{ $inv->reference_no }}</div>
-                                    @endif
-                                    <div class="mt-1">
-                                        <span class="badge border {{ $inv->category_badge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
-                                            {{ $inv->category_badge['label'] }}
-                                        </span>
+            <table class="table adm-table align-middle mb-0 doc-main-table" style="min-width: 1100px;">
+                <thead>
+                    <tr>
+                        <th class="ps-3 py-3" style="width: 40px;">
+                            <input type="checkbox" class="form-check-input select-all-docs" id="selectAllDocsCheckbox" title="সকল ডকুমেন্ট সিলেক্ট করুন">
+                        </th>
+                        <th class="py-3" style="width: 170px;">Document #</th>
+                        <th class="py-3" style="width: 115px;">Type</th>
+                        <th class="py-3" style="width: 115px;">Date</th>
+                        <th class="py-3" style="min-width: 220px;">Client & Ledger</th>
+                        <th class="py-3" style="width: 90px;">Items</th>
+                        <th class="py-3 text-end" style="width: 120px;">Grand Total</th>
+                        <th class="py-3 text-end" style="width: 115px;">Paid</th>
+                        <th class="py-3 text-end" style="width: 115px;">Due</th>
+                        <th class="py-3 text-center" style="width: 125px;">Status</th>
+                        <th class="text-center pe-3 py-3" style="width: 170px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($invoices as $inv)
+                        @php
+                            $isExpired = $inv->valid_until && $inv->valid_until->isPast() && !$inv->valid_until->isToday();
+                            $hasDue = (float)$inv->due_amount > 0;
+                            $waMessage = urlencode("Idea Publication: Dear {$inv->customer_name}, your invoice #{$inv->invoice_no} (Total: ৳" . number_format($inv->grand_total, 2) . ", Due: ৳" . number_format($inv->due_amount, 2) . ") is ready. View: " . $inv->public_url);
+                        @endphp
+                        <tr class="{{ $inv->is_overdue ? 'table-danger-subtle' : ($isExpired ? 'table-warning-subtle' : '') }} doc-row" id="docRow-{{ $inv->id }}">
+                            <td class="ps-3">
+                                <input type="checkbox" class="form-check-input doc-checkbox" value="{{ $inv->id }}" data-invoice-no="{{ $inv->invoice_no }}">
+                            </td>
+                            <td class="fw-bold text-primary font-monospace">
+                                <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary fw-bold">
+                                    {{ $inv->invoice_no }}
+                                </a>
+                                @if($inv->reference_no)
+                                    <div class="text-muted small fw-normal" style="font-size: 11px;">Ref: {{ $inv->reference_no }}</div>
+                                @endif
+                                <div class="mt-1">
+                                    <span class="badge border {{ $inv->category_badge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
+                                        {{ $inv->category_badge['label'] }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                @if($inv->type === 'tender')
+                                    <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">
+                                        <i class="fa-solid fa-landmark me-1"></i>Tender
+                                    </span>
+                                @elseif($inv->type === 'quotation')
+                                    <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #fef3c7; color: #b45309; border-color: #fcd34d;">
+                                        <i class="fa-solid fa-file-lines me-1"></i>Quotation
+                                    </span>
+                                @elseif($inv->type === 'challan')
+                                    <span class="badge bg-info-subtle text-dark border border-info-subtle px-2.5 py-1 rounded-pill">
+                                        <i class="fa-solid fa-truck me-1"></i>Challan
+                                    </span>
+                                @else
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                                        <i class="fa-solid fa-receipt me-1"></i>Bill / Memo
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="text-muted small">
+                                <div class="fw-medium text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
+                                @if($inv->valid_until)
+                                    <div class="text-danger" style="font-size: 10.5px;">Valid: {{ $inv->valid_until->format('d M, Y') }}</div>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-start justify-content-between">
+                                    <div>
+                                        @if($inv->customer_org)
+                                            <div class="fw-bold text-primary">
+                                                <i class="fa-solid fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
+                                            </div>
+                                            <div class="text-dark small">
+                                                <i class="fa-solid fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
+                                            </div>
+                                        @else
+                                            <div class="fw-bold text-dark">
+                                                <i class="fa-solid fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                            </div>
+                                        @endif
+
+                                        @if($inv->customer_phone)
+                                            <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fa-solid fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
+                                        @endif
+
+                                        @if($inv->subject)
+                                            <div class="text-primary-emphasis fw-medium mt-1 d-flex align-items-center gap-1.5" style="font-size: 11px; max-width: 250px;" title="{{ $inv->subject }}">
+                                                <i class="fa-solid fa-heading text-primary opacity-75" style="font-size: 10px;"></i>
+                                                <span class="text-truncate">{{ $inv->subject }}</span>
+                                            </div>
+                                        @endif
                                     </div>
-                                </td>
-                                <td class="text-muted small">
-                                    <div class="fw-semibold text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
-                                    <div class="text-muted" style="font-size: 10.5px;">{{ $inv->invoice_date ? $inv->invoice_date->diffForHumans() : '' }}</div>
-                                </td>
-                                <td>
-                                    @if($inv->customer_org)
-                                        <div class="fw-bold text-primary">
-                                            <i class="fa-solid fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
-                                        </div>
-                                        <div class="text-dark small">
-                                            <i class="fa-solid fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
-                                        </div>
+                                    <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1 shadow-2xs" title="View customer ledger">
+                                        <i class="fa-solid fa-book-bookmark me-0.5"></i>Ledger
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ count($inv->items ?? []) }} items</span>
+                            </td>
+                            <td class="fw-bold text-dark font-monospace text-end" id="grandTotal-{{ $inv->id }}">৳{{ number_format($inv->grand_total, 2) }}</td>
+                            <td class="fw-bold text-success font-monospace text-end" id="paidAmount-{{ $inv->id }}">
+                                @if(in_array($inv->type, ['invoice', 'challan']))
+                                    ৳{{ number_format($inv->paid_amount, 2) }}
+                                    @if($inv->payments->count() > 1)
+                                        <div class="text-muted" style="font-size: 10px;">({{ $inv->payments->count() }} payments)</div>
+                                    @endif
+                                @else
+                                    <span class="text-muted small">—</span>
+                                @endif
+                            </td>
+                            <td class="fw-bold font-monospace text-end {{ $hasDue ? 'text-danger' : 'text-muted' }}" id="dueAmount-{{ $inv->id }}">
+                                @if(in_array($inv->type, ['invoice', 'challan']))
+                                    ৳{{ number_format($inv->due_amount, 2) }}
+                                @else
+                                    <span class="text-muted small">—</span>
+                                @endif
+                            </td>
+                            <td class="text-center" id="statusBadge-{{ $inv->id }}">
+                                @if(in_array($inv->type, ['quotation', 'tender']))
+                                    @if($isExpired)
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill">মেয়াদোত্তীর্ণ</span>
                                     @else
-                                        <div class="fw-bold text-dark">
-                                            <i class="fa-solid fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
+                                        <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">Proposed</span>
+                                    @endif
+                                @elseif($inv->payment_status === 'paid')
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Paid
+                                    </span>
+                                @elseif($inv->payment_status === 'partial')
+                                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill">
+                                        Partial
+                                    </span>
+                                    @if($inv->due_date)
+                                        <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
+                                            {{ $inv->due_date->format('d M') }}
+                                            @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
                                         </div>
+                                    @endif
+                                @else
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
+                                        Due
+                                    </span>
+                                    @if($inv->due_date)
+                                        <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
+                                            {{ $inv->due_date->format('d M') }}
+                                            @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
+                                        </div>
+                                    @endif
+                                @endif
+                            </td>
+                            <td class="text-center pe-3">
+                                <div class="btn-group btn-group-sm shadow-2xs">
+                                    {{-- 1. Quick Pay Button (if due > 0) --}}
+                                    @if(in_array($inv->type, ['invoice', 'challan']) && $hasDue)
+                                        <button type="button" class="btn btn-outline-success" 
+                                                onclick="openQuickPaymentModal({{ $inv->id }}, '{{ $inv->invoice_no }}', {{ $inv->due_amount }}, '{{ $inv->customer_name }}')" 
+                                                title="পেমেন্ট জমা নিন (Quick Pay)">
+                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                        </button>
                                     @endif
 
-                                    @if($inv->customer_phone)
-                                        <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fa-solid fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($inv->subject)
-                                        <div class="fw-semibold text-dark text-truncate mb-1" style="max-width: 250px;" title="{{ $inv->subject }}">
-                                            <i class="fa-solid fa-file-lines text-warning me-1" style="font-size: 11px;"></i>{{ $inv->subject }}
-                                        </div>
-                                    @endif
-                                    <span class="badge bg-light text-dark border px-2 py-0.5" style="font-size: 11px;">
-                                        <i class="fa-solid fa-cubes me-1 text-muted"></i>{{ count($inv->items ?? []) }} টি আইটেম
-                                    </span>
-                                </td>
-                                <td class="fw-bold text-primary font-monospace text-end fs-6">
-                                    ৳{{ number_format($inv->grand_total, 2) }}
-                                </td>
-                                <td class="text-center">
-                                    @if($inv->valid_until)
-                                        @if($isExpired)
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill">
-                                                <i class="fa-solid fa-calendar-xmark me-1"></i>মেয়াদোত্তীর্ণ
-                                            </span>
-                                            <div class="small text-danger fw-medium mt-1" style="font-size: 10.5px;">{{ $inv->valid_until->format('d M, Y') }}</div>
-                                        @else
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
-                                                <i class="fa-solid fa-calendar-check me-1"></i>সক্রিয়
-                                            </span>
-                                            <div class="small text-muted mt-1" style="font-size: 10.5px;">মেয়াদ: {{ $inv->valid_until->format('d M, Y') }}</div>
-                                        @endif
-                                    @else
-                                        <span class="badge bg-light text-muted border px-2 py-1 rounded-pill">ওপেন প্রস্তাবনা</span>
-                                    @endif
-                                </td>
-                                <td class="text-center pe-3">
+                                    {{-- 2. View --}}
+                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="View & Print">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    {{-- 3. More Actions Dropdown --}}
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="দেখুন ও প্রিন্ট করুন">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-                                        {{-- Quick Convert Dropdown --}}
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="বিল বা চালানে রূপান্তর করুন">
-                                                <i class="fa-solid fa-share-nodes"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm rounded-3 border-0 p-2" style="min-width: 190px; font-size: 12.5px;">
-                                                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">রূপান্তর করুন:</h6></li>
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-3 border-0 p-2" style="min-width: 220px; font-size: 13px;">
+                                            <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Quick Actions:</h6></li>
+                                            
+                                            {{-- Copy Link --}}
+                                            <li>
+                                                <a class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2" href="javascript:void(0)" onclick="copyInvoiceLink('{{ $inv->public_url }}', '{{ $inv->invoice_no }}')">
+                                                    <i class="fa-solid fa-link text-primary"></i> Copy Public Link
+                                                </a>
+                                            </li>
+
+                                            {{-- WhatsApp Share --}}
+                                            @if($inv->customer_phone)
+                                                <li>
+                                                    <a class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2" href="https://wa.me/{{ preg_replace('/[^\d]/', '', $inv->customer_phone) }}?text={{ $waMessage }}" target="_blank">
+                                                        <i class="fa-brands fa-whatsapp text-success"></i> WhatsApp Message
+                                                    </a>
+                                                </li>
+                                                {{-- Quick SMS --}}
+                                                <li>
+                                                    <a class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2" href="javascript:void(0)" onclick="openQuickSmsModal({{ $inv->id }}, '{{ $inv->invoice_no }}', '{{ $inv->customer_phone }}', '{{ $inv->customer_name }}', {{ $inv->grand_total }}, {{ $inv->due_amount }}, '{{ $inv->public_url }}')">
+                                                        <i class="fa-solid fa-comment-sms text-info"></i> Send English SMS
+                                                    </a>
+                                                </li>
+                                            @endif
+
+                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                            {{-- Convert option for quotation/tender --}}
+                                            @if(in_array($inv->type, ['quotation', 'tender']))
                                                 <li>
                                                     <form action="{{ route('admin.accounting.invoices.convert', $inv->id) }}" method="POST">
                                                         @csrf
                                                         <input type="hidden" name="target_type" value="invoice">
-                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2">
-                                                            <i class="fa-solid fa-receipt text-primary"></i> চূড়ান্ত বিলে রূপান্তর
+                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2 text-primary">
+                                                            <i class="fa-solid fa-receipt"></i> Convert to Final Bill
                                                         </button>
                                                     </form>
                                                 </li>
@@ -719,193 +725,50 @@
                                                     <form action="{{ route('admin.accounting.invoices.convert', $inv->id) }}" method="POST">
                                                         @csrf
                                                         <input type="hidden" name="target_type" value="challan">
-                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2">
-                                                            <i class="fa-solid fa-truck text-success"></i> ডেলিভারি চালানে রূপান্তর
+                                                        <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2 text-info">
+                                                            <i class="fa-solid fa-truck"></i> Convert to Challan
                                                         </button>
                                                     </form>
                                                 </li>
-                                            </ul>
-                                        </div>
-                                        <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="এডিট করুন">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
-                                        <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ফাইলটি মুছে ফেলতে চান?" data-confirm-title="ফাইল ডিলিট">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="মুছে ফেলুন">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
+                                            @endif
+
+                                            {{-- Duplicate / Clone --}}
+                                            <li>
+                                                <form action="{{ route('admin.accounting.invoices.duplicate', $inv->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2 text-dark">
+                                                        <i class="fa-solid fa-clone text-secondary"></i> Clone / Duplicate
+                                                    </button>
+                                                </form>
+                                            </li>
+
+                                            {{-- Edit --}}
+                                            <li>
+                                                <a class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2 text-dark" href="{{ route('admin.accounting.invoices.edit', $inv->id) }}">
+                                                    <i class="fa-solid fa-pen-to-square text-warning"></i> Edit Document
+                                                </a>
+                                            </li>
+
+                                            <li><hr class="dropdown-divider my-1"></li>
+
+                                            {{-- Delete --}}
+                                            <li>
+                                                <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" data-confirm="Are you sure you want to delete invoice #{{ $inv->invoice_no }}?" data-confirm-title="Delete Invoice">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item rounded-2 py-1.5 fw-semibold d-flex align-items-center gap-2 text-danger">
+                                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
                                     </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @else
-                {{-- Invoices, Challans & All Standard Table Layout --}}
-                <table class="table adm-table align-middle mb-0" style="min-width: 1080px;">
-                    <thead>
-                        <tr>
-                            <th class="ps-3 py-3" style="width: 170px;">Document #</th>
-                            <th class="py-3" style="width: 120px;">Type</th>
-                            <th class="py-3" style="width: 120px;">Date</th>
-                            <th class="py-3" style="min-width: 220px;">Client & Ledger</th>
-                            <th class="py-3" style="width: 100px;">Items</th>
-                            <th class="py-3 text-end" style="width: 130px;">Grand Total</th>
-                            <th class="py-3 text-end" style="width: 120px;">Paid</th>
-                            <th class="py-3 text-end" style="width: 120px;">Due</th>
-                            <th class="py-3 text-center" style="width: 130px;">Due Date / Status</th>
-                            <th class="text-center pe-3 py-3" style="width: 120px;">Actions</th>
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($invoices as $inv)
-                            <tr class="{{ $inv->is_overdue ? 'table-danger-subtle' : '' }}">
-                                <td class="ps-3 fw-bold text-primary font-monospace">
-                                    <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="text-decoration-none text-primary">
-                                        {{ $inv->invoice_no }}
-                                    </a>
-                                    @if($inv->reference_no)
-                                        <div class="text-muted small fw-normal" style="font-size: 11px;">Ref: {{ $inv->reference_no }}</div>
-                                    @endif
-                                    <div class="mt-1">
-                                        <span class="badge border {{ $inv->category_badge['bg'] }} px-2 py-0.5 fw-semibold" style="font-size: 10px;">
-                                            {{ $inv->category_badge['label'] }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td>
-                                    @if($inv->type === 'tender')
-                                        <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe;">
-                                            <i class="fa-solid fa-landmark me-1"></i>Tender
-                                        </span>
-                                    @elseif($inv->type === 'quotation')
-                                        <span class="badge border px-2.5 py-1 rounded-pill" style="background-color: #fef3c7; color: #b45309; border-color: #fcd34d;">
-                                            <i class="fa-solid fa-file-lines me-1"></i>Quotation
-                                        </span>
-                                    @elseif($inv->type === 'challan')
-                                        <span class="badge bg-info-subtle text-dark border border-info-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fa-solid fa-truck me-1"></i>Challan
-                                        </span>
-                                    @else
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fa-solid fa-receipt me-1"></i>Bill / Memo
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="text-muted small">
-                                    <div class="fw-medium text-dark">{{ $inv->invoice_date ? $inv->invoice_date->format('d M, Y') : '—' }}</div>
-                                    @if($inv->valid_until)
-                                        <div class="text-danger" style="font-size: 10.5px;">Valid: {{ $inv->valid_until->format('d M, Y') }}</div>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-start justify-content-between">
-                                        <div>
-                                            @if($inv->customer_org)
-                                                <div class="fw-bold text-primary">
-                                                    <i class="fa-solid fa-building me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_org }}
-                                                </div>
-                                                <div class="text-dark small">
-                                                    <i class="fa-solid fa-user me-1 text-muted" style="font-size: 10px;"></i>{{ $inv->customer_name }}
-                                                </div>
-                                            @else
-                                                <div class="fw-bold text-dark">
-                                                    <i class="fa-solid fa-user me-1 text-primary opacity-75" style="font-size: 11px;"></i>{{ $inv->customer_name }}
-                                                </div>
-                                            @endif
-
-                                            @if($inv->customer_phone)
-                                                <div class="text-muted small font-monospace" style="font-size: 11px;"><i class="fa-solid fa-phone me-1 text-success"></i>{{ $inv->customer_phone }}</div>
-                                            @endif
-
-                                            @if($inv->subject)
-                                                <div class="text-primary-emphasis fw-medium mt-1 d-flex align-items-center gap-1.5" style="font-size: 11px; max-width: 280px;" title="Subject: {{ $inv->subject }}">
-                                                    <i class="fa-solid fa-heading text-primary opacity-75" style="font-size: 10px;"></i>
-                                                    <span class="text-truncate">{{ $inv->subject }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $inv->customer_name, 'customer_phone' => $inv->customer_phone]) }}" class="badge bg-light text-primary border text-decoration-none px-2 py-1 ms-1" title="View customer ledger">
-                                            <i class="fa-solid fa-book-bookmark me-0.5"></i>Ledger
-                                        </a>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border">{{ count($inv->items ?? []) }} items</span>
-                                </td>
-                                <td class="fw-bold text-dark font-monospace text-end">৳{{ number_format($inv->grand_total, 2) }}</td>
-                                <td class="fw-bold text-success font-monospace text-end">
-                                    @if(in_array($inv->type, ['invoice', 'challan']))
-                                        ৳{{ number_format($inv->paid_amount, 2) }}
-                                        @if($inv->payments->count() > 1)
-                                            <div class="text-muted" style="font-size: 10px;">({{ $inv->payments->count() }} installments)</div>
-                                        @endif
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </td>
-                                <td class="fw-bold font-monospace text-end {{ $inv->due_amount > 0 ? 'text-danger' : 'text-muted' }}">
-                                    @if(in_array($inv->type, ['invoice', 'challan']))
-                                        ৳{{ number_format($inv->due_amount, 2) }}
-                                    @else
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </td>
-                                <td class="text-center">
-                                    @if(in_array($inv->type, ['quotation', 'tender']))
-                                        <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">
-                                            Proposed
-                                        </span>
-                                    @elseif($inv->payment_status === 'paid')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill">
-                                            <i class="fa-solid fa-circle-check me-1"></i>Paid
-                                        </span>
-                                    @elseif($inv->payment_status === 'partial')
-                                        <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill">
-                                            Partial
-                                        </span>
-                                        @if($inv->due_date)
-                                            <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
-                                                <i class="fa-solid fa-calendar-day me-0.5"></i>{{ $inv->due_date->format('d M') }}
-                                                @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
-                                            </div>
-                                        @endif
-                                    @else
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">
-                                            Due
-                                        </span>
-                                        @if($inv->due_date)
-                                            <div class="small mt-1 {{ $inv->is_overdue ? 'text-danger fw-bold' : 'text-muted' }}" style="font-size: 10px;">
-                                                <i class="fa-solid fa-calendar-day me-0.5"></i>{{ $inv->due_date->format('d M') }}
-                                                @if($inv->is_overdue)<span class="badge bg-danger text-white px-1 py-0 ms-0.5">Overdue</span>@endif
-                                            </div>
-                                        @endif
-                                    @endif
-                                </td>
-                                <td class="text-center pe-3">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('admin.accounting.invoices.show', $inv->id) }}" class="btn btn-outline-primary" title="View & Print">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.accounting.invoices.edit', $inv->id) }}" class="btn btn-outline-warning text-dark" title="Edit">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
-                                        <form action="{{ route('admin.accounting.invoices.destroy', $inv->id) }}" method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই ইনভয়েসটি মুছে ফেলতে চান?" data-confirm-title="ইনভয়েস ডিলিট">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
+                    @endforeach
+                </tbody>
+            </table>
         </div>
 
         @if($invoices->hasPages())
@@ -916,7 +779,170 @@
     @endif
 </div>
 
-{{-- Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
+{{-- 5. Floating Bulk Action Dock (সক্রিয় হবে যখন অন্তত ১টি চেক করা হবে) --}}
+<div id="bulkActionDock" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-2 bg-dark bg-opacity-95 text-white rounded-pill shadow-lg border border-secondary d-none z-3" style="min-width: 320px; max-width: 90vw; backdrop-filter: blur(8px);">
+    <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-1">
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary text-white rounded-pill font-monospace" id="selectedDocsCount">0</span>
+            <span class="small fw-semibold">Selected</span>
+        </div>
+        <div class="d-flex align-items-center gap-1.5">
+            <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1" onclick="executeBulkAction('mark_paid')" title="Mark all selected as Paid">
+                <i class="fa-solid fa-circle-check me-1"></i> Paid
+            </button>
+            <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1" onclick="executeBulkAction('mark_unpaid')" title="Mark all selected as Due / Unpaid">
+                <i class="fa-solid fa-clock me-1"></i> Due
+            </button>
+            <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-2.5 py-1" onclick="executeBulkAction('convert_to_invoice')" title="Convert all to Invoices">
+                <i class="fa-solid fa-receipt me-1"></i> To Bill
+            </button>
+            <button type="button" class="btn btn-sm btn-danger rounded-pill px-2.5 py-1" onclick="confirmBulkDelete()" title="Delete selected">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2 py-1 ms-1" onclick="deselectAllDocs()" title="Cancel selection">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- 6. Quick Payment AJAX Modal --}}
+<div class="modal fade" id="quickPaymentModal" tabindex="-1" aria-labelledby="quickPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="quickPaymentModalLabel">
+                    <i class="fa-solid fa-hand-holding-dollar me-1.5"></i>Quick Payment Receipt
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickPaymentForm" onsubmit="submitQuickPayment(event)">
+                @csrf
+                <input type="hidden" id="quickPayInvoiceId" value="">
+
+                <div class="modal-body p-3.5">
+                    <div class="p-2.5 bg-light rounded-3 mb-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="small text-muted d-block" style="font-size: 11px;">Invoice / Customer</span>
+                            <strong class="text-dark" id="quickPayCustomerName">—</strong>
+                            <div class="small text-primary font-monospace" id="quickPayInvoiceNo">—</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="small text-muted d-block" style="font-size: 11px;">Remaining Due</span>
+                            <strong class="text-danger font-monospace fs-5" id="quickPayDueDisplay">৳0.00</strong>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark mb-1">Payment Amount (টাকা) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">৳</span>
+                            <input type="number" step="0.01" class="form-control font-monospace fw-bold fs-5 text-success" id="quickPayAmountInput" required min="0.01">
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Payment Date</label>
+                            <input type="date" class="form-control form-control-sm" id="quickPayDateInput" value="{{ date('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold text-dark mb-1">Payment Method</label>
+                            <select class="form-select form-select-sm" id="quickPayMethodInput" required>
+                                <option value="cash">ক্যাশ / নগদ (Cash)</option>
+                                <option value="bkash">বিকাশ (bKash)</option>
+                                <option value="nagad">নগদ (Nagad)</option>
+                                <option value="rocket">রকেট (Rocket)</option>
+                                <option value="bank">ব্যাংক ডিপোজিট (Bank)</option>
+                                <option value="cheque">চেক (Cheque)</option>
+                                <option value="other">অন্যান্য (Other)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark mb-1">Transaction Ref / TrxID (ঐচ্ছিক)</label>
+                        <input type="text" class="form-control form-control-sm font-monospace" id="quickPayRefInput" placeholder="e.g. TrxID / Check # / Receipt #">
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark mb-1">Notes / মন্তব্য</label>
+                        <input type="text" class="form-control form-control-sm" id="quickPayNoteInput" placeholder="Quick payment entry">
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top py-2.5 d-flex justify-content-between bg-light">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold shadow-xs" id="quickPaySubmitBtn">
+                        <i class="fa-solid fa-check me-1"></i> Save Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- 7. Quick SMS Dispatch Modal --}}
+<div class="modal fade" id="quickSmsModal" tabindex="-1" aria-labelledby="quickSmsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-primary text-white py-3">
+                <h5 class="modal-title fw-bold" id="quickSmsModalLabel">
+                    <i class="fa-solid fa-comment-sms me-1.5"></i>Send Invoice SMS
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark mb-1">Recipient Mobile Number</label>
+                    <input type="text" id="quickSmsPhoneInput" class="form-control font-monospace fw-semibold" placeholder="017XXXXXXXX">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark mb-1">SMS Message Preview (English ASCII)</label>
+                    <div class="p-3 bg-light rounded-3 border text-dark font-monospace small" id="quickSmsPreviewText" style="line-height: 1.5;"></div>
+                    <small class="text-muted mt-1 d-block" style="font-size: 11px;">
+                        <i class="fa-solid fa-circle-info me-1 text-primary"></i>Standard single-part SMS (under 160 characters).
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2.5 d-flex justify-content-between bg-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold shadow-xs" id="quickSmsSendBtn" onclick="submitQuickSms()">
+                    <i class="fa-solid fa-paper-plane me-1"></i> Send SMS Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- 8. Bulk Delete Confirmation Modal --}}
+<div class="modal fade" id="bulkDeleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i>Bulk Delete Confirmation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <i class="fa-solid fa-trash-can fs-1 text-danger opacity-75"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Are you sure?</h5>
+                <p class="text-muted small">You are about to permanently delete <strong id="bulkDeleteCountText" class="text-danger">0</strong> selected document(s) and their payment history.</p>
+            </div>
+            <div class="modal-footer border-top py-2.5 d-flex justify-content-between bg-light">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm rounded-pill px-4 fw-semibold shadow-xs" onclick="executeBulkAction('delete')">
+                    <i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- 9. Invoice & Memo Header Settings / Design Modal with 2:1 Cropper --}}
 <div class="modal fade" id="invoiceSettingsModal" tabindex="-1" aria-labelledby="invoiceSettingsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow">
@@ -1308,7 +1334,21 @@
     </div>
 </div>
 
+{{-- Custom Floating Toast Container --}}
+<div class="toast-container position-fixed bottom-0 end-0 p-3 z-3">
+    <div id="liveActionToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body d-flex align-items-center gap-2" id="liveActionToastBody">
+                <i class="fa-solid fa-circle-check text-success fs-5"></i>
+                <span id="liveActionToastText">Action completed successfully!</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <script>
+// --- 1. Live Header Preview ---
 function updateIndexLivePreview() {
     const name = document.getElementById('indexInputBusinessName')?.value || 'Idea Publication';
     const tag = document.getElementById('indexInputTagline')?.value || '';
@@ -1325,7 +1365,294 @@ function updateIndexLivePreview() {
     if (metaEl) metaEl.textContent = `${addr} · Phone: ${ph} · Email: ${em}`;
 }
 
-// 2:1 Aspect Ratio Canvas Cropper Logic for Index
+// --- 2. Live Toast Helper ---
+function showLiveToast(message, isSuccess = true) {
+    const toastEl = document.getElementById('liveActionToast');
+    const textEl = document.getElementById('liveActionToastText');
+    const bodyEl = document.getElementById('liveActionToastBody');
+    if (!toastEl || !textEl) return;
+
+    textEl.textContent = message;
+    if (bodyEl) {
+        const icon = bodyEl.querySelector('i');
+        if (icon) {
+            icon.className = isSuccess ? 'fa-solid fa-circle-check text-success fs-5' : 'fa-solid fa-circle-exclamation text-danger fs-5';
+        }
+    }
+    const bsToast = new bootstrap.Toast(toastEl, { delay: 3500 });
+    bsToast.show();
+}
+
+// --- 3. Copy Invoice Public Link ---
+function copyInvoiceLink(url, invoiceNo) {
+    navigator.clipboard.writeText(url).then(() => {
+        showLiveToast(`Invoice #${invoiceNo} public link copied to clipboard!`, true);
+    }).catch(() => {
+        showLiveToast(`Could not copy link. URL: ${url}`, false);
+    });
+}
+
+// --- 4. Bulk Selection & Floating Action Bar ---
+const selectAllCheckbox = document.getElementById('selectAllDocsCheckbox');
+const docCheckboxes = document.querySelectorAll('.doc-checkbox');
+const bulkDock = document.getElementById('bulkActionDock');
+const selectedCountEl = document.getElementById('selectedDocsCount');
+
+function updateBulkDockState() {
+    const checked = Array.from(docCheckboxes).filter(c => c.checked);
+    const count = checked.length;
+    if (selectedCountEl) selectedCountEl.textContent = count;
+
+    if (count > 0) {
+        bulkDock.classList.remove('d-none');
+    } else {
+        bulkDock.classList.add('d-none');
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = (count > 0 && count === docCheckboxes.length);
+        selectAllCheckbox.indeterminate = (count > 0 && count < docCheckboxes.length);
+    }
+}
+
+if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', function() {
+        docCheckboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkDockState();
+    });
+}
+
+docCheckboxes.forEach(cb => {
+    cb.addEventListener('change', updateBulkDockState);
+});
+
+function deselectAllDocs() {
+    docCheckboxes.forEach(cb => cb.checked = false);
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+    updateBulkDockState();
+}
+
+function getSelectedDocIds() {
+    return Array.from(docCheckboxes).filter(c => c.checked).map(c => c.value);
+}
+
+function confirmBulkDelete() {
+    const ids = getSelectedDocIds();
+    if (ids.length === 0) return;
+    const countSpan = document.getElementById('bulkDeleteCountText');
+    if (countSpan) countSpan.textContent = ids.length;
+    const modal = new bootstrap.Modal(document.getElementById('bulkDeleteConfirmModal'));
+    modal.show();
+}
+
+function executeBulkAction(action) {
+    const ids = getSelectedDocIds();
+    if (ids.length === 0) {
+        showLiveToast('Please select at least one document.', false);
+        return;
+    }
+
+    const deleteModalEl = document.getElementById('bulkDeleteConfirmModal');
+    const deleteModal = bootstrap.Modal.getInstance(deleteModalEl);
+    if (deleteModal) deleteModal.hide();
+
+    fetch(@json(route('admin.accounting.invoices.bulk-action')), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || @json(csrf_token()),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            action: action,
+            invoice_ids: ids
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showLiveToast(data.message || 'Action executed successfully!', true);
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showLiveToast(data.message || 'Action failed.', false);
+        }
+    })
+    .catch(err => {
+        showLiveToast('Network error: ' + err.message, false);
+    });
+}
+
+// --- 5. Quick Payment Modal Logic ---
+function openQuickPaymentModal(invoiceId, invoiceNo, dueAmount, customerName) {
+    document.getElementById('quickPayInvoiceId').value = invoiceId;
+    document.getElementById('quickPayInvoiceNo').textContent = '#' + invoiceNo;
+    document.getElementById('quickPayCustomerName').textContent = customerName || 'Customer';
+    document.getElementById('quickPayDueDisplay').textContent = '৳' + parseFloat(dueAmount).toFixed(2);
+    document.getElementById('quickPayAmountInput').value = parseFloat(dueAmount).toFixed(2);
+    document.getElementById('quickPayRefInput').value = '';
+    document.getElementById('quickPayNoteInput').value = `Payment for #${invoiceNo}`;
+
+    const modal = new bootstrap.Modal(document.getElementById('quickPaymentModal'));
+    modal.show();
+}
+
+function submitQuickPayment(e) {
+    e.preventDefault();
+    const invoiceId = document.getElementById('quickPayInvoiceId').value;
+    const amount = document.getElementById('quickPayAmountInput').value;
+    const date = document.getElementById('quickPayDateInput').value;
+    const method = document.getElementById('quickPayMethodInput').value;
+    const ref = document.getElementById('quickPayRefInput').value;
+    const note = document.getElementById('quickPayNoteInput').value;
+    const submitBtn = document.getElementById('quickPaySubmitBtn');
+
+    if (!invoiceId || !amount || amount <= 0) return;
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+    const url = `/admin/accounting/invoices/${invoiceId}/quick-payment`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || @json(csrf_token()),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            amount: amount,
+            payment_date: date,
+            payment_method: method,
+            transaction_ref: ref,
+            note: note
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Payment';
+
+        if (data.success) {
+            const modalEl = document.getElementById('quickPaymentModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            showLiveToast(data.message, true);
+
+            // Update row cells directly on screen
+            const paidEl = document.getElementById(`paidAmount-${invoiceId}`);
+            const dueEl = document.getElementById(`dueAmount-${invoiceId}`);
+            const statusEl = document.getElementById(`statusBadge-${invoiceId}`);
+
+            if (paidEl) paidEl.textContent = '৳' + parseFloat(data.paid_amount).toFixed(2);
+            if (dueEl) {
+                dueEl.textContent = '৳' + parseFloat(data.due_amount).toFixed(2);
+                dueEl.className = `fw-bold font-monospace text-end ${data.due_amount > 0 ? 'text-danger' : 'text-muted'}`;
+            }
+            if (statusEl) {
+                if (data.payment_status === 'paid') {
+                    statusEl.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Paid</span>';
+                } else if (data.payment_status === 'partial') {
+                    statusEl.innerHTML = '<span class="badge bg-warning-subtle text-dark border border-warning-subtle px-2.5 py-1 rounded-pill">Partial</span>';
+                } else {
+                    statusEl.innerHTML = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1 rounded-pill">Due</span>';
+                }
+            }
+        } else {
+            showLiveToast(data.message || 'Payment submission failed.', false);
+        }
+    })
+    .catch(err => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Save Payment';
+        showLiveToast('Network error: ' + err.message, false);
+    });
+}
+
+// --- 6. Quick SMS Modal Logic ---
+let currentSmsInvoiceId = null;
+function openQuickSmsModal(invoiceId, invoiceNo, phone, customerName, total, due, publicUrl) {
+    currentSmsInvoiceId = invoiceId;
+    document.getElementById('quickSmsPhoneInput').value = phone || '';
+
+    const name = customerName || 'Customer';
+    const preview = `Idea Publication: Dear ${name}, your invoice #${invoiceNo} (Total: BDT ${parseFloat(total).toFixed(2)}, Due: BDT ${parseFloat(due).toFixed(2)}) is ready. View: ${publicUrl}`;
+    document.getElementById('quickSmsPreviewText').textContent = preview;
+
+    const modal = new bootstrap.Modal(document.getElementById('quickSmsModal'));
+    modal.show();
+}
+
+function submitQuickSms() {
+    if (!currentSmsInvoiceId) return;
+    const phone = document.getElementById('quickSmsPhoneInput').value;
+    const sendBtn = document.getElementById('quickSmsSendBtn');
+
+    if (!phone) {
+        showLiveToast('Please enter a valid mobile number.', false);
+        return;
+    }
+
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending...';
+
+    fetch(`/admin/accounting/invoices/${currentSmsInvoiceId}/quick-sms`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || @json(csrf_token()),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ phone: phone })
+    })
+    .then(res => res.json())
+    .then(data => {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send SMS Now';
+
+        if (data.success) {
+            const modalEl = document.getElementById('quickSmsModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            showLiveToast(data.message, true);
+        } else {
+            showLiveToast(data.message || 'SMS delivery failed.', false);
+        }
+    })
+    .catch(err => {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send SMS Now';
+        showLiveToast('Network error: ' + err.message, false);
+    });
+}
+
+// --- 7. Real-Time Client Search Filter & Keyboard Shortcuts ---
+const liveSearchInput = document.getElementById('liveSearchInput');
+if (liveSearchInput) {
+    liveSearchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.doc-row');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = (text.includes(query)) ? '' : 'none';
+        });
+    });
+}
+
+document.addEventListener('keydown', function(e) {
+    // Press '/' to focus search
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        liveSearchInput?.focus();
+    }
+});
+
+// --- 8. 2:1 Aspect Ratio Canvas Cropper Logic for Index ---
 let indexRawImage = new Image();
 let indexImageLoaded = false;
 let indexCropX = 0, indexCropY = 0;
@@ -1436,7 +1763,7 @@ if (idxDragArea) {
         }
     }, {passive: true});
 
-    window.addEventListener('touchmove', function(e) {
+    idxDragArea.addEventListener('touchmove', function(e) {
         if (!indexIsDragging || e.touches.length !== 1) return;
         indexCropX = e.touches[0].clientX - indexDragStartX;
         indexCropY = e.touches[0].clientY - indexCropY;

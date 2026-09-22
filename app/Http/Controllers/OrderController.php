@@ -96,6 +96,23 @@ class OrderController extends Controller
             auth()->user()->increment('loyalty_points', $pointsEarned);
         }
 
+        // Send instant short English SMS to customer with order number
+        try {
+            if (!empty($order->customer_phone)) {
+                \App\Services\SmsService::sendOrderPlacementSms(
+                    $order->customer_phone,
+                    $order->order_number,
+                    $order->customer_name,
+                    $order->total_amount
+                );
+            }
+        } catch (\Throwable $smsEx) {
+            \Illuminate\Support\Facades\Log::warning("Direct order placement SMS notification error: " . $smsEx->getMessage(), [
+                'order_id' => $order->id,
+                'phone'    => $order->customer_phone,
+            ]);
+        }
+
         return back()->with('success', "আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে! অর্ডার নম্বর: #{$order->order_number}");
     }
 }

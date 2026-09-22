@@ -308,6 +308,341 @@ class IdeaAccountingController extends Controller
     }
 
     /**
+     * Export filtered invoices to CSV, JSON, or formatted stream.
+     */
+    public function exportInvoices(Request $request): mixed
+    {
+        $type = $request->input('type');
+        $salesCategory = $request->input('sales_category');
+        $status = $request->input('payment_status');
+        $search = $request->input('search');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
+        $format = $request->input('format', 'csv');
+
+        $query = IdeaInvoice::query()
+            ->with('creator')
+            ->when($type, fn($q) => $q->where('type', $type))
+            ->when($salesCategory && in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'other']), function($q) use ($salesCategory) {
+                if ($salesCategory === 'books') {
+                    $q->where(fn($sub) => $sub->where('sales_category', 'books')->orWhereNull('sales_category'));
+                } else {
+                    $q->where('sales_category', $salesCategory);
+                }
+            })
+            ->when($status, fn($q) => $q->where('payment_status', $status))
+            ->when($dateFrom, fn($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
+            ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
+            ->when($search, function ($q, $term) {
+                $like = '%' . $term . '%';
+                $q->where(function ($w) use ($like) {
+                    $w->where('invoice_no', 'like', $like)
+                      ->orWhere('customer_name', 'like', $like)
+                      ->orWhere('customer_org', 'like', $like)
+                      ->orWhere('customer_phone', 'like', $like)
+                      ->orWhere('customer_email', 'like', $like)
+                      ->orWhere('reference_no', 'like', $like)
+                      ->orWhere('subject', 'like', $like);
+                });
+            })
+            ->latest('invoice_date')
+            ->latest('id');
+
+        $invoices = $query->get();
+
+        if ($format === 'json') {
+            return response()->json([
+                'success' => true,
+                'count'   => $invoices->count(),
+                'data'    => $invoices,
+            ]);
+        }
+
+        // CSV Export with UTF-8 BOM
+        $filename = 'idea-invoices-' . date('Y-m-d-His') . '.csv';
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ];
+
+        $callback = function () use ($invoices) {
+            $handle = fopen('php://output', 'w');
+            // Write UTF-8 BOM
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($handle, [
+                'Invoice / Document #',
+                'Type',
+                'Sales Category',
+                'Date',
+                'Due Date',
+                'Customer Name',
+                'Organization',
+                'Phone',
+                'Email',
+                'Address',
+                'Subject / Ref',
+                'Subtotal (BDT)',
+                'Discount (BDT)',
+                'Tax/VAT (BDT)',
+                'Grand Total (BDT)',
+                'Paid Amount (BDT)',
+                'Due Amount (BDT)',
+                'Payment Status',
+            ]);
+
+            foreach ($invoices as $inv) {
+                fputcsv($handle, [
+                    $inv->invoice_no,
+                    $inv->type_label,
+                    $inv->category_label,
+                    $inv->invoice_date ? $inv->invoice_date->format('Y-m-d') : '',
+                    $inv->due_date ? $inv->due_date->format('Y-m-d') : '',
+                    $inv->customer_name,
+                    $inv->customer_org,
+                    $inv->customer_phone,
+                    $inv->customer_email,
+                    $inv->customer_address,
+                    $inv->subject ?: ($inv->reference_no ?: ''),
+                    number_format((float)$inv->subtotal, 2, '.', ''),
+                    number_format((float)$inv->discount, 2, '.', ''),
+                    number_format((float)$inv->tax, 2, '.', ''),
+                    number_format((float)$inv->grand_total, 2, '.', ''),
+                    number_format((float)$inv->paid_amount, 2, '.', ''),
+                    number_format((float)$inv->due_amount, 2, '.', ''),
+                    strtoupper($inv->payment_status ?? 'unpaid'),
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Handle Bulk Actions for Invoices & Documents.
+     */
+    public function bulkActionInvoices(Request $request): JsonResponse|RedirectResponse
+    {
+        $action = $request->input('action');
+        $ids = $request->input('invoice_ids', []);
+
+        if (is_string($ids)) {
+            $ids = array_filter(explode(',', $ids));
+        }
+
+        if (empty($ids) || !is_array($ids)) {
+            $msg = 'অনুগ্রহ করে অন্তত একটি ডকুমেন্ট নির্বাচন করুন।';
+            return $request->expectsJson() ? response()->json(['success' => false, 'message' => $msg], 422) : back()->with('error', $msg);
+        }
+
+        $count = count($ids);
+        $updated = 0;
+
+        switch ($action) {
+            case 'delete':
+                foreach ($ids as $id) {
+                    $inv = IdeaInvoice::find($id);
+                    if ($inv) {
+                        IdeaAccountingEntry::where('invoice_id', $inv->id)->delete();
+                        $inv->payments()->delete();
+                        $inv->delete();
+                        $updated++;
+                    }
+                }
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট মুছে ফেলা হয়েছে।";
+                break;
+
+            case 'mark_paid':
+                foreach ($ids as $id) {
+                    $inv = IdeaInvoice::find($id);
+                    if ($inv) {
+                        $grand = (float) $inv->grand_total;
+                        $inv->update([
+                            'paid_amount'    => $grand,
+                            'due_amount'     => 0,
+                            'payment_status' => 'paid',
+                        ]);
+                        $updated++;
+                    }
+                }
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট পরিশোধিত (Paid) চিহ্নিত করা হয়েছে।";
+                break;
+
+            case 'mark_unpaid':
+                foreach ($ids as $id) {
+                    $inv = IdeaInvoice::find($id);
+                    if ($inv) {
+                        $grand = (float) $inv->grand_total;
+                        $inv->update([
+                            'paid_amount'    => 0,
+                            'due_amount'     => $grand,
+                            'payment_status' => 'unpaid',
+                        ]);
+                        $updated++;
+                    }
+                }
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট বকেয়া (Unpaid) চিহ্নিত করা হয়েছে।";
+                break;
+
+            case 'convert_to_invoice':
+                $updated = IdeaInvoice::whereIn('id', $ids)->update(['type' => 'invoice']);
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট বিল/ইনভয়েস-এ রূপান্তর করা হয়েছে।";
+                break;
+
+            case 'convert_to_challan':
+                $updated = IdeaInvoice::whereIn('id', $ids)->update(['type' => 'challan']);
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট ডেলিভারি চালান-এ রূপান্তর করা হয়েছে।";
+                break;
+
+            default:
+                $message = 'অকার্যকর বাল্ক অ্যাকশন।';
+                return $request->expectsJson() ? response()->json(['success' => false, 'message' => $message], 400) : back()->with('error', $message);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'count'   => $updated,
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Record Quick Payment directly from the Invoice Index Table (AJAX).
+     */
+    public function quickPayment(Request $request, IdeaInvoice $invoice): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount'         => 'required|numeric|min:0.01',
+            'payment_date'   => 'required|date',
+            'payment_method' => 'required|string|max:50',
+            'transaction_ref'=> 'nullable|string|max:100',
+            'note'           => 'nullable|string|max:500',
+        ]);
+
+        $amount = (float) $validated['amount'];
+        $userId = auth()->id() ?: null;
+        if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
+            $userId = null;
+        }
+
+        // Record payment
+        $payment = IdeaInvoicePayment::create([
+            'invoice_id'      => $invoice->id,
+            'payment_no'      => 'PMT-' . date('Ymd') . '-' . rand(1000, 9999),
+            'payment_date'    => $validated['payment_date'],
+            'amount'          => $amount,
+            'net_amount'      => $amount,
+            'payment_method'  => $validated['payment_method'],
+            'transaction_ref' => $validated['transaction_ref'] ?? null,
+            'note'            => $validated['note'] ?? 'Quick payment from invoice index table',
+            'recorded_by'     => $userId,
+        ]);
+
+        // Record accounting entry
+        IdeaAccountingEntry::create([
+            'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+            'type'           => 'income',
+            'category'       => $invoice->type === 'challan' ? 'পাইকারি বিক্রয় ও চালান' : 'বই বিক্রয়',
+            'title'          => "বিল #{$invoice->invoice_no} হতে কিস্তি/পেমেন্ট জমা — {$invoice->customer_name}",
+            'amount'         => $amount,
+            'entry_date'     => $validated['payment_date'],
+            'payment_method' => $validated['payment_method'],
+            'party_name'     => $invoice->customer_name,
+            'invoice_id'     => $invoice->id,
+            'notes'          => "রসিদ নম্বর #{$payment->payment_no}",
+            'created_by'     => $userId,
+        ]);
+
+        // Recalculate invoice totals
+        $invoice->recalculatePayments();
+        $invoice->refresh();
+
+        return response()->json([
+            'success'        => true,
+            'message'        => "বিল #{$invoice->invoice_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
+            'paid_amount'    => (float) $invoice->paid_amount,
+            'due_amount'     => (float) $invoice->due_amount,
+            'grand_total'    => (float) $invoice->grand_total,
+            'payment_status' => $invoice->payment_status,
+            'payment_no'     => $payment->payment_no,
+        ]);
+    }
+
+    /**
+     * Duplicate an existing invoice into a new draft / document.
+     */
+    public function duplicateInvoice(Request $request, IdeaInvoice $invoice): RedirectResponse
+    {
+        $settings = self::getInvoiceSettings();
+        $newNo = self::generateNextNumber($invoice->type, $invoice->sales_category ?? 'books', $settings);
+
+        $cloned = $invoice->replicate([
+            'invoice_no',
+            'access_token',
+            'paid_amount',
+            'due_amount',
+            'payment_status',
+            'emailed_at',
+            'email_logs',
+        ]);
+
+        $cloned->invoice_no = $newNo;
+        $cloned->invoice_date = now();
+        $cloned->paid_amount = 0;
+        $cloned->due_amount = $cloned->grand_total;
+        $cloned->payment_status = 'unpaid';
+        $cloned->access_token = \Illuminate\Support\Str::random(32);
+        $cloned->created_by = auth()->id() ?: null;
+        $cloned->save();
+
+        return redirect()->route('admin.accounting.invoices.edit', $cloned->id)
+            ->with('success', "ডকুমেন্টটি সফলভাবে ক্লোন করা হয়েছে। নতুন নম্বর: #{$cloned->invoice_no}");
+    }
+
+    /**
+     * Send Instant SMS Notification with Invoice Details & Public Link.
+     */
+    public function quickSendSms(Request $request, IdeaInvoice $invoice): JsonResponse
+    {
+        $phone = trim((string)($request->input('phone') ?: $invoice->customer_phone));
+        if (empty($phone)) {
+            return response()->json(['success' => false, 'message' => 'গ্রাহকের মোবাইল নম্বর পাওয়া যায়নি।'], 422);
+        }
+
+        $customerName = trim((string)($invoice->customer_name ?: 'Customer'));
+        $publicUrl = $invoice->public_url;
+        $grandTotal = number_format((float)$invoice->grand_total, 2);
+        $dueAmount = number_format((float)$invoice->due_amount, 2);
+
+        $smsMessage = "Idea Publication: Dear {$customerName}, your invoice #{$invoice->invoice_no} (Total: BDT {$grandTotal}, Due: BDT {$dueAmount}) is ready. View: {$publicUrl}";
+
+        // Ensure length stays compact
+        if (strlen($smsMessage) > 160) {
+            $smsMessage = "Idea Publication: Invoice #{$invoice->invoice_no} (Total: BDT {$grandTotal}, Due: BDT {$dueAmount}). View: {$publicUrl}";
+        }
+
+        try {
+            $res = \App\Services\SmsService::send($phone, $smsMessage);
+            return response()->json([
+                'success' => !empty($res['success']),
+                'message' => !empty($res['success']) ? "গ্রাহকের মোবাইলে সফলভাবে SMS পাঠানো হয়েছে।" : ($res['message'] ?? "SMS পাঠাতে ব্যর্থ হয়েছে।"),
+                'details' => $res,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'SMS প্রেরণ ত্রুটি: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Live search books for invoice creation.
      */
     public function searchBooks(Request $request): JsonResponse

@@ -133,6 +133,35 @@ class CommunicationService
     }
 
     /**
+     * Send Instant Order Placement Notification via English SMS (and optional Email).
+     */
+    public static function sendOrderPlacementNotification(mixed $recipient, string $orderNumber, ?float $totalAmount = null, string $channel = 'both'): array
+    {
+        $phone = self::extractPhone($recipient);
+        $email = self::extractEmail($recipient);
+        $name  = self::extractName($recipient);
+        $siteName = 'Idea Publication';
+
+        $results = ['sms' => null, 'email' => null, 'success' => false];
+
+        // 1. Instant short English SMS
+        if (($channel === 'both' || $channel === 'sms' || $channel === 'auto') && !empty($phone)) {
+            $results['sms'] = SmsService::sendOrderPlacementSms($phone, $orderNumber, $name, $totalAmount);
+        }
+
+        // 2. Email confirmation
+        if (($channel === 'both' || $channel === 'email' || $channel === 'auto') && !empty($email)) {
+            $emailSubject = "{$siteName} — Order Confirmation #{$orderNumber}";
+            $trackUrl = url('/track-order?order_no=' . urlencode($orderNumber));
+            $emailBody = "Dear {$name},\n\nThank you for ordering with {$siteName}!\n\nYour order #{$orderNumber} has been received successfully.\nTotal Amount: ৳" . number_format($totalAmount ?? 0, 2) . "\n\nYou can track the progress of your shipment anytime at:\n{$trackUrl}\n\nWarm regards,\nIdea Publication Team";
+            $results['email'] = EmailService::sendSingle($email, $emailSubject, $emailBody, 'Track Your Order', $trackUrl, $name);
+        }
+
+        $results['success'] = (!empty($results['sms']['success']) || !empty($results['email']['success']));
+        return $results;
+    }
+
+    /**
      * Send Unified Marketing / Promotional Campaign via SMS, Email, or Both.
      *
      * @param array $recipients Array of items: [['phone' => '...', 'email' => '...', 'name' => '...'], ...]

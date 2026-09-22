@@ -683,6 +683,34 @@ BASH,
     }
 
     /**
+     * Send instant short English SMS to customer right after order placement.
+     * Includes Order Number, Customer Name, and Tracking Link.
+     *
+     * @param string $phone Customer mobile number
+     * @param string $orderNumber Order number (e.g. IDP-2026-1001)
+     * @param string|null $customerName Customer name
+     * @param float|null $totalAmount Total amount in BDT
+     * @return array
+     */
+    public static function sendOrderPlacementSms(string $phone, string $orderNumber, ?string $customerName = null, ?float $totalAmount = null): array
+    {
+        $siteName = 'Idea Publication';
+        $cleanName = trim((string) $customerName);
+        $namePrefix = !empty($cleanName) ? "Dear {$cleanName}, " : "";
+        $trackUrl = url('/track-order?order_no=' . urlencode($orderNumber));
+
+        // Short English SMS message (stays strictly within standard single SMS length)
+        $message = "{$siteName}: {$namePrefix}your book order #{$orderNumber} has been placed successfully. Track: {$trackUrl}";
+
+        // If message exceeds 160 characters (e.g. long customer name), fallback to concise version
+        if (strlen($message) > 160) {
+            $message = "{$siteName}: Your book order #{$orderNumber} has been placed successfully. Track: {$trackUrl}";
+        }
+
+        return self::send($phone, $message);
+    }
+
+    /**
      * Send order status update SMS.
      */
     public static function sendOrderNotification(string $phone, string $orderNumber, string $statusText): array
