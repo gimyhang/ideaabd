@@ -3,15 +3,30 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AccountVerificationMail;
 use App\Models\User;
 use App\Rules\StrongPassword;
 use App\Services\SecurityAuditService;
+use App\Services\SmsService;
+use App\Support\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class RegistrationController extends Controller
 {
+    /**
+     * Convert Bengali digits to English digits
+     */
+    protected function normalizeBnToEn(string $str): string
+    {
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        return str_replace($bn, $en, $str);
+    }
+
     // Show registration type selection page
     public function choose()
     {
@@ -32,16 +47,86 @@ class RegistrationController extends Controller
         return view("auth.register-{$type}");
     }
 
+    // Send Email verification OTP for registration
+    public function sendEmailOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+
+        // Check if email already registered
+        $existing = User::where('email', $email)->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'already_exists' => true,
+                'message' => 'An account is already registered with this email address.',
+            ], 422);
+        }
+
+        // Generate 6-digit OTP
+        $otpCode = (string) rand(100000, 999999);
+        $cacheKey = 'reg_email_otp_' . md5($email);
+        Cache::put($cacheKey, $otpCode, now()->addMinutes(2));
+
+        // Dispatch email
+        try {
+            Mail::to($email)->send(new AccountVerificationMail($email, $otpCode, 2));
+        } catch (\Throwable $e) {
+            Log::error('Registration Email OTP dispatch failed: ' . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'A 6-digit verification code has been sent to your email (Valid for 2 minutes).',
+            'cooldown' => 45,
+        ]);
+    }
+
+    // Verify Email OTP for registration
+    public function verifyEmailOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'otp'   => ['required', 'string', 'min:4', 'max:10'],
+        ]);
+
+        $email = strtolower(trim($request->input('email')));
+        $rawOtp = $this->normalizeBnToEn(trim($request->input('otp')));
+        $cleanOtp = preg_replace('/[^\d]/', '', $rawOtp);
+
+        $cacheKey = 'reg_email_otp_' . md5($email);
+        $cachedOtp = Cache::get($cacheKey);
+
+        if (!$cachedOtp || $cleanOtp !== (string) $cachedOtp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The email verification code is invalid or has expired (2-minute limit). Please check your email and try again.',
+            ], 422);
+        }
+
+        // Mark as verified in session
+        Cache::forget($cacheKey);
+        session(['email_verified_' . md5($email) => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email address verified successfully!',
+        ]);
+    }
+
     // Send SMS verification OTP for registration
-    public function sendOtp(Request $request, \App\Services\SmsService $smsService)
+    public function sendOtp(Request $request, SmsService $smsService)
     {
         $request->validate([
             'phone' => ['required', 'string', 'max:20'],
             'country_code' => ['nullable', 'string', 'max:10'],
         ]);
 
-        $countryCode = $request->input('country_code', '+880');
-        $rawPhone = trim($request->input('phone'));
+        $countryCode = trim($request->input('country_code', '+880'));
+        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
 
         // Normalize phone with country code
@@ -64,6 +149,8 @@ class RegistrationController extends Controller
         $existing = User::where('phone', $fullPhone)
             ->orWhere('phone', $localPhone)
             ->orWhere('phone', $rawPhone)
+            ->orWhere('phone', '+88' . $localPhone)
+            ->orWhere('phone', '88' . $localPhone)
             ->first();
 
         if ($existing) {
@@ -77,37 +164,30 @@ class RegistrationController extends Controller
             ], 422);
         }
 
-        // Check if phone verification is temporarily disabled by admin
-        if (!\App\Support\SiteSetting::isPhoneVerificationEnabled()) {
-            session(['phone_verified_' . md5($fullPhone) => true]);
-            return response()->json([
-                'success' => true,
-                'bypassed' => true,
-                'message' => 'Mobile verification is currently bypassed/disabled by administration.',
-                'cooldown' => 0,
-            ]);
-        }
-
         // Generate 6-digit OTP
         $otpCode = (string) rand(100000, 999999);
-        $cacheKey = 'reg_otp_' . md5($fullPhone);
-        \Illuminate\Support\Facades\Cache::put($cacheKey, $otpCode, now()->addMinutes(10));
+        
+        // Cache OTP strictly for 2 minutes across all key formats
+        $ttl = now()->addMinutes(2);
+        Cache::put('reg_otp_' . md5($fullPhone), $otpCode, $ttl);
+        Cache::put('reg_otp_' . md5($localPhone), $otpCode, $ttl);
+        Cache::put('reg_otp_' . $cleanDigits, $otpCode, $ttl);
 
         // Dispatch SMS
         $res = $smsService->sendVerificationOtp($fullPhone, $otpCode);
 
-        // WhatsApp integration for official number +8801558712810
+        // WhatsApp integration for official helpline
         $officialWhatsApp = '+8801558712810';
         $cleanOfficialWhatsApp = '8801558712810';
         $userCleanPhone = preg_replace('/[^0-9]/', '', $fullPhone);
-        $whatsappMessage = "IDEA Publication — Your Buyer Account Verification Code is: {$otpCode} (Valid for 15 minutes).\n\nOfficial Helpline: {$officialWhatsApp}";
+        $whatsappMessage = "ideaabd.com — Your Account Verification Code is: {$otpCode} (Valid for 2 minutes).\n\nOfficial Helpline: {$officialWhatsApp}";
         
         $userWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $userCleanPhone . '&text=' . urlencode($whatsappMessage);
         $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $cleanOfficialWhatsApp . '&text=' . urlencode("Hello IDEA Publication, please verify my registration OTP for phone number: {$fullPhone}. OTP Code: {$otpCode}");
 
         return response()->json([
             'success' => true,
-            'message' => '6-digit verification code generated successfully.',
+            'message' => '6-digit verification code sent successfully (Valid for 2 minutes).',
             'cooldown' => 60,
             'whatsapp_url' => $userWhatsappUrl,
             'support_whatsapp_url' => $supportWhatsappUrl,
@@ -124,9 +204,11 @@ class RegistrationController extends Controller
             'otp' => ['required', 'string', 'min:4', 'max:10'],
         ]);
 
-        $countryCode = $request->input('country_code', '+880');
-        $rawPhone = trim($request->input('phone'));
+        $countryCode = trim($request->input('country_code', '+880'));
+        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $rawOtp = $this->normalizeBnToEn(trim($request->input('otp')));
+        $cleanOtp = preg_replace('/[^\d]/', '', $rawOtp);
 
         if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
             if (str_starts_with($cleanDigits, '880')) {
@@ -136,34 +218,32 @@ class RegistrationController extends Controller
                 $cleanDigits = substr($cleanDigits, 1);
             }
             $fullPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
         } else {
             $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
             $fullPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $fullPhone;
         }
 
-        // Auto bypass if phone verification is disabled
-        if (!\App\Support\SiteSetting::isPhoneVerificationEnabled()) {
-            session(['phone_verified_' . md5($fullPhone) => true]);
-            return response()->json([
-                'success' => true,
-                'bypassed' => true,
-                'message' => 'Mobile number verified successfully!',
-            ]);
-        }
+        $cachedOtp = Cache::get('reg_otp_' . md5($fullPhone))
+            ?? Cache::get('reg_otp_' . md5($localPhone))
+            ?? Cache::get('reg_otp_' . $cleanDigits);
 
-        $cacheKey = 'reg_otp_' . md5($fullPhone);
-        $cachedOtp = \Illuminate\Support\Facades\Cache::get($cacheKey);
-
-        if (!$cachedOtp || trim($request->input('otp')) !== (string) $cachedOtp) {
+        if (!$cachedOtp || $cleanOtp !== (string) $cachedOtp) {
             return response()->json([
                 'success' => false,
-                'message' => 'The verification code is invalid or has expired. Please try again.',
+                'message' => 'The verification code is invalid or has expired (2-minute limit). Please check your SMS and try again.',
             ], 422);
         }
 
         // Mark as verified in session
-        \Illuminate\Support\Facades\Cache::forget($cacheKey);
+        Cache::forget('reg_otp_' . md5($fullPhone));
+        Cache::forget('reg_otp_' . md5($localPhone));
+        Cache::forget('reg_otp_' . $cleanDigits);
+
         session(['phone_verified_' . md5($fullPhone) => true]);
+        session(['phone_verified_' . md5($localPhone) => true]);
+        session(['phone_verified_' . $cleanDigits => true]);
 
         return response()->json([
             'success' => true,

@@ -659,7 +659,7 @@ BASH,
      */
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
-        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 15 minutes). Do not share this code.";
+        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 2 minutes). Do not share this code.";
         return self::send($phone, $message);
     }
 

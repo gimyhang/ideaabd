@@ -1736,7 +1736,7 @@ async function verifyCaptchaSolution() {
             const displayTarget = document.getElementById('displayEmailTarget');
             if (displayTarget) displayTarget.textContent = regData.email;
             document.getElementById('panelEmailOtp').classList.add('active');
-            startEmailCountdown();
+            sendEmailVerificationCode();
             return;
         }
 
@@ -1776,6 +1776,17 @@ async function verifyCaptchaSolution() {
  * STEP 3: EMAIL OTP VERIFICATION
  * ═════════════════════════════════════════════════════════════════════
  */
+function normalizeDigits(str) {
+    if (!str) return '';
+    const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
+    let res = str.toString();
+    for (let i = 0; i < bn.length; i++) {
+        res = res.replaceAll(bn[i], en[i]);
+    }
+    return res.replace(/[^\d]/g, '');
+}
+
 function otpKeyNav(current, nextId, prevId) {
     if (current.value.length === 1 && nextId) {
         const next = document.getElementById(nextId);
@@ -1784,8 +1795,8 @@ function otpKeyNav(current, nextId, prevId) {
 }
 
 let countdownInterval = null;
-function startEmailCountdown() {
-    let sec = 45;
+function startEmailCountdown(seconds = 45) {
+    let sec = seconds;
     const countEl = document.getElementById('emailCountdownSec');
     const timerText = document.getElementById('emailOtpTimerText');
     const resendLink = document.getElementById('resendEmailOtpLink');
@@ -1806,26 +1817,77 @@ function startEmailCountdown() {
     }, 1000);
 }
 
-function resendEmailVerificationCode() {
-    showAlert('A new 6-digit verification code has been sent to your email.', true);
-    startEmailCountdown();
+async function sendEmailVerificationCode() {
+    if (!regData.email) return;
+    try {
+        const res = await fetch('{{ route("register.send-email-otp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ email: regData.email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showAlert(data.message, true);
+            startEmailCountdown(data.cooldown || 45);
+        } else {
+            showAlert(data.message || 'Failed to send email verification code.');
+        }
+    } catch (e) {
+        showAlert('Unable to send verification code. Please check your connection.');
+    }
 }
 
-function verifyEmailOtpAndProceed() {
+function resendEmailVerificationCode() {
+    sendEmailVerificationCode();
+}
+
+async function verifyEmailOtpAndProceed() {
     let code = '';
     for (let i = 1; i <= 6; i++) {
         code += (document.getElementById('eOtp' + i)?.value || '');
     }
+    code = normalizeDigits(code);
 
-    if (code.length < 4) {
-        showAlert('Please enter the verification code.');
+    if (code.length !== 6) {
+        showAlert('Please enter the complete 6-digit email verification code.');
         return;
     }
 
-    hideAlert();
-    // Move to Add Mobile number step
-    document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panelAddMobile').classList.add('active');
+    const btn = document.getElementById('btnVerifyEmailOtp');
+    if (btn) btn.disabled = true;
+
+    try {
+        const res = await fetch('{{ route("register.verify-email-otp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ email: regData.email, otp: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            hideAlert();
+            // Move to Add Mobile number step
+            document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panelAddMobile').classList.add('active');
+            const mobileInput = document.getElementById('mobileNumberInput');
+            if (mobileInput && regData.phone) {
+                mobileInput.value = regData.phone;
+            }
+        } else {
+            showAlert(data.message || 'The verification code is invalid or has expired.');
+        }
+    } catch (e) {
+        showAlert('An error occurred during email verification. Please try again.');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 /**
@@ -1833,7 +1895,7 @@ function verifyEmailOtpAndProceed() {
  * STEP 4: MOBILE OTP & COMPLETION
  * ═════════════════════════════════════════════════════════════════════
  */
-function sendMobileVerificationOtp() {
+async function sendMobileVerificationOtp() {
     const num = document.getElementById('mobileNumberInput').value.trim();
     if (!num) {
         showAlert('Please enter a valid mobile number.');
@@ -1842,8 +1904,32 @@ function sendMobileVerificationOtp() {
     regData.phone = num;
     regData.countryCode = document.getElementById('mobileCountryCode').value;
 
-    showAlert('Verification code sent to ' + regData.countryCode + ' ' + num, true);
-    document.getElementById('mobileOtpVerifyBox').classList.remove('d-none');
+    const btn = document.getElementById('btnSendMobileOtp');
+    if (btn) btn.disabled = true;
+
+    try {
+        const res = await fetch('{{ route("register.send-otp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ phone: regData.phone, country_code: regData.countryCode })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            showAlert(data.message, true);
+            document.getElementById('mobileOtpVerifyBox').classList.remove('d-none');
+            document.getElementById('mOtp1')?.focus();
+        } else {
+            showAlert(data.message || 'Failed to send mobile verification code.');
+        }
+    } catch (e) {
+        showAlert('Unable to send mobile verification code. Please check your connection.');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 const BD_DISTRICTS = [
@@ -1936,32 +2022,51 @@ function onRegistrationDistrictChange(district) {
     });
 }
 
-function verifyMobileOtpAndGoToCategory() {
+async function verifyMobileOtpAndGoToCategory() {
     let code = '';
     for (let i = 1; i <= 6; i++) {
         code += (document.getElementById('mOtp' + i)?.value || '');
     }
+    code = normalizeDigits(code);
 
-    if (code.length < 4) {
-        showAlert('Please enter the 6-digit mobile verification code.');
+    if (code.length !== 6) {
+        showAlert('Please enter the complete 6-digit mobile verification code.');
         return;
     }
 
-    hideAlert();
-    // Check URL params for category preset
-    const urlParams = new URLSearchParams(window.location.search);
-    const cat = urlParams.get('category');
-    if (cat && ['buyer', 'author', 'publisher', 'seller'].includes(cat)) {
-        const catSelect = document.getElementById('regCategorySelect');
-        if (catSelect) catSelect.value = cat;
+    try {
+        const res = await fetch('{{ route("register.verify-otp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ phone: regData.phone, country_code: regData.countryCode, otp: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            hideAlert();
+            // Check URL params for category preset
+            const urlParams = new URLSearchParams(window.location.search);
+            const cat = urlParams.get('category');
+            if (cat && ['buyer', 'author', 'publisher', 'seller'].includes(cat)) {
+                const catSelect = document.getElementById('regCategorySelect');
+                if (catSelect) catSelect.value = cat;
+            }
+
+            onRegistrationCategoryChange(document.getElementById('regCategorySelect')?.value || '');
+            initDistrictDropdown();
+
+            // Move to Account Category & Address step
+            document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panelCategoryAddress').classList.add('active');
+        } else {
+            showAlert(data.message || 'The mobile verification code is invalid or has expired.');
+        }
+    } catch (e) {
+        showAlert('An error occurred during mobile verification. Please try again.');
     }
-
-    onRegistrationCategoryChange(document.getElementById('regCategorySelect')?.value || '');
-    initDistrictDropdown();
-
-    // Move to Account Category & Address step
-    document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panelCategoryAddress').classList.add('active');
 }
 
 function onRegistrationCategoryChange(cat) {

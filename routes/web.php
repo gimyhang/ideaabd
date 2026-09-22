@@ -275,6 +275,8 @@ Route::post('/auth/captcha/verify', [CaptchaController::class, 'verify'])->name(
 Route::get('/register', fn() => redirect('/login?mode=register'))->name('register.choose');
 Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->name('register.complete');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
+Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->name('register.send-email-otp');
+Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->name('register.verify-email-otp');
 Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->name('register.send-otp');
 Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->name('register.verify-otp');
 Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&category=' . $type))->name('register.form');

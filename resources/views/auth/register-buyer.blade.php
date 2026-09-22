@@ -513,20 +513,33 @@ function startOtpCooldown(seconds) {
     }, 1000);
 }
 
+function normalizeDigits(str) {
+    if (!str) return '';
+    const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
+    let res = str.toString();
+    for (let i = 0; i < bn.length; i++) {
+        res = res.replaceAll(bn[i], en[i]);
+    }
+    return res.replace(/[^\d]/g, '');
+}
+
 // Handle SMS OTP Verification
 function handleVerifyOtp() {
-    const phone = document.getElementById('buyerPhoneInput').value.trim();
+    const phoneInput = document.getElementById('buyerPhoneInput');
     const countryCode = document.getElementById('countryCodeSelect').value;
-    const otp = document.getElementById('buyerOtpCode').value.trim();
+    const otpInput = document.getElementById('buyerOtpCode');
+    const phone = phoneInput.value.trim();
+    const otp = normalizeDigits(otpInput.value.trim());
     const verifyBtn = document.getElementById('verifyOtpBtn');
     const spinner = document.getElementById('verifySpinner');
     const verifyText = document.getElementById('verifyOtpText');
     const otpFeedback = document.getElementById('otpFeedback');
     const statusBadge = document.getElementById('otpStatusBadge');
 
-    if (!otp || otp.length < 4) {
-        alert('Please enter the 6-digit OTP code.');
-        document.getElementById('buyerOtpCode').focus();
+    if (!otp || otp.length !== 6) {
+        alert('Please enter the complete 6-digit OTP code.');
+        otpInput.focus();
         return;
     }
 
