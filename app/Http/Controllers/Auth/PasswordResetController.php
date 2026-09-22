@@ -291,6 +291,92 @@ class PasswordResetController extends Controller
     }
 
     /**
+     * Verify 6-digit OTP code before displaying new password input table
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'string'],
+            'otp'   => ['required', 'string', 'digits:6'],
+        ], [
+            'phone.required' => 'Please enter your mobile phone number or email.',
+            'otp.required'   => 'Please enter the 6-digit verification code.',
+            'otp.digits'     => 'The verification code must be exactly 6 digits.',
+        ]);
+
+        $phoneInput = trim((string) $request->input('phone'));
+        $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
+        $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
+        $otpInput   = trim((string) $request->input('otp'));
+
+        $user = null;
+        $isValidOtp = false;
+
+        // 1. Check cache by clean phone, last10, or email
+        $cachedData = Cache::get('pwd_reset_otp_' . $cleanPhone);
+        if (!$cachedData && !empty($last10)) {
+            $cachedData = Cache::get('pwd_reset_otp_' . $last10);
+        }
+        if (!$cachedData && str_contains($phoneInput, '@')) {
+            $cachedData = Cache::get('pwd_reset_otp_' . strtolower($phoneInput));
+        }
+
+        if ($cachedData && isset($cachedData['otp']) && (string)$cachedData['otp'] === $otpInput) {
+            $user = User::find($cachedData['user_id']);
+            $isValidOtp = ($user !== null);
+        } else {
+            // 2. Find user in database by phone, email, or clean phone
+            $user = User::where('phone', $phoneInput)
+                ->orWhere('phone', $cleanPhone)
+                ->orWhere('email', $phoneInput)
+                ->orWhere(function ($q) use ($last10) {
+                    if (!empty($last10)) {
+                        $q->where('phone', 'LIKE', '%' . $last10);
+                    }
+                })
+                ->first();
+
+            if ($user) {
+                if (!empty($user->phone)) {
+                    $uClean = preg_replace('/[^0-9]/', '', $user->phone);
+                    $uData = Cache::get('pwd_reset_otp_' . $uClean) ?: Cache::get('pwd_reset_otp_' . substr($uClean, -10));
+                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
+                        $isValidOtp = true;
+                    }
+                }
+                if (!$isValidOtp && !empty($user->email)) {
+                    $uData = Cache::get('pwd_reset_otp_' . strtolower(trim($user->email)));
+                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
+                        $isValidOtp = true;
+                    }
+                }
+                if (!$isValidOtp && $user->email) {
+                    $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
+                    if ($tokenRow && Hash::check($otpInput, $tokenRow->token)) {
+                        if (Carbon::parse($tokenRow->created_at)->addMinutes(30)->isFuture()) {
+                            $isValidOtp = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!$isValidOtp || !$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired verification code. Please check your SMS and try again.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Verification code confirmed successfully.',
+            'phone'     => $phoneInput,
+            'user_name' => $user->name,
+        ]);
+    }
+
+    /**
      * Execute password update via 64-char link token
      */
     public function resetPassword(Request $request)

@@ -97,6 +97,7 @@
             box-shadow: 0 1px 2px rgba(15, 17, 17, 0.05);
             margin-bottom: 20px;
             position: relative;
+            transition: all 0.3s ease;
         }
 
         .auth-heading {
@@ -104,7 +105,7 @@
             font-weight: 500;
             line-height: 1.2;
             color: #0f1111;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             letter-spacing: -0.3px;
         }
 
@@ -113,6 +114,52 @@
             line-height: 1.5;
             color: #333333;
             margin-bottom: 16px;
+        }
+
+        /* Step Progress Indicator */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f2f2;
+        }
+
+        .step-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #767676;
+        }
+
+        .step-pill.active {
+            color: #0284c7;
+        }
+
+        .step-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .step-pill.active .step-dot {
+            background: #0284c7;
+            color: #ffffff;
+        }
+
+        .step-pill.done .step-dot {
+            background: #10b981;
+            color: #ffffff;
         }
 
         /* Form Controls */
@@ -225,6 +272,20 @@
             border-color: #075985;
         }
 
+        .btn-action-primary:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        /* Step Panels */
+        .auth-step-panel {
+            display: block;
+        }
+
+        .auth-step-panel.d-none {
+            display: none !important;
+        }
+
         /* 4. Footer */
         .auth-footer {
             width: 100%;
@@ -277,17 +338,31 @@
 
     {{-- Main Box --}}
     <div class="auth-box">
-        <h1 class="auth-heading">Reset Password</h1>
-        <p class="auth-subtext">Enter the 6-digit OTP code sent to your mobile or email to set a new password.</p>
+        
+        {{-- Step Progress Indicator --}}
+        <div class="step-indicator">
+            <div class="step-pill active" id="pillStep1">
+                <span class="step-dot" id="dotStep1">1</span>
+                <span>Verify OTP</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-muted" style="font-size: 9px;"></i>
+            <div class="step-pill" id="pillStep2">
+                <span class="step-dot" id="dotStep2">2</span>
+                <span>New Password</span>
+            </div>
+        </div>
+
+        {{-- Dynamic Alerts --}}
+        <div id="alertBox" class="alert py-2 px-3 small rounded-2 mb-3 border-0 d-none"></div>
 
         @if(session('status') || session('success'))
-            <div class="alert alert-success py-2 px-3 small rounded-2 mb-3 border-0 bg-success bg-opacity-10 text-success fw-medium">
+            <div class="alert alert-success py-2 px-3 small rounded-2 mb-3 border-0 bg-success bg-opacity-10 text-success fw-medium" id="serverStatusAlert">
                 <i class="fa-solid fa-circle-check me-1"></i> {{ session('status') ?: session('success') }}
             </div>
         @endif
 
         @if(isset($errors) && $errors->any())
-            <div class="alert alert-danger py-2 px-3 small rounded-2 mb-3 border-0 bg-danger bg-opacity-10 text-danger">
+            <div class="alert alert-danger py-2 px-3 small rounded-2 mb-3 border-0 bg-danger bg-opacity-10 text-danger" id="serverErrorAlert">
                 <ul class="mb-0 ps-3">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -296,87 +371,111 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('password.update-otp') }}">
-            @csrf
+        {{-- ========================================================================= --}}
+        {{-- STEP 1: OTP VERIFICATION TABLE / FORM --}}
+        {{-- ========================================================================= --}}
+        <div id="step1Panel" class="auth-step-panel">
+            <h1 class="auth-heading">Verify Code</h1>
+            <p class="auth-subtext">Enter the 6-digit OTP code sent to your mobile SMS or email to verify your identity.</p>
 
-            <div class="form-group-item">
-                <label for="phone" class="form-label-custom">Email or mobile phone number</label>
-                <input type="text" 
-                       id="phone" 
-                       name="phone" 
-                       class="input-text-custom @error('phone') is-invalid @enderror" 
-                       value="{{ old('phone', $phone ?? '') }}" 
-                       required 
-                       placeholder="example@mail.com or 01XXXXXXXXX">
-                @error('phone')
-                    <div class="text-danger small mt-1" style="font-size: 11.5px;">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group-item">
-                <label for="otp" class="form-label-custom">6-digit Verification Code (OTP)</label>
-                <input type="text" 
-                       id="otp" 
-                       name="otp" 
-                       class="input-text-custom input-otp-custom @error('otp') is-invalid @enderror" 
-                       value="{{ old('otp') }}" 
-                       required 
-                       maxlength="6"
-                       autocomplete="one-time-code"
-                       placeholder="------">
-                @error('otp')
-                    <div class="text-danger small mt-1" style="font-size: 11.5px;">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group-item">
-                <label for="new_password" class="form-label-custom">New password</label>
-                <div class="pwd-field-wrap">
-                    <input type="password" 
-                           id="new_password" 
-                           name="password" 
-                           class="input-text-custom @error('password') is-invalid @enderror" 
-                           required 
-                           minlength="6" 
-                           placeholder="At least 6 characters">
-                    <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('new_password', this)">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
-                </div>
-                @error('password')
-                    <div class="text-danger small mt-1" style="font-size: 11.5px;">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="form-group-item">
-                <label for="password_confirmation" class="form-label-custom">Confirm new password</label>
-                <div class="pwd-field-wrap">
-                    <input type="password" 
-                           id="password_confirmation" 
-                           name="password_confirmation" 
+            <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)">
+                <div class="form-group-item">
+                    <label for="phone" class="form-label-custom">Email or mobile phone number</label>
+                    <input type="text" 
+                           id="phone" 
+                           name="phone" 
                            class="input-text-custom" 
+                           value="{{ old('phone', $phone ?? '') }}" 
                            required 
-                           minlength="6" 
-                           placeholder="Re-enter new password">
-                    <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('password_confirmation', this)">
-                        <i class="fa-regular fa-eye"></i>
-                    </button>
+                           placeholder="example@mail.com or 01XXXXXXXXX">
                 </div>
+
+                <div class="form-group-item">
+                    <label for="otp" class="form-label-custom">6-digit Verification Code (OTP)</label>
+                    <input type="text" 
+                           id="otp" 
+                           name="otp" 
+                           class="input-text-custom input-otp-custom" 
+                           value="{{ old('otp') }}" 
+                           required 
+                           maxlength="6"
+                           autocomplete="one-time-code"
+                           placeholder="------">
+                </div>
+
+                <button type="submit" id="btnVerifyOtp" class="btn-action-primary">
+                    <span id="btnVerifyText">Continue</span>
+                    <i class="fa-solid fa-arrow-right ms-1"></i>
+                </button>
+            </form>
+
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">
+                    Resend code
+                </a>
+                <a href="https://api.whatsapp.com/send?phone=8801558712810&text={{ urlencode('I need assistance with password reset code.') }}" target="_blank" class="custom-link" style="font-size: 12px;">
+                    <i class="fab fa-whatsapp text-success me-1"></i> Helpline
+                </a>
             </div>
-
-            <button type="submit" class="btn-action-primary">
-                Save Changes and Sign In
-            </button>
-        </form>
-
-        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-            <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">
-                Resend code
-            </a>
-            <a href="https://api.whatsapp.com/send?phone=8801558712810&text={{ urlencode('I need assistance with password reset code.') }}" target="_blank" class="custom-link" style="font-size: 12px;">
-                <i class="fab fa-whatsapp text-success me-1"></i> Helpline
-            </a>
         </div>
+
+        {{-- ========================================================================= --}}
+        {{-- STEP 2: NEW PASSWORD TABLE / FORM (Appears upon verification) --}}
+        {{-- ========================================================================= --}}
+        <div id="step2Panel" class="auth-step-panel d-none">
+            <h1 class="auth-heading">Create New Password</h1>
+            <p class="auth-subtext" id="step2Subtext">Verification confirmed. Please enter your new password below.</p>
+
+            <form method="POST" action="{{ route('password.update-otp') }}" id="finalResetForm">
+                @csrf
+
+                <input type="hidden" id="finalPhone" name="phone" value="{{ old('phone', $phone ?? '') }}">
+                <input type="hidden" id="finalOtp" name="otp" value="{{ old('otp') }}">
+
+                <div class="form-group-item">
+                    <label for="new_password" class="form-label-custom">New password</label>
+                    <div class="pwd-field-wrap">
+                        <input type="password" 
+                               id="new_password" 
+                               name="password" 
+                               class="input-text-custom @error('password') is-invalid @enderror" 
+                               required 
+                               minlength="6" 
+                               placeholder="At least 6 characters">
+                        <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('new_password', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group-item">
+                    <label for="password_confirmation" class="form-label-custom">Confirm new password</label>
+                    <div class="pwd-field-wrap">
+                        <input type="password" 
+                               id="password_confirmation" 
+                               name="password_confirmation" 
+                               class="input-text-custom" 
+                               required 
+                               minlength="6" 
+                               placeholder="Re-enter new password">
+                        <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('password_confirmation', this)">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-action-primary" id="btnSavePassword">
+                    Save Changes and Sign In
+                </button>
+            </form>
+
+            <div class="text-center mt-3 pt-2 border-top">
+                <a href="javascript:void(0)" onclick="backToStep1()" class="custom-link" style="font-size: 12px;">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Change verification code
+                </a>
+            </div>
+        </div>
+
     </div>
 
     {{-- Back to sign-in --}}
@@ -399,6 +498,99 @@
 </div>
 
 <script>
+    function showAlert(type, message) {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.className = 'alert py-2 px-3 small rounded-2 mb-3 border-0 ' + 
+            (type === 'success' ? 'bg-success bg-opacity-10 text-success fw-medium' : 'bg-danger bg-opacity-10 text-danger');
+        alertBox.innerHTML = (type === 'success' ? '<i class="fa-solid fa-circle-check me-1"></i> ' : '<i class="fa-solid fa-circle-exclamation me-1"></i> ') + message;
+        alertBox.classList.remove('d-none');
+    }
+
+    function hideAlert() {
+        const alertBox = document.getElementById('alertBox');
+        alertBox.classList.add('d-none');
+    }
+
+    function handleVerifyOtp(e) {
+        e.preventDefault();
+        hideAlert();
+
+        const phone = document.getElementById('phone').value.trim();
+        const otp = document.getElementById('otp').value.trim();
+        const btn = document.getElementById('btnVerifyOtp');
+        const btnText = document.getElementById('btnVerifyText');
+
+        if (!phone) {
+            showAlert('danger', 'Please enter your email or mobile phone number.');
+            return;
+        }
+
+        if (!otp || otp.length !== 6) {
+            showAlert('danger', 'Please enter the valid 6-digit verification code.');
+            return;
+        }
+
+        // Disable button & show spinner
+        btn.disabled = true;
+        btnText.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Verifying...';
+
+        fetch("{{ route('password.verify-otp') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ phone: phone, otp: otp })
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(({ status, body }) => {
+            btn.disabled = false;
+            btnText.innerHTML = 'Continue';
+
+            if (status >= 200 && status < 300 && body.success) {
+                // Success: Transition to Step 2
+                document.getElementById('finalPhone').value = phone;
+                document.getElementById('finalOtp').value = otp;
+
+                // Update Step Indicators
+                document.getElementById('pillStep1').className = 'step-pill done';
+                document.getElementById('dotStep1').innerHTML = '<i class="fa-solid fa-check"></i>';
+                document.getElementById('pillStep2').className = 'step-pill active';
+
+                // Switch Panels
+                document.getElementById('step1Panel').classList.add('d-none');
+                document.getElementById('step2Panel').classList.remove('d-none');
+
+                if (body.user_name) {
+                    document.getElementById('step2Subtext').innerText = 'Verified for ' + body.user_name + ' (' + phone + '). Please create your new password.';
+                } else {
+                    document.getElementById('step2Subtext').innerText = 'Verified for ' + phone + '. Please create your new password.';
+                }
+
+                showAlert('success', 'Verification code confirmed. Please set your new password.');
+                document.getElementById('new_password').focus();
+            } else {
+                showAlert('danger', body.message || 'Invalid verification code. Please check your SMS and try again.');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btnText.innerHTML = 'Continue';
+            showAlert('danger', 'Network error. Please try again.');
+        });
+    }
+
+    function backToStep1() {
+        hideAlert();
+        document.getElementById('pillStep1').className = 'step-pill active';
+        document.getElementById('dotStep1').innerText = '1';
+        document.getElementById('pillStep2').className = 'step-pill';
+
+        document.getElementById('step2Panel').classList.add('d-none');
+        document.getElementById('step1Panel').classList.remove('d-none');
+    }
+
     function togglePasswordVisibility(inputId, btn) {
         const input = document.getElementById(inputId);
         const icon = btn.querySelector('i');
