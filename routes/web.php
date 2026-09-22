@@ -590,6 +590,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/balance', 'getBalance')->name('balance');
         Route::post('/send-test', 'sendTest')->name('send-test');
         Route::post('/broadcast', 'broadcast')->name('broadcast');
+        Route::post('/broadcast-many', 'broadcastMany')->name('broadcast-many');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/send-email-test', 'sendEmailTest')->name('send-email-test');
         Route::post('/broadcast-email', 'broadcastEmail')->name('broadcast-email');

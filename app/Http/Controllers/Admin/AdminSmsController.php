@@ -47,12 +47,15 @@ class AdminSmsController extends Controller
             'sellers'     => User::whereIn('role', ['seller', 'sub_admin'])->whereNotNull('email')->where('email', '!=', '')->count(),
         ];
 
+        $codeSamples = SmsService::getCodeSamples($credentials['api_key'] ?? null, $credentials['sender_id'] ?? null);
+
         return view('admin.sms.index', [
             'credentials'  => $credentials,
             'balanceInfo'  => $balanceInfo,
             'smtpSettings' => $smtpSettings,
             'counts'       => $phoneCounts,
             'emailCounts'  => $emailCounts,
+            'codeSamples'  => $codeSamples,
         ]);
     }
 
@@ -142,6 +145,85 @@ class AdminSmsController extends Controller
         $this->accessService->log('sms_bulk_broadcast', "বাল্ক এসএমএস পাঠানো হয়েছে ({$validated['target_group']}) — মোট প্রাপক: {$totalSent}/" . count($recipients));
 
         return back()->with('success', "সফলভাবে {$totalSent} জন প্রাপকের কাছে বাল্ক এসএমএস পাঠানো সম্পন্ন হয়েছে!");
+    }
+
+    /**
+     * Broadcast personalized Many-to-Many SMS where each user receives custom placeholders ({name}, {role}, {phone}).
+     */
+    public function broadcastMany(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'target_group'     => 'required|string|in:all,customers,authors,publishers,sellers,custom',
+            'custom_data'      => 'nullable|string',
+            'message_template' => 'required|string|max:1000',
+        ]);
+
+        $messages = [];
+        $template = $validated['message_template'];
+
+        if ($validated['target_group'] === 'custom') {
+            // Lines in format: 01726976982 | Rahim | Author
+            $lines = preg_split('/[\r\n]+/', $validated['custom_data'] ?? '', -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($lines as $line) {
+                $parts = array_map('trim', explode('|', $line));
+                $phone = $parts[0] ?? '';
+                $name  = $parts[1] ?? 'সম্মানিত গ্রাহক';
+                $role  = $parts[2] ?? 'ইউজার';
+
+                if (!empty($phone)) {
+                    $personalizedMsg = str_replace(
+                        ['{name}', '{role}', '{phone}'],
+                        [$name, $role, $phone],
+                        $template
+                    );
+                    $messages[] = [
+                        'to'      => $phone,
+                        'message' => $personalizedMsg,
+                    ];
+                }
+            }
+        } else {
+            $query = User::whereNotNull('phone')->where('phone', '!=', '');
+
+            if ($validated['target_group'] === 'customers') {
+                $query->whereIn('role', ['customer', 'buyer', 'user']);
+            } elseif ($validated['target_group'] === 'authors') {
+                $query->where('role', 'author');
+            } elseif ($validated['target_group'] === 'publishers') {
+                $query->where('role', 'publisher');
+            } elseif ($validated['target_group'] === 'sellers') {
+                $query->whereIn('role', ['seller', 'sub_admin']);
+            }
+
+            $users = $query->get(['name', 'phone', 'role']);
+
+            foreach ($users as $u) {
+                $personalizedMsg = str_replace(
+                    ['{name}', '{role}', '{phone}'],
+                    [$u->name ?: 'সম্মানিত গ্রাহক', ucfirst($u->role ?: 'পাঠক'), $u->phone],
+                    $template
+                );
+
+                $messages[] = [
+                    'to'      => $u->phone,
+                    'message' => $personalizedMsg,
+                ];
+            }
+        }
+
+        if (empty($messages)) {
+            return back()->with('error', 'কোনো বৈধ প্রাপকের তথ্য পাওয়া যায়নি!');
+        }
+
+        $res = SmsService::sendManyToMany($messages);
+
+        $this->accessService->log('sms_many_broadcast', "মেনি-টু-মেনি বাল্ক এসএমএস পাঠানো হয়েছে ({$validated['target_group']}) — মোট প্রেরিত: " . ($res['total_sent'] ?? 0) . "/" . count($messages));
+
+        if (!empty($res['success'])) {
+            return back()->with('success', $res['message'] ?? 'মেনি-টু-মেনি পার্সোনালাইজড ক্যাম্পেইন সফলভাবে সম্পন্ন হয়েছে!');
+        }
+
+        return back()->with('error', 'মেনি-টু-মেনি ক্যাম্পেইনে সমস্যা হয়েছে: ' . ($res['message'] ?? 'Unknown Error'));
     }
 
     /**

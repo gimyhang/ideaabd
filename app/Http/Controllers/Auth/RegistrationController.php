@@ -603,7 +603,12 @@ class RegistrationController extends Controller
         $otpCode = rand(100000, 999999);
         $smsMessage = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার অ্যাকাউন্ট ভেরিফিকেশন কোড: {$otpCode}। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
 
-        // Log SMS dispatch
+        // Dispatch & Log SMS
+        try {
+            \App\Services\SmsService::send($base['phone'], $smsMessage);
+        } catch (\Throwable $smsEx) {
+            Log::warning("Could not dispatch registration SMS: " . $smsEx->getMessage());
+        }
         Log::info("SMS Verification dispatched to {$base['phone']}: {$smsMessage}");
 
         // Only buyer is auto-approved immediately. Author, Seller, Publisher must await admin approval!
