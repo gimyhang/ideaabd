@@ -100,7 +100,7 @@ class PasswordResetController extends Controller
         // Generate 64-character token AND 6-digit numeric OTP code
         $token = Str::random(64);
         $otpCode = (string) random_int(100000, 999999);
-        $expireMinutes = 30; // 30 minutes expiration
+        $expireMinutes = 2; // Strict 2 minutes expiration
         $expireAt = now()->addMinutes($expireMinutes);
 
         // Store Token in Cache
@@ -115,25 +115,27 @@ class PasswordResetController extends Controller
         ];
 
         Cache::put($cacheKeyToken, $payload, $expireAt);
+        Cache::put('pwd_reset_otp_user_' . $user->id, $payload, $expireAt);
 
         // Also store OTP in cache keyed by clean phone & email
         if (!empty($user->phone)) {
             $cleanUserPhone = preg_replace('/[^0-9]/', '', $user->phone);
             Cache::put('pwd_reset_otp_' . $cleanUserPhone, $payload, $expireAt);
-            $last10User = substr($cleanUserPhone, -10);
-            Cache::put('pwd_reset_otp_' . $last10User, $payload, $expireAt);
+            if (strlen($cleanUserPhone) >= 10) {
+                Cache::put('pwd_reset_otp_' . substr($cleanUserPhone, -10), $payload, $expireAt);
+            }
         }
         if (!empty($user->email)) {
             Cache::put('pwd_reset_otp_' . strtolower(trim($user->email)), $payload, $expireAt);
         }
 
-        // Store in password_reset_tokens table
+        // Store hashed OTP code in password_reset_tokens table with 2-minute expiry
         try {
             if (!empty($user->email)) {
                 DB::table('password_reset_tokens')->updateOrInsert(
                     ['email' => $user->email],
                     [
-                        'token'      => Hash::make($token),
+                        'token'      => Hash::make($otpCode),
                         'created_at' => now(),
                     ]
                 );
@@ -291,6 +293,87 @@ class PasswordResetController extends Controller
     }
 
     /**
+     * Strict OTP Validator: Verifies 6-digit OTP against Cache and DB within 2-minute validity.
+     * Returns User instance if strictly valid, null otherwise.
+     */
+    protected function validateAndGetUserFromOtp(string $phoneOrEmail, string $otpInput): ?User
+    {
+        $input = trim($phoneOrEmail);
+        $cleanPhone = preg_replace('/[^0-9]/', '', $input);
+        $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
+        $otp = trim($otpInput);
+
+        if (strlen($otp) !== 6 || !ctype_digit($otp)) {
+            return null;
+        }
+
+        // 1. Find user by email or phone
+        $user = User::where('email', $input)
+            ->orWhere('phone', $input)
+            ->orWhereRaw('LOWER(email) = ?', [strtolower($input)])
+            ->orWhere(function ($query) use ($cleanPhone, $last10) {
+                if (!empty($cleanPhone) && strlen($cleanPhone) >= 8) {
+                    $query->where('phone', $cleanPhone)
+                          ->orWhere('phone', 'LIKE', '%' . $last10);
+                }
+            })
+            ->first();
+
+        // Check fallback admin
+        if (!$user) {
+            $adminPhone = preg_replace('/[^0-9]/', '', (string)env('ADMIN_PHONE', '01726976982'));
+            $adminEmail = strtolower((string)env('ADMIN_EMAIL', 'adideabd@gmail.com'));
+            if ($cleanPhone === $adminPhone || strtolower($input) === $adminEmail) {
+                $user = User::where('role', User::ROLE_ADMIN)->orWhere('email', $adminEmail)->first();
+            }
+        }
+
+        if (!$user) {
+            return null;
+        }
+
+        // 2. Check Cache keys
+        $cleanUserPhone = preg_replace('/[^0-9]/', '', (string)$user->phone);
+        $last10User = (strlen($cleanUserPhone) >= 10) ? substr($cleanUserPhone, -10) : $cleanUserPhone;
+        $cachedKeys = array_unique(array_filter([
+            'pwd_reset_otp_user_' . $user->id,
+            'pwd_reset_otp_' . $cleanPhone,
+            'pwd_reset_otp_' . $last10,
+            'pwd_reset_otp_' . $cleanUserPhone,
+            'pwd_reset_otp_' . $last10User,
+            'pwd_reset_otp_' . strtolower((string)$user->email),
+            'pwd_reset_otp_' . strtolower($input),
+        ]));
+
+        foreach ($cachedKeys as $cacheKey) {
+            $cached = Cache::get($cacheKey);
+            if ($cached && is_array($cached) && isset($cached['otp'])) {
+                if ((string)$cached['otp'] === $otp) {
+                    if (isset($cached['expires_at']) && now()->timestamp > $cached['expires_at']) {
+                        return null; // Expired
+                    }
+                    return $user;
+                }
+            }
+        }
+
+        // 3. Check DB password_reset_tokens table with strict 2-minute expiry
+        if (!empty($user->email)) {
+            $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
+            if ($tokenRow && !empty($tokenRow->token)) {
+                if (Hash::check($otp, $tokenRow->token)) {
+                    $createdAt = Carbon::parse($tokenRow->created_at);
+                    if ($createdAt->addMinutes(2)->isFuture()) {
+                        return $user;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Verify 6-digit OTP code before displaying new password input table
      */
     public function verifyOtp(Request $request)
@@ -305,66 +388,14 @@ class PasswordResetController extends Controller
         ]);
 
         $phoneInput = trim((string) $request->input('phone'));
-        $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
-        $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
         $otpInput   = trim((string) $request->input('otp'));
 
-        $user = null;
-        $isValidOtp = false;
+        $user = $this->validateAndGetUserFromOtp($phoneInput, $otpInput);
 
-        // 1. Check cache by clean phone, last10, or email
-        $cachedData = Cache::get('pwd_reset_otp_' . $cleanPhone);
-        if (!$cachedData && !empty($last10)) {
-            $cachedData = Cache::get('pwd_reset_otp_' . $last10);
-        }
-        if (!$cachedData && str_contains($phoneInput, '@')) {
-            $cachedData = Cache::get('pwd_reset_otp_' . strtolower($phoneInput));
-        }
-
-        if ($cachedData && isset($cachedData['otp']) && (string)$cachedData['otp'] === $otpInput) {
-            $user = User::find($cachedData['user_id']);
-            $isValidOtp = ($user !== null);
-        } else {
-            // 2. Find user in database by phone, email, or clean phone
-            $user = User::where('phone', $phoneInput)
-                ->orWhere('phone', $cleanPhone)
-                ->orWhere('email', $phoneInput)
-                ->orWhere(function ($q) use ($last10) {
-                    if (!empty($last10)) {
-                        $q->where('phone', 'LIKE', '%' . $last10);
-                    }
-                })
-                ->first();
-
-            if ($user) {
-                if (!empty($user->phone)) {
-                    $uClean = preg_replace('/[^0-9]/', '', $user->phone);
-                    $uData = Cache::get('pwd_reset_otp_' . $uClean) ?: Cache::get('pwd_reset_otp_' . substr($uClean, -10));
-                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
-                        $isValidOtp = true;
-                    }
-                }
-                if (!$isValidOtp && !empty($user->email)) {
-                    $uData = Cache::get('pwd_reset_otp_' . strtolower(trim($user->email)));
-                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
-                        $isValidOtp = true;
-                    }
-                }
-                if (!$isValidOtp && $user->email) {
-                    $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
-                    if ($tokenRow && Hash::check($otpInput, $tokenRow->token)) {
-                        if (Carbon::parse($tokenRow->created_at)->addMinutes(30)->isFuture()) {
-                            $isValidOtp = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!$isValidOtp || !$user) {
+        if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid or expired verification code. Please check your SMS and try again.',
+                'message' => 'Invalid or expired verification code (2-minute limit). Please check your SMS and try again.',
             ], 422);
         }
 
@@ -407,7 +438,7 @@ class PasswordResetController extends Controller
             $tokenRecord = DB::table('password_reset_tokens')->where('email', $email)->first();
             if ($tokenRecord && Hash::check($token, $tokenRecord->token)) {
                 $createdAt = Carbon::parse($tokenRecord->created_at);
-                if ($createdAt->addMinutes(30)->isFuture()) {
+                if ($createdAt->addMinutes(2)->isFuture()) {
                     $user = User::where('email', $email)->first();
                     $isValid = ($user !== null);
                 }
@@ -437,6 +468,32 @@ class PasswordResetController extends Controller
     }
 
     /**
+     * Completely clear and burn all OTP cache entries and database tokens for user
+     */
+    protected function clearUserOtp(User $user, ?string $phoneOrEmail = null): void
+    {
+        Cache::forget('pwd_reset_otp_user_' . $user->id);
+        if (!empty($user->phone)) {
+            $uClean = preg_replace('/[^0-9]/', '', $user->phone);
+            Cache::forget('pwd_reset_otp_' . $uClean);
+            Cache::forget('pwd_reset_otp_' . substr($uClean, -10));
+            Cache::forget('pwd_reset_otp_88' . ltrim($uClean, '0'));
+        }
+        if (!empty($user->email)) {
+            Cache::forget('pwd_reset_otp_' . strtolower(trim($user->email)));
+            try {
+                DB::table('password_reset_tokens')->where('email', $user->email)->delete();
+            } catch (\Throwable $e) {}
+        }
+        if (!empty($phoneOrEmail)) {
+            $inClean = preg_replace('/[^0-9]/', '', $phoneOrEmail);
+            Cache::forget('pwd_reset_otp_' . $inClean);
+            Cache::forget('pwd_reset_otp_' . substr($inClean, -10));
+            Cache::forget('pwd_reset_otp_' . strtolower(trim($phoneOrEmail)));
+        }
+    }
+
+    /**
      * Execute password update via 6-digit OTP code
      */
     public function resetPasswordWithOtp(Request $request)
@@ -457,68 +514,13 @@ class PasswordResetController extends Controller
         ], $customMessages);
 
         $phoneInput = trim((string) $request->input('phone'));
-        $cleanPhone = preg_replace('/[^0-9]/', '', $phoneInput);
-        $last10 = (strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
         $otpInput   = trim((string) $request->input('otp'));
 
-        $user = null;
-        $isValidOtp = false;
+        $user = $this->validateAndGetUserFromOtp($phoneInput, $otpInput);
 
-        // 1. Check cache by clean phone, last10, or email
-        $cachedData = Cache::get('pwd_reset_otp_' . $cleanPhone);
-        if (!$cachedData && !empty($last10)) {
-            $cachedData = Cache::get('pwd_reset_otp_' . $last10);
-        }
-        if (!$cachedData && str_contains($phoneInput, '@')) {
-            $cachedData = Cache::get('pwd_reset_otp_' . strtolower($phoneInput));
-        }
-
-        if ($cachedData && isset($cachedData['otp']) && (string)$cachedData['otp'] === $otpInput) {
-            $user = User::find($cachedData['user_id']);
-            $isValidOtp = ($user !== null);
-        } else {
-            // 2. Find user in database by phone, email, or clean phone
-            $user = User::where('phone', $phoneInput)
-                ->orWhere('phone', $cleanPhone)
-                ->orWhere('email', $phoneInput)
-                ->orWhere(function ($q) use ($last10) {
-                    if (!empty($last10)) {
-                        $q->where('phone', 'LIKE', '%' . $last10);
-                    }
-                })
-                ->first();
-
-            if ($user) {
-                // Check if user's phone or email has cached OTP
-                if (!empty($user->phone)) {
-                    $uClean = preg_replace('/[^0-9]/', '', $user->phone);
-                    $uData = Cache::get('pwd_reset_otp_' . $uClean) ?: Cache::get('pwd_reset_otp_' . substr($uClean, -10));
-                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
-                        $isValidOtp = true;
-                    }
-                }
-                if (!$isValidOtp && !empty($user->email)) {
-                    $uData = Cache::get('pwd_reset_otp_' . strtolower(trim($user->email)));
-                    if ($uData && isset($uData['otp']) && (string)$uData['otp'] === $otpInput) {
-                        $isValidOtp = true;
-                    }
-                }
-
-                // Check database password_reset_tokens table
-                if (!$isValidOtp && $user->email) {
-                    $tokenRow = DB::table('password_reset_tokens')->where('email', $user->email)->first();
-                    if ($tokenRow && Hash::check($otpInput, $tokenRow->token)) {
-                        if (Carbon::parse($tokenRow->created_at)->addMinutes(30)->isFuture()) {
-                            $isValidOtp = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!$isValidOtp || !$user) {
+        if (!$user) {
             return back()->withInput()->withErrors([
-                'otp' => 'Invalid or expired verification code. Please check and try again.',
+                'otp' => 'Invalid or expired verification code (2-minute limit). Please check and try again.',
             ]);
         }
 
@@ -526,14 +528,8 @@ class PasswordResetController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // Clear cache
-        Cache::forget('pwd_reset_otp_' . $cleanPhone);
-        if ($user->email) {
-            Cache::forget('pwd_reset_otp_' . strtolower($user->email));
-            try {
-                DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-            } catch (\Throwable $e) {}
-        }
+        // Burn all OTP cache and DB records immediately
+        $this->clearUserOtp($user, $phoneInput);
 
         Log::info("Password successfully reset via 6-digit OTP for User ID: {$user->id}");
 

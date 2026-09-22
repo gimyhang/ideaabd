@@ -650,7 +650,7 @@ BASH,
      */
     public static function sendPasswordResetOtp(string $phone, string $otpCode, string $resetUrl = ''): array
     {
-        $message = "ideaabd.com: Your password reset verification code is {$otpCode} (Valid for 30 minutes). Do not share this code.";
+        $message = "ideaabd.com: Your password reset verification code is {$otpCode} (Valid for 2 minutes). Do not share this code.";
         return self::send($phone, $message);
     }
 
