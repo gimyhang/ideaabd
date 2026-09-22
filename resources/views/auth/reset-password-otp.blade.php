@@ -372,42 +372,42 @@
         @endif
 
         {{-- ========================================================================= --}}
-        {{-- STEP 1: OTP VERIFICATION TABLE / FORM --}}
+        {{-- STEP 1: OTP VERIFICATION TABLE / BOX --}}
         {{-- ========================================================================= --}}
         <div id="step1Panel" class="auth-step-panel">
             <h1 class="auth-heading">Verify Code</h1>
             <p class="auth-subtext">Enter the 6-digit OTP code sent to your mobile SMS or email to verify your identity.</p>
 
-            <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)">
-                <div class="form-group-item">
-                    <label for="phone" class="form-label-custom">Email or mobile phone number</label>
-                    <input type="text" 
-                           id="phone" 
-                           name="phone" 
-                           class="input-text-custom" 
-                           value="{{ old('phone', $phone ?? '') }}" 
-                           required 
-                           placeholder="example@mail.com or 01XXXXXXXXX">
-                </div>
+            <div class="form-group-item">
+                <label for="phone" class="form-label-custom">Email or mobile phone number</label>
+                <input type="text" 
+                       id="phone" 
+                       name="phone" 
+                       class="input-text-custom" 
+                       value="{{ old('phone', $phone ?? '') }}" 
+                       required 
+                       placeholder="example@mail.com or 01XXXXXXXXX"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();handleVerifyOtp();}">
+            </div>
 
-                <div class="form-group-item">
-                    <label for="otp" class="form-label-custom">6-digit Verification Code (OTP)</label>
-                    <input type="text" 
-                           id="otp" 
-                           name="otp" 
-                           class="input-text-custom input-otp-custom" 
-                           value="{{ old('otp') }}" 
-                           required 
-                           maxlength="6"
-                           autocomplete="one-time-code"
-                           placeholder="------">
-                </div>
+            <div class="form-group-item">
+                <label for="otp" class="form-label-custom">6-digit Verification Code (OTP)</label>
+                <input type="text" 
+                       id="otp" 
+                       name="otp" 
+                       class="input-text-custom input-otp-custom" 
+                       value="{{ old('otp') }}" 
+                       required 
+                       maxlength="6"
+                       autocomplete="one-time-code"
+                       placeholder="------"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();handleVerifyOtp();}">
+            </div>
 
-                <button type="submit" id="btnVerifyOtp" class="btn-action-primary">
-                    <span id="btnVerifyText">Continue</span>
-                    <i class="fa-solid fa-arrow-right ms-1"></i>
-                </button>
-            </form>
+            <button type="button" id="btnVerifyOtp" onclick="handleVerifyOtp()" class="btn-action-primary">
+                <span id="btnVerifyText">Continue</span>
+                <i class="fa-solid fa-arrow-right ms-1"></i>
+            </button>
 
             <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                 <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">
@@ -522,7 +522,9 @@
     }
 
     function handleVerifyOtp(e) {
-        e.preventDefault();
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
         hideAlert();
 
         const phoneInput = document.getElementById('phone');
