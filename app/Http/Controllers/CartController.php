@@ -155,6 +155,7 @@ class CartController extends Controller
         $validated = $request->validate([
             'customer_name'          => 'required|string|max:255',
             'customer_phone'         => 'required|string|max:25',
+            'customer_email'         => 'nullable|email|max:255',
             'customer_address'       => 'required|string|max:1000',
             'district'               => 'required|string',
             'thana'                  => 'nullable|string|max:100',
@@ -170,6 +171,24 @@ class CartController extends Controller
             'gift_message'           => 'nullable|string',
             'cart_items'             => 'required|string', // JSON array of items: [{id, title, price, qty/quantity}]
         ]);
+
+        // Check user verification & approval status
+        $authUser = auth()->user();
+        if ($authUser) {
+            $eligibility = $authUser->getOrderEligibilityStatus();
+            if (!$eligibility['can_order']) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $eligibility['message'],
+                        'reason'  => $eligibility['reason'],
+                        'requires_verification' => in_array($eligibility['reason'], ['both_unverified', 'phone_unverified', 'email_unverified']),
+                        'pending_approval' => $eligibility['reason'] === 'pending_approval',
+                    ], 403);
+                }
+                return back()->withInput()->with('error', $eligibility['message']);
+            }
+        }
 
         $items = json_decode($validated['cart_items'], true);
         if (!is_array($items) || empty($items)) {

@@ -525,33 +525,198 @@ class AdminController extends Controller
 
     // ─── Users ──────────────────────────────────────────────────────────
 
-    public function users(Request $request): View
+    // ─── Users & Roles Hub (Author vs Customer Separation) ───────────────
+
+    public function users(Request $request): View|\Illuminate\Http\JsonResponse
     {
-        $users = User::query()
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $term = '%' . $request->string('search')->trim() . '%';
-                $q->where(fn ($w) => $w->where('name', 'like', $term)
-                    ->orWhere('email', 'like', $term)
-                    ->orWhere('phone', 'like', $term));
+        $search    = $request->string('search')->trim()->value();
+        $role      = $request->string('role')->trim()->value() ?: 'all';
+        $regStatus = $request->input('reg_status');
+        $isActive  = $request->input('is_active');
+        $sort      = $request->string('sort', 'latest')->trim()->value();
+        $perPage   = in_array((int) $request->input('per_page'), [10, 20, 25, 50, 100], true) ? (int) $request->input('per_page') : 20;
+
+        $query = User::query()
+            ->with(['customRole'])
+            ->when($search, function ($q, $term) {
+                $q->where(function ($w) use ($term) {
+                    $like = '%' . $term . '%';
+                    $w->where('name', 'like', $like)
+                      ->orWhere('email', 'like', $like)
+                      ->orWhere('phone', 'like', $like)
+                      ->orWhere('reg_data', 'like', $like);
+                });
             })
-            ->when($request->filled('role'), function ($q) use ($request) {
-                $role = $request->string('role')->trim()->value();
-                if ($role === 'buyer') {
-                    $q->whereIn('role', ['buyer', 'customer']);
+            // Role / Segment Filtering
+            ->when($role !== 'all', function ($q) use ($role) {
+                if ($role === 'author') {
+                    $q->where(fn($sq) => $sq->where('role', 'author')->orWhere('reg_type', 'author'));
+                } elseif ($role === 'buyer' || $role === 'customer') {
+                    $q->where(fn($sq) => $sq->whereIn('role', ['buyer', 'customer'])->orWhereIn('reg_type', ['buyer', 'customer']));
+                } elseif ($role === 'staff' || $role === 'sub_admin') {
+                    $q->whereIn('role', ['admin', 'sub_admin']);
                 } else {
                     $q->where('role', $role);
                 }
             })
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+            ->when($regStatus !== null && $regStatus !== '', fn($q) => $q->where('reg_status', $regStatus))
+            ->when($isActive !== null && $isActive !== '', fn($q) => $q->where('is_active', (bool) $isActive));
+
+        // Eager load role-specific relationships
+        if ($role === 'author') {
+            $query->with(['authorProfile' => fn($q) => $q->withCount('books')]);
+        } elseif ($role === 'buyer' || $role === 'customer') {
+            $query->withCount('orders');
+        } else {
+            $query->with(['authorProfile' => fn($q) => $q->withCount('books')])->withCount('orders');
+        }
+
+        // Sorting
+        match ($sort) {
+            'oldest'        => $query->oldest(),
+            'name_asc'      => $query->orderBy('name', 'asc'),
+            'name_desc'     => $query->orderBy('name', 'desc'),
+            'pending_first' => $query->orderByRaw("CASE reg_status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END")->latest(),
+            default         => $query->latest(),
+        };
+
+        $users = $query->paginate($perPage)->withQueryString();
+
+        // Distinct KPI Counts for Clean Separation
+        $authorScope = User::where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'));
+        $customerScope = User::where(fn($q) => $q->whereIn('role', ['buyer', 'customer'])->orWhereIn('reg_type', ['buyer', 'customer']));
+
+        $counts = [
+            'total'            => User::count(),
+            'authors'          => (clone $authorScope)->count(),
+            'authors_pending'  => (clone $authorScope)->where('reg_status', 'pending')->count(),
+            'authors_approved' => (clone $authorScope)->where('reg_status', 'approved')->count(),
+            'customers'        => (clone $customerScope)->count(),
+            'customers_active' => (clone $customerScope)->where('is_active', true)->count(),
+            'publishers'       => User::where('role', 'publisher')->orWhere('reg_type', 'publisher')->count(),
+            'sellers'          => User::where('role', 'seller')->orWhere('reg_type', 'seller')->count(),
+            'staff'            => User::whereIn('role', ['admin', 'sub_admin'])->count(),
+        ];
 
         $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();
 
-        return view('admin.users', [
-            'users'           => $users,
-            'roleCounts'      => $this->dashboard->roleBreakdown(),
-            'assignableRoles' => $assignableRoles,
+        return view('admin.users', compact('users', 'counts', 'role', 'search', 'regStatus', 'isActive', 'sort', 'perPage', 'assignableRoles'));
+    }
+
+    public function toggleUserStatus($id): \Illuminate\Http\JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        // If author, sync author active state
+        if ($user->role === 'author' || $user->reg_type === 'author') {
+            \Modules\Author\Models\Author::where('user_id', $user->id)->update(['is_active' => $user->is_active]);
+        }
+
+        $statusText = $user->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়';
+        $this->accessService->log('user_status_toggle', "ইউজার '{$user->name}' কে {$statusText} করা হয়েছে");
+
+        return response()->json([
+            'success'   => true,
+            'is_active' => $user->is_active,
+            'message'   => "ইউজার '{$user->name}' এখন {$statusText}!",
+        ]);
+    }
+
+    public function approveUserRegistration($id): \Illuminate\Http\JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $user->reg_status = User::STATUS_APPROVED;
+        $user->is_active = true;
+        $user->approved_by = auth()->id();
+        $user->approved_at = now();
+        $user->save();
+
+        // If author, activate & approve author directory record
+        if ($user->role === 'author' || $user->reg_type === 'author') {
+            $author = \Modules\Author\Models\Author::where('user_id', $user->id)->first();
+            if ($author) {
+                $author->update([
+                    'is_active'   => true,
+                    'is_verified' => true,
+                    'mod_status'  => 'approved',
+                ]);
+            } else {
+                \Modules\Author\Models\Author::findOrCreateUnified([
+                    'name'        => $user->name,
+                    'email'       => $user->email,
+                    'phone'       => $user->phone,
+                    'user_id'     => $user->id,
+                    'is_active'   => true,
+                    'is_verified' => true,
+                ]);
+            }
+        }
+
+        $this->accessService->log('user_approved', "ইউজার '{$user->name}' (রোল: {$user->role}) এর আবেদন অনুমোদন করা হয়েছে");
+
+        return response()->json([
+            'success' => true,
+            'message' => "ইউজার '{$user->name}' এর রেজিস্ট্রেশন সফলভাবে অনুমোদন করা হয়েছে!",
+        ]);
+    }
+
+    public function rejectUserRegistration(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $reason = $request->input('reason', 'এডমিন কর্তৃক আবেদন বাতিল করা হয়েছে');
+
+        $user->reg_status = User::STATUS_REJECTED;
+        $user->rejection_reason = $reason;
+        $user->save();
+
+        if ($user->role === 'author' || $user->reg_type === 'author') {
+            \Modules\Author\Models\Author::where('user_id', $user->id)->update([
+                'is_active'  => false,
+                'mod_status' => 'rejected',
+            ]);
+        }
+
+        $this->accessService->log('user_rejected', "ইউজার '{$user->name}' এর আবেদন বাতিল করা হয়েছে। কারণ: {$reason}");
+
+        return response()->json([
+            'success' => true,
+            'message' => "ইউজার '{$user->name}' এর রেজিস্ট্রেশন বাতিল করা হয়েছে।",
+        ]);
+    }
+
+    public function quickResetUserPassword(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $user = User::findOrFail($id);
+        $newPass = $request->input('password') ? trim($request->input('password')) : ('Idea@' . rand(1000, 9999));
+
+        $user->password = \Illuminate\Support\Facades\Hash::make($newPass);
+        $user->save();
+
+        $loginUrl = route('login');
+        $loginId = $user->email ?: ($user->phone ?: $user->name);
+        $roleTitle = match ($user->role) {
+            'author' => 'লেখক পোর্টাল',
+            'publisher' => 'প্রকাশক পোর্টাল',
+            'seller' => 'সেলার পোর্টাল',
+            default => 'কাস্টমার অ্যাকাউন্ট',
+        };
+
+        $waMsg = "শ্রদ্ধেয় {$user->name},\nআইডিয়া প্রকাশনে আপনার {$roleTitle} লগইন তথ্য:\n\nইউজারনেম: {$loginId}\nনতুন পাসওয়ার্ড: {$newPass}\nলগইন লিংক: {$loginUrl}\n\nধন্যবাদ,\nআইডিয়া প্রকাশন";
+        $cleanPhone = preg_replace('/[^0-9]/', '', (string)$user->phone);
+        $waUrl = !empty($cleanPhone) ? ('https://wa.me/' . (str_starts_with($cleanPhone, '88') ? $cleanPhone : ('88' . ltrim($cleanPhone, '0'))) . '?text=' . urlencode($waMsg)) : null;
+
+        $this->accessService->log('user_password_reset', "ইউজার '{$user->name}' এর পাসওয়ার্ড রিসেট করা হয়েছে");
+
+        return response()->json([
+            'success'          => true,
+            'message'          => "ইউজার '{$user->name}' এর পাসওয়ার্ড রিসেট সফল হয়েছে!",
+            'user_name'        => $user->name,
+            'login_identity'   => $loginId,
+            'new_password'     => $newPass,
+            'whatsapp_url'     => $waUrl,
+            'whatsapp_message' => $waMsg,
         ]);
     }
 
@@ -2129,21 +2294,23 @@ class AdminController extends Controller
         ]);
     }
 
-    public function authors(Request $request): View
+    public function authors(Request $request): View|\Illuminate\Http\JsonResponse
     {
-        $search   = $request->string('search')->trim()->value();
-        $status   = $request->input('is_active');
-        $verified = $request->input('is_verified');
-        $hasBooks = $request->input('has_books');
-        $sort     = $request->string('sort')->trim()->value() ?: 'latest';
-        $perPage  = in_array((int) $request->input('per_page'), [14, 21, 28, 35, 42, 70, 98, 100], true) ? (int) $request->input('per_page') : 28;
+        $search     = $request->string('search')->trim()->value();
+        $status     = $request->input('is_active');
+        $verified   = $request->input('is_verified');
+        $hasBooks   = $request->input('has_books');
+        $authorType = $request->input('author_type');
+        $sort       = $request->string('sort')->trim()->value() ?: 'latest';
+        $perPage    = in_array((int) $request->input('per_page'), [12, 14, 18, 21, 24, 28, 35, 42, 70, 98, 100], true) ? (int) $request->input('per_page') : 28;
 
         $query = \Modules\Author\Models\Author::query()
+            ->with(['user:id,name,email,phone,role,reg_status,reg_type'])
             ->withCount('books')
             ->with(['books' => function ($q) {
                 $q->select(['books.id', 'books.title', 'books.slug', 'books.cover_image', 'books.price', 'books.sales_count'])
                   ->orderByDesc('sales_count')
-                  ->limit(1);
+                  ->limit(2);
             }])
             ->when($search, function ($q, $term) {
                 $searchData = $this->parseSearchKeywords($term);
@@ -2165,10 +2332,31 @@ class AdminController extends Controller
                     });
                 }
             })
-            ->when($status !== null && $status !== '', fn ($q) => $q->where('is_active', (bool) $status))
+            // Strict Admin Approval Enforcement for Author Directory
+            ->when($authorType === 'pending' || $status === '0', function ($q) {
+                // Show unapproved / pending review
+                $q->where(function ($sq) {
+                    $sq->where('is_active', false)
+                       ->orWhere('is_verified', false)
+                       ->orWhereHas('user', fn($uq) => $uq->where('reg_status', 'pending'));
+                });
+            }, function ($q) use ($status) {
+                if ($status === 'all') {
+                    // All authors without restriction
+                } else {
+                    // DEFAULT: STRICTLY ADMIN-APPROVED AUTHORS ONLY
+                    $q->where('is_active', true)
+                      ->where(function ($sub) {
+                          $sub->whereNull('user_id')
+                              ->orWhereHas('user', fn($uq) => $uq->where('reg_status', 'approved'));
+                      });
+                }
+            })
             ->when($verified !== null && $verified !== '', fn ($q) => $q->where('is_verified', (bool) $verified))
             ->when($hasBooks === '1', fn ($q) => $q->has('books'))
-            ->when($hasBooks === '0', fn ($q) => $q->doesntHave('books'));
+            ->when($hasBooks === '0', fn ($q) => $q->doesntHave('books'))
+            ->when($authorType === 'registered', fn ($q) => $q->whereNotNull('user_id')->orWhereHas('user'))
+            ->when($authorType === 'catalog', fn ($q) => $q->whereNull('user_id')->doesntHave('user'));
 
         match ($sort) {
             'oldest'     => $query->oldest('id'),
@@ -2181,15 +2369,32 @@ class AdminController extends Controller
 
         $authors = $query->paginate($perPage)->withQueryString();
 
+        $approvedScope = \Modules\Author\Models\Author::where('is_active', true)->where(function ($sub) {
+            $sub->whereNull('user_id')->orWhereHas('user', fn($uq) => $uq->where('reg_status', 'approved'));
+        });
+        $pendingScope = \Modules\Author\Models\Author::where('is_active', false)->orWhereHas('user', fn($uq) => $uq->where('reg_status', 'pending'));
+
         $stats = [
-            'total'       => \Modules\Author\Models\Author::count(),
-            'active'      => \Modules\Author\Models\Author::where('is_active', true)->count(),
-            'verified'    => \Modules\Author\Models\Author::where('is_verified', true)->count(),
-            'with_books'  => \Modules\Author\Models\Author::has('books')->count(),
-            'total_books' => Schema::hasTable('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
+            'total'            => \Modules\Author\Models\Author::count(),
+            'approved'         => (clone $approvedScope)->count(),
+            'pending'          => (clone $pendingScope)->count(),
+            'active'           => \Modules\Author\Models\Author::where('is_active', true)->count(),
+            'verified'         => \Modules\Author\Models\Author::where('is_verified', true)->count(),
+            'with_books'       => \Modules\Author\Models\Author::has('books')->count(),
+            'registered_users' => \Modules\Author\Models\Author::whereNotNull('user_id')->count(),
+            'total_books'      => Schema::hasTable('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
         ];
 
-        return view('admin.authors', compact('authors', 'stats', 'search', 'status', 'verified', 'hasBooks', 'sort', 'perPage'));
+        if ($request->wantsJson() && $request->has('ajax_filter')) {
+            return response()->json([
+                'success' => true,
+                'stats'   => $stats,
+                'html'    => view('admin.authors_grid_partial', compact('authors'))->render(),
+                'total'   => $authors->total(),
+            ]);
+        }
+
+        return view('admin.authors', compact('authors', 'stats', 'search', 'status', 'verified', 'hasBooks', 'authorType', 'sort', 'perPage'));
     }
 
     public function quickStoreAuthor(Request $request): \Illuminate\Http\JsonResponse
@@ -2421,11 +2626,95 @@ class AdminController extends Controller
     {
         $author = \Modules\Author\Models\Author::with(['books' => function ($q) {
             $q->select('books.id', 'books.title', 'books.price', 'books.cover_image')->orderByDesc('books.id')->take(10);
-        }])->withCount('books')->findOrFail($id);
+        }, 'user'])->withCount('books')->findOrFail($id);
 
         return response()->json([
             'success' => true,
             'author'  => $author,
+        ]);
+    }
+
+    public function destroyAuthor($id): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $author = \Modules\Author\Models\Author::withCount('books')->findOrFail($id);
+        $authorName = $author->name;
+        $booksCount = $author->books_count;
+
+        // Detach pivot books
+        if (Schema::hasTable('book_author')) {
+            DB::table('book_author')->where('author_id', $author->id)->delete();
+        }
+
+        // Delete or soft-delete author
+        $author->delete();
+
+        $this->accessService->log('author_delete', "লেখক '{$authorName}' (পূর্বের বই: {$booksCount} টি) ডিরেক্টরি থেকে মুছে ফেলা হয়েছে");
+
+        try {
+            \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+            \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+        } catch (\Throwable $e) {}
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "লেখক '{$authorName}' সফলভাবে মুছে ফেলা হয়েছে!",
+            ]);
+        }
+
+        return redirect()->route('admin.authors')->with('success', "লেখক '{$authorName}' সফলভাবে মুছে ফেলা হয়েছে!");
+    }
+
+    public function bulkAuthorAction(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'action' => 'required|string|in:activate,deactivate,verify,unverify,delete',
+            'ids'    => 'required|array|min:1',
+            'ids.*'  => 'required|integer',
+        ]);
+
+        $ids = $validated['ids'];
+        $action = $validated['action'];
+        $count = count($ids);
+
+        switch ($action) {
+            case 'activate':
+                \Modules\Author\Models\Author::whereIn('id', $ids)->update(['is_active' => true]);
+                $msg = "{$count} জন লেখক সফলভাবে সক্রিয় করা হয়েছে।";
+                break;
+            case 'deactivate':
+                \Modules\Author\Models\Author::whereIn('id', $ids)->update(['is_active' => false]);
+                $msg = "{$count} জন লেখক সফলভাবে নিষ্ক্রিয় করা হয়েছে।";
+                break;
+            case 'verify':
+                \Modules\Author\Models\Author::whereIn('id', $ids)->update(['is_verified' => true]);
+                $msg = "{$count} জন লেখক সফলভাবে ভেরিফাইড হিসেবে চিহ্নিত করা হয়েছে।";
+                break;
+            case 'unverify':
+                \Modules\Author\Models\Author::whereIn('id', $ids)->update(['is_verified' => false]);
+                $msg = "{$count} জন লেখকের ভেরিফিকেশন প্রত্যাহার করা হয়েছে।";
+                break;
+            case 'delete':
+                if (Schema::hasTable('book_author')) {
+                    DB::table('book_author')->whereIn('author_id', $ids)->delete();
+                }
+                \Modules\Author\Models\Author::whereIn('id', $ids)->delete();
+                $msg = "{$count} জন লেখক সফলভাবে ডিলিট করা হয়েছে।";
+                break;
+            default:
+                return response()->json(['success' => false, 'message' => 'অজানা অ্যাকশন।'], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Cache::forget('authors_directory_all');
+            \Illuminate\Support\Facades\Cache::forget('featured_authors_home');
+        } catch (\Throwable $e) {}
+
+        $this->accessService->log('author_bulk_action', "বাল্ক অ্যাকশন: {$action} (মোট: {$count})");
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
         ]);
     }
 
@@ -3253,6 +3542,10 @@ class AdminController extends Controller
             ->when($filter === 'with_orders', fn($q) => $q->has('orders'))
             ->when($filter === 'zero_orders', fn($q) => $q->doesntHave('orders'))
             ->when($filter === 'high_value', fn($q) => $q->has('orders')->having('total_spent', '>=', 2000))
+            ->when($filter === 'verified_both', fn($q) => $q->whereNotNull('phone_verified_at')->whereNotNull('email_verified_at'))
+            ->when($filter === 'phone_verified', fn($q) => $q->whereNotNull('phone_verified_at'))
+            ->when($filter === 'email_verified', fn($q) => $q->whereNotNull('email_verified_at'))
+            ->when($filter === 'unverified', fn($q) => $q->where(fn($sub) => $sub->whereNull('phone_verified_at')->orWhereNull('email_verified_at')))
             ->latest();
 
         // CSV Export Support
@@ -3262,7 +3555,7 @@ class AdminController extends Controller
                 $handle = fopen('php://output', 'w');
                 // UTF-8 BOM
                 fputs($handle, "\xEF\xBB\xBF");
-                fputcsv($handle, ['ID', 'Customer Name', 'Phone', 'Email', 'District', 'Total Orders', 'Total Spent (BDT)', 'Date Joined']);
+                fputcsv($handle, ['ID', 'Customer Name', 'Phone', 'Email', 'District', 'Phone Verified', 'Email Verified', 'Can Order', 'Total Orders', 'Total Spent (BDT)', 'Date Joined']);
                 foreach ($exportCustomers as $c) {
                     fputcsv($handle, [
                         $c->id,
@@ -3270,6 +3563,9 @@ class AdminController extends Controller
                         $c->phone ?: 'N/A',
                         $c->email ?: 'N/A',
                         $c->district ?: 'N/A',
+                        $c->phone_verified_at ? 'Yes (' . $c->phone_verified_at->format('Y-m-d') . ')' : 'No',
+                        $c->email_verified_at ? 'Yes (' . $c->email_verified_at->format('Y-m-d') . ')' : 'No',
+                        $c->canCustomerOrder() ? 'Yes' : 'No',
                         $c->orders_count,
                         number_format($c->total_spent ?? 0, 2, '.', ''),
                         $c->created_at ? $c->created_at->format('Y-m-d H:i') : '',
@@ -3285,12 +3581,16 @@ class AdminController extends Controller
 
         $hasLoyaltyPoints = Schema::hasColumn('users', 'loyalty_points');
 
+        $baseCustomerQuery = User::whereIn('role', ['buyer', 'customer']);
+
         $summary = [
-            'total_customers' => User::whereIn('role', ['buyer', 'customer'])->count(),
-            'active_buyers'   => User::whereIn('role', ['buyer', 'customer'])->has('orders')->count(),
-            'zero_orders'     => User::whereIn('role', ['buyer', 'customer'])->doesntHave('orders')->count(),
+            'total_customers' => (clone $baseCustomerQuery)->count(),
+            'verified_both'   => (clone $baseCustomerQuery)->whereNotNull('phone_verified_at')->whereNotNull('email_verified_at')->count(),
+            'unverified'      => (clone $baseCustomerQuery)->where(fn($q) => $q->whereNull('phone_verified_at')->orWhereNull('email_verified_at'))->count(),
+            'active_buyers'   => (clone $baseCustomerQuery)->has('orders')->count(),
+            'zero_orders'     => (clone $baseCustomerQuery)->doesntHave('orders')->count(),
             'total_spent_sum' => \App\Models\Order::sum('total_amount'),
-            'loyalty_points'  => $hasLoyaltyPoints ? User::whereIn('role', ['buyer', 'customer'])->sum('loyalty_points') : 0,
+            'loyalty_points'  => $hasLoyaltyPoints ? (clone $baseCustomerQuery)->sum('loyalty_points') : 0,
         ];
 
         return view('admin.customers.index', [
@@ -3298,6 +3598,40 @@ class AdminController extends Controller
             'summary'   => $summary,
             'filter'    => $filter,
         ]);
+    }
+
+    /**
+     * Admin action to manually verify or update customer verification status
+     */
+    public function toggleCustomerVerification(Request $request, User $user): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+    {
+        abort_unless(in_array($user->role, ['buyer', 'customer']), 404);
+
+        $action = $request->input('action', 'verify_both');
+
+        match ($action) {
+            'verify_phone' => $user->update(['phone_verified_at' => now()]),
+            'verify_email' => $user->update(['email_verified_at' => now()]),
+            'verify_both'  => $user->update(['phone_verified_at' => now(), 'email_verified_at' => now()]),
+            'reset_phone'  => $user->update(['phone_verified_at' => null]),
+            'reset_email'  => $user->update(['email_verified_at' => null]),
+            'reset_both'   => $user->update(['phone_verified_at' => null, 'email_verified_at' => null]),
+            default        => null,
+        };
+
+        $msg = "গ্রাহক '{$user->name}' এর ভেরিফিকেশন স্ট্যাটাস সফলভাবে আপডেট করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'phone_verified' => $user->isPhoneVerified(),
+                'email_verified' => $user->isEmailVerified(),
+                'can_order' => $user->canCustomerOrder(),
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     public function broadcastMessage(Request $request): \Illuminate\Http\RedirectResponse

@@ -4,51 +4,156 @@
 @section('heading', 'Registration Approvals & Verification')
 
 @section('breadcrumb')
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">User Management</a></li>
     <li class="breadcrumb-item active" aria-current="page">Registration Requests</li>
 @endsection
 
-@push('styles')
-<style>
-    @keyframes rowApprovedPulse {
-        0% { background-color: rgba(34, 197, 94, 0.28); }
-        50% { background-color: rgba(34, 197, 94, 0.45); }
-        100% { background-color: transparent; }
-    }
-    .row-approved-flash {
-        animation: rowApprovedPulse 2s ease-in-out;
-    }
-    .btn-approve-action {
-        transition: all 0.2s ease-in-out;
-    }
-    .btn-approve-action:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35) !important;
-    }
-</style>
-@endpush
-
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportRegistrationsToCSV()" title="Export to CSV">
-            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="exportRegistrationsToCSV()" title="Export to CSV">
+            <i class="fa-solid fa-file-csv text-success"></i> <span>Export (CSV)</span>
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print Table">
-            <i class="fa-solid fa-print me-1"></i> Print
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="window.print()" title="Print Table">
+            <i class="fa-solid fa-print"></i> <span>Print</span>
         </button>
-        <button type="button" class="btn btn-light border btn-sm rounded-pill px-3 shadow-xs" onclick="window.location.reload()" title="Refresh">
-            <i class="fa-solid fa-rotate me-1"></i> Refresh
-        </button>
+        <a href="{{ route('admin.users') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5">
+            <i class="fa-solid fa-users"></i> <span>All Users</span>
+        </a>
     </div>
 @endsection
 
 @section('content')
+<style>
+/* ── Premium Modern Registration Management Styling ── */
+:root {
+    --reg-primary: #0284c7;
+    --reg-success: #10b981;
+    --reg-warning: #f59e0b;
+    --reg-danger: #ef4444;
+    --reg-card-bg: #ffffff;
+    --reg-border: rgba(226, 232, 240, 0.9);
+}
+
+.reg-kpi-card {
+    padding: 1.15rem 1.25rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--reg-border);
+    transition: all 0.22s ease-in-out;
+}
+.reg-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.reg-filter-card {
+    padding: 1.15rem 1.25rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--reg-border);
+}
+
+.reg-table th {
+    padding: 0.9rem 1rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    vertical-align: middle;
+}
+
+.reg-table td {
+    padding: 0.95rem 1rem !important;
+    vertical-align: middle;
+    font-size: 0.84rem;
+}
+
+.action-btn-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50% !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.18s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    cursor: pointer;
+    padding: 0;
+}
+
+.action-btn-circle:hover {
+    transform: scale(1.12);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.ring-2 { outline: 2px solid; outline-offset: -2px; }
+.ring-primary { outline-color: #0284c7; }
+.ring-success { outline-color: #10b981; }
+.ring-warning { outline-color: #f59e0b; }
+.ring-danger  { outline-color: #ef4444; }
+
+@keyframes rowApprovedPulse {
+    0% { background-color: rgba(34, 197, 94, 0.25); }
+    50% { background-color: rgba(34, 197, 94, 0.45); }
+    100% { background-color: transparent; }
+}
+.row-approved-flash {
+    animation: rowApprovedPulse 2s ease-in-out;
+}
+
+/* Dark Mode Harmonization */
+body.dark-mode .reg-kpi-card,
+body.dark-mode .reg-filter-card,
+body.dark-mode .card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .action-btn-circle {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .modal-content {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .modal-body .form-control,
+body.dark-mode .modal-body .form-select,
+body.dark-mode .modal-body textarea {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+}
+</style>
+
 <div class="d-flex flex-column gap-3 mb-4">
 
     {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-4 border-0 bg-success-subtle text-success-emphasis" role="alert">
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-sm rounded-4 border-0 bg-success-subtle text-success-emphasis p-3" role="alert">
             <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 shadow-sm rounded-4 border-0 bg-danger-subtle text-danger-emphasis p-3" role="alert">
+            <i class="fa-solid fa-triangle-exclamation fs-5 me-2 text-danger"></i>
+            <div>{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -56,17 +161,17 @@
     {{-- ========================================================================= --}}
     {{-- 1. KPI STAT METRICS CARDS                                                 --}}
     {{-- ========================================================================= --}}
-    <div class="row g-2 g-md-3">
+    <div class="row g-3">
         {{-- Total --}}
         <div class="col-6 col-md-3 col-xl">
             <a href="{{ route('admin.registrations.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-primary {{ !request()->hasAny(['status', 'type']) ? 'ring-2 ring-primary' : '' }}">
+                <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-primary {{ !request()->hasAny(['status', 'type']) ? 'ring-2 ring-primary' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-muted small fw-semibold d-block mb-1">Total Applications</span>
                             <h4 class="fw-bold mb-0 text-dark" id="statAllCount">{{ number_format($counts['all'] ?? 0) }}</h4>
                         </div>
-                        <div class="rounded-circle bg-primary-subtle text-primary p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="fa-solid fa-users-viewfinder fs-5"></i>
                         </div>
                     </div>
@@ -77,18 +182,18 @@
         {{-- Pending --}}
         <div class="col-6 col-md-3 col-xl">
             <a href="{{ route('admin.registrations.index', array_merge(request()->except(['status', 'page']), ['status' => 'pending'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-warning {{ request('status') === 'pending' ? 'ring-2 ring-warning' : '' }}">
+                <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-warning {{ request('status') === 'pending' ? 'ring-2 ring-warning' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-muted small fw-semibold d-block mb-1">
                                 Pending Verification
                                 @if(($counts['pending'] ?? 0) > 0)
-                                    <span class="badge bg-danger rounded-pill px-1.5 py-0.5 ms-1 animate-pulse" style="font-size: 10px;">Action Req.</span>
+                                    <span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">Action Req.</span>
                                 @endif
                             </span>
                             <h4 class="fw-bold mb-0 text-warning-emphasis" id="statPendingCount">{{ number_format($counts['pending'] ?? 0) }}</h4>
                         </div>
-                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="fa-solid fa-hourglass-half fs-5"></i>
                         </div>
                     </div>
@@ -99,13 +204,13 @@
         {{-- Approved --}}
         <div class="col-6 col-md-3 col-xl">
             <a href="{{ route('admin.registrations.index', array_merge(request()->except(['status', 'page']), ['status' => 'approved'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-success {{ request('status') === 'approved' ? 'ring-2 ring-success' : '' }}">
+                <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-success {{ request('status') === 'approved' ? 'ring-2 ring-success' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-muted small fw-semibold d-block mb-1">Approved & Active</span>
                             <h4 class="fw-bold mb-0 text-success" id="statApprovedCount">{{ number_format($counts['approved'] ?? 0) }}</h4>
                         </div>
-                        <div class="rounded-circle bg-success-subtle text-success p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="fa-solid fa-circle-check fs-5"></i>
                         </div>
                     </div>
@@ -116,13 +221,13 @@
         {{-- Rejected --}}
         <div class="col-6 col-md-3 col-xl">
             <a href="{{ route('admin.registrations.index', array_merge(request()->except(['status', 'page']), ['status' => 'rejected'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 transition-hover border-start border-4 border-danger {{ request('status') === 'rejected' ? 'ring-2 ring-danger' : '' }}">
+                <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-danger {{ request('status') === 'rejected' ? 'ring-2 ring-danger' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-muted small fw-semibold d-block mb-1">Rejected Requests</span>
                             <h4 class="fw-bold mb-0 text-danger" id="statRejectedCount">{{ number_format($counts['rejected'] ?? 0) }}</h4>
                         </div>
-                        <div class="rounded-circle bg-danger-subtle text-danger p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="fa-solid fa-circle-xmark fs-5"></i>
                         </div>
                     </div>
@@ -131,24 +236,24 @@
         </div>
 
         {{-- Role Breakdown Box --}}
-        <div class="col-12 col-md-12 col-xl-3">
-            <div class="card border-0 shadow-xs rounded-4 p-3 bg-white h-100 d-flex flex-column justify-content-center">
-                <div class="small fw-bold text-muted mb-2">Role Breakdown:</div>
-                <div class="d-flex flex-wrap gap-1.5">
-                    <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'buyer'])) }}" 
-                       class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ (request('type') === 'buyer' || request('type') === 'customer') ? 'bg-dark text-white' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }}">
-                        <i class="fa-solid fa-users me-1"></i>Customers: {{ number_format($counts['customers'] ?? 0) }}
-                    </a>
+        <div class="col-12 col-md-12 col-xl-4">
+            <div class="reg-kpi-card h-100 shadow-sm d-flex flex-column justify-content-center">
+                <div class="small fw-bold text-muted mb-2"><i class="fa-solid fa-layer-group me-1 text-primary"></i>Applications by Role:</div>
+                <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'author'])) }}" 
-                       class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'author' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' }}">
+                       class="badge rounded-pill text-decoration-none px-3 py-2 {{ request('type') === 'author' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' }}">
                         <i class="fa-solid fa-pen-fancy me-1"></i>Authors: {{ number_format($counts['authors'] ?? 0) }}
                     </a>
+                    <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'buyer'])) }}" 
+                       class="badge rounded-pill text-decoration-none px-3 py-2 {{ (request('type') === 'buyer' || request('type') === 'customer') ? 'bg-dark text-white' : 'bg-secondary-subtle text-secondary border border-secondary-subtle' }}">
+                        <i class="fa-solid fa-users me-1"></i>Customers: {{ number_format($counts['customers'] ?? 0) }}
+                    </a>
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'publisher'])) }}" 
-                       class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'publisher' ? 'bg-info text-white' : 'bg-info-subtle text-info border border-info-subtle' }}">
+                       class="badge rounded-pill text-decoration-none px-3 py-2 {{ request('type') === 'publisher' ? 'bg-info text-white' : 'bg-info-subtle text-info border border-info-subtle' }}">
                         <i class="fa-solid fa-building me-1"></i>Publishers: {{ number_format($counts['publishers'] ?? 0) }}
                     </a>
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'seller'])) }}" 
-                       class="badge rounded-pill text-decoration-none px-2.5 py-1.5 {{ request('type') === 'seller' ? 'bg-primary text-white' : 'bg-primary-subtle text-primary border border-primary-subtle' }}">
+                       class="badge rounded-pill text-decoration-none px-3 py-2 {{ request('type') === 'seller' ? 'bg-primary text-white' : 'bg-primary-subtle text-primary border border-primary-subtle' }}">
                         <i class="fa-solid fa-store me-1"></i>Sellers: {{ number_format($counts['sellers'] ?? 0) }}
                     </a>
                 </div>
@@ -159,99 +264,102 @@
     {{-- ========================================================================= --}}
     {{-- 2. ADVANCED FILTERS & SEARCH TOOLBAR                                      --}}
     {{-- ========================================================================= --}}
-    <div class="card border-0 shadow-xs rounded-4 bg-white">
-        <div class="card-body p-3">
-            <form action="{{ route('admin.registrations.index') }}" method="GET" class="row g-2 align-items-center">
-                {{-- Search Box --}}
-                <div class="col-12 col-lg-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0 text-muted ps-3">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="search" name="search" class="form-control border-start-0 bg-light" 
-                               placeholder="Search by applicant name, email, phone or shop/publisher..." value="{{ request('search') }}">
-                    </div>
-                </div>
-
-                {{-- Status Filter --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="status" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="" @selected(request('status') === null || request('status') === '')>All Statuses</option>
-                        <option value="pending" @selected(request('status') === 'pending')>⏳ Pending</option>
-                        <option value="approved" @selected(request('status') === 'approved')>✅ Approved</option>
-                        <option value="rejected" @selected(request('status') === 'rejected')>❌ Rejected</option>
-                    </select>
-                </div>
-
-                {{-- Type Filter --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="type" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="" @selected(request('type') === null || request('type') === '')>All Roles</option>
-                        <option value="buyer" @selected(request('type') === 'buyer' || request('type') === 'customer')>Customer / Buyer</option>
-                        <option value="author" @selected(request('type') === 'author')>Author</option>
-                        <option value="publisher" @selected(request('type') === 'publisher')>Publisher</option>
-                        <option value="seller" @selected(request('type') === 'seller')>Seller</option>
-                    </select>
-                </div>
-
-                {{-- Sort Order --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="sort" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="pending_first" @selected(request('sort') === 'pending_first' || !request('sort'))>Pending First</option>
-                        <option value="latest" @selected(request('sort') === 'latest')>Latest Requests</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest Requests</option>
-                        <option value="name_asc" @selected(request('sort') === 'name_asc')>Name (A-Z)</option>
-                    </select>
-                </div>
-
-                {{-- Per Page & Reset --}}
-                <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-1.5">
-                    <select name="per_page" class="form-select form-select-sm w-auto rounded-3" onchange="this.form.submit()" title="Per page count">
-                        <option value="10" @selected(request('per_page') == 10)>10</option>
-                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20</option>
-                        <option value="50" @selected(request('per_page') == 50)>50</option>
-                        <option value="100" @selected(request('per_page') == 100)>100</option>
-                    </select>
-
-                    <button type="submit" class="btn btn-sm btn-primary px-3 rounded-3" title="Apply Filter">
-                        <i class="fa-solid fa-filter"></i>
-                    </button>
-
-                    @if(request()->hasAny(['search', 'status', 'type', 'sort', 'per_page', 'date_from', 'date_to']))
-                        <a href="{{ route('admin.registrations.index') }}" class="btn btn-sm btn-light border text-danger rounded-3" title="Reset Filter">
-                            <i class="fa-solid fa-rotate-left"></i>
+    <div class="reg-filter-card shadow-sm">
+        <form action="{{ route('admin.registrations.index') }}" method="GET" class="row g-2 align-items-center">
+            {{-- Search Box --}}
+            <div class="col-12 col-lg-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="search" name="search" class="form-control border-start-0 bg-light" 
+                           placeholder="Search by name, email, phone, shop or publisher..." value="{{ request('search') }}">
+                    @if(request('search'))
+                        <a href="{{ route('admin.registrations.index', request()->except('search')) }}" class="btn btn-outline-secondary border-start-0 bg-light" title="Clear Search">
+                            <i class="fa-solid fa-xmark"></i>
                         </a>
                     @endif
                 </div>
-            </form>
-        </div>
+            </div>
+
+            {{-- Status Filter --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="" @selected(request('status') === null || request('status') === '')>All Statuses</option>
+                    <option value="pending" @selected(request('status') === 'pending')>⏳ Pending</option>
+                    <option value="approved" @selected(request('status') === 'approved')>✅ Approved</option>
+                    <option value="rejected" @selected(request('status') === 'rejected')>❌ Rejected</option>
+                </select>
+            </div>
+
+            {{-- Type Filter --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="" @selected(request('type') === null || request('type') === '')>All Roles</option>
+                    <option value="author" @selected(request('type') === 'author')>Author</option>
+                    <option value="buyer" @selected(request('type') === 'buyer' || request('type') === 'customer')>Customer / Buyer</option>
+                    <option value="publisher" @selected(request('type') === 'publisher')>Publisher</option>
+                    <option value="seller" @selected(request('type') === 'seller')>Seller</option>
+                </select>
+            </div>
+
+            {{-- Sort Order --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="pending_first" @selected(request('sort') === 'pending_first' || !request('sort'))>Pending First</option>
+                    <option value="latest" @selected(request('sort') === 'latest')>Newest Requests</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest Requests</option>
+                    <option value="name_asc" @selected(request('sort') === 'name_asc')>Name (A-Z)</option>
+                </select>
+            </div>
+
+            {{-- Per Page & Reset --}}
+            <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-2">
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="Items per page">
+                    <option value="10" @selected(request('per_page') == 10)>10</option>
+                    <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20</option>
+                    <option value="50" @selected(request('per_page') == 50)>50</option>
+                    <option value="100" @selected(request('per_page') == 100)>100</option>
+                </select>
+
+                <button type="submit" class="btn btn-sm btn-primary px-3 rounded-pill" title="Apply Filter">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+
+                @if(request()->hasAny(['search', 'status', 'type', 'sort', 'per_page', 'date_from', 'date_to']))
+                    <a href="{{ route('admin.registrations.index') }}" class="btn btn-sm btn-light border text-danger rounded-pill" title="Reset Filters">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
     </div>
 
     {{-- ========================================================================= --}}
     {{-- 3. REGISTRATIONS DATA TABLE                                               --}}
     {{-- ========================================================================= --}}
-    <div class="card border-0 shadow-xs rounded-4 overflow-hidden bg-white">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
         @if ($registrations->isEmpty())
             <div class="p-5 text-center my-3">
-                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 80px; height: 80px;">
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-4 mb-3" style="width: 76px; height: 76px;">
                     <i class="fa-solid fa-inbox fs-2 text-muted opacity-50"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1">No registration requests found</h5>
-                <p class="text-muted small mb-3">Try adjusting your search terms or filters.</p>
-                <a href="{{ route('admin.registrations.index') }}" class="btn btn-sm btn-light border rounded-pill px-4">Clear Filters</a>
+                <p class="text-muted small mb-3">Try adjusting your search terms or filters to see results.</p>
+                <a href="{{ route('admin.registrations.index') }}" class="btn btn-sm btn-light border rounded-pill px-4">Reset Filters</a>
             </div>
         @else
             <div class="table-responsive">
-                <table class="table table-sm table-hover align-middle mb-0 table-registrations" id="registrationsTable">
+                <table class="table table-hover align-middle mb-0 reg-table" id="registrationsTable">
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
-                            <th class="ps-2 text-center" style="width: 32px;">#</th>
-                            <th style="width: 22%;">Applicant & Contact</th>
-                            <th class="text-center" style="width: 8%;">Role</th>
-                            <th style="width: 26%;">Profile Details & Bio</th>
-                            <th class="text-center" style="width: 12%;">Status</th>
-                            <th class="text-center" style="width: 10%;">Date</th>
-                            <th class="text-end pe-2" style="width: 16%;">Actions</th>
+                            <th class="ps-3 text-center" style="width: 44px;">#</th>
+                            <th style="min-width: 240px;">Applicant & Contact</th>
+                            <th class="text-center" style="min-width: 110px;">Applied Role</th>
+                            <th style="min-width: 260px;">Profile Details & Bio</th>
+                            <th class="text-center" style="min-width: 140px;">Status</th>
+                            <th class="text-center" style="min-width: 120px;">Applied Date</th>
+                            <th class="text-end pe-3" style="min-width: 180px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -266,32 +374,35 @@
                                 $currColor = $roleColors[$user->role] ?? 'secondary';
                             @endphp
                             <tr id="regRow-{{ $user->id }}" class="{{ $user->reg_status === 'pending' ? 'table-warning-subtle' : '' }}">
-                                <td class="ps-2 text-center text-muted font-monospace" style="font-size: 11px;">{{ $registrations->firstItem() + $n }}</td>
+                                <td class="ps-3 text-center text-muted font-monospace" style="font-size: 12px;">{{ $registrations->firstItem() + $n }}</td>
                                 
-                                {{-- 1. Applicant & Contact (32px avatar, 12px font, tight margins) --}}
-                                <td class="text-truncate">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="rounded-circle overflow-hidden shadow-2xs flex-shrink-0 position-relative border" 
-                                             style="width: 32px; height: 32px; min-width: 32px; min-height: 32px; border-radius: 50% !important; background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+                                {{-- 1. Applicant & Contact --}}
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0 position-relative border" 
+                                             style="width: 42px; height: 42px; background: linear-gradient(135deg, #e0f2fe, #bae6fd); cursor: pointer;"
+                                             onclick="openRegDetailsModal({{ $user->id }})">
                                             @if(!empty($user->avatar))
                                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" 
-                                                     class="w-100 h-100 object-fit-cover" style="border-radius: 50%;">
+                                                     class="w-100 h-100 object-fit-cover" alt="{{ $user->name }}">
                                             @else
-                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold" style="font-size: 11.5px; border-radius: 50%;">
+                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fw-bold fs-6">
                                                     {{ mb_substr($user->name, 0, 1) }}
                                                 </div>
                                             @endif
                                         </div>
 
-                                        <div class="min-w-0" style="max-width: calc(100% - 40px);">
-                                            <div class="fw-bold text-dark text-truncate m-0 p-0" style="font-size: 12px; line-height: 1.2;">
+                                        <div class="min-w-0">
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.90rem;">
                                                 <a href="javascript:void(0)" onclick="openRegDetailsModal({{ $user->id }})" class="text-decoration-none text-dark hover-primary" title="{{ $user->name }}">
                                                     {{ $user->name }}
                                                 </a>
                                             </div>
-                                            <div class="text-muted d-flex flex-column m-0 p-0" style="font-size: 11px; line-height: 1.2;">
-                                                <span class="text-truncate m-0 p-0" title="{{ $user->email }}"><i class="fa-solid fa-envelope text-muted me-1" style="font-size: 9px;"></i>{{ $user->email }}</span>
-                                                <span class="text-truncate font-monospace m-0 p-0" title="{{ $user->phone }}"><i class="fa-solid fa-phone-alt text-muted me-1" style="font-size: 9px;"></i>{{ $user->phone }}</span>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.76rem;" title="{{ $user->email }}">
+                                                <i class="fa-solid fa-envelope me-1 opacity-75"></i>{{ $user->email }}
+                                            </div>
+                                            <div class="text-muted small text-truncate font-monospace" style="font-size: 0.76rem;" title="{{ $user->phone }}">
+                                                <i class="fa-solid fa-phone me-1 opacity-75"></i>{{ $user->phone }}
                                             </div>
                                         </div>
                                     </div>
@@ -299,50 +410,50 @@
 
                                 {{-- 2. Role Badge --}}
                                 <td class="text-center">
-                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-1.5 py-0.5" style="font-size: 10px;">
-                                        <i class="fa-solid fa-{{ $roleIcons[$user->role] ?? 'user' }} me-0.5"></i>
+                                    <span class="badge bg-{{ $currColor }}-subtle text-{{ $currColor }} border border-{{ $currColor }}-subtle rounded-pill px-3 py-1 fw-semibold" style="font-size: 0.74rem;">
+                                        <i class="fa-solid fa-{{ $roleIcons[$user->role] ?? 'user' }} me-1"></i>
                                         {{ $roleLabels[$user->role] ?? ucfirst($user->role) }}
                                     </span>
                                 </td>
 
-                                {{-- 3. Profile Details & Bio (Compact, Dynamic, 1-line truncation with See More / See Less Toggle) --}}
+                                {{-- 3. Profile Details & Bio --}}
                                 <td>
-                                    <div class="d-flex flex-column gap-0.5" style="font-size: 11.5px; line-height: 1.25;">
-                                        <div class="d-flex align-items-center flex-wrap gap-1">
+                                    <div class="d-flex flex-column gap-1" style="font-size: 0.82rem;">
+                                        <div class="d-flex align-items-center flex-wrap gap-1.5">
                                             @if(!empty($regData['pen_name']))
-                                                <span class="text-muted" style="font-size: 11px;">লেখক:</span> <strong class="text-primary" style="font-size: 11.5px;">{{ $regData['pen_name'] }}</strong>
+                                                <span class="text-muted">Pen Name:</span> <strong class="text-primary">{{ $regData['pen_name'] }}</strong>
                                             @elseif(!empty($regData['shop_name']))
-                                                <span class="text-muted" style="font-size: 11px;">শপ:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['shop_name'] }}</strong>
+                                                <span class="text-muted">Bookshop:</span> <strong class="text-dark">{{ $regData['shop_name'] }}</strong>
                                             @elseif(!empty($regData['publisher_name']))
-                                                <span class="text-muted" style="font-size: 11px;">প্রকাশনী:</span> <strong class="text-dark" style="font-size: 11.5px;">{{ $regData['publisher_name'] }}</strong>
+                                                <span class="text-muted">Publisher:</span> <strong class="text-dark">{{ $regData['publisher_name'] }}</strong>
                                             @elseif(in_array($user->role, ['buyer', 'customer']))
-                                                <span class="text-muted" style="font-size: 11px;"><i class="fa-solid fa-location-dot me-0.5 text-secondary"></i></span>
-                                                <span class="text-dark text-truncate" style="max-width: 170px;" title="{{ $regData['address'] ?? ($regData['district'] ?? 'General Customer') }}">
+                                                <span class="text-muted"><i class="fa-solid fa-location-dot me-1 text-secondary"></i></span>
+                                                <span class="text-dark text-truncate" style="max-width: 220px;" title="{{ $regData['address'] ?? ($regData['district'] ?? 'General Customer') }}">
                                                     {{ !empty($regData['district']) ? ($regData['district'] . (!empty($regData['thana']) ? ', ' . $regData['thana'] : '')) : ($regData['address'] ?? 'General Customer') }}
                                                 </span>
                                             @else
-                                                <span class="text-muted fst-italic" style="font-size: 11px;">সাধারণ তথ্য</span>
+                                                <span class="text-muted fst-italic">General Info</span>
                                             @endif
 
                                             @if(!empty($regData['genre']))
-                                                <span class="badge bg-light text-secondary border px-1.5 py-0 text-truncate align-middle" style="max-width: 80px; font-size: 9px; font-weight: normal;" title="Genre: {{ $regData['genre'] }}">
-                                                    <i class="fa-solid fa-tag text-muted me-0.5" style="font-size: 8px;"></i>{{ Str::limit($regData['genre'], 10) }}
+                                                <span class="badge bg-light text-secondary border px-2 py-0.5 rounded-pill text-truncate" style="max-width: 120px;" title="Genre: {{ $regData['genre'] }}">
+                                                    <i class="fa-solid fa-tag text-muted me-1"></i>{{ Str::limit($regData['genre'], 14) }}
                                                 </span>
                                             @endif
                                         </div>
 
                                         @if(!empty($cleanBio))
-                                            <div class="text-muted d-flex align-items-center flex-wrap gap-1" style="font-size: 11px;">
-                                                <i class="fa-solid fa-quote-left text-muted opacity-40 me-0.5 flex-shrink-0" style="font-size: 8px;"></i>
-                                                <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 140px;" title="{{ $cleanBio }}">
-                                                    {{ Str::limit($cleanBio, 26) }}
+                                            <div class="text-muted d-flex align-items-center flex-wrap gap-1" style="font-size: 0.78rem;">
+                                                <i class="fa-solid fa-quote-left text-muted opacity-40 me-1"></i>
+                                                <span class="bio-short-{{ $user->id }} text-truncate" style="max-width: 200px;" title="{{ $cleanBio }}">
+                                                    {{ Str::limit($cleanBio, 38) }}
                                                 </span>
-                                                <span class="bio-full-{{ $user->id }} d-none" style="white-space: normal; line-height: 1.3;">
+                                                <span class="bio-full-{{ $user->id }} d-none" style="white-space: normal; line-height: 1.35;">
                                                     {{ $cleanBio }}
                                                 </span>
-                                                @if(mb_strlen($cleanBio) > 26)
-                                                    <button type="button" class="btn btn-link btn-xs p-0 text-primary fw-bold text-decoration-none see-more-btn flex-shrink-0" 
-                                                            onclick="toggleBioSeeMore({{ $user->id }}, this)" style="font-size: 9.5px; line-height: 1;">
+                                                @if(mb_strlen($cleanBio) > 38)
+                                                    <button type="button" class="btn btn-link btn-xs p-0 text-primary fw-bold text-decoration-none ms-1" 
+                                                            onclick="toggleBioSeeMore({{ $user->id }}, this)">
                                                         See More
                                                     </button>
                                                 @endif
@@ -351,79 +462,77 @@
 
                                         @if(($regData['profile_update_status'] ?? '') === 'updated')
                                             <div id="authorUpdateBadge-{{ $user->id }}">
-                                                <span class="badge bg-warning text-dark px-1.5 py-0 rounded-pill shadow-xs" style="font-size: 8.5px;" title="Author updated profile on {{ $regData['profile_updated_at'] ?? '' }}">
-                                                    <i class="fa-solid fa-bell me-0.5"></i> Profile Updated
+                                                <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 9px;" title="Profile updated on {{ $regData['profile_updated_at'] ?? '' }}">
+                                                    <i class="fa-solid fa-bell me-1"></i> Profile Updated
                                                 </span>
                                             </div>
                                         @endif
                                     </div>
                                 </td>
 
-                                {{-- 4. Status & Account Active (Small Badges & scale-75 Toggle Switch) --}}
+                                {{-- 4. Status & Account Active --}}
                                 <td class="text-center" id="statusBadgeCell-{{ $user->id }}">
                                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
                                         @if($user->reg_status === 'pending')
-                                            <span class="badge bg-warning text-dark px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                                                <i class="fa-solid fa-hourglass-half me-0.5"></i> Pending
+                                            <span class="badge bg-warning text-dark px-2.5 py-1 rounded-pill shadow-xs mb-1" style="font-size: 0.74rem;">
+                                                <i class="fa-solid fa-hourglass-half me-1"></i> Pending
                                             </span>
                                         @elseif($user->reg_status === 'approved')
-                                            <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                                                <i class="fa-solid fa-circle-check me-0.5"></i> Approved
+                                            <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-xs mb-1" style="font-size: 0.74rem;">
+                                                <i class="fa-solid fa-circle-check me-1"></i> Approved
                                             </span>
                                         @else
-                                            <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="{{ $user->rejection_reason ?? 'Rejected' }}">
-                                                <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
+                                            <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill shadow-xs mb-1" style="font-size: 0.74rem;" title="{{ $user->rejection_reason ?? 'Rejected' }}">
+                                                <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
                                             </span>
                                         @endif
 
-                                        {{-- scale-75 Active switch --}}
-                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
-                                            <input class="form-check-input mt-0" type="checkbox" role="switch" 
+                                        {{-- Active Switch --}}
+                                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
+                                            <input class="form-check-input mt-0 cursor-pointer" type="checkbox" role="switch" 
                                                    id="activeSwitch-{{ $user->id }}" 
                                                    @checked($user->is_active) 
                                                    onchange="toggleUserActiveStatus({{ $user->id }}, this)"
                                                    title="{{ $user->is_active ? 'Active Account' : 'Inactive Account' }}">
                                             <label class="form-check-label text-muted fw-semibold" for="activeSwitch-{{ $user->id }}" id="activeLabel-{{ $user->id }}">
-                                                {{ $user->is_active ? 'Active' : 'Off' }}
+                                                {{ $user->is_active ? 'Active' : 'Inactive' }}
                                             </label>
                                         </div>
                                     </div>
                                 </td>
 
                                 {{-- 5. Creation Date --}}
-                                <td class="text-center text-muted" style="font-size: 11px;">
-                                    {{ $user->created_at ? $user->created_at->format('d M, Y') : 'N/A' }}
+                                <td class="text-center text-muted" style="font-size: 0.78rem;">
+                                    <div>{{ $user->created_at ? $user->created_at->format('d M, Y') : '—' }}</div>
+                                    <div class="text-muted" style="font-size: 0.70rem;">{{ $user->created_at ? $user->created_at->locale('en')->diffForHumans() : '' }}</div>
                                 </td>
 
-                                {{-- 6. Compact Action Icons (26px) --}}
-                                <td class="text-end pe-2">
-                                    <div class="d-inline-flex gap-1 align-items-center justify-content-end" id="regActions-{{ $user->id }}">
+                                {{-- 6. Action Icons Toolbar --}}
+                                <td class="text-end pe-3">
+                                    <div class="d-inline-flex gap-1.5 align-items-center justify-content-end" id="regActions-{{ $user->id }}">
                                         {{-- View Button --}}
                                         <button type="button" 
-                                                class="btn btn-action-icon btn-outline-info" 
+                                                class="action-btn-circle text-info" 
                                                 onclick="openRegDetailsModal({{ $user->id }})" 
-                                                title="View Details"
-                                                data-bs-toggle="tooltip">
+                                                title="View Full 360° Profile">
                                             <i class="fa-solid fa-eye"></i>
                                         </button>
 
                                         {{-- Dynamic Role Appointment & Promotion Button --}}
                                         <button type="button" 
-                                                class="btn btn-action-icon btn-outline-primary" 
+                                                class="action-btn-circle text-primary" 
                                                 onclick="openRegAssignRoleModal({{ $user->id }}, '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 
-                                                title="যে কোনো পদে পদায়ন বা নিয়োগ দিন"
-                                                data-bs-toggle="tooltip">
-                                            <i class="fa-solid fa-user-gear"></i>
+                                                title="Assign Role & Designation">
+                                            <i class="fa-solid fa-crown"></i>
                                         </button>
 
                                         {{-- Sync Author to Directory Button --}}
                                         @if($user->role === 'author' || $user->reg_type === 'author')
                                             <button type="button" 
                                                     id="btnSyncAuthor-{{ $user->id }}"
-                                                    class="btn btn-action-icon btn-outline-warning text-dark" 
+                                                    class="action-btn-circle text-warning" 
                                                     onclick="ajaxSyncAuthor({{ $user->id }}, this)" 
-                                                    title="Sync Author to Directory"
-                                                    data-bs-toggle="tooltip">
+                                                    title="Sync Author to Directory">
                                                 <i class="fa-solid fa-arrows-rotate"></i>
                                             </button>
                                         @endif
@@ -432,19 +541,17 @@
                                         @if($user->reg_status === 'approved')
                                             <button type="button" 
                                                     id="btnApprove-{{ $user->id }}"
-                                                    class="btn btn-action-icon btn-outline-success" 
+                                                    class="action-btn-circle text-success" 
                                                     onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
-                                                    title="Approved (Click to re-verify)"
-                                                    data-bs-toggle="tooltip">
+                                                    title="Approved (Click to re-verify)">
                                                 <i class="fa-solid fa-check-double"></i>
                                             </button>
                                         @else
                                             <button type="button" 
                                                     id="btnApprove-{{ $user->id }}"
-                                                    class="btn btn-action-icon btn-success shadow-xs btn-approve-action" 
+                                                    class="action-btn-circle bg-success text-white shadow-sm" 
                                                     onclick="ajaxApproveUser({{ $user->id }}, '{{ addslashes($user->name) }}', this)"
-                                                    title="Approve & Verify Account"
-                                                    data-bs-toggle="tooltip">
+                                                    title="Approve & Activate Account">
                                                 <i class="fa-solid fa-check"></i>
                                             </button>
                                         @endif
@@ -453,39 +560,37 @@
                                         @if($user->reg_status === 'rejected')
                                             <button type="button" 
                                                     id="btnReject-{{ $user->id }}"
-                                                    class="btn btn-action-icon btn-danger text-white shadow-xs" 
+                                                    class="action-btn-circle bg-danger text-white shadow-sm" 
                                                     onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
-                                                    title="Rejected (Click to edit reason)"
-                                                    data-bs-toggle="tooltip">
+                                                    title="Rejected (Click to edit reason)">
                                                 <i class="fa-solid fa-ban"></i>
                                             </button>
                                         @else
                                             <button type="button" 
                                                     id="btnReject-{{ $user->id }}"
-                                                    class="btn btn-action-icon btn-outline-danger" 
+                                                    class="action-btn-circle text-danger" 
                                                     onclick="openRejectModal({{ $user->id }}, '{{ addslashes($user->name) }}')"
-                                                    title="Reject Application"
-                                                    data-bs-toggle="tooltip">
+                                                    title="Decline Application">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
                                         @endif
 
                                         {{-- Edit Button --}}
                                         <a href="{{ route('admin.registrations.edit', $user) }}" 
-                                           class="btn btn-action-icon btn-outline-primary" 
-                                           title="Edit Registration & Profile"
-                                           data-bs-toggle="tooltip">
-                                            <i class="fa-solid fa-pen"></i>
+                                           class="action-btn-circle text-secondary" 
+                                           title="Edit Profile & Information">
+                                            <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
 
                                         {{-- Delete Button --}}
                                         <button type="button" 
-                                                class="btn btn-action-icon btn-outline-secondary text-danger" 
+                                                class="action-btn-circle text-danger" 
                                                 onclick="ajaxDeleteUser({{ $user->id }}, '{{ addslashes($user->name) }}')" 
-                                                title="Delete Request"
-                                                data-bs-toggle="tooltip">
+                                                title="Delete Application & Account">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -496,7 +601,7 @@
             @if ($registrations->hasPages())
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-top">
                     <span class="text-muted small">
-                        Showing {{ $registrations->firstItem() }} to {{ $registrations->lastItem() }} of {{ $counts['all'] ?? $registrations->total() }} applications
+                        Showing {{ $registrations->firstItem() }} to {{ $registrations->lastItem() }} of {{ number_format($counts['all'] ?? $registrations->total()) }} applications
                     </span>
                     <div>
                         {{ $registrations->links() }}
@@ -508,11 +613,11 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- 4. MODALS (DETAILS PREVIEW, REJECT WITH REASON)                            --}}
+{{-- 4. MODALS (DETAILS PREVIEW, REJECT WITH REASON, ROLE ASSIGNMENT)           --}}
 {{-- ========================================================================= --}}
 
-{{-- Modal: Registration Details Preview --}}
-<div class="modal fade" id="regDetailsModal" tabindex="-1" aria-labelledby="regDetailsModalLabel" aria-hidden="true">
+{{-- Modal 1: Registration Details Preview --}}
+<div class="modal fade" id="regDetailsModal" tabindex="-1" aria-labelledby="regDetailsModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-dark text-white border-0 py-3 px-4">
@@ -527,26 +632,27 @@
                 <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4" id="modalDetailsBody">
-                <div class="text-center py-4">
+                <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status"></div>
                     <div class="small text-muted mt-2">Loading application details...</div>
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4 d-flex justify-content-between">
-                <div id="modalFooterActions" class="d-flex gap-2"></div>
+                <div id="modalFooterActions" class="d-flex flex-wrap gap-2"></div>
                 <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Modal: Reject Registration with Reason --}}
-<div class="modal fade" id="rejectReasonModal" tabindex="-1" aria-labelledby="rejectReasonModalLabel" aria-hidden="true">
+{{-- Modal 2: Reject Registration with Reason --}}
+<div class="modal fade" id="rejectReasonModal" tabindex="-1" aria-labelledby="rejectReasonModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-danger text-white border-0 py-3 px-4 rounded-top-4">
-                <h6 class="modal-title fw-bold text-white mb-0" id="rejectReasonModalLabel">
-                    <i class="fa-solid fa-circle-xmark me-2"></i>Decline Registration Request
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-danger text-white border-0 py-3 px-4">
+                <h6 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2" id="rejectReasonModalLabel">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <span>Decline Registration Request</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -554,17 +660,17 @@
                 @csrf
                 <input type="hidden" name="user_id" id="rejectUserId">
                 <div class="modal-body p-4">
-                    <p class="small text-muted mb-2">
-                        You are about to decline registration for <strong id="rejectTargetUserName" class="text-dark">applicant</strong>. Rejected users will not be able to log in or publish content.
+                    <p class="small text-muted mb-3">
+                        You are about to decline registration for <strong id="rejectTargetUserName" class="text-dark">applicant</strong>. Declined applicants will not be able to log in or publish content on the portal.
                     </p>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark">Reason for Rejection <span class="text-danger">*</span></label>
-                        <textarea name="reason" id="rejectReasonText" class="form-control rounded-3" rows="3" required placeholder="e.g. Incomplete business documents / Unable to verify Trade License / Violates terms."></textarea>
+                        <textarea name="reason" id="rejectReasonText" class="form-control rounded-3" rows="3" required placeholder="e.g. Incomplete business documents / Unable to verify identification / Violates site terms..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
+                <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold" id="btnRejectSubmit">
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" id="btnRejectSubmit">
                         <i class="fa-solid fa-ban me-1"></i> Confirm Decline
                     </button>
                 </div>
@@ -573,109 +679,101 @@
     </div>
 </div>
 
-{{-- Toast Notification --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-    <div id="actionToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body d-flex align-items-center gap-2">
-                <i class="fa-solid fa-circle-check text-success fs-5" id="toastIcon"></i>
-                <span id="toastMessage">Operation completed successfully</span>
+{{-- Modal 3: Universal Role Assignment & Promotion Modal --}}
+<div class="modal fade" id="regAssignRoleModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header py-3 px-4 bg-dark text-white border-0">
+                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-crown text-warning"></i>
+                    <span>Assign Role & Control Designation</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            <form action="" method="POST" id="regAssignRoleForm">
+                @csrf
+                <div class="modal-body p-4">
+                    <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <small class="text-muted d-block" style="font-size: 11px;">Applicant / User:</small>
+                        <h6 class="fw-bold mb-0 text-dark" id="regAssignModalUserName"></h6>
+                        <small class="text-primary font-monospace fw-semibold" id="regAssignModalCurrentRole"></small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Select Role to Assign or Promote to:</label>
+                        <select name="role" id="regAssignRoleSelect" class="form-select rounded-3 py-2 fw-semibold" required onchange="handleRegRoleSelectChange(this)">
+                            @foreach($assignableRoles ?? [] as $r)
+                                @php
+                                    $rawRoleName = $r['name'] ?? '';
+                                    if (preg_match('/\(([^)]+)\)/', $rawRoleName, $matches)) {
+                                        $cleanRoleName = trim($matches[1]);
+                                    } else {
+                                        $cleanRoleName = preg_replace('/[\x{0980}-\x{09FF}]/u', '', $rawRoleName);
+                                        $cleanRoleName = trim(preg_replace('/[—\-\s]+/', ' ', $cleanRoleName)) ?: ($r['slug'] ?? 'Role');
+                                    }
+                                @endphp
+                                <option value="{{ $r['slug'] }}" data-custom-id="{{ $r['id'] ?? '' }}" data-dept="{{ $r['department'] }}">
+                                    {{ $cleanRoleName }} — ({{ $r['department'] }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="custom_role_id" id="regAssignCustomRoleId" value="">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Registration Status</label>
+                            <select name="reg_status" id="regAssignRegStatus" class="form-select rounded-3">
+                                <option value="approved">Approved</option>
+                                <option value="pending">Pending</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Account Status</label>
+                            <select name="is_active" id="regAssignIsActive" class="form-select rounded-3">
+                                <option value="1">Active</option>
+                                <option value="0">Suspended / Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Assignment Notes / Reference (Optional)</label>
+                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="e.g. Assigned upon background verification and official agreement"></textarea>
+                    </div>
+
+                    <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
+                        <i class="fa-solid fa-circle-info me-1"></i> Super Administrators can directly appoint, promote, or reassign roles for any registered applicant.
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2.5 px-4 border-top">
+                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-check me-1"></i> Confirm Role Assignment
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+@endsection
 
-{{-- Custom CSS --}}
-<style>
-.ring-2 { outline: 2px solid; outline-offset: -2px; }
-.ring-primary { outline-color: #4f46e5; }
-.ring-success { outline-color: #10b981; }
-.ring-warning { outline-color: #f59e0b; }
-.ring-danger  { outline-color: #ef4444; }
-.cursor-pointer { cursor: pointer; }
-.hover-primary:hover { color: #4f46e5 !important; }
-.shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
-.animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .5; }
-}
-.table-registrations {
-    table-layout: fixed !important;
-    width: 100% !important;
-    font-size: 12px;
-}
-.table-registrations thead tr th {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-    vertical-align: middle;
-    letter-spacing: 0.02em;
-}
-.table-registrations tbody tr td {
-    padding: 6px 10px !important;
-    vertical-align: middle;
-}
-.text-truncate-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.25;
-}
-.btn-action-icon {
-    width: 26px;
-    height: 26px;
-    padding: 0 !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50% !important;
-    font-size: 10px;
-    transition: all 0.15s ease-in-out;
-}
-.btn-action-icon:hover {
-    transform: translateY(-1px) scale(1.1);
-}
-@media print {
-    .btn, .breadcrumb, .modal, .toast-container, form { display: none !important; }
-}
-</style>
-
-{{-- ========================================================================= --}}
-{{-- 5. JAVASCRIPT FOR DYNAMIC AJAX APPROVAL, REJECT, TOGGLE, MODALS            --}}
-{{-- ========================================================================= --}}
+@push('scripts')
 <script>
-// Initialize Bootstrap Tooltips
-document.addEventListener('DOMContentLoaded', function () {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, { trigger: 'hover' });
-    });
-});
+// ── Global CSRF Token & Utilities ──
+const csrfToken = '{{ csrf_token() }}';
 
-// Show dynamic toast
 function showToast(message, isSuccess = true) {
-    const toastEl = document.getElementById('actionToast');
-    const toastMsg = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
-
-    if (!toastEl || !toastMsg) return;
-
-    toastMsg.textContent = message;
-    if (toastIcon) {
-        toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-success fs-5' : 'fa-solid fa-triangle-exclamation text-danger fs-5';
+    if (typeof window.SwalToast === 'function') {
+        window.SwalToast(isSuccess ? 'success' : 'error', message);
+    } else {
+        alert(message);
     }
-
-    const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
-    toast.show();
 }
 
 // Toggle Bio See More / See Less Inline
-function toggleBioSeeMore(userId, btn) {
+window.toggleBioSeeMore = function(userId, btn) {
     const shortEl = document.querySelector(`.bio-short-${userId}`);
     const fullEl = document.querySelector(`.bio-full-${userId}`);
     if (!shortEl || !fullEl) return;
@@ -689,10 +787,10 @@ function toggleBioSeeMore(userId, btn) {
         shortEl.classList.remove('d-none');
         if (btn) btn.textContent = 'See More';
     }
-}
+};
 
 // 1-Click AJAX Approve User
-function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
+window.ajaxApproveUser = function(userId, userName = '', triggerBtn = null) {
     const btn = triggerBtn || document.getElementById(`btnApprove-${userId}`);
     let origHtml = '';
     if (btn) {
@@ -704,7 +802,7 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
     fetch(`/admin/registrations/${userId}/approve`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         }
     })
@@ -716,18 +814,18 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
         }
 
         if (data.success) {
-            showToast(data.message, true);
+            showToast(data.message || 'Application approved successfully!', true);
 
             // 1. Update status badge & active switch
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
-                        <span class="badge bg-success text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;">
-                            <i class="fa-solid fa-circle-check me-0.5"></i> Approved
+                        <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-xs mb-1" style="font-size: 0.74rem;">
+                            <i class="fa-solid fa-circle-check me-1"></i> Approved
                         </span>
-                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
-                            <input class="form-check-input mt-0" type="checkbox" role="switch" 
+                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
+                            <input class="form-check-input mt-0 cursor-pointer" type="checkbox" role="switch" 
                                    id="activeSwitch-${userId}" 
                                    checked 
                                    onchange="toggleUserActiveStatus(${userId}, this)"
@@ -740,7 +838,7 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 `;
             }
 
-            // 3. Row Flash Animation
+            // 2. Row Flash Animation
             const row = document.getElementById(`regRow-${userId}`);
             if (row) {
                 row.classList.remove('table-warning-subtle');
@@ -749,23 +847,23 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 row.classList.add('row-approved-flash');
             }
 
-            // 4. Update Approve & Reject buttons styling
+            // 3. Update Approve & Reject buttons styling
             const approveBtn = document.getElementById(`btnApprove-${userId}`);
             if (approveBtn) {
-                approveBtn.className = 'btn btn-action-icon btn-outline-success';
+                approveBtn.className = 'action-btn-circle text-success';
                 approveBtn.innerHTML = '<i class="fa-solid fa-check-double"></i>';
                 approveBtn.title = 'Approved (Click to re-verify)';
                 approveBtn.disabled = false;
             }
             const rejectBtn = document.getElementById(`btnReject-${userId}`);
             if (rejectBtn) {
-                rejectBtn.className = 'btn btn-action-icon btn-outline-danger';
+                rejectBtn.className = 'action-btn-circle text-danger';
                 rejectBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-                rejectBtn.title = 'Reject Application';
+                rejectBtn.title = 'Decline Application';
                 rejectBtn.disabled = false;
             }
 
-            // 5. Update KPI Stat Counters live
+            // 4. Update KPI Stat Counters live
             const pendingStat = document.getElementById('statPendingCount');
             if (pendingStat) {
                 const cur = parseInt(pendingStat.textContent.replace(/,/g, '')) || 0;
@@ -777,7 +875,7 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                 approvedStat.textContent = (curApp + 1).toLocaleString();
             }
 
-            // 6. Update modal if currently opened
+            // 5. Update modal if currently opened
             const modalEl = document.getElementById('regDetailsModal');
             if (modalEl && modalEl.classList.contains('show')) {
                 const modalBadges = document.getElementById('modalStatusBadges');
@@ -787,23 +885,9 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
                         <span class="badge bg-primary rounded-pill px-2.5 py-1">Active</span>
                     `;
                 }
-                const modalFooter = document.getElementById('modalFooterActions');
-                if (modalFooter) {
-                    modalFooter.innerHTML = `
-                        <a href="/admin/registrations/${userId}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Page
-                        </a>
-                        <a href="/admin/registrations/${userId}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
-                        </a>
-                        <span class="badge bg-success py-2 px-3 rounded-pill fw-bold">
-                            <i class="fa-solid fa-circle-check me-1"></i> Approved & Active
-                        </span>
-                    `;
-                }
             }
         } else {
-            showToast(data.message || 'Approval failed', false);
+            showToast(data.message || 'Approval failed!', false);
         }
     })
     .catch(err => {
@@ -812,22 +896,24 @@ function ajaxApproveUser(userId, userName = '', triggerBtn = null) {
             btn.disabled = false;
             btn.innerHTML = origHtml;
         }
-        showToast('Server failed to respond.', false);
+        showToast('Server communication error. Please try again.', false);
     });
-}
+};
 
 // Open Reject Reason Modal
-function openRejectModal(userId, userName) {
+window.openRejectModal = function(userId, userName) {
     document.getElementById('rejectUserId').value = userId;
     document.getElementById('rejectTargetUserName').textContent = userName;
     document.getElementById('rejectReasonText').value = '';
 
-    const modal = new bootstrap.Modal(document.getElementById('rejectReasonModal'));
-    modal.show();
-}
+    const modalEl = document.getElementById('rejectReasonModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
 
 // Submit AJAX Reject
-function submitAjaxReject(event) {
+window.submitAjaxReject = function(event) {
     event.preventDefault();
     const userId = document.getElementById('rejectUserId').value;
     const reason = document.getElementById('rejectReasonText').value;
@@ -841,7 +927,7 @@ function submitAjaxReject(event) {
     fetch(`/admin/registrations/${userId}/reject`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
@@ -850,48 +936,33 @@ function submitAjaxReject(event) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast(data.message, true);
+            showToast(data.message || 'Registration request declined!', true);
 
             // Hide modal
             const modalEl = document.getElementById('rejectReasonModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
 
             // Update status badge & active switch
             const statusCell = document.getElementById(`statusBadgeCell-${userId}`);
             if (statusCell) {
                 statusCell.innerHTML = `
                     <div class="d-inline-flex flex-column align-items-center justify-content-center">
-                        <span class="badge bg-danger text-white px-2 py-0.5 rounded-pill shadow-xs mb-1" style="font-size: 10px;" title="${reason}">
-                            <i class="fa-solid fa-circle-xmark me-0.5"></i> Rejected
+                        <span class="badge bg-danger text-white px-2.5 py-1 rounded-pill shadow-xs mb-1" style="font-size: 0.74rem;" title="${reason}">
+                            <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
                         </span>
-                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1 scale-75" style="font-size: 10.5px; transform: scale(0.75); transform-origin: center;">
-                            <input class="form-check-input mt-0" type="checkbox" role="switch" 
+                        <div class="form-check form-switch cursor-pointer mb-0 d-flex align-items-center gap-1.5" style="font-size: 0.75rem;">
+                            <input class="form-check-input mt-0 cursor-pointer" type="checkbox" role="switch" 
                                    id="activeSwitch-${userId}" 
                                    onchange="toggleUserActiveStatus(${userId}, this)"
                                    title="Inactive Account">
                             <label class="form-check-label text-muted fw-semibold" for="activeSwitch-${userId}" id="activeLabel-${userId}">
-                                Off
+                                Inactive
                             </label>
                         </div>
                     </div>
                 `;
-            }
-
-            // Update Approve & Reject button states
-            const approveBtn = document.getElementById(`btnApprove-${userId}`);
-            if (approveBtn) {
-                approveBtn.className = 'btn btn-action-icon btn-success shadow-xs btn-approve-action';
-                approveBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                approveBtn.title = 'Approve & Verify Account';
-                approveBtn.disabled = false;
-            }
-            const rejectBtn = document.getElementById(`btnReject-${userId}`);
-            if (rejectBtn) {
-                rejectBtn.className = 'btn btn-action-icon btn-danger text-white shadow-xs';
-                rejectBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
-                rejectBtn.title = 'Rejected (Click to edit reason)';
-                rejectBtn.disabled = false;
             }
 
             // Update pending counter
@@ -901,12 +972,12 @@ function submitAjaxReject(event) {
                 if (cur > 0) pendingStat.textContent = (cur - 1).toLocaleString();
             }
         } else {
-            showToast(data.message || 'Could not decline application', false);
+            showToast(data.message || 'Could not decline application!', false);
         }
     })
     .catch(err => {
         console.error(err);
-        showToast('A server error occurred.', false);
+        showToast('Server communication error. Please try again.', false);
     })
     .finally(() => {
         if (submitBtn) {
@@ -914,54 +985,54 @@ function submitAjaxReject(event) {
             submitBtn.innerHTML = '<i class="fa-solid fa-ban me-1"></i> Confirm Decline';
         }
     });
-}
+};
 
 // Toggle User Active Status Switch
-function toggleUserActiveStatus(userId, switchEl) {
+window.toggleUserActiveStatus = function(userId, switchEl) {
     switchEl.disabled = true;
 
     fetch(`/admin/registrations/${userId}/toggle-status`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         }
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast(data.message, true);
+            showToast(data.message || 'Account status updated successfully!', true);
             const labelEl = document.getElementById(`activeLabel-${userId}`);
             if (labelEl) labelEl.textContent = data.is_active ? 'Active' : 'Inactive';
         } else {
             switchEl.checked = !switchEl.checked;
-            showToast(data.message || 'Unable to update status', false);
+            showToast(data.message || 'Status update failed!', false);
         }
     })
     .catch(err => {
         console.error(err);
         switchEl.checked = !switchEl.checked;
-        showToast('Server failed to respond.', false);
+        showToast('Server communication error. Please try again.', false);
     })
     .finally(() => {
         switchEl.disabled = false;
     });
-}
+};
 
 // AJAX Delete User
-function ajaxDeleteUser(userId, userName) {
+window.ajaxDeleteUser = async function(userId, userName) {
     const doDelete = () => {
         fetch(`/admin/registrations/${userId}`, {
             method: 'DELETE',
             headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
             }
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast(data.message, true);
+                showToast(data.message || 'Application and account deleted permanently!', true);
                 const row = document.getElementById(`regRow-${userId}`);
                 if (row) {
                     row.style.transition = 'all 0.3s ease';
@@ -969,55 +1040,39 @@ function ajaxDeleteUser(userId, userName) {
                     setTimeout(() => row.remove(), 300);
                 }
             } else {
-                showToast(data.message || 'ডিলিট করতে সমস্যা হয়েছে।', false);
+                showToast(data.message || 'Could not delete application.', false);
             }
         })
         .catch(err => {
             console.error(err);
-            showToast('সার্ভার যোগাযোগে ত্রুটি হয়েছে।', false);
+            showToast('Server communication error. Please try again.', false);
         });
     };
 
-    if (typeof SwalConfirm === 'function') {
-        SwalConfirm({
-            title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
-            html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
+    if (typeof window.SwalConfirm === 'function') {
+        const result = await window.SwalConfirm({
+            title: 'Confirm Account Deletion',
+            html: `Are you sure you want to permanently delete the registration and account for <strong>‘${userName}’</strong>?`,
             icon: 'warning',
-            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete',
             confirmButtonColor: '#ef4444',
-            cancelButtonText: 'বাতিল'
-        }).then(function(result) {
-            if (result.isConfirmed) doDelete();
+            cancelButtonText: 'Cancel'
         });
-    } else if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            title: 'অ্যাকাউন্ট ডিলিট নিশ্চিতকরণ',
-            html: `আপনি কি নিশ্চিত যে <strong>‘${userName}’</strong> এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
-            confirmButtonColor: '#ef4444',
-            cancelButtonText: 'বাতিল'
-        }).then(function(result) {
-            if (result.isConfirmed) doDelete();
-        });
+        if (result.isConfirmed) doDelete();
     } else {
-        if (confirm(`আপনি কি নিশ্চিত যে ‘${userName}’ এর অ্যাকাউন্ট ডিলিট করতে চান?`)) {
+        if (confirm(`Are you sure you want to permanently delete the account for ‘${userName}’?`)) {
             doDelete();
         }
     }
-}
-
-// Global CSRF Token
-const csrfToken = '{{ csrf_token() }}';
+};
 
 // Direct Sync Author to Directory
-function ajaxSyncAuthor(userId, btn) {
+window.ajaxSyncAuthor = function(userId, btn) {
     if (!btn) btn = document.getElementById(`btnSyncAuthor-${userId}`);
     const originalHtml = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Syncing...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>';
     }
 
     fetch(`/admin/registrations/${userId}/sync-author`, {
@@ -1037,17 +1092,13 @@ function ajaxSyncAuthor(userId, btn) {
         }
 
         if (data.success) {
-            showToast(data.message || 'লেখক ডিরেক্টরিতে সফলভাবে সিঙ্ক হয়েছে!', true);
+            showToast(data.message || 'Author profile synced to directory successfully!', true);
             const badge = document.getElementById(`authorUpdateBadge-${userId}`);
             if (badge) {
                 badge.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill shadow-xs" style="font-size: 10px;"><i class="fa-solid fa-check-double me-0.5"></i> Synced</span>';
             }
-            if (btn) {
-                btn.className = 'btn btn-sm btn-outline-success text-success rounded-pill px-2.5 py-1 shadow-xs fw-semibold';
-                btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Synced';
-            }
         } else {
-            showToast(data.message || 'সিঙ্ক করতে ত্রুটি হয়েছে।', false);
+            showToast(data.message || 'Failed to sync author directory.', false);
         }
     })
     .catch(err => {
@@ -1055,16 +1106,15 @@ function ajaxSyncAuthor(userId, btn) {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
         }
-        showToast('সার্ভার সংযোগ সমস্যা। আবার চেষ্টা করুন।', false);
+        showToast('Server communication error. Please try again.', false);
     });
-}
+};
 
 // Open Registration Details Modal
-function openRegDetailsModal(userId) {
+window.openRegDetailsModal = function(userId) {
     const modalEl = document.getElementById('regDetailsModal');
     if (!modalEl) return;
 
-    // Reset modal UI immediately
     document.getElementById('modalUserName').textContent = 'Loading...';
     document.getElementById('modalUserRoleBadge').textContent = `ID: #${userId}`;
     const avatarBox = document.getElementById('modalAvatarBox');
@@ -1079,8 +1129,9 @@ function openRegDetailsModal(userId) {
     `;
     document.getElementById('modalFooterActions').innerHTML = '';
 
-    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modal.show();
+    if (typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
 
     fetch(`/admin/registrations/${userId}/details`, {
         headers: { 'Accept': 'application/json' }
@@ -1103,28 +1154,27 @@ function openRegDetailsModal(userId) {
                 }
             }
 
-            // Build dynamic details HTML
             let extraHtml = '';
             if (u.role === 'author' || u.reg_type === 'author') {
                 extraHtml = `
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Bengali Name (বাংলা নাম)</small>
+                        <small class="text-muted d-block">Bengali Name (Native)</small>
                         <div class="fw-semibold text-dark">${r.name_bn || r.name_bangla || auth.name_bn || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Pen Name (কলমি নাম)</small>
+                        <small class="text-muted d-block">Pen Name</small>
                         <div class="fw-semibold text-dark">${r.pen_name || auth.name || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Father's Name (পিতার নাম)</small>
+                        <small class="text-muted d-block">Father's Name</small>
                         <div class="fw-semibold text-dark">${r.father_name || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Mother's Name (মাতার নাম)</small>
+                        <small class="text-muted d-block">Mother's Name</small>
                         <div class="fw-semibold text-dark">${r.mother_name || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">NID / Passport</small>
+                        <small class="text-muted d-block">NID / Passport Number</small>
                         <div class="fw-semibold text-dark font-monospace">${r.nid_or_passport || r.nid || '—'}</div>
                     </div>
                     <div class="col-sm-6">
@@ -1132,71 +1182,37 @@ function openRegDetailsModal(userId) {
                         <div class="fw-semibold text-dark">${Array.isArray(r.genres) ? r.genres.join(', ') : (r.genre || '—')}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Profession (পেশা)</small>
+                        <small class="text-muted d-block">Profession</small>
                         <div class="fw-semibold text-dark">${r.profession || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Payout Method & Number</small>
+                        <small class="text-muted d-block">Royalty Payout Method</small>
                         <div class="fw-semibold text-dark">${r.payout_method ? `<span class="badge bg-light text-dark border me-1">${r.payout_method.toUpperCase()}</span>` : ''}${r.payout_number || '—'}</div>
                     </div>
                     <div class="col-12">
-                        <small class="text-muted d-block">Address (ঠিকানা)</small>
+                        <small class="text-muted d-block">Present Address</small>
                         <div class="fw-semibold text-dark">${r.present_address || r.address || '—'}</div>
                     </div>
-                    ${r.website || r.facebook || r.twitter || r.youtube ? `
-                        <div class="col-12">
-                            <small class="text-muted d-block">Website & Social Links</small>
-                            <div class="d-flex flex-wrap gap-2 mt-1">
-                                ${r.website ? `<a href="${r.website}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fa-solid fa-globe me-1"></i>Website</a>` : ''}
-                                ${r.facebook ? `<a href="${r.facebook}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-1.5 px-2"><i class="fab fa-facebook me-1"></i>Facebook</a>` : ''}
-                                ${r.twitter ? `<a href="${r.twitter}" target="_blank" class="badge bg-light text-info border text-decoration-none py-1.5 px-2"><i class="fab fa-twitter me-1"></i>Twitter</a>` : ''}
-                                ${r.youtube ? `<a href="${r.youtube}" target="_blank" class="badge bg-light text-danger border text-decoration-none py-1.5 px-2"><i class="fab fa-youtube me-1"></i>YouTube</a>` : ''}
-                            </div>
-                        </div>
-                    ` : ''}
                 `;
             } else if (u.role === 'publisher' || u.reg_type === 'publisher') {
                 extraHtml = `
-                    <div class="col-sm-6"><small class="text-muted d-block">Publisher House Name</small><div class="fw-semibold text-dark">${r.publisher_name || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Established Year</small><div class="fw-semibold text-dark">${r.established || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Business Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Website</small><div class="fw-semibold text-dark">${r.website ? `<a href="${r.website}" target="_blank" class="text-decoration-none text-primary"><i class="fa-solid fa-globe me-1"></i>${r.website}</a>` : '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Publishing House Name</small><div class="fw-semibold text-dark">${r.publisher_name || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Trade License Number</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Year of Establishment</small><div class="fw-semibold text-dark">${r.established || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Office Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
                 `;
             } else if (u.role === 'seller' || u.reg_type === 'seller') {
                 extraHtml = `
-                    <div class="col-sm-6"><small class="text-muted d-block">Shop Name</small><div class="fw-semibold text-dark">${r.shop_name || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Trade License No.</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Address</small><div class="fw-semibold text-dark">${r.address || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">NID</small><div class="fw-semibold text-dark font-monospace">${r.nid || '—'}</div></div>
-                    <div class="col-sm-6"><small class="text-muted d-block">Zone / District</small><div class="fw-semibold text-dark">${r.zone || r.district || '—'}</div></div>
-                `;
-            }
-
-            // Update status alert inside modal
-            let updateAlertHtml = '';
-            if (r.profile_update_status === 'updated') {
-                updateAlertHtml = `
-                    <div class="col-12">
-                        <div class="alert alert-warning d-flex align-items-center justify-content-between mb-0 py-2 px-3 rounded-3 shadow-xs">
-                            <div class="small">
-                                <i class="fa-solid fa-bell me-1.5 text-warning"></i>
-                                <strong>Profile Updated:</strong> লেখক সম্প্রতি তথ্য বা ছবি আপডেট করেছেন (${r.profile_updated_at || 'Recently'}).
-                            </div>
-                            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-1 shadow-xs" onclick="ajaxSyncAuthor(${u.id}, this)">
-                                <i class="fa-solid fa-arrows-rotate me-1"></i> Sync to Directory
-                            </button>
-                        </div>
-                    </div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Bookshop / Store Name</small><div class="fw-semibold text-dark">${r.shop_name || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Trade License</small><div class="fw-semibold text-dark font-monospace">${r.trade_license || '—'}</div></div>
+                    <div class="col-sm-6"><small class="text-muted d-block">Address & District</small><div class="fw-semibold text-dark">${r.address || r.district || '—'}</div></div>
                 `;
             }
 
             document.getElementById('modalDetailsBody').innerHTML = `
                 <div class="row g-3">
-                    ${updateAlertHtml}
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Display Name / Name (English)</small>
+                        <small class="text-muted d-block">Full Name</small>
                         <div class="fw-semibold text-dark fs-6">${u.name}</div>
                     </div>
                     <div class="col-sm-6">
@@ -1209,20 +1225,20 @@ function openRegDetailsModal(userId) {
                     </div>
                     <div class="col-sm-6">
                         <small class="text-muted d-block">Status & Activity</small>
-                        <div class="d-flex gap-1.5 align-items-center mt-1" id="modalStatusBadges">
-                            <span class="badge ${u.reg_status === 'approved' ? 'bg-success' : (u.reg_status === 'pending' ? 'bg-warning text-dark' : 'bg-danger')} rounded-pill px-2.5 py-1">
+                        <div class="d-flex gap-2 align-items-center mt-1" id="modalStatusBadges">
+                            <span class="badge ${u.reg_status === 'approved' ? 'bg-success' : (u.reg_status === 'pending' ? 'bg-warning text-dark' : 'bg-danger')} rounded-pill px-3 py-1">
                                 ${(u.reg_status || 'pending').toUpperCase()}
                             </span>
-                            <span class="badge ${u.is_active ? 'bg-primary' : 'bg-secondary'} rounded-pill px-2.5 py-1">
+                            <span class="badge ${u.is_active ? 'bg-primary' : 'bg-secondary'} rounded-pill px-3 py-1">
                                 ${u.is_active ? 'Active' : 'Inactive'}
                             </span>
                         </div>
                     </div>
                     ${extraHtml}
                     <div class="col-12">
-                        <small class="text-muted d-block">Biography & Notes (লেখকের বিস্তারিত তথ্য ও পরিচিতি)</small>
-                        <div class="bg-light p-3 rounded-3 small text-dark mt-1 border" style="max-height: 160px; overflow-y: auto; white-space: pre-line;">
-                            ${r.bio ? r.bio : '<em class="text-muted">কোনো বায়ো বা বিবরণ দেওয়া হয়নি।</em>'}
+                        <small class="text-muted d-block">Biography & Background Notes</small>
+                        <div class="bg-light p-3 rounded-3 small text-dark mt-1 border" style="max-height: 150px; overflow-y: auto; white-space: pre-line;">
+                            ${r.bio ? r.bio : '<em class="text-muted">No biography or notes provided.</em>'}
                         </div>
                     </div>
                     <div class="col-sm-6">
@@ -1230,7 +1246,7 @@ function openRegDetailsModal(userId) {
                         <div class="small text-muted">${data.created_at_formatted || '—'}</div>
                     </div>
                     <div class="col-sm-6">
-                        <small class="text-muted d-block">Approved Date</small>
+                        <small class="text-muted d-block">Approval Date</small>
                         <div class="small text-muted">${data.approved_at_formatted || '—'}</div>
                     </div>
                     ${u.rejection_reason ? `
@@ -1243,59 +1259,85 @@ function openRegDetailsModal(userId) {
                 </div>
             `;
 
-            // Setup footer modal actions
             const safeName = (u.name || '').replace(/'/g, "\\'");
             let authorDirectoryBtn = '';
             if (data.author_slug) {
                 authorDirectoryBtn = `
                     <a href="/authors/${data.author_slug}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3" title="View Public Profile">
-                        <i class="fa-solid fa-globe me-1"></i> Public Directory
+                        <i class="fa-solid fa-globe me-1"></i> Public Profile
                     </a>
-                `;
-            }
-            let syncBtn = '';
-            if (u.role === 'author' || u.reg_type === 'author') {
-                syncBtn = `
-                    <button type="button" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold" onclick="ajaxSyncAuthor(${u.id}, this)">
-                        <i class="fa-solid fa-arrows-rotate me-1"></i> Sync Directory
-                    </button>
                 `;
             }
 
             document.getElementById('modalFooterActions').innerHTML = `
-                ${syncBtn}
                 ${authorDirectoryBtn}
-                <a href="/admin/registrations/${u.id}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" title="View dedicated page">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Full Page
-                </a>
                 <a href="/admin/registrations/${u.id}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                     <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
                 </a>
                 ${u.reg_status !== 'approved' ? `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('regDetailsModal')).hide(); openRejectModal(${u.id}, '${safeName}');">
-                        <i class="fa-solid fa-circle-xmark me-1"></i> Reject
+                        <i class="fa-solid fa-circle-xmark me-1"></i> Decline Request
                     </button>
-                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="ajaxApproveUser(${u.id}, '${safeName}', this)">
+                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="ajaxApproveUser(${u.id}, '${safeName}', this)">
                         <i class="fa-solid fa-circle-check me-1"></i> Approve & Activate
                     </button>
                 ` : `
                     <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold">
-                        <i class="fa-solid fa-circle-check me-1"></i> Approved
+                        <i class="fa-solid fa-circle-check me-1"></i> Approved Account
                     </span>
                 `}
             `;
-        } else {
-            document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-warning mb-0">No application details found for this user.</div>';
         }
     })
     .catch(err => {
-        console.error(err);
-        document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Failed to load application details: ' + (err.message || 'Server error') + '</div>';
+        document.getElementById('modalDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Failed to load application details.</div>';
     });
-}
+};
 
-// Export Registrations to CSV
-function exportRegistrationsToCSV() {
+// Role Assignment Modal Handler
+window.handleRegRoleSelectChange = function(selectEl) {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    const customId = opt ? opt.getAttribute('data-custom-id') : '';
+    const customInput = document.getElementById('regAssignCustomRoleId');
+    if (customInput) customInput.value = customId || '';
+};
+
+window.openRegAssignRoleModal = function(userId, userName, currentRole, customRoleId, regStatus, isActive) {
+    const form = document.getElementById('regAssignRoleForm');
+    if (form) {
+        form.action = `/admin/users/${userId}/assign-role`;
+    }
+
+    const nameEl = document.getElementById('regAssignModalUserName');
+    if (nameEl) nameEl.textContent = userName + ` (ID: #${userId})`;
+
+    const curRoleEl = document.getElementById('regAssignModalCurrentRole');
+    if (curRoleEl) curRoleEl.textContent = 'Applied / Current Role: ' + currentRole;
+
+    const roleSelect = document.getElementById('regAssignRoleSelect');
+    if (roleSelect) {
+        roleSelect.value = currentRole;
+        handleRegRoleSelectChange(roleSelect);
+    }
+
+    const regStatusSelect = document.getElementById('regAssignRegStatus');
+    if (regStatusSelect) {
+        regStatusSelect.value = regStatus || 'approved';
+    }
+
+    const isActiveSelect = document.getElementById('regAssignIsActive');
+    if (isActiveSelect) {
+        isActiveSelect.value = isActive ? '1' : '0';
+    }
+
+    const modalEl = document.getElementById('regAssignRoleModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
+
+// Export to CSV
+window.exportRegistrationsToCSV = function() {
     let csv = [];
     csv.push(['ID', 'Name', 'Role', 'Email', 'Phone', 'Status', 'Is Active', 'Created At']);
 
@@ -1321,120 +1363,6 @@ function exportRegistrationsToCSV() {
     link.click();
     document.body.removeChild(link);
     showToast('CSV file downloaded successfully!', true);
-}
+};
 </script>
-
-<!-- Universal Role Assignment & Promotion Modal -->
-<div class="modal fade" id="regAssignRoleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header py-3 px-4 bg-dark text-white">
-                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-crown text-warning"></i>
-                    <span>আবেদনকারীকে পদায়ন ও নিয়োগ নিয়ন্ত্রণ</span>
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="" method="POST" id="regAssignRoleForm">
-                @csrf
-                <div class="modal-body p-4">
-                    <div class="p-3 bg-light rounded-3 mb-3 border">
-                        <small class="text-muted d-block" style="font-size: 11px;">আবেদনকারী / ইউজার:</small>
-                        <h6 class="fw-bold mb-0 text-dark" id="regAssignModalUserName"></h6>
-                        <small class="text-primary font-monospace fw-semibold" id="regAssignModalCurrentRole"></small>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">কোন পদে নিয়োগ বা পদায়ন করতে চান?</label>
-                        <select name="role" id="regAssignRoleSelect" class="form-select rounded-3 py-2 fw-semibold" required onchange="handleRegRoleSelectChange(this)">
-                            @foreach($assignableRoles ?? [] as $r)
-                                <option value="{{ $r['slug'] }}" data-custom-id="{{ $r['id'] ?? '' }}" data-dept="{{ $r['department'] }}">
-                                    {{ $r['name'] }} — ({{ $r['department'] }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <input type="hidden" name="custom_role_id" id="regAssignCustomRoleId" value="">
-                    </div>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">রেজিস্ট্রেশন স্ট্যাটাস</label>
-                            <select name="reg_status" id="regAssignRegStatus" class="form-select rounded-3">
-                                <option value="approved">অনুমোদিত (Approved)</option>
-                                <option value="pending">অপেক্ষমান (Pending)</option>
-                                <option value="rejected">বাতিল (Rejected)</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">অ্যাকাউন্ট স্ট্যাটাস</label>
-                            <select name="is_active" id="regAssignIsActive" class="form-select rounded-3">
-                                <option value="1">সক্রিয় (Active)</option>
-                                <option value="0">স্থগিত / নিষ্ক্রিয় (Inactive)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">নিয়োগ / পদায়নের রেফারেন্স বা নোট (ঐচ্ছিক)</label>
-                        <textarea name="notes" class="form-control rounded-3" rows="2" placeholder="e.g. আবেদন যাচাইপূর্বক সরাসরি বিশেষ পদে নিয়োগ দেওয়া হলো"></textarea>
-                    </div>
-
-                    <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
-                        <i class="fa-solid fa-circle-info me-1"></i> শুধুমাত্র মূল সুপার অ্যাডমিন যেকোনো রেজিস্ট্রেশন থেকে যেকোনো আবেদনকারীকে ইচ্ছামতো যেকোনো পদে নিয়োগ দিতে বা বাতিল করতে পারবেন।
-                    </div>
-                </div>
-                <div class="modal-footer bg-light py-2.5 px-4 border-top">
-                    <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fa-solid fa-check me-1.5"></i> পদায়ন ও নিয়োগ নিশ্চিত করুন
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-function handleRegRoleSelectChange(selectEl) {
-    const opt = selectEl.options[selectEl.selectedIndex];
-    const customId = opt ? opt.getAttribute('data-custom-id') : '';
-    const customInput = document.getElementById('regAssignCustomRoleId');
-    if (customInput) customInput.value = customId || '';
-}
-
-function openRegAssignRoleModal(userId, userName, currentRole, customRoleId, regStatus, isActive) {
-    const form = document.getElementById('regAssignRoleForm');
-    if (form) {
-        form.action = `/admin/users/${userId}/assign-role`;
-    }
-
-    const nameEl = document.getElementById('regAssignModalUserName');
-    if (nameEl) nameEl.textContent = userName + ` (ID: #${userId})`;
-
-    const curRoleEl = document.getElementById('regAssignModalCurrentRole');
-    if (curRoleEl) curRoleEl.textContent = 'আবেদনকৃত/বর্তমান পদবী: ' + currentRole;
-
-    const roleSelect = document.getElementById('regAssignRoleSelect');
-    if (roleSelect) {
-        roleSelect.value = currentRole;
-        handleRegRoleSelectChange(roleSelect);
-    }
-
-    const regStatusSelect = document.getElementById('regAssignRegStatus');
-    if (regStatusSelect) {
-        regStatusSelect.value = regStatus || 'approved';
-    }
-
-    const isActiveSelect = document.getElementById('regAssignIsActive');
-    if (isActiveSelect) {
-        isActiveSelect.value = isActive ? '1' : '0';
-    }
-
-    const modalEl = document.getElementById('regAssignRoleModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-</script>
-@endsection
+@endpush

@@ -3,7 +3,7 @@
      * Dynamic & Smart Accordion Nav tree for the admin panel.
      * Includes spotlight search filter, quick favorites strip, and auto-scroll.
      */
-    $pending = $adminPendingRegistrations ?? 0;
+    $pending = $adminPendingRegistrations ?? (\Illuminate\Support\Facades\Schema::hasTable('users') ? \App\Models\User::where('reg_status', 'pending')->count() : 0);
     $pendingPayouts = \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests')
         ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count()
         : 0;
@@ -61,19 +61,20 @@
             ['route' => 'admin.affiliates.index', 'icon' => 'bullhorn',      'label' => 'Affiliates & Influencers'],
             ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Gateway Reports'],
             ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Payment Gateways'],
-            ['route' => 'admin.customers',        'icon' => 'user-tag',      'label' => 'Customers & Broadcast'],
             ['route' => 'admin.sms.index',        'icon' => 'comment-sms',   'label' => 'Bulk SMS & Gateway'],
             ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Seller Bills'],
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Book Requests'],
         ],
         'User Management' => [
-            ['route' => 'admin.users',                 'icon' => 'users',         'label' => 'All Users'],
-            ['route' => 'admin.tickets.index',         'icon' => 'ticket',        'label' => 'Support Tickets CRM'],
-            ['route' => 'admin.users.security.index',  'icon' => 'shield-halved', 'label' => 'Login Security & OTP',
+            ['route' => 'admin.users',                 'icon' => 'users',          'label' => 'Users'],
+            ['route' => 'admin.customers',             'icon' => 'user-tag',       'label' => 'Customers'],
+            ['route' => 'admin.event-campaigns.index', 'icon' => 'calendar-check',  'label' => 'Campaigns'],
+            ['route' => 'admin.registrations.index',   'icon' => 'user-check',     'label' => 'Approvals',
+             'badge' => $pending > 0 ? $pending : null, 'badgeClass' => 'bg-danger text-white'],
+            ['route' => 'admin.tickets.index',         'icon' => 'ticket',         'label' => 'Support Tickets CRM'],
+            ['route' => 'admin.users.security.index',  'icon' => 'shield-halved',  'label' => 'Login Security & OTP',
              'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
-            ['route' => 'admin.registrations.index',   'icon' => 'user-check',    'label' => 'Registration Approvals',
-             'badge' => $pending, 'badgeClass' => 'bg-warning text-dark'],
-            ['route' => 'admin.sub-admins.index',      'icon' => 'user-shield',   'label' => 'Sub-Admins'],
+            ['route' => 'admin.sub-admins.index',      'icon' => 'user-shield',    'label' => 'Sub-Admins'],
         ],
         'Administration' => [
             ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Multi-Currency & FX'],
@@ -136,7 +137,7 @@
         'admin.users' => 'users.view',
         'admin.tickets.index' => 'support.view',
         'admin.users.security.index' => 'security.sessions',
-        'admin.registrations.index' => 'users.manage',
+        'admin.registrations.index' => 'users.view',
         'admin.sub-admins.index' => 'roles.manage',
         'admin.roles.index' => 'roles.manage',
         'admin.currencies.index' => 'settings.manage',

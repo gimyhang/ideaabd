@@ -32,6 +32,7 @@ class User extends Authenticatable
         'reg_status', 'reg_type', 'reg_data',
         'approved_by', 'approved_at', 'rejection_reason',
         'loyalty_points', 'affiliate_balance',
+        'email_verified_at', 'phone_verified_at',
         'force_password_reset', 'ip_whitelist', 'session_invalidated_at',
     ];
 
@@ -41,6 +42,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at'      => 'datetime',
+            'phone_verified_at'      => 'datetime',
             'password'               => 'hashed',
             'is_active'              => 'boolean',
             'reg_data'               => 'array',
@@ -132,7 +134,88 @@ class User extends Authenticatable
     public function isPublisher(): bool  { return $this->isAdmin() || $this->role === self::ROLE_PUBLISHER || ($this->reg_type === 'publisher'); }
     public function isAuthor(): bool     { return $this->isAdmin() || $this->role === self::ROLE_AUTHOR || ($this->reg_type === 'author'); }
     public function isBuyer(): bool      { return true; }
+    public function isCustomer(): bool   { return in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER], true); }
     public function hasRole(string $role): bool { return $this->isAdmin() || $this->role === $role || ($this->customRole && $this->customRole->slug === $role); }
+
+    // Verification status helpers (Customer mobile & email verification)
+    public function isPhoneVerified(): bool
+    {
+        return !empty($this->phone_verified_at) || !empty($this->reg_data['phone_verified_at']);
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return !empty($this->email_verified_at);
+    }
+
+    /**
+     * Determine if user can place book orders:
+     * - Customers must verify both mobile phone & email.
+     * - All other users (Author, Publisher, Seller, Staff) must be approved by Admin.
+     */
+    public function canCustomerOrder(): bool
+    {
+        $status = $this->getOrderEligibilityStatus();
+        return $status['can_order'];
+    }
+
+    /**
+     * Get detailed order eligibility breakdown for notifications and error handling.
+     */
+    public function getOrderEligibilityStatus(): array
+    {
+        if ($this->isAdmin()) {
+            return ['can_order' => true, 'reason' => null];
+        }
+
+        if ($this->isCustomer()) {
+            $phoneVerified = $this->isPhoneVerified();
+            $emailVerified = $this->isEmailVerified();
+
+            if (!$phoneVerified && !$emailVerified) {
+                return [
+                    'can_order' => false,
+                    'reason' => 'both_unverified',
+                    'message' => 'অর্ডার সম্পন্ন করতে আপনার মোবাইল নম্বর ও ইমেইল ঠিকানা উভয়টিই ভেরিফাই করা আবশ্যক।',
+                ];
+            }
+
+            if (!$phoneVerified) {
+                return [
+                    'can_order' => false,
+                    'reason' => 'phone_unverified',
+                    'message' => 'অর্ডার সম্পন্ন করতে আপনার মোবাইল নম্বরটি ভেরিফাই করা আবশ্যক।',
+                ];
+            }
+
+            if (!$emailVerified) {
+                return [
+                    'can_order' => false,
+                    'reason' => 'email_unverified',
+                    'message' => 'অর্ডার সম্পন্ন করতে আপনার ইমেইল ঠিকানাটি ভেরিফাই করা আবশ্যক।',
+                ];
+            }
+
+            return ['can_order' => true, 'reason' => null];
+        }
+
+        // For non-customers (Author, Publisher, Seller, Staff)
+        if (!$this->isApproved()) {
+            $roleLabel = match ($this->role) {
+                self::ROLE_AUTHOR    => 'লেখক',
+                self::ROLE_PUBLISHER => 'প্রকাশক',
+                self::ROLE_SELLER    => 'সেলার',
+                default              => 'ইউজার',
+            };
+            return [
+                'can_order' => false,
+                'reason' => 'pending_approval',
+                'message' => "আপনার {$roleLabel} অ্যাকাউন্টটি বর্তমানে অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদনের পর কার্যক্রম কার্যকর হবে।",
+            ];
+        }
+
+        return ['can_order' => true, 'reason' => null];
+    }
 
     // Registration status helpers
     public function isPending(): bool  { return $this->isAdmin() ? false : ($this->reg_status === self::STATUS_PENDING); }
@@ -233,6 +316,11 @@ class User extends Authenticatable
         return $this->belongsToMany(\Modules\Ebook\Models\Ebook::class, 'user_ebook_library', 'user_id', 'ebook_id')
             ->withPivot(['access_type', 'last_read_page', 'progress_percent', 'bookmarks_data', 'is_active'])
             ->withTimestamps();
+    }
+
+    public function author(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->authorProfile();
     }
 
     public function getAuthorRecord(): ?\Modules\Author\Models\Author

@@ -261,7 +261,7 @@
 
                         {{-- Delete Button --}}
                         <form method="POST" action="{{ route('admin.registrations.cancel', $user) }}" 
-                              data-confirm="আপনি কি নিশ্চিত যে {{ addslashes($user->name) }} এর রেজিস্ট্রেশন ও অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলতে চান?" data-confirm-title="অ্যাকাউন্ট ডিলিট">
+                              data-confirm="Are you sure you want to permanently delete the registration and account for {{ addslashes($user->name) }}?" data-confirm-title="Delete Account">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-outline-danger rounded-pill px-4">
                                 <i class="fa-solid fa-trash me-1"></i> Delete Permanently

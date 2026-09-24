@@ -76,6 +76,15 @@ class Author extends Model
             $name = $nameEn;
         }
 
+        // Filter out non-author noise (e.g. dimension specs '3.2*2.2', 'demy 9size', page dimensions)
+        if (preg_match('/^(\d+[\.\*xX\-\/]\d+|\d+$|demy\s*\d*size)/i', $name)) {
+            if (!empty($nameBn) && !preg_match('/^(\d+[\.\*xX\-\/]\d+|\d+$|demy\s*\d*size)/i', $nameBn)) {
+                $name = $nameBn;
+            } elseif (!empty($nameEn) && !preg_match('/^(\d+[\.\*xX\-\/]\d+|\d+$|demy\s*\d*size)/i', $nameEn)) {
+                $name = $nameEn;
+            }
+        }
+
         $author = null;
 
         // 1. Search by exact or normalized Name, Name Bn, or Name En

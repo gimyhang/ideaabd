@@ -16,6 +16,7 @@ class OrderController extends Controller
             'book_id' => 'required|exists:books,id',
             'customer_name' => 'required|string|max:255',
             'customer_phone' => 'required|string|max:20',
+            'customer_email' => 'nullable|email|max:255',
             'district' => 'required|string',
             'thana' => 'nullable|string|max:100',
             'post_code' => 'nullable|string|max:20',
@@ -30,6 +31,24 @@ class OrderController extends Controller
             'gift_recipient_address' => 'nullable|required_if:is_gift,1|string',
             'gift_message' => 'nullable|string',
         ]);
+
+        // Check user verification & approval status
+        $authUser = auth()->user();
+        if ($authUser) {
+            $eligibility = $authUser->getOrderEligibilityStatus();
+            if (!$eligibility['can_order']) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $eligibility['message'],
+                        'reason'  => $eligibility['reason'],
+                        'requires_verification' => in_array($eligibility['reason'], ['both_unverified', 'phone_unverified', 'email_unverified']),
+                        'pending_approval' => $eligibility['reason'] === 'pending_approval',
+                    ], 403);
+                }
+                return back()->withInput()->with('error', $eligibility['message']);
+            }
+        }
 
         $book = Book::findOrFail($validated['book_id']);
         $quantity = intval($validated['quantity'] ?? 1);

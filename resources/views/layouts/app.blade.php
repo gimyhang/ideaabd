@@ -31,7 +31,7 @@
             } catch(e) {}
         })();
     </script>
-    <title>@hasSection('title')@yield('title') — ideaabd@else{{ config('app.name', 'Idea Publication') }}@endif</title>
+    <title>@yield('title', config('app.name', 'Idea Publication')) — ideaabd</title>
 
     {{-- Universal Social Media Open Graph (Facebook, WhatsApp, LinkedIn) & Twitter / X Cards --}}
     @php

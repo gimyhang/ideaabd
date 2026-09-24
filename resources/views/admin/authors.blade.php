@@ -1,51 +1,285 @@
 @extends('layouts.admin')
 
-@section('title', 'Authors & Researchers Directory')
-@section('heading', 'Authors & Researchers Directory Management')
+@section('title', 'লেখক ও গবেষক ডিরেক্টরি ব্যবস্থাপনা (Authors Directory)')
+@section('heading', 'লেখক ও গবেষক ডিরেক্টরি')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active" aria-current="page">Authors Directory</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
+    <li class="breadcrumb-item active" aria-current="page">লেখক ব্যবস্থাপনা</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportAuthorsToCSV()" title="Export to CSV file">
-            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1" onclick="exportAuthorsToCSV()" title="CSV ফাইলে এক্সপোর্ট করুন">
+            <i class="fa-solid fa-file-csv text-success"></i> <span>এক্সপোর্ট (CSV)</span>
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
-            <i class="fa-solid fa-print me-1"></i> Print
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1" onclick="window.print()" title="প্রিন্ট ভিউ">
+            <i class="fa-solid fa-print"></i> <span>প্রিন্ট</span>
         </button>
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" onclick="openAddAuthorModal()">
-            <i class="fa-solid fa-circle-plus me-1"></i> Add New Author
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addAuthorModal" onclick="openAddAuthorModal()">
+            <i class="fa-solid fa-user-plus"></i> <span>নতুন লেখক যুক্ত করুন</span>
         </button>
-        <a href="{{ route('authors.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Storefront
+        <a href="{{ route('authors.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>পাবলিক বুকশপ</span>
         </a>
     </div>
 @endsection
 
 @section('content')
 <style>
-/* ── Compact Horizontal Author Card Styling ── */
-.author-compact-row {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Premium Modern Aesthetic Styling & Spacing Fixes ── */
+:root {
+    --agy-primary: #0284c7;
+    --agy-primary-light: #e0f2fe;
+    --agy-success: #10b981;
+    --agy-warning: #f59e0b;
+    --agy-danger: #ef4444;
+    --agy-card-bg: #ffffff;
+    --agy-border-color: rgba(226, 232, 240, 0.9);
 }
 
-.author-compact-row:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(0, 102, 204, 0.1) !important;
-    border-color: rgba(0, 102, 204, 0.35) !important;
+/* Explicit Spacing & Padding Guarantees */
+.author-kpi-card {
+    padding: 1.1rem 1.2rem;
+    border-radius: 14px;
+    background: #ffffff;
+    border: 1px solid var(--agy-border-color);
+    transition: all 0.22s ease-in-out;
+}
+.author-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.author-filter-card {
+    padding: 1.15rem 1.25rem;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--agy-border-color);
+}
+
+.author-card-modern {
+    background: var(--agy-card-bg);
+    border: 1px solid var(--agy-border-color);
+    border-radius: 16px;
+    padding: 1.15rem;
+    transition: all 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.author-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px -6px rgba(2, 132, 199, 0.16), 0 4px 10px rgba(0, 0, 0, 0.04);
+    border-color: rgba(2, 132, 199, 0.45);
+}
+
+.author-avatar-wrapper {
+    position: relative;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.author-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.author-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+}
+
+.verified-halo {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8, #0284c7);
+    z-index: 0;
+    opacity: 0.85;
+}
+
+.author-status-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    z-index: 2;
+}
+
+.book-preview-thumb {
+    width: 50px;
+    height: 70px;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+}
+
+.book-preview-thumb:hover {
+    transform: scale(1.06);
+}
+
+.filter-tab-btn {
+    border-radius: 20px;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.filter-tab-btn.active {
+    background: #0f172a;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.filter-tab-btn:not(.active) {
+    background: #f8fafc;
+    color: #475569;
+    border-color: #e2e8f0;
+}
+
+.filter-tab-btn:not(.active):hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.action-btn-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: all 0.18s ease;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    cursor: pointer;
+    padding: 0;
+}
+
+.action-btn-circle:hover {
+    transform: scale(1.12);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.custom-switch-clean .form-check-input {
+    cursor: pointer;
+    width: 2.2rem;
+    height: 1.2rem;
+}
+
+.bulk-action-bar-modern {
+    padding: 0.85rem 1.25rem;
+    border-radius: 14px;
+    background: #0f172a;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.author-table th {
+    padding: 0.85rem 1rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.author-table td {
+    padding: 0.9rem 1rem;
+    font-size: 0.84rem;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Dark Mode Harmonization */
+body.dark-mode .author-kpi-card,
+body.dark-mode .author-filter-card,
+body.dark-mode .author-card-modern,
+body.dark-mode .card {
+    background: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .filter-tab-btn:not(.active) {
+    background: #0f172a;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+body.dark-mode .filter-tab-btn:not(.active):hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+body.dark-mode .action-btn-circle {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+body.dark-mode .modal-content {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .modal-body .form-control,
+body.dark-mode .modal-body .form-select,
+body.dark-mode .modal-body textarea {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
 }
 </style>
+
 <div class="d-flex flex-column gap-3 mb-4">
 
     {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-xs rounded-3 border-0 bg-success-subtle text-success-emphasis" role="alert">
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 shadow-sm rounded-4 border-0 bg-success-subtle text-success-emphasis p-3" role="alert">
             <i class="fa-solid fa-circle-check fs-5 me-2 text-success"></i>
             <div>{{ session('success') }}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 shadow-sm rounded-4 border-0 bg-danger-subtle text-danger-emphasis p-3" role="alert">
+            <i class="fa-solid fa-triangle-exclamation fs-5 me-2 text-danger"></i>
+            <div>{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -53,75 +287,101 @@
     {{-- ========================================================================= --}}
     {{-- 1. KPI STAT METRICS CARDS                                                 --}}
     {{-- ========================================================================= --}}
-    <div class="row g-2 g-md-2.5">
+    <div class="row g-3">
+        {{-- 1. Total Authors --}}
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-primary {{ !request()->hasAny(['is_active', 'is_verified', 'has_books']) ? 'ring-2 ring-primary' : '' }}">
+                <div class="author-kpi-card h-100 shadow-sm border-start border-4 border-primary {{ !request()->hasAny(['is_active', 'is_verified', 'has_books', 'author_type']) ? 'ring-2 ring-primary' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Total Authors</span>
-                            <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সর্বমোট লেখক</span>
+                            <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i class="fa-solid fa-pen-fancy small"></i>
+                        <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="fa-solid fa-pen-nib small"></i>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
+
+        {{-- 2. Active Authors --}}
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-success {{ request('is_active') === '1' ? 'ring-2 ring-success' : '' }}">
+                <div class="author-kpi-card h-100 shadow-sm border-start border-4 border-success {{ request('is_active') === '1' ? 'ring-2 ring-success' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Active Authors</span>
-                            <h5 class="fw-bold mb-0 text-success">{{ number_format($stats['active'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">সক্রিয় লেখক</span>
+                            <h5 class="fw-bold mb-0 text-success">{{ number_format($stats['active'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
                             <i class="fa-solid fa-user-check small"></i>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
+
+        {{-- 3. Verified Authors --}}
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['is_verified', 'page']), ['is_verified' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-info {{ request('is_verified') === '1' ? 'ring-2 ring-info' : '' }}">
+                <div class="author-kpi-card h-100 shadow-sm border-start border-4 border-info {{ request('is_verified') === '1' ? 'ring-2 ring-info' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Verified Authors</span>
-                            <h5 class="fw-bold mb-0 text-info">{{ number_format($stats['verified'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">ভেরিফাইড লেখক</span>
+                            <h5 class="fw-bold mb-0 text-info">{{ number_format($stats['verified'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
                             <i class="fa-solid fa-certificate small"></i>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
+
+        {{-- 4. Published Authors (With Books) --}}
         <div class="col-6 col-md-4 col-xl">
             <a href="{{ route('admin.authors', array_merge(request()->except(['has_books', 'page']), ['has_books' => '1'])) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 transition-hover border-start border-4 border-warning {{ request('has_books') === '1' ? 'ring-2 ring-warning' : '' }}">
+                <div class="author-kpi-card h-100 shadow-sm border-start border-4 border-warning {{ request('has_books') === '1' ? 'ring-2 ring-warning' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Published Authors</span>
-                            <h5 class="fw-bold mb-0 text-warning-emphasis">{{ number_format($stats['with_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">authors</small></h5>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">বই প্রকাশিত লেখক</span>
+                            <h5 class="fw-bold mb-0 text-warning-emphasis">{{ number_format($stats['with_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">জন</small></h5>
                         </div>
-                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
                             <i class="fa-solid fa-book-open small"></i>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
-        <div class="col-12 col-md-4 col-xl">
-            <div class="card border-0 shadow-xs rounded-3 p-2.5 bg-white h-100 border-start border-4 border-secondary">
+
+        {{-- 5. Registered User Accounts --}}
+        <div class="col-6 col-md-4 col-xl">
+            <a href="{{ route('admin.authors', array_merge(request()->except(['author_type', 'page']), ['author_type' => 'registered'])) }}" class="text-decoration-none">
+                <div class="author-kpi-card h-100 shadow-sm border-start border-4 {{ request('author_type') === 'registered' ? 'ring-2' : '' }}" style="border-left-color: #8b5cf6 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">পোর্টাল রেজিস্টার্ড ইউজার</span>
+                            <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['registered_users'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">ইউজার</small></h5>
+                        </div>
+                        <div class="rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background-color: #f3e8ff; color: #7c3aed;">
+                            <i class="fa-solid fa-id-badge small"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- 6. Total Catalog Books --}}
+        <div class="col-6 col-md-4 col-xl">
+            <div class="author-kpi-card h-100 shadow-sm border-start border-4 border-secondary">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">Total Catalog Books</span>
-                        <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">books</small></h5>
+                        <span class="text-muted small fw-semibold d-block" style="font-size: 0.75rem;">মোট বই ক্যাটালগ</span>
+                        <h5 class="fw-bold mb-0 text-dark">{{ number_format($stats['total_books'] ?? 0) }} <small class="text-muted fw-normal" style="font-size: 0.72rem;">টি বই</small></h5>
                     </div>
-                    <div class="rounded-circle bg-secondary-subtle text-secondary p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <div class="rounded-circle bg-secondary-subtle text-secondary p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
                         <i class="fa-solid fa-layer-group small"></i>
                     </div>
                 </div>
@@ -130,219 +390,321 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 2. ADVANCED FILTERS & VIEW MODE SWITCHER                                   --}}
+    {{-- 2. ADVANCED FILTERS, PILL TABS & TOOLBAR                                   --}}
     {{-- ========================================================================= --}}
-    <div class="card border-0 shadow-xs rounded-3 bg-white">
-        <div class="card-body p-2.5">
-            <form action="{{ route('admin.authors') }}" method="GET" id="authorsFilterForm" class="row g-2 align-items-center">
-                {{-- Search Box --}}
-                <div class="col-12 col-lg-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0 text-muted ps-2.5">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="search" name="search" class="form-control border-start-0 bg-light" 
-                               placeholder="Search by author name, slug, phone or bio..." value="{{ request('search') }}">
-                    </div>
-                </div>
+    <div class="author-filter-card shadow-sm">
+        
+        {{-- Quick Filter Pills --}}
+        <div class="d-flex flex-wrap align-items-center gap-2 pb-3 mb-3 border-bottom">
+            <span class="small fw-bold text-muted me-1 d-inline-flex align-items-center gap-1">
+                <i class="fa-solid fa-sliders text-primary"></i> <span>ফিল্টার:</span>
+            </span>
+            <a href="{{ route('admin.authors') }}" 
+               class="filter-tab-btn {{ !request()->hasAny(['is_active', 'is_verified', 'has_books', 'author_type']) ? 'active' : '' }}">
+                <i class="fa-solid fa-shield-check text-success"></i> <span>অনুমোদিত লেখক ({{ number_format($stats['approved'] ?? 0) }})</span>
+            </a>
+            <a href="{{ route('admin.authors', array_merge(request()->except(['author_type', 'page']), ['author_type' => 'pending'])) }}" 
+               class="filter-tab-btn {{ request('author_type') === 'pending' ? 'active' : '' }}">
+                <i class="fa-solid fa-hourglass-half text-warning"></i> <span>অনুমোদন অপেক্ষমাণ ({{ number_format($stats['pending'] ?? 0) }})</span>
+                @if(($stats['pending'] ?? 0) > 0)
+                    <span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">রিভিউ প্রয়োজন</span>
+                @endif
+            </a>
+            <a href="{{ route('admin.authors', array_merge(request()->except(['author_type', 'page']), ['author_type' => 'registered'])) }}" 
+               class="filter-tab-btn {{ request('author_type') === 'registered' ? 'active' : '' }}">
+                <i class="fa-solid fa-user-shield text-primary"></i> <span>পোর্টাল অ্যাকাউন্ট ({{ number_format($stats['registered_users'] ?? 0) }})</span>
+            </a>
+            <a href="{{ route('admin.authors', array_merge(request()->except(['has_books', 'page']), ['has_books' => '1'])) }}" 
+               class="filter-tab-btn {{ request('has_books') === '1' ? 'active' : '' }}">
+                <i class="fa-solid fa-book-bookmark text-warning"></i> <span>বই প্রকাশিত ({{ number_format($stats['with_books'] ?? 0) }})</span>
+            </a>
+            <a href="{{ route('admin.authors', array_merge(request()->except(['is_verified', 'page']), ['is_verified' => '1'])) }}" 
+               class="filter-tab-btn {{ request('is_verified') === '1' ? 'active' : '' }}">
+                <i class="fa-solid fa-circle-check text-info"></i> <span>ভেরিফাইড ({{ number_format($stats['verified'] ?? 0) }})</span>
+            </a>
+            <a href="{{ route('admin.authors', ['is_active' => 'all']) }}" 
+               class="filter-tab-btn {{ request('is_active') === 'all' ? 'active' : '' }}">
+                <i class="fa-solid fa-layer-group text-secondary"></i> <span>সকল রেকর্ড ({{ number_format($stats['total'] ?? 0) }})</span>
+            </a>
+            <a href="{{ route('admin.users', ['role' => 'author']) }}" 
+               class="filter-tab-btn ms-auto border-primary text-primary bg-primary-subtle" title="লেখক রেজিস্ট্রেশন অ্যাকাউন্টস পরিচালনা করুন">
+                <i class="fa-solid fa-users"></i> <span>লেখক রেজিস্ট্রেশন ইউজারস</span> <i class="fa-solid fa-arrow-right ms-1 small"></i>
+            </a>
+        </div>
 
-                {{-- Status Filter --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="is_active" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="" @selected(request('is_active') === null || request('is_active') === '')>All Status</option>
-                        <option value="1" @selected(request('is_active') === '1')>🟢 Active</option>
-                        <option value="0" @selected(request('is_active') === '0')>🔴 Inactive</option>
-                    </select>
-                </div>
-
-                {{-- Verification Filter --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="is_verified" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="" @selected(request('is_verified') === null || request('is_verified') === '')>All Verifications</option>
-                        <option value="1" @selected(request('is_verified') === '1')>✓ Verified</option>
-                        <option value="0" @selected(request('is_verified') === '0')>Unverified</option>
-                    </select>
-                </div>
-
-                {{-- Sort Filter --}}
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>Newest Added</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
-                        <option value="name_asc" @selected(request('sort') === 'name_asc')>Name (A-Z)</option>
-                        <option value="name_desc" @selected(request('sort') === 'name_desc')>Name (Z-A)</option>
-                        <option value="books_desc" @selected(request('sort') === 'books_desc')>Most Books</option>
-                    </select>
-                </div>
-
-                {{-- Per Page & View Buttons --}}
-                <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-1.5">
-                    <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="Items per page">
-                        <option value="14" @selected(request('per_page') == 14)>14</option>
-                        <option value="21" @selected(request('per_page') == 21)>21</option>
-                        <option value="28" @selected(request('per_page') == 28 || !request('per_page'))>28</option>
-                        <option value="35" @selected(request('per_page') == 35)>35</option>
-                        <option value="42" @selected(request('per_page') == 42)>42</option>
-                        <option value="70" @selected(request('per_page') == 70)>70</option>
-                    </select>
-
-                    <div class="btn-group btn-group-sm shadow-xs" role="group" aria-label="View Mode">
-                        <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="7-Column Grid View">
-                            <i class="fa-solid fa-th"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="Table View">
-                            <i class="fa-solid fa-list"></i>
-                        </button>
-                    </div>
-
-                    @if(request()->hasAny(['search', 'is_active', 'is_verified', 'has_books', 'sort', 'per_page']))
-                        <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="Reset Filters">
-                            <i class="fa-solid fa-rotate-left"></i>
+        <form action="{{ route('admin.authors') }}" method="GET" id="authorsFilterForm" class="row g-2 align-items-center">
+            {{-- Live Search Box with instant client & server filter --}}
+            <div class="col-12 col-md-5 col-lg-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="search" name="search" id="authorSearchInput" class="form-control border-start-0 bg-light" 
+                           placeholder="লেখকের নাম, ফোন, ইমেইল, বা বায়ো খুঁজুন..." value="{{ request('search') }}"
+                           autocomplete="off">
+                    @if(request('search'))
+                        <a href="{{ route('admin.authors', request()->except('search')) }}" class="btn btn-outline-secondary border-start-0 bg-light" title="ক্লিয়ার সার্চ">
+                            <i class="fa-solid fa-xmark"></i>
                         </a>
                     @endif
                 </div>
-            </form>
+            </div>
+
+            {{-- Status Filter --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="is_active" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="" @selected(request('is_active') === null || request('is_active') === '')>সকল স্ট্যাটাস</option>
+                    <option value="1" @selected(request('is_active') === '1')>🟢 সক্রিয় (Active)</option>
+                    <option value="0" @selected(request('is_active') === '0')>🔴 নিষ্ক্রিয় (Inactive)</option>
+                </select>
+            </div>
+
+            {{-- Verification Filter --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="is_verified" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="" @selected(request('is_verified') === null || request('is_verified') === '')>সকল ভেরিফিকেশন</option>
+                    <option value="1" @selected(request('is_verified') === '1')>✓ ভেরিফাইড (Verified)</option>
+                    <option value="0" @selected(request('is_verified') === '0')>সাধারণ (Unverified)</option>
+                </select>
+            </div>
+
+            {{-- Sort Filter --}}
+            <div class="col-6 col-md-3 col-lg-2">
+                <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>সর্বশেষ যুক্ত (Newest)</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>প্রাচীনতম (Oldest)</option>
+                    <option value="name_asc" @selected(request('sort') === 'name_asc')>নাম (A-Z / ক-হ)</option>
+                    <option value="name_desc" @selected(request('sort') === 'name_desc')>নাম (Z-A / হ-ক)</option>
+                    <option value="books_desc" @selected(request('sort') === 'books_desc')>সর্বোচ্চ বই (Most Books)</option>
+                </select>
+            </div>
+
+            {{-- Per Page & View Buttons --}}
+            <div class="col-6 col-md-3 col-lg-2 d-flex align-items-center justify-content-end gap-2">
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="প্রতি পৃষ্ঠায় আইটেম">
+                    <option value="12" @selected(request('per_page') == 12)>12</option>
+                    <option value="24" @selected(request('per_page') == 24)>24</option>
+                    <option value="28" @selected(request('per_page') == 28 || !request('per_page'))>28</option>
+                    <option value="42" @selected(request('per_page') == 42)>42</option>
+                    <option value="70" @selected(request('per_page') == 70)>70</option>
+                    <option value="100" @selected(request('per_page') == 100)>100</option>
+                </select>
+
+                <div class="btn-group btn-group-sm shadow-sm" role="group" aria-label="View Mode">
+                    <button type="button" class="btn btn-outline-primary active" id="btnViewGrid" onclick="switchViewMode('grid')" title="কার্ড গ্রিড ভিউ">
+                        <i class="fa-solid fa-grip"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btnViewTable" onclick="switchViewMode('table')" title="টেবিল ভিউ">
+                        <i class="fa-solid fa-table-list"></i>
+                    </button>
+                </div>
+
+                @if(request()->hasAny(['search', 'is_active', 'is_verified', 'has_books', 'author_type', 'sort', 'per_page']))
+                    <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border text-danger" title="ফিল্টার রিসেট করুন">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+
+    {{-- ========================================================================= --}}
+    {{-- 3. BULK ACTIONS BAR (Visible when items selected)                         --}}
+    {{-- ========================================================================= --}}
+    <div id="bulkActionBar" class="bulk-action-bar-modern shadow-sm d-none">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold" id="selectedCountBadge">০ টি নির্বাচিত</span>
+                <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="selectAllAuthors(false)">বাছাই বাতিল</button>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-3 d-inline-flex align-items-center gap-1" onclick="executeBulkAction('activate')">
+                    <i class="fa-solid fa-check"></i> <span>সক্রিয় করুন</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3 d-inline-flex align-items-center gap-1" onclick="executeBulkAction('deactivate')">
+                    <i class="fa-solid fa-pause"></i> <span>নিষ্ক্রিয় করুন</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 d-inline-flex align-items-center gap-1" onclick="executeBulkAction('verify')">
+                    <i class="fa-solid fa-certificate"></i> <span>ভেরিফাই করুন</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 d-inline-flex align-items-center gap-1" onclick="executeBulkAction('delete')">
+                    <i class="fa-solid fa-trash"></i> <span>ডিলিট করুন</span>
+                </button>
+            </div>
         </div>
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 3. MAIN CONTENT: COMPACT 7-COLUMN GRID VIEW & TABLE VIEW                  --}}
+    {{-- 4. MAIN CONTENT: 4-COLUMN CARDS GRID & TABLE VIEW                         --}}
     {{-- ========================================================================= --}}
     @if ($authors->isEmpty())
-        <div class="card border-0 shadow-xs rounded-4 bg-white p-5 text-center my-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-white p-5 text-center my-3">
             <div class="mb-3">
-                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-3" style="width: 60px; height: 60px;">
-                    <i class="fa-solid fa-pen-fancy fs-3 text-muted opacity-50"></i>
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center p-3" style="width: 72px; height: 72px;">
+                    <i class="fa-solid fa-feather-pointed fs-2 text-muted opacity-50"></i>
                 </div>
             </div>
-            <h6 class="fw-bold text-dark mb-1">No Authors Found</h6>
-            <p class="text-muted small mb-3">Adjust your search filters or add a new author to the directory.</p>
+            <h5 class="fw-bold text-dark mb-1">কোনো লেখক পাওয়া যায়নি</h5>
+            <p class="text-muted small mb-3">অনুসন্ধানের কি-ওয়ার্ড বা ফিল্টার পরিবর্তন করে পুনরায় চেষ্টা করুন অথবা নতুন লেখক প্রোফাইল তৈরি করুন।</p>
             <div class="d-flex justify-content-center gap-2">
-                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-3">Clear Filters</a>
-                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="openAddAuthorModal()">
-                    <i class="fa-solid fa-plus me-1"></i> Add New Author
+                <a href="{{ route('admin.authors') }}" class="btn btn-sm btn-light border rounded-pill px-4">ফিল্টার রিসেট</a>
+                <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#addAuthorModal" onclick="openAddAuthorModal()">
+                    <i class="fa-solid fa-plus"></i> <span>নতুন লেখক যুক্ত করুন</span>
                 </button>
             </div>
         </div>
     @else
 
-        {{-- 3A. REFINED 4-COLUMN COMPACT AUTHORS GRID VIEW --}}
+        {{-- 4A. MODERN 4-COLUMN AUTHOR CARDS GRID --}}
         <div id="authorsGridView" class="view-container">
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3" id="authorsCardContainer">
                 @foreach ($authors as $author)
                     @php
                         $avatarUrl = $author->avatar_url;
                         $initials = $author->initials;
+                        $bgColor = $author->avatar_bg_color;
                         $booksCount = $author->books_count ?? 0;
                         $topBook = $author->books->first();
+                        $hasUser = !empty($author->user_id) || !empty($author->user);
                     @endphp
-                    <div class="col" id="authorCard-{{ $author->id }}">
-                        <div class="card h-100 border-0 rounded-3 overflow-hidden author-compact-row bg-white shadow-xs p-3 position-relative transition-all d-flex justify-content-between">
+                    <div class="col author-item-wrapper" id="authorCard-{{ $author->id }}" data-author-name="{{ strtolower($author->name . ' ' . $author->name_bn . ' ' . $author->name_en) }}" data-author-phone="{{ $author->phone }}">
+                        <div class="author-card-modern h-100 shadow-sm">
                             
-                            <div class="d-flex align-items-center justify-content-between gap-3 w-100">
+                            {{-- Card Top Row: Checkbox, Avatar, Author Info, & Top Book --}}
+                            <div class="d-flex align-items-center justify-content-between gap-2 w-100 mb-3">
                                 
-                                {{-- ১ম কলাম: লেখকের ছবি (Column 1: Author Photo) --}}
-                                <div class="position-relative flex-shrink-0 cursor-pointer" 
-                                     onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')"
-                                     title="ছবি দেখতে ক্লিক করুন">
-                                    <div class="rounded-circle overflow-hidden shadow-xs border border-2 border-white position-relative" 
-                                         style="width: 58px; height: 58px; background: #f8fafc;">
-                                        @if($avatarUrl)
-                                            <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
-                                                 class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
-                                                 onerror="this.style.display='none'; this.parentElement.querySelector('.avatar-fallback').style.display='flex';">
-                                            <div class="avatar-fallback w-100 h-100 align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
-                                                 style="display: none; background: linear-gradient(135deg, #1e293b, #0f172a); font-size: 1.2rem;">
-                                                {{ $initials }}
-                                            </div>
-                                        @else
-                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold position-absolute top-0 start-0"
-                                                 style="background: linear-gradient(135deg, #1e293b, #0f172a); font-size: 1.2rem;">
-                                                {{ $initials }}
-                                            </div>
-                                        @endif
+                                {{-- 1. Selection & Avatar --}}
+                                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                    <div class="form-check p-0 m-0">
+                                        <input class="form-check-input author-select-checkbox cursor-pointer" type="checkbox" value="{{ $author->id }}" onchange="updateBulkSelectionState()">
                                     </div>
-                                    <span class="position-absolute bottom-0 end-0 rounded-circle border border-white border-2 {{ $author->is_active ? 'bg-success' : 'bg-secondary' }}" 
-                                          style="width: 13px; height: 13px;" 
-                                          title="{{ $author->is_active ? 'Active' : 'Inactive' }}"></span>
+
+                                    <div class="author-avatar-wrapper cursor-pointer" 
+                                         onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')"
+                                         title="ছবি পূর্ণ আকারে দেখতে ক্লিক করুন">
+                                         
+                                        @if($author->is_verified)
+                                            <div class="verified-halo"></div>
+                                        @endif
+                                        
+                                        <div class="position-relative w-100 h-100 rounded-circle overflow-hidden bg-white border border-2 border-white">
+                                            @if($avatarUrl)
+                                                <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" class="author-avatar-img"
+                                                     onerror="this.style.display='none'; this.parentElement.querySelector('.author-avatar-fallback').style.display='flex';">
+                                                <div class="author-avatar-fallback" style="display: none; background: {{ $bgColor }};">
+                                                    {{ $initials }}
+                                                </div>
+                                            @else
+                                                <div class="author-avatar-fallback" style="background: {{ $bgColor }};">
+                                                    {{ $initials }}
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <span class="author-status-dot {{ $author->is_active ? 'bg-success' : 'bg-secondary' }}" 
+                                              id="statusDot-{{ $author->id }}"
+                                              title="{{ $author->is_active ? 'সক্রিয় (Active)' : 'নিষ্ক্রিয় (Inactive)' }}"></span>
+                                    </div>
                                 </div>
 
-                                {{-- ২য় কলাম: বোল্ড নাম -> বই সংখ্যা -> ছোট আইকনসমূহ (মাঝ এলাইন) --}}
-                                <div class="flex-grow-1 min-w-0 text-center d-flex flex-column align-items-center justify-content-center px-1" style="max-width: calc(100% - 130px);">
-                                    {{-- রো ১ (শীর্ষে): বোল্ড আকারে লেখকের নাম ও ভেরিফাইড টিক চিহ্ন --}}
-                                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1 w-100" title="{{ $author->name }}">
-                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.90rem; max-width: 100%;">
-                                            <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary" title="{{ $author->name }}">
+                                {{-- 2. Middle Column: Name, Verification, Books Count, User Account Badge --}}
+                                <div class="flex-grow-1 min-w-0 text-center px-1">
+                                    <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                        <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.92rem;" title="{{ $author->name }}">
+                                            <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
                                                 {{ $author->name }}
                                             </a>
                                         </h6>
                                         @if($author->is_verified)
-                                            <i class="fa-solid fa-circle-check text-info flex-shrink-0" style="font-size: 11px;" title="Verified Author"></i>
+                                            <i class="fa-solid fa-circle-check text-info flex-shrink-0" style="font-size: 13px;" title="ভেরিফাইড লেখক"></i>
                                         @endif
                                     </div>
 
-                                    {{-- রো ২ (নিচে): লেখকের সর্বমোট বইয়ের সংখ্যা --}}
-                                    <div class="d-flex align-items-center justify-content-center gap-1.5 mb-2 w-100">
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 0.70rem;">
-                                            <i class="fa-solid fa-book-bookmark me-1"></i>{{ $booksCount }} টি বই
+                                    {{-- Books Count & User Badge --}}
+                                    <div class="d-flex flex-wrap align-items-center justify-content-center gap-1 mb-1">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
+                                            <i class="fa-solid fa-book me-1"></i>{{ $booksCount }} টি বই
                                         </span>
-                                        @if(!$author->is_active)
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">নিষ্ক্রিয়</span>
+                                        @if($hasUser)
+                                            <span class="badge border rounded-pill px-2 py-0.5" style="font-size: 0.65rem; background-color: #f5f3ff; color: #7c3aed; border-color: #ddd6fe !important;" title="রেজিস্টার্ড পোর্টাল অ্যাকাউন্ট">
+                                                <i class="fa-solid fa-user-check me-0.5"></i>Portal
+                                            </span>
                                         @endif
                                     </div>
 
-                                    {{-- রো ৩ (নিচের সারিতে): ছোট ও পরিচ্ছন্ন অ্যাকশন আইকন বাটন --}}
-                                    <div class="d-flex align-items-center justify-content-center gap-1 w-100">
-                                        <button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                                style="width: 24px; height: 24px; font-size: 10px;" onclick="openAuthorDetailsModal({{ $author->id }})" title="🪪 প্রোফাইল ভিউ">
-                                            <i class="fa-solid fa-id-card"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-xs btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                                style="width: 24px; height: 24px; font-size: 10px;" onclick="openEditAuthorModal({{ $author->id }})" title="✏️ কুইক এডিট">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-xs btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                                                style="width: 24px; height: 24px; font-size: 10px;" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="🔑 পাসওয়ার্ড রিসেট">
-                                            <i class="fa-solid fa-key"></i>
-                                        </button>
-                                        <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
-                                           class="btn btn-xs btn-light border rounded-circle p-0 d-flex align-items-center justify-content-center text-muted" 
-                                           style="width: 24px; height: 24px; font-size: 10px;" title="🌐 পাবলিক বুকশপ পেজ">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
+                                    {{-- Direct Slug / Phone snippet --}}
+                                    <div class="text-muted small text-truncate" style="font-size: 0.72rem;" title="{{ $author->phone ?: $author->email ?: $author->slug }}">
+                                        @if($author->phone)
+                                            <i class="fa-solid fa-phone text-muted me-1" style="font-size: 9px;"></i>{{ $author->phone }}
+                                        @elseif($author->email)
+                                            <i class="fa-solid fa-envelope text-muted me-1" style="font-size: 9px;"></i>{{ Str::limit($author->email, 14) }}
+                                        @else
+                                            <span class="font-monospace opacity-75">/{{ Str::limit($author->slug, 12) }}</span>
+                                        @endif
                                     </div>
                                 </div>
 
-                                {{-- ৩য় কলাম: লেখকের নির্বাচিত বইয়ের কভারের ছবি (Column 3: Selected/Bestseller Book Cover) --}}
+                                {{-- 3. Right Column: Top Book Preview Thumbnail --}}
                                 <div class="flex-shrink-0 text-center">
                                     @if($topBook)
                                         <div class="position-relative" title="নির্বাচিত বই: {{ $topBook->title }}">
-                                            <div class="rounded-2 overflow-hidden shadow-xs border bg-light position-relative" style="width: 52px; height: 75px;">
-                                                @if($topBook->cover_image)
-                                                    <img src="{{ asset('storage/' . $topBook->cover_image) }}" alt="{{ $topBook->title }}" 
-                                                         class="w-100 h-100 object-fit-cover" 
-                                                         onerror="this.src='/images/book-placeholder.png'">
-                                                @else
-                                                    <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted p-1 text-center" style="font-size: 0.60rem;">
-                                                        <i class="fa-solid fa-book mb-1"></i>
-                                                        <span class="line-clamp-2" style="font-size: 0.55rem; line-height: 1;">{{ Str::limit($topBook->title, 10) }}</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <span class="badge bg-danger position-absolute top-0 end-0 translate-middle-y shadow-xs" style="font-size: 0.55rem; padding: 2px 4px;">Top</span>
+                                            @if($topBook->cover_image)
+                                                <img src="{{ asset('storage/' . $topBook->cover_image) }}" alt="{{ $topBook->title }}" 
+                                                     class="book-preview-thumb" 
+                                                     onerror="this.src='/images/book-placeholder.png'">
+                                            @else
+                                                <div class="book-preview-thumb d-flex flex-column align-items-center justify-content-center bg-light text-muted p-1 text-center" style="font-size: 0.55rem;">
+                                                    <i class="fa-solid fa-book mb-1 text-primary opacity-50"></i>
+                                                    <span class="line-clamp-2" style="font-size: 0.50rem; line-height: 1;">{{ Str::limit($topBook->title, 10) }}</span>
+                                                </div>
+                                            @endif
+                                            <span class="badge bg-danger position-absolute top-0 end-0 translate-middle-y shadow-sm" style="font-size: 0.52rem; padding: 2px 4px;">Top</span>
                                         </div>
-                                        <small class="text-muted d-block text-truncate mt-1" style="font-size: 0.62rem; max-width: 52px;" title="{{ $topBook->title }}">
-                                            {{ Str::limit($topBook->title, 8) }}
-                                        </small>
                                     @else
-                                        <div class="rounded-2 border border-dashed d-flex flex-column align-items-center justify-content-center text-muted bg-light" 
-                                             style="width: 52px; height: 75px; font-size: 0.65rem;" title="কোনো বই নেই">
-                                            <i class="fa-solid fa-book-open opacity-40 mb-1"></i>
-                                            <span style="font-size: 0.55rem;">বই নেই</span>
+                                        <div class="book-preview-thumb border border-dashed d-flex flex-column align-items-center justify-content-center text-muted bg-light" 
+                                             style="font-size: 0.60rem;" title="এখনো কোনো বই ক্যাটালগে যুক্ত হয়নি">
+                                            <i class="fa-solid fa-book-open opacity-30 mb-1"></i>
+                                            <span style="font-size: 0.52rem;">বই নেই</span>
                                         </div>
                                     @endif
                                 </div>
 
+                            </div>
+
+                            {{-- Card Bottom Row: Action Toolbar & Status Toggle --}}
+                            <div class="d-flex align-items-center justify-content-between pt-2.5 border-top gap-1 w-100">
+                                {{-- Quick Action Buttons --}}
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <button type="button" class="action-btn-circle text-info" 
+                                            onclick="openAuthorDetailsModal({{ $author->id }})" title="🪪 সম্পূর্ণ ৩৬০° প্রোফাইল">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </button>
+                                    <button type="button" class="action-btn-circle text-primary" 
+                                            onclick="openEditAuthorModal({{ $author->id }})" title="✏️ কুইক এডিট">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button type="button" class="action-btn-circle text-warning" 
+                                            onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="🔑 পাসওয়ার্ড রিসেট ও WhatsApp">
+                                        <i class="fa-solid fa-key"></i>
+                                    </button>
+                                    <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" 
+                                       class="action-btn-circle text-muted" title="🌐 পাবলিক পেজ দেখুন">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    </a>
+                                    <button type="button" class="action-btn-circle text-danger" 
+                                            onclick="handleDeleteAuthor({{ $author->id }}, '{{ addslashes($author->name) }}', {{ $booksCount }})" title="🗑️ লেখক মুছে ফেলুন">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                                {{-- AJAX Status Switch --}}
+                                <div class="custom-switch-clean d-flex align-items-center" title="স্ট্যাটাস পরিবর্তন করতে ক্লিক করুন">
+                                    <div class="form-check form-switch m-0 p-0">
+                                        <input class="form-check-input" type="checkbox" id="switchActive-{{ $author->id }}" 
+                                               @checked($author->is_active) 
+                                               onchange="toggleAuthorStatusAjax({{ $author->id }}, this)">
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
@@ -351,21 +713,23 @@
             </div>
         </div>
 
-        {{-- 3B. REFINED TABLE VIEW --}}
+        {{-- 4B. REFINED TABLE VIEW --}}
         <div id="authorsTableView" class="view-container d-none">
-            <div class="card border-0 shadow-xs rounded-3 overflow-hidden bg-white">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="authorsTable">
+                    <table class="table table-hover align-middle mb-0 author-table" id="authorsTable">
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
-                                <th class="ps-3" style="width: 50px;">#</th>
-                                <th style="min-width: 200px;">Author & Slug</th>
-                                <th>Contact</th>
-                                <th>Books Count</th>
-                                <th>Verification</th>
-                                <th>Status</th>
-                                <th>Joined Date</th>
-                                <th class="text-end pe-3" style="min-width: 120px;">Actions</th>
+                                <th class="ps-3" style="width: 44px;">
+                                    <input class="form-check-input cursor-pointer" type="checkbox" id="selectAllTableCheckbox" onchange="toggleSelectAllTable(this)">
+                                </th>
+                                <th style="min-width: 240px;">লেখক ও স্লাগ</th>
+                                <th>যোগাযোগ</th>
+                                <th>বই সংখ্যা</th>
+                                <th>ভেরিফিকেশন</th>
+                                <th>স্ট্যাটাস</th>
+                                <th>যুক্ত হওয়ার তারিখ</th>
+                                <th class="text-end pe-3" style="min-width: 140px;">অ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -377,11 +741,13 @@
                                     $booksCount = $author->books_count ?? 0;
                                 @endphp
                                 <tr id="authorRow-{{ $author->id }}">
-                                    <td class="ps-3 text-muted small">{{ $authors->firstItem() + $n }}</td>
+                                    <td class="ps-3">
+                                        <input class="form-check-input author-select-checkbox cursor-pointer" type="checkbox" value="{{ $author->id }}" onchange="updateBulkSelectionState()">
+                                    </td>
                                     <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border"
-                                                 style="width: 38px; height: 38px; cursor: pointer;"
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0 position-relative border"
+                                                 style="width: 44px; height: 44px; cursor: pointer;"
                                                  onclick="previewAuthorAvatar('{{ $avatarUrl }}', '{{ addslashes($author->name) }}')">
                                                 @if($avatarUrl)
                                                     <img src="{{ $avatarUrl }}" alt="{{ $author->name }}" 
@@ -400,80 +766,79 @@
                                             </div>
 
                                             <div class="min-w-0">
-                                                <div class="fw-bold text-dark text-truncate small">
+                                                <div class="fw-bold text-dark text-truncate small d-flex align-items-center gap-1.5">
                                                     <a href="javascript:void(0)" onclick="openAuthorDetailsModal({{ $author->id }})" class="text-decoration-none text-dark hover-primary">
                                                         {{ $author->name }}
                                                     </a>
                                                     @if($author->is_verified)
-                                                        <i class="fa-solid fa-circle-check text-info ms-1" style="font-size: 11px;" title="Verified Author"></i>
+                                                        <i class="fa-solid fa-circle-check text-info" style="font-size: 12px;" title="ভেরিফাইড লেখক"></i>
+                                                    @endif
+                                                    @if(!empty($author->user_id))
+                                                        <span class="badge border rounded-pill px-2" style="font-size: 0.62rem; background: #f3e8ff; color: #7c3aed; border-color: #ddd6fe !important;">Portal</span>
                                                     @endif
                                                 </div>
-                                                <div class="text-muted font-monospace d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                                                <div class="text-muted font-monospace d-flex align-items-center gap-1.5 mt-0.5" style="font-size: 0.74rem;">
                                                     <span>{{ $author->slug }}</span>
-                                                    <i class="fa-solid fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'Slug copied to clipboard!')" title="Copy Slug"></i>
+                                                    <i class="fa-solid fa-copy cursor-pointer text-muted hover-primary" onclick="copyToClipboard('{{ $author->slug }}', 'স্লাগ কপি করা হয়েছে!')" title="স্লাগ কপি করুন"></i>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td style="min-width: 140px;">
                                         @if($author->phone)
-                                            <div class="text-nowrap small mb-0.5" style="font-size: 0.78rem;"><i class="fa-solid fa-phone-alt text-muted me-1" style="font-size: 10px;"></i>{{ $author->phone }}</div>
+                                            <div class="text-nowrap small mb-1" style="font-size: 0.80rem;"><i class="fa-solid fa-phone text-muted me-1.5" style="font-size: 10px;"></i>{{ $author->phone }}</div>
                                         @endif
                                         @if($author->email)
-                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem; max-width: 160px;" title="{{ $author->email }}"><i class="fa-solid fa-envelope text-muted me-1" style="font-size: 10px;"></i>{{ $author->email }}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.76rem; max-width: 160px;" title="{{ $author->email }}"><i class="fa-solid fa-envelope text-muted me-1.5" style="font-size: 10px;"></i>{{ $author->email }}</div>
                                         @endif
                                         @if(!$author->phone && !$author->email)
                                             <span class="text-muted small">—</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
-                                            <i class="fa-solid fa-book me-1"></i>{{ $booksCount }} books
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill" style="font-size: 0.74rem;">
+                                            <i class="fa-solid fa-book me-1"></i>{{ $booksCount }} টি বই
                                         </span>
                                     </td>
                                     <td>
                                         <button type="button" 
-                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_verified ? 'bg-info text-white' : 'bg-light text-muted border' }}"
-                                                style="font-size: 0.70rem;"
-                                                onclick="toggleAuthorVerified({{ $author->id }}, this)"
-                                                title="Toggle Verification">
+                                                class="badge rounded-pill border-0 shadow-sm cursor-pointer px-3 py-1.5 {{ $author->is_verified ? 'bg-info text-white' : 'bg-light text-muted border' }}"
+                                                style="font-size: 0.72rem;"
+                                                onclick="toggleAuthorVerifiedAjax({{ $author->id }}, this)"
+                                                title="ভেরিফিকেশন টগল করুন">
                                             <i class="fas {{ $author->is_verified ? 'fa-certificate' : 'fa-circle-question' }} me-1"></i>
-                                            <span>{{ $author->is_verified ? 'Verified' : 'Regular' }}</span>
+                                            <span>{{ $author->is_verified ? 'Verified' : 'Unverified' }}</span>
                                         </button>
                                     </td>
                                     <td>
                                         <button type="button" 
-                                                class="badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
-                                                style="font-size: 0.70rem;"
-                                                onclick="toggleAuthorStatus({{ $author->id }}, this)"
-                                                title="Toggle Status">
+                                                class="badge rounded-pill border-0 shadow-sm cursor-pointer px-3 py-1.5 {{ $author->is_active ? 'bg-success text-white' : 'bg-secondary text-white' }}"
+                                                style="font-size: 0.72rem;"
+                                                id="tableStatusBadge-{{ $author->id }}"
+                                                onclick="toggleAuthorStatusTableAjax({{ $author->id }}, this)"
+                                                title="স্ট্যাটাস টগল করুন">
                                             <i class="fa-solid fa-circle-dot me-1" style="font-size: 7px;"></i>
-                                            <span>{{ $author->is_active ? 'Active' : 'Inactive' }}</span>
+                                            <span>{{ $author->is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
                                         </button>
                                     </td>
-                                    <td class="text-muted small" style="font-size: 0.75rem;">{{ $author->created_at ? $author->created_at->format('d M, Y') : '—' }}</td>
+                                    <td class="text-muted small" style="font-size: 0.76rem;">{{ $author->created_at ? $author->created_at->format('d M, Y') : '—' }}</td>
                                     <td class="text-end pe-3">
-                                        <div class="d-inline-flex gap-1 align-items-center">
-                                            <button type="button" class="btn btn-xs btn-outline-info p-1" onclick="openAuthorDetailsModal({{ $author->id }})" title="View Profile">
+                                        <div class="d-inline-flex gap-1.5 align-items-center">
+                                            <button type="button" class="btn btn-xs btn-outline-info p-1.5 rounded-circle" onclick="openAuthorDetailsModal({{ $author->id }})" title="প্রোফাইল ৩৬০°">
                                                 <i class="fa-solid fa-eye small"></i>
                                             </button>
-                                            <button type="button" class="btn btn-xs btn-outline-primary p-1" onclick="openEditAuthorModal({{ $author->id }})" title="Quick Edit">
+                                            <button type="button" class="btn btn-xs btn-outline-primary p-1.5 rounded-circle" onclick="openEditAuthorModal({{ $author->id }})" title="এডিট">
                                                 <i class="fa-solid fa-pen-to-square small"></i>
                                             </button>
-                                            <button type="button" class="btn btn-xs btn-outline-warning p-1" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট (Reset Password)">
+                                            <button type="button" class="btn btn-xs btn-outline-warning p-1.5 rounded-circle" onclick="openAuthorPasswordResetModal({{ $author->id }}, '{{ addslashes($author->name) }}', '{{ addslashes($author->email ?: ($author->phone ?: '')) }}')" title="পাসওয়ার্ড রিসেট">
                                                 <i class="fa-solid fa-key small"></i>
                                             </button>
-                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1" title="View on Site">
+                                            <a href="{{ route('authors.show', $author->slug ?: $author->id) }}" target="_blank" rel="noopener" class="btn btn-xs btn-light border p-1.5 rounded-circle" title="পাবলিক পেজ">
                                                 <i class="fa-solid fa-arrow-up-right-from-square text-muted small"></i>
                                             </a>
-                                            <form action="{{ route('admin.content.destroy', ['type' => 'authors', 'id' => $author->id]) }}" 
-                                                  method="POST" class="d-inline" data-confirm="আপনি কি নিশ্চিত যে এই লেখক প্রোফাইলটি ডিলিট করতে চান?" data-confirm-title="লেখক ডিলিট">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-xs btn-outline-danger p-1" title="Delete Author">
-                                                    <i class="fa-solid fa-trash-can small"></i>
-                                                </button>
-                                            </form>
+                                            <button type="button" class="btn btn-xs btn-outline-danger p-1.5 rounded-circle" onclick="handleDeleteAuthor({{ $author->id }}, '{{ addslashes($author->name) }}', {{ $booksCount }})" title="ডিলিট">
+                                                <i class="fa-solid fa-trash-can small"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -486,9 +851,9 @@
 
         {{-- Pagination --}}
         @if ($authors->hasPages())
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2.5 bg-white border-0 shadow-xs rounded-3 mt-3">
-                <span class="text-muted small" style="font-size: 0.78rem;">
-                    Showing {{ $authors->firstItem() }}–{{ $authors->lastItem() }} of {{ number_format($stats['total'] ?? $authors->total()) }} authors
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 bg-white border-0 shadow-sm rounded-4 mt-3">
+                <span class="text-muted small" style="font-size: 0.82rem;">
+                    মোট {{ number_format($stats['total'] ?? $authors->total()) }} জনের মধ্যে {{ $authors->firstItem() }}–{{ $authors->lastItem() }} প্রদর্শিত হচ্ছে
                 </span>
                 <div>
                     {{ $authors->links() }}
@@ -500,16 +865,19 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- 4. MODALS (ADD, EDIT, DETAILS, AVATAR PREVIEW)                            --}}
+{{-- 5. MODALS (ADD, EDIT, DETAILS 360°, PASSWORD RESET, AVATAR LIGHTBOX)      --}}
 {{-- ========================================================================= --}}
 
-{{-- Modal: Add Author --}}
-<div class="modal fade" id="addAuthorModal" tabindex="-1" aria-labelledby="addAuthorModalLabel" aria-hidden="true">
+{{-- Modal 1: Add Author --}}
+<div class="modal fade" id="addAuthorModal" tabindex="-1" aria-labelledby="addAuthorModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
-                <h5 class="modal-title fw-bold text-dark" id="addAuthorModalLabel">
-                    <i class="fa-solid fa-user-pen text-primary me-2"></i>Add New Author
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="addAuthorModalLabel">
+                    <span class="rounded-circle bg-primary-subtle text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                        <i class="fa-solid fa-user-pen small"></i>
+                    </span>
+                    <span>নতুন লেখক প্রোফাইল তৈরি করুন</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -518,43 +886,43 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <label class="form-label small fw-bold text-dark">Author Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control" placeholder="e.g. Humayun Ahmed" required oninput="generateSlugPreview(this.value, 'addAuthorSlug')">
+                            <label class="form-label small fw-bold text-dark">লেখকের নাম (Author Name) <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="যেমন: কাজী নজরুল ইসলাম" required oninput="generateSlugPreview(this.value, 'addAuthorSlug')">
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold text-dark">URL Slug (Optional)</label>
-                            <input type="text" name="slug" id="addAuthorSlug" class="form-control font-monospace" placeholder="humayun-ahmed">
+                            <label class="form-label small fw-bold text-dark">ইউআরএল স্লাগ (URL Slug)</label>
+                            <input type="text" name="slug" id="addAuthorSlug" class="form-control font-monospace" placeholder="kazi-nazrul-islam">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Phone Number</label>
-                            <input type="text" name="phone" class="form-control" placeholder="017XXXXXXXX">
+                            <label class="form-label small fw-bold text-dark">মোবাইল ফোন নম্বর</label>
+                            <input type="text" name="phone" class="form-control" placeholder="01XXXXXXXXX">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Email Address</label>
+                            <label class="form-label small fw-bold text-dark">ইমেইল অ্যাড্রেস</label>
                             <input type="email" name="email" class="form-control" placeholder="author@example.com">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Personal Website / Portfolio</label>
+                            <label class="form-label small fw-bold text-dark">ব্যক্তিগত ওয়েবসাইট / সোশ্যাল লিঙ্ক</label>
                             <input type="url" name="website" class="form-control" placeholder="https://...">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Author Biography & Introduction</label>
-                            <textarea name="bio" class="form-control" rows="3" placeholder="Author background, literary career and profile..."></textarea>
+                            <label class="form-label small fw-bold text-dark">লেখকের পরিচিতি ও বায়োগ্রাফি (Bio)</label>
+                            <textarea name="bio" class="form-control" rows="3" placeholder="লেখকের জীবনবৃত্তান্ত, সাহিত্যকর্ম ও পরিচিতি..."></textarea>
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Author Photo (Avatar)</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
-                                     style="width: 54px; height: 54px;" id="addAvatarPreviewBox">
-                                    <i class="fa-solid fa-image text-muted fs-4"></i>
+                            <label class="form-label small fw-bold text-dark">লেখকের প্রোফাইল ছবি (Avatar Photo)</label>
+                            <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border">
+                                <div class="rounded-circle overflow-hidden bg-white border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
+                                     style="width: 58px; height: 58px;" id="addAvatarPreviewBox">
+                                    <i class="fa-solid fa-camera text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'addAvatarPreviewBox')">
-                                    <div class="form-text small text-muted">JPG, PNG or WebP format.</div>
+                                    <div class="form-text small text-muted">JPG, PNG বা WebP ফরম্যাট (সর্বোচ্চ ৪MB)।</div>
                                 </div>
                             </div>
                         </div>
@@ -562,21 +930,21 @@
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="addAuthorActive" value="1" checked>
-                                <label class="form-check-label small fw-semibold" for="addAuthorActive">Active on Storefront</label>
+                                <label class="form-check-label small fw-semibold" for="addAuthorActive">বুকশপে সক্রিয় রাখুন (Active)</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_verified" id="addAuthorVerified" value="1">
-                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">Verified Author</label>
+                                <label class="form-check-label small fw-semibold" for="addAuthorVerified">ভেরিফাইড লেখক (Verified Badge)</label>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnAddAuthorSubmit">
-                        <i class="fa-solid fa-save me-1"></i> Save Author
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-1" id="btnAddAuthorSubmit">
+                        <i class="fa-solid fa-check"></i> <span>সংরক্ষণ করুন</span>
                     </button>
                 </div>
             </form>
@@ -584,13 +952,16 @@
     </div>
 </div>
 
-{{-- Modal: Quick Edit Author --}}
-<div class="modal fade" id="editAuthorModal" tabindex="-1" aria-labelledby="editAuthorModalLabel" aria-hidden="true">
+{{-- Modal 2: Edit Author --}}
+<div class="modal fade" id="editAuthorModal" tabindex="-1" aria-labelledby="editAuthorModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-light border-0 py-3 px-4 rounded-top-4">
-                <h5 class="modal-title fw-bold text-dark" id="editAuthorModalLabel">
-                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Edit Author Information
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="editAuthorModalLabel">
+                    <span class="rounded-circle bg-primary-subtle text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                        <i class="fa-solid fa-pen-to-square small"></i>
+                    </span>
+                    <span>লেখকের তথ্য সম্পাদনা করুন</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -600,42 +971,43 @@
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-7">
-                            <label class="form-label small fw-bold text-dark">Author Name <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">লেখকের নাম <span class="text-danger">*</span></label>
                             <input type="text" name="name" id="editAuthorName" class="form-control" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold text-dark">URL Slug</label>
+                            <label class="form-label small fw-bold text-dark">ইউআরএল স্লাগ</label>
                             <input type="text" name="slug" id="editAuthorSlug" class="form-control font-monospace">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Phone Number</label>
+                            <label class="form-label small fw-bold text-dark">মোবাইল ফোন নম্বর</label>
                             <input type="text" name="phone" id="editAuthorPhone" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Email Address</label>
+                            <label class="form-label small fw-bold text-dark">ইমেইল অ্যাড্রেস</label>
                             <input type="email" name="email" id="editAuthorEmail" class="form-control">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Personal Website / Portfolio</label>
+                            <label class="form-label small fw-bold text-dark">ব্যক্তিগত ওয়েবসাইট / লিঙ্ক</label>
                             <input type="url" name="website" id="editAuthorWebsite" class="form-control">
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Author Biography & Introduction</label>
+                            <label class="form-label small fw-bold text-dark">লেখকের পরিচিতি (Bio)</label>
                             <textarea name="bio" id="editAuthorBio" class="form-control" rows="3"></textarea>
                         </div>
 
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold text-dark">Upload New Author Photo</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle overflow-hidden bg-light border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-xs flex-shrink-0" 
-                                     style="width: 54px; height: 54px;" id="editAvatarPreviewBox">
-                                    <i class="fa-solid fa-image text-muted fs-4"></i>
+                            <label class="form-label small fw-bold text-dark">প্রোফাইল ছবি পরিবর্তন করুন</label>
+                            <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light border">
+                                <div class="rounded-circle overflow-hidden bg-white border border-2 border-primary-subtle d-flex align-items-center justify-content-center shadow-sm flex-shrink-0" 
+                                     style="width: 58px; height: 58px;" id="editAvatarPreviewBox">
+                                    <i class="fa-solid fa-user text-muted fs-4"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <input type="file" name="avatar_file" class="form-control form-control-sm" accept="image/*" onchange="previewImageInput(this, 'editAvatarPreviewBox')">
+                                    <div class="form-text small text-muted">নতুন ছবি আপলোড করতে নির্বাচন করুন।</div>
                                 </div>
                             </div>
                         </div>
@@ -643,21 +1015,21 @@
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_active" id="editAuthorActive" value="1">
-                                <label class="form-check-label small fw-semibold" for="editAuthorActive">Active on Site</label>
+                                <label class="form-check-label small fw-semibold" for="editAuthorActive">সক্রিয় রাখুন (Active)</label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" name="is_verified" id="editAuthorVerified" value="1">
-                                <label class="form-check-label small fw-semibold" for="editAuthorVerified">Verified Author</label>
+                                <label class="form-check-label small fw-semibold" for="editAuthorVerified">ভেরিফাইড লেখক (Verified)</label>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer bg-light border-0 py-3 px-4 rounded-bottom-4">
-                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnEditAuthorSubmit">
-                        <i class="fa-solid fa-save me-1"></i> Update Author
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-1" id="btnEditAuthorSubmit">
+                        <i class="fa-solid fa-save"></i> <span>পরিবর্তন সংরক্ষণ</span>
                     </button>
                 </div>
             </form>
@@ -665,331 +1037,288 @@
     </div>
 </div>
 
-{{-- Modal: Author Details & Published Books Quick View --}}
-<div class="modal fade" id="authorDetailsModal" tabindex="-1" aria-hidden="true">
+{{-- Modal 3: Author 360° Profile Details --}}
+<div class="modal fade" id="authorDetailsModal" tabindex="-1" aria-labelledby="authorDetailsModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header border-0 py-3 px-4 text-white" id="authorDetailsHeader" style="background: linear-gradient(135deg, #1e293b, #334155);">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-white bg-white flex-shrink-0" 
-                         style="width: 52px; height: 52px;" id="detailsAvatarBox"></div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="detailsAuthorName">Loading...</h5>
-                        <div class="small opacity-75 font-monospace" id="detailsAuthorSlug"></div>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="authorDetailsModalLabel">
+                    <i class="fa-solid fa-address-card"></i> <span>লেখক প্রোফাইল ৩৬০° ভিউ</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4" id="authorDetailsBody">
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <div class="small text-muted mt-2">Loading author profile and catalog books...</div>
+            <div class="modal-body p-4" id="authorDetailsContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="text-muted small mt-2">লেখকের সম্পূর্ণ তথ্য লোড হচ্ছে...</p>
                 </div>
             </div>
             <div class="modal-footer bg-light border-0 py-3 px-4">
-                <a href="#" id="detailsSiteLink" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill px-3">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Store Profile
-                </a>
-                <a href="#" id="detailsEditLink" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                    <i class="fa-solid fa-pen-to-square me-1"></i> Full Edit
-                </a>
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Modal: Avatar Lightbox Preview --}}
-<div class="modal fade" id="avatarLightboxModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden bg-dark text-white text-center">
-            <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title small fw-bold text-white-50" id="avatarLightboxTitle">Author Photo</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="rounded-circle overflow-hidden shadow-lg mx-auto border border-4 border-white mb-2" 
-                     style="width: 160px; height: 160px; background: #334155;">
-                    <img src="" id="avatarLightboxImg" class="w-100 h-100 object-fit-cover" alt="Author Photo">
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal: Author Fast Password Reset --}}
-<div class="modal fade" id="resetAuthorPasswordModal" tabindex="-1" aria-hidden="true">
+{{-- Modal 4: Reset Password & WhatsApp Credential Share --}}
+<div class="modal fade" id="authorPasswordResetModal" tabindex="-1" aria-labelledby="authorPasswordResetModalLabel" aria-hidden="true" data-bs-backdrop="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header bg-warning text-dark border-0 p-3 px-4">
-                <div class="d-flex align-items-center gap-2.5">
-                    <div class="bg-white bg-opacity-50 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                        <i class="fa-solid fa-key text-dark"></i>
-                    </div>
-                    <div>
-                        <h6 class="modal-title fw-bold mb-0">লেখকের পাসওয়ার্ড রিসেট</h6>
-                        <small class="text-dark-50 fw-semibold" id="resetModalAuthorName">লেখক নাম</small>
-                    </div>
-                </div>
+            <div class="modal-header bg-light border-0 py-3 px-4">
+                <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="authorPasswordResetModalLabel">
+                    <span class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                        <i class="fa-solid fa-key small"></i>
+                    </span>
+                    <span>লেখক পোর্টাল পাসওয়ার্ড রিসেট</span>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4 bg-light">
-                <form id="authorPasswordResetForm" onsubmit="submitAuthorPasswordReset(event)">
-                    @csrf
-                    <input type="hidden" id="resetModalAuthorId" name="author_id">
+            <form id="authorPasswordResetForm" onsubmit="submitAuthorPasswordReset(event)">
+                @csrf
+                <input type="hidden" id="resetAuthorId">
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">
+                        <strong class="text-dark" id="resetAuthorNameTitle">লেখক</strong> এর লেখক পোর্টালে লগইন করার জন্য নতুন পাসওয়ার্ড নির্ধারণ বা স্বয়ংক্রিয়ভাবে জেনারেট করুন।
+                    </p>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary mb-1">লগইন আইডি / ইমেইল / ফোন</label>
-                        <input type="text" id="resetModalIdentity" class="form-control form-control-sm bg-white" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary mb-1 d-flex align-items-center justify-content-between">
-                            <span>নতুন পাসওয়ার্ড লিখুন অথবা স্বয়ংক্রিয় তৈরি করুন:</span>
-                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none text-primary fw-semibold small" onclick="generateRandomAuthorPassword()">
-                                <i class="fa-solid fa-dice me-1"></i>স্বয়ংক্রিয় পাসওয়ার্ড
-                            </button>
-                        </label>
+                        <label class="form-label small fw-bold text-dark">নতুন পাসওয়ার্ড</label>
                         <div class="input-group">
-                            <input type="text" name="password" id="resetModalNewPassword" class="form-control fw-bold font-monospace bg-white" placeholder="যেমন: Idea@3842" required minlength="6">
-                            <button class="btn btn-outline-secondary" type="button" onclick="copyResetPasswordToClipboard()" title="পাসওয়ার্ড কপি">
-                                <i class="far fa-copy"></i>
+                            <input type="text" id="resetNewPassword" class="form-control font-monospace" placeholder="নতুন পাসওয়ার্ড লিখুন বা তৈরি করুন...">
+                            <button class="btn btn-outline-secondary" type="button" onclick="generateRandomPassword()" title="অটো জেনারেট">
+                                <i class="fa-solid fa-wand-magic-sparkles me-1"></i> জেনারেট
                             </button>
                         </div>
-                        <small class="text-muted" style="font-size: 11px;">সর্বনিম্ন ৬ অক্ষর (যেমন: 123456 বা Idea@1234)</small>
                     </div>
 
-                    <div id="resetResultCard" class="d-none p-3 bg-white border border-success-subtle rounded-3 shadow-xs mb-3">
-                        <div class="d-flex align-items-center gap-2 text-success fw-bold small mb-2">
-                            <i class="fa-solid fa-circle-check"></i>
-                            <span>পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!</span>
+                    {{-- Result Area after successful reset --}}
+                    <div id="resetSuccessBox" class="alert alert-success d-none rounded-3 border-0 p-3 mb-0">
+                        <div class="fw-bold mb-1 text-success d-flex align-items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> <span>পাসওয়ার্ড সফলভাবে আপডেট হয়েছে!</span>
                         </div>
-                        <div class="small text-muted mb-2">
-                            <div><strong>লগইন আইডি:</strong> <span id="resLoginId" class="text-dark font-monospace fw-semibold"></span></div>
-                            <div><strong>নতুন পাসওয়ার্ড:</strong> <span id="resPassword" class="text-danger fw-bold font-monospace"></span></div>
-                            <div><strong>লগইন লিংক:</strong> <a href="{{ route('login') }}" target="_blank" class="text-primary text-decoration-none">{{ route('login') }}</a></div>
+                        <div class="small text-dark mb-2">
+                            <strong>ইউজারনেম:</strong> <span id="resLoginId" class="font-monospace"></span><br>
+                            <strong>পাসওয়ার্ড:</strong> <span id="resPassword" class="font-monospace fw-bold text-primary"></span>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="copyFullCredentials()">
-                                <i class="far fa-copy me-1"></i>তথ্য কপি করুন
+                            <button type="button" class="btn btn-xs btn-outline-dark rounded-pill" onclick="copyPasswordDetails()">
+                                <i class="fa-solid fa-copy me-1"></i> তথ্য কপি করুন
                             </button>
-                            <a href="#" id="resWhatsappBtn" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 d-none">
-                                <i class="fab fa-whatsapp me-1"></i>WhatsApp এ পাঠান
+                            <a href="#" target="_blank" id="btnWhatsappShare" class="btn btn-xs btn-success rounded-pill d-none">
+                                <i class="fa-brands fa-whatsapp me-1"></i> WhatsApp-এ পাঠান
                             </a>
                         </div>
                     </div>
-
-                    <div class="d-flex justify-content-end gap-2 pt-2 border-top">
-                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
-                        <button type="submit" class="btn btn-sm btn-warning fw-bold rounded-pill px-4" id="btnSubmitPasswordReset">
-                            <i class="fa-solid fa-save me-1"></i>পাসওয়ার্ড সংরক্ষণ করুন
-                        </button>
-                    </div>
-                </form>
-            </div>
+                </div>
+                <div class="modal-footer bg-light border-0 py-3 px-4">
+                    <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">বন্ধ করুন</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold rounded-pill px-4 shadow-sm d-inline-flex align-items-center gap-1" id="btnSubmitResetPass">
+                        <i class="fa-solid fa-key"></i> <span>পাসওয়ার্ড সেট করুন</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-{{-- Toast Container for dynamic notifications --}}
-<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
-    <div id="actionToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg rounded-3" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body d-flex align-items-center gap-2">
-                <i class="fa-solid fa-circle-check text-success fs-5" id="toastIcon"></i>
-                <span id="toastMessage">Operation completed successfully</span>
+{{-- Modal 5: Avatar Lightbox Preview --}}
+<div class="modal fade" id="avatarLightboxModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 bg-transparent text-center">
+            <div class="position-relative d-inline-block mx-auto">
+                <img id="lightboxImg" src="" alt="Author Avatar" class="rounded-4 shadow-lg border border-3 border-white object-fit-cover" style="max-width: 260px; max-height: 260px;">
+                <h6 id="lightboxTitle" class="text-white fw-bold mt-2 text-shadow"></h6>
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
+@endsection
 
-{{-- Custom CSS for 7-Column Layout & Ultra-Compact Card Height --}}
-<style>
-.authors-7col-grid {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 10px;
-}
-@media (max-width: 1400px) {
-    .authors-7col-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
-@media (max-width: 992px) {
-    .authors-7col-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
-@media (max-width: 768px) {
-    .authors-7col-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 576px) {
-    .authors-7col-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-.author-compact-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    min-height: 165px;
-}
-.author-compact-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.1) !important;
-}
-.ring-2 {
-    outline: 2px solid;
-    outline-offset: -2px;
-}
-.ring-primary { outline-color: #4f46e5; }
-.ring-success { outline-color: #10b981; }
-.ring-info { outline-color: #0ea5e9; }
-.ring-warning { outline-color: #f59e0b; }
-.cursor-pointer { cursor: pointer; }
-.hover-primary:hover { color: #4f46e5 !important; }
-.shadow-xs {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-@media print {
-    .btn, .breadcrumb, .modal, .toast-container, form { display: none !important; }
-    .author-compact-card { break-inside: avoid; border: 1px solid #ddd !important; }
-}
-</style>
-
-{{-- ========================================================================= --}}
-{{-- 5. JAVASCRIPT LOGIC FOR DYNAMIC SWITCHING, AJAX, AND MODALS               --}}
-{{-- ========================================================================= --}}
+@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const savedViewMode = localStorage.getItem('admin_authors_view_mode') || 'grid';
-    switchViewMode(savedViewMode);
-});
+// ── Core Dynamic Author Management JS ──
+const csrfToken = '{{ csrf_token() }}';
 
-function switchViewMode(mode) {
+// 1. Toast / Alert Utility
+function showToast(message, type = 'success') {
+    if (typeof window.SwalToast === 'function') {
+        window.SwalToast(type, message);
+    } else {
+        alert(message);
+    }
+}
+
+// 2. View Mode Switcher with LocalStorage persistence
+window.switchViewMode = function(mode) {
     const gridView = document.getElementById('authorsGridView');
     const tableView = document.getElementById('authorsTableView');
     const btnGrid = document.getElementById('btnViewGrid');
     const btnTable = document.getElementById('btnViewTable');
 
-    if (!gridView || !tableView) return;
-
     if (mode === 'table') {
-        gridView.classList.add('d-none');
-        tableView.classList.remove('d-none');
-        if (btnTable) btnTable.classList.add('active');
+        if (gridView) gridView.classList.add('d-none');
+        if (tableView) tableView.classList.remove('d-none');
         if (btnGrid) btnGrid.classList.remove('active');
-        localStorage.setItem('admin_authors_view_mode', 'table');
+        if (btnTable) btnTable.classList.add('active');
+        localStorage.setItem('author_view_mode', 'table');
     } else {
-        tableView.classList.add('d-none');
-        gridView.classList.remove('d-none');
-        if (btnGrid) btnGrid.classList.add('active');
+        if (tableView) tableView.classList.add('d-none');
+        if (gridView) gridView.classList.remove('d-none');
         if (btnTable) btnTable.classList.remove('active');
-        localStorage.setItem('admin_authors_view_mode', 'grid');
+        if (btnGrid) btnGrid.classList.add('active');
+        localStorage.setItem('author_view_mode', 'grid');
     }
-}
+};
 
-function showToast(message, isSuccess = true) {
-    const toastEl = document.getElementById('actionToast');
-    const toastMsg = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
-
-    if (!toastEl || !toastMsg) return;
-
-    toastMsg.textContent = message;
-    if (toastIcon) {
-        toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-success fs-5' : 'fa-solid fa-triangle-exclamation text-danger fs-5';
+// Restore user view preference
+document.addEventListener('DOMContentLoaded', () => {
+    const savedMode = localStorage.getItem('author_view_mode');
+    if (savedMode === 'table') {
+        window.switchViewMode('table');
     }
+});
 
-    const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
-    toast.show();
-}
+// 3. Live Client-Side Quick Search Debounce
+let searchTimeout;
+const searchInput = document.getElementById('authorSearchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim().toLowerCase();
+        
+        // Instant client-side DOM filter on cards
+        const cards = document.querySelectorAll('.author-item-wrapper');
+        cards.forEach(card => {
+            const authorData = card.getAttribute('data-author-name') || '';
+            const authorPhone = card.getAttribute('data-author-phone') || '';
+            if (!query || authorData.includes(query) || authorPhone.includes(query)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
 
-function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast(successMsg, true);
-    }).catch(err => {
-        console.error('Clipboard copy failed: ', err);
+        // Server-side submit after 600ms of inactivity
+        searchTimeout = setTimeout(() => {
+            const filterForm = document.getElementById('authorsFilterForm');
+            if (filterForm) filterForm.submit();
+        }, 650);
     });
 }
 
-function openAddAuthorModal() {
-    const form = document.getElementById('addAuthorForm');
-    if (form) form.reset();
-    const preview = document.getElementById('addAvatarPreviewBox');
-    if (preview) preview.innerHTML = '<i class="fa-solid fa-image text-muted fs-4"></i>';
-    const modal = new bootstrap.Modal(document.getElementById('addAuthorModal'));
-    modal.show();
-}
+// 4. Slug Generator
+window.generateSlugPreview = function(name, targetId) {
+    if (!name) return;
+    const target = document.getElementById(targetId);
+    if (!target) return;
+    
+    let slug = name.toLowerCase()
+        .replace(/[\s\.\,\_\-\/\\]+/g, '-')
+        .replace(/[^\w\u0980-\u09FF\-]+/g, '')
+        .replace(/\-\-+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    
+    target.value = slug;
+};
 
-function previewImageInput(input, boxId) {
-    const box = document.getElementById(boxId);
-    if (!box) return;
-
+// 5. Image Input Preview
+window.previewImageInput = function(input, previewBoxId) {
+    const box = document.getElementById(previewBoxId);
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            box.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover">`;
+            box.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover rounded-circle">`;
         };
         reader.readAsDataURL(input.files[0]);
     }
-}
+};
 
-function generateSlugPreview(text, targetInputId) {
-    const target = document.getElementById(targetInputId);
-    if (!target) return;
-    if (target.dataset.manualEdited === 'true') return;
+// 6. Lightbox Avatar Preview
+window.previewAuthorAvatar = function(url, name) {
+    if (!url) return;
+    const imgEl = document.getElementById('lightboxImg');
+    const titleEl = document.getElementById('lightboxTitle');
+    if (imgEl) imgEl.src = url;
+    if (titleEl) titleEl.textContent = name;
+    const modalEl = document.getElementById('avatarLightboxModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
 
-    const slug = text.trim()
-        .toLowerCase()
-        .replace(/[^\w\u0980-\u09FF\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-    target.value = slug;
-}
+// 7. Clipboard Copy Helper
+window.copyToClipboard = function(text, message = 'কপি করা হয়েছে!') {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast(message, 'success');
+    }).catch(() => {
+        showToast('কপি করতে ব্যর্থ হয়েছে!', 'error');
+    });
+};
 
-function submitAddAuthor(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    const submitBtn = document.getElementById('btnAddAuthorSubmit');
+// 8. Open Add Author Modal
+window.openAddAuthorModal = function() {
+    const form = document.getElementById('addAuthorForm');
+    if (form) form.reset();
+    const box = document.getElementById('addAvatarPreviewBox');
+    if (box) box.innerHTML = '<i class="fa-solid fa-camera text-muted fs-4"></i>';
+    const modalEl = document.getElementById('addAuthorModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
 
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+// 9. Submit Add Author
+window.submitAddAuthor = async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('btnAddAuthorSubmit');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
     }
 
-    fetch("{{ route('admin.authors.quick-store') }}", {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast(data.message, true);
-            const modalEl = document.getElementById('addAuthorModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            setTimeout(() => { window.location.reload(); }, 600);
-        } else {
-            showToast(data.message || 'An error occurred', false);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Server failed to respond.', false);
-    })
-    .finally(() => {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Save Author';
-        }
-    });
-}
+    const formData = new FormData(form);
 
-function openEditAuthorModal(id) {
-    fetch(`/admin/authors/${id}/details`, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(data => {
+    try {
+        const response = await fetch("{{ route('admin.authors.quick-store') }}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message || 'লেখক সফলভাবে সংরক্ষিত হয়েছে!');
+            const modalEl = document.getElementById('addAuthorModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            showToast(data.message || 'সংরক্ষণ ব্যর্থ হয়েছে!', 'error');
+        }
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>সংরক্ষণ করুন</span>';
+        }
+    }
+};
+
+// 10. Open Edit Author Modal
+window.openEditAuthorModal = async function(id) {
+    try {
+        const res = await fetch(`/admin/authors/${id}/details`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
         if (data.success && data.author) {
             const a = data.author;
             document.getElementById('editAuthorId').value = a.id;
@@ -1001,349 +1330,437 @@ function openEditAuthorModal(id) {
             document.getElementById('editAuthorBio').value = a.bio || '';
             document.getElementById('editAuthorActive').checked = !!a.is_active;
             document.getElementById('editAuthorVerified').checked = !!a.is_verified;
-
-            const preview = document.getElementById('editAvatarPreviewBox');
-            if (preview) {
+            
+            const previewBox = document.getElementById('editAvatarPreviewBox');
+            if (previewBox) {
                 if (a.avatar_url) {
-                    preview.innerHTML = `<img src="${a.avatar_url}" class="w-100 h-100 object-fit-cover">`;
+                    previewBox.innerHTML = `<img src="${a.avatar_url}" class="w-100 h-100 object-fit-cover rounded-circle">`;
                 } else {
-                    preview.innerHTML = `<div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold" style="background: ${a.avatar_bg_color}">${a.initials}</div>`;
+                    previewBox.innerHTML = '<i class="fa-solid fa-user text-muted fs-4"></i>';
                 }
             }
 
-            const modal = new bootstrap.Modal(document.getElementById('editAuthorModal'));
-            modal.show();
+            const modalEl = document.getElementById('editAuthorModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Failed to load author data', false);
-    });
-}
+    } catch (err) {
+        showToast('লেখকের তথ্য আনতে ব্যর্থ হয়েছে!', 'error');
+    }
+};
 
-function submitEditAuthor(event) {
-    event.preventDefault();
-    const form = event.target;
+// 11. Submit Edit Author
+window.submitEditAuthor = async function(e) {
+    e.preventDefault();
+    const form = e.target;
     const authorId = document.getElementById('editAuthorId').value;
-    const formData = new FormData(form);
-    const submitBtn = document.getElementById('btnEditAuthorSubmit');
-
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+    const btn = document.getElementById('btnEditAuthorSubmit');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> আপডেট হচ্ছে...';
     }
 
-    fetch(`/admin/authors/${authorId}/quick-update`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch(`/admin/authors/${authorId}/quick-update`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await response.json();
         if (data.success) {
-            showToast(data.message, true);
+            showToast(data.message || 'লেখকের তথ্য সফলভাবে আপডেট হয়েছে!');
             const modalEl = document.getElementById('editAuthorModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            setTimeout(() => { window.location.reload(); }, 600);
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+            }
+            setTimeout(() => window.location.reload(), 700);
         } else {
-            showToast(data.message || 'Failed to update author', false);
+            showToast(data.message || 'আপডেট ব্যর্থ হয়েছে!', 'error');
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Server error occurred.', false);
-    })
-    .finally(() => {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fa-solid fa-save me-1"></i> Update Author';
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-save"></i> <span>পরিবর্তন সংরক্ষণ</span>';
         }
-    });
-}
+    }
+};
 
-function toggleAuthorStatus(id, btnElement) {
-    btnElement.disabled = true;
-    fetch(`/admin/authors/${id}/toggle-status`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
+// 12. Instant AJAX Status Toggle on Card Switch
+window.toggleAuthorStatusAjax = async function(id, checkbox) {
+    const isChecked = checkbox.checked;
+    const statusDot = document.getElementById(`statusDot-${id}`);
+    
+    try {
+        const response = await fetch(`/admin/authors/${id}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
         if (data.success) {
-            showToast(data.message, true);
-            const isActive = data.is_active;
-            btnElement.className = `badge rounded-circle border-0 p-0 d-inline-flex align-items-center justify-content-center cursor-pointer ${isActive ? 'bg-success' : 'bg-secondary'}`;
+            showToast(data.message || 'স্ট্যাটাস সফলভাবে পরিবর্তিত হয়েছে!');
+            if (statusDot) {
+                statusDot.className = `author-status-dot ${data.is_active ? 'bg-success' : 'bg-secondary'}`;
+                statusDot.title = data.is_active ? 'সক্রিয় (Active)' : 'নিষ্ক্রিয় (Inactive)';
+            }
+        } else {
+            checkbox.checked = !isChecked;
+            showToast('স্ট্যাটাস পরিবর্তনে সমস্যা হয়েছে!', 'error');
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Could not toggle status', false);
-    })
-    .finally(() => {
-        btnElement.disabled = false;
-    });
-}
+    } catch (err) {
+        checkbox.checked = !isChecked;
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    }
+};
 
-function toggleAuthorVerified(id, btnElement) {
-    btnElement.disabled = true;
-    fetch(`/admin/authors/${id}/toggle-verified`, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
+// 13. Instant AJAX Status Toggle on Table Badge
+window.toggleAuthorStatusTableAjax = async function(id, btn) {
+    try {
+        const response = await fetch(`/admin/authors/${id}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
         if (data.success) {
-            showToast(data.message, true);
-            const isVerified = data.is_verified;
-            btnElement.className = `badge rounded-pill border-0 shadow-xs cursor-pointer px-2 py-0.5 ${isVerified ? 'bg-info text-white' : 'bg-light text-muted border'}`;
-            btnElement.innerHTML = `<i class="fas ${isVerified ? 'fa-certificate' : 'fa-circle-question'} me-1"></i><span>${isVerified ? 'Verified' : 'Regular'}</span>`;
+            showToast(data.message || 'স্ট্যাটাস পরিবর্তিত হয়েছে!');
+            btn.className = `badge rounded-pill border-0 shadow-sm cursor-pointer px-3 py-1.5 ${data.is_active ? 'bg-success text-white' : 'bg-secondary text-white'}`;
+            btn.innerHTML = `<i class="fa-solid fa-circle-dot me-1" style="font-size: 7px;"></i> <span>${data.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span>`;
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('Could not toggle verification', false);
-    })
-    .finally(() => {
-        btnElement.disabled = false;
-    });
-}
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    }
+};
 
-function openAuthorDetailsModal(id) {
+// 14. Instant AJAX Verification Toggle
+window.toggleAuthorVerifiedAjax = async function(id, btn) {
+    try {
+        const response = await fetch(`/admin/authors/${id}/toggle-verified`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message || 'ভেরিফিকেশন পরিবর্তিত হয়েছে!');
+            btn.className = `badge rounded-pill border-0 shadow-sm cursor-pointer px-3 py-1.5 ${data.is_verified ? 'bg-info text-white' : 'bg-light text-muted border'}`;
+            btn.innerHTML = `<i class="fas ${data.is_verified ? 'fa-certificate' : 'fa-circle-question'} me-1"></i> <span>${data.is_verified ? 'Verified' : 'Unverified'}</span>`;
+        }
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    }
+};
+
+// 15. Open 360° Author Details Modal
+window.openAuthorDetailsModal = async function(id) {
     const modalEl = document.getElementById('authorDetailsModal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    const content = document.getElementById('authorDetailsContent');
+    if (!modalEl || !content) return;
 
-    fetch(`/admin/authors/${id}/details`, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(data => {
+    content.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted small mt-2">লেখকের সম্পূর্ণ তথ্য লোড হচ্ছে...</p>
+        </div>`;
+    
+    if (typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    try {
+        const res = await fetch(`/admin/authors/${id}/details`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
         if (data.success && data.author) {
             const a = data.author;
-            document.getElementById('detailsAuthorName').textContent = a.name;
-            document.getElementById('detailsAuthorSlug').textContent = a.slug ? `slug: ${a.slug}` : '';
+            const books = a.books || [];
             
-            const headerBox = document.getElementById('authorDetailsHeader');
-            if (headerBox && a.avatar_bg_color) {
-                headerBox.style.background = a.avatar_bg_color;
-            }
-
-            const avatarBox = document.getElementById('detailsAvatarBox');
-            if (avatarBox) {
-                if (a.avatar_url) {
-                    avatarBox.innerHTML = `<img src="${a.avatar_url}" class="w-100 h-100 object-fit-cover">`;
-                } else {
-                    avatarBox.innerHTML = `<div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-5" style="background: ${a.avatar_bg_color}">${a.initials}</div>`;
-                }
-            }
-
-            document.getElementById('detailsEditLink').href = `/admin/content/authors/${a.id}/edit`;
-            document.getElementById('detailsSiteLink').href = `/authors/${a.slug || a.id}`;
-
             let booksHtml = '';
-            if (a.books && a.books.length > 0) {
+            if (books.length > 0) {
                 booksHtml = `
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-book text-primary me-2"></i>Catalog Books (${a.books.length} listed)</h6>
-                        <div class="row row-cols-1 row-cols-sm-2 g-2">
-                            ${a.books.map(b => `
-                                <div class="col">
-                                    <div class="p-2 border rounded-3 d-flex align-items-center gap-2 bg-light">
-                                        <div class="rounded overflow-hidden bg-white border flex-shrink-0" style="width: 36px; height: 48px;">
-                                            ${b.cover_image ? `<img src="/storage/${b.cover_image}" class="w-100 h-100 object-fit-cover">` : '<i class="fa-solid fa-book text-muted m-2"></i>'}
-                                        </div>
+                    <div class="row g-2 mt-2">
+                        ${books.map(b => `
+                            <div class="col-6 col-md-4">
+                                <div class="card h-100 border rounded-3 p-2 bg-light shadow-sm">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="${b.cover_image ? ('/storage/' + b.cover_image) : '/images/book-placeholder.png'}" 
+                                             class="rounded flex-shrink-0 object-fit-cover shadow-sm" style="width: 40px; height: 55px;"
+                                             onerror="this.src='/images/book-placeholder.png'">
                                         <div class="min-w-0">
-                                            <div class="fw-bold small text-truncate">${b.title}</div>
-                                            <div class="text-muted small">৳${b.price || 0}</div>
+                                            <h6 class="small fw-bold text-dark text-truncate mb-1" title="${b.title}">${b.title}</h6>
+                                            <span class="text-success fw-bold small">৳${b.price || '0'}</span>
                                         </div>
                                     </div>
                                 </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                            </div>
+                        `).join('')}
+                    </div>`;
             } else {
-                booksHtml = `
-                    <div class="mt-4 pt-3 border-top text-center text-muted small py-3">
-                        <i class="fa-solid fa-book-open opacity-50 mb-1 d-block fs-4"></i>
-                        No books listed under this author yet.
-                    </div>
-                `;
+                booksHtml = `<p class="text-muted small mb-0 fst-italic py-2">এখনো কোনো বই ক্যাটালগে যুক্ত হয়নি।</p>`;
             }
 
-            document.getElementById('authorDetailsBody').innerHTML = `
+            content.innerHTML = `
                 <div class="row g-3">
-                    <div class="col-sm-6">
-                        <small class="text-muted d-block">Phone Number</small>
-                        <div class="fw-semibold text-dark">${a.phone || '<span class="text-muted">—</span>'}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <small class="text-muted d-block">Email Address</small>
-                        <div class="fw-semibold text-dark">${a.email || '<span class="text-muted">—</span>'}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <small class="text-muted d-block">Website / Portfolio</small>
-                        <div>${a.website ? `<a href="${a.website}" target="_blank" class="text-decoration-none text-primary small text-truncate d-inline-block" style="max-width: 250px;">${a.website}</a>` : '<span class="text-muted">—</span>'}</div>
-                    </div>
-                    <div class="col-sm-6">
-                        <small class="text-muted d-block">Status & Verification</small>
-                        <div class="d-flex gap-2 align-items-center mt-1">
-                            <span class="badge ${a.is_active ? 'bg-success' : 'bg-secondary'} rounded-pill">${a.is_active ? 'Active' : 'Inactive'}</span>
-                            <span class="badge ${a.is_verified ? 'bg-info' : 'bg-light text-dark border'} rounded-pill">${a.is_verified ? 'Verified' : 'Regular'}</span>
+                    <div class="col-md-4 text-center border-end pe-md-3">
+                        <div class="mx-auto rounded-circle overflow-hidden shadow-sm border border-3 border-primary-subtle position-relative mb-2" style="width: 90px; height: 90px;">
+                            ${a.avatar_url ? `<img src="${a.avatar_url}" class="w-100 h-100 object-fit-cover">` : `<div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-3" style="background: ${a.avatar_bg_color || '#0284c7'};">${a.initials || 'L'}</div>`}
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">${a.name}</h5>
+                        <p class="text-muted font-monospace small mb-2">/${a.slug}</p>
+                        
+                        <div class="d-flex flex-wrap justify-content-center gap-1.5 mb-3">
+                            <span class="badge ${a.is_active ? 'bg-success' : 'bg-secondary'} rounded-pill px-2.5 py-1">${a.is_active ? '🟢 সক্রিয়' : '🔴 নিষ্ক্রিয়'}</span>
+                            <span class="badge ${a.is_verified ? 'bg-info' : 'bg-light text-dark border'} rounded-pill px-2.5 py-1">${a.is_verified ? '✓ ভেরিফাইড' : 'সাধারণ'}</span>
+                            <span class="badge bg-primary rounded-pill px-2.5 py-1">📚 ${a.books_count || 0} টি বই</span>
+                        </div>
+
+                        <div class="text-start bg-light p-3 rounded-3 small">
+                            <div class="mb-1.5"><strong class="text-muted">ফোন:</strong> ${a.phone || '—'}</div>
+                            <div class="mb-1.5 text-truncate"><strong class="text-muted">ইমেইল:</strong> ${a.email || '—'}</div>
+                            <div><strong class="text-muted">ওয়েবসাইট:</strong> ${a.website ? `<a href="${a.website}" target="_blank" class="text-primary text-decoration-none">ভিজিট করুন &rarr;</a>` : '—'}</div>
                         </div>
                     </div>
-                    <div class="col-12">
-                        <small class="text-muted d-block">Biography & Summary</small>
-                        <div class="bg-light p-3 rounded-3 small text-dark mt-1" style="max-height: 160px; overflow-y: auto;">
-                            ${a.bio ? a.bio : '<em class="text-muted">No biography provided</em>'}
+
+                    <div class="col-md-8 ps-md-3">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-1.5">
+                                <i class="fa-solid fa-align-left text-primary"></i> <span>লেখকের পরিচিতি (Bio)</span>
+                            </h6>
+                            <div class="p-3 bg-light rounded-3 small text-secondary" style="max-height: 130px; overflow-y: auto;">
+                                ${a.bio ? a.bio.replace(/\n/g, '<br>') : 'কোনো পরিচিতি বিবরণ যুক্ত করা হয়নি।'}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h6 class="fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
+                                <span class="d-inline-flex align-items-center gap-1.5">
+                                    <i class="fa-solid fa-book-open text-warning"></i> <span>প্রকাশিত বইসমূহ (${books.length})</span>
+                                </span>
+                                <a href="/admin/books?author_id=${a.id}" class="small text-primary text-decoration-none">সকল বই পরিচালনা &rarr;</a>
+                            </h6>
+                            ${booksHtml}
                         </div>
                     </div>
-                </div>
-                ${booksHtml}
-            `;
+                </div>`;
         }
-    })
-    .catch(err => {
-        console.error(err);
-        document.getElementById('authorDetailsBody').innerHTML = '<div class="alert alert-danger mb-0">Could not load author details.</div>';
-    });
-}
-
-function previewAuthorAvatar(url, name) {
-    if (!url) return;
-    const img = document.getElementById('avatarLightboxImg');
-    const title = document.getElementById('avatarLightboxTitle');
-    if (img) img.src = url;
-    if (title) title.textContent = name || 'Author Photo';
-    const modal = new bootstrap.Modal(document.getElementById('avatarLightboxModal'));
-    modal.show();
-}
-
-function exportAuthorsToCSV() {
-    let csv = [];
-    csv.push(['ID', 'Name', 'Slug', 'Phone', 'Email', 'Books Count', 'Status', 'Verified']);
-
-    @foreach($authors as $a)
-        csv.push([
-            '{{ $a->id }}',
-            '"{{ addslashes($a->name) }}"',
-            '"{{ $a->slug }}"',
-            '"{{ $a->phone }}"',
-            '"{{ $a->email }}"',
-            '{{ $a->books_count ?? 0 }}',
-            '{{ $a->is_active ? "Active" : "Inactive" }}',
-            '{{ $a->is_verified ? "Verified" : "Unverified" }}'
-        ]);
-    @endforeach
-
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csv.map(e => e.join(",")).join("\n");
-    let encodedUri = encodeURI(csvContent);
-    let link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "authors_directory_ideaabd.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('CSV export downloaded successfully!', true);
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-// AUTHOR FAST PASSWORD RESET JAVASCRIPT HANDLERS
-// ═════════════════════════════════════════════════════════════════════════════
-let currentResetPayload = null;
-
-function openAuthorPasswordResetModal(authorId, authorName, identity) {
-    document.getElementById('resetModalAuthorId').value = authorId;
-    document.getElementById('resetModalAuthorName').textContent = authorName || 'লেখক';
-    document.getElementById('resetModalIdentity').value = identity || 'অটো-জেনারেটেড আইডি';
-    
-    generateRandomAuthorPassword();
-    document.getElementById('resetResultCard').classList.add('d-none');
-    
-    const modal = new bootstrap.Modal(document.getElementById('resetAuthorPasswordModal'));
-    modal.show();
-}
-
-function generateRandomAuthorPassword() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
-    let rand = 'Idea@' + Math.floor(1000 + Math.random() * 9000);
-    document.getElementById('resetModalNewPassword').value = rand;
-}
-
-function copyResetPasswordToClipboard() {
-    const pwd = document.getElementById('resetModalNewPassword').value;
-    if (pwd) {
-        copyToClipboard(pwd, 'পাসওয়ার্ড কপি করা হয়েছে!');
+    } catch (err) {
+        content.innerHTML = `<div class="alert alert-danger mb-0">লেখকের বিস্তারিত লোড করতে ব্যর্থ হয়েছে!</div>`;
     }
-}
+};
 
-function copyFullCredentials() {
-    if (!currentResetPayload) return;
-    const text = `আইডিয়া প্রকাশন — লেখক পোর্টাল লগইন তথ্য:\nলগইন আইডি: ${currentResetPayload.login_identity}\nপাসওয়ার্ড: ${currentResetPayload.new_password}\nলগইন লিংক: ${currentResetPayload.login_url}`;
-    copyToClipboard(text, 'লগইন ও পাসওয়ার্ড তথ্য কপি হয়েছে!');
-}
+// 16. Password Reset Modal Handler
+window.openAuthorPasswordResetModal = function(id, name, contact) {
+    document.getElementById('resetAuthorId').value = id;
+    document.getElementById('resetAuthorNameTitle').textContent = name;
+    document.getElementById('resetNewPassword').value = '';
+    document.getElementById('resetSuccessBox').classList.add('d-none');
+    document.getElementById('btnWhatsappShare').classList.add('d-none');
+    window.generateRandomPassword();
+    const modalEl = document.getElementById('authorPasswordResetModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+};
 
-function submitAuthorPasswordReset(e) {
+window.generateRandomPassword = function() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    let pass = 'Idea@';
+    for (let i = 0; i < 4; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const input = document.getElementById('resetNewPassword');
+    if (input) input.value = pass;
+};
+
+window.submitAuthorPasswordReset = async function(e) {
     e.preventDefault();
-    const authorId = document.getElementById('resetModalAuthorId').value;
-    const password = document.getElementById('resetModalNewPassword').value;
-    const btn = document.getElementById('btnSubmitPasswordReset');
-    const originalText = btn.innerHTML;
+    const id = document.getElementById('resetAuthorId').value;
+    const pass = document.getElementById('resetNewPassword').value;
+    const btn = document.getElementById('btnSubmitResetPass');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> রিসেট হচ্ছে...';
+    }
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>সংরক্ষণ হচ্ছে...';
-
-    fetch(`/admin/authors/${authorId}/reset-password`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            password: password
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-
+    try {
+        const response = await fetch(`/admin/authors/${id}/reset-password`, {
+            method: 'POST',
+            body: JSON.stringify({ password: pass }),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
         if (data.success) {
-            currentResetPayload = data;
+            showToast(data.message || 'পাসওয়ার্ড সফলভাবে রিসেট হয়েছে!');
             document.getElementById('resLoginId').textContent = data.login_identity;
             document.getElementById('resPassword').textContent = data.new_password;
+            document.getElementById('resetSuccessBox').classList.remove('d-none');
             
-            const waBtn = document.getElementById('resWhatsappBtn');
             if (data.whatsapp_url) {
+                const waBtn = document.getElementById('btnWhatsappShare');
                 waBtn.href = data.whatsapp_url;
                 waBtn.classList.remove('d-none');
-            } else {
-                waBtn.classList.add('d-none');
             }
-
-            document.getElementById('resetResultCard').classList.remove('d-none');
-            showToast(data.message, true);
         } else {
-            showToast(data.message || 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে।', false);
+            showToast(data.message || 'পাসওয়ার্ড রিসেট ব্যর্থ হয়েছে!', 'error');
         }
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        console.error(err);
-        showToast('সার্ভার এরর: পাসওয়ার্ড রিসেট করা যায়নি।', false);
-    });
-}
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-key"></i> <span>পাসওয়ার্ড সেট করুন</span>';
+        }
+    }
+};
+
+window.copyPasswordDetails = function() {
+    const id = document.getElementById('resLoginId').textContent;
+    const pass = document.getElementById('resPassword').textContent;
+    const text = `আইডিয়া প্রকাশন লেখক পোর্টাল লগইন:\nইউজারনেম: ${id}\nপাসওয়ার্ড: ${pass}\nলগইন লিংক: {{ route('login') }}`;
+    window.copyToClipboard(text, 'লগইন তথ্য ক্লিপবোর্ডে কপি করা হয়েছে!');
+};
+
+// 17. Safe Delete Author (NO CONFLICT with layout's confirm interceptor)
+window.handleDeleteAuthor = async function(id, name, booksCount) {
+    let warning = `আপনি কি নিশ্চিত যে লেখক "${name}" প্রোফাইল মুছে ফেলতে চান?`;
+    if (booksCount > 0) {
+        warning += `\n⚠️ সতর্কতা: এই লেখকের সাথে ${booksCount} টি বই যুক্ত রয়েছে!`;
+    }
+
+    if (typeof window.SwalConfirm === 'function') {
+        const result = await window.SwalConfirm({
+            title: 'লেখক মুছে ফেলার নিশ্চিতকরণ',
+            text: warning,
+            icon: 'warning',
+            confirmButtonText: '<i class="fas fa-trash-can me-1"></i> হ্যাঁ, মুছে ফেলুন',
+            cancelButtonText: 'বাতিল'
+        });
+        if (!result.isConfirmed) return;
+    } else {
+        if (!confirm(warning)) return;
+    }
+
+    try {
+        const response = await fetch(`/admin/authors/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message || 'লেখক সফলভাবে মুছে ফেলা হয়েছে!');
+            const card = document.getElementById(`authorCard-${id}`);
+            const row = document.getElementById(`authorRow-${id}`);
+            if (card) card.remove();
+            if (row) row.remove();
+        } else {
+            showToast(data.message || 'মুছে ফেলা সম্ভব হয়নি!', 'error');
+        }
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    }
+};
+
+// 18. Bulk Selection & Batch Actions
+window.updateBulkSelectionState = function() {
+    const checkboxes = document.querySelectorAll('.author-select-checkbox:checked');
+    const bar = document.getElementById('bulkActionBar');
+    const countBadge = document.getElementById('selectedCountBadge');
+
+    if (bar && countBadge) {
+        if (checkboxes.length > 0) {
+            bar.classList.remove('d-none');
+            countBadge.textContent = `${checkboxes.length} টি নির্বাচিত`;
+        } else {
+            bar.classList.add('d-none');
+        }
+    }
+};
+
+window.selectAllAuthors = function(select = true) {
+    document.querySelectorAll('.author-select-checkbox').forEach(cb => cb.checked = select);
+    const tblCb = document.getElementById('selectAllTableCheckbox');
+    if (tblCb) tblCb.checked = select;
+    window.updateBulkSelectionState();
+};
+
+window.toggleSelectAllTable = function(masterCb) {
+    window.selectAllAuthors(masterCb.checked);
+};
+
+window.executeBulkAction = async function(action) {
+    const selected = Array.from(document.querySelectorAll('.author-select-checkbox:checked')).map(cb => cb.value);
+    if (selected.length === 0) {
+        showToast('কোনো লেখক নির্বাচন করা হয়নি!', 'error');
+        return;
+    }
+
+    if (action === 'delete') {
+        const confirmMsg = `আপনি কি নিশ্চিত যে নির্বাচিত ${selected.length} জন লেখককে স্থায়ীভাবে মুছে ফেলতে চান?`;
+        if (typeof window.SwalConfirm === 'function') {
+            const result = await window.SwalConfirm({
+                title: 'বাল্ক মুছে ফেলার নিশ্চিতকরণ',
+                text: confirmMsg,
+                icon: 'warning',
+                confirmButtonText: 'হ্যাঁ, মুছুন',
+                cancelButtonText: 'বাতিল'
+            });
+            if (!result.isConfirmed) return;
+        } else {
+            if (!confirm(confirmMsg)) return;
+        }
+    }
+
+    try {
+        const response = await fetch("{{ route('admin.authors.bulk-action') }}", {
+            method: 'POST',
+            body: JSON.stringify({ action: action, ids: selected }),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast(data.message || 'বাল্ক অ্যাকশন সফল হয়েছে!');
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            showToast(data.message || 'বাল্ক অ্যাকশন ব্যর্থ হয়েছে!', 'error');
+        }
+    } catch (err) {
+        showToast('সার্ভার ত্রুটি ঘটেছে!', 'error');
+    }
+};
+
+// 19. Export to CSV helper
+window.exportAuthorsToCSV = function() {
+    window.location.href = "{{ route('admin.authors') }}?export=csv";
+};
 </script>
-@endsection
+@endpush

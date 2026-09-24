@@ -403,6 +403,20 @@ class RegistrationController extends Controller
         $isActive = $isCustomer;
         $regStatus = $isCustomer ? User::STATUS_APPROVED : User::STATUS_PENDING;
 
+        // Check if phone was verified via session OTP
+        $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
+            || session('phone_verified_' . md5($localPhone))
+            || session('phone_verified_' . $cleanDigits)
+            || session('otp_verified_phone') === $fullPhone
+            || session('otp_verified_phone') === $localPhone;
+
+        // Check if email was verified via session OTP
+        $emailVerifiedSession = session('email_verified_' . md5($email))
+            || session('otp_verified_email') === $email;
+
+        $phoneVerifiedAt = ($isCustomer || $phoneVerifiedSession) ? now() : null;
+        $emailVerifiedAt = ($isCustomer || $emailVerifiedSession || !\App\Support\SiteSetting::isEmailVerificationEnabled()) ? now() : null;
+
         $user = User::create([
             'name'              => $displayName,
             'email'             => $email,
@@ -413,7 +427,8 @@ class RegistrationController extends Controller
             'reg_status'        => $regStatus,
             'reg_data'          => $regData,
             'is_active'         => $isActive,
-            'email_verified_at' => (!\App\Support\SiteSetting::isEmailVerificationEnabled() || $isCustomer) ? now() : null,
+            'phone_verified_at' => $phoneVerifiedAt,
+            'email_verified_at' => $emailVerifiedAt,
         ]);
 
         // If author category, sync unified author record so that all books, ebooks, ideapatra, and author directory link directly here
@@ -712,18 +727,22 @@ class RegistrationController extends Controller
         $isActive = ($type === 'buyer');
         $regStatus = $isActive ? User::STATUS_APPROVED : User::STATUS_PENDING;
 
+        $phoneVerifiedAt = $isActive ? now() : null;
+        $emailVerifiedAt = $isActive ? now() : null;
+
         $user = User::create([
-            'name'       => $base['name'],
-            'email'      => $base['email'],
-            'phone'      => $base['phone'],
-            'avatar'     => $avatarPath,
-            'password'   => Hash::make($base['password']),
-            'role'       => $type === 'buyer' ? User::ROLE_BUYER : $type,
-            'reg_type'   => $type,
-            'reg_status' => $regStatus,
-            'reg_data'   => array_merge($extra, ['otp_code' => $otpCode, 'avatar' => $avatarPath]),
-            'is_active'  => $isActive,
-            'email_verified_at' => $isActive ? now() : null,
+            'name'              => $base['name'],
+            'email'             => $base['email'],
+            'phone'             => $base['phone'],
+            'avatar'            => $avatarPath,
+            'password'          => Hash::make($base['password']),
+            'role'              => $type === 'buyer' ? User::ROLE_BUYER : $type,
+            'reg_type'          => $type,
+            'reg_status'        => $regStatus,
+            'reg_data'          => array_merge($extra, ['otp_code' => $otpCode, 'avatar' => $avatarPath]),
+            'is_active'         => $isActive,
+            'phone_verified_at' => $phoneVerifiedAt,
+            'email_verified_at' => $emailVerifiedAt,
         ]);
 
         // Auto create/sync entry in authors table if type is author using Unified registration

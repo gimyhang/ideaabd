@@ -401,6 +401,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/gateway-reports', [\App\Http\Controllers\Admin\GatewayReportController::class, 'index'])->name('gateway-reports');
 
     Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle-status');
+    Route::post('/users/{id}/approve', [AdminController::class, 'approveUserRegistration'])->name('users.approve');
+    Route::post('/users/{id}/reject', [AdminController::class, 'rejectUserRegistration'])->name('users.reject');
+    Route::post('/users/{id}/quick-password-reset', [AdminController::class, 'quickResetUserPassword'])->name('users.quick-password-reset');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::post('/books/sync-serials', [AdminController::class, 'syncBookSerials'])->name('books.sync-serials');
     Route::get('/books/generate-serial', [AdminController::class, 'generateBookSerial'])->name('books.generate-serial');
@@ -438,6 +442,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/authors/{id}/toggle-status', [AdminController::class, 'toggleAuthorStatus'])->name('authors.toggle-status');
     Route::post('/authors/{id}/toggle-verified', [AdminController::class, 'toggleAuthorVerified'])->name('authors.toggle-verified');
     Route::post('/authors/{id}/reset-password', [AdminController::class, 'resetAuthorPassword'])->name('authors.reset-password');
+    Route::delete('/authors/{id}', [AdminController::class, 'destroyAuthor'])->name('authors.destroy');
+    Route::post('/authors/bulk-action', [AdminController::class, 'bulkAuthorAction'])->name('authors.bulk-action');
     Route::get('/publishers', [AdminController::class, 'publishers'])->name('publishers');
     Route::post('/publishers/quick-store', [AdminController::class, 'quickStorePublisher'])->name('publishers.quick-store');
     Route::get('/publishers/{id}', [AdminController::class, 'publisherShow'])->name('publishers.show');
@@ -542,6 +548,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
     Route::post('/books/quick-update', [AdminController::class, 'quickUpdateBook'])->name('books.quick-update');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
+    Route::get('/customer-registrations', [AdminController::class, 'customers'])->name('customer-registrations');
+    Route::post('/customers/{user}/toggle-verification', [AdminController::class, 'toggleCustomerVerification'])->name('customers.toggle-verification');
     Route::post('/customers/broadcast-message', [AdminController::class, 'broadcastMessage'])->name('customers.broadcast');
 
     // Content management — the admin creates, edits, approves, rejects and
@@ -573,6 +581,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/{user}', 'destroy')->name('destroy');
     });
 
+    // Event & Campaign Registrations (Admin-managed specialized dynamic registration forms)
+    Route::prefix('event-campaigns')->name('event-campaigns.')->controller(\App\Http\Controllers\Admin\EventCampaignAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{campaign}', 'show')->name('show');
+        Route::get('/{campaign}/edit', 'edit')->name('edit');
+        Route::put('/{campaign}', 'update')->name('update');
+        Route::delete('/{campaign}', 'destroy')->name('destroy');
+        Route::match(['patch', 'post'], '/{campaign}/toggle-status', 'toggleStatus')->name('toggle-status');
+        Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
+        Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');
+        Route::post('/{campaign}/clone', 'clone')->name('clone');
+        Route::patch('/registrations/{registration}', 'updateRegistration')->name('registrations.update');
+        Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
+    });
+
     // Registration approval (admin only)
     Route::prefix('registrations')->name('registrations.')->controller(RegistrationApprovalController::class)->group(function () {
         Route::get('/', 'index')->name('index');
@@ -586,6 +611,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['post', 'patch'], '/{user}/reject', 'reject')->name('reject');
         Route::match(['post', 'patch'], '/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::match(['delete', 'post'], '/{user}', 'cancel')->name('cancel');
+        Route::delete('/{user}', 'cancel')->name('destroy');
     });
 
     // Payment management & gateways
@@ -792,4 +818,11 @@ Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,
     Route::delete('/bills/{bill}', [BillingController::class, 'destroy'])->name('bills.destroy');
     Route::get('/accounts', [BillingController::class, 'sellerAccounts'])->name('accounts');
     Route::get('/api/books/search', [BillingController::class, 'searchBooks'])->name('books.search');
+});
+
+// --- Dynamic Event / Donation Campaign Public Direct Routes (e.g. ideaabd.com/rsutshab, ideaabd.com/joyeeshikkhabritti) ---
+Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class)->group(function () {
+    Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
+    Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
+    Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');
 });

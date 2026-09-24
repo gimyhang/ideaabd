@@ -27,15 +27,27 @@ class RegistrationApprovalController extends Controller
         // Type / Role filter
         if ($request->filled('type')) {
             $type = $request->type;
-            $query->where(function ($q) use ($type) {
-                if ($type === 'buyer' || $type === 'customer') {
+            if ($type === 'author') {
+                $query->where(function ($q) {
+                    $q->where('role', 'author')
+                      ->orWhere('reg_type', 'author');
+                });
+            } elseif ($type === 'buyer' || $type === 'customer') {
+                $query->where(function ($q) {
                     $q->whereIn('role', ['buyer', 'customer'])
-                      ->orWhere('reg_type', 'buyer');
-                } else {
-                    $q->where('reg_type', $type)
-                      ->orWhere('role', $type);
-                }
-            });
+                      ->orWhereIn('reg_type', ['buyer', 'customer']);
+                });
+            } elseif ($type === 'publisher') {
+                $query->where(function ($q) {
+                    $q->where('role', 'publisher')
+                      ->orWhere('reg_type', 'publisher');
+                });
+            } elseif ($type === 'seller') {
+                $query->where(function ($q) {
+                    $q->where('role', 'seller')
+                      ->orWhere('reg_type', 'seller');
+                });
+            }
         }
 
         // Search filter
@@ -77,10 +89,10 @@ class RegistrationApprovalController extends Controller
             'pending'    => (clone $baseRoleScope)->where('reg_status', 'pending')->count(),
             'approved'   => (clone $baseRoleScope)->where('reg_status', 'approved')->count(),
             'rejected'   => (clone $baseRoleScope)->where('reg_status', 'rejected')->count(),
-            'customers'  => User::whereIn('role', ['buyer', 'customer'])->orWhere('reg_type', 'buyer')->count(),
-            'authors'    => User::where('role', 'author')->count(),
-            'publishers' => User::where('role', 'publisher')->count(),
-            'sellers'    => User::where('role', 'seller')->count(),
+            'customers'  => User::where(fn($q) => $q->whereIn('role', ['buyer', 'customer'])->orWhereIn('reg_type', ['buyer', 'customer']))->count(),
+            'authors'    => User::where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'))->count(),
+            'publishers' => User::where(fn($q) => $q->where('role', 'publisher')->orWhere('reg_type', 'publisher'))->count(),
+            'sellers'    => User::where(fn($q) => $q->where('role', 'seller')->orWhere('reg_type', 'seller'))->count(),
         ];
 
         $assignableRoles = app(\App\Services\AdminAccessService::class)->getAllAssignableRoles();

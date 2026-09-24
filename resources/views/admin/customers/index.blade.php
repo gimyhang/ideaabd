@@ -1,16 +1,18 @@
 @extends('layouts.admin')
 
-@section('title', 'Customers Directory & CRM — আইডিয়া প্রকাশন')
-@section('heading', 'Customer Directory & Messaging CRM Hub')
+@section('title', 'Customer Registrations — ideaabd')
+@section('heading', 'Customer Registrations')
 
 @section('breadcrumb')
-    <li class="breadcrumb-item active">Customers</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">User Management</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Customer Registrations</li>
 @endsection
 
 @section('actions')
     <div class="d-flex align-items-center gap-2">
         <a href="{{ route('admin.customers', array_merge(request()->query(), ['export' => 'csv'])) }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-            <i class="fa-solid fa-file-csv me-1.5"></i> Export (CSV)
+            <i class="fa-solid fa-file-csv me-1.5"></i> Export CSV
         </a>
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#bulkMessageModal">
             <i class="fa-solid fa-paper-plane me-1.5"></i> Broadcast Message
@@ -36,7 +38,7 @@
             <div class="card border-0 rounded-4 shadow-xs p-3 bg-white border-start border-4 border-primary h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="small fw-semibold text-muted d-block mb-1">Total Readers</span>
+                        <span class="small fw-semibold text-muted d-block mb-1">Total Customers</span>
                         <h3 class="fw-bold mb-0 text-dark">{{ number_format($summary['total_customers']) }}</h3>
                     </div>
                     <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(2, 132, 199, 0.1);">
@@ -54,34 +56,16 @@
             <div class="card border-0 rounded-4 shadow-xs p-3 bg-white border-start border-4 border-success h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="small fw-semibold text-muted d-block mb-1">Active Buyers</span>
-                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($summary['active_buyers']) }}</h3>
+                        <span class="small fw-semibold text-muted d-block mb-1">Verified (Can Order)</span>
+                        <h3 class="fw-bold mb-0 text-success">{{ number_format($summary['verified_both'] ?? 0) }}</h3>
                     </div>
                     <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.1);">
-                        <i class="fa-solid fa-bag-shopping fs-5 text-success"></i>
+                        <i class="fa-solid fa-circle-check fs-5 text-success"></i>
                     </div>
                 </div>
                 <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
-                    <span>With at least 1 order:</span>
-                    <strong class="text-success">{{ number_format($summary['active_buyers']) }}</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6 col-xl-3">
-            <div class="card border-0 rounded-4 shadow-xs p-3 bg-white border-start border-4 border-info h-100">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <span class="small fw-semibold text-muted d-block mb-1">Lifetime Spent</span>
-                        <h3 class="fw-bold mb-0 text-dark">৳{{ number_format($summary['total_spent_sum'] ?? 0) }}</h3>
-                    </div>
-                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(6, 182, 212, 0.1);">
-                        <i class="fa-solid fa-wallet fs-5 text-info"></i>
-                    </div>
-                </div>
-                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
-                    <span>Store sales volume:</span>
-                    <strong class="text-info">100% Tracked</strong>
+                    <span>Phone & Email verified:</span>
+                    <strong class="text-success">{{ number_format($summary['verified_both'] ?? 0) }}</strong>
                 </div>
             </div>
         </div>
@@ -90,16 +74,34 @@
             <div class="card border-0 rounded-4 shadow-xs p-3 bg-white border-start border-4 border-warning h-100">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="small fw-semibold text-muted d-block mb-1">Loyalty Points</span>
-                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($summary['loyalty_points'] ?? 0) }}</h3>
+                        <span class="small fw-semibold text-muted d-block mb-1">Unverified</span>
+                        <h3 class="fw-bold mb-0 text-warning">{{ number_format($summary['unverified'] ?? 0) }}</h3>
                     </div>
                     <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(245, 158, 11, 0.12);">
-                        <i class="fa-solid fa-gift fs-5 text-warning"></i>
+                        <i class="fa-solid fa-user-clock fs-5 text-warning"></i>
                     </div>
                 </div>
                 <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
-                    <span>Reader reward coins:</span>
-                    <strong class="text-dark">{{ number_format($summary['loyalty_points'] ?? 0) }} pts</strong>
+                    <span>Need OTP verification:</span>
+                    <strong class="text-warning">{{ number_format($summary['unverified'] ?? 0) }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-xl-3">
+            <div class="card border-0 rounded-4 shadow-xs p-3 bg-white border-start border-4 border-info h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small fw-semibold text-muted d-block mb-1">Active Buyers</span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ number_format($summary['active_buyers']) }}</h3>
+                    </div>
+                    <div class="rounded-circle p-2.5 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(6, 182, 212, 0.1);">
+                        <i class="fa-solid fa-bag-shopping fs-5 text-info"></i>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2 pt-2 border-top d-flex justify-content-between" style="font-size: 11.5px;">
+                    <span>With store orders:</span>
+                    <strong class="text-info">{{ number_format($summary['active_buyers']) }}</strong>
                 </div>
             </div>
         </div>
@@ -113,19 +115,23 @@
             <div class="d-flex flex-wrap gap-1.5 p-1 bg-light rounded-pill border">
                 <a href="{{ route('admin.customers', ['filter' => 'all', 'search' => request('search')]) }}" 
                    class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? 'all') === 'all' ? 'btn-primary shadow-xs' : 'text-muted' }}">
-                    All Readers ({{ number_format($summary['total_customers']) }})
+                    All ({{ number_format($summary['total_customers']) }})
+                </a>
+                <a href="{{ route('admin.customers', ['filter' => 'verified_both', 'search' => request('search')]) }}" 
+                   class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'verified_both' ? 'btn-success shadow-xs text-white' : 'text-muted' }}">
+                    <i class="fa-solid fa-circle-check me-1"></i> Verified ({{ number_format($summary['verified_both'] ?? 0) }})
+                </a>
+                <a href="{{ route('admin.customers', ['filter' => 'unverified', 'search' => request('search')]) }}" 
+                   class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'unverified' ? 'btn-warning shadow-xs text-dark' : 'text-muted' }}">
+                    <i class="fa-solid fa-clock me-1"></i> Unverified ({{ number_format($summary['unverified'] ?? 0) }})
                 </a>
                 <a href="{{ route('admin.customers', ['filter' => 'with_orders', 'search' => request('search')]) }}" 
-                   class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'with_orders' ? 'btn-success shadow-xs text-white' : 'text-muted' }}">
-                    <i class="fa-solid fa-bag-shopping me-1"></i> Active Buyers ({{ number_format($summary['active_buyers']) }})
-                </a>
-                <a href="{{ route('admin.customers', ['filter' => 'high_value', 'search' => request('search')]) }}" 
-                   class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'high_value' ? 'btn-warning shadow-xs text-dark' : 'text-muted' }}">
-                    <i class="fa-solid fa-crown me-1"></i> High Value (2k+ BDT)
+                   class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'with_orders' ? 'btn-info shadow-xs text-white' : 'text-muted' }}">
+                    <i class="fa-solid fa-bag-shopping me-1"></i> Buyers ({{ number_format($summary['active_buyers']) }})
                 </a>
                 <a href="{{ route('admin.customers', ['filter' => 'zero_orders', 'search' => request('search')]) }}" 
                    class="btn btn-sm rounded-pill fw-semibold px-3 {{ ($filter ?? '') === 'zero_orders' ? 'btn-secondary shadow-xs text-white' : 'text-muted' }}">
-                    New / No Orders ({{ number_format($summary['zero_orders']) }})
+                    New ({{ number_format($summary['zero_orders']) }})
                 </a>
             </div>
 
@@ -153,25 +159,30 @@
     <div class="card bg-white rounded-4 shadow-xs border-0 overflow-hidden">
         <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2 p-3 border-bottom">
             <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
-                <i class="fa-solid fa-address-book text-primary"></i> 
-                Customer Directory
-                <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">{{ number_format($customers->total()) }} readers</span>
+                <i class="fa-solid fa-user-tag text-primary"></i> 
+                Customer Registrations Directory
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-2.5 py-1">{{ number_format($customers->total()) }} customers</span>
             </h6>
-            <span class="text-muted small">Instant WhatsApp, Email and CRM Actions enabled</span>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 11px;">
+                    <i class="fa-solid fa-check-double me-1"></i> Ordering: Phone & Email Verified Required
+                </span>
+            </div>
         </div>
 
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                    <thead class="table-light">
+                    <thead class="table-light text-secondary text-uppercase" style="font-size: 11.5px; letter-spacing: 0.5px;">
                         <tr>
-                            <th class="ps-3" style="width: 5%;">#</th>
-                            <th style="width: 25%;">Customer Profile</th>
-                            <th style="width: 20%;">Direct Contact (WhatsApp / Call)</th>
-                            <th class="text-center" style="width: 12%;">Orders Count</th>
-                            <th class="text-end" style="width: 14%;">Lifetime Spent</th>
-                            <th class="text-center" style="width: 10%;">Loyalty</th>
-                            <th class="text-end pe-3" style="width: 14%;">CRM Actions</th>
+                            <th class="ps-3" style="width: 4%;">#</th>
+                            <th style="width: 22%;">Customer Profile</th>
+                            <th style="width: 20%;">Contact Info</th>
+                            <th style="width: 18%;">Verification Status</th>
+                            <th class="text-center" style="width: 10%;">Orders</th>
+                            <th class="text-end" style="width: 12%;">Lifetime Spent</th>
+                            <th class="text-center" style="width: 8%;">Loyalty</th>
+                            <th class="text-end pe-3" style="width: 14%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -187,6 +198,9 @@
                                 $waNumber = $cleanPhone;
                             }
                             $waMessage = urlencode("আসসালামু আলাইকুম " . ($customer->name ?: 'গ্রাহক') . ", আইডিয়া প্রকাশন থেকে আপনাকে শুভেচ্ছা। আপনার বইয়ের অর্ডার সম্পর্কে জানতে বা যেকোনো প্রয়োজনে আমাদের সাথে যোগাযোগ করতে পারেন।");
+                            $isPhoneVer = $customer->isPhoneVerified();
+                            $isEmailVer = $customer->isEmailVerified();
+                            $canOrder = $customer->canCustomerOrder();
                         @endphp
                         <tr>
                             <td class="ps-3 text-muted small font-monospace">{{ $customers->firstItem() + $index }}</td>
@@ -199,51 +213,65 @@
                                         <div class="fw-bold text-dark text-truncate d-flex align-items-center gap-1.5" style="max-width: 220px;" title="{{ $customer->name }}">
                                             <span>{{ $customer->name ?: 'Unnamed Customer' }}</span>
                                             @if($customer->orders_count >= 3)
-                                                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-1.5 py-0.5" style="font-size: 9px;" title="VIP Repeat Reader">
+                                                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-1.5 py-0.5" style="font-size: 9px;" title="VIP Reader">
                                                     <i class="fa-solid fa-crown"></i> VIP
                                                 </span>
                                             @endif
                                         </div>
-                                        @if($customer->email)
-                                            <a href="mailto:{{ $customer->email }}" class="text-muted text-decoration-none small d-block text-truncate" style="max-width: 220px; font-size: 11px;">
-                                                <i class="fa-solid fa-envelope text-secondary opacity-75 me-1"></i>{{ $customer->email }}
-                                            </a>
-                                        @else
-                                            <small class="text-muted" style="font-size: 11px;">No email</small>
-                                        @endif
+                                        <div class="text-muted small" style="font-size: 11px;">
+                                            Joined: {{ $customer->created_at ? $customer->created_at->format('d M, Y') : '-' }}
+                                            <span class="badge bg-light text-muted border font-monospace ms-1" style="font-size: 9.5px;">#{{ $customer->id }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td>
                                 @if($customer->phone)
                                     <div>
-                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                        <div class="d-flex align-items-center gap-2 mb-0.5">
                                             <a href="tel:{{ $customer->phone }}" class="text-decoration-none fw-bold text-dark font-monospace" style="font-size: 12.5px;">
-                                                <i class="fa-solid fa-phone-alt text-muted me-1 small"></i>{{ $customer->phone }}
+                                                <i class="fa-solid fa-phone text-muted me-1 small"></i>{{ $customer->phone }}
                                             </a>
                                         </div>
-                                        <div class="d-flex align-items-center gap-1.5">
-                                            {{-- WhatsApp Direct Button --}}
+                                        @if($customer->email)
+                                            <div class="text-muted small text-truncate" style="max-width: 200px; font-size: 11.5px;">
+                                                <i class="fa-solid fa-envelope me-1"></i>{{ $customer->email }}
+                                            </div>
+                                        @endif
+                                        <div class="d-flex align-items-center gap-1.5 mt-1">
                                             <a href="https://wa.me/{{ $waNumber }}?text={{ $waMessage }}" 
                                                target="_blank" 
                                                rel="noopener" 
-                                               class="btn btn-success btn-xs rounded-pill px-2.5 py-0.5 fw-semibold d-inline-flex align-items-center gap-1 shadow-2xs text-white" 
+                                               class="badge bg-success text-white text-decoration-none px-2 py-0.5" 
                                                title="Chat on WhatsApp">
                                                 <i class="fab fa-whatsapp"></i> WhatsApp
                                             </a>
-                                            {{-- Email Quick Button --}}
-                                            @if($customer->email)
-                                                <a href="mailto:{{ $customer->email }}?subject={{ urlencode('আইডিয়া প্রকাশন — আপনার অর্ডার ও তথ্য') }}" 
-                                                   class="btn btn-outline-secondary btn-xs rounded-pill px-2 py-0.5" 
-                                                   title="Send Direct Email">
-                                                    <i class="fa-solid fa-envelope text-danger"></i> Email
-                                                </a>
-                                            @endif
                                         </div>
                                     </div>
                                 @else
-                                    <span class="text-muted small">— No Phone —</span>
+                                    <span class="text-muted small">— No Contact —</span>
                                 @endif
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column gap-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {{ $isPhoneVer ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} px-2 py-0.5" style="font-size: 10.5px;">
+                                            <i class="fa-solid {{ $isPhoneVer ? 'fa-circle-check' : 'fa-circle-xmark' }} me-1"></i> Mobile {{ $isPhoneVer ? 'Verified' : 'Unverified' }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {{ $isEmailVer ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' }} px-2 py-0.5" style="font-size: 10.5px;">
+                                            <i class="fa-solid {{ $isEmailVer ? 'fa-circle-check' : 'fa-circle-xmark' }} me-1"></i> Email {{ $isEmailVer ? 'Verified' : 'Unverified' }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-0.5">
+                                        @if($canOrder)
+                                            <span class="text-success small fw-semibold" style="font-size: 11px;"><i class="fa-solid fa-cart-shopping me-1"></i> Can Order Books</span>
+                                        @else
+                                            <span class="text-warning-emphasis small fw-medium" style="font-size: 11px;"><i class="fa-solid fa-lock me-1 text-warning"></i> Orders Blocked</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
                             <td class="text-center">
                                 @if($customer->orders_count > 0)
@@ -263,18 +291,73 @@
                                 </span>
                             </td>
                             <td class="text-end pe-3">
-                                <div class="d-flex align-items-center justify-content-end gap-1.5">
+                                <div class="d-inline-flex align-items-center gap-1">
                                     <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1 fw-semibold d-flex align-items-center gap-1 shadow-2xs" 
                                             onclick='openCustomerProfileModal(@json($customer))' 
                                             title="View Customer Profile & Order History">
                                         <i class="fa-solid fa-eye"></i> Details
                                     </button>
+
+                                    <!-- Quick Verification Toggle Dropdown -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Verification Controls">
+                                            <i class="fa-solid fa-shield-halved"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-1" style="font-size: 12.5px;">
+                                            <li><h6 class="dropdown-header py-1 text-muted" style="font-size: 11px;">Verification Controls</h6></li>
+                                            @if(!$isPhoneVer || !$isEmailVer)
+                                                <li>
+                                                    <form action="{{ route('admin.customers.toggle-verification', $customer->id) }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="verify_both">
+                                                        <button type="submit" class="dropdown-item py-1.5 text-success">
+                                                            <i class="fa-solid fa-check-double me-1.5 text-success"></i> Verify Both (Enable Orders)
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            @if(!$isPhoneVer)
+                                                <li>
+                                                    <form action="{{ route('admin.customers.toggle-verification', $customer->id) }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="verify_phone">
+                                                        <button type="submit" class="dropdown-item py-1.5">
+                                                            <i class="fa-solid fa-mobile-screen me-1.5 text-primary"></i> Mark Phone Verified
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            @if(!$isEmailVer)
+                                                <li>
+                                                    <form action="{{ route('admin.customers.toggle-verification', $customer->id) }}" method="POST">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="verify_email">
+                                                        <button type="submit" class="dropdown-item py-1.5">
+                                                            <i class="fa-solid fa-envelope me-1.5 text-info"></i> Mark Email Verified
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                            @if($isPhoneVer || $isEmailVer)
+                                                <li><hr class="dropdown-divider my-1"></li>
+                                                <li>
+                                                    <form action="{{ route('admin.customers.toggle-verification', $customer->id) }}" method="POST" onsubmit="return confirm('গ্রাহকের ভেরিফিকেশন বাতিল করতে চান? এতে তিনি পুনরায় ভেরিফাই ছাড়া অর্ডার করতে পারবেন না।');">
+                                                        @csrf
+                                                        <input type="hidden" name="action" value="reset_both">
+                                                        <button type="submit" class="dropdown-item py-1.5 text-danger">
+                                                            <i class="fa-solid fa-rotate-left me-1.5"></i> Reset Verification
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <div class="py-5 text-center text-muted">
                                     <i class="fa-solid fa-users-slash fs-1 mb-2 d-block text-secondary opacity-50"></i>
                                     <h6 class="fw-bold text-dark mb-1">No customers found</h6>
@@ -304,7 +387,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0" id="customerProfileModalLabel">
-                    <i class="fa-solid fa-user-circle me-1.5"></i> Customer CRM Profile & Order History
+                    <i class="fa-solid fa-user-circle me-1.5"></i> Customer Profile & Registration Details
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -332,6 +415,31 @@
                             <a id="cModalCallBtn" href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
                                 <i class="fa-solid fa-phone-alt me-1"></i> Call
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- Verification Details Box -->
+                    <div class="p-3 rounded-3 bg-white border">
+                        <h6 class="fw-bold text-dark mb-2 small"><i class="fa-solid fa-shield-halved text-primary me-1"></i> Order Eligibility & Verification</h6>
+                        <div class="row g-2">
+                            <div class="col-sm-4">
+                                <div class="p-2 bg-light rounded-2 text-center" id="cModalPhoneVerBox">
+                                    <small class="text-muted d-block" style="font-size: 11px;">Mobile Phone</small>
+                                    <span class="fw-semibold small" id="cModalPhoneVerText">-</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="p-2 bg-light rounded-2 text-center" id="cModalEmailVerBox">
+                                    <small class="text-muted d-block" style="font-size: 11px;">Email Address</small>
+                                    <span class="fw-semibold small" id="cModalEmailVerText">-</span>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="p-2 bg-light rounded-2 text-center" id="cModalOrderEligibleBox">
+                                    <small class="text-muted d-block" style="font-size: 11px;">Order Books</small>
+                                    <span class="fw-semibold small" id="cModalOrderEligibleText">-</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -493,6 +601,31 @@ function openCustomerProfileModal(customer) {
     document.getElementById('cModalOrdersCount').innerText = customer.orders_count || 0;
     document.getElementById('cModalSpent').innerText = '৳' + Number(customer.total_spent || 0).toLocaleString('en-US', {minimumFractionDigits: 2});
     document.getElementById('cModalLoyalty').innerText = (customer.loyalty_points || 0) + ' pts';
+
+    // Verification info in modal
+    const isPhoneVer = !!customer.phone_verified_at;
+    const isEmailVer = !!customer.email_verified_at;
+    const canOrder = isPhoneVer && isEmailVer;
+
+    const phoneText = document.getElementById('cModalPhoneVerText');
+    const emailText = document.getElementById('cModalEmailVerText');
+    const orderText = document.getElementById('cModalOrderEligibleText');
+
+    if (phoneText) {
+        phoneText.innerHTML = isPhoneVer 
+            ? '<span class="text-success"><i class="fa-solid fa-circle-check"></i> Verified</span>' 
+            : '<span class="text-danger"><i class="fa-solid fa-circle-xmark"></i> Unverified</span>';
+    }
+    if (emailText) {
+        emailText.innerHTML = isEmailVer 
+            ? '<span class="text-success"><i class="fa-solid fa-circle-check"></i> Verified</span>' 
+            : '<span class="text-secondary"><i class="fa-solid fa-circle-xmark"></i> Unverified</span>';
+    }
+    if (orderText) {
+        orderText.innerHTML = canOrder 
+            ? '<span class="text-success fw-bold"><i class="fa-solid fa-cart-shopping"></i> Allowed</span>' 
+            : '<span class="text-warning-emphasis fw-bold"><i class="fa-solid fa-lock"></i> Verification Required</span>';
+    }
 
     // WhatsApp Link setup
     const clean = (customer.phone || '').replace(/[^0-9]/g, '');

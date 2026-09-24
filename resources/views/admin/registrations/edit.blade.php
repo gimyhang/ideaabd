@@ -99,7 +99,7 @@
                     <div class="d-flex flex-column flex-sm-row align-items-center gap-3.5">
                         
                         {{-- Avatar Live Preview Frame with Click-to-Studio --}}
-                        <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openAdminPhotoStudio()" title="ছবি পরিবর্তন বা এডিট করতে ক্লিক করুন" style="cursor: pointer;">
+                        <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openAdminPhotoStudio()" title="Click to change or edit photo" style="cursor: pointer;">
                             <div class="rounded-circle overflow-hidden shadow-sm border border-3 border-white position-relative bg-white" 
                                  style="width: 100px; height: 100px; min-width: 100px; min-height: 100px; aspect-ratio: 1 / 1;" id="avatarPreviewBox">
                                 @if($currAvatar)
@@ -123,21 +123,21 @@
                                     <span>User Photo / Avatar</span>
                                 </span>
                                 <span class="badge bg-white text-success border small" id="avatarSelectedStatus" style="display: none;">
-                                    <i class="fa-solid fa-circle-check me-1"></i>নতুন ছবি রেডি
+                                    <i class="fa-solid fa-circle-check me-1"></i>New Photo Ready
                                 </span>
                             </label>
                             
                             {{-- Buttons for Studio & Direct File Pick --}}
                             <div class="d-flex flex-wrap gap-2 mb-1.5">
                                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" onclick="openAdminPhotoStudio()">
-                                    <i class="fa-solid fa-crop-simple me-1"></i> ফটো স্টুডিও ও ক্রপার
+                                    <i class="fa-solid fa-crop-simple me-1"></i> Photo Studio & Cropper
                                 </button>
                                 <label class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
-                                    <i class="fa-solid fa-camera me-1"></i> মোবাইল ক্যামেরা
+                                    <i class="fa-solid fa-camera me-1"></i> Camera
                                     <input type="file" accept="image/*" capture="user" class="d-none" onchange="handleDirectFilePick(this)">
                                 </label>
                                 <label class="btn btn-light border btn-sm rounded-pill px-3 py-1.5 fw-semibold mb-0" style="cursor: pointer;">
-                                    <i class="fa-solid fa-images me-1"></i> ফাইল বাছাই
+                                    <i class="fa-solid fa-images me-1"></i> Browse Files
                                     <input type="file" name="avatar" id="avatarInput" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" class="d-none" onchange="handleDirectFilePick(this)">
                                 </label>
                             </div>
@@ -146,7 +146,7 @@
                             <input type="hidden" name="avatar_cropped" id="regAvatarCroppedInput">
 
                             <div class="text-muted small" style="font-size: 0.76rem;">
-                                মোবাইল বা ক্যামেরা থেকে তোলা ছবি স্বয়ংক্রিয়ভাবে কম্প্রেস ও অপ্টিমাইজ হয়ে সেভ হবে। (JPG, PNG, WebP)
+                                Uploaded photos are automatically optimized and compressed (JPG, PNG, WebP).
                             </div>
                         </div>
                     </div>
@@ -165,12 +165,12 @@
                         {{-- Row 1: Author Name (Bangla) & Author Name (English) --}}
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                Author Name (bangla) <span class="text-danger">*</span>
+                                Author Name (Bengali) <span class="text-danger">*</span>
                             </label>
                             <input type="text" name="name_bn" class="form-control rounded-3" 
                                    value="{{ old('name_bn', $regData['name_bn'] ?? ($regData['name_bangla'] ?? (preg_match('/[\x{0980}-\x{09FF}]/u', $user->name) ? $user->name : ''))) }}" 
-                                   placeholder="বাংলায় লেখক নাম (যেমন: সাকিল মাসুদ)" required>
-                            <div class="form-text small text-muted" style="font-size: 11px;">(এই নামটা ব্লগ ও বইয়ে শো করবে)</div>
+                                   placeholder="Author name in Bengali (e.g. Shakil Masud)" required>
+                            <div class="form-text small text-muted" style="font-size: 11px;">(Displayed on books and author profiles)</div>
                         </div>
 
                         <div class="col-md-6">
@@ -293,7 +293,7 @@
                                    value="{{ $currGenre }}" 
                                    placeholder="Fiction, Poetry, Essays, Research...">
                             <div class="d-flex flex-wrap gap-1 mt-1">
-                                @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi', 'কথাসাহিত্য', 'কবিতা', 'ছড়া', 'প্রবন্ধ', 'গবেষণা', 'ভ্রমণগদ্য', 'অনুবাদ', 'সায়েন্সফিকশন'] as $g)
+                                @foreach(['Fiction', 'Poetry', 'Essays', 'Research', 'Novel', 'Non-Fiction', 'Translation', 'Sci-Fi', 'Literature', 'Drama', 'Articles', 'Travelogue'] as $g)
                                     <button type="button" class="btn btn-sm btn-white border rounded-pill px-2 py-0.5 shadow-2xs text-secondary small" 
                                             style="font-size: 11px;" onclick="toggleAdminGenre('{{ $g }}')">
                                         <i class="fa-solid fa-plus me-0.5 text-success"></i> {{ $g }}
@@ -478,13 +478,12 @@
             <div class="modal-header border-0 pb-0 pt-3.5 px-4 bg-light">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="adminAvatarStudioModalLabel">
                     <i class="fa-solid fa-camera text-primary"></i>
-                    <span>ছবি এডিটর ও ফটো স্টুডিও</span>
+                    <span>Photo Editor & Studio</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
             <div class="modal-body p-4">
-                {{-- Interactive Crop Canvas Container --}}
                 {{-- Interactive Crop Canvas Container --}}
                 <div class="text-center mb-3">
                     <div class="position-relative mx-auto rounded-4 overflow-hidden border border-2 border-primary shadow-xs bg-light" 
@@ -509,12 +508,12 @@
                         {{-- Initial placeholder when no image uploaded --}}
                         <div id="adminCanvasPlaceholder" class="position-absolute top-0 start-0 w-100 h-100 flex-column align-items-center justify-content-center bg-light text-muted p-3 pointer-events-none text-center" style="display: flex; z-index: 6;">
                             <i class="fa-solid fa-cloud-arrow-up text-primary fs-1 mb-2"></i>
-                            <span class="fw-bold text-dark small mb-1">ছবি নির্বাচন বা ড্রপ করুন</span>
-                            <span class="text-muted" style="font-size: 11px;">মোবাইল ক্যামেরা ও গ্যালারি সাপোর্টেড</span>
+                            <span class="fw-bold text-dark small mb-1">Select or Drop Photo</span>
+                            <span class="text-muted" style="font-size: 11px;">Supports camera and local device files</span>
                         </div>
                     </div>
                     <div class="text-muted small mt-1.5" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-hand-pointer text-secondary me-1"></i>মাউস বা আঙুল দিয়ে টেনে ছবির পজিশন ঠিক করুন
+                        <i class="fa-solid fa-hand-pointer text-secondary me-1"></i>Drag with mouse or finger to position the photo
                     </div>
                 </div>
 
@@ -522,15 +521,15 @@
                 <div class="mb-3">
                     <div class="d-flex gap-2">
                         <label class="btn btn-outline-primary btn-sm flex-grow-1 rounded-pill fw-semibold py-1.5" style="cursor: pointer;">
-                            <i class="fa-solid fa-images me-1"></i> গ্যালারি থেকে সিলেক্ট করুন
+                            <i class="fa-solid fa-images me-1"></i> Choose from Device
                             <input type="file" id="adminModalAvatarInput" 
                                    accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,image/heif" 
                                    class="d-none"
                                    onclick="this.value=null;"
                                    onchange="loadAdminStudioImage(this)">
                         </label>
-                        <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="ক্যামেরা থেকে ছবি তুলুন">
-                            <i class="fa-solid fa-camera me-1"></i> ক্যামেরা
+                        <label class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold py-1.5 px-3" style="cursor: pointer;" title="Take photo with camera">
+                            <i class="fa-solid fa-camera me-1"></i> Camera
                             <input type="file" accept="image/*" capture="user" class="d-none" onclick="this.value=null;" onchange="loadAdminStudioImage(this)">
                         </label>
                     </div>
@@ -539,7 +538,7 @@
                 {{-- Interactive Controls: Zoom Slider, Rotate, Reset --}}
                 <div id="adminCropControls" class="p-3 bg-light rounded-3 border mb-3 d-none">
                     <div class="d-flex align-items-center justify-content-between mb-1.5" style="font-size: 11.5px;">
-                        <span class="text-muted fw-semibold"><i class="fa-solid fa-magnifying-glass-plus text-primary me-1"></i>জুম ইন/আউট:</span>
+                        <span class="text-muted fw-semibold"><i class="fa-solid fa-magnifying-glass-plus text-primary me-1"></i>Zoom In / Out:</span>
                         <span class="badge bg-white text-dark border font-monospace" id="adminZoomValBadge">100%</span>
                     </div>
                     <div class="d-flex align-items-center gap-2 mb-2">
@@ -550,19 +549,19 @@
 
                     <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center">
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="rotateAdminImage(90)">
-                            <i class="fa-solid fa-rotate-right me-1 text-primary"></i> ৯০° ঘোরান
+                            <i class="fa-solid fa-rotate-right me-1 text-primary"></i> Rotate 90°
                         </button>
                         <button type="button" class="btn btn-white btn-sm border rounded-pill px-3 py-1 text-dark small" onclick="resetAdminCrop()">
-                            <i class="fa-solid fa-arrows-to-circle me-1 text-secondary"></i> রিসেট
+                            <i class="fa-solid fa-arrows-to-circle me-1 text-secondary"></i> Reset
                         </button>
                     </div>
                 </div>
             </div>
 
             <div class="modal-footer border-0 pt-0 px-4 pb-3.5 d-flex justify-content-between">
-                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-light rounded-pill px-3.5" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="adminApplyPhotoBtn" onclick="applyCroppedPhotoToForm()" disabled>
-                    <i class="fa-solid fa-check me-1"></i> ছবি সেট করুন
+                    <i class="fa-solid fa-check me-1"></i> Apply Photo
                 </button>
             </div>
         </div>
@@ -628,7 +627,7 @@ function handleAdminPhotoDrop(e) {
     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0];
         if (!file.type.match('image.*')) {
-            alert('অনুগ্রহ করে শুধুমাত্র ইমেজ ফাইল (JPG, PNG, WebP) ড্রপ করুন।');
+            alert('Please drop image files only (JPG, PNG, WebP).');
             return;
         }
         const fakeInput = { files: [file] };
@@ -913,7 +912,7 @@ function syncThisAuthor() {
     const originalText = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> সিঙ্ক হচ্ছে...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Syncing...';
     }
 
     fetch('{{ route("admin.registrations.sync-author", $user) }}', {
@@ -932,10 +931,10 @@ function syncThisAuthor() {
             btn.innerHTML = originalText;
         }
         if (data.success) {
-            alert(data.message || 'লেখক প্রোফাইল সফলভাবে লেখক ডিরেক্টরিতে সিঙ্ক হয়েছে!');
+            alert(data.message || 'Author profile successfully synced to Directory!');
             window.location.reload();
         } else {
-            alert(data.message || 'সিঙ্ক করতে ত্রুটি হয়েছে।');
+            alert(data.message || 'Error occurred while syncing author profile.');
         }
     })
     .catch(err => {
@@ -943,7 +942,7 @@ function syncThisAuthor() {
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
-        alert('সার্ভার সংযোগ সমস্যা। আবার চেষ্টা করুন।');
+        alert('Server connection error. Please try again.');
     });
 }
 

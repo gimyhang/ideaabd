@@ -195,21 +195,45 @@
                             </div>
                         </div>
 
-                        {{-- Email Address (Optional) --}}
+                        {{-- Email Address with Verification OTP --}}
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small mb-1 d-flex justify-content-between">
-                                <span>Email Address</span>
-                                <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10.5px;">Optional</span>
+                            <label class="form-label fw-bold text-dark small mb-1 d-flex justify-content-between align-items-center">
+                                <span>Email Address <span class="text-danger">*</span></span>
+                                <span id="emailOtpStatusBadge" class="badge bg-secondary-subtle text-secondary border px-2 py-0.5" style="font-size: 11px; transition: all 0.3s ease;">
+                                    <i class="fa-solid fa-envelope-circle-check me-1"></i> Email Verification
+                                </span>
                             </label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light text-muted" style="border: 1px solid #cbd5e1; border-right: none;">
                                     <i class="fa-solid fa-envelope"></i>
                                 </span>
-                                <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                                       value="{{ old('email') }}" placeholder="email@example.com"
+                                <input type="email" name="email" id="buyerEmailInput" class="form-control @error('email') is-invalid @enderror"
+                                       value="{{ old('email') }}" required placeholder="email@example.com"
                                        style="border: 1px solid #cbd5e1; font-size: 0.95rem;">
+                                <button type="button" class="btn btn-outline-primary fw-semibold px-3" id="sendEmailOtpBtn" onclick="handleSendEmailOtp()" style="border: 1px solid #cbd5e1; border-left: none; font-size: 0.88rem;">
+                                    <span class="spinner-border spinner-border-sm d-none" id="emailOtpSpinner" role="status"></span>
+                                    <span id="sendEmailOtpText"><i class="fa-solid fa-paper-plane me-1"></i> Send Code</span>
+                                </button>
                             </div>
                             @error('email')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+                            {{-- Email OTP Verification Box --}}
+                            <div id="emailOtpContainer" class="mt-2.5 p-3 rounded-3 bg-light d-none" style="border: 1px solid #cbd5e1;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <label class="form-label small fw-bold mb-0 text-dark">
+                                        <i class="fa-solid fa-key text-warning me-1"></i> Enter 6-digit OTP code sent to your email:
+                                    </label>
+                                    <span id="emailOtpCountdownText" class="badge bg-white text-muted border font-monospace" style="font-size: 11px;">45s</span>
+                                </div>
+                                <div class="input-group mb-2">
+                                    <input type="text" id="buyerEmailOtpCode" class="form-control font-monospace text-center fw-bold fs-6" maxlength="6" placeholder="______" style="letter-spacing: 4px; border: 1px solid #cbd5e1; background: #fff;">
+                                    <button type="button" class="btn btn-success fw-bold px-3" id="verifyEmailOtpBtn" onclick="handleVerifyEmailOtp()">
+                                        <span class="spinner-border spinner-border-sm d-none" id="verifyEmailSpinner"></span>
+                                        <span id="verifyEmailOtpText"><i class="fa-solid fa-circle-check me-1"></i> Verify</span>
+                                    </button>
+                                </div>
+                                <div id="emailOtpFeedback" class="small d-none"></div>
+                            </div>
                         </div>
 
                         {{-- Password & Confirm Password with Gmail-style Strength Indicator --}}
@@ -592,6 +616,153 @@ function handleVerifyOtp() {
         verifyBtn.disabled = false;
         verifyText.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verify';
         alert('An error occurred during verification.');
+    });
+}
+
+// Handle Email OTP Sending & Verification
+let emailOtpCooldownTimer = null;
+
+function handleSendEmailOtp() {
+    const emailInput = document.getElementById('buyerEmailInput');
+    const sendBtn = document.getElementById('sendEmailOtpBtn');
+    const spinner = document.getElementById('emailOtpSpinner');
+    const sendText = document.getElementById('sendEmailOtpText');
+    const otpContainer = document.getElementById('emailOtpContainer');
+    const otpFeedback = document.getElementById('emailOtpFeedback');
+    const statusBadge = document.getElementById('emailOtpStatusBadge');
+
+    const email = (emailInput.value || '').trim();
+    if (!email) {
+        alert('Please enter your email address first.');
+        emailInput.focus();
+        return;
+    }
+
+    sendBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    sendText.innerHTML = 'Sending...';
+
+    fetch('{{ url("/register/send-email-otp") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+    .then(result => {
+        spinner.classList.add('d-none');
+
+        if (result.status === 200 && result.body.success) {
+            if (otpContainer) otpContainer.classList.remove('d-none');
+            if (otpFeedback) {
+                otpFeedback.classList.remove('d-none', 'text-danger');
+                otpFeedback.classList.add('text-success');
+                otpFeedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + result.body.message;
+            }
+            startEmailOtpCooldown(result.body.cooldown || 45);
+            document.getElementById('buyerEmailOtpCode').focus();
+        } else {
+            sendBtn.disabled = false;
+            sendText.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send Code';
+            const errMsg = result.body.message || (result.body.errors ? Object.values(result.body.errors)[0][0] : 'Failed to send email verification code.');
+            alert(errMsg);
+        }
+    })
+    .catch(err => {
+        spinner.classList.add('d-none');
+        sendBtn.disabled = false;
+        sendText.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send Code';
+        alert('Unable to connect to server. Please check your internet connection.');
+    });
+}
+
+function startEmailOtpCooldown(seconds) {
+    const sendBtn = document.getElementById('sendEmailOtpBtn');
+    const sendText = document.getElementById('sendEmailOtpText');
+    const countdownBadge = document.getElementById('emailOtpCountdownText');
+
+    let remaining = seconds;
+    sendBtn.disabled = true;
+    if (emailOtpCooldownTimer) clearInterval(emailOtpCooldownTimer);
+
+    emailOtpCooldownTimer = setInterval(() => {
+        remaining--;
+        if (countdownBadge) countdownBadge.textContent = remaining + 's';
+        sendText.innerHTML = `Resend (${remaining}s)`;
+
+        if (remaining <= 0) {
+            clearInterval(emailOtpCooldownTimer);
+            sendBtn.disabled = false;
+            sendText.innerHTML = '<i class="fa-solid fa-rotate-right me-1"></i> Resend Code';
+            if (countdownBadge) countdownBadge.textContent = '45s';
+        }
+    }, 1000);
+}
+
+function handleVerifyEmailOtp() {
+    const emailInput = document.getElementById('buyerEmailInput');
+    const otpInput = document.getElementById('buyerEmailOtpCode');
+    const email = (emailInput.value || '').trim();
+    const otp = normalizeDigits(otpInput.value.trim());
+    const verifyBtn = document.getElementById('verifyEmailOtpBtn');
+    const spinner = document.getElementById('verifyEmailSpinner');
+    const verifyText = document.getElementById('verifyEmailOtpText');
+    const otpFeedback = document.getElementById('emailOtpFeedback');
+    const statusBadge = document.getElementById('emailOtpStatusBadge');
+
+    if (!otp || otp.length !== 6) {
+        alert('Please enter the complete 6-digit email OTP code.');
+        otpInput.focus();
+        return;
+    }
+
+    verifyBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    verifyText.innerHTML = 'Verifying...';
+
+    fetch('{{ url("/register/verify-email-otp") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email: email, otp: otp })
+    })
+    .then(res => res.json().then(data => ({ status: res.status, body: data })))
+    .then(result => {
+        spinner.classList.add('d-none');
+        verifyBtn.disabled = false;
+        verifyText.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verify';
+
+        if (result.status === 200 && result.body.success) {
+            otpFeedback.classList.remove('d-none', 'text-danger');
+            otpFeedback.classList.add('text-success');
+            otpFeedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + result.body.message;
+
+            statusBadge.className = 'badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5';
+            statusBadge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verified';
+
+            document.getElementById('buyerEmailInput').readOnly = true;
+            document.getElementById('sendEmailOtpBtn').disabled = true;
+            document.getElementById('buyerEmailOtpCode').readOnly = true;
+            verifyBtn.classList.replace('btn-success', 'btn-secondary');
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Verified';
+        } else {
+            otpFeedback.classList.remove('d-none', 'text-success');
+            otpFeedback.classList.add('text-danger');
+            otpFeedback.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> ' + (result.body.message || 'Invalid email verification code.');
+        }
+    })
+    .catch(err => {
+        spinner.classList.add('d-none');
+        verifyBtn.disabled = false;
+        verifyText.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Verify';
+        alert('An error occurred during email verification.');
     });
 }
 </script>
