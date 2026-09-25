@@ -1,24 +1,38 @@
+@php
+    $pageTitle = 'Registrations';
+    if (request('type') === 'author') {
+        $pageTitle = 'Authors';
+    } elseif (request('type') === 'publisher') {
+        $pageTitle = 'Publishers';
+    } elseif (request('type') === 'seller') {
+        $pageTitle = 'Sellers';
+    } elseif (request('type') === 'buyer' || request('type') === 'customer') {
+        $pageTitle = 'Customers';
+    } elseif (request('status') === 'pending') {
+        $pageTitle = 'Approvals';
+    }
+@endphp
 @extends('layouts.admin')
 
-@section('title', 'Registration Approvals & Verification')
-@section('heading', 'Registration Approvals & Verification')
+@section('title', $pageTitle)
+@section('heading', $pageTitle)
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">User Management</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Registration Requests</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">Users</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $pageTitle }}</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="exportRegistrationsToCSV()" title="Export to CSV">
-            <i class="fa-solid fa-file-csv text-success"></i> <span>Export (CSV)</span>
+        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="exportRegistrationsToCSV()" title="Export">
+            <i class="fa-solid fa-file-csv text-success"></i> <span>Export</span>
         </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="window.print()" title="Print Table">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5" onclick="window.print()" title="Print">
             <i class="fa-solid fa-print"></i> <span>Print</span>
         </button>
         <a href="{{ route('admin.users') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1.5">
-            <i class="fa-solid fa-users"></i> <span>All Users</span>
+            <i class="fa-solid fa-users"></i> <span>Users</span>
         </a>
     </div>
 @endsection
@@ -168,7 +182,7 @@ body.dark-mode .modal-body textarea {
                 <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-primary {{ !request()->hasAny(['status', 'type']) ? 'ring-2 ring-primary' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">Total Applications</span>
+                            <span class="text-muted small fw-semibold d-block mb-1">Total</span>
                             <h4 class="fw-bold mb-0 text-dark" id="statAllCount">{{ number_format($counts['all'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
@@ -186,9 +200,9 @@ body.dark-mode .modal-body textarea {
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
                             <span class="text-muted small fw-semibold d-block mb-1">
-                                Pending Verification
+                                Pending
                                 @if(($counts['pending'] ?? 0) > 0)
-                                    <span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">Action Req.</span>
+                                    <span class="badge bg-danger rounded-pill px-2 py-0.5 ms-1" style="font-size: 10px;">{{ $counts['pending'] }}</span>
                                 @endif
                             </span>
                             <h4 class="fw-bold mb-0 text-warning-emphasis" id="statPendingCount">{{ number_format($counts['pending'] ?? 0) }}</h4>
@@ -207,7 +221,7 @@ body.dark-mode .modal-body textarea {
                 <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-success {{ request('status') === 'approved' ? 'ring-2 ring-success' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">Approved & Active</span>
+                            <span class="text-muted small fw-semibold d-block mb-1">Approved</span>
                             <h4 class="fw-bold mb-0 text-success" id="statApprovedCount">{{ number_format($counts['approved'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
@@ -224,7 +238,7 @@ body.dark-mode .modal-body textarea {
                 <div class="reg-kpi-card h-100 shadow-sm border-start border-4 border-danger {{ request('status') === 'rejected' ? 'ring-2 ring-danger' : '' }}">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="text-muted small fw-semibold d-block mb-1">Rejected Requests</span>
+                            <span class="text-muted small fw-semibold d-block mb-1">Rejected</span>
                             <h4 class="fw-bold mb-0 text-danger" id="statRejectedCount">{{ number_format($counts['rejected'] ?? 0) }}</h4>
                         </div>
                         <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
@@ -238,7 +252,7 @@ body.dark-mode .modal-body textarea {
         {{-- Role Breakdown Box --}}
         <div class="col-12 col-md-12 col-xl-4">
             <div class="reg-kpi-card h-100 shadow-sm d-flex flex-column justify-content-center">
-                <div class="small fw-bold text-muted mb-2"><i class="fa-solid fa-layer-group me-1 text-primary"></i>Applications by Role:</div>
+                <div class="small fw-bold text-muted mb-2"><i class="fa-solid fa-layer-group me-1 text-primary"></i>Roles:</div>
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('admin.registrations.index', array_merge(request()->except(['type', 'page']), ['type' => 'author'])) }}" 
                        class="badge rounded-pill text-decoration-none px-3 py-2 {{ request('type') === 'author' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' }}">
@@ -285,19 +299,19 @@ body.dark-mode .modal-body textarea {
             {{-- Status Filter --}}
             <div class="col-6 col-md-3 col-lg-2">
                 <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="" @selected(request('status') === null || request('status') === '')>All Statuses</option>
-                    <option value="pending" @selected(request('status') === 'pending')>⏳ Pending</option>
-                    <option value="approved" @selected(request('status') === 'approved')>✅ Approved</option>
-                    <option value="rejected" @selected(request('status') === 'rejected')>❌ Rejected</option>
+                    <option value="" @selected(request('status') === null || request('status') === '')>Status</option>
+                    <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                    <option value="approved" @selected(request('status') === 'approved')>Approved</option>
+                    <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
                 </select>
             </div>
 
             {{-- Type Filter --}}
             <div class="col-6 col-md-3 col-lg-2">
                 <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="" @selected(request('type') === null || request('type') === '')>All Roles</option>
+                    <option value="" @selected(request('type') === null || request('type') === '')>Role</option>
                     <option value="author" @selected(request('type') === 'author')>Author</option>
-                    <option value="buyer" @selected(request('type') === 'buyer' || request('type') === 'customer')>Customer / Buyer</option>
+                    <option value="buyer" @selected(request('type') === 'buyer' || request('type') === 'customer')>Customer</option>
                     <option value="publisher" @selected(request('type') === 'publisher')>Publisher</option>
                     <option value="seller" @selected(request('type') === 'seller')>Seller</option>
                 </select>
@@ -306,10 +320,10 @@ body.dark-mode .modal-body textarea {
             {{-- Sort Order --}}
             <div class="col-6 col-md-3 col-lg-2">
                 <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="pending_first" @selected(request('sort') === 'pending_first' || !request('sort'))>Pending First</option>
-                    <option value="latest" @selected(request('sort') === 'latest')>Newest Requests</option>
-                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest Requests</option>
-                    <option value="name_asc" @selected(request('sort') === 'name_asc')>Name (A-Z)</option>
+                    <option value="pending_first" @selected(request('sort') === 'pending_first' || !request('sort'))>Pending</option>
+                    <option value="latest" @selected(request('sort') === 'latest')>Newest</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest</option>
+                    <option value="name_asc" @selected(request('sort') === 'name_asc')>Alphabetical</option>
                 </select>
             </div>
 
@@ -354,11 +368,11 @@ body.dark-mode .modal-body textarea {
                     <thead class="table-light text-muted small text-uppercase">
                         <tr>
                             <th class="ps-3 text-center" style="width: 44px;">#</th>
-                            <th style="min-width: 240px;">Applicant & Contact</th>
-                            <th class="text-center" style="min-width: 110px;">Applied Role</th>
-                            <th style="min-width: 260px;">Profile Details & Bio</th>
+                            <th style="min-width: 240px;">User</th>
+                            <th class="text-center" style="min-width: 110px;">Role</th>
+                            <th style="min-width: 260px;">Details</th>
                             <th class="text-center" style="min-width: 140px;">Status</th>
-                            <th class="text-center" style="min-width: 120px;">Applied Date</th>
+                            <th class="text-center" style="min-width: 120px;">Date</th>
                             <th class="text-end pe-3" style="min-width: 180px;">Actions</th>
                         </tr>
                     </thead>
@@ -652,7 +666,7 @@ body.dark-mode .modal-body textarea {
             <div class="modal-header bg-danger text-white border-0 py-3 px-4">
                 <h6 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2" id="rejectReasonModalLabel">
                     <i class="fa-solid fa-circle-xmark"></i>
-                    <span>Decline Registration Request</span>
+                    <span>Reject</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -664,14 +678,14 @@ body.dark-mode .modal-body textarea {
                         You are about to decline registration for <strong id="rejectTargetUserName" class="text-dark">applicant</strong>. Declined applicants will not be able to log in or publish content on the portal.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">Reason for Rejection <span class="text-danger">*</span></label>
-                        <textarea name="reason" id="rejectReasonText" class="form-control rounded-3" rows="3" required placeholder="e.g. Incomplete business documents / Unable to verify identification / Violates site terms..."></textarea>
+                        <label class="form-label small fw-bold text-dark">Reason <span class="text-danger">*</span></label>
+                        <textarea name="reason" id="rejectReasonText" class="form-control rounded-3" rows="3" required placeholder="Reason for rejection..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" id="btnRejectSubmit">
-                        <i class="fa-solid fa-ban me-1"></i> Confirm Decline
+                        <i class="fa-solid fa-ban me-1"></i> Reject
                     </button>
                 </div>
             </form>
@@ -686,7 +700,7 @@ body.dark-mode .modal-body textarea {
             <div class="modal-header py-3 px-4 bg-dark text-white border-0">
                 <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
                     <i class="fa-solid fa-crown text-warning"></i>
-                    <span>Assign Role & Control Designation</span>
+                    <span>Role</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -700,7 +714,7 @@ body.dark-mode .modal-body textarea {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">Select Role to Assign or Promote to:</label>
+                        <label class="form-label small fw-bold text-dark">Role</label>
                         <select name="role" id="regAssignRoleSelect" class="form-select rounded-3 py-2 fw-semibold" required onchange="handleRegRoleSelectChange(this)">
                             @foreach($assignableRoles ?? [] as $r)
                                 @php
@@ -722,7 +736,7 @@ body.dark-mode .modal-body textarea {
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Registration Status</label>
+                            <label class="form-label small fw-bold text-dark">Status</label>
                             <select name="reg_status" id="regAssignRegStatus" class="form-select rounded-3">
                                 <option value="approved">Approved</option>
                                 <option value="pending">Pending</option>
@@ -730,10 +744,10 @@ body.dark-mode .modal-body textarea {
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">Account Status</label>
+                            <label class="form-label small fw-bold text-dark">Access</label>
                             <select name="is_active" id="regAssignIsActive" class="form-select rounded-3">
                                 <option value="1">Active</option>
-                                <option value="0">Suspended / Inactive</option>
+                                <option value="0">Inactive</option>
                             </select>
                         </div>
                     </div>

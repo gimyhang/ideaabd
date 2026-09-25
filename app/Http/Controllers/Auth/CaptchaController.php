@@ -20,7 +20,9 @@ class CaptchaController extends Controller
             'success'    => true,
             'token'      => $challenge['token'],
             'image'      => $challenge['image'],
+            'length'     => $challenge['length'] ?? 4,
             'expires_in' => $challenge['expires_in'],
+            'csrf_token' => csrf_token(),
         ]);
     }
 
@@ -45,10 +47,12 @@ class CaptchaController extends Controller
             $freshChallenge = $captchaService->generate($request->ip());
 
             return response()->json([
-                'success'     => false,
-                'message'     => $result['message'],
-                'fresh_token' => $freshChallenge['token'],
-                'fresh_image' => $freshChallenge['image'],
+                'success'      => false,
+                'message'      => $result['message'],
+                'fresh_token'  => $freshChallenge['token'],
+                'fresh_image'  => $freshChallenge['image'],
+                'fresh_length' => $freshChallenge['length'],
+                'csrf_token'   => csrf_token(),
             ], 422);
         }
 
@@ -56,6 +60,7 @@ class CaptchaController extends Controller
             'success'     => true,
             'message'     => $result['message'],
             'proof_token' => $result['proof_token'] ?? null,
+            'csrf_token'  => csrf_token(),
         ]);
     }
 }

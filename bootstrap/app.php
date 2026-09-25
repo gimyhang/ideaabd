@@ -22,6 +22,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/sslcommerz/fail',
             'payment/sslcommerz/cancel',
             'payment/sslcommerz/ipn',
+            'auth/captcha/*',
+            'register/send-email-otp',
+            'register/verify-email-otp',
+            'register/send-otp',
+            'register/verify-otp',
+            'register/complete',
+            'register/complete-unified',
         ]);
         
         $middleware->web(append: [

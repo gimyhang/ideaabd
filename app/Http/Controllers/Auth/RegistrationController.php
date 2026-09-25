@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\AccountVerificationMail;
+use App\Models\RegistrationAuditLog;
 use App\Models\User;
 use App\Rules\StrongPassword;
+use App\Services\CaptchaService;
 use App\Services\SecurityAuditService;
 use App\Services\SmsService;
 use App\Support\SiteSetting;
@@ -27,10 +29,10 @@ class RegistrationController extends Controller
         return str_replace($bn, $en, $str);
     }
 
-    // Show registration type selection page
+    // Show registration type selection page — Redirects to single unified registration
     public function choose()
     {
-        return view('auth.register-choose');
+        return redirect()->route('login', ['mode' => 'register']);
     }
 
     // Show a specific registration form
@@ -59,17 +61,35 @@ class RegistrationController extends Controller
         // Check if email already registered
         $existing = User::where('email', $email)->first();
         if ($existing) {
+            RegistrationAuditLog::recordEvent('email_otp_sent', false, [
+                'email'         => $email,
+                'error_message' => 'Email already registered',
+            ]);
+
             return response()->json([
-                'success' => false,
+                'success'        => false,
                 'already_exists' => true,
-                'message' => 'An account is already registered with this email address.',
+                'message'        => 'This email address is already registered. Please sign in.',
+                'login_url'      => route('login'),
             ], 422);
         }
 
-        // Generate 6-digit OTP
-        $otpCode = (string) rand(100000, 999999);
+        // Rate limiting cooldown per email
+        $cooldownKey = 'reg_email_cooldown_' . md5($email);
+        if (Cache::has($cooldownKey)) {
+            $remaining = Cache::get($cooldownKey) - time();
+            return response()->json([
+                'success'  => false,
+                'message'  => 'Please wait ' . max(1, $remaining) . 's before requesting another code.',
+                'cooldown' => max(1, $remaining),
+            ], 429);
+        }
+
+        // Generate 6-digit OTP using cryptographically secure random_int
+        $otpCode = (string) random_int(100000, 999999);
         $cacheKey = 'reg_email_otp_' . md5($email);
         Cache::put($cacheKey, $otpCode, now()->addMinutes(2));
+        Cache::put($cooldownKey, time() + 45, now()->addSeconds(45));
 
         // Dispatch email
         try {
@@ -78,9 +98,13 @@ class RegistrationController extends Controller
             Log::error('Registration Email OTP dispatch failed: ' . $e->getMessage());
         }
 
+        RegistrationAuditLog::recordEvent('email_otp_sent', true, [
+            'email' => $email,
+        ]);
+
         return response()->json([
-            'success' => true,
-            'message' => 'A 6-digit verification code has been sent to your email (Valid for 2 minutes).',
+            'success'  => true,
+            'message'  => 'A 6-digit verification code has been sent to your email (valid for 2 minutes).',
             'cooldown' => 45,
         ]);
     }
@@ -97,19 +121,38 @@ class RegistrationController extends Controller
         $rawOtp = $this->normalizeBnToEn(trim($request->input('otp')));
         $cleanOtp = preg_replace('/[^\d]/', '', $rawOtp);
 
+        $failCountKey = 'reg_email_fails_' . md5($email);
+        $fails = (int) Cache::get($failCountKey, 0);
+        if ($fails >= 5) {
+            Cache::forget('reg_email_otp_' . md5($email));
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many invalid attempts. The code has expired. Please request a new code.',
+            ], 422);
+        }
+
         $cacheKey = 'reg_email_otp_' . md5($email);
         $cachedOtp = Cache::get($cacheKey);
 
         if (!$cachedOtp || $cleanOtp !== (string) $cachedOtp) {
+            Cache::put($failCountKey, $fails + 1, now()->addMinutes(10));
             return response()->json([
                 'success' => false,
-                'message' => 'The email verification code is invalid or has expired (2-minute limit). Please check your email and try again.',
+                'message' => 'Invalid or expired verification code (2-minute limit). Please try again.',
             ], 422);
         }
 
         // Mark as verified in session
         Cache::forget($cacheKey);
-        session(['email_verified_' . md5($email) => true]);
+        Cache::forget($failCountKey);
+        session([
+            'email_verified_' . md5($email) => true,
+            'otp_verified_email' => $email,
+        ]);
+
+        RegistrationAuditLog::recordEvent('email_otp_verified', true, [
+            'email' => $email,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -118,10 +161,10 @@ class RegistrationController extends Controller
     }
 
     // Send SMS verification OTP for registration
-    public function sendOtp(Request $request, SmsService $smsService)
+    public function sendOtp(Request $request)
     {
         $request->validate([
-            'phone' => ['required', 'string', 'max:20'],
+            'phone'        => ['required', 'string', 'max:20'],
             'country_code' => ['nullable', 'string', 'max:10'],
         ]);
 
@@ -154,44 +197,60 @@ class RegistrationController extends Controller
             ->first();
 
         if ($existing) {
+            RegistrationAuditLog::recordEvent('phone_otp_sent', false, [
+                'phone'         => $fullPhone,
+                'error_message' => 'Phone already registered',
+            ]);
+
             return response()->json([
-                'success' => false,
+                'success'        => false,
                 'already_exists' => true,
-                'message' => 'An account is already registered with this mobile number.',
-                'phone' => $rawPhone,
-                'login_url' => route('login'),
-                'forgot_url' => route('password.request'),
+                'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে লগইন করুন।',
+                'phone'          => $rawPhone,
+                'login_url'      => route('login'),
+                'forgot_url'     => route('password.request'),
             ], 422);
         }
 
-        // Generate 6-digit OTP
-        $otpCode = (string) rand(100000, 999999);
-        
+        // Rate limiting cooldown per phone
+        $cooldownKey = 'reg_phone_cooldown_' . md5($fullPhone);
+        if (Cache::has($cooldownKey)) {
+            $remaining = Cache::get($cooldownKey) - time();
+            return response()->json([
+                'success'  => false,
+                'message'  => 'দয়া করে কিছুক্ষণ অপেক্ষা করে পুনরায় কোড পাঠানোর চেষ্টা করুন।',
+                'cooldown' => max(1, $remaining),
+            ], 429);
+        }
+
+        // Generate 6-digit OTP using cryptographically secure random_int
+        $otpCode = (string) random_int(100000, 999999);
+
         // Cache OTP strictly for 2 minutes across all key formats
         $ttl = now()->addMinutes(2);
         Cache::put('reg_otp_' . md5($fullPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . md5($localPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . $cleanDigits, $otpCode, $ttl);
+        Cache::put($cooldownKey, time() + 60, now()->addSeconds(60));
 
-        // Dispatch SMS
-        $res = $smsService->sendVerificationOtp($fullPhone, $otpCode);
+        // Dispatch SMS via static method
+        SmsService::sendVerificationOtp($fullPhone, $otpCode);
 
-        // WhatsApp integration for official helpline
+        // Official WhatsApp Helpline Link (WITHOUT leaking OTP!)
         $officialWhatsApp = '+8801558712810';
         $cleanOfficialWhatsApp = '8801558712810';
-        $userCleanPhone = preg_replace('/[^0-9]/', '', $fullPhone);
-        $whatsappMessage = "ideaabd.com — Your Account Verification Code is: {$otpCode} (Valid for 2 minutes).\n\nOfficial Helpline: {$officialWhatsApp}";
-        
-        $userWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $userCleanPhone . '&text=' . urlencode($whatsappMessage);
-        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $cleanOfficialWhatsApp . '&text=' . urlencode("Hello IDEA Publication, please verify my registration OTP for phone number: {$fullPhone}. OTP Code: {$otpCode}");
+        $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $cleanOfficialWhatsApp . '&text=' . urlencode("Hello IDEA Publication, I need help with registration verification for mobile: {$fullPhone}");
+
+        RegistrationAuditLog::recordEvent('phone_otp_sent', true, [
+            'phone' => $fullPhone,
+        ]);
 
         return response()->json([
-            'success' => true,
-            'message' => '6-digit verification code sent successfully (Valid for 2 minutes).',
-            'cooldown' => 60,
-            'whatsapp_url' => $userWhatsappUrl,
+            'success'              => true,
+            'message'              => 'A 6-digit verification code has been sent via SMS (valid for 2 minutes).',
+            'cooldown'             => 60,
             'support_whatsapp_url' => $supportWhatsappUrl,
-            'official_whatsapp' => $officialWhatsApp,
+            'official_whatsapp'    => $officialWhatsApp,
         ]);
     }
 
@@ -199,9 +258,9 @@ class RegistrationController extends Controller
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'phone' => ['required', 'string'],
+            'phone'        => ['required', 'string'],
             'country_code' => ['nullable', 'string'],
-            'otp' => ['required', 'string', 'min:4', 'max:10'],
+            'otp'          => ['required', 'string', 'min:4', 'max:10'],
         ]);
 
         $countryCode = trim($request->input('country_code', '+880'));
@@ -225,14 +284,27 @@ class RegistrationController extends Controller
             $localPhone = $fullPhone;
         }
 
+        $failCountKey = 'reg_otp_fails_' . md5($fullPhone);
+        $fails = (int) Cache::get($failCountKey, 0);
+        if ($fails >= 5) {
+            Cache::forget('reg_otp_' . md5($fullPhone));
+            Cache::forget('reg_otp_' . md5($localPhone));
+            Cache::forget('reg_otp_' . $cleanDigits);
+            return response()->json([
+                'success' => false,
+                'message' => 'Too many invalid attempts. The code has expired. Please request a new code.',
+            ], 422);
+        }
+
         $cachedOtp = Cache::get('reg_otp_' . md5($fullPhone))
             ?? Cache::get('reg_otp_' . md5($localPhone))
             ?? Cache::get('reg_otp_' . $cleanDigits);
 
         if (!$cachedOtp || $cleanOtp !== (string) $cachedOtp) {
+            Cache::put($failCountKey, $fails + 1, now()->addMinutes(10));
             return response()->json([
                 'success' => false,
-                'message' => 'The verification code is invalid or has expired (2-minute limit). Please check your SMS and try again.',
+                'message' => 'Invalid or expired verification code (2-minute limit). Please try again.',
             ], 422);
         }
 
@@ -240,10 +312,18 @@ class RegistrationController extends Controller
         Cache::forget('reg_otp_' . md5($fullPhone));
         Cache::forget('reg_otp_' . md5($localPhone));
         Cache::forget('reg_otp_' . $cleanDigits);
+        Cache::forget($failCountKey);
 
-        session(['phone_verified_' . md5($fullPhone) => true]);
-        session(['phone_verified_' . md5($localPhone) => true]);
-        session(['phone_verified_' . $cleanDigits => true]);
+        session([
+            'phone_verified_' . md5($fullPhone) => true,
+            'phone_verified_' . md5($localPhone) => true,
+            'phone_verified_' . $cleanDigits => true,
+            'otp_verified_phone' => $fullPhone,
+        ]);
+
+        RegistrationAuditLog::recordEvent('phone_otp_verified', true, [
+            'phone' => $fullPhone,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -254,30 +334,38 @@ class RegistrationController extends Controller
     /**
      * Complete Unified Onboarding Registration (Amazon-style Multi-step Onboarding)
      * Handles Category selection (Buyer, Author, Publisher, Seller) + Primary Address
-     * and auto-logs the user in directly to /my-account.
+     * and auto-logs the buyer directly to /my-account.
      */
     public function completeUnifiedRegistration(Request $request)
     {
         \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'name'           => ['required', 'string', 'max:255'],
-            'email'          => ['required', 'email', 'max:255'],
-            'phone'          => ['required', 'string', 'max:25'],
-            'country_code'   => ['nullable', 'string', 'max:10'],
-            'password'       => ['required', 'string', 'min:8', 'max:128', new StrongPassword([
+            'name'                  => ['required', 'string', 'max:255'],
+            'email'                 => ['required', 'email', 'max:255'],
+            'phone'                 => ['required', 'string', 'max:25'],
+            'country_code'          => ['nullable', 'string', 'max:10'],
+            'password'              => ['required', 'string', 'min:8', 'max:128', new StrongPassword([
                 'name'  => (string) $request->input('name'),
                 'email' => (string) $request->input('email'),
                 'phone' => (string) $request->input('phone'),
             ])],
-            'category'       => ['required', 'string', 'in:buyer,author,publisher,seller'],
-            'author_name'    => ['nullable', 'string', 'max:255'],
-            'author_name_en' => ['nullable', 'string', 'max:255'],
-            'publisher_name' => ['nullable', 'string', 'max:255'],
-            'shop_name'      => ['nullable', 'string', 'max:255'],
-            'country'        => ['required', 'string', 'max:100'],
-            'district'       => ['required', 'string', 'max:100'],
-            'thana'          => ['required', 'string', 'max:100'],
-            'post_code'      => ['required', 'string', 'max:20'],
-            'address'        => ['required', 'string', 'max:500'],
+            'category'              => ['nullable', 'string', 'in:buyer,author,publisher,seller'],
+            'author_name'           => ['nullable', 'string', 'max:255'],
+            'author_name_en'        => ['nullable', 'string', 'max:255'],
+            'pen_name'              => ['nullable', 'string', 'max:255'],
+            'publisher_name'        => ['nullable', 'string', 'max:255'],
+            'publishing_house_name' => ['nullable', 'string', 'max:255'],
+            'publisher_owner_name'  => ['nullable', 'string', 'max:255'],
+            'shop_name'             => ['nullable', 'string', 'max:255'],
+            'trade_license'         => ['nullable', 'string', 'max:100'],
+            'established'           => ['nullable', 'string', 'max:10'],
+            'nid'                   => ['nullable', 'string', 'max:50'],
+            'bio'                   => ['nullable', 'string', 'max:5000'],
+            'country'               => ['nullable', 'string', 'max:100'],
+            'district'              => ['nullable', 'string', 'max:100'],
+            'thana'                 => ['nullable', 'string', 'max:100'],
+            'post_code'             => ['nullable', 'string', 'max:20'],
+            'address'               => ['nullable', 'string', 'max:500'],
+            'captcha_proof_token'   => ['nullable', 'string'],
         ])->validate();
 
         $countryCode = $request->input('country_code', '+880');
@@ -302,69 +390,93 @@ class RegistrationController extends Controller
         $email = trim(strtolower($request->input('email')));
         $category = $request->input('category', 'buyer');
 
-        // Check for existing user by phone or email
-        $user = User::where('phone', $fullPhone)
+        // 1. CAPTCHA Proof Token Verification
+        $captchaToken = $request->input('captcha_proof_token');
+        if (!empty($captchaToken)) {
+            $captchaOk = app(CaptchaService::class)->validateProofToken($captchaToken, $request->ip());
+            if (!$captchaOk && !app()->environment('local', 'testing')) {
+                RegistrationAuditLog::recordEvent('completed', false, [
+                    'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                    'error_message' => 'CAPTCHA token expired or invalid',
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'require_captcha' => true,
+                    'message' => 'CAPTCHA verification expired. Please complete the CAPTCHA again.',
+                ], 422);
+            }
+        }
+
+        // 2. Strict Uniqueness Check — PREVENT ACCOUNT TAKEOVER / PASSWORDLESS LOGIN!
+        $existing = User::where('phone', $fullPhone)
             ->orWhere('phone', $localPhone)
             ->orWhere('email', $email)
             ->first();
 
-        if ($user) {
-            if ($user->isAdmin()) {
-                \Illuminate\Support\Facades\Auth::login($user, true);
-                return response()->json([
-                    'success'      => true,
-                    'redirect_url' => route('admin.dashboard'),
-                    'message'      => 'স্বাগতম অ্যাডমিন! অ্যাডমিন ড্যাশবোর্ডে প্রবেশ করানো হচ্ছে...',
-                ]);
-            }
-
-            // If user exists, update category if previously default buyer
-            if ($user->role === 'buyer' && $category !== 'buyer') {
-                $user->role = $category;
-                $user->reg_type = $category;
-                $user->reg_status = 'pending';
-                $user->is_active = false;
-                $user->save();
-
-                return response()->json([
-                    'success'      => true,
-                    'redirect_url' => route('register.success'),
-                    'message'      => 'আপনার অ্যাকাউন্ট আপগ্রেড আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদনের পর সক্রিয় হবে।',
-                    'is_approved'  => false,
-                ]);
-            }
-
-            if (!$user->is_active && !$user->isAdmin()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'এই তথ্য দিয়ে নিবন্ধিত অ্যাকাউন্টটি এখনও অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।',
-                ], 422);
-            }
-
-            \Illuminate\Support\Facades\Auth::login($user, true);
-
-            $redir = route('my-account');
-            if ($user->isAdmin()) {
-                $redir = route('admin.dashboard');
-            } elseif ($user->isPublisher() && $user->isApproved()) {
-                $redir = route('publisher.dashboard');
-            } elseif ($user->isAuthor() && $user->isApproved()) {
-                $redir = route('author.dashboard');
-            } elseif ($user->isSeller() && $user->isApproved()) {
-                $redir = route('subadmin.dashboard');
-            }
+        if ($existing) {
+            RegistrationAuditLog::recordEvent('completed', false, [
+                'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                'error_message' => 'User already exists with this phone or email',
+            ]);
 
             return response()->json([
-                'success'      => true,
-                'redirect_url' => $redir,
-                'message'      => 'Welcome back! You have successfully signed in.',
+                'success'        => false,
+                'already_exists' => true,
+                'message'        => 'This phone number or email is already registered. Please sign in.',
+                'login_url'      => route('login'),
+                'forgot_url'     => route('password.request'),
+            ], 422);
+        }
+
+        // 3. Strict Phone OTP Enforcement
+        $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
+            || session('phone_verified_' . md5($localPhone))
+            || session('phone_verified_' . $cleanDigits)
+            || session('otp_verified_phone') === $fullPhone
+            || session('otp_verified_phone') === $localPhone;
+
+        if (SiteSetting::isPhoneVerificationEnabled() && !$phoneVerifiedSession) {
+            RegistrationAuditLog::recordEvent('completed', false, [
+                'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                'error_message' => 'Phone OTP not verified in session',
             ]);
+
+            return response()->json([
+                'success'           => false,
+                'require_phone_otp' => true,
+                'message'           => 'Your mobile number has not been verified. Please complete OTP verification.',
+            ], 422);
+        }
+
+        // 4. Strict Email OTP Enforcement
+        $emailVerifiedSession = session('email_verified_' . md5($email))
+            || session('otp_verified_email') === $email;
+
+        if (SiteSetting::isEmailVerificationEnabled() && !$emailVerifiedSession) {
+            RegistrationAuditLog::recordEvent('completed', false, [
+                'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                'error_message' => 'Email OTP not verified in session',
+            ]);
+
+            return response()->json([
+                'success'           => false,
+                'require_email_otp' => true,
+                'message'           => 'Your email address has not been verified. Please complete OTP verification.',
+            ], 422);
         }
 
         $authorName = trim((string) $request->input('author_name', ''));
         $authorNameEn = trim((string) $request->input('author_name_en', ''));
+        $penName = trim((string) $request->input('pen_name', ''));
         $publisherName = trim((string) $request->input('publisher_name', ''));
+        $publishingHouseName = trim((string) ($request->input('publishing_house_name') ?: $publisherName));
+        $publisherOwnerName = trim((string) $request->input('publisher_owner_name', ''));
         $shopName = trim((string) $request->input('shop_name', ''));
+        $tradeLicense = trim((string) $request->input('trade_license', ''));
+        $established = trim((string) $request->input('established', ''));
+        $nid = trim((string) $request->input('nid', ''));
+        $bio = trim((string) $request->input('bio', ''));
+        $genres = $request->input('genres', []);
 
         if ($category === 'author' && empty($authorName)) {
             $authorName = trim((string) $request->input('name'));
@@ -373,57 +485,54 @@ class RegistrationController extends Controller
         $displayName = $request->input('name');
         if ($category === 'author' && !empty($authorName)) {
             $displayName = $authorName;
-        } elseif ($category === 'publisher' && !empty($publisherName)) {
-            $displayName = $publisherName;
+        } elseif ($category === 'publisher' && !empty($publishingHouseName)) {
+            $displayName = $publishingHouseName;
         } elseif ($category === 'seller' && !empty($shopName)) {
             $displayName = $shopName;
         }
 
         // Create new User
         $regData = [
-            'category'        => $category,
-            'country'         => $request->input('country', 'Bangladesh'),
-            'district'        => $request->input('district', ''),
-            'thana'           => $request->input('thana', ''),
-            'post_code'       => $request->input('post_code', ''),
-            'address'         => $request->input('address', ''),
-            'country_code'    => $countryCode,
-            'author_name'     => $authorName,
-            'author_name_en'  => $authorNameEn,
-            'author_name_bn'  => $authorName,
-            'name_bn'         => $authorName,
-            'name_en'         => $authorNameEn,
-            'publisher_name'  => $publisherName,
-            'shop_name'       => $shopName,
-            'registered_ip'   => $request->ip(),
-            'registered_at'   => now()->toIso8601String(),
+            'category'              => $category,
+            'country'               => $request->input('country', 'Bangladesh'),
+            'district'              => $request->input('district', ''),
+            'thana'                 => $request->input('thana', ''),
+            'post_code'             => $request->input('post_code', ''),
+            'address'               => $request->input('address', ''),
+            'country_code'          => $countryCode,
+            'author_name'           => $authorName,
+            'author_name_en'        => $authorNameEn,
+            'author_name_bn'        => $authorName,
+            'pen_name'              => $penName,
+            'name_bn'               => $authorName,
+            'name_en'               => $authorNameEn,
+            'publisher_name'        => $publishingHouseName,
+            'publishing_house_name' => $publishingHouseName,
+            'publisher_owner_name'  => $publisherOwnerName,
+            'shop_name'             => $shopName,
+            'trade_license'         => $tradeLicense,
+            'established'           => $established,
+            'nid'                   => $nid,
+            'bio'                   => $bio,
+            'genres'                => is_array($genres) ? $genres : array_filter(explode(',', (string) $genres)),
+            'registered_ip'         => $request->ip(),
+            'registered_at'         => now()->toIso8601String(),
         ];
 
         $isCustomer = in_array($category, ['buyer', 'customer']);
-        $isActive = $isCustomer;
+        $isActive = true; // Every user gets an active user account immediately
         $regStatus = $isCustomer ? User::STATUS_APPROVED : User::STATUS_PENDING;
 
-        // Check if phone was verified via session OTP
-        $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
-            || session('phone_verified_' . md5($localPhone))
-            || session('phone_verified_' . $cleanDigits)
-            || session('otp_verified_phone') === $fullPhone
-            || session('otp_verified_phone') === $localPhone;
-
-        // Check if email was verified via session OTP
-        $emailVerifiedSession = session('email_verified_' . md5($email))
-            || session('otp_verified_email') === $email;
-
-        $phoneVerifiedAt = ($isCustomer || $phoneVerifiedSession) ? now() : null;
-        $emailVerifiedAt = ($isCustomer || $emailVerifiedSession || !\App\Support\SiteSetting::isEmailVerificationEnabled()) ? now() : null;
+        $phoneVerifiedAt = $phoneVerifiedSession ? now() : ($isCustomer && !SiteSetting::isPhoneVerificationEnabled() ? now() : null);
+        $emailVerifiedAt = $emailVerifiedSession ? now() : ($isCustomer && !SiteSetting::isEmailVerificationEnabled() ? now() : null);
 
         $user = User::create([
             'name'              => $displayName,
             'email'             => $email,
             'phone'             => $fullPhone,
             'password'          => Hash::make($request->input('password')),
-            'role'              => $category,
-            'reg_type'          => $category,
+            'role'              => 'customer', // All users register as customer first until admin approval
+            'reg_type'          => $category, // Desired role to be approved by admin
             'reg_status'        => $regStatus,
             'reg_data'          => $regData,
             'is_active'         => $isActive,
@@ -438,8 +547,10 @@ class RegistrationController extends Controller
                     'name'        => $authorName,
                     'name_bn'     => $authorName,
                     'name_en'     => $authorNameEn ?: null,
+                    'pen_name'    => $penName ?: null,
                     'email'       => $user->email,
                     'phone'       => $user->phone,
+                    'bio'         => $bio ?: null,
                     'user_id'     => $user->id,
                     'is_active'   => false, // Pending admin approval
                     'is_verified' => false,
@@ -451,14 +562,14 @@ class RegistrationController extends Controller
                     $user->save();
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Author unified sync error: ' . $e->getMessage());
+                Log::warning('Author unified sync error: ' . $e->getMessage());
             }
         }
 
-        // If publisher category, sync unified publisher record so that all books, ebooks, directory, and billing vouchers link directly here
+        // If publisher category, sync unified publisher record
         if ($category === 'publisher' && class_exists(\Modules\Publisher\Models\Publisher::class)) {
             try {
-                $pubHouse = trim((string) ($request->input('publishing_house_name') ?: $request->input('publisher_name') ?: $request->input('name')));
+                $pubHouse = $publishingHouseName ?: $user->name;
                 $fullAddress = trim(implode(', ', array_filter([
                     $request->input('address'),
                     $request->input('thana'),
@@ -479,12 +590,12 @@ class RegistrationController extends Controller
                 if ($publisherRecord && $publisherRecord->id) {
                     $regData['publisher_id'] = $publisherRecord->id;
                     $regData['publishing_house_name'] = $pubHouse;
-                    $regData['publisher_owner_name'] = trim((string) $request->input('publisher_owner_name', $user->name));
+                    $regData['publisher_owner_name'] = $publisherOwnerName ?: $user->name;
                     $user->reg_data = $regData;
                     $user->save();
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Publisher unified sync error: ' . $e->getMessage());
+                Log::warning('Publisher unified sync error: ' . $e->getMessage());
             }
         }
 
@@ -492,25 +603,44 @@ class RegistrationController extends Controller
         try {
             if ($isCustomer) {
                 $welcomeMsg = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার কাস্টমার অ্যাকাউন্ট সফলভাবে সক্রিয় হয়েছে। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
-                \App\Services\SmsService::send($user->phone, $welcomeMsg);
+                SmsService::send($user->phone, $welcomeMsg);
             }
         } catch (\Throwable $smsEx) {
-            \Illuminate\Support\Facades\Log::warning("Customer welcome SMS note: " . $smsEx->getMessage());
+            Log::warning("Customer welcome SMS note: " . $smsEx->getMessage());
         }
 
-        if ($isCustomer) {
-            // Auto login customer and redirect to my-account
-            \Illuminate\Support\Facades\Auth::login($user, true);
+        // Record successful registration in audit log
+        RegistrationAuditLog::recordEvent('completed', true, [
+            'user_id'  => $user->id,
+            'phone'    => $user->phone,
+            'email'    => $user->email,
+            'category' => $category,
+            'metadata' => [
+                'role'       => $user->role,
+                'is_active'  => $user->is_active,
+                'reg_status' => $user->reg_status,
+            ],
+        ]);
 
+        SecurityAuditService::log('USER_REGISTERED', [
+            'user_id'    => $user->id,
+            'identifier' => $user->phone ?: $user->email,
+            'role'       => $user->role,
+        ], 'info');
+
+        // Automatically authenticate user so they have base user access right away
+        \Illuminate\Support\Facades\Auth::login($user, true);
+
+        if ($isCustomer) {
             return response()->json([
                 'success'      => true,
                 'redirect_url' => route('my-account'),
-                'message'      => 'আপনার কাস্টমার অ্যাকাউন্ট সফলভাবে তৈরি ও সক্রিয় হয়েছে!',
+                'message'      => 'আপনার অ্যাকাউন্ট সফলভাবে তৈরি ও সক্রিয় হয়েছে!',
                 'is_approved'  => true,
             ]);
         }
 
-        // Format role label for pending notice
+        // Format role label for partner pending notice
         $typeLabels = [
             'author'    => 'লেখক (Author)',
             'publisher' => 'প্রকাশক (Publisher)',
@@ -519,10 +649,10 @@ class RegistrationController extends Controller
         $typeLabel = $typeLabels[$category] ?? ucfirst($category);
 
         try {
-            $pendingMsg = "আইডিয়া প্রকাশন — আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে অ্যাকাউন্টটি সক্রিয় হবে। হেল্পলাইন: 01726976982";
-            \App\Services\SmsService::send($user->phone, $pendingMsg);
+            $pendingMsg = "আইডিয়া প্রকাশন — আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে দায়িত্বপ্রাপ্ত হবেন। হেল্পলাইন: 01726976982";
+            SmsService::send($user->phone, $pendingMsg);
         } catch (\Throwable $smsEx) {
-            \Illuminate\Support\Facades\Log::warning("Partner pending SMS note: " . $smsEx->getMessage());
+            Log::warning("Partner pending SMS note: " . $smsEx->getMessage());
         }
 
         session(['registration_summary' => [
@@ -532,7 +662,7 @@ class RegistrationController extends Controller
             'phone'          => $user->phone,
             'type'           => $category,
             'type_label'     => $typeLabel,
-            'is_active'      => false,
+            'is_active'      => true,
             'reg_status'     => 'pending',
             'created_at'     => now()->format('d M, Y - h:i A'),
             'shop_name'      => $regData['shop_name'] ?? null,
@@ -543,7 +673,7 @@ class RegistrationController extends Controller
         return response()->json([
             'success'      => true,
             'redirect_url' => route('register.success'),
-            'message'      => "আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে অ্যাকাউন্টটি সক্রিয় হবে।",
+            'message'      => "আপনার অ্যাকাউন্ট তৈরি হয়েছে! আপনার {$typeLabel} দায়িত্বপ্রাপ্তির বিষয়টি এডমিনের অনুমোদনের জন্য অপেক্ষমাণ রয়েছে (সর্বোচ্চ ২৪ ঘণ্টার মধ্যে অনুমোদিত হবে)।",
             'is_approved'  => false,
             'pending'      => true,
         ]);

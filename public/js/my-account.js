@@ -126,6 +126,17 @@ function previewKycPhoto(input) {
     }
 }
 
+function toggleKycRoleFields(role) {
+    const r = (role || '').toLowerCase();
+    const authorEl = document.getElementById('kycAuthorFields');
+    const publisherEl = document.getElementById('kycPublisherFields');
+    const sellerEl = document.getElementById('kycSellerFields');
+
+    if (authorEl) authorEl.classList.toggle('d-none', r !== 'author');
+    if (publisherEl) publisherEl.classList.toggle('d-none', r !== 'publisher');
+    if (sellerEl) sellerEl.classList.toggle('d-none', r !== 'seller');
+}
+
 // Browser Back/Forward navigation support
 window.addEventListener('popstate', function(e) {
     if (e.state && e.state.panel && e.state.panel !== 'hub') {
@@ -152,4 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (initialTab) {
         openSectionPanel(initialTab);
     }
+
+    const kycRoleSelect = document.getElementById('kycRequestedRoleSelect');
+    if (kycRoleSelect) {
+        toggleKycRoleFields(kycRoleSelect.value);
+    }
 });
+

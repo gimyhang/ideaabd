@@ -4,6 +4,15 @@
      * Includes spotlight search filter, quick favorites strip, and auto-scroll.
      */
     $pending = $adminPendingRegistrations ?? (\Illuminate\Support\Facades\Schema::hasTable('users') ? \App\Models\User::where('reg_status', 'pending')->count() : 0);
+    $pendingAuthors = \Illuminate\Support\Facades\Schema::hasTable('users')
+        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'))->count()
+        : 0;
+    $pendingPublishers = \Illuminate\Support\Facades\Schema::hasTable('users')
+        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'publisher')->orWhere('reg_type', 'publisher'))->count()
+        : 0;
+    $pendingSellers = \Illuminate\Support\Facades\Schema::hasTable('users')
+        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'seller')->orWhere('reg_type', 'seller'))->count()
+        : 0;
     $pendingPayouts = \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests')
         ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count()
         : 0;
@@ -66,15 +75,21 @@
             ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Book Requests'],
         ],
         'User Management' => [
-            ['route' => 'admin.users',                 'icon' => 'users',          'label' => 'Users'],
-            ['route' => 'admin.customers',             'icon' => 'user-tag',       'label' => 'Customers'],
-            ['route' => 'admin.event-campaigns.index', 'icon' => 'calendar-check',  'label' => 'Campaigns'],
-            ['route' => 'admin.registrations.index',   'icon' => 'user-check',     'label' => 'Approvals',
+            ['route' => 'admin.users',                   'icon' => 'users',           'label' => 'Users'],
+            ['route' => 'admin.registrations.authors',   'icon' => 'feather-pointed', 'label' => 'Authors',
+             'badge' => $pendingAuthors > 0 ? $pendingAuthors : null, 'badgeClass' => 'bg-success text-white'],
+            ['route' => 'admin.registrations.publishers','icon' => 'building',        'label' => 'Publishers',
+             'badge' => $pendingPublishers > 0 ? $pendingPublishers : null, 'badgeClass' => 'bg-info text-white'],
+            ['route' => 'admin.registrations.sellers',   'icon' => 'store',           'label' => 'Sellers',
+             'badge' => $pendingSellers > 0 ? $pendingSellers : null, 'badgeClass' => 'bg-primary text-white'],
+            ['route' => 'admin.registrations.customers', 'icon' => 'user-tag',        'label' => 'Customers'],
+            ['route' => 'admin.registrations.approvals', 'icon' => 'user-check',      'label' => 'Approvals',
              'badge' => $pending > 0 ? $pending : null, 'badgeClass' => 'bg-danger text-white'],
-            ['route' => 'admin.tickets.index',         'icon' => 'ticket',         'label' => 'Support Tickets CRM'],
-            ['route' => 'admin.users.security.index',  'icon' => 'shield-halved',  'label' => 'Login Security & OTP',
+            ['route' => 'admin.users.security.index',    'icon' => 'shield-halved',   'label' => 'Security',
              'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
-            ['route' => 'admin.sub-admins.index',      'icon' => 'user-shield',    'label' => 'Sub-Admins'],
+            ['route' => 'admin.sub-admins.index',        'icon' => 'user-shield',     'label' => 'Staff'],
+            ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns'],
+            ['route' => 'admin.tickets.index',           'icon' => 'ticket',          'label' => 'Tickets'],
         ],
         'Administration' => [
             ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Multi-Currency & FX'],
@@ -138,6 +153,11 @@
         'admin.tickets.index' => 'support.view',
         'admin.users.security.index' => 'security.sessions',
         'admin.registrations.index' => 'users.view',
+        'admin.registrations.authors' => 'users.view',
+        'admin.registrations.publishers' => 'users.view',
+        'admin.registrations.sellers' => 'users.view',
+        'admin.registrations.customers' => 'users.view',
+        'admin.registrations.approvals' => 'users.view',
         'admin.sub-admins.index' => 'roles.manage',
         'admin.roles.index' => 'roles.manage',
         'admin.currencies.index' => 'settings.manage',

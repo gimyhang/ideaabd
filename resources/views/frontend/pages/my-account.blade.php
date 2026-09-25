@@ -248,11 +248,94 @@
                 </div>
             </div>
 
+            {{-- Dynamic KYC & Profile Enhancement Banner --}}
+            <div class="card border-0 rounded-4 p-3.5 mb-4 shadow-sm" 
+                 style="background: linear-gradient(135deg, #07192f 0%, #0c3547 50%, #004d40 100%); color: #ffffff;">
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; flex-shrink: 0;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold font-monospace" 
+                                 style="width: 54px; height: 54px; background: rgba(255,255,255,0.12); border: 2.5px solid {{ $kycPercent >= 80 ? '#10b981' : '#f59e0b' }}; font-size: 15px; color: #ffffff;">
+                                {{ $kycPercent }}%
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                <h5 class="fw-bold mb-0 text-white" style="font-size: 17px;">
+                                    কেওয়াইসি (KYC) ও প্রোফাইল ভেরিফিকেশন
+                                </h5>
+                                @if($kycPercent >= 100)
+                                    <span class="badge bg-success rounded-pill px-2.5 py-1 text-white" style="font-size: 11px;">
+                                        <i class="fa-solid fa-circle-check me-1"></i> সম্পন্ন
+                                    </span>
+                                @else
+                                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                        <i class="fa-solid fa-clock-rotate-left me-1"></i> {{ $kycPercent }}% সম্পন্ন
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="mb-0 text-white-50 small" style="font-size: 13px; line-height: 1.45;">
+                                @if($kycPercent >= 100)
+                                    আপনার অ্যাকাউন্ট কেওয়াইসি তথ্য সম্পূর্ণ রয়েছে। যে কোনো সময় তথ্য পরিবর্তন বা উন্নত করতে পারেন।
+                                @else
+                                    কেওয়াইসি ও ভূমিকা তথ্য উন্নত করলে ভেরিফাইড ব্যাজ, রয়্যালটি পেমেন্ট এবং লেখক/প্রকাশক সুবিধা দ্রুত কার্যকর হবে।
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow-sm" onclick="openSectionPanel('kyc')" style="font-size: 13.5px;">
+                            <i class="fa-solid fa-id-card"></i>
+                            <span>কেওয়াইসি উন্নত / আপডেট করুন</span>
+                            <i class="fa-solid fa-arrow-right small"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Interactive KYC Mini Progress Checklist --}}
+                <div class="mt-3 pt-2.5 border-top d-flex flex-wrap gap-2 gap-md-3" style="border-color: rgba(255,255,255,0.15) !important; font-size: 12px;">
+                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['photo'] ? 'text-white' : 'text-white-50' }}">
+                        <i class="fa-solid {{ $kycItems['photo'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
+                        <span>প্রোফাইল ছবি</span>
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['name'] ? 'text-white' : 'text-white-50' }}">
+                        <i class="fa-solid {{ $kycItems['name'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
+                        <span>পূর্ণাঙ্গ নাম</span>
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['bio'] ? 'text-white' : 'text-white-50' }}">
+                        <i class="fa-solid {{ $kycItems['bio'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
+                        <span>পরিচিতি / বায়ো</span>
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['nid'] ? 'text-white' : 'text-white-50' }}">
+                        <i class="fa-solid {{ $kycItems['nid'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
+                        <span>এনআইডি / লাইসেন্স</span>
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['address'] ? 'text-white' : 'text-white-50' }}">
+                        <i class="fa-solid {{ $kycItems['address'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
+                        <span>ডেলিভারি ঠিকানা</span>
+                    </span>
+                </div>
+            </div>
+
             {{-- ───────────────────────────────────────────────────────────────── --}}
             {{-- THE SIGNATURE AMAZON 3-COLUMN SERVICE CARDS GRID (12 CARDS)        --}}
             {{-- ───────────────────────────────────────────────────────────────── --}}
             <div class="amz-cards-grid">
                 
+                <!-- CARD: KYC & Verification -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('kyc')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('kyc')">
+                    <div class="amz-icon-holder ic-security" style="background: #e0f2fe; color: #0284c7;">
+                        <i class="fa-solid fa-id-card" style="font-size: 26px;"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline d-flex align-items-center justify-content-between">
+                            <span>KYC & Verification</span>
+                            <span class="badge {{ $kycPercent >= 80 ? 'bg-success' : 'bg-warning text-dark' }} rounded-pill" style="font-size: 11px;">{{ $kycPercent }}%</span>
+                        </div>
+                        <p class="amz-card-summary">Update identity, author/publisher/seller details, NID, and payout methods</p>
+                    </div>
+                </div>
+
                 <!-- CARD 1: Your Orders -->
                 <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('orders')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('orders')">
                     <div class="amz-icon-holder ic-orders">
@@ -1082,27 +1165,48 @@
         <!-- PANEL: KYC Verification -->
         <div class="amz-subpage-panel {{ $activeTab === 'kyc' ? 'active' : '' }}" id="panel_kyc" style="{{ $activeTab === 'kyc' ? 'display: block !important;' : 'display: none !important;' }}">
             <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 800px;">
+            <div class="card p-4 border rounded-3 bg-white" style="max-width: 840px;">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">Identity & KYC Verification</h4>
-                        <small class="text-muted">Provide your details for verified author/publisher blue badge</small>
+                        <h4 class="fw-bold mb-0 text-dark">Identity & KYC Verification (কেওয়াইসি ও ভেরিফিকেশন)</h4>
+                        <small class="text-muted">আপনার পরিচয়, ভূমিকা ও যোগাযোগের তথ্য আপডেট করে অ্যাকাউন্ট উন্নত করুন</small>
                     </div>
                     @if($isApproved)
                         <span class="badge bg-success text-white px-3 py-1.5 rounded-pill"><i class="fa-solid fa-shield-check me-1"></i> Verified Account</span>
                     @elseif($isPending)
                         <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill"><i class="fa-solid fa-clock-rotate-left me-1"></i> Under Review</span>
                     @else
-                        <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill"><i class="fa-solid fa-circle-xmark me-1"></i> Incomplete</span>
+                        <span class="badge bg-secondary text-white px-3 py-1.5 rounded-pill"><i class="fa-solid fa-circle-info me-1"></i> Incomplete ({{ $kycPercent }}%)</span>
                     @endif
                 </div>
 
                 <form action="{{ route('my-account.kyc.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
-                    {{-- Profile Photo --}}
-                    <div class="mb-4 d-flex align-items-center gap-4">
-                        <div style="width: 76px; height: 76px; border-radius: 50%; overflow: hidden; background: #e0f2fe; border: 2px solid #007185; flex-shrink: 0;" class="d-flex align-items-center justify-content-center">
+                    {{-- Role Selection & Desired Responsibility --}}
+                    @php
+                        $currentRole = $user->reg_type ?: ($user->role ?: 'buyer');
+                        if ($currentRole === 'customer') $currentRole = 'buyer';
+                    @endphp
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <label class="form-label fw-bold text-dark small mb-1" for="kycRequestedRoleSelect">
+                            আপনার ভূমিকা / কাঙ্ক্ষিত একাউন্ট ক্যাটাগরি (Account Role) <span class="text-danger">*</span>
+                        </label>
+                        <select name="requested_role" id="kycRequestedRoleSelect" class="form-select fw-semibold" onchange="toggleKycRoleFields(this.value)">
+                            <option value="buyer" @selected($currentRole === 'buyer')>🛍️ ১. সাধারণ পাঠক / ক্রেতা (Customer / Reader)</option>
+                            <option value="author" @selected($currentRole === 'author')>✍️ ২. লেখক ও গবেষক (Author & Researcher)</option>
+                            <option value="publisher" @selected($currentRole === 'publisher')>🏢 ৩. প্রকাশক ও প্রকাশনী (Publisher)</option>
+                            <option value="seller" @selected($currentRole === 'seller')>🏪 ৪. সেলার / বুকশপ বিক্রেতা (Seller / Bookshop)</option>
+                        </select>
+                        <small class="text-muted d-block mt-1.5" style="font-size: 11.5px; line-height: 1.4;">
+                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
+                            সাধারণ পাঠক হিসেবে কেনাকাটা করার পাশাপাশি লেখক, প্রকাশক বা সেলার হিসেবে দায়িত্ব পেতে চাইলে এখান থেকে ভূমিকা নির্বাচন করে প্রয়োজনীয় তথ্য সাবমিট করুন। অ্যাডমিন অনুমোদনের পর বিশেষ ফিচারগুলো সক্রিয় হবে।
+                        </small>
+                    </div>
+
+                    {{-- 1. Profile Photo --}}
+                    <div class="mb-4 d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
+                        <div style="width: 74px; height: 74px; border-radius: 50%; overflow: hidden; background: #e0f2fe; border: 2px solid #007185; flex-shrink: 0;" class="d-flex align-items-center justify-content-center">
                             @if($user->avatar)
                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" alt="{{ $user->name }}" id="kycAvatarPreview" class="w-100 h-100 object-fit-cover">
                             @else
@@ -1110,68 +1214,144 @@
                                 <span id="kycAvatarPlaceholder" class="fs-2 text-primary fw-bold">{{ mb_substr($user->name, 0, 1) }}</span>
                             @endif
                         </div>
-                        <div>
-                            <label class="form-label fw-bold text-dark small mb-1">প্রোফাইল / লেখকের ছবি</label>
+                        <div class="flex-grow-1">
+                            <label class="form-label fw-bold text-dark small mb-1">প্রোফাইল ছবি / অফিসিয়াল ফটো</label>
                             <input type="file" name="avatar" class="form-control form-control-sm" accept="image/*" onchange="previewKycPhoto(this)">
-                            <small class="text-muted">JPG, PNG, WebP ফরম্যাটে সর্বোচ্চ ৫MB</small>
+                            <small class="text-muted" style="font-size: 11px;">JPG, PNG, WebP ফরম্যাটে সর্বোচ্চ ৫MB</small>
                         </div>
                     </div>
 
-                    {{-- Names --}}
+                    {{-- 2. Basic Identification & Names --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">লেখকের নাম (বাংলা)</label>
+                            <label class="form-label fw-bold text-dark small">পুরো নাম (বাংলায়)</label>
                             <input type="text" name="name_bn" class="form-control" placeholder="যেমন: শাকিল মাসুদ" value="{{ old('name_bn', $regData['name_bn'] ?? $user->name) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">লেখকের নাম (ইংরেজি)</label>
+                            <label class="form-label fw-bold text-dark small">Full Name (English)</label>
                             <input type="text" name="name_en" class="form-control" placeholder="e.g. Shakil Masud" value="{{ old('name_en', $regData['name_en'] ?? '') }}">
                         </div>
                     </div>
 
-                    {{-- Pen Name & Bio --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small">ছদ্মনাম (যদি থাকে)</label>
-                        <input type="text" name="pen_name" class="form-control" placeholder="ঐচ্ছিক" value="{{ old('pen_name', $regData['pen_name'] ?? '') }}">
+                    {{-- 3. Dynamic Author Specific Group --}}
+                    <div id="kycAuthorFields" class="{{ $currentRole === 'author' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #f0fdf4; border-color: #86efac !important;">
+                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
+                            <i class="fa-solid fa-feather-pointed text-success fs-5"></i>
+                            <strong class="text-dark small">লেখক প্রোফাইল ও সাহিত্য পরিচিতি</strong>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small">কলমনাম / ছদ্মনাম (যদি থাকে)</label>
+                            <input type="text" name="pen_name" class="form-control" placeholder="যেমন: যাযাবর, বনফুল (ঐচ্ছিক)" value="{{ old('pen_name', $regData['pen_name'] ?? '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small">সাহিত্য শাখা (Genres / Topics)</label>
+                            <input type="text" name="genres[]" class="form-control" placeholder="যেমন: কবিতা, কথাসাহিত্য, ইতিহাস, উপন্যাস..." value="{{ old('genres', is_array($regData['genres'] ?? null) ? implode(', ', $regData['genres']) : ($regData['genres'] ?? '')) }}">
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label fw-bold text-dark small">সংক্ষিপ্ত লেখক পরিচিতি / সাহিত্যিক বায়ো</label>
+                            <textarea name="bio" class="form-control" rows="3" placeholder="আপনার প্রকাশিত গ্রন্থ, সাহিত্যকর্ম ও সাহিত্যচর্চার সংক্ষিপ্ত পরিচিতি লিখুন...">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold text-dark small">সংক্ষিপ্ত লেখক পরিচিতি / বায়ো</label>
-                        <textarea name="bio" class="form-control" rows="4" placeholder="আপনার সাহিত্য চর্চা বা প্রকাশিত বই সম্পর্কে লিখুন...">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
+                    {{-- 4. Dynamic Publisher Specific Group --}}
+                    <div id="kycPublisherFields" class="{{ $currentRole === 'publisher' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #fdf2f8; border-color: #fbcfe8 !important;">
+                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
+                            <i class="fa-solid fa-building text-danger fs-5"></i>
+                            <strong class="text-dark small">প্রকাশক ও প্রকাশনা প্রতিষ্ঠানের বিবরণ</strong>
+                        </div>
+                        <div class="row g-3 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">প্রকাশনীর নাম (Publishing House)</label>
+                                <input type="text" name="publisher_name" class="form-control" placeholder="যেমন: আইডিয়া প্রকাশন" value="{{ old('publisher_name', $regData['publisher_name'] ?? ($regData['publishing_house_name'] ?? '')) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">প্রতিষ্ঠার সাল (Established Year)</label>
+                                <input type="text" name="established" class="form-control" placeholder="যেমন: 2015" value="{{ old('established', $regData['established'] ?? '') }}">
+                            </div>
+                        </div>
+                        <div class="mb-1">
+                            <label class="form-label fw-bold text-dark small">ট্রেড লাইসেন্স বা প্রকাশনা নিবন্ধন নম্বর</label>
+                            <input type="text" name="trade_license" class="form-control" placeholder="e.g. TRAD/DNCC/12345" value="{{ old('trade_license', $regData['trade_license'] ?? '') }}">
+                        </div>
                     </div>
 
-                    {{-- NID Verification --}}
+                    {{-- 5. Dynamic Seller Specific Group --}}
+                    <div id="kycSellerFields" class="{{ $currentRole === 'seller' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #eff6ff; border-color: #bfdbfe !important;">
+                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
+                            <i class="fa-solid fa-store text-primary fs-5"></i>
+                            <strong class="text-dark small">বুকশপ ও বিক্রেতা বিবরণ</strong>
+                        </div>
+                        <div class="row g-3 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">দোকান / বুকশপের নাম (Shop Name)</label>
+                                <input type="text" name="shop_name" class="form-control" placeholder="যেমন: আল-মদিনা বুক সেন্টার" value="{{ old('shop_name', $regData['shop_name'] ?? '') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">দোকানের ট্রেড লাইসেন্স নম্বর</label>
+                                <input type="text" name="trade_license" class="form-control" placeholder="e.g. TRAD/XYZ/12345" value="{{ old('trade_license', $regData['trade_license'] ?? '') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 6. Address Information (For Delivery & Business Location) --}}
+                    <div class="mb-3">
+                        <div class="fw-bold text-dark small mb-2"><i class="fa-solid fa-location-dot me-1 text-danger"></i> যোগাযোগের সম্পূর্ণ ঠিকানা</div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-muted">জেলা (District)</label>
+                                <input type="text" name="district" class="form-control" placeholder="যেমন: ঢাকা, রংপুর..." value="{{ old('district', $regData['district'] ?? ($defaultAddress['district'] ?? '')) }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-muted">থানা / উপজেলা (Thana)</label>
+                                <input type="text" name="thana" class="form-control" placeholder="যেমন: ধানমন্ডি, কোতোয়ালি..." value="{{ old('thana', $regData['thana'] ?? ($defaultAddress['thana'] ?? '')) }}">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label fw-semibold small text-muted">বিস্তারিত সড়ক / হাউজ ঠিকানা (Street Address)</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="বাড়ি নং, রোড নং, এরিয়া...">{{ old('address', $regData['address'] ?? ($defaultAddress['address'] ?? '')) }}</textarea>
+                        </div>
+                    </div>
+
+                    {{-- 7. National ID (NID) Verification --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark small">জাতীয় পরিচয়পত্র (NID) নম্বর</label>
-                            <input type="text" name="nid" class="form-control" placeholder="১০ বা ১৭ ডিজিটের নম্বর" value="{{ old('nid', $regData['nid'] ?? '') }}">
+                            <input type="text" name="nid" class="form-control" placeholder="১০ বা ১৭ ডিজিটের NID নম্বর" value="{{ old('nid', $regData['nid'] ?? '') }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark small">NID কার্ডের স্ক্যান কপি (PDF/Image)</label>
                             <input type="file" name="nid_file" class="form-control" accept="image/*,.pdf">
+                            @if(!empty($regData['nid_file']))
+                                <small class="text-success d-block mt-1"><i class="fa-solid fa-circle-check"></i> ডকুমেন্ট পূর্বে আপলোড করা হয়েছে</small>
+                            @endif
                         </div>
                     </div>
 
-                    {{-- Payout Settings --}}
+                    {{-- 8. Payout & Royalty Settlement Settings --}}
                     <div class="row g-3 mb-4">
                         <div class="col-md-5">
-                            <label class="form-label fw-bold text-dark small">রয়্যালটি গ্রহণের মাধ্যম</label>
+                            <label class="form-label fw-bold text-dark small">রয়্যালটি / পেমেন্ট গ্রহণের মাধ্যম</label>
                             <select name="payout_account_type" class="form-select">
-                                <option value="bkash" {{ ($regData['payout_type'] ?? '') === 'bkash' ? 'selected' : '' }}>বিকাশ</option>
-                                <option value="nagad" {{ ($regData['payout_type'] ?? '') === 'nagad' ? 'selected' : '' }}>নগদ</option>
-                                <option value="rocket" {{ ($regData['payout_type'] ?? '') === 'rocket' ? 'selected' : '' }}>রকেট</option>
-                                <option value="bank" {{ ($regData['payout_type'] ?? '') === 'bank' ? 'selected' : '' }}>ব্যাংক অ্যাকাউন্ট</option>
+                                <option value="bkash" {{ ($regData['payout_type'] ?? '') === 'bkash' ? 'selected' : '' }}>বিকাশ (bKash Personal/Merchant)</option>
+                                <option value="nagad" {{ ($regData['payout_type'] ?? '') === 'nagad' ? 'selected' : '' }}>নগদ (Nagad)</option>
+                                <option value="rocket" {{ ($regData['payout_type'] ?? '') === 'rocket' ? 'selected' : '' }}>রকেট (Rocket)</option>
+                                <option value="bank" {{ ($regData['payout_type'] ?? '') === 'bank' ? 'selected' : '' }}>ব্যাংক অ্যাকাউন্ট (Bank Account)</option>
                             </select>
                         </div>
                         <div class="col-md-7">
-                            <label class="form-label fw-bold text-dark small">অ্যাকাউন্ট নম্বর / বিস্তারিত</label>
-                            <input type="text" name="payout_account_details" class="form-control" placeholder="যেমন: 017XXXXXXXX" value="{{ old('payout_account_details', $regData['payout_details'] ?? '') }}">
+                            <label class="form-label fw-bold text-dark small">অ্যাকাউন্ট নম্বর ও ব্যাংকের বিস্তারিত</label>
+                            <input type="text" name="payout_account_details" class="form-control" placeholder="যেমন: 017XXXXXXXX বা ব্যাংক নাম, শাখা ও A/C No" value="{{ old('payout_account_details', $regData['payout_details'] ?? '') }}">
                         </div>
                     </div>
 
-                    <button type="submit" class="amz-btn-gold">
-                        সংরক্ষণ ও জমা দিন
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="submit" class="amz-btn-gold">
+                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> কেওয়াইসি তথ্য সংরক্ষণ ও জমা দিন
+                        </button>
+                        <button type="button" class="amz-btn-silver" onclick="closeAllPanels()">
+                            বাতিল
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

@@ -73,12 +73,9 @@ Route::get('/ads.txt', function () {
     ]);
 })->name('ads.txt');
 
-// --- Auth routes (login / logout / registration) --------------------------------------------
+// --- Auth routes (login / logout) --------------------------------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
-Route::get('/register/author', fn() => redirect('/login?mode=register&category=author'))->name('register.author');
-Route::get('/register/publisher', fn() => redirect('/login?mode=register&category=publisher'))->name('register.publisher');
-Route::get('/register', fn() => redirect('/login?mode=register'))->name('register');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
@@ -268,19 +265,26 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
     return redirect()->back()->with('success', 'আপনার বার্তাটি সফলভাবে পাঠানো হয়েছে! আমাদের টিম দ্রুতই আপনার সাথে যোগাযোগ করবে।');
 })->name('contact.submit');
 
-// --- Registration & CAPTCHA routes ---------------------------------------
+// --- Registration & CAPTCHA routes (Consolidated & Throttled) -----------------
+Route::get('/auth/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('auth.csrf-token');
 Route::get('/auth/captcha/generate', [CaptchaController::class, 'generate'])->name('auth.captcha.generate');
 Route::post('/auth/captcha/verify', [CaptchaController::class, 'verify'])->name('auth.captcha.verify');
 
-Route::get('/register', fn() => redirect('/login?mode=register'))->name('register.choose');
-Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->name('register.complete');
-Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
-Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->name('register.send-email-otp');
-Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->name('register.verify-email-otp');
-Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->name('register.send-otp');
-Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->name('register.verify-otp');
-Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&category=' . $type))->name('register.form');
+Route::get('/register', fn() => redirect('/login?mode=register'))->name('register');
+Route::get('/register/choose', fn() => redirect('/login?mode=register'))->name('register.choose');
+Route::get('/register/author', fn() => redirect('/login?mode=register&role=author'))->name('register.author');
+Route::get('/register/publisher', fn() => redirect('/login?mode=register&role=publisher'))->name('register.publisher');
+Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&role=' . $type))->name('register.form');
 Route::post('/register/{type}', [RegistrationController::class, 'register'])->name('register.submit');
+
+Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->middleware('throttle:10,1')->name('register.complete');
+Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
+Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->middleware('throttle:5,1')->name('register.send-email-otp');
+Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->middleware('throttle:10,1')->name('register.verify-email-otp');
+Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->middleware('throttle:5,1')->name('register.send-otp');
+Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.verify-otp');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
 
 // --- User Account & Portal (Buyer / Customer) --------------------------------
@@ -601,6 +605,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Registration approval (admin only)
     Route::prefix('registrations')->name('registrations.')->controller(RegistrationApprovalController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/authors', 'authors')->name('authors');
+        Route::get('/publishers', 'publishers')->name('publishers');
+        Route::get('/sellers', 'sellers')->name('sellers');
+        Route::get('/customers', 'customers')->name('customers');
+        Route::get('/approvals', 'approvals')->name('approvals');
         Route::get('/{user}/details', 'details')->name('details');
         Route::get('/{user}', 'show')->name('show');
         Route::get('/{user}/edit', 'edit')->name('edit');

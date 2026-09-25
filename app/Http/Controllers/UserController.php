@@ -405,9 +405,21 @@ class UserController extends Controller
             'address'                => 'nullable|string|max:500',
             'district'               => 'nullable|string|max:100',
             'thana'                  => 'nullable|string|max:100',
+            'requested_role'         => 'nullable|string|in:buyer,customer,author,publisher,seller',
         ]);
 
         $regData = is_array($user->reg_data) ? $user->reg_data : [];
+
+        // Handle Requested Role Change/Upgrade from KYC
+        if (!empty($validated['requested_role'])) {
+            $targetRole = ($validated['requested_role'] === 'customer') ? 'buyer' : $validated['requested_role'];
+            $regData['category'] = $targetRole;
+            if ($targetRole !== 'buyer' && $user->role !== $targetRole) {
+                $user->reg_type = $targetRole;
+                $user->reg_status = 'pending';
+                $role = $targetRole;
+            }
+        }
 
         // 1. Handle Avatar Upload
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {

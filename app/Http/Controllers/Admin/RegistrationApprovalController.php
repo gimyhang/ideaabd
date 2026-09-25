@@ -13,6 +13,37 @@ use Illuminate\Support\Str;
 
 class RegistrationApprovalController extends Controller
 {
+    // Dedicated role-specific & approval queue endpoints for separate admin menu navigation
+    public function authors(Request $request)
+    {
+        $request->merge(['type' => 'author']);
+        return $this->index($request);
+    }
+
+    public function publishers(Request $request)
+    {
+        $request->merge(['type' => 'publisher']);
+        return $this->index($request);
+    }
+
+    public function sellers(Request $request)
+    {
+        $request->merge(['type' => 'seller']);
+        return $this->index($request);
+    }
+
+    public function customers(Request $request)
+    {
+        $request->merge(['type' => 'buyer']);
+        return $this->index($request);
+    }
+
+    public function approvals(Request $request)
+    {
+        $request->merge(['status' => 'pending']);
+        return $this->index($request);
+    }
+
     // List all registrations with rich filtering & stats
     public function index(Request $request)
     {
@@ -405,7 +436,13 @@ class RegistrationApprovalController extends Controller
     // Approve Registration
     public function approve(Request $request, User $user)
     {
+        $targetRole = in_array($user->reg_type, ['author', 'publisher', 'seller', 'buyer', 'customer']) ? $user->reg_type : $user->role;
+        if ($targetRole === 'buyer') {
+            $targetRole = 'customer';
+        }
+
         $user->update([
+            'role'             => $targetRole,
             'reg_status'       => User::STATUS_APPROVED,
             'is_active'        => true,
             'approved_by'      => auth()->id(),

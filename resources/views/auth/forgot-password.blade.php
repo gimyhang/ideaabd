@@ -362,7 +362,7 @@
             <a href="{{ url('/pages/privacy') }}" class="footer-link-item">Privacy Notice</a>
             <a href="{{ url('/pages/help') }}" class="footer-link-item">Help</a>
         </div>
-        <p class="footer-copy">© {{ date('Y') }}, Idea Publication or its affiliates. All rights reserved.</p>
+        <p class="footer-copy">&copy; 2020-26, Shakil Masud, idea prokashon</p>
     </footer>
 
 </div>

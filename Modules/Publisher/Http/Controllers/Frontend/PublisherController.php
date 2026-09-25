@@ -39,24 +39,9 @@ class PublisherController extends Controller
     /**
      * Display publisher registration page with all country codes and publication genres.
      */
-    public function register(): View
+    public function register()
     {
-        $countries = $this->getAllCountryCodes();
-
-        $publisherCategories = [
-            'সাহিত্য, কবিতা ও কথাসাহিত্য (Literature & Fiction)',
-            'একাডেমিক ও পাঠ্যপুস্তক (Academic & Textbooks)',
-            'শিশু-কিশোর সাহিত্য (Children & Juvenile)',
-            'ইসলামিক ও ধর্মীয় গবেষণা (Islamic & Religious Studies)',
-            'ইতিহাস, রাজনীতি ও সমাজতত্ত্ব (History, Politics & Sociology)',
-            'বিজ্ঞান, প্রযুক্তি ও চিকিৎসা (Science & Technology)',
-            'অনুবাদ ও বিশ্বসাহিত্য (Translation & World Classics)',
-            'আত্মউন্নয়ন ও ক্যারিয়ার (Self-Help & Business)',
-            'রম্য, থ্রিলার ও গোয়েন্দা কাহিনী (Humor & Thriller)',
-            'শিল্পকলা, নাটক ও সংস্কৃতি (Art & Culture)',
-        ];
-
-        return view('publisher::register', compact('countries', 'publisherCategories'));
+        return redirect()->to(route('login', ['mode' => 'register', 'role' => 'publisher']));
     }
 
     /**

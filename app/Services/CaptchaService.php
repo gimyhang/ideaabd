@@ -65,6 +65,7 @@ class CaptchaService
         return [
             'token'      => $token,
             'image'      => $base64Image,
+            'length'     => strlen($code),
             'expires_in' => self::EXPIRATION_SECONDS,
         ];
     }
