@@ -138,6 +138,7 @@
                 <div class="col-6 col-md-2">
                     <select name="status" class="form-select bg-light">
                         <option value="">All Status</option>
+                        <option value="selected" {{ request('status') == 'selected' ? 'selected' : '' }}>★ Selected (Scholarship)</option>
                         <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="attended" {{ request('status') == 'attended' ? 'selected' : '' }}>Attended</option>
@@ -180,6 +181,9 @@
                 <span class="badge bg-light text-muted border font-monospace">{{ $perPage }} per page</span>
             </div>
             <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#cardDesignModal">
+                    <i class="fa-solid fa-palette me-1"></i> Card Background & Design
+                </button>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#tableSettingsModal">
                     <i class="fa-solid fa-table-columns me-1"></i> Columns & Rows
                 </button>
@@ -284,17 +288,75 @@
                                 @endif
                             </td>
                             <td class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}">
-                                <span class="badge {{ $reg->status === 'confirmed' ? 'bg-success-subtle text-success' : ($reg->status === 'attended' ? 'bg-info-subtle text-info' : 'bg-secondary-subtle text-secondary') }}">
-                                    {{ ucfirst($reg->status) }}
-                                </span>
+                                @if($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded']))
+                                    <span class="badge bg-success text-white shadow-xs">
+                                        <i class="fa-solid fa-award me-1"></i> Selected
+                                    </span>
+                                @else
+                                    <span class="badge {{ $reg->status === 'confirmed' ? 'bg-success-subtle text-success' : ($reg->status === 'attended' ? 'bg-info-subtle text-info' : 'bg-secondary-subtle text-secondary') }}">
+                                        {{ ucfirst($reg->status) }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="text-muted small col-date {{ in_array('date', $visibleCols) ? '' : 'd-none' }}">
                                 {{ $reg->created_at->format('d M, Y') }}
                             </td>
                             <td class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}">
-                                <div class="d-inline-flex gap-1">
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    @php
+                                        $isScholarshipCampaign = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+                                    @endphp
+
+                                    @if($isScholarshipCampaign)
+                                        {{-- Toggle Scholarship Selection Button (বৃত্তিপ্রাপ্ত নির্বাচিত বাটন) --}}
+                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-scholarship', $reg->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @if($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded']))
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Selected for Scholarship (Click to Remove)">
+                                                    <i class="fa-solid fa-award me-1"></i> Awarded
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Select / Award Scholarship">
+                                                    <i class="fa-solid fa-star me-1"></i> Award
+                                                </button>
+                                            @endif
+                                        </form>
+
+                                        {{-- Viva Evaluation (50 Marks) Button --}}
+                                        @php
+                                            $vTotal = $reg->form_data['viva_total'] ?? null;
+                                        @endphp
+                                        <button type="button" class="btn btn-sm {{ $vTotal !== null ? 'btn-info text-white' : 'btn-outline-info' }} rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#vivaModal{{ $reg->id }}" title="Viva Assessment (50 Marks)">
+                                            <i class="fa-solid fa-clipboard-check me-1"></i> {{ $vTotal !== null ? "Viva: {$vTotal}/50" : 'Viva' }}
+                                        </button>
+                                    @else
+                                        {{-- Toggle Delegate Approval Button (অনুমোদন বাটন) --}}
+                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @if($reg->status === 'confirmed' || $reg->status === 'approved' || $reg->status === 'selected')
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Approved (Click to mark Pending)">
+                                                    <i class="fa-solid fa-circle-check me-1"></i> Approved
+                                                </button>
+                                            @else
+                                                <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Click to Approve Participant">
+                                                    <i class="fa-solid fa-check me-1"></i> Approve
+                                                </button>
+                                            @endif
+                                        </form>
+                                    @endif
+
+                                    {{-- Print Form Button --}}
+                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn btn-sm btn-outline-dark rounded-pill px-2 py-1" title="Print Application Form">
+                                        <i class="fa-solid fa-print"></i>
+                                    </a>
+
+                                    {{-- Download PDF Button --}}
+                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1" title="Download PDF Form">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </a>
+
                                     @if(!empty($reg->form_data) && is_array($reg->form_data))
-                                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2 py-1" data-bs-toggle="modal" data-bs-target="#formDataModal{{ $reg->id }}" title="Custom Fields">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1" data-bs-toggle="modal" data-bs-target="#formDataModal{{ $reg->id }}" title="Custom Fields">
                                             <i class="fa-solid fa-list-check"></i>
                                         </button>
                                     @endif
@@ -302,6 +364,95 @@
                                     <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="Edit">
                                         <i class="fa-solid fa-sliders"></i>
                                     </button>
+                                </div>
+
+                                {{-- Viva Assessment Modal (50 Marks) --}}
+                                <div class="modal fade" id="vivaModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered text-start">
+                                        <div class="modal-content rounded-4 border-0 shadow">
+                                            <form action="{{ route('admin.event-campaigns.registrations.viva-evaluation', $reg->id) }}" method="POST" id="vivaForm{{ $reg->id }}">
+                                                @csrf
+                                                <div class="modal-header border-bottom py-3 bg-light">
+                                                    <div>
+                                                        <h6 class="modal-title fw-bold mb-0 text-dark">
+                                                            <i class="fa-solid fa-clipboard-check text-primary me-1"></i> Viva Evaluation (ভাইভা মূল্যায়ন — ৫০ নম্বর)
+                                                        </h6>
+                                                        <small class="text-muted">#{{ $reg->registration_number }} — {{ $reg->name }}</small>
+                                                    </div>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body p-3">
+                                                    <table class="table table-bordered table-sm align-middle mb-3">
+                                                        <thead class="table-light small fw-bold">
+                                                            <tr>
+                                                                <th>মূল্যায়ন সূচক (Assessment Criteria)</th>
+                                                                <th style="width: 25%;">পূর্ণমান</th>
+                                                                <th style="width: 30%;">প্রাপ্ত নম্বর</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>উপস্থিতি (Attendance)</td>
+                                                                <td class="text-center font-monospace">১</td>
+                                                                <td><input type="number" step="0.5" max="1" min="0" name="viva_attendance" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_attendance'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>কাগজপত্র (Documents Verification)</td>
+                                                                <td class="text-center font-monospace">২</td>
+                                                                <td><input type="number" step="0.5" max="2" min="0" name="viva_documents" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_documents'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>পোশাক পরিচ্ছেদ (Attire & Decorum)</td>
+                                                                <td class="text-center font-monospace">১০</td>
+                                                                <td><input type="number" step="0.5" max="10" min="0" name="viva_attire" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_attire'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>ফিউচার প্লান (Future Career Plan)</td>
+                                                                <td class="text-center font-monospace">১০</td>
+                                                                <td><input type="number" step="0.5" max="10" min="0" name="viva_future_plan" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_future_plan'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>পাঠ অভ্যাস (Reading Habits & Books)</td>
+                                                                <td class="text-center font-monospace">১০</td>
+                                                                <td><input type="number" step="0.5" max="10" min="0" name="viva_reading_habit" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_reading_habit'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>স্বেচ্ছাসেবী অভিজ্ঞতা (Volunteer Exp.)</td>
+                                                                <td class="text-center font-monospace">১০</td>
+                                                                <td><input type="number" step="0.5" max="10" min="0" name="viva_volunteer_exp" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_volunteer_exp'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>উপস্থিত বুদ্ধিমত্তা (Presence of Mind / IQ)</td>
+                                                                <td class="text-center font-monospace">৭</td>
+                                                                <td><input type="number" step="0.5" max="7" min="0" name="viva_iq" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_iq'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
+                                                            </tr>
+                                                            <tr class="table-primary fw-bold">
+                                                                <td>সর্বমোট প্রাপ্ত নম্বর (Total Score)</td>
+                                                                <td class="text-center font-monospace">৫০</td>
+                                                                <td class="text-center font-monospace fs-6 text-primary" id="vivaTotalDisplay{{ $reg->id }}">
+                                                                    {{ $reg->form_data['viva_total'] ?? 0 }} / ৫০
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <div class="form-check p-2 bg-light rounded border mb-3">
+                                                        <input class="form-check-input ms-0 me-2" type="checkbox" name="is_awarded" id="awardCheck{{ $reg->id }}" value="1" {{ ($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded'])) ? 'checked' : '' }}>
+                                                        <label class="form-check-label small fw-bold text-success" for="awardCheck{{ $reg->id }}">
+                                                            <i class="fa-solid fa-award me-1"></i> এই শিক্ষার্থীকে শিক্ষাবৃত্তি প্রদান (Selected for Scholarship) হিসেবে নির্বাচন করুন
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                                                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold">
+                                                            <i class="fa-solid fa-save me-1"></i> Save Evaluation
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- Custom Form Data Modal --}}
@@ -535,6 +686,63 @@
                 </div>
             </form>
         </div>
+    {{-- Modal 3: Delegate Card Background & Customizer --}}
+@php
+    $cCardDesign = $campaign->form_settings['card_design'] ?? [];
+    $cBgImg = $cCardDesign['bg_image'] ?? null;
+    $cTheme = $cCardDesign['theme_color'] ?? ($campaign->theme_color ?: '#7f1d1d');
+    $cBadge = $cCardDesign['badge_text'] ?? ($campaign->badge_text ?: 'DELEGATE PASS');
+@endphp
+<div class="modal fade" id="cardDesignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered text-start">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form action="{{ route('admin.event-campaigns.card-design', $campaign->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header border-bottom py-3">
+                    <h6 class="modal-title fw-bold d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-palette text-primary"></i> Delegate Card Design & Background
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    
+                    {{-- Current Card Background Preview --}}
+                    @if($cBgImg)
+                        <div class="mb-3 p-2 border rounded-3 bg-light text-center">
+                            <small class="text-muted d-block mb-1">Current Card Background Image:</small>
+                            <img src="{{ asset('storage/' . $cBgImg) }}" alt="Card Background" style="max-height: 90px; max-width: 100%; border-radius: 6px; object-fit: cover;">
+                        </div>
+                    @endif
+
+                    {{-- Upload Custom Background Image --}}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Upload Event Card Background (ডিজাইন ইমেজ)</label>
+                        <input type="file" name="card_bg_image" class="form-control" accept="image/*">
+                        <small class="text-muted" style="font-size: 11px;">Recommended: High-resolution PNG/JPG festival background or watermark.</small>
+                    </div>
+
+                    {{-- Card Theme Color --}}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Card Header & Border Color</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="color" name="card_theme_color" class="form-control form-control-color" value="{{ $cTheme }}" style="width: 50px; height: 38px;">
+                            <input type="text" name="card_theme_color" class="form-control font-monospace" value="{{ $cTheme }}" placeholder="#7f1d1d">
+                        </div>
+                    </div>
+
+                    {{-- Card Badge Text --}}
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-dark">Badge / Pass Title</label>
+                        <input type="text" name="card_badge_text" class="form-control" value="{{ $cBadge }}" placeholder="e.g. DELEGATE PASS, AUTHOR PASS">
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top py-2.5">
+                    <button type="button" class="btn btn-light rounded-pill btn-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill btn-sm px-4 fw-semibold">Save Card Design</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -639,6 +847,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function selectAllColumns(check) {
     document.querySelectorAll('.col-toggle-check').forEach(c => c.checked = check);
+}
+
+function calcVivaTotal(id) {
+    const inputs = document.querySelectorAll('.viva-input-' + id);
+    let total = 0;
+    inputs.forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+    const display = document.getElementById('vivaTotalDisplay' + id);
+    if (display) {
+        display.textContent = (total % 1 === 0 ? total : total.toFixed(1)) + ' / ৫০';
+    }
 }
 </script>
 @endsection

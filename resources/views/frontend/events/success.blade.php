@@ -51,8 +51,19 @@
                     </div>
                 </div>
 
+                @if(!empty($summary['registration_number']))
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+                        <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-dark rounded-pill px-4 py-2 fw-semibold">
+                            <i class="fa-solid fa-print me-1"></i> প্রিন্ট ফরম (Print Form)
+                        </a>
+                        <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold">
+                            <i class="fa-solid fa-file-pdf me-1"></i> পিডিএফ ডাউনলোড (Download PDF)
+                        </a>
+                    </div>
+                @endif
+
                 <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <a href="{{ route('home') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+                    <a href="{{ route('home') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
                         <i class="fa-solid fa-house me-1"></i> মূল ওয়েবসাইটে ফিরে যান
                     </a>
                     <a href="{{ route('books.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">

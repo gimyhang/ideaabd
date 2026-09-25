@@ -1,0 +1,345 @@
+/**
+ * IdeaBD Event & Campaign Modern Dynamic Stylesheet
+ */
+
+:root {
+    --evt-primary: #0f3a68;
+    --evt-primary-hover: #1e40af;
+    --evt-primary-light: rgba(15, 58, 104, 0.08);
+    --evt-success: #16a34a;
+    --evt-warning: #f59e0b;
+    --evt-danger: #dc2626;
+    --evt-bg-card: #ffffff;
+    --evt-border: #e2e8f0;
+}
+
+/* Container & Layout */
+.event-page-wrapper {
+    max-width: 880px;
+    margin: 0 auto;
+}
+
+.event-main-card {
+    background: var(--evt-bg-card);
+    border: 1px solid var(--evt-border);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+
+/* Banner & Header */
+.event-banner-container {
+    position: relative;
+    max-height: 320px;
+    overflow: hidden;
+    background: #0f172a;
+}
+.event-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.96;
+    transition: transform 0.5s ease;
+}
+.event-banner-container:hover .event-banner-img {
+    transform: scale(1.02);
+}
+
+.event-header-box {
+    padding: 24px 28px 16px 28px;
+    background: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Live Progress & Badges */
+.event-badge-pill {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Countdown Timer Box */
+.event-countdown-box {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.countdown-unit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.countdown-unit {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 6px 10px;
+    min-width: 48px;
+}
+.countdown-num {
+    font-size: 18px;
+    font-weight: 800;
+    font-family: monospace;
+    line-height: 1;
+    color: #38bdf8;
+}
+.countdown-lbl {
+    font-size: 9px;
+    text-transform: uppercase;
+    color: #cbd5e1;
+    margin-top: 2px;
+}
+
+/* Seats Capacity Meter */
+.event-capacity-bar-wrap {
+    margin: 14px 0 6px 0;
+}
+.event-capacity-bar {
+    height: 8px;
+    border-radius: 10px;
+    background-color: #e2e8f0;
+    overflow: hidden;
+}
+.event-capacity-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #0284c7 100%);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* Form Sections */
+.event-form-section {
+    margin-bottom: 24px;
+}
+.event-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f1f5f9;
+    margin-bottom: 16px;
+}
+.event-section-title i {
+    color: var(--evt-primary);
+}
+
+/* Form Fields & Controls */
+.event-form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.event-input {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-size: 14px;
+    color: #0f172a;
+    transition: all 0.2s ease;
+    width: 100%;
+    background-color: #ffffff;
+}
+.event-input:focus {
+    border-color: var(--evt-primary);
+    box-shadow: 0 0 0 3px var(--evt-primary-light);
+    outline: none;
+}
+.event-input.is-invalid {
+    border-color: var(--evt-danger) !important;
+    background-color: #fef2f2;
+}
+.event-input.is-valid {
+    border-color: var(--evt-success) !important;
+    background-color: #f0fdf4;
+}
+
+/* Operator Badge on Phone input */
+.phone-operator-badge {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: none;
+    pointer-events: none;
+}
+.phone-operator-badge.gp { background: #0099ff; color: #fff; display: block; }
+.phone-operator-badge.bl { background: #ff7700; color: #fff; display: block; }
+.phone-operator-badge.robi { background: #e60000; color: #fff; display: block; }
+.phone-operator-badge.airtel { background: #c40000; color: #fff; display: block; }
+.phone-operator-badge.tt { background: #00aa00; color: #fff; display: block; }
+
+/* Donation Presets Chips */
+.donation-chips-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.donation-chip {
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.donation-chip:hover {
+    border-color: var(--evt-primary);
+    background: var(--evt-primary-light);
+    color: var(--evt-primary);
+}
+.donation-chip.active {
+    border-color: var(--evt-primary);
+    background: var(--evt-primary);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(15, 58, 104, 0.2);
+}
+
+/* Payment Method Radio Cards */
+.payment-methods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.payment-method-card {
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 10px;
+    text-align: center;
+    cursor: pointer;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.payment-method-card:hover {
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+}
+.payment-method-card.active {
+    border-color: #d946ef;
+    background: #fdf4ff;
+    box-shadow: 0 4px 12px rgba(217, 70, 239, 0.15);
+}
+.payment-method-card.active.bkash {
+    border-color: #d12053;
+    background: #fff1f4;
+}
+.payment-method-card.active.nagad {
+    border-color: #f97316;
+    background: #fff7ed;
+}
+.payment-method-card.active.rocket {
+    border-color: #8b5cf6;
+    background: #f5f3ff;
+}
+
+.copy-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.copy-btn:hover {
+    background: #f1f5f9;
+}
+
+/* Auto Optimized Image Upload Dropzone */
+.event-photo-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+.event-photo-dropzone:hover {
+    border-color: var(--evt-primary);
+    background: #f0fdf4;
+}
+.event-photo-preview {
+    width: 110px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--evt-primary);
+    display: none;
+    margin: 0 auto 6px auto;
+}
+
+/* Submission Button with Ripple */
+.btn-event-submit-main {
+    background: linear-gradient(135deg, var(--evt-primary) 0%, #1e40af 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(15, 58, 104, 0.25);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-event-submit-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(15, 58, 104, 0.35);
+    color: #ffffff;
+}
+.btn-event-submit-main:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Registration Form Progress Bar */
+.form-step-progress {
+    height: 4px;
+    background: #e2e8f0;
+    width: 100%;
+    overflow: hidden;
+}
+.form-step-progress-fill {
+    height: 100%;
+    background: var(--evt-primary);
+    width: 0%;
+    transition: width 0.3s ease;
+}

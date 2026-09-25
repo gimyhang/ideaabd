@@ -597,8 +597,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['patch', 'post'], '/{campaign}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
         Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');
+        Route::post('/{campaign}/card-design', 'updateCardDesign')->name('card-design');
         Route::post('/{campaign}/clone', 'clone')->name('clone');
         Route::patch('/registrations/{registration}', 'updateRegistration')->name('registrations.update');
+        Route::match(['post', 'patch'], '/registrations/{registration}/toggle-scholarship', 'toggleScholarship')->name('registrations.toggle-scholarship');
+        Route::match(['post', 'patch'], '/registrations/{registration}/toggle-approval', 'toggleApproval')->name('registrations.toggle-approval');
+        Route::post('/registrations/{registration}/viva-evaluation', 'updateVivaEvaluation')->name('registrations.viva-evaluation');
+        Route::get('/registrations/{registration}/print', 'printRegistration')->name('registrations.print');
+        Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
         Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
     });
 
@@ -829,8 +835,10 @@ Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,
     Route::get('/api/books/search', [BillingController::class, 'searchBooks'])->name('books.search');
 });
 
-// --- Dynamic Event / Donation Campaign Public Direct Routes (e.g. ideaabd.com/rsutshab, ideaabd.com/joyeeshikkhabritti) ---
+// --- Dynamic Event / Donation Campaign Public Direct Routes (e.g. ideaabd.com/rsutshab, ideaabd.com/jshikkhabritti) ---
 Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class)->group(function () {
+    Route::get('/event-registration/{registrationNumber}/print', 'print')->name('event.registration.print');
+    Route::get('/event-registration/{registrationNumber}/pdf', 'downloadPdf')->name('event.registration.pdf');
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');

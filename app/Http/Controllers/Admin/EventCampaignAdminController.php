@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EventCampaign;
 use App\Models\EventRegistration;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -355,10 +356,10 @@ class EventCampaignAdminController extends Controller
     /**
      * Update individual participant status or payment status.
      */
-    public function updateRegistration(Request $request, EventRegistration $registration)
+     public function updateRegistration(Request $request, EventRegistration $registration)
     {
         $validated = $request->validate([
-            'status'         => 'nullable|string|in:confirmed,pending,rejected,attended',
+            'status'         => 'nullable|string|in:confirmed,pending,rejected,attended,selected',
             'payment_status' => 'nullable|string|in:pending,verified,waived,refunded',
             'admin_notes'    => 'nullable|string|max:1000',
         ]);
@@ -366,6 +367,177 @@ class EventCampaignAdminController extends Controller
         $registration->update(array_filter($validated, fn($v) => !is_null($v)));
 
         return back()->with('success', 'Participant updated successfully.');
+    }
+
+    /**
+     * One-click Toggle Selection / Award of Scholarship (বৃত্তিপ্রাপ্ত নির্বাচিত বাটন).
+     */
+    public function toggleScholarship(Request $request, EventRegistration $registration)
+    {
+        $isAwarded = ($registration->status === 'selected' || !empty($registration->form_data['is_scholarship_awarded']));
+        $newAwarded = !$isAwarded;
+        
+        $formData = $registration->form_data ?? [];
+        $formData['is_scholarship_awarded'] = $newAwarded;
+        $formData['scholarship_awarded_at'] = $newAwarded ? now()->toDateTimeString() : null;
+
+        $registration->update([
+            'status'    => $newAwarded ? 'selected' : 'confirmed',
+            'form_data' => $formData,
+        ]);
+
+        $msg = $newAwarded 
+            ? "Applicant #{$registration->registration_number} ({$registration->name}) is SELECTED for Scholarship!"
+            : "Applicant #{$registration->registration_number} ({$registration->name}) scholarship selection removed.";
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * One-click Toggle Approval for Event/Writer Delegate Registrations (অনুমোদন বাটন).
+     */
+    public function toggleApproval(Request $request, EventRegistration $registration)
+    {
+        $isApproved = ($registration->status === 'confirmed' || $registration->status === 'selected' || $registration->status === 'approved');
+        $newStatus = $isApproved ? 'pending' : 'confirmed';
+
+        $registration->update([
+            'status' => $newStatus,
+        ]);
+
+        if ($newStatus === 'confirmed') {
+            // Optional SMS on approval
+            try {
+                $downloadUrl = url('/event-registration/print/' . $registration->registration_number);
+                $smsText = "অভিনন্দন! '{$registration->campaign->title}'-এ আপনার ডেলিগেট নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                \App\Services\SmsService::send($registration->phone, $smsText);
+            } catch (\Throwable $e) {
+                Log::warning("Approval SMS error: " . $e->getMessage());
+            }
+
+            return back()->with('success', "Participant #{$registration->registration_number} ({$registration->name}) has been APPROVED! Delegate pass is now downloadable.");
+        }
+
+        return back()->with('info', "Participant #{$registration->registration_number} ({$registration->name}) marked as PENDING.");
+    }
+
+    /**
+     * Update Custom Delegate Card Background Design & Theme.
+     */
+    public function updateCardDesign(Request $request, EventCampaign $campaign)
+    {
+        $fSettings = $campaign->form_settings ?? [];
+        $cardDesign = $fSettings['card_design'] ?? [];
+
+        if ($request->hasFile('card_bg_image')) {
+            $path = $request->file('card_bg_image')->store('campaigns/cards', 'public');
+            $cardDesign['bg_image'] = $path;
+        }
+
+        if ($request->has('card_theme_color')) {
+            $cardDesign['theme_color'] = $request->input('card_theme_color');
+        }
+
+        if ($request->has('card_badge_text')) {
+            $cardDesign['badge_text'] = $request->input('card_badge_text');
+        }
+
+        if ($request->has('show_photo')) {
+            $cardDesign['show_photo'] = (bool) $request->input('show_photo');
+        }
+
+        if ($request->has('card_watermark_text')) {
+            $cardDesign['watermark_text'] = $request->input('card_watermark_text');
+        }
+
+        $fSettings['card_design'] = $cardDesign;
+        $campaign->update(['form_settings' => $fSettings]);
+
+        return back()->with('success', 'Delegate card background design and customizer settings saved successfully.');
+    }
+
+    /**
+     * Update 50-mark Viva Assessment Evaluation for scholarship applicant.
+     */
+    public function updateVivaEvaluation(Request $request, EventRegistration $registration)
+    {
+        $vivaAttendance = floatval($request->input('viva_attendance', 0));
+        $vivaDocs = floatval($request->input('viva_documents', 0));
+        $vivaAttire = floatval($request->input('viva_attire', 0));
+        $vivaFuture = floatval($request->input('viva_future_plan', 0));
+        $vivaReading = floatval($request->input('viva_reading_habit', 0));
+        $vivaVolunteer = floatval($request->input('viva_volunteer_exp', 0));
+        $vivaIq = floatval($request->input('viva_iq', 0));
+
+        $totalScore = $vivaAttendance + $vivaDocs + $vivaAttire + $vivaFuture + $vivaReading + $vivaVolunteer + $vivaIq;
+
+        $formData = $registration->form_data ?? [];
+        $formData['viva_attendance']    = $vivaAttendance;
+        $formData['viva_documents']     = $vivaDocs;
+        $formData['viva_attire']        = $vivaAttire;
+        $formData['viva_future_plan']   = $vivaFuture;
+        $formData['viva_reading_habit'] = $vivaReading;
+        $formData['viva_volunteer_exp'] = $vivaVolunteer;
+        $formData['viva_iq']            = $vivaIq;
+        $formData['viva_total']         = $totalScore;
+
+        $isAwarded = $request->boolean('is_awarded', false);
+        if ($isAwarded) {
+            $formData['is_scholarship_awarded'] = true;
+            $formData['scholarship_awarded_at'] = now()->toDateTimeString();
+        }
+
+        $registration->update([
+            'status'    => $isAwarded ? 'selected' : ($registration->status === 'selected' ? 'selected' : 'attended'),
+            'form_data' => $formData,
+        ]);
+
+        return back()->with('success', "Viva evaluation for #{$registration->registration_number} saved. Total Score: {$totalScore}/50.");
+    }
+
+    /**
+     * Print applicant scholarship/event form or pass.
+     */
+    public function printRegistration(EventRegistration $registration)
+    {
+        $registration->load('campaign', 'user');
+
+        $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
+        $viewName = $isScholarship ? 'frontend.events.scholarship_form_print' : 'frontend.events.ticket_print';
+
+        return view($viewName, [
+            'registration' => $registration,
+            'isPdf'        => false,
+        ]);
+    }
+
+    /**
+     * Download applicant scholarship/event form or pass as PDF.
+     */
+    public function pdfRegistration(EventRegistration $registration)
+    {
+        $registration->load('campaign', 'user');
+
+        $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
+        $viewName = $isScholarship ? 'frontend.events.scholarship_form_print' : 'frontend.events.ticket_print';
+
+        $pdf = Pdf::loadView($viewName, [
+            'registration' => $registration,
+            'isPdf'        => true,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled'      => true,
+            'defaultFont'          => 'sans-serif',
+        ]);
+
+        $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name);
+        $prefix = $isScholarship ? 'Scholarship_Form' : 'Event_Pass';
+        $filename = "{$prefix}_{$registration->registration_number}_{$safeName}.pdf";
+
+        return $pdf->download($filename);
     }
 
     /**
