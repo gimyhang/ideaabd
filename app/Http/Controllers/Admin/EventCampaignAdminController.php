@@ -997,8 +997,15 @@ class EventCampaignAdminController extends Controller
         $registration->load('campaign', 'user');
 
         $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
-        $viewName = $isScholarship ? 'frontend.events.scholarship_form_print' : 'frontend.events.ticket_print';
+        
+        if (!$isScholarship) {
+            return redirect()->route('event.registration.print', [
+                'registrationNumber' => $registration->registration_number,
+                'download'           => 1,
+            ]);
+        }
 
+        $viewName = 'frontend.events.scholarship_form_print';
         $pdf = Pdf::loadView($viewName, [
             'registration' => $registration,
             'isPdf'        => true,
@@ -1012,8 +1019,7 @@ class EventCampaignAdminController extends Controller
         ]);
 
         $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name);
-        $prefix = $isScholarship ? 'Scholarship_Form' : 'Event_Pass';
-        $filename = "{$prefix}_{$registration->registration_number}_{$safeName}.pdf";
+        $filename = "Scholarship_Form_{$registration->registration_number}_{$safeName}.pdf";
 
         return $pdf->download($filename);
     }

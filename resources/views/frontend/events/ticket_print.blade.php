@@ -111,6 +111,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- html2pdf for high quality Bengali Card PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         @page {
@@ -122,7 +124,7 @@
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
         }
-        body {
+        html, body {
             font-family: 'Hind Siliguri', 'SolaimanLipi', Arial, sans-serif;
             background-color: #f1f5f9;
             color: #1e1b4b;
@@ -139,21 +141,26 @@
             margin-bottom: 16px;
         }
         @media print {
-            body {
+            html, body {
                 background: none !important;
+                background-color: transparent !important;
                 padding: 0 !important;
+                margin: 0 !important;
+                width: 3.8in !important;
+                height: 5.4in !important;
                 min-height: auto !important;
                 display: block !important;
             }
-            .no-print {
+            .no-print, .action-bar {
                 display: none !important;
             }
             .card-wrapper {
-                margin: 0 auto !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 width: 3.8in !important;
                 height: 5.4in !important;
-                page-break-after: avoid;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
             }
             .rsu-invitation-card {
                 width: 3.8in !important;
@@ -161,6 +168,8 @@
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 margin: 0 !important;
+                page-break-inside: avoid !important;
+                page-break-after: avoid !important;
             }
         }
 
@@ -525,17 +534,19 @@
 <body>
 
     {{-- Top Action Bar (Hidden on Print / PDF) --}}
-    <div class="action-bar no-print">
-        <button type="button" onclick="window.print()" class="btn-action btn-print">
-            <i class="fa-solid fa-print"></i> Print Card
-        </button>
-        <a href="{{ route('event.registration.pdf', $registration->registration_number) }}" class="btn-action btn-pdf">
-            <i class="fa-solid fa-file-pdf"></i> Download PDF
-        </a>
-        <a href="{{ url('/') }}" class="btn-action btn-back">
-            <i class="fa-solid fa-house"></i> Home
-        </a>
-    </div>
+    @if(!$isPdf)
+        <div class="action-bar no-print">
+            <button type="button" onclick="window.print()" class="btn-action btn-print">
+                <i class="fa-solid fa-print"></i> Print Card
+            </button>
+            <button type="button" id="btnDownloadPdf" onclick="downloadCardPdf()" class="btn-action btn-pdf">
+                <i class="fa-solid fa-file-pdf"></i> Download PDF
+            </button>
+            <a href="{{ url('/') }}" class="btn-action btn-back">
+                <i class="fa-solid fa-house"></i> Home
+            </a>
+        </div>
+    @endif
 
     {{-- 3.8 x 5.4 INCH INVITATION CARD --}}
     <div class="card-wrapper">
@@ -596,8 +607,8 @@
                     {{-- Circular Author Portrait --}}
                     @if($showPhoto)
                         <div class="author-photo-frame">
-                            @if($photoPath && file_exists(public_path('storage/' . $photoPath)))
-                                <img src="{{ $isPdf ? public_path('storage/' . $photoPath) : asset('storage/' . $photoPath) }}" alt="{{ $registration->name }}">
+                            @if($photoPath && (file_exists(public_path('storage/' . $photoPath)) || file_exists(storage_path('app/public/' . $photoPath))))
+                                <img src="{{ asset('storage/' . $photoPath) }}" alt="Photo" crossorigin="anonymous">
                             @else
                                 <div class="photo-placeholder">
                                     <i class="fa-solid fa-user-pen"></i>
@@ -695,7 +706,7 @@
                             $pORot = floatval($pObj['rotation'] ?? 0);
                         @endphp
                         @if(!empty($pOUrl))
-                            <img src="{{ $pOUrl }}" alt="Object" style="position: absolute; left: {{ $pOX }}%; top: {{ $pOY }}%; transform: translate(-50%, -50%) rotate({{ $pORot }}deg); width: {{ $pOW }}px; height: auto; opacity: {{ $pOOp }}; pointer-events: none;">
+                            <img src="{{ $pOUrl }}" alt="Object" style="position: absolute; left: {{ $pOX }}%; top: {{ $pOY }}%; transform: translate(-50%, -50%) rotate({{ $pORot }}deg); width: {{ $pOW }}px; height: auto; opacity: {{ $pOOp }}; pointer-events: none;" crossorigin="anonymous">
                         @endif
                     @endforeach
                 </div>
@@ -703,6 +714,65 @@
 
         </div>
     </div>
+
+    <script>
+        function downloadCardPdf() {
+            const btn = document.getElementById('btnDownloadPdf');
+            let originalHtml = '';
+            if (btn) {
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...';
+                btn.disabled = true;
+            }
+
+            const element = document.getElementById('printableCard');
+            const safeName = "{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name) }}";
+            const filename = "Event_Pass_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".pdf";
+
+            const opt = {
+                margin:       0,
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 3, 
+                    useCORS: true, 
+                    allowTaint: true,
+                    logging: false,
+                    letterRendering: true,
+                    scrollY: 0
+                },
+                jsPDF:        { unit: 'in', format: [3.8, 5.4], orientation: 'portrait' }
+            };
+
+            // Ensure fonts are loaded before generating canvas
+            const readyPromise = document.fonts ? document.fonts.ready : Promise.resolve();
+
+            readyPromise.then(() => {
+                return html2pdf().set(opt).from(element).save();
+            }).then(() => {
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                console.error('PDF Generation Error:', err);
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+                // Fallback to browser print dialog
+                window.print();
+            });
+        }
+
+        // Auto trigger download if URL has ?download=1 or ?pdf=1
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('download') === '1' || urlParams.get('pdf') === '1') {
+                setTimeout(downloadCardPdf, 600);
+            }
+        });
+    </script>
 
 </body>
 </html>
