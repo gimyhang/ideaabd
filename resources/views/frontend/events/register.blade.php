@@ -366,11 +366,11 @@
                         </div>
                     @endif
 
-                    {{-- Customer Account Auto-sync Information --}}
-                    <div class="p-3 rounded-3 bg-light border d-flex align-items-center gap-2 mb-4" style="font-size: 12.5px; color: #475569;">
-                        <i class="fa-solid fa-shield-halved text-success fs-5 flex-shrink-0"></i>
-                        <div>
-                            রেজিস্ট্রেশনের সাথে আপনার একটি নিরাপদ কাস্টমার একাউন্ট স্বয়ংক্রিয়ভাবে তৈরি হবে, যা দিয়ে পরবর্তীতে সকল ইভেন্ট ট্র্যাকিং ও অর্ডার সুবিধা পাওয়া যাবে।
+                    {{-- Event Organizer Collaboration Notice --}}
+                    <div class="p-3 rounded-3 border d-flex align-items-center gap-3 mb-4 shadow-xs" style="background: #fffbeb; border-color: #fde68a !important; font-size: 13px; color: #92400e;">
+                        <i class="fa-solid fa-feather-pointed fs-4 text-warning flex-shrink-0"></i>
+                        <div style="line-height: 1.55;">
+                            <strong>বিশেষ বিজ্ঞপ্তি:</strong> ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে
                         </div>
                     </div>
 

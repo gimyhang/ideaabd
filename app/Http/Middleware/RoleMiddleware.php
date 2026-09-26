@@ -161,6 +161,7 @@ class RoleMiddleware
         'admin.event-campaigns.update'             => 'users.manage',
         'admin.event-campaigns.destroy'            => 'users.manage',
         'admin.event-campaigns.registrations.update' => 'users.manage',
+        'admin.event-campaigns.bulk-action'        => 'users.manage',
         'admin.event-campaigns.export'             => 'users.view',
         'admin.registrations.index'                => 'users.manage',
         'admin.registrations.approve'              => 'users.manage',

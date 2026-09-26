@@ -598,14 +598,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
         Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');
         Route::post('/{campaign}/card-design', 'updateCardDesign')->name('card-design');
-        Route::post('/{campaign}/clone', 'clone')->name('clone');
-        Route::patch('/registrations/{registration}', 'updateRegistration')->name('registrations.update');
+        Route::post('/{campaign}/upload-object', 'uploadCardObject')->name('upload-object');
+        Route::post('/{campaign}/registrations', 'storeRegistration')->name('registrations.store');
+        Route::match(['put', 'patch'], '/registrations/{registration}', 'updateRegistration')->name('registrations.update');
+        Route::delete('/registrations/{registration}', 'destroyRegistration')->name('registrations.destroy');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-scholarship', 'toggleScholarship')->name('registrations.toggle-scholarship');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-approval', 'toggleApproval')->name('registrations.toggle-approval');
         Route::post('/registrations/{registration}/viva-evaluation', 'updateVivaEvaluation')->name('registrations.viva-evaluation');
         Route::get('/registrations/{registration}/print', 'printRegistration')->name('registrations.print');
         Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
         Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
+        Route::post('/{campaign}/bulk-action', 'bulkAction')->name('bulk-action');
     });
 
     // Registration approval (admin only)

@@ -1,12 +1,82 @@
 @extends('layouts.app')
 
+@php
+    $cardDesign = $campaign->card_design ?? [];
+
+    // Background & Canvas
+    $cBgImg            = $cardDesign['bg_image'] ?? null;
+    $cBgColor          = $cardDesign['bg_color'] ?? '#c98c21';
+    $cBgOverlayColor   = $cardDesign['bg_overlay_color'] ?? 'rgba(0,0,0,0.45)';
+    $cBgOverlayOpacity = isset($cardDesign['bg_overlay_opacity']) ? intval($cardDesign['bg_overlay_opacity']) : 0;
+    $cBgBlur           = isset($cardDesign['bg_blur']) ? intval($cardDesign['bg_blur']) : 0;
+    $cFontFamily       = $cardDesign['font_family'] ?? 'Hind Siliguri';
+
+    // Logos
+    $cLogoImg          = $cardDesign['logo_image'] ?? null;
+    $cLogoSize         = intval($cardDesign['logo_size'] ?? 48);
+    $cShowLogo         = isset($cardDesign['show_logo']) ? (bool)$cardDesign['show_logo'] : true;
+
+    $cEventLogoImg     = $cardDesign['event_logo_image'] ?? null;
+    $cEventLogoSize    = intval($cardDesign['event_logo_size'] ?? 60);
+    $cShowEventLogo    = isset($cardDesign['show_event_logo']) ? (bool)$cardDesign['show_event_logo'] : true;
+
+    // Visibility toggles
+    $cShowHeader       = isset($cardDesign['show_header']) ? (bool)$cardDesign['show_header'] : true;
+    $cShowBadge        = isset($cardDesign['show_badge']) ? (bool)$cardDesign['show_badge'] : true;
+    $cShowPhoto        = isset($cardDesign['show_photo']) ? (bool)$cardDesign['show_photo'] : true;
+    $cShowNamePlate    = isset($cardDesign['show_name_plate']) ? (bool)$cardDesign['show_name_plate'] : true;
+    $cShowQuote        = isset($cardDesign['show_quote']) ? (bool)$cardDesign['show_quote'] : true;
+    $cShowArtwork      = isset($cardDesign['show_artwork']) ? (bool)$cardDesign['show_artwork'] : true;
+    $cShowOrganizers   = isset($cardDesign['show_organizers']) ? (bool)$cardDesign['show_organizers'] : true;
+
+    // Text Headings
+    $cAnniv            = $cardDesign['anniversary_text'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
+    $cAnnivColor       = $cardDesign['anniversary_color'] ?? '#fef08a';
+    $cTitle            = $cardDesign['title_text'] ?? ($campaign->title ?: 'রংপুর সাহিত্য উৎসব');
+    $cTitleColor       = $cardDesign['title_color'] ?? '#ffffff';
+    $cSub              = $cardDesign['subtitle_text'] ?? 'ও ৩য় লিটিলম্যাগ মেলা';
+    $cSubtitleColor    = $cardDesign['subtitle_color'] ?? '#fef08a';
+    $cBadge            = $cardDesign['badge_text'] ?? ($campaign->badge_text ?: 'আমন্ত্রণ কার্ড');
+
+    // Photo & Name Plate
+    $cPhotoSize        = intval($cardDesign['photo_size'] ?? 68);
+    $cPlateBg          = $cardDesign['name_plate_bg'] ?? '#ecd8b4';
+    $cNameSize         = intval($cardDesign['name_size'] ?? 14);
+    $cNameColor        = $cardDesign['name_color'] ?? '#0f172a';
+    $cMetaColor        = $cardDesign['meta_color'] ?? '#334155';
+
+    // Message / Quote
+    $cQuote            = $cardDesign['quote_text'] ?? "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।";
+    $cQuoteColor       = $cardDesign['quote_color'] ?? '#ffffff';
+
+    // Organizers
+    $cOrgColor         = $cardDesign['org_color'] ?? '#ffffff';
+    $cOrg1Name         = $cardDesign['org_1_name'] ?? 'সাকিল মাসুদ';
+    $cOrg1Role         = $cardDesign['org_1_role'] ?? "সদস্যসচিব, আয়োজক কমিটি\nও সাধারণ সম্পাদক, ফিরেদেখা";
+    $cOrg1Phone        = $cardDesign['org_1_phone'] ?? '০১৭২৬৯৭৬৯৮২';
+
+    $cOrg2Name         = $cardDesign['org_2_name'] ?? 'বাবুল সরকার';
+    $cOrg2Role         = $cardDesign['org_2_role'] ?? "আহ্বায়ক, আয়োজক কমিটি\nও সাহিত্য সম্পাদক, ফিরেদেখা";
+    $cOrg2Phone        = $cardDesign['org_2_phone'] ?? '01763170342';
+
+    $cOrg3Name         = $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ';
+    $cOrg3Role         = $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা";
+    $cOrg3Phone        = $cardDesign['org_3_phone'] ?? '01820-547307';
+
+    $themeColor        = $campaign->theme_color ?: '#991b1b';
+    $customFields      = $campaign->custom_fields ?? [];
+@endphp
+
 @section('title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/event-campaign.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --writer-theme: {{ $campaign->theme_color ?: '#991b1b' }};
+            --writer-theme: {{ $themeColor }};
             --writer-theme-dark: #7f1d1d;
             --writer-theme-light: #fef2f2;
             --writer-accent: #f59e0b;
@@ -14,7 +84,11 @@
 
         /* Hero Banner */
         .writer-hero-banner {
-            background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #991b1b 100%);
+            @if($campaign->banner_image)
+                background: linear-gradient(135deg, rgba(69, 10, 10, 0.88) 0%, rgba(127, 29, 29, 0.82) 100%), url('{{ asset('storage/' . $campaign->banner_image) }}') no-repeat center center / cover;
+            @else
+                background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, {{ $themeColor }} 100%);
+            @endif
             border-radius: 20px;
             padding: 34px 28px;
             color: #ffffff;
@@ -218,77 +292,229 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        /* Live 3.5x5 Invitation Card Preview (Sticky on Desktop) */
+        /* Live Invitation Card Preview (Exact Design Match) */
         .delegate-card-preview {
-            background: #d97706 url('{{ asset("images/events/rangpur_card_bg.jpg") }}') no-repeat center center;
-            background-size: cover;
-            border-radius: 16px;
-            padding: 16px 16px;
+            @if($cBgImg)
+                background: url('{{ asset('storage/' . $cBgImg) }}') no-repeat center center / cover;
+            @else
+                background: {{ $cBgColor }} linear-gradient(145deg, #c4871e 0%, #db9e2a 45%, #b57a15 100%);
+            @endif
+            font-family: '{{ $cFontFamily }}', 'Hind Siliguri', 'SolaimanLipi', sans-serif;
+            border-radius: 14px;
+            padding: 14px 12px 10px 12px;
             color: #1e1b4b;
-            box-shadow: 0 12px 30px rgba(180, 83, 9, 0.25);
-            border: 2px solid #b45309;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
+            border: 2px solid #8d5c0b;
             position: relative;
             overflow: hidden;
-            max-width: 320px;
+            max-width: 330px;
             margin: 0 auto 16px auto;
-            aspect-ratio: 3.5 / 5;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
-        .invitation-overlay {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(4px);
-            border-radius: 12px;
-            padding: 12px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-        }
-        .invitation-logo-space {
+        .preview-top-row {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            border-bottom: 1.5px dashed #b45309;
-            padding-bottom: 8px;
-            margin-bottom: 10px;
+            gap: 4px;
+            position: relative;
+            z-index: 2;
         }
-        .invitation-logo-badge {
-            width: 36px;
-            height: 36px;
+        .preview-logo-emblem {
+            width: {{ $cLogoSize }}px;
+            height: {{ $cLogoSize }}px;
             border-radius: 50%;
-            background: #991b1b;
-            color: #ffffff;
+            background: transparent;
+            border: none;
+            box-shadow: none;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 0 2px 6px rgba(153, 27, 27, 0.3);
-        }
-        .delegate-avatar {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            border: 2px solid #b45309;
-            object-fit: cover;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #991b1b;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 0;
         }
-        .delegate-badge-tag {
-            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
-            color: #ffffff;
-            font-size: 11px;
+        .preview-logo-emblem .logo-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+        .preview-festival-headings {
+            flex-grow: 1;
+            text-align: center;
+            padding: 0 2px;
+        }
+        .preview-fest-anniv {
+            color: {{ $cAnnivColor }};
+            font-size: 7.5px;
             font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 14px;
-            display: inline-block;
-            box-shadow: 0 2px 6px rgba(153, 27, 27, 0.25);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            margin-bottom: 1px;
+        }
+        .preview-fest-main {
+            color: {{ $cTitleColor }};
+            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: 13.5px;
+            font-weight: 900;
+            line-height: 1.15;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+        }
+        .preview-fest-sub {
+            color: {{ $cSubtitleColor }};
+            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: 11.5px;
+            font-weight: 800;
+            line-height: 1.15;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+        }
+        .preview-vert-ribbon {
+            background: linear-gradient(180deg, #facc15 0%, #eab308 100%);
+            color: #713f12;
+            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;
+            font-size: 9.5px;
+            font-weight: 900;
+            padding: 4px 3px;
+            border-radius: 4px;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ca8a04;
+            line-height: 1.1;
+            flex-shrink: 0;
+        }
+        .preview-card-pill {
+            background: #ecd8b4;
+            border: 1px solid #d4b886;
+            color: #0f172a;
+            font-size: 8.5px;
+            font-weight: 800;
+            padding: 1.5px 6px;
+            border-radius: 10px;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+        .preview-center-area {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 6px 0 4px 0;
+        }
+        .preview-photo-round {
+            width: {{ $cPhotoSize }}px;
+            height: {{ $cPhotoSize }}px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            background: #f8fafc;
+            overflow: hidden;
+            margin-bottom: -14px;
+            position: relative;
+            z-index: 4;
+        }
+        .preview-photo-round img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .preview-name-plate {
+            width: 95%;
+            background: {{ $cPlateBg }};
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            padding: {{ $cShowPhoto ? '18px' : '10px' }} 8px 8px 8px;
+            text-align: center;
+            border: 1px solid #d8be92;
+            position: relative;
+            z-index: 3;
+        }
+        .preview-name-plate .p-author-name {
+            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: {{ $cNameSize }}px;
+            font-weight: 800;
+            color: {{ $cNameColor }};
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        .preview-name-plate .p-author-desc {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: {{ $cMetaColor }};
+            line-height: 1.2;
+        }
+        .preview-name-plate .p-author-loc {
+            font-size: 8.5px;
+            font-weight: 600;
+            color: {{ $cMetaColor }};
+            opacity: 0.85;
+        }
+        .preview-quote-row {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 4px 4px 2px 4px;
+        }
+        .preview-quote-txt {
+            color: {{ $cQuoteColor }};
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1.35;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            flex-grow: 1;
+            white-space: pre-line;
+        }
+        .preview-book-svg {
+            width: 58px;
+            height: 48px;
+            flex-shrink: 0;
+        }
+        .preview-organizers-row {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
+            padding-top: 4px;
+            gap: 3px;
+            color: {{ $cOrgColor }};
+        }
+        .p-org-col {
+            color: {{ $cOrgColor }};
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .p-org-col:not(:last-child) {
+            border-right: 1px solid rgba(255, 255, 255, 0.35);
+            padding-right: 2px;
+        }
+        .p-org-col .p-org-title {
+            font-size: 8px;
+            font-weight: 800;
+            line-height: 1.15;
+            color: {{ $cOrgColor }};
+        }
+        .p-org-col .p-org-sub {
+            font-size: 5.8px;
+            line-height: 1.2;
+            color: {{ $cOrgColor }};
+            opacity: 0.9;
+            white-space: pre-line;
+        }
+        .p-org-col .p-org-tel {
+            font-size: 6.2px;
+            font-weight: 700;
+            font-family: Arial, sans-serif;
+            color: {{ $cOrgColor }};
         }
 
         /* Submit Button */
@@ -565,13 +791,75 @@
                             </div>
                         </div>
 
+                        {{-- ==========================================
+                             ৫. পেমেন্ট ও ফি (যদি প্রযোজ্য হয়)
+                             ========================================== --}}
+                        @if($campaign->has_fee_or_donation)
+                            <div class="section-tag-head">
+                                <span><i class="fa-solid fa-wallet me-1"></i> ৫. নিবন্ধন ফি ও পেমেন্ট বিবরণী</span>
+                                <span class="badge bg-danger text-white">ফি: ৳{{ number_format($campaign->fee_amount ?: 0) }}</span>
+                            </div>
+
+                            <div class="p-3 bg-light rounded-3 border mb-3">
+                                @if($campaign->payment_instructions)
+                                    <div class="small text-dark mb-2" style="white-space: pre-line;">{!! nl2br(e($campaign->payment_instructions)) !!}</div>
+                                @endif
+                                @if($campaign->payment_methods)
+                                    <div class="small text-muted mb-2"><strong>পেমেন্ট মাধ্যম:</strong> {{ $campaign->payment_methods }}</div>
+                                @endif
+
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="w-label" for="writerAmountPaid">পরিশোধিত টাকার পরিমাণ (৳)</label>
+                                        <input type="number" step="1" name="amount_paid" id="writerAmountPaid" class="w-input font-monospace" value="{{ old('amount_paid', $campaign->fee_amount ?: 0) }}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="w-label" for="writerTrxId">ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span></label>
+                                        <input type="text" name="transaction_id" id="writerTrxId" class="w-input font-monospace" placeholder="বিকাশ/নগদ TrxID" value="{{ old('transaction_id') }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- ==========================================
+                             ৬. অতিরিক্ত ফিল্ডসমূহ (Custom Fields)
+                             ========================================== --}}
+                        @if(!empty($customFields) && count($customFields) > 0)
+                            <div class="section-tag-head">
+                                <span><i class="fa-solid fa-list-check me-1"></i> ৬. অতিরিক্ত তথ্যাবলী</span>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                @foreach($customFields as $cf)
+                                    <div class="col-md-6">
+                                        <label class="w-label">{{ $cf['label'] ?? $cf['name'] }} @if(!empty($cf['required'])) <span class="text-danger">*</span> @endif</label>
+                                        @if(($cf['type'] ?? 'text') === 'select')
+                                            <select name="custom_fields[{{ $cf['name'] }}]" class="w-select" @if(!empty($cf['required'])) required @endif>
+                                                <option value="">-- নির্বাচন করুন --</option>
+                                                @foreach((array)($cf['options'] ?? []) as $opt)
+                                                    <option value="{{ $opt }}">{{ $opt }}</option>
+                                                @endforeach
+                                            </select>
+                                        @elseif(($cf['type'] ?? 'text') === 'textarea')
+                                            <textarea name="custom_fields[{{ $cf['name'] }}]" class="w-input" rows="2" @if(!empty($cf['required'])) required @endif></textarea>
+                                        @else
+                                            <input type="{{ $cf['type'] ?? 'text' }}" name="custom_fields[{{ $cf['name'] }}]" class="w-input" @if(!empty($cf['required'])) required @endif>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
                         {{-- SUBMIT BUTTON SECTION --}}
                         <div class="mt-4 pt-3 border-top text-center">
-                            <div class="text-dark small fw-semibold mb-2" style="font-size: 13.5px;">
-                                <i class="fa-solid fa-clock-rotate-left text-danger me-1"></i> ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগিন করে কার্ড নম্বর ও আমন্ত্রণ কার্ড ডাউনলোড করুন।
+                            {{-- Event Organizer Collaboration Notice --}}
+                            <div class="p-3 rounded-3 mb-3 text-start d-flex align-items-center gap-3 border shadow-xs" style="background: #fffbeb; border-color: #fde68a !important; color: #92400e;">
+                                <i class="fa-solid fa-feather-pointed fs-4 text-warning flex-shrink-0"></i>
+                                <div style="font-size: 13px; line-height: 1.55;">
+                                    <strong>বিশেষ বিজ্ঞপ্তি:</strong> ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে
+                                </div>
                             </div>
-                            <div class="text-muted small mb-3" style="font-size: 11.5px; line-height: 1.55; max-width: 620px; margin: 0 auto;">
-                                পুনশ্চ: অনুষ্ঠান আয়োজক ফিরেদেখা সংগঠন। আইডিয়া প্রকাশন লেখক তথ্য সংগ্রহ ও নিবন্ধনে সহযোগিতা করছে মাত্র।
+                            <div class="text-dark small fw-semibold mb-3" style="font-size: 13.5px;">
+                                <i class="fa-solid fa-clock-rotate-left text-danger me-1"></i> ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগিন করে কার্ড নম্বর ও আমন্ত্রণ কার্ড ডাউনলোড করুন।
                             </div>
                             <button type="submit" id="submitWriterBtn" class="btn-submit-writer">
                                 <i class="fa-solid fa-paper-plane"></i> নিবন্ধন সম্পন্ন করুন
@@ -587,76 +875,123 @@
         <div class="col-lg-4">
             <div class="sticky-top" style="top: 24px; z-index: 10;">
                 
-                {{-- Live 3.5x5 Invitation Card (আমন্ত্রণ কার্ড) --}}
-                <div class="delegate-card-preview mb-3">
+                {{-- Live Exact Invitation Card Preview (আমন্ত্রণ কার্ড) --}}
+                <div class="delegate-card-preview mb-3 position-relative" style="overflow: hidden;">
                     
-                    {{-- Card Inner Overlay Box --}}
-                    <div class="invitation-overlay">
-                        {{-- Top Logo & Festival Header --}}
-                        <div class="invitation-logo-space">
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="invitation-logo-badge">
-                                    <i class="fa-solid fa-feather-pointed"></i>
+                    {{-- Background Overlay Tint & Blur --}}
+                    @if($cBgOverlayOpacity > 0 || $cBgBlur > 0)
+                        <div style="position: absolute; inset: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity / 100 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 14px; z-index: 1;"></div>
+                    @endif
+
+                    {{-- 1. Top Section --}}
+                    @if($cShowHeader || $cShowBadge)
+                        <div class="preview-top-row" style="position: relative; z-index: 2;">
+                            {{-- Org Logo --}}
+                            @if($cShowLogo)
+                                <div class="preview-logo-emblem" style="width: {{ $cLogoSize }}px; height: {{ $cLogoSize }}px; border: none; background: transparent;">
+                                    @if($cLogoImg && file_exists(public_path('storage/' . $cLogoImg)))
+                                        <img src="{{ asset('storage/' . $cLogoImg) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                                    @else
+                                        <div class="logo-inner" style="border: none; background: transparent;">
+                                            <span style="font-size: 7px; font-weight: 800; color: {{ $cTitleColor }}; line-height: 1;">ফিরেদেখা</span>
+                                            <i class="fa-solid fa-feather-pointed" style="font-size: 13px; color: {{ $cTitleColor }}; line-height: 1;"></i>
+                                            <span style="font-size: 5px; font-weight: 700; color: {{ $cTitleColor }}; opacity: 0.85; line-height: 1;">প্রতিষ্ঠা: ২০১৬</span>
+                                        </div>
+                                    @endif
                                 </div>
-                                <div>
-                                    <div class="fw-bold text-dark" style="font-size: 11px; line-height: 1.2;">আইডিয়া প্রকাশন</div>
-                                    <div class="text-muted font-monospace" style="font-size: 8.5px;">www.ideaabd.com</div>
+                            @endif
+
+                            {{-- Festival Headings & Event Logo --}}
+                            @if($cShowHeader)
+                                <div class="preview-festival-headings">
+                                    @if($cShowEventLogo && $cEventLogoImg && file_exists(public_path('storage/' . $cEventLogoImg)))
+                                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2px;">
+                                            <img src="{{ asset('storage/' . $cEventLogoImg) }}" alt="Event Logo" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
+                                        </div>
+                                    @endif
+                                    <div class="preview-fest-anniv" style="color: {{ $cAnnivColor }};">{{ $cAnniv }}</div>
+                                    <div class="preview-fest-main" style="color: {{ $cTitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cTitle }}</div>
+                                    <div class="preview-fest-sub" style="color: {{ $cSubtitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cSub }}</div>
                                 </div>
-                            </div>
-                            <span class="delegate-badge-tag">
-                                <i class="fa-solid fa-envelope-open-text me-1"></i> আমন্ত্রণ কার্ড
-                            </span>
-                        </div>
+                            @endif
 
-                        {{-- Event Title --}}
-                        <div class="text-center mb-2">
-                            <div class="fw-bold" style="font-size: 11.5px; color: #7f1d1d; line-height: 1.3;">
-                                রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলা ২০২৬
-                            </div>
-                            <div class="text-muted" style="font-size: 9.5px;">
-                                সশ্রদ্ধ আমন্ত্রণ পত্র • ডেলিগেট কার্ড
-                            </div>
-                        </div>
-
-                        {{-- Author Avatar & Info --}}
-                        <div class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border mb-2 shadow-xs">
-                            <div class="delegate-avatar" id="cardAvatarBox">
-                                <img id="cardAvatarImg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: none;" alt="Avatar">
-                                <span id="cardAvatarIcon">✍️</span>
-                            </div>
-                            <div style="min-width: 0;">
-                                <div style="font-size: 9px; color: #64748b;">শ্রদ্ধেয় লেখক / অতিথি:</div>
-                                <h6 class="fw-bold mb-0 text-dark text-truncate" id="cardNamePreview" style="font-size: 13px;">
-                                    {{ $user?->name ?: 'আপনার লেখক নাম' }}
-                                </h6>
-                                <div class="text-danger small fw-bold" id="cardCategoryPreview" style="font-size: 11px;">
-                                    কবিতা
+                            {{-- Ribbon Badge --}}
+                            @if($cShowBadge)
+                                <div class="d-flex flex-column align-items-end flex-shrink-0">
+                                    <div class="preview-vert-ribbon" style="font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cBadge }}</div>
+                                    <div class="preview-card-pill">কার্ড নং- ১০১</div>
                                 </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- 2. Center Section: Photo & Name Plate --}}
+                    @if($cShowPhoto || $cShowNamePlate)
+                        <div class="preview-center-area" style="position: relative; z-index: 2;">
+                            @if($cShowPhoto)
+                                <div class="preview-photo-round" id="cardAvatarBox" style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px;">
+                                    <img id="cardAvatarImg" style="width: 100%; height: 100%; object-fit: cover; display: none;" alt="Author Photo">
+                                    <div id="cardAvatarIcon" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8; font-size: 24px;">
+                                        <i class="fa-solid fa-user-pen"></i>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($cShowNamePlate)
+                                <div class="preview-name-plate" style="background: {{ $cPlateBg }}; padding: {{ $cShowPhoto ? '18px' : '10px' }} 8px 8px 8px;">
+                                    <div class="p-author-name" id="cardNamePreview" style="font-size: {{ $cNameSize }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $user?->name ?: 'আপনার নাম' }}</div>
+                                    <div class="p-author-desc" id="cardCategoryPreview" style="color: {{ $cMetaColor }};">কবি, সম্পাদক ও প্রকাশক</div>
+                                    <div class="p-author-loc" id="cardLocationPreview" style="color: {{ $cMetaColor }}; opacity: 0.85;">রংপুর</div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- 3. Message & Book Artwork --}}
+                    @if($cShowQuote || $cShowArtwork)
+                        <div class="preview-quote-row" style="position: relative; z-index: 2;">
+                            @if($cShowQuote)
+                                <div class="preview-quote-txt" style="color: {{ $cQuoteColor }}; white-space: pre-line;">{!! nl2br(e($cQuote)) !!}</div>
+                            @endif
+
+                            @if($cShowArtwork)
+                                <div class="preview-book-svg">
+                                    <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M50 20 C32 6 12 14 6 22 C6 50 10 65 50 72 C90 65 94 50 94 22 C88 14 68 6 50 20 Z" fill="#ffffff" fill-opacity="0.95" stroke="#713f12" stroke-width="2"/>
+                                        <path d="M50 22 C34 10 16 16 10 24 L10 60 C30 52 46 58 50 68 C54 58 70 52 90 60 L90 24 C84 16 66 10 50 22 Z" fill="#fef9c3"/>
+                                        <path d="M50 22 L50 68" stroke="#ca8a04" stroke-width="2.5"/>
+                                        <path d="M22 32 C30 30 38 32 44 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M22 40 C30 38 38 40 44 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M22 48 C30 46 38 48 44 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M78 32 C70 30 62 32 56 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M78 40 C70 38 62 40 56 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                        <path d="M78 48 C70 46 62 48 56 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- 4. Bottom 3 Organizers Columns --}}
+                    @if($cShowOrganizers)
+                        <div class="preview-organizers-row" style="position: relative; z-index: 2; color: {{ $cOrgColor }}; border-top-color: {{ $cOrgColor }}55;">
+                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
+                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg1Name }}</div>
+                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg1Role)) !!}</div>
+                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg1Phone }}</div>
+                            </div>
+                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
+                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg2Name }}</div>
+                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg2Role)) !!}</div>
+                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg2Phone }}</div>
+                            </div>
+                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
+                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg3Name }}</div>
+                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg3Role)) !!}</div>
+                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg3Phone }}</div>
                             </div>
                         </div>
-
-                        {{-- District & Phone Meta --}}
-                        <div class="p-2 rounded-3 mb-2" style="background: #fefce8; border: 1px solid #fef08a; font-size: 10.5px;">
-                            <div class="d-flex justify-content-between mb-0.5">
-                                <span class="text-muted">মোবাইল:</span>
-                                <strong class="font-monospace text-dark" id="cardPhonePreview">01XXXXXXXXX</strong>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">জেলা:</span>
-                                <strong class="text-dark" id="cardDistrictPreview">রংপুর</strong>
-                            </div>
-                        </div>
-
-                        {{-- Invitation Message --}}
-                        <div class="text-center text-secondary" style="font-size: 9.5px; line-height: 1.45;">
-                            সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার উপস্থিতি ও অংশগ্রহণ আমাদের সম্মানিত করবে।
-                        </div>
-                    </div>
-
-                    {{-- Bottom Footer Bar --}}
-                    <div class="text-center mt-2" style="background: rgba(255, 255, 255, 0.9); border-radius: 8px; padding: 4px 8px; font-size: 9.5px; color: #7f1d1d; font-weight: 700; border: 1px solid rgba(255,255,255,0.8);">
-                        <i class="fa-solid fa-star text-warning me-1"></i> আমন্ত্রণ কার্ড • রংপুর সাহিত্য উৎসব
-                    </div>
+                    @endif
                 </div>
 
                 {{-- Literary Festival Highlights Card --}}
@@ -668,7 +1003,7 @@
                         <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> কবি, কথাসাহিত্যিক ও গবেষকদের সম্মিলন।</li>
                         <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> লিটিলম্যাগাজিন ও ছোটকাগজ প্রদর্শনী।</li>
                         <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> অংশগ্রহণকারীদের জন্য বিশেষ ডেলিগেট কার্ড।</li>
-                        <li><i class="fa-solid fa-check-circle text-success me-1.5"></i> বিনামূল্যে অনলাইন নিবন্ধন।</li>
+                        <li><i class="fa-solid fa-check-circle text-success me-1.5"></i> @if($campaign->has_fee_or_donation && $campaign->fee_amount > 0) নিবন্ধন ফি: ৳{{ number_format($campaign->fee_amount) }} @else বিনামূল্যে অনলাইন নিবন্ধন। @endif</li>
                     </ul>
                 </div>
 
@@ -910,17 +1245,21 @@ function optimizeWriterPhoto(input) {
 // Update Live Delegate Card Preview
 function updateLivePreview() {
     const name = document.getElementById('writerName')?.value.trim();
-    const phone = document.getElementById('writerPhone')?.value.trim();
-    const cat = document.getElementById('authorCategoryInput')?.value || 'কবিতা';
+    const cat = document.getElementById('authorCategoryInput')?.value || 'কবি, সম্পাদক ও প্রকাশক';
+    const district = document.getElementById('writerDistrict')?.value || 'রংপুর';
+    const thana = document.getElementById('writerUpazila')?.value || '';
 
     const cardName = document.getElementById('cardNamePreview');
-    if (cardName) cardName.textContent = name || 'আপনার লেখক নাম';
+    if (cardName) cardName.textContent = name || 'আপনার নাম';
 
     const cardCat = document.getElementById('cardCategoryPreview');
     if (cardCat) cardCat.textContent = cat;
 
-    const cardPh = document.getElementById('cardPhonePreview');
-    if (cardPh) cardPh.textContent = phone || '01XXXXXXXXX';
+    const cardLoc = document.getElementById('cardLocationPreview');
+    if (cardLoc) {
+        const parts = [thana, district].filter(Boolean);
+        cardLoc.textContent = parts.length > 0 ? parts.join(', ') : 'রংপুর';
+    }
 }
 
 // Real-Time Form Progress Bar

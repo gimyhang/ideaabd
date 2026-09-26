@@ -20,7 +20,20 @@ class PublicEventRegistrationController extends Controller
     {
         $campaign = EventCampaign::where('slug', $slug)->first();
 
-        // Auto-initialize jshikkhabritti if not present
+        // Check known aliases to support both /rangpursutsab, /rsutshab, /rsu
+        if (!$campaign) {
+            if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
+                $campaign = EventCampaign::whereIn('slug', ['rangpursutsab', 'rsutshab', 'rsu'])
+                    ->orWhere('type', 'writer')
+                    ->first();
+            } elseif (in_array($slug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'])) {
+                $campaign = EventCampaign::where('slug', 'jshikkhabritti')
+                    ->orWhere('type', 'scholarship')
+                    ->first();
+            }
+        }
+
+        // Auto-initialize jshikkhabritti if not present at all
         if (!$campaign && $slug === 'jshikkhabritti') {
             $campaign = EventCampaign::create([
                 'title'               => 'Joyee Shikkha Britti Application Form',
@@ -36,6 +49,25 @@ class PublicEventRegistrationController extends Controller
                 'success_message'     => 'Your scholarship application has been successfully submitted! Please print or download your application form below.',
                 'custom_fields'       => [],
                 'form_settings'       => ['is_scholarship_form' => true],
+            ]);
+        }
+
+        // Auto-initialize rsu / writer campaign if not present at all
+        if (!$campaign && in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
+            $campaign = EventCampaign::create([
+                'title'               => 'রংপুর সাহিত্য উৎসব ও লেখক সমাবেশ ২০২৬',
+                'slug'                => $slug,
+                'type'                => 'event',
+                'badge_text'          => 'লেখক ও প্রতিনিধি নিবন্ধন',
+                'short_description'   => 'রংপুর বিভাগীয় সাহিত্য উৎসব ও লেখক সমাবেশ ২০২৬ এ লেখকবৃন্দের তথ্য নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
+                'description'         => 'উত্তরবঙ্গের সর্ববৃহৎ সাহিত্য মিলনমেলায় অংশ নিতে লেখকবৃন্দকে এই ফরম পূরণ করার জন্য আমন্ত্রণ জানানো হচ্ছে।',
+                'theme_color'         => '#991b1b',
+                'has_fee_or_donation' => false,
+                'fee_amount'          => 0.00,
+                'is_active'           => true,
+                'success_message'     => 'আপনার লেখক নিবন্ধন সফলভাবে জমা হয়েছে! ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।',
+                'custom_fields'       => [],
+                'form_settings'       => ['is_writer_form' => true, 'requires_approval' => true],
             ]);
         }
 
@@ -70,7 +102,7 @@ class PublicEventRegistrationController extends Controller
             return view('frontend.events.scholarship_register', compact('campaign', 'user'));
         }
 
-        if ($slug === 'rangpursutsab' || !empty($campaign->form_settings['is_writer_form'])) {
+        if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form'])) {
             return view('frontend.events.writer_register', compact('campaign', 'user'));
         }
 
@@ -82,7 +114,22 @@ class PublicEventRegistrationController extends Controller
      */
     public function submit(Request $request, string $slug)
     {
-        $campaign = EventCampaign::where('slug', $slug)->firstOrFail();
+        $campaign = EventCampaign::where('slug', $slug)->first();
+        if (!$campaign) {
+            if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
+                $campaign = EventCampaign::whereIn('slug', ['rangpursutsab', 'rsutshab', 'rsu'])
+                    ->orWhere('type', 'writer')
+                    ->first();
+            } elseif (in_array($slug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'])) {
+                $campaign = EventCampaign::where('slug', 'jshikkhabritti')
+                    ->orWhere('type', 'scholarship')
+                    ->first();
+            }
+        }
+
+        if (!$campaign) {
+            abort(404);
+        }
 
         if (!$campaign->canAcceptRegistrations()) {
             return back()->with('error', 'This application form is currently closed.');
@@ -243,7 +290,7 @@ class PublicEventRegistrationController extends Controller
 
         $regNumber = EventRegistration::generateRegNumber($campaign->slug);
 
-        $requiresApproval = ($slug === 'rangpursutsab' || !empty($campaign->form_settings['is_writer_form']) || !empty($campaign->form_settings['requires_approval']));
+        $requiresApproval = (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']) || !empty($campaign->form_settings['requires_approval']));
         $initialStatus = $requiresApproval ? 'pending' : 'confirmed';
 
         $registration = EventRegistration::create([
@@ -411,7 +458,7 @@ class PublicEventRegistrationController extends Controller
             ->firstOrFail();
 
         $isAdmin = auth()->check() && in_array(auth()->user()->role, [User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN, User::ROLE_SUB_ADMIN]);
-        $requiresApproval = ($registration->campaign->slug === 'rangpursutsab' || !empty($registration->campaign->form_settings['is_writer_form']) || !empty($registration->campaign->form_settings['requires_approval']));
+        $requiresApproval = (in_array($registration->campaign->slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $registration->campaign->type === 'writer' || !empty($registration->campaign->form_settings['is_writer_form']) || !empty($registration->campaign->form_settings['requires_approval']));
 
         // Guard against unauthorized public access to unapproved delegate cards
         if (!$isAdmin && $requiresApproval && $registration->status === 'pending') {
@@ -440,7 +487,7 @@ class PublicEventRegistrationController extends Controller
             ->firstOrFail();
 
         $isAdmin = auth()->check() && in_array(auth()->user()->role, [User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN, User::ROLE_SUB_ADMIN]);
-        $requiresApproval = ($registration->campaign->slug === 'rangpursutsab' || !empty($registration->campaign->form_settings['is_writer_form']) || !empty($registration->campaign->form_settings['requires_approval']));
+        $requiresApproval = (in_array($registration->campaign->slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $registration->campaign->type === 'writer' || !empty($registration->campaign->form_settings['is_writer_form']) || !empty($registration->campaign->form_settings['requires_approval']));
 
         if (!$isAdmin && $requiresApproval && $registration->status === 'pending') {
             return redirect()->route('event.registration.print', $registration->registration_number)

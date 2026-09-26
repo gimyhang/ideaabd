@@ -2,44 +2,148 @@
     $formData = $registration->form_data ?? [];
     $campaign = $registration->campaign;
     $isPdf = $isPdf ?? false;
+
+    // Card Design Customizer Settings
     $cardDesign = $campaign->form_settings['card_design'] ?? [];
-    $cardBg = $cardDesign['bg_image'] ?? 'campaigns/cards/rangpur_card_bg.jpg';
-    $themeColor = $cardDesign['theme_color'] ?? ($campaign->theme_color ?: '#7f1d1d');
-    $badgeText = $cardDesign['badge_text'] ?? 'আমন্ত্রণ কার্ড';
+    
+    // 1. Background Settings
+    $bgImage        = $cardDesign['bg_image'] ?? null;
+    $logoImage      = $cardDesign['logo_image'] ?? null;
+    $eventLogoImage = $cardDesign['event_logo_image'] ?? null;
+    $bgColor        = $cardDesign['bg_color'] ?? '#c98c21';
+    
+    // 2. Element Visibility Toggles (বাদ দেওয়ার / প্রদর্শন করার সেটিংস)
+    $showHeader     = $cardDesign['show_header'] ?? true;
+    $showLogo       = $cardDesign['show_logo'] ?? true;
+    $showEventLogo  = $cardDesign['show_event_logo'] ?? true;
+    $eventLogoSize  = intval($cardDesign['event_logo_size'] ?? 64);
+    $showBadge      = $cardDesign['show_badge'] ?? true;
+    $showPhoto      = $cardDesign['show_photo'] ?? true;
+    $showNamePlate  = $cardDesign['show_name_plate'] ?? true;
+    $showQuote      = $cardDesign['show_quote'] ?? true;
+    $showArtwork    = $cardDesign['show_artwork'] ?? true;
+    $showOrganizers = $cardDesign['show_organizers'] ?? true;
+
+    // 3. Sizing & Typography Controls (ছোট বড়ো করার সেটিংস)
+    $photoSize          = intval($cardDesign['photo_size'] ?? 82);
+    $photoBorderRadius  = $cardDesign['photo_border_radius'] ?? '50%';
+    $photoBorderWidth   = intval($cardDesign['photo_border_width'] ?? 3);
+    $photoBorderColor   = $cardDesign['photo_border_color'] ?? '#ffffff';
+    $photoShadow        = $cardDesign['photo_shadow'] ?? 'soft';
+    $photoBrightness    = intval($cardDesign['photo_brightness'] ?? 100);
+    $photoContrast      = intval($cardDesign['photo_contrast'] ?? 100);
+    $photoGrayscale     = intval($cardDesign['photo_grayscale'] ?? 0);
+    $photoSepia         = intval($cardDesign['photo_sepia'] ?? 0);
+
+    $nameFontSize       = intval($cardDesign['name_font_size'] ?? 16);
+    $nameLineHeight     = floatval($cardDesign['name_line_height'] ?? 1.25);
+    $nameSpacing        = intval($cardDesign['name_spacing'] ?? 2);
+    $platePadding       = intval($cardDesign['plate_padding'] ?? 14);
+    $logoSize           = intval($cardDesign['logo_size'] ?? 58);
+    $plateBgColor       = $cardDesign['plate_bg_color'] ?? '#ecd8b4';
+    $fontFamily         = $cardDesign['font_family'] ?? 'Hind Siliguri';
+
+    // 3.1 Detailed Text Colors & Background Effects
+    $annivColor         = $cardDesign['anniv_color'] ?? '#ffffff';
+    $titleColor         = $cardDesign['title_color'] ?? '#ffffff';
+    $subtitleColor      = $cardDesign['subtitle_color'] ?? '#ffffff';
+    $nameColor          = $cardDesign['name_color'] ?? '#0f172a';
+    $metaColor          = $cardDesign['meta_color'] ?? '#334155';
+    $quoteColor         = $cardDesign['quote_color'] ?? '#ffffff';
+    $orgColor           = $cardDesign['org_color'] ?? '#ffffff';
+    $bgOverlayOpacity   = intval($cardDesign['bg_overlay_opacity'] ?? 0);
+    $bgOverlayColor     = $cardDesign['bg_overlay_color'] ?? '#000000';
+    $bgBlur             = intval($cardDesign['bg_blur'] ?? 0);
+
+    // 4. Customizable Texts
+    $anniversaryText = $cardDesign['anniversary_text'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
+    $titleText       = $cardDesign['title_text'] ?? 'রংপুর সাহিত্য উৎসব';
+    $subtitleText    = $cardDesign['subtitle_text'] ?? 'ও ৩য় লিটিলম্যাগ মেলা';
+    $badgeText       = $cardDesign['badge_text'] ?? 'আমন্ত্রণ কার্ড';
+    $quoteText       = $cardDesign['quote_text'] ?? "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।";
+
+    // 5. Organizers 3 Columns
+    $org1Name  = $cardDesign['org_1_name'] ?? 'সাকিল মাসুদ';
+    $org1Role  = $cardDesign['org_1_role'] ?? "সদস্যসচিব, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাধারণ সম্পাদক, ফিরেদেখা";
+    $org1Phone = $cardDesign['org_1_phone'] ?? '০১৭২৬৯৭৬৯৮২';
+
+    $org2Name  = $cardDesign['org_2_name'] ?? 'বাবুল সরকার';
+    $org2Role  = $cardDesign['org_2_role'] ?? "আহ্বায়ক, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাহিত্য সম্পাদক, ফিরেদেখা";
+    $org2Phone = $cardDesign['org_2_phone'] ?? '01763170342';
+
+    $org3Name  = $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ';
+    $org3Role  = $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা";
+    $org3Phone = $cardDesign['org_3_phone'] ?? '01820-547307';
+
+    // Photo path resolution
     $photoPath = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
+
+    // Extract dynamic Card Number
+    $regNumber = $registration->registration_number;
+    $cardNo = preg_replace('/[^0-9]/', '', $regNumber);
+    if (empty($cardNo)) {
+        $cardNo = str_pad($registration->id, 3, '0', STR_PAD_LEFT);
+    } else {
+        $cardNo = ltrim($cardNo, '0') ?: $registration->id;
+    }
+
+    // Author Category / Designation
+    $genres = $formData['genres'] ?? [];
+    if (is_array($genres) && count($genres) > 0) {
+        $designation = implode(', ', array_slice($genres, 0, 3));
+    } else {
+        $designation = $registration->designation_or_class ?: ($formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক');
+    }
+
+    // Location
+    $locationParts = array_filter([$registration->thana, $registration->district]);
+    $location = count($locationParts) > 0 ? implode(', ', $locationParts) : 'রংপুর';
 @endphp
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আমন্ত্রণ কার্ড — {{ $registration->registration_number }} — {{ $campaign->title }}</title>
+    <title>আমন্ত্রণ কার্ড — {{ $registration->name }} (কার্ড নং- {{ $cardNo }})</title>
+    
+    <!-- Google Fonts for Bengali Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <style>
-        /* 3.5 x 5 Inch Standard Invitation Card Dimension */
         @page {
-            size: 3.5in 5in;
+            size: 3.8in 5.4in;
             margin: 0;
         }
         * {
             box-sizing: border-box;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
         body {
             font-family: 'Hind Siliguri', 'SolaimanLipi', Arial, sans-serif;
             background-color: #f1f5f9;
             color: #1e1b4b;
             margin: 0;
-            padding: 20px 0;
-            font-size: 11px;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
         .no-print {
             display: block;
+            margin-bottom: 16px;
         }
         @media print {
             body {
                 background: none !important;
                 padding: 0 !important;
+                min-height: auto !important;
+                display: block !important;
             }
             .no-print {
                 display: none !important;
@@ -47,375 +151,557 @@
             .card-wrapper {
                 margin: 0 auto !important;
                 padding: 0 !important;
-                width: 3.5in !important;
-                height: 5in !important;
+                width: 3.8in !important;
+                height: 5.4in !important;
                 page-break-after: avoid;
             }
-            .invitation-card {
-                width: 3.5in !important;
-                height: 5in !important;
+            .rsu-invitation-card {
+                width: 3.8in !important;
+                height: 5.4in !important;
                 box-shadow: none !important;
-                border: 1px solid #b45309 !important;
                 border-radius: 0 !important;
+                margin: 0 !important;
             }
         }
-        .card-wrapper {
-            width: 3.5in;
-            margin: 0 auto;
-        }
+
         .action-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            width: 100%;
+            gap: 10px;
+            margin-bottom: 16px;
         }
-        .btn-act {
+        .btn-action {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 700;
             text-decoration: none;
             cursor: pointer;
-            border: 1px solid transparent;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
         }
-        .btn-print { background: #0f172a; color: #fff; }
-        .btn-pdf { background: #dc2626; color: #fff; }
-        .btn-back { background: #e2e8f0; color: #334155; }
+        .btn-print { background: #0f172a; color: #ffffff; }
+        .btn-pdf { background: #dc2626; color: #ffffff; }
+        .btn-back { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; }
+        .btn-action:hover { transform: translateY(-1px); }
 
-        /* 3.5in x 5in Invitation Card Layout */
-        .invitation-card {
-            width: 3.5in;
-            height: 5in;
+        /* ==========================================================================
+           RSU OFFICIAL INVITATION CARD (3.8 x 5.4 inch Layout)
+           ========================================================================== */
+        .card-wrapper {
+            width: 3.8in;
+            max-width: 100%;
+        }
+
+        .rsu-invitation-card {
+            width: 3.8in;
+            height: 5.4in;
             position: relative;
             overflow: hidden;
             border-radius: 12px;
-            border: 2px solid #b45309;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            background: #d97706;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+            @if($bgImage)
+                background: url('{{ $isPdf ? public_path("storage/" . $bgImage) : asset("storage/" . $bgImage) }}') no-repeat center center;
+                background-size: cover;
+            @else
+                background: {{ $bgColor }} linear-gradient(145deg, #c4871e 0%, #db9e2a 45%, #b57a15 100%);
+            @endif
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 12px 14px;
+            padding: 14px 14px 10px 14px;
+            border: 2px solid #8d5c0b;
         }
 
-        /* Background Art */
-        .card-bg-layer {
+        /* Subtle textured background paper effect */
+        .rsu-invitation-card::before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('{{ $isPdf ? public_path('images/events/rangpur_card_bg.jpg') : asset('images/events/rangpur_card_bg.jpg') }}');
-            background-repeat: no-repeat;
-            background-position: center bottom;
-            background-size: cover;
-            z-index: 1;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.12) 0%, rgba(0, 0, 0, 0.08) 100%);
+            pointer-events: none;
         }
 
-        /* Content Layer with Glass Effect */
-        .card-content-layer {
+        /* TOP HEADER SECTION */
+        .card-top-section {
             position: relative;
             z-index: 2;
-            height: 100%;
             display: flex;
-            flex-direction: column;
+            align-items: flex-start;
             justify-content: space-between;
-        }
-
-        .card-inner-box {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            padding: 10px 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-
-        /* Top Logo & Branding Space */
-        .top-logo-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1.5px solid #b45309;
-            padding-bottom: 6px;
-            margin-bottom: 6px;
-        }
-        .logo-box {
-            display: flex;
-            align-items: center;
             gap: 6px;
         }
-        .logo-circle {
-            width: 28px;
-            height: 28px;
+
+        /* Top Left Emblem / Organization Logo */
+        .phiredekha-logo {
+            width: {{ $logoSize }}px;
+            height: {{ $logoSize }}px;
             border-radius: 50%;
-            background: #991b1b;
-            color: #fff;
+            background: transparent;
+            border: none;
+            box-shadow: none;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .logo-text-org {
-            font-size: 10.5px;
-            font-weight: bold;
-            color: #7f1d1d;
-            line-height: 1.15;
-        }
-        .badge-invite {
-            background: #991b1b;
-            color: #ffffff;
-            font-size: 9.5px;
-            font-weight: bold;
-            padding: 2.5px 8px;
-            border-radius: 10px;
-        }
-
-        .event-main-heading {
+            flex-shrink: 0;
             text-align: center;
-            font-size: 11px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .phiredekha-logo .custom-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .phiredekha-logo .logo-inner-ring {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1px dashed #7f1d1d;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fef2f2;
+        }
+        .phiredekha-logo .logo-brand {
+            font-size: 8.5px;
             font-weight: 800;
             color: #7f1d1d;
-            line-height: 1.3;
+            line-height: 1;
             margin-bottom: 2px;
         }
-        .event-sub-heading {
-            text-align: center;
-            font-size: 8.5px;
-            color: #475569;
-            margin-bottom: 6px;
+        .phiredekha-logo .logo-icon {
+            font-size: 15px;
+            color: #991b1b;
+            line-height: 1;
+        }
+        .phiredekha-logo .logo-est {
+            font-size: 6px;
+            color: #7f1d1d;
+            font-weight: 700;
+            line-height: 1;
+            margin-top: 1px;
         }
 
-        /* Author Profile Box */
-        .author-info-flex {
+        /* Top Center Festival Typography */
+        .festival-text-wrap {
+            flex-grow: 1;
+            text-align: center;
+            padding: 0 4px;
+        }
+        .festival-anniversary {
+            color: {{ $annivColor }};
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1px;
+        }
+        .festival-main-title {
+            color: {{ $titleColor }};
+            font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: 16px;
+            font-weight: 900;
+            line-height: 1.15;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+            letter-spacing: -0.2px;
+        }
+        .festival-subtitle {
+            color: {{ $subtitleColor }};
+            font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: 13.5px;
+            font-weight: 800;
+            line-height: 1.15;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+        }
+
+        /* Top Right Vertical Badge & Card No */
+        .card-badge-wrap {
             display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 6px 8px;
-            margin-bottom: 6px;
-        }
-        .author-thumb {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            border: 1.5px solid #b45309;
-            object-fit: cover;
+            flex-direction: column;
+            align-items: flex-end;
             flex-shrink: 0;
-            background: #f8fafc;
         }
-        .author-thumb-placeholder {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            border: 1.5px solid #b45309;
-            background: #fef3c7;
-            color: #991b1b;
+        .vertical-invite-ribbon {
+            color: #facc15;
+            font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.75), 0 0 2px #000;
+            white-space: nowrap;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .card-number-pill {
+            background: #ecd8b4;
+            border: 1px solid #c9a76d;
+            color: #0f172a;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            margin-top: 8px;
+            white-space: nowrap;
+        }
+
+        /* ==========================================================================
+           MIDDLE SECTION: PHOTO & AUTHOR PLATE
+           ========================================================================== */
+        .card-middle-section {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 4px 0 2px 0;
+        }
+
+        /* Circular/Custom Author Photo (Customizable Size, Radius, Borders & Filters) */
+        .author-photo-frame {
+            width: {{ $photoSize }}px;
+            height: {{ $photoSize }}px;
+            border-radius: {{ $photoBorderRadius }};
+            border: {{ $photoBorderWidth }}px solid {{ $photoBorderColor }};
+            @if($photoShadow === 'glow')
+                box-shadow: 0 0 16px rgba(250, 204, 21, 0.6);
+            @elseif($photoShadow === 'deep')
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            @elseif($photoShadow === 'none')
+                box-shadow: none;
+            @else
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            @endif
+            filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
+            background: #f8fafc;
+            overflow: hidden;
+            margin-bottom: -18px;
+            position: relative;
+            z-index: 4;
+        }
+        .author-photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .author-photo-frame .photo-placeholder {
+            width: 100%;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-        .author-meta-name {
-            font-size: 11px;
-            font-weight: bold;
-            color: #0f172a;
-            line-height: 1.2;
-            text-transform: uppercase;
-        }
-        .author-meta-cat {
-            font-size: 9.5px;
-            color: #b91c1c;
-            font-weight: bold;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-size: 32px;
         }
 
-        /* Key-Value Details */
-        .details-table {
-            width: 100%;
-            font-size: 9px;
-            border-collapse: collapse;
-            margin-bottom: 6px;
-            background: #fefce8;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #fef08a;
-        }
-        .details-table td {
-            padding: 3px 6px;
-            border-bottom: 1px solid #fef08a;
-        }
-        .details-table tr:last-child td {
-            border-bottom: none;
-        }
-        .details-table .lbl {
-            color: #713f12;
-            width: 32%;
-            font-weight: 600;
-        }
-        .details-table .val {
-            color: #0f172a;
-            font-weight: bold;
-        }
-
-        /* Invitation Message */
-        .invitation-quote {
+        /* Cream Author Name Plate (Customizable Font Size, Line Spacing & Background) */
+        .author-name-plate {
+            width: 92%;
+            background: {{ $plateBgColor }};
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            padding: {{ $showPhoto ? ($platePadding + 10) : $platePadding }}px 12px {{ $platePadding }}px 12px;
             text-align: center;
-            font-size: 8px;
-            color: #334155;
-            line-height: 1.35;
-            margin-bottom: 4px;
+            border: 1px solid #d8be92;
+            position: relative;
+            z-index: 3;
+        }
+        .author-name-plate .author-name {
+            font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
+            font-size: {{ $nameFontSize }}px;
+            font-weight: 800;
+            color: {{ $nameColor }};
+            line-height: {{ $nameLineHeight }};
+            margin-bottom: {{ $nameSpacing }}px;
+        }
+        .author-name-plate .author-designation {
+            font-size: 10px;
+            font-weight: 700;
+            color: {{ $metaColor }};
+            line-height: 1.25;
+            margin-bottom: 1px;
+        }
+        .author-name-plate .author-location {
+            font-size: 9.5px;
+            font-weight: 600;
+            color: {{ $metaColor }};
+            opacity: 0.85;
+            line-height: 1.2;
         }
 
-        /* Barcode & Verification Seal */
-        .card-bottom-bar {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 6px;
-            padding: 4px 6px;
+        /* ==========================================================================
+           INVITATION MESSAGE & BOOK ARTWORK SECTION
+           ========================================================================== */
+        .card-message-section {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 4px 6px 2px 6px;
+        }
+        .invitation-quote-text {
+            color: {{ $quoteColor }};
+            font-size: 10.5px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            flex-grow: 1;
+        }
+
+        /* Open Book & Hand Artwork */
+        .book-art-wrap {
+            width: 78px;
+            height: 64px;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .book-art-wrap svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+        }
+
+        /* ==========================================================================
+           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns)
+           ========================================================================== */
+        .card-organizers-section {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
+            padding-top: 5px;
+            gap: 4px;
+        }
+        .org-col {
+            color: {{ $orgColor }};
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        }
+        .org-col:not(:last-child) {
+            border-right: 1px solid rgba(255, 255, 255, 0.35);
+            padding-right: 4px;
+        }
+        .org-col .org-name {
+            font-size: 9.5px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1px;
+            color: {{ $orgColor }};
+        }
+        .org-col .org-role {
+            font-size: 6.8px;
+            line-height: 1.25;
+            color: rgba(255, 255, 255, 0.92);
+            margin-bottom: 2px;
+        }
+        .org-col .org-phone {
+            font-size: 7.2px;
+            font-weight: 700;
+            color: {{ $orgColor }};
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 8px;
-            border: 1px solid rgba(0,0,0,0.06);
-        }
-        .barcode-txt {
-            font-family: monospace;
-            font-size: 9px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: #7f1d1d;
-        }
-        .approved-tag {
-            background: #dcfce7;
-            color: #15803d;
-            font-size: 7.5px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid #86efac;
-            text-transform: uppercase;
+            gap: 2px;
+            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
 
+    {{-- Top Action Bar (Hidden on Print / PDF) --}}
+    <div class="action-bar no-print">
+        <button type="button" onclick="window.print()" class="btn-action btn-print">
+            <i class="fa-solid fa-print"></i> Print Card
+        </button>
+        <a href="{{ route('event.registration.pdf', $registration->registration_number) }}" class="btn-action btn-pdf">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </a>
+        <a href="{{ url('/') }}" class="btn-action btn-back">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+    </div>
+
+    {{-- 3.8 x 5.4 INCH INVITATION CARD --}}
     <div class="card-wrapper">
-
-        {{-- Top Action Buttons --}}
-        @if(!$isPdf)
-            <div class="action-bar no-print">
-                <a href="{{ url('/') }}" class="btn-act btn-back">← Home</a>
-                <div style="display: flex; gap: 6px;">
-                    <button type="button" onclick="window.print()" class="btn-act btn-print">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        Print (৩.৫x৫)
-                    </button>
-                    <a href="{{ route('event.registration.pdf', $registration->registration_number) }}" class="btn-act btn-pdf">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        Download PDF
-                    </a>
-                </div>
-            </div>
-        @endif
-
-        {{-- 3.5 x 5 Inch Invitation Card Container --}}
-        <div class="invitation-card">
+        <div class="rsu-invitation-card" id="printableCard">
             
-            {{-- Background Graphic Layer --}}
-            <div class="card-bg-layer"></div>
+            {{-- Background Overlay Tint --}}
+            @if($bgOverlayOpacity > 0 || $bgBlur > 0)
+                <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
+            @endif
 
-            {{-- Foreground Content Layer --}}
-            <div class="card-content-layer">
-
-                {{-- Upper Information Box --}}
-                <div class="card-inner-box">
+            {{-- 1. TOP HEADER ROW (Toggleable) --}}
+            @if($showHeader || $showBadge)
+                <div class="card-top-section">
                     
-                    {{-- 1. Logo & Header Space --}}
-                    <div class="top-logo-row">
-                        <div class="logo-box">
-                            <div class="logo-circle">
-                                <span>✒️</span>
+                    @if($showHeader)
+                        {{-- Top Left Emblem / Custom Logo --}}
+                        @if($showLogo)
+                            <div class="phiredekha-logo">
+                                @if($logoImage && file_exists(public_path('storage/' . $logoImage)))
+                                    <img src="{{ $isPdf ? public_path('storage/' . $logoImage) : asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img">
+                                @else
+                                    <div class="logo-inner-ring">
+                                        <div class="logo-brand">ফিরেদেখা</div>
+                                        <i class="fa-solid fa-feather-pointed logo-icon"></i>
+                                        <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
+                                    </div>
+                                @endif
                             </div>
-                            <div>
-                                <div class="logo-text-org">আইডিয়া প্রকাশন</div>
-                                <div style="font-size: 7.5px; color: #64748b; font-family: monospace;">www.ideaabd.com</div>
-                            </div>
+                        @endif
+
+                        {{-- Top Center Festival Headings & Event Logo --}}
+                        <div class="festival-text-wrap">
+                            @if($showEventLogo && $eventLogoImage && file_exists(public_path('storage/' . $eventLogoImage)))
+                                <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: 2px;">
+                                    <img src="{{ $isPdf ? public_path('storage/' . $eventLogoImage) : asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;">
+                                </div>
+                            @endif
+                            <div class="festival-anniversary">{{ $anniversaryText }}</div>
+                            <div class="festival-main-title">{{ $titleText }}</div>
+                            <div class="festival-subtitle">{{ $subtitleText }}</div>
                         </div>
-                        <span class="badge-invite">আমন্ত্রণ কার্ড</span>
-                    </div>
+                    @endif
 
-                    {{-- 2. Festival Title --}}
-                    <div class="event-main-heading">
-                        রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলা ২০২৬
-                    </div>
-                    <div class="event-sub-heading">
-                        লেখকদের অংশগ্রহণ ও ডেলিগেট পাস
-                    </div>
+                    {{-- Top Right Vertical Ribbon & Card No (Toggleable) --}}
+                    @if($showBadge)
+                        <div class="card-badge-wrap">
+                            <div class="vertical-invite-ribbon">{{ $badgeText }}</div>
+                            <div class="card-number-pill">কার্ড নং- {{ $cardNo }}</div>
+                        </div>
+                    @endif
 
-                    {{-- 3. Author Profile Strip --}}
-                    <div class="author-info-flex">
-                        @if($photoPath && (file_exists(public_path('storage/' . $photoPath)) || file_exists(storage_path('app/public/' . $photoPath))))
-                            <img src="{{ $isPdf ? public_path('storage/' . $photoPath) : asset('storage/' . $photoPath) }}" class="author-thumb" alt="Author Photo">
-                        @else
-                            <div class="author-thumb-placeholder">✍️</div>
-                        @endif
+                </div>
+            @endif
 
-                        <div style="min-width: 0; flex-grow: 1;">
-                            <div style="font-size: 7.5px; color: #64748b;">শ্রদ্ধেয় লেখক / অতিথি:</div>
-                            <div class="author-meta-name">{{ $registration->name }}</div>
-                            <div class="author-meta-cat">
-                                {{ $registration->designation_or_class ?: ($formData['author_category'] ?? 'লেখক') }}
-                            </div>
+            {{-- 2. CENTER SECTION: AUTHOR PHOTO & CREAM PLATE (Toggleable) --}}
+            @if($showPhoto || $showNamePlate)
+                <div class="card-middle-section">
+                    {{-- Circular Author Portrait --}}
+                    @if($showPhoto)
+                        <div class="author-photo-frame">
+                            @if($photoPath && file_exists(public_path('storage/' . $photoPath)))
+                                <img src="{{ $isPdf ? public_path('storage/' . $photoPath) : asset('storage/' . $photoPath) }}" alt="{{ $registration->name }}">
+                            @else
+                                <div class="photo-placeholder">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Author Info Plate --}}
+                    @if($showNamePlate)
+                        <div class="author-name-plate">
+                            <div class="author-name">{{ $registration->name }}</div>
+                            <div class="author-designation">{{ $designation }}</div>
+                            <div class="author-location">{{ $location }}</div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- 3. INVITATION MESSAGE & ARTWORK SECTION (Toggleable) --}}
+            @if($showQuote || $showArtwork)
+                <div class="card-message-section">
+                    @if($showQuote)
+                        <div class="invitation-quote-text">
+                            {!! nl2br(e($quoteText)) !!}
+                        </div>
+                    @endif
+
+                    {{-- Stylized Open Book Artwork --}}
+                    @if($showArtwork)
+                        <div class="book-art-wrap">
+                            <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M50 48 L20 10 L28 8 L50 46 Z" fill="#ef4444"/>
+                                <path d="M50 48 L32 6 L40 5 L50 46 Z" fill="#3b82f6"/>
+                                <path d="M50 48 L46 4 L54 4 L50 46 Z" fill="#10b981"/>
+                                <path d="M50 48 L60 5 L68 6 L50 46 Z" fill="#f59e0b"/>
+                                <path d="M50 48 L72 8 L80 10 L50 46 Z" fill="#ec4899"/>
+                                <path d="M50 48 C35 44 20 46 8 52 C8 52 14 62 50 60 Z" fill="#fef3c7" stroke="#b45309" stroke-width="1.2"/>
+                                <path d="M50 48 C65 44 80 46 92 52 C92 52 86 62 50 60 Z" fill="#fef3c7" stroke="#b45309" stroke-width="1.2"/>
+                                <path d="M48 58 L52 58 L52 78 L48 78 Z" fill="#be185d"/>
+                                <path d="M42 66 C42 66 48 64 52 64 C56 64 58 72 58 78 L42 78 Z" fill="#9d174d"/>
+                            </svg>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
+            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Toggleable) --}}
+            @if($showOrganizers)
+                <div class="card-organizers-section">
+                    
+                    {{-- Col 1 --}}
+                    <div class="org-col">
+                        <div class="org-name">{{ $org1Name }}</div>
+                        <div class="org-role">{!! nl2br(e($org1Role)) !!}</div>
+                        <div class="org-phone">
+                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org1Phone }}
                         </div>
                     </div>
 
-                    {{-- 4. Key Details Table --}}
-                    <table class="details-table">
-                        <tr>
-                            <td class="lbl">মোবাইল নং:</td>
-                            <td class="val font-monospace">{{ $registration->phone }}</td>
-                        </tr>
-                        <tr>
-                            <td class="lbl">জেলা ও এলাকা:</td>
-                            <td class="val">{{ $registration->district ?: 'রংপুর' }}</td>
-                        </tr>
-                        @if(!empty($formData['published_books_count']) && $formData['published_books_count'] !== '০ (এখনও বই প্রকাশিত হয়নি)')
-                            <tr>
-                                <td class="lbl">গ্রন্থ সংখ্যা:</td>
-                                <td class="val">{{ $formData['published_books_count'] }}</td>
-                            </tr>
-                        @endif
-                        @if(!empty($formData['magazine_name']))
-                            <tr>
-                                <td class="lbl">ছোটকাগজ:</td>
-                                <td class="val">{{ $formData['magazine_name'] }}</td>
-                            </tr>
-                        @endif
-                    </table>
+                    {{-- Col 2 --}}
+                    <div class="org-col">
+                        <div class="org-name">{{ $org2Name }}</div>
+                        <div class="org-role">{!! nl2br(e($org2Role)) !!}</div>
+                        <div class="org-phone">
+                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org2Phone }}
+                        </div>
+                    </div>
 
-                    {{-- 5. Formal Invitation Note --}}
-                    <div class="invitation-quote">
-                        সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার উপস্থিতি ও অংশগ্রহণ আমাদের সম্মানিত করবে।
+                    {{-- Col 3 --}}
+                    <div class="org-col">
+                        <div class="org-name">{{ $org3Name }}</div>
+                        <div class="org-role">{!! nl2br(e($org3Role)) !!}</div>
+                        <div class="org-phone">
+                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org3Phone }}
+                        </div>
                     </div>
 
                 </div>
+            @endif
 
-                {{-- Lower Verification & Barcode Bar --}}
-                <div class="card-bottom-bar">
-                    <span class="barcode-txt">#{{ $registration->registration_number }}</span>
-                    <span class="approved-tag">✓ APPROVED DELEGATE</span>
+            {{-- 5. FLOATING CUSTOM OBJECTS / STICKERS / WATERMARK LAYER --}}
+            @php
+                $printCustomObjects = $cardDesign['custom_objects'] ?? [];
+            @endphp
+            @if(is_array($printCustomObjects) && count($printCustomObjects) > 0)
+                <div class="card-custom-objects-layer" style="position: absolute; inset: 0; pointer-events: none; z-index: 10; overflow: hidden; border-radius: 12px;">
+                    @foreach($printCustomObjects as $pObj)
+                        @php
+                            $pOUrl = $pObj['url'] ?? '';
+                            $pOX = floatval($pObj['x'] ?? 50);
+                            $pOY = floatval($pObj['y'] ?? 50);
+                            $pOW = intval($pObj['width'] ?? 60);
+                            $pOOp = floatval($pObj['opacity'] ?? 1);
+                            $pORot = floatval($pObj['rotation'] ?? 0);
+                        @endphp
+                        @if(!empty($pOUrl))
+                            <img src="{{ $pOUrl }}" alt="Object" style="position: absolute; left: {{ $pOX }}%; top: {{ $pOY }}%; transform: translate(-50%, -50%) rotate({{ $pORot }}deg); width: {{ $pOW }}px; height: auto; opacity: {{ $pOOp }}; pointer-events: none;">
+                        @endif
+                    @endforeach
                 </div>
-
-            </div>
+            @endif
 
         </div>
-
     </div>
 
 </body>
