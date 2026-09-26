@@ -13,16 +13,17 @@
     $bgColor        = $cardDesign['bg_color'] ?? '#c98c21';
     
     // 2. Element Visibility Toggles (বাদ দেওয়ার / প্রদর্শন করার সেটিংস)
-    $showHeader     = $cardDesign['show_header'] ?? true;
-    $showLogo       = $cardDesign['show_logo'] ?? true;
-    $showEventLogo  = $cardDesign['show_event_logo'] ?? true;
+    $showHeader     = !empty($cardDesign['show_header']);
+    $showLogo       = !empty($cardDesign['show_logo']);
+    $showEventLogo  = !empty($cardDesign['show_event_logo']);
     $eventLogoSize  = intval($cardDesign['event_logo_size'] ?? 64);
-    $showBadge      = $cardDesign['show_badge'] ?? true;
+    $showBadge      = !empty($cardDesign['show_badge']);
     $showPhoto      = $cardDesign['show_photo'] ?? true;
     $showNamePlate  = $cardDesign['show_name_plate'] ?? true;
     $showQuote      = $cardDesign['show_quote'] ?? true;
     $showArtwork    = $cardDesign['show_artwork'] ?? true;
     $showOrganizers = $cardDesign['show_organizers'] ?? true;
+    $headerHeight   = intval($cardDesign['header_height'] ?? 90);
 
     // 3. Sizing & Typography Controls (ছোট বড়ো করার সেটিংস)
     $photoSize          = intval($cardDesign['photo_size'] ?? 82);
@@ -557,16 +558,16 @@
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
             @endif
 
-            {{-- 1. TOP HEADER ROW (Toggleable) --}}
-            @if($showHeader || $showBadge)
-                <div class="card-top-section">
+            {{-- 1. TOP HEADER ROW (Reserved Blank Header Area) --}}
+            <div class="card-top-section" style="@if(!$showHeader && !$showBadge) min-height: {{ $headerHeight }}px; height: {{ $headerHeight }}px; @endif">
+                @if($showHeader || $showBadge)
                     
                     @if($showHeader)
                         {{-- Top Left Emblem / Custom Logo --}}
                         @if($showLogo)
                             <div class="phiredekha-logo">
-                                @if($logoImage && file_exists(public_path('storage/' . $logoImage)))
-                                    <img src="{{ $isPdf ? public_path('storage/' . $logoImage) : asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img">
+                                @if($logoImage && (file_exists(public_path('storage/' . $logoImage)) || file_exists(storage_path('app/public/' . $logoImage))))
+                                    <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
                                 @else
                                     <div class="logo-inner-ring">
                                         <div class="logo-brand">ফিরেদেখা</div>
@@ -579,9 +580,9 @@
 
                         {{-- Top Center Festival Headings & Event Logo --}}
                         <div class="festival-text-wrap">
-                            @if($showEventLogo && $eventLogoImage && file_exists(public_path('storage/' . $eventLogoImage)))
+                            @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
                                 <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: 2px;">
-                                    <img src="{{ $isPdf ? public_path('storage/' . $eventLogoImage) : asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;">
+                                    <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
                                 </div>
                             @endif
                             <div class="festival-anniversary">{{ $anniversaryText }}</div>
@@ -598,8 +599,8 @@
                         </div>
                     @endif
 
-                </div>
-            @endif
+                @endif
+            </div>
 
             {{-- 2. CENTER SECTION: AUTHOR PHOTO & CREAM PLATE (Toggleable) --}}
             @if($showPhoto || $showNamePlate)

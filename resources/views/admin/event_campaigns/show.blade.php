@@ -1124,10 +1124,10 @@
     $cBadge          = $cCardDesign['badge_text'] ?? ($campaign->badge_text ?: 'আমন্ত্রণ কার্ড');
     
     // Toggles
-    $cShowHeader     = $cCardDesign['show_header'] ?? true;
-    $cShowLogo       = $cCardDesign['show_logo'] ?? true;
-    $cShowEventLogo  = $cCardDesign['show_event_logo'] ?? true;
-    $cShowBadge      = $cCardDesign['show_badge'] ?? true;
+    $cShowHeader     = !empty($cCardDesign['show_header']);
+    $cShowLogo       = !empty($cCardDesign['show_logo']);
+    $cShowEventLogo  = !empty($cCardDesign['show_event_logo']);
+    $cShowBadge      = !empty($cCardDesign['show_badge']);
     $cShowPhoto      = $cCardDesign['show_photo'] ?? true;
     $cShowNamePlate  = $cCardDesign['show_name_plate'] ?? true;
     $cShowQuote      = $cCardDesign['show_quote'] ?? true;
@@ -2138,7 +2138,7 @@
                                         <div id="liveBgOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity > 0 ? ($cBgOverlayOpacity / 100) : 0 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
 
                                         {{-- 1. TOP HEADER SECTION --}}
-                                        <div class="card-top-section" id="liveTopSection" style="{{ ($cShowHeader || $cShowBadge) ? '' : 'display: none;' }}">
+                                        <div class="card-top-section" id="liveTopSection" style="{{ ($cShowHeader || $cShowBadge) ? '' : 'min-height: 90px; height: 90px;' }}">
                                             
                                             {{-- Top Left Emblem / Custom Logo & Headings Group --}}
                                             <div class="d-flex align-items-start gap-1 flex-grow-1" id="liveTopHeaderGroup" style="{{ $cShowHeader ? '' : 'display: none !important;' }}">
