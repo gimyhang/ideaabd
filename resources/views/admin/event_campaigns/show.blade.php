@@ -1139,6 +1139,9 @@
     $cEventLogoOffsetX   = intval($cCardDesign['event_logo_offset_x'] ?? 0);
     $cEventLogoOffsetY   = intval($cCardDesign['event_logo_offset_y'] ?? 0);
     $cPhotoSize          = intval($cCardDesign['photo_size'] ?? 82);
+    $cPhotoOffsetX       = intval($cCardDesign['photo_offset_x'] ?? 0);
+    $cPhotoOffsetY       = intval($cCardDesign['photo_offset_y'] ?? 0);
+    $cPhotoScale         = intval($cCardDesign['photo_scale'] ?? 100);
     $cPhotoBorderRadius  = $cCardDesign['photo_border_radius'] ?? '50%';
     $cPhotoBorderWidth   = intval($cCardDesign['photo_border_width'] ?? 3);
     $cPhotoBorderColor   = $cCardDesign['photo_border_color'] ?? '#ffffff';
@@ -1402,7 +1405,7 @@
                                         </div>
                                         <input type="range" class="custom-range-slider mb-2.5" id="photoSizeSlider" name="photo_size" min="50" max="130" step="2" value="{{ $cPhotoSize }}">
                                         
-                                        <div class="row g-2">
+                                        <div class="row g-2 mb-2.5">
                                             @php
                                                 $photoSizes = [
                                                     60  => 'কমপ্যাক্ট (60px)',
@@ -1418,6 +1421,68 @@
                                                     </button>
                                                 </div>
                                             @endforeach
+                                        </div>
+                                    </div>
+
+                                    {{-- Photo Arrow / Nudge Position Controls (ডান-বাম-উপর-নিচ পজিশন ও জুম) --}}
+                                    <div class="p-2.5 bg-white rounded-3 border mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                <i class="fa-solid fa-arrows-up-down-left-right text-primary me-1"></i> ছবির পজিশন এডজাস্ট (ডান / বাম / উপর / নিচ)
+                                            </label>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetPhotoPos" style="font-size: 10px;">
+                                                <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                                            </button>
+                                        </div>
+
+                                        <div class="row g-2 align-items-center">
+                                            {{-- D-Pad Navigation Buttons --}}
+                                            <div class="col-12 col-md-5 d-flex justify-content-center">
+                                                <div class="d-flex flex-column align-items-center gap-1 p-1 bg-light rounded-3 border shadow-sm">
+                                                    <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgePhotoUp" title="উপরে তুলুন (Up)">
+                                                        <i class="fa-solid fa-arrow-up"></i>
+                                                    </button>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgePhotoLeft" title="বামে সরান (Left)">
+                                                            <i class="fa-solid fa-arrow-left"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-primary px-2 py-1 text-white fw-bold shadow-xs" id="btnNudgePhotoCenter" title="সেন্টার করুন">
+                                                            <i class="fa-solid fa-bullseye"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgePhotoRight" title="ডানে সরান (Right)">
+                                                            <i class="fa-solid fa-arrow-right"></i>
+                                                        </button>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgePhotoDown" title="নিচে নামান (Down)">
+                                                        <i class="fa-solid fa-arrow-down"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Fine Sliders for Photo Offset X, Y & Scale --}}
+                                            <div class="col-12 col-md-7">
+                                                <div class="mb-2">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডান ↔ বাম মুভ (X Offset)</span>
+                                                        <span class="badge bg-secondary-subtle text-secondary" id="photoOffsetXBadge" style="font-size: 10px;">{{ $cPhotoOffsetX }} px</span>
+                                                    </div>
+                                                    <input type="range" class="custom-range-slider" id="photoOffsetXSlider" name="photo_offset_x" min="-80" max="80" step="1" value="{{ $cPhotoOffsetX }}">
+                                                </div>
+                                                <div class="mb-2">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপর ↕ নিচ মুভ (Y Offset)</span>
+                                                        <span class="badge bg-secondary-subtle text-secondary" id="photoOffsetYBadge" style="font-size: 10px;">{{ $cPhotoOffsetY }} px</span>
+                                                    </div>
+                                                    <input type="range" class="custom-range-slider" id="photoOffsetYSlider" name="photo_offset_y" min="-60" max="60" step="1" value="{{ $cPhotoOffsetY }}">
+                                                </div>
+                                                <div>
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <span class="small fw-bold text-muted" style="font-size: 10.5px;">ছবির জুম / স্কেল (Zoom)</span>
+                                                        <span class="badge bg-primary-subtle text-primary" id="photoScaleBadge" style="font-size: 10px;">{{ $cPhotoScale }}%</span>
+                                                    </div>
+                                                    <input type="range" class="custom-range-slider" id="photoScaleSlider" name="photo_scale" min="60" max="150" step="2" value="{{ $cPhotoScale }}">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -2307,7 +2372,7 @@
                                         {{-- 2. MIDDLE SECTION: PHOTO & NAME PLATE --}}
                                         <div class="card-middle-section" id="liveMiddleSection" style="{{ ($cShowPhoto || $cShowNamePlate) ? '' : 'display: none;' }}">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
-                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: -8px; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
+                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: -8px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
                                                 <div class="photo-placeholder">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>

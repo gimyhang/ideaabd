@@ -831,6 +831,9 @@ class EventCampaignAdminController extends Controller
             // 5. Author Photo, Shape & Studio Filters (ফটো এডিটর স্যুট)
             $cardDesign['show_photo']          = $request->boolean('show_photo', true);
             $cardDesign['photo_size']          = intval($request->input('photo_size', 82));
+            $cardDesign['photo_offset_x']      = intval($request->input('photo_offset_x', $cardDesign['photo_offset_x'] ?? 0));
+            $cardDesign['photo_offset_y']      = intval($request->input('photo_offset_y', $cardDesign['photo_offset_y'] ?? 0));
+            $cardDesign['photo_scale']         = intval($request->input('photo_scale', $cardDesign['photo_scale'] ?? 100));
             $cardDesign['photo_border_radius'] = $request->input('photo_border_radius', $cardDesign['photo_border_radius'] ?? '50%');
             $cardDesign['photo_border_width']  = intval($request->input('photo_border_width', $cardDesign['photo_border_width'] ?? 3));
             $cardDesign['photo_border_color']  = $request->input('photo_border_color', $cardDesign['photo_border_color'] ?? '#ffffff');

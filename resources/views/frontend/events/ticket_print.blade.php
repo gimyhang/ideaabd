@@ -29,6 +29,9 @@
 
     // 3. Sizing & Typography Controls (ছোট বড়ো করার সেটিংস)
     $photoSize          = intval($cardDesign['photo_size'] ?? 82);
+    $photoOffsetX       = intval($cardDesign['photo_offset_x'] ?? 0);
+    $photoOffsetY       = intval($cardDesign['photo_offset_y'] ?? 0);
+    $photoScale         = intval($cardDesign['photo_scale'] ?? 100);
     $photoBorderRadius  = $cardDesign['photo_border_radius'] ?? '50%';
     $photoBorderWidth   = intval($cardDesign['photo_border_width'] ?? 3);
     $photoBorderColor   = $cardDesign['photo_border_color'] ?? '#ffffff';
@@ -401,6 +404,7 @@
             background: #f8fafc;
             overflow: hidden;
             margin-bottom: -8px; /* shifted 10px upwards from -18px */
+            transform: translate({{ $photoOffsetX }}px, {{ $photoOffsetY }}px) scale({{ $photoScale / 100 }});
             position: relative;
             z-index: 4;
         }

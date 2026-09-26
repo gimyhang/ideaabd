@@ -1284,6 +1284,100 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // Photo Arrow Nudge, Position & Scale Engine
+        const photoOffsetXSlider = document.getElementById('photoOffsetXSlider');
+        const photoOffsetYSlider = document.getElementById('photoOffsetYSlider');
+        const photoScaleSlider = document.getElementById('photoScaleSlider');
+        const photoOffsetXBadge = document.getElementById('photoOffsetXBadge');
+        const photoOffsetYBadge = document.getElementById('photoOffsetYBadge');
+        const photoScaleBadge = document.getElementById('photoScaleBadge');
+        const btnResetPhotoPos = document.getElementById('btnResetPhotoPos');
+
+        let curPhotoOffsetX = parseInt(photoOffsetXSlider?.value || 0);
+        let curPhotoOffsetY = parseInt(photoOffsetYSlider?.value || 0);
+        let curPhotoScale = parseInt(photoScaleSlider?.value || 100);
+
+        function updatePhotoTransform() {
+            if (photoFrame) {
+                photoFrame.style.transform = `translate(${curPhotoOffsetX}px, ${curPhotoOffsetY}px) scale(${curPhotoScale / 100})`;
+            }
+            if (photoOffsetXBadge) photoOffsetXBadge.textContent = curPhotoOffsetX + ' px';
+            if (photoOffsetYBadge) photoOffsetYBadge.textContent = curPhotoOffsetY + ' px';
+            if (photoScaleBadge) photoScaleBadge.textContent = curPhotoScale + '%';
+            if (photoOffsetXSlider) photoOffsetXSlider.value = curPhotoOffsetX;
+            if (photoOffsetYSlider) photoOffsetYSlider.value = curPhotoOffsetY;
+            if (photoScaleSlider) photoScaleSlider.value = curPhotoScale;
+        }
+
+        // Photo Arrow Pad / D-Pad Nudge Buttons
+        const btnNudgePhotoUp = document.getElementById('btnNudgePhotoUp');
+        const btnNudgePhotoDown = document.getElementById('btnNudgePhotoDown');
+        const btnNudgePhotoLeft = document.getElementById('btnNudgePhotoLeft');
+        const btnNudgePhotoRight = document.getElementById('btnNudgePhotoRight');
+        const btnNudgePhotoCenter = document.getElementById('btnNudgePhotoCenter');
+
+        if (btnNudgePhotoUp) {
+            btnNudgePhotoUp.addEventListener('click', function () {
+                curPhotoOffsetY = Math.max(-60, curPhotoOffsetY - 2);
+                updatePhotoTransform();
+            });
+        }
+        if (btnNudgePhotoDown) {
+            btnNudgePhotoDown.addEventListener('click', function () {
+                curPhotoOffsetY = Math.min(60, curPhotoOffsetY + 2);
+                updatePhotoTransform();
+            });
+        }
+        if (btnNudgePhotoLeft) {
+            btnNudgePhotoLeft.addEventListener('click', function () {
+                curPhotoOffsetX = Math.max(-80, curPhotoOffsetX - 2);
+                updatePhotoTransform();
+            });
+        }
+        if (btnNudgePhotoRight) {
+            btnNudgePhotoRight.addEventListener('click', function () {
+                curPhotoOffsetX = Math.min(80, curPhotoOffsetX + 2);
+                updatePhotoTransform();
+            });
+        }
+        if (btnNudgePhotoCenter) {
+            btnNudgePhotoCenter.addEventListener('click', function () {
+                curPhotoOffsetX = 0;
+                curPhotoOffsetY = 0;
+                updatePhotoTransform();
+            });
+        }
+
+        if (photoOffsetXSlider) {
+            photoOffsetXSlider.addEventListener('input', function () {
+                curPhotoOffsetX = parseInt(this.value);
+                updatePhotoTransform();
+            });
+        }
+
+        if (photoOffsetYSlider) {
+            photoOffsetYSlider.addEventListener('input', function () {
+                curPhotoOffsetY = parseInt(this.value);
+                updatePhotoTransform();
+            });
+        }
+
+        if (photoScaleSlider) {
+            photoScaleSlider.addEventListener('input', function () {
+                curPhotoScale = parseInt(this.value);
+                updatePhotoTransform();
+            });
+        }
+
+        if (btnResetPhotoPos) {
+            btnResetPhotoPos.addEventListener('click', function () {
+                curPhotoOffsetX = 0;
+                curPhotoOffsetY = 0;
+                curPhotoScale = 100;
+                updatePhotoTransform();
+            });
+        }
+
         document.querySelectorAll('.btn-preset-photo').forEach(btn => {
             btn.addEventListener('click', function () {
                 const size = this.getAttribute('data-size');
