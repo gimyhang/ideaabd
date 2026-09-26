@@ -789,6 +789,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['logo_border_width'] = intval($request->input('logo_border_width', $cardDesign['logo_border_width'] ?? 0));
             $cardDesign['show_event_logo']   = $request->boolean('show_event_logo', true);
             $cardDesign['event_logo_size']   = intval($request->input('event_logo_size', $cardDesign['event_logo_size'] ?? 64));
+            $cardDesign['event_logo_offset_x'] = intval($request->input('event_logo_offset_x', $cardDesign['event_logo_offset_x'] ?? 0));
+            $cardDesign['event_logo_offset_y'] = intval($request->input('event_logo_offset_y', $cardDesign['event_logo_offset_y'] ?? 0));
 
             // 2. Colors & Typography
             $cardDesign['bg_color']          = $request->input('card_bg_color', $cardDesign['bg_color'] ?? '#c98c21');

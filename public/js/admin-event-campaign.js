@@ -557,11 +557,112 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // Event Logo Size & Position Engine
+        const eventLogoSizeDec = document.getElementById('btnEventLogoSizeDec');
+        const eventLogoSizeInc = document.getElementById('btnEventLogoSizeInc');
+        const eventLogoOffsetXSlider = document.getElementById('eventLogoOffsetXSlider');
+        const eventLogoOffsetYSlider = document.getElementById('eventLogoOffsetYSlider');
+        const eventLogoOffsetXBadge = document.getElementById('eventLogoOffsetXBadge');
+        const eventLogoOffsetYBadge = document.getElementById('eventLogoOffsetYBadge');
+        const btnResetEventLogoPos = document.getElementById('btnResetEventLogoPos');
+
+        let curEventLogoOffsetX = parseInt(eventLogoOffsetXSlider?.value || 0);
+        let curEventLogoOffsetY = parseInt(eventLogoOffsetYSlider?.value || 0);
+
+        function updateEventLogoTransform() {
+            if (liveEventLogoWrap) {
+                liveEventLogoWrap.style.transform = `translate(${curEventLogoOffsetX}px, ${curEventLogoOffsetY}px)`;
+            }
+            if (eventLogoOffsetXBadge) eventLogoOffsetXBadge.textContent = curEventLogoOffsetX + ' px';
+            if (eventLogoOffsetYBadge) eventLogoOffsetYBadge.textContent = curEventLogoOffsetY + ' px';
+            if (eventLogoOffsetXSlider) eventLogoOffsetXSlider.value = curEventLogoOffsetX;
+            if (eventLogoOffsetYSlider) eventLogoOffsetYSlider.value = curEventLogoOffsetY;
+        }
+
         if (eventLogoSlider && liveCustomEventLogoImg) {
             eventLogoSlider.addEventListener('input', function () {
                 const val = this.value;
                 if (eventLogoBadge) eventLogoBadge.textContent = val + ' px';
                 liveCustomEventLogoImg.style.maxHeight = val + 'px';
+            });
+        }
+
+        if (eventLogoSizeDec && eventLogoSlider && liveCustomEventLogoImg) {
+            eventLogoSizeDec.addEventListener('click', function () {
+                let val = Math.max(20, parseInt(eventLogoSlider.value) - 4);
+                eventLogoSlider.value = val;
+                if (eventLogoBadge) eventLogoBadge.textContent = val + ' px';
+                liveCustomEventLogoImg.style.maxHeight = val + 'px';
+            });
+        }
+
+        if (eventLogoSizeInc && eventLogoSlider && liveCustomEventLogoImg) {
+            eventLogoSizeInc.addEventListener('click', function () {
+                let val = Math.min(260, parseInt(eventLogoSlider.value) + 4);
+                eventLogoSlider.value = val;
+                if (eventLogoBadge) eventLogoBadge.textContent = val + ' px';
+                liveCustomEventLogoImg.style.maxHeight = val + 'px';
+            });
+        }
+
+        // Arrow Pad / D-Pad Position Nudge Controls
+        const btnNudgeUp = document.getElementById('btnNudgeEventLogoUp');
+        const btnNudgeDown = document.getElementById('btnNudgeEventLogoDown');
+        const btnNudgeLeft = document.getElementById('btnNudgeEventLogoLeft');
+        const btnNudgeRight = document.getElementById('btnNudgeEventLogoRight');
+        const btnNudgeCenter = document.getElementById('btnNudgeEventLogoCenter');
+
+        if (btnNudgeUp) {
+            btnNudgeUp.addEventListener('click', function () {
+                curEventLogoOffsetY = Math.max(-80, curEventLogoOffsetY - 3);
+                updateEventLogoTransform();
+            });
+        }
+        if (btnNudgeDown) {
+            btnNudgeDown.addEventListener('click', function () {
+                curEventLogoOffsetY = Math.min(80, curEventLogoOffsetY + 3);
+                updateEventLogoTransform();
+            });
+        }
+        if (btnNudgeLeft) {
+            btnNudgeLeft.addEventListener('click', function () {
+                curEventLogoOffsetX = Math.max(-150, curEventLogoOffsetX - 3);
+                updateEventLogoTransform();
+            });
+        }
+        if (btnNudgeRight) {
+            btnNudgeRight.addEventListener('click', function () {
+                curEventLogoOffsetX = Math.min(150, curEventLogoOffsetX + 3);
+                updateEventLogoTransform();
+            });
+        }
+        if (btnNudgeCenter) {
+            btnNudgeCenter.addEventListener('click', function () {
+                curEventLogoOffsetX = 0;
+                curEventLogoOffsetY = 0;
+                updateEventLogoTransform();
+            });
+        }
+
+        if (eventLogoOffsetXSlider) {
+            eventLogoOffsetXSlider.addEventListener('input', function () {
+                curEventLogoOffsetX = parseInt(this.value);
+                updateEventLogoTransform();
+            });
+        }
+
+        if (eventLogoOffsetYSlider) {
+            eventLogoOffsetYSlider.addEventListener('input', function () {
+                curEventLogoOffsetY = parseInt(this.value);
+                updateEventLogoTransform();
+            });
+        }
+
+        if (btnResetEventLogoPos) {
+            btnResetEventLogoPos.addEventListener('click', function () {
+                curEventLogoOffsetX = 0;
+                curEventLogoOffsetY = 0;
+                updateEventLogoTransform();
             });
         }
 

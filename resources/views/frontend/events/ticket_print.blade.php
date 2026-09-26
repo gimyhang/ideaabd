@@ -15,8 +15,10 @@
     // 2. Element Visibility Toggles (বাদ দেওয়ার / প্রদর্শন করার সেটিংস)
     $showHeader     = !empty($cardDesign['show_header']);
     $showLogo       = !empty($cardDesign['show_logo']);
-    $showEventLogo  = !empty($cardDesign['show_event_logo']);
-    $eventLogoSize  = intval($cardDesign['event_logo_size'] ?? 64);
+    $showEventLogo    = !empty($cardDesign['show_event_logo']);
+    $eventLogoSize    = intval($cardDesign['event_logo_size'] ?? 64);
+    $eventLogoOffsetX = intval($cardDesign['event_logo_offset_x'] ?? 0);
+    $eventLogoOffsetY = intval($cardDesign['event_logo_offset_y'] ?? 0);
     $showBadge      = !empty($cardDesign['show_badge']);
     $showPhoto      = $cardDesign['show_photo'] ?? true;
     $showNamePlate  = $cardDesign['show_name_plate'] ?? true;
@@ -570,9 +572,9 @@
                 </div>
 
                 {{-- Center: Event Logo & Title --}}
-                <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                     @if($showEventLogo && !empty($eventLogoImage))
-                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: {{ $showHeader ? '2px' : '0' }};">
+                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: {{ $showHeader ? '2px' : '0' }}; transform: translate({{ $eventLogoOffsetX }}px, {{ $eventLogoOffsetY }}px);">
                             <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
                         </div>
                     @endif

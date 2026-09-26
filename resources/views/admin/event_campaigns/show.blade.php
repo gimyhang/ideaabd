@@ -1136,6 +1136,8 @@
     
     // Sizes & Typography
     $cEventLogoSize      = intval($cCardDesign['event_logo_size'] ?? 64);
+    $cEventLogoOffsetX   = intval($cCardDesign['event_logo_offset_x'] ?? 0);
+    $cEventLogoOffsetY   = intval($cCardDesign['event_logo_offset_y'] ?? 0);
     $cPhotoSize          = intval($cCardDesign['photo_size'] ?? 82);
     $cPhotoBorderRadius  = $cCardDesign['photo_border_radius'] ?? '50%';
     $cPhotoBorderWidth   = intval($cCardDesign['photo_border_width'] ?? 3);
@@ -1617,9 +1619,9 @@
                                         </div>
 
                                         {{-- Event Logo Visibility & Size --}}
-                                        <div class="row g-2">
+                                        <div class="row g-2 mb-2.5">
                                             <div class="col-6">
-                                                <div class="toggle-card-item p-2 mb-0">
+                                                <div class="toggle-card-item p-2 mb-0 h-100">
                                                     <div class="toggle-card-info">
                                                         <div class="toggle-card-icon bg-danger-subtle text-danger" style="width: 28px; height: 28px; font-size: 12px;">
                                                             <i class="fa-solid fa-eye"></i>
@@ -1635,12 +1637,71 @@
                                             </div>
 
                                             <div class="col-6">
-                                                <div class="range-slider-box p-2 mb-0">
+                                                <div class="range-slider-box p-2 mb-0 h-100">
                                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                                         <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11px;">ইভেন্ট লোগো সাইজ</label>
-                                                        <span class="slider-val-badge py-0.5 px-1.5 bg-danger" id="eventLogoSizeBadge" style="font-size: 10px;">{{ $cEventLogoSize }} px</span>
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnEventLogoSizeDec" title="ছোট করুন" style="font-size: 9px;"><i class="fa-solid fa-minus"></i></button>
+                                                            <span class="slider-val-badge py-0.5 px-1.5 bg-danger text-white" id="eventLogoSizeBadge" style="font-size: 10px;">{{ $cEventLogoSize }} px</span>
+                                                            <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1" id="btnEventLogoSizeInc" title="বড় করুন" style="font-size: 9px;"><i class="fa-solid fa-plus"></i></button>
+                                                        </div>
                                                     </div>
-                                                    <input type="range" class="custom-range-slider" id="eventLogoSizeSlider" name="event_logo_size" min="30" max="140" step="2" value="{{ $cEventLogoSize }}">
+                                                    <input type="range" class="custom-range-slider" id="eventLogoSizeSlider" name="event_logo_size" min="20" max="240" step="2" value="{{ $cEventLogoSize }}">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Event Logo Arrow / Nudge Position Controls (ডান-বাম-উপর-নিচ পজিশন) --}}
+                                        <div class="p-2.5 bg-white rounded-3 border">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <label class="form-label small fw-bold text-dark mb-0" style="font-size: 11.5px;">
+                                                    <i class="fa-solid fa-arrows-up-down-left-right text-primary me-1"></i> এ্যারো দিয়ে পজিশন অ্যাডজাস্ট (ডান / বাম / উপর / নিচ)
+                                                </label>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 rounded-pill" id="btnResetEventLogoPos" style="font-size: 10px;">
+                                                    <i class="fa-solid fa-rotate-left me-1"></i> রিসেট
+                                                </button>
+                                            </div>
+
+                                            <div class="row g-2 align-items-center">
+                                                {{-- D-Pad Navigation Buttons --}}
+                                                <div class="col-12 col-md-5 d-flex justify-content-center">
+                                                    <div class="d-flex flex-column align-items-center gap-1 p-1 bg-light rounded-3 border shadow-sm">
+                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoUp" title="উপরে সরান (Up)">
+                                                            <i class="fa-solid fa-arrow-up"></i>
+                                                        </button>
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoLeft" title="বামে সরান (Left)">
+                                                                <i class="fa-solid fa-arrow-left"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-primary px-2 py-1 text-white fw-bold shadow-xs" id="btnNudgeEventLogoCenter" title="সেন্টার করুন">
+                                                                <i class="fa-solid fa-bullseye"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoRight" title="ডানে সরান (Right)">
+                                                                <i class="fa-solid fa-arrow-right"></i>
+                                                            </button>
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-light border shadow-xs px-2.5 py-1 text-primary fw-bold" id="btnNudgeEventLogoDown" title="নিচে সরান (Down)">
+                                                            <i class="fa-solid fa-arrow-down"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Fine Sliders for Offset X & Offset Y --}}
+                                                <div class="col-12 col-md-7">
+                                                    <div class="mb-2">
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">ডান ↔ বাম পজিশন (X Offset)</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary" id="eventLogoOffsetXBadge" style="font-size: 10px;">{{ $cEventLogoOffsetX }} px</span>
+                                                        </div>
+                                                        <input type="range" class="custom-range-slider" id="eventLogoOffsetXSlider" name="event_logo_offset_x" min="-150" max="150" step="1" value="{{ $cEventLogoOffsetX }}">
+                                                    </div>
+                                                    <div>
+                                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                                            <span class="small fw-bold text-muted" style="font-size: 10.5px;">উপর ↕ নিচ পজিশন (Y Offset)</span>
+                                                            <span class="badge bg-secondary-subtle text-secondary" id="eventLogoOffsetYBadge" style="font-size: 10px;">{{ $cEventLogoOffsetY }} px</span>
+                                                        </div>
+                                                        <input type="range" class="custom-range-slider" id="eventLogoOffsetYSlider" name="event_logo_offset_y" min="-80" max="80" step="1" value="{{ $cEventLogoOffsetY }}">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -2162,8 +2223,8 @@
                                             </div>
 
                                             {{-- Center: Event Logo & Title Headings --}}
-                                            <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                                <div class="event-header-logo-wrap" id="liveEventLogoWrap" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; margin-bottom: 2px;">
+                                            <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                                                <div class="event-header-logo-wrap" id="liveEventLogoWrap" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; margin-bottom: {{ $cShowHeader ? '2px' : '0' }}; transform: translate({{ $cEventLogoOffsetX }}px, {{ $cEventLogoOffsetY }}px); transition: transform 0.1s ease-out;">
                                                     <img src="{{ $cEventLogoImg ? asset('storage/' . $cEventLogoImg) : '' }}" alt="Event Logo" id="liveCustomEventLogoImg" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
                                                 </div>
                                                 <div id="liveTextHeadingsGroup" style="{{ $cShowHeader ? '' : 'display: none !important;' }}">
