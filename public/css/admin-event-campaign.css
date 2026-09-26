@@ -723,50 +723,63 @@
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
 }
 
-/* Organizers 3 Col */
+/* Organizers 3 Col - Centered */
 .live-card-target .card-organizers-section {
     position: relative;
     z-index: 2;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    border-top: 1px solid rgba(255, 255, 255, 0.35);
-    padding-top: 4px;
-    gap: 3px;
+    border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+    padding-top: 5px;
+    gap: 4px;
+    text-align: center;
 }
 
 .live-card-target .org-col {
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
 }
 
 .live-card-target .org-col:not(:last-child) {
     border-right: 1px solid rgba(255, 255, 255, 0.35);
-    padding-right: 2px;
+    padding-right: 3px;
 }
 
 .live-card-target .org-col .org-name {
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 1px;
+    line-height: 1.25;
+    margin-bottom: 2px;
     color: #ffffff;
+    text-align: center;
+    width: 100%;
 }
 
 .live-card-target .org-col .org-role {
-    font-size: 5.8px;
-    line-height: 1.2;
-    color: rgba(255, 255, 255, 0.92);
-    margin-bottom: 1px;
+    font-size: 6px;
+    line-height: 1.3;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 2px;
+    text-align: center;
+    width: 100%;
 }
 
 .live-card-target .org-col .org-phone {
-    font-size: 6.2px;
+    font-size: 6.8px;
     font-weight: 700;
     color: #ffffff;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 2px;
+    justify-content: center;
+    gap: 3px;
     font-family: Arial, sans-serif;
+    text-align: center;
+    width: 100%;
 }
 
 /* ==========================================================================
