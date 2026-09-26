@@ -307,12 +307,21 @@ Route::get('/user', function () {
         return redirect()->route('admin.dashboard');
     }
     if ($user->isSeller() || $user->isSubAdmin()) {
+        if (!$user->isApproved()) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার সেলার অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
+        }
         return redirect()->route('subadmin.dashboard');
     }
     if ($user->isPublisher()) {
+        if (!$user->isApproved()) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার প্রকাশনী অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
+        }
         return redirect()->route('publisher.dashboard');
     }
     if ($user->isAuthor()) {
+        if (!$user->isApproved()) {
+            return redirect()->route('pending.approval')->with('warning', 'আপনার লেখক অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে।');
+        }
         return redirect()->route('author.dashboard');
     }
     return redirect()->route('my-account');
@@ -594,6 +603,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/{campaign}/edit', 'edit')->name('edit');
         Route::put('/{campaign}', 'update')->name('update');
         Route::delete('/{campaign}', 'destroy')->name('destroy');
+        Route::post('/{campaign}/clone', 'clone')->name('clone');
         Route::match(['patch', 'post'], '/{campaign}/toggle-status', 'toggleStatus')->name('toggle-status');
         Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
         Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');

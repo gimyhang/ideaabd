@@ -165,6 +165,7 @@ class PublisherController extends Controller
                 if (!empty($validated['password'])) {
                     $user->password = Hash::make($validated['password']);
                 }
+                $user->is_active = false;
                 $user->save();
             } else {
                 $user = User::create([
@@ -176,18 +177,18 @@ class PublisherController extends Controller
                     'reg_type'   => User::ROLE_PUBLISHER,
                     'reg_status' => User::STATUS_PENDING,
                     'avatar'     => $logoPath,
-                    'is_active'  => true,
+                    'is_active'  => false,
                     'reg_data'   => $regData,
                 ]);
             }
-
-            Auth::login($user);
         } else {
             // Logged in user registering publisher portal
             if ($user->role === User::ROLE_CUSTOMER || $user->role === User::ROLE_BUYER || empty($user->role)) {
                 $user->role = User::ROLE_PUBLISHER;
             }
             $user->reg_type = User::ROLE_PUBLISHER;
+            $user->reg_status = User::STATUS_PENDING;
+            $user->is_active = false;
             $user->reg_data = array_merge($user->reg_data ?? [], $regData);
             if ($logoPath) {
                 $user->avatar = $logoPath;
@@ -195,7 +196,7 @@ class PublisherController extends Controller
             $user->save();
         }
 
-        // 7. Publisher Model Creation / Sync
+        // 7. Publisher Model Creation / Sync (is_active = false until admin approval)
         $publisher = Publisher::where('name', $validated['name'])
             ->orWhere('email', strtolower($validated['email']))
             ->orWhere('phone', $fullPhone)
@@ -219,6 +220,8 @@ class PublisherController extends Controller
                 'address'      => $address ?: $publisher->address,
                 'country'      => $country ?: $publisher->country,
                 'social_links' => $socialLinks,
+                'is_active'    => false,
+                'is_verified'  => false,
             ]);
         } else {
             $publisher = Publisher::create([
@@ -232,7 +235,7 @@ class PublisherController extends Controller
                 'address'      => $address,
                 'country'      => $country,
                 'social_links' => $socialLinks,
-                'is_active'    => true,
+                'is_active'    => false,
                 'is_verified'  => false,
             ]);
         }
@@ -245,16 +248,30 @@ class PublisherController extends Controller
             \Illuminate\Support\Facades\Log::warning("Publisher registration SMS notice: " . $smsEx->getMessage());
         }
 
+        $registrationSummary = [
+            'user_id'        => $user->id,
+            'name'           => $user->name,
+            'email'          => $user->email,
+            'phone'          => $user->phone,
+            'type'           => 'publisher',
+            'type_label'     => 'প্রকাশনী ও কোম্পানি',
+            'is_active'      => false,
+            'reg_status'     => 'pending',
+            'created_at'     => now()->format('d M, Y - h:i A'),
+            'publisher_name' => $validated['name'],
+        ];
+        session(['registration_summary' => $registrationSummary]);
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'success'      => true,
-                'message'      => 'অভিনন্দন! প্রকাশনী হিসেবে আপনার রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে। অ্যাডমিন অনুমোদন সম্পন্ন হলে পাবলিশার পোর্টাল সক্রিয় হবে। বর্তমানে আপনি কাস্টমার অ্যাকাউন্ট ব্যবহার করতে পারেন।',
-                'redirect_url' => route('my-account'),
+                'message'      => 'অভিনন্দন! প্রকাশনী হিসেবে আপনার রেজিস্ট্রেশন আবেদন সফলভাবে জমা হয়েছে। অ্যাডমিন অনুমোদন সম্পন্ন হলে পাবলিশার পোর্টাল সক্রিয় হবে।',
+                'redirect_url' => route('register.success'),
             ]);
         }
 
-        return redirect()->route('my-account')
-            ->with('success', 'অভিনন্দন! প্রকাশনী হিসেবে আপনার আবেদনটি গৃহীত হয়েছে। অ্যাডমিন অনুমোদনের পর পাবলিশার পোর্টাল উন্মুক্ত হবে। বর্তমানে আপনি সাধারণ গ্রাহক হিসেবে কেনাকাটা ও অ্যাকাউন্ট ব্যবহার করতে পারছেন।');
+        return redirect()->route('register.success')
+            ->with('success', 'অভিনন্দন! প্রকাশনী হিসেবে আপনার আবেদনটি গৃহীত হয়েছে। অ্যাডমিন অনুমোদনের পর পাবলিশার পোর্টাল সক্রিয় হবে।');
     }
 
     /**

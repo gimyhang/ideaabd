@@ -27,6 +27,12 @@ class ImageOptimizerService
             // Read raw binary from file or path
             $binary = null;
             if ($source instanceof UploadedFile) {
+                // Security check for dangerous extensions
+                $ext = strtolower($source->getClientOriginalExtension());
+                if (in_array($ext, ['php', 'phtml', 'phar', 'exe', 'sh', 'bat', 'cmd', 'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp', 'htm', 'html', 'js'], true)) {
+                    throw new \InvalidArgumentException('Unsafe file type prohibited.');
+                }
+
                 // If not an image (e.g. PDF/EPUB), pass through directly
                 $mime = $source->getMimeType();
                 if (!str_starts_with($mime, 'image/')) {

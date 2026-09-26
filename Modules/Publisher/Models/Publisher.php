@@ -231,7 +231,7 @@ class Publisher extends Model
             'logo'        => $logo,
             'website'     => $data['website'] ?? null,
             'is_verified' => !empty($data['is_verified']),
-            'is_active'   => $data['is_active'] ?? true,
+            'is_active'   => $data['is_active'] ?? false,
         ]);
     }
 }

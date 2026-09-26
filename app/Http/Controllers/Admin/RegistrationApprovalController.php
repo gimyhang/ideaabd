@@ -520,9 +520,44 @@ class RegistrationApprovalController extends Controller
         }
 
         // If user is publisher, sync/activate publisher record
-        if ($user->role === 'publisher') {
+        if ($user->role === 'publisher' || $user->reg_type === 'publisher') {
             try {
-                $user->getPublisherRecord();
+                $regData = is_array($user->reg_data) ? $user->reg_data : [];
+                $pubName = !empty($regData['publisher_name']) ? trim($regData['publisher_name']) : (!empty($regData['company_name']) ? trim($regData['company_name']) : $user->name);
+                
+                $publisher = \Modules\Publisher\Models\Publisher::where('email', $user->email)
+                    ->orWhere('phone', $user->phone)
+                    ->orWhere('name', $pubName)
+                    ->first();
+                    
+                if ($publisher) {
+                    $publisher->update([
+                        'name'         => $pubName,
+                        'email'        => $user->email,
+                        'phone'        => $user->phone,
+                        'address'      => $regData['address'] ?? $publisher->address,
+                        'country'      => $regData['country'] ?? ($publisher->country ?? 'Bangladesh'),
+                        'is_active'    => true,
+                        'is_verified'  => true,
+                    ]);
+                } else {
+                    $slug = \Illuminate\Support\Str::slug($pubName) ?: 'pub-' . $user->id;
+                    if (\Modules\Publisher\Models\Publisher::where('slug', $slug)->exists()) {
+                        $slug .= '-' . $user->id;
+                    }
+                    \Modules\Publisher\Models\Publisher::create([
+                        'name'        => $pubName,
+                        'slug'        => $slug,
+                        'email'       => $user->email,
+                        'phone'       => $user->phone,
+                        'address'     => $regData['address'] ?? null,
+                        'country'     => $regData['country'] ?? 'Bangladesh',
+                        'is_active'   => true,
+                        'is_verified' => true,
+                    ]);
+                }
+                \Illuminate\Support\Facades\Cache::forget('publishers_directory_all');
+                \Illuminate\Support\Facades\Cache::forget('featured_publishers_home');
             } catch (\Throwable $e) {
                 Log::warning("Could not sync publisher entry on approval: " . $e->getMessage());
             }
@@ -563,16 +598,16 @@ class RegistrationApprovalController extends Controller
         ]);
 
         // Deactivate linked directory entries
-        if ($user->role === 'author') {
+        if ($user->role === 'author' || $user->reg_type === 'author') {
             try {
-                DB::table('authors')->where('email', $user->email)->update(['is_active' => false]);
+                DB::table('authors')->where('email', $user->email)->orWhere('phone', $user->phone)->update(['is_active' => false]);
             } catch (\Throwable $e) {
                 Log::warning("Could not deactivate author on reject: " . $e->getMessage());
             }
         }
-        if ($user->role === 'publisher') {
+        if ($user->role === 'publisher' || $user->reg_type === 'publisher') {
             try {
-                DB::table('publishers')->where('email', $user->email)->update(['is_active' => false]);
+                DB::table('publishers')->where('email', $user->email)->orWhere('phone', $user->phone)->update(['is_active' => false, 'is_verified' => false]);
             } catch (\Throwable $e) {
                 Log::warning("Could not deactivate publisher on reject: " . $e->getMessage());
             }
@@ -599,14 +634,14 @@ class RegistrationApprovalController extends Controller
         $user->is_active = !$user->is_active;
         $user->save();
 
-        if ($user->role === 'author') {
+        if ($user->role === 'author' || $user->reg_type === 'author') {
             try {
-                DB::table('authors')->where('email', $user->email)->update(['is_active' => $user->is_active]);
+                DB::table('authors')->where('email', $user->email)->orWhere('phone', $user->phone)->update(['is_active' => $user->is_active]);
             } catch (\Throwable $e) {}
         }
-        if ($user->role === 'publisher') {
+        if ($user->role === 'publisher' || $user->reg_type === 'publisher') {
             try {
-                DB::table('publishers')->where('email', $user->email)->update(['is_active' => $user->is_active]);
+                DB::table('publishers')->where('email', $user->email)->orWhere('phone', $user->phone)->update(['is_active' => $user->is_active]);
             } catch (\Throwable $e) {}
         }
 

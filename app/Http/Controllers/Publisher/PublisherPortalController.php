@@ -26,15 +26,19 @@ class PublisherPortalController extends Controller
             abort(401);
         }
 
-        // If admin is viewing, allow selecting or use first publisher
+        // If admin is viewing, allow selecting or use first active publisher
         if ($user->isAdmin()) {
-            return Publisher::first() ?: Publisher::create([
+            return Publisher::where('is_active', true)->first() ?: (Publisher::first() ?: Publisher::create([
                 'name' => 'আইডিয়া প্রকাশন',
                 'slug' => 'idea-prokashon',
                 'email' => 'ideapbd@gmail.com',
                 'is_active' => true,
                 'is_verified' => true,
-            ]);
+            ]));
+        }
+
+        if (!$user->isApproved() || (!$user->isPublisher() && $user->role !== 'publisher' && $user->reg_type !== 'publisher')) {
+            abort(redirect()->route('pending.approval')->with('warning', 'আপনার প্রকাশনী অ্যাকাউন্টটি বর্তমানে অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদনের পর আপনি পোর্টাল ব্যবহার করতে পারবেন।'));
         }
 
         $publisher = $user->getPublisherRecord();
@@ -45,12 +49,12 @@ class PublisherPortalController extends Controller
                 $slug .= '-' . $user->id;
             }
             $publisher = Publisher::create([
-                'name' => $pName,
-                'slug' => $slug,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'address' => $user->reg_data['address'] ?? null,
-                'is_active' => true,
+                'name'        => $pName,
+                'slug'        => $slug,
+                'email'       => $user->email,
+                'phone'       => $user->phone,
+                'address'     => $user->reg_data['address'] ?? null,
+                'is_active'   => true,
                 'is_verified' => true,
             ]);
         }
@@ -228,6 +232,12 @@ class PublisherPortalController extends Controller
     {
         $publisher = $this->getPublisher();
 
+        // Clean author_ids array before validation
+        if ($request->has('author_ids')) {
+            $cleanAuthorIds = array_filter(array_map('trim', (array) $request->input('author_ids')), fn($v) => !empty($v) && is_numeric($v));
+            $request->merge(['author_ids' => !empty($cleanAuthorIds) ? array_values($cleanAuthorIds) : null]);
+        }
+
         $validated = $request->validate([
             'title'                    => 'required|string|max:255',
             'title_en'                 => 'nullable|string|max:255',
@@ -281,158 +291,171 @@ class PublisherPortalController extends Controller
             }
         }
 
-        // Handle Cover Image Upload (Convert to AVIF)
-        $coverPath = null;
-        if ($request->hasFile('cover_image')) {
-            $coverPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
-        }
-
-        // Handle Sample PDF Upload
-        $pdfPath = null;
-        if ($request->hasFile('pdf_sample')) {
-            $pdfPath = $request->file('pdf_sample')->store('books/samples', 'public');
-        }
-
-        // Handle Multiple Look Inside Images
-        $lookInsideImagesJson = null;
-        if ($request->hasFile('look_inside_images')) {
-            $imagesList = [];
-            foreach ((array)$request->file('look_inside_images') as $img) {
-                if ($img instanceof \Illuminate\Http\UploadedFile) {
-                    $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
+        try {
+            // Handle Cover Image Upload (Convert to AVIF with fallback)
+            $coverPath = null;
+            if ($request->hasFile('cover_image')) {
+                try {
+                    $coverPath = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
+                } catch (\Throwable $imgEx) {
+                    $coverPath = $request->file('cover_image')->store('books/covers', 'public');
                 }
             }
-            if (!empty($imagesList)) {
-                $lookInsideImagesJson = json_encode($imagesList);
+
+            // Handle Sample PDF Upload
+            $pdfPath = null;
+            if ($request->hasFile('pdf_sample')) {
+                $pdfPath = $request->file('pdf_sample')->store('books/samples', 'public');
             }
-        }
 
-        // Generate Slug
-        $slug = Str::slug($validated['title']) ?: 'book-' . time();
-        if (Book::where('slug', $slug)->exists()) {
-            $slug .= '-' . rand(100, 999);
-        }
-
-        // Generate SKU if not provided
-        $sku = !empty($validated['isbn']) ? $validated['isbn'] : 'IDP-PUB-' . $publisher->id . '-' . rand(1000, 9999);
-
-        // Resolve Author Name(s)
-        $authorName = $validated['author_name'] ?? null;
-        if ($request->has('author_names')) {
-            $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
-            if (!empty($authorNames)) {
-                $authorName = implode(', ', $authorNames);
+            // Handle Multiple Look Inside Images
+            $lookInsideImagesJson = null;
+            if ($request->hasFile('look_inside_images')) {
+                $imagesList = [];
+                foreach ((array)$request->file('look_inside_images') as $img) {
+                    if ($img instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
+                        } catch (\Throwable $imgEx) {
+                            $imagesList[] = $img->store('books/look_inside', 'public');
+                        }
+                    }
+                }
+                if (!empty($imagesList)) {
+                    $lookInsideImagesJson = json_encode($imagesList);
+                }
             }
-        } elseif (!empty($validated['author_id'])) {
-            $authorObj = Author::find($validated['author_id']);
-            if ($authorObj) {
-                $authorName = $authorObj->name;
+
+            // Generate Slug
+            $slug = Str::slug($validated['title']) ?: 'book-' . time();
+            if (Book::where('slug', $slug)->exists()) {
+                $slug .= '-' . rand(100, 999);
             }
-        }
 
-        // Multiple Translators
-        $translatorName = $validated['translator_name'] ?? null;
-        if ($request->has('translator_names')) {
-            $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
-            if (!empty($translators)) {
-                $translatorName = implode(', ', $translators);
+            // Generate SKU if not provided
+            $sku = !empty($validated['isbn']) ? $validated['isbn'] : 'IDP-PUB-' . $publisher->id . '-' . rand(1000, 9999);
+
+            // Resolve Author Name(s)
+            $authorName = $validated['author_name'] ?? null;
+            if ($request->has('author_names')) {
+                $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                if (!empty($authorNames)) {
+                    $authorName = implode(', ', $authorNames);
+                }
+            } elseif (!empty($validated['author_id'])) {
+                $authorObj = Author::find($validated['author_id']);
+                if ($authorObj) {
+                    $authorName = $authorObj->name;
+                }
             }
-        }
 
-        // Multiple Editors
-        $editorName = $validated['editor_name'] ?? null;
-        if ($request->has('editor_names')) {
-            $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
-            if (!empty($editors)) {
-                $editorName = implode(', ', $editors);
+            // Multiple Translators
+            $translatorName = $validated['translator_name'] ?? null;
+            if ($request->has('translator_names')) {
+                $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
+                if (!empty($translators)) {
+                    $translatorName = implode(', ', $translators);
+                }
             }
-        }
 
-        // Multiple Rewriters
-        $rewriterName = $validated['rewriter_name'] ?? null;
-        if ($request->has('rewriter_names')) {
-            $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
-            if (!empty($rewriters)) {
-                $rewriterName = implode(', ', $rewriters);
+            // Multiple Editors
+            $editorName = $validated['editor_name'] ?? null;
+            if ($request->has('editor_names')) {
+                $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
+                if (!empty($editors)) {
+                    $editorName = implode(', ', $editors);
+                }
             }
-        }
 
-        // Book Size & Dimensions
-        $heightCm = $request->filled('book_height_cm') ? (float)$request->input('book_height_cm') : null;
-        $widthCm = $request->filled('book_width_cm') ? (float)$request->input('book_width_cm') : null;
-        $bookSize = $validated['book_size'] ?? null;
-        if ($heightCm && $widthCm) {
-            $bookSize = "{$heightCm} cm × {$widthCm} cm";
-        } elseif ($heightCm) {
-            $bookSize = "{$heightCm} cm (Height)";
-        } elseif ($widthCm) {
-            $bookSize = "{$widthCm} cm (Width)";
-        }
+            // Multiple Rewriters
+            $rewriterName = $validated['rewriter_name'] ?? null;
+            if ($request->has('rewriter_names')) {
+                $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
+                if (!empty($rewriters)) {
+                    $rewriterName = implode(', ', $rewriters);
+                }
+            }
 
-        $book = Book::create([
-            'title'                    => $validated['title'],
-            'title_en'                 => $validated['title_en'] ?? ($validated['subtitle'] ?? null),
-            'subtitle'                 => $validated['subtitle'] ?? null,
-            'slug'                     => $slug,
-            'sku'                      => $sku,
-            'isbn'                     => $validated['isbn'] ?? null,
-            'product_type'             => $validated['product_type'] ?? 'book',
-            'category_id'              => $validated['category_id'],
-            'sub_category_name'        => $validated['sub_category_name'] ?? null,
-            'ekushey_category'         => $validated['ekushey_category'] ?? null,
-            'genre_category'           => $validated['genre_category'] ?? null,
-            'audience_category'        => $validated['audience_category'] ?? null,
-            'publisher_id'             => $publisher->id,
-            'author_link_id'           => $validated['author_id'] ?? null,
-            'author_name'              => $authorName,
-            'translator_name'          => $translatorName,
-            'editor_name'              => $editorName,
-            'rewriter_name'            => $rewriterName,
-            'language'                 => $validated['language'] ?? 'Bengali',
-            'country'                  => $validated['country'] ?? 'Bangladesh',
-            'cover_type'               => $validated['cover_type'] ?? 'paperback',
-            'paper_type'               => $validated['paper_type'] ?? null,
-            'book_size'                => $bookSize,
-            'book_height_cm'           => $heightCm,
-            'book_width_cm'            => $widthCm,
-            'price'                    => $validated['price'] ?? 0,
-            'discount_price'           => $validated['discount_price'] ?? null,
-            'hardcover_price'          => $validated['hardcover_price'] ?? null,
-            'hardcover_discount_price' => $validated['hardcover_discount_price'] ?? null,
-            'cost_price'               => $validated['cost_price'] ?? null,
-            'stock_quantity'           => (int) ($validated['stock_quantity'] ?? 10),
-            'stock_status'             => $validated['stock_status'] ?? 'in_stock',
-            'pre_order_release_date'   => $validated['pre_order_release_date'] ?? null,
-            'pre_order_note'           => $validated['pre_order_note'] ?? null,
-            'published_at'             => $validated['published_at'] ?? null,
-            'edition'                  => $validated['edition'] ?? null,
-            'page_count'               => $validated['page_count'] ?? ($validated['number_of_pages'] ?? null),
-            'summary'                  => $validated['summary'] ?? null,
-            'description'              => $validated['description'] ?? null,
-            'cover_image'              => $coverPath,
-            'sample_pdf_path'          => $pdfPath,
-            'look_inside_type'         => $validated['look_inside_type'] ?? 'pdf',
-            'look_inside_images'       => $lookInsideImagesJson,
-            'is_active'                => false, // Inactive until Admin Approval
-            'mod_status'               => 'pending', // Pending Admin Moderation Queue
-            'is_featured'              => false,
-            'created_by'               => auth()->id(),
-            'submitted_by'             => auth()->id(),
-            'owner_name'               => $publisher->name,
-            'owner_phone'              => $publisher->phone,
-        ]);
+            // Book Size & Dimensions
+            $heightCm = $request->filled('book_height_cm') ? (float)$request->input('book_height_cm') : null;
+            $widthCm = $request->filled('book_width_cm') ? (float)$request->input('book_width_cm') : null;
+            $bookSize = $validated['book_size'] ?? null;
+            if ($heightCm && $widthCm) {
+                $bookSize = "{$heightCm} cm × {$widthCm} cm";
+            } elseif ($heightCm) {
+                $bookSize = "{$heightCm} cm (Height)";
+            } elseif ($widthCm) {
+                $bookSize = "{$widthCm} cm (Width)";
+            }
 
-        // Attach Multiple Authors if provided
-        $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
-        if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
-            $allAuthorIds[] = $validated['author_id'];
-        }
-        if (!empty($allAuthorIds)) {
-            $book->authors()->sync($allAuthorIds);
-        }
+            $book = Book::create([
+                'title'                    => $validated['title'],
+                'title_en'                 => $validated['title_en'] ?? ($validated['subtitle'] ?? null),
+                'subtitle'                 => $validated['subtitle'] ?? null,
+                'slug'                     => $slug,
+                'sku'                      => $sku,
+                'isbn'                     => $validated['isbn'] ?? null,
+                'product_type'             => $validated['product_type'] ?? 'book',
+                'category_id'              => $validated['category_id'],
+                'sub_category_name'        => $validated['sub_category_name'] ?? null,
+                'ekushey_category'         => $validated['ekushey_category'] ?? null,
+                'genre_category'           => $validated['genre_category'] ?? null,
+                'audience_category'        => $validated['audience_category'] ?? null,
+                'publisher_id'             => $publisher->id,
+                'author_link_id'           => $validated['author_id'] ?? null,
+                'author_name'              => $authorName,
+                'translator_name'          => $translatorName,
+                'editor_name'              => $editorName,
+                'rewriter_name'            => $rewriterName,
+                'language'                 => $validated['language'] ?? 'Bengali',
+                'country'                  => $validated['country'] ?? 'Bangladesh',
+                'cover_type'               => $validated['cover_type'] ?? 'paperback',
+                'paper_type'               => $validated['paper_type'] ?? null,
+                'book_size'                => $bookSize,
+                'book_height_cm'           => $heightCm,
+                'book_width_cm'            => $widthCm,
+                'price'                    => $validated['price'] ?? 0,
+                'discount_price'           => $validated['discount_price'] ?? null,
+                'hardcover_price'          => $validated['hardcover_price'] ?? null,
+                'hardcover_discount_price' => $validated['hardcover_discount_price'] ?? null,
+                'cost_price'               => $validated['cost_price'] ?? null,
+                'stock_quantity'           => (int) ($validated['stock_quantity'] ?? 10),
+                'stock_status'             => $validated['stock_status'] ?? 'in_stock',
+                'pre_order_release_date'   => $validated['pre_order_release_date'] ?? null,
+                'pre_order_note'           => $validated['pre_order_note'] ?? null,
+                'published_at'             => $validated['published_at'] ?? null,
+                'edition'                  => $validated['edition'] ?? null,
+                'page_count'               => $validated['page_count'] ?? ($validated['number_of_pages'] ?? null),
+                'summary'                  => $validated['summary'] ?? null,
+                'description'              => $validated['description'] ?? null,
+                'cover_image'              => $coverPath,
+                'sample_pdf_path'          => $pdfPath,
+                'look_inside_type'         => $validated['look_inside_type'] ?? 'pdf',
+                'look_inside_images'       => $lookInsideImagesJson,
+                'is_active'                => false, // Inactive until Admin Approval
+                'mod_status'               => 'pending', // Pending Admin Moderation Queue
+                'is_featured'              => false,
+                'created_by'               => auth()->id(),
+                'submitted_by'             => auth()->id(),
+                'owner_name'               => $publisher->name,
+                'owner_phone'              => $publisher->phone,
+            ]);
 
-        return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', "‘{$book->title}’ বইটি সফলভাবে যুক্ত হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি বুক শপে প্রকাশিত হবে।");
+            // Attach Multiple Authors if provided
+            $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
+            if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
+                $allAuthorIds[] = $validated['author_id'];
+            }
+            if (!empty($allAuthorIds)) {
+                $book->authors()->sync($allAuthorIds);
+            }
+
+            return redirect()->route('publisher.dashboard', ['tab' => 'books'])
+                ->with('success', "‘{$book->title}’ বইটি সফলভাবে যুক্ত হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি বুক শপে প্রকাশিত হবে।");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Publisher storeBook error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+            return back()->withInput()->with('error', 'বই/পণ্য সংরক্ষণের সময় সমস্যা হয়েছে: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -443,6 +466,12 @@ class PublisherPortalController extends Controller
         $publisher = $this->getPublisher();
         $book = Book::where('publisher_id', $publisher->id)->findOrFail($id);
 
+        // Clean author_ids array before validation
+        if ($request->has('author_ids')) {
+            $cleanAuthorIds = array_filter(array_map('trim', (array) $request->input('author_ids')), fn($v) => !empty($v) && is_numeric($v));
+            $request->merge(['author_ids' => !empty($cleanAuthorIds) ? array_values($cleanAuthorIds) : null]);
+        }
+
         $validated = $request->validate([
             'title'                    => 'required|string|max:255',
             'title_en'                 => 'nullable|string|max:255',
@@ -496,137 +525,150 @@ class PublisherPortalController extends Controller
             }
         }
 
-        // Multiple Translators
-        $translatorName = $validated['translator_name'] ?? $book->translator_name;
-        if ($request->has('translator_names')) {
-            $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
-            $translatorName = !empty($translators) ? implode(', ', $translators) : null;
-        }
-
-        // Multiple Editors
-        $editorName = $validated['editor_name'] ?? $book->editor_name;
-        if ($request->has('editor_names')) {
-            $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
-            $editorName = !empty($editors) ? implode(', ', $editors) : null;
-        }
-
-        // Multiple Rewriters
-        $rewriterName = $validated['rewriter_name'] ?? $book->rewriter_name;
-        if ($request->has('rewriter_names')) {
-            $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
-            $rewriterName = !empty($rewriters) ? implode(', ', $rewriters) : null;
-        }
-
-        // Dimensions
-        $heightCm = $request->filled('book_height_cm') ? (float)$request->input('book_height_cm') : $book->book_height_cm;
-        $widthCm = $request->filled('book_width_cm') ? (float)$request->input('book_width_cm') : $book->book_width_cm;
-        $bookSize = $validated['book_size'] ?? $book->book_size;
-        if ($request->filled('book_height_cm') || $request->filled('book_width_cm')) {
-            if ($heightCm && $widthCm) {
-                $bookSize = "{$heightCm} cm × {$widthCm} cm";
-            } elseif ($heightCm) {
-                $bookSize = "{$heightCm} cm (Height)";
-            } elseif ($widthCm) {
-                $bookSize = "{$widthCm} cm (Width)";
+        try {
+            // Multiple Translators
+            $translatorName = $validated['translator_name'] ?? $book->translator_name;
+            if ($request->has('translator_names')) {
+                $translators = array_filter(array_map('trim', (array) $request->input('translator_names')));
+                $translatorName = !empty($translators) ? implode(', ', $translators) : null;
             }
-        }
 
-        $authorName = $validated['author_name'] ?? $book->author_name;
-        if ($request->has('author_names')) {
-            $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
-            if (!empty($authorNames)) {
-                $authorName = implode(', ', $authorNames);
+            // Multiple Editors
+            $editorName = $validated['editor_name'] ?? $book->editor_name;
+            if ($request->has('editor_names')) {
+                $editors = array_filter(array_map('trim', (array) $request->input('editor_names')));
+                $editorName = !empty($editors) ? implode(', ', $editors) : null;
             }
-        }
 
-        $updates = [
-            'title'                    => $validated['title'],
-            'title_en'                 => $validated['title_en'] ?? ($validated['subtitle'] ?? null),
-            'subtitle'                 => $validated['subtitle'] ?? null,
-            'isbn'                     => $validated['isbn'] ?? null,
-            'product_type'             => $validated['product_type'] ?? 'book',
-            'category_id'              => $validated['category_id'],
-            'sub_category_name'        => $validated['sub_category_name'] ?? null,
-            'ekushey_category'         => $validated['ekushey_category'] ?? null,
-            'genre_category'           => $validated['genre_category'] ?? null,
-            'audience_category'        => $validated['audience_category'] ?? null,
-            'author_link_id'           => $validated['author_id'] ?? null,
-            'author_name'              => $authorName,
-            'translator_name'          => $translatorName,
-            'editor_name'              => $editorName,
-            'rewriter_name'            => $rewriterName,
-            'language'                 => $validated['language'] ?? 'Bengali',
-            'country'                  => $validated['country'] ?? 'Bangladesh',
-            'cover_type'               => $validated['cover_type'] ?? 'paperback',
-            'paper_type'               => $validated['paper_type'] ?? null,
-            'book_size'                => $bookSize,
-            'book_height_cm'           => $heightCm,
-            'book_width_cm'            => $widthCm,
-            'price'                    => $validated['price'] ?? 0,
-            'discount_price'           => $validated['discount_price'] ?? null,
-            'hardcover_price'          => $validated['hardcover_price'] ?? null,
-            'hardcover_discount_price' => $validated['hardcover_discount_price'] ?? null,
-            'cost_price'               => $validated['cost_price'] ?? null,
-            'stock_quantity'           => (int) ($validated['stock_quantity'] ?? $book->stock_quantity),
-            'stock_status'             => $validated['stock_status'] ?? $book->stock_status,
-            'pre_order_release_date'   => $validated['pre_order_release_date'] ?? null,
-            'pre_order_note'           => $validated['pre_order_note'] ?? null,
-            'published_at'             => $validated['published_at'] ?? null,
-            'edition'                  => $validated['edition'] ?? null,
-            'page_count'               => $validated['page_count'] ?? ($validated['number_of_pages'] ?? null),
-            'summary'                  => $validated['summary'] ?? null,
-            'description'              => $validated['description'] ?? null,
-            'look_inside_type'         => $validated['look_inside_type'] ?? ($book->look_inside_type ?? 'pdf'),
-        ];
+            // Multiple Rewriters
+            $rewriterName = $validated['rewriter_name'] ?? $book->rewriter_name;
+            if ($request->has('rewriter_names')) {
+                $rewriters = array_filter(array_map('trim', (array) $request->input('rewriter_names')));
+                $rewriterName = !empty($rewriters) ? implode(', ', $rewriters) : null;
+            }
 
-        if ($request->hasFile('cover_image')) {
-            $updates['cover_image'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
-        }
-
-        if ($request->hasFile('pdf_sample')) {
-            $updates['sample_pdf_path'] = $request->file('pdf_sample')->store('books/samples', 'public');
-        }
-
-        if ($request->hasFile('look_inside_images')) {
-            $imagesList = [];
-            foreach ((array)$request->file('look_inside_images') as $img) {
-                if ($img instanceof \Illuminate\Http\UploadedFile) {
-                    $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
+            // Dimensions
+            $heightCm = $request->filled('book_height_cm') ? (float)$request->input('book_height_cm') : $book->book_height_cm;
+            $widthCm = $request->filled('book_width_cm') ? (float)$request->input('book_width_cm') : $book->book_width_cm;
+            $bookSize = $validated['book_size'] ?? $book->book_size;
+            if ($request->filled('book_height_cm') || $request->filled('book_width_cm')) {
+                if ($heightCm && $widthCm) {
+                    $bookSize = "{$heightCm} cm × {$widthCm} cm";
+                } elseif ($heightCm) {
+                    $bookSize = "{$heightCm} cm (Height)";
+                } elseif ($widthCm) {
+                    $bookSize = "{$widthCm} cm (Width)";
                 }
             }
-            if (!empty($imagesList)) {
-                $updates['look_inside_images'] = json_encode($imagesList);
+
+            $authorName = $validated['author_name'] ?? $book->author_name;
+            if ($request->has('author_names')) {
+                $authorNames = array_filter(array_map('trim', (array) $request->input('author_names')));
+                if (!empty($authorNames)) {
+                    $authorName = implode(', ', $authorNames);
+                }
             }
-        }
 
-        if (!empty($validated['author_id'])) {
-            $authorObj = Author::find($validated['author_id']);
-            if ($authorObj) {
-                $updates['author_name'] = $authorObj->name;
+            $updates = [
+                'title'                    => $validated['title'],
+                'title_en'                 => $validated['title_en'] ?? ($validated['subtitle'] ?? null),
+                'subtitle'                 => $validated['subtitle'] ?? null,
+                'isbn'                     => $validated['isbn'] ?? null,
+                'product_type'             => $validated['product_type'] ?? 'book',
+                'category_id'              => $validated['category_id'],
+                'sub_category_name'        => $validated['sub_category_name'] ?? null,
+                'ekushey_category'         => $validated['ekushey_category'] ?? null,
+                'genre_category'           => $validated['genre_category'] ?? null,
+                'audience_category'        => $validated['audience_category'] ?? null,
+                'author_link_id'           => $validated['author_id'] ?? null,
+                'author_name'              => $authorName,
+                'translator_name'          => $translatorName,
+                'editor_name'              => $editorName,
+                'rewriter_name'            => $rewriterName,
+                'language'                 => $validated['language'] ?? 'Bengali',
+                'country'                  => $validated['country'] ?? 'Bangladesh',
+                'cover_type'               => $validated['cover_type'] ?? 'paperback',
+                'paper_type'               => $validated['paper_type'] ?? null,
+                'book_size'                => $bookSize,
+                'book_height_cm'           => $heightCm,
+                'book_width_cm'            => $widthCm,
+                'price'                    => $validated['price'] ?? 0,
+                'discount_price'           => $validated['discount_price'] ?? null,
+                'hardcover_price'          => $validated['hardcover_price'] ?? null,
+                'hardcover_discount_price' => $validated['hardcover_discount_price'] ?? null,
+                'cost_price'               => $validated['cost_price'] ?? null,
+                'stock_quantity'           => (int) ($validated['stock_quantity'] ?? $book->stock_quantity),
+                'stock_status'             => $validated['stock_status'] ?? $book->stock_status,
+                'pre_order_release_date'   => $validated['pre_order_release_date'] ?? null,
+                'pre_order_note'           => $validated['pre_order_note'] ?? null,
+                'published_at'             => $validated['published_at'] ?? null,
+                'edition'                  => $validated['edition'] ?? null,
+                'page_count'               => $validated['page_count'] ?? ($validated['number_of_pages'] ?? null),
+                'summary'                  => $validated['summary'] ?? null,
+                'description'              => $validated['description'] ?? null,
+                'look_inside_type'         => $validated['look_inside_type'] ?? ($book->look_inside_type ?? 'pdf'),
+            ];
+
+            if ($request->hasFile('cover_image')) {
+                try {
+                    $updates['cover_image'] = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image'), 'books/covers', 'public');
+                } catch (\Throwable $imgEx) {
+                    $updates['cover_image'] = $request->file('cover_image')->store('books/covers', 'public');
+                }
             }
+
+            if ($request->hasFile('pdf_sample')) {
+                $updates['sample_pdf_path'] = $request->file('pdf_sample')->store('books/samples', 'public');
+            }
+
+            if ($request->hasFile('look_inside_images')) {
+                $imagesList = [];
+                foreach ((array)$request->file('look_inside_images') as $img) {
+                    if ($img instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $imagesList[] = \App\Services\ImageOptimizerService::convertAndStore($img, 'books/look_inside', 'public');
+                        } catch (\Throwable $imgEx) {
+                            $imagesList[] = $img->store('books/look_inside', 'public');
+                        }
+                    }
+                }
+                if (!empty($imagesList)) {
+                    $updates['look_inside_images'] = json_encode($imagesList);
+                }
+            }
+
+            if (!empty($validated['author_id'])) {
+                $authorObj = Author::find($validated['author_id']);
+                if ($authorObj) {
+                    $updates['author_name'] = $authorObj->name;
+                }
+            }
+
+            if (!auth()->user()->isAdmin()) {
+                $updates['mod_status'] = 'pending';
+                $updates['is_active'] = false;
+            }
+
+            $book->update($updates);
+
+            $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
+            if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
+                $allAuthorIds[] = $validated['author_id'];
+            }
+            if (!empty($allAuthorIds)) {
+                $book->authors()->sync($allAuthorIds);
+            }
+
+            $msg = auth()->user()->isAdmin() 
+                ? "‘{$book->title}’ বইটি সফলভাবে আপডেট করা হয়েছে।"
+                : "‘{$book->title}’ বইটি সফলভাবে আপডেট হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি পুনরায় লাইভ শপে প্রকাশিত হবে।";
+
+            return redirect()->route('publisher.dashboard', ['tab' => 'books'])
+                ->with('success', $msg);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Publisher updateBook error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+            return back()->withInput()->with('error', 'বই/পণ্য আপডেটের সময় সমস্যা হয়েছে: ' . $e->getMessage());
         }
-
-        if (!auth()->user()->isAdmin()) {
-            $updates['mod_status'] = 'pending';
-            $updates['is_active'] = false;
-        }
-
-        $book->update($updates);
-
-        $allAuthorIds = array_filter((array) ($validated['author_ids'] ?? []));
-        if (!empty($validated['author_id']) && !in_array($validated['author_id'], $allAuthorIds)) {
-            $allAuthorIds[] = $validated['author_id'];
-        }
-        if (!empty($allAuthorIds)) {
-            $book->authors()->sync($allAuthorIds);
-        }
-
-        $msg = auth()->user()->isAdmin() 
-            ? "‘{$book->title}’ বইটি সফলভাবে আপডেট করা হয়েছে।"
-            : "‘{$book->title}’ বইটি সফলভাবে আপডেট হয়েছে! অ্যাডমিনের পর্যালোচনার পর এটি পুনরায় লাইভ শপে প্রকাশিত হবে।";
-
-        return redirect()->route('publisher.dashboard', ['tab' => 'books'])
-            ->with('success', $msg);
     }
 
     /**
