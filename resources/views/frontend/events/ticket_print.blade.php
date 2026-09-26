@@ -43,6 +43,8 @@
     $nameSpacing        = intval($cardDesign['name_spacing'] ?? 2);
     $platePadding       = intval($cardDesign['plate_padding'] ?? 14);
     $logoSize           = intval($cardDesign['logo_size'] ?? 58);
+    $logoOffsetX        = intval($cardDesign['logo_offset_x'] ?? 0);
+    $logoOffsetY        = intval($cardDesign['logo_offset_y'] ?? 0);
     $plateBgColor       = $cardDesign['plate_bg_color'] ?? '#ecd8b4';
     $fontFamily         = $cardDesign['font_family'] ?? 'Hind Siliguri';
 
@@ -563,9 +565,9 @@
             <div class="card-top-section" style="min-height: {{ $headerHeight }}px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                 
                 {{-- Left: Organization Logo --}}
-                <div class="header-left-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-start;">
+                <div class="header-left-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-start; position: relative;">
                     @if($showLogo && !empty($logoImage))
-                        <div class="phiredekha-logo" style="width: {{ $logoSize }}px; height: {{ $logoSize }}px;">
+                        <div class="phiredekha-logo" style="width: {{ $logoSize }}px; height: {{ $logoSize }}px; transform: translate({{ $logoOffsetX }}px, {{ $logoOffsetY }}px);">
                             <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
                         </div>
                     @endif

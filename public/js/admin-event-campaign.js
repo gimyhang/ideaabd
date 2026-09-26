@@ -475,15 +475,117 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
-        // A.2 Logo Size Slider
+        // A.2 Organization Logo Size & Position Engine
         const logoSlider = document.getElementById('logoSizeSlider');
         const logoBadge = document.getElementById('logoSizeBadge');
+        const logoSizeDec = document.getElementById('btnLogoSizeDec');
+        const logoSizeInc = document.getElementById('btnLogoSizeInc');
+        const logoOffsetXSlider = document.getElementById('logoOffsetXSlider');
+        const logoOffsetYSlider = document.getElementById('logoOffsetYSlider');
+        const logoOffsetXBadge = document.getElementById('logoOffsetXBadge');
+        const logoOffsetYBadge = document.getElementById('logoOffsetYBadge');
+        const btnResetLogoPos = document.getElementById('btnResetLogoPos');
+
+        let curLogoOffsetX = parseInt(logoOffsetXSlider?.value || 0);
+        let curLogoOffsetY = parseInt(logoOffsetYSlider?.value || 0);
+
+        function updateLogoTransform() {
+            if (liveLogoWrap) {
+                liveLogoWrap.style.transform = `translate(${curLogoOffsetX}px, ${curLogoOffsetY}px)`;
+            }
+            if (logoOffsetXBadge) logoOffsetXBadge.textContent = curLogoOffsetX + ' px';
+            if (logoOffsetYBadge) logoOffsetYBadge.textContent = curLogoOffsetY + ' px';
+            if (logoOffsetXSlider) logoOffsetXSlider.value = curLogoOffsetX;
+            if (logoOffsetYSlider) logoOffsetYSlider.value = curLogoOffsetY;
+        }
+
         if (logoSlider && liveLogoWrap) {
             logoSlider.addEventListener('input', function () {
                 const val = this.value;
                 if (logoBadge) logoBadge.textContent = val + ' px';
                 liveLogoWrap.style.width = val + 'px';
                 liveLogoWrap.style.height = val + 'px';
+            });
+        }
+
+        if (logoSizeDec && logoSlider && liveLogoWrap) {
+            logoSizeDec.addEventListener('click', function () {
+                let val = Math.max(20, parseInt(logoSlider.value) - 4);
+                logoSlider.value = val;
+                if (logoBadge) logoBadge.textContent = val + ' px';
+                liveLogoWrap.style.width = val + 'px';
+                liveLogoWrap.style.height = val + 'px';
+            });
+        }
+
+        if (logoSizeInc && logoSlider && liveLogoWrap) {
+            logoSizeInc.addEventListener('click', function () {
+                let val = Math.min(140, parseInt(logoSlider.value) + 4);
+                logoSlider.value = val;
+                if (logoBadge) logoBadge.textContent = val + ' px';
+                liveLogoWrap.style.width = val + 'px';
+                liveLogoWrap.style.height = val + 'px';
+            });
+        }
+
+        // Organization Logo Arrow Pad / D-Pad Nudge Buttons
+        const btnNudgeLogoUp = document.getElementById('btnNudgeLogoUp');
+        const btnNudgeLogoDown = document.getElementById('btnNudgeLogoDown');
+        const btnNudgeLogoLeft = document.getElementById('btnNudgeLogoLeft');
+        const btnNudgeLogoRight = document.getElementById('btnNudgeLogoRight');
+        const btnNudgeLogoCenter = document.getElementById('btnNudgeLogoCenter');
+
+        if (btnNudgeLogoUp) {
+            btnNudgeLogoUp.addEventListener('click', function () {
+                curLogoOffsetY = Math.max(-80, curLogoOffsetY - 3);
+                updateLogoTransform();
+            });
+        }
+        if (btnNudgeLogoDown) {
+            btnNudgeLogoDown.addEventListener('click', function () {
+                curLogoOffsetY = Math.min(80, curLogoOffsetY + 3);
+                updateLogoTransform();
+            });
+        }
+        if (btnNudgeLogoLeft) {
+            btnNudgeLogoLeft.addEventListener('click', function () {
+                curLogoOffsetX = Math.max(-120, curLogoOffsetX - 3);
+                updateLogoTransform();
+            });
+        }
+        if (btnNudgeLogoRight) {
+            btnNudgeLogoRight.addEventListener('click', function () {
+                curLogoOffsetX = Math.min(120, curLogoOffsetX + 3);
+                updateLogoTransform();
+            });
+        }
+        if (btnNudgeLogoCenter) {
+            btnNudgeLogoCenter.addEventListener('click', function () {
+                curLogoOffsetX = 0;
+                curLogoOffsetY = 0;
+                updateLogoTransform();
+            });
+        }
+
+        if (logoOffsetXSlider) {
+            logoOffsetXSlider.addEventListener('input', function () {
+                curLogoOffsetX = parseInt(this.value);
+                updateLogoTransform();
+            });
+        }
+
+        if (logoOffsetYSlider) {
+            logoOffsetYSlider.addEventListener('input', function () {
+                curLogoOffsetY = parseInt(this.value);
+                updateLogoTransform();
+            });
+        }
+
+        if (btnResetLogoPos) {
+            btnResetLogoPos.addEventListener('click', function () {
+                curLogoOffsetX = 0;
+                curLogoOffsetY = 0;
+                updateLogoTransform();
             });
         }
 

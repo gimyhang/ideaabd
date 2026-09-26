@@ -818,6 +818,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['show_header']       = $request->boolean('show_header', true);
             $cardDesign['show_logo']         = $request->boolean('show_logo', true);
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));
+            $cardDesign['logo_offset_x']     = intval($request->input('logo_offset_x', $cardDesign['logo_offset_x'] ?? 0));
+            $cardDesign['logo_offset_y']     = intval($request->input('logo_offset_y', $cardDesign['logo_offset_y'] ?? 0));
             $cardDesign['anniversary_text']  = $request->input('anniversary_text', '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে');
             $cardDesign['title_text']        = $request->input('title_text', 'রংপুর সাহিত্য উৎসব');
             $cardDesign['subtitle_text']     = $request->input('subtitle_text', 'ও ৩য় লিটিলম্যাগ মেলা');
