@@ -1662,6 +1662,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                                 if (liveDefaultLogoRing) liveDefaultLogoRing.style.display = 'none';
                             }
+                            if (data.event_logo_image_url) {
+                                uploadedEventLogoUrl = data.event_logo_image_url;
+                                if (liveCustomEventLogoImg) {
+                                    liveCustomEventLogoImg.src = uploadedEventLogoUrl;
+                                    liveCustomEventLogoImg.style.display = 'block';
+                                }
+                                if (liveEventLogoWrap) liveEventLogoWrap.style.display = 'flex';
+                            }
                         } else {
                             window.showToast(data.message || 'সংরক্ষণ ব্যর্থ হয়েছে', true);
                         }

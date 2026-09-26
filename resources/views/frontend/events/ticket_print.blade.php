@@ -562,7 +562,7 @@
                 
                 {{-- Left: Organization Logo --}}
                 <div class="header-left-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-start;">
-                    @if($showLogo && $logoImage && (file_exists(public_path('storage/' . $logoImage)) || file_exists(storage_path('app/public/' . $logoImage))))
+                    @if($showLogo && !empty($logoImage))
                         <div class="phiredekha-logo" style="width: {{ $logoSize }}px; height: {{ $logoSize }}px;">
                             <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
                         </div>
@@ -571,8 +571,8 @@
 
                 {{-- Center: Event Logo & Title --}}
                 <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
-                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center;">
+                    @if($showEventLogo && !empty($eventLogoImage))
+                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: {{ $showHeader ? '2px' : '0' }};">
                             <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
                         </div>
                     @endif
@@ -601,7 +601,7 @@
                     {{-- Circular Author Portrait (10px upwards) --}}
                     @if($showPhoto)
                         <div class="author-photo-frame">
-                            @if($photoPath && (file_exists(public_path('storage/' . $photoPath)) || file_exists(storage_path('app/public/' . $photoPath))))
+                            @if(!empty($photoPath))
                                 <img src="{{ asset('storage/' . $photoPath) }}" alt="Photo" crossorigin="anonymous">
                             @else
                                 <div class="photo-placeholder">
