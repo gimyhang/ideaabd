@@ -1782,7 +1782,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-check form-switch m-0">
-                                                <input class="form-check-input live-toggle-input" type="checkbox" name="show_header" id="toggleShowHeader" value="1" {{ $cShowHeader ? 'checked' : '' }} data-target="liveTopHeaderGroup" style="width: 2.3em; height: 1.2em;">
+                                                <input class="form-check-input live-toggle-input" type="checkbox" name="show_header" id="toggleShowHeader" value="1" {{ $cShowHeader ? 'checked' : '' }} data-target="liveTextHeadingsGroup" style="width: 2.3em; height: 1.2em;">
                                             </div>
                                         </div>
 
@@ -2137,13 +2137,11 @@
                                         {{-- Background Overlay Tint --}}
                                         <div id="liveBgOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity > 0 ? ($cBgOverlayOpacity / 100) : 0 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
 
-                                        {{-- 1. TOP HEADER SECTION --}}
-                                        <div class="card-top-section" id="liveTopSection" style="{{ ($cShowHeader || $cShowBadge) ? '' : 'min-height: 90px; height: 90px;' }}">
+                                        {{-- 1. TOP HEADER SECTION (Left Org Logo, Center Event Logo & Title, Right Badge / Spacer) --}}
+                                        <div class="card-top-section" id="liveTopSection" style="min-height: 90px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                                             
-                                            {{-- Top Left Emblem / Custom Logo & Headings Group --}}
-                                            <div class="d-flex align-items-start gap-1 flex-grow-1" id="liveTopHeaderGroup" style="{{ $cShowHeader ? '' : 'display: none !important;' }}">
-                                                
-                                                {{-- Logo Container --}}
+                                            {{-- Left: Organization Logo Container --}}
+                                            <div class="header-left-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-start;">
                                                 <div class="phiredekha-logo card-interactive-node" id="liveLogoWrap" data-node="logo" data-tab="tab-logo-pane" style="width: {{ $cLogoSize }}px; height: {{ $cLogoSize }}px; border: none; background: transparent; box-shadow: none; {{ $cShowLogo ? '' : 'display: none !important;' }}">
                                                     @if($cLogoImg)
                                                         <img src="{{ asset('storage/' . $cLogoImg) }}" alt="Logo" class="custom-card-logo-img" id="liveCustomLogoImg" style="width: 100%; height: 100%; object-fit: contain;">
@@ -2161,21 +2159,26 @@
                                                         </div>
                                                     @endif
                                                 </div>
+                                            </div>
 
-                                                <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane">
-                                                    <div class="event-header-logo-wrap" id="liveEventLogoWrap" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; margin-bottom: 2px;">
-                                                        <img src="{{ $cEventLogoImg ? asset('storage/' . $cEventLogoImg) : '' }}" alt="Event Logo" id="liveCustomEventLogoImg" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
-                                                    </div>
+                                            {{-- Center: Event Logo & Title Headings --}}
+                                            <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                <div class="event-header-logo-wrap" id="liveEventLogoWrap" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; margin-bottom: 2px;">
+                                                    <img src="{{ $cEventLogoImg ? asset('storage/' . $cEventLogoImg) : '' }}" alt="Event Logo" id="liveCustomEventLogoImg" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
+                                                </div>
+                                                <div id="liveTextHeadingsGroup" style="{{ $cShowHeader ? '' : 'display: none !important;' }}">
                                                     <div class="festival-anniversary live-editable-text" id="liveAnniversaryText" contenteditable="true" data-bind="liveInputAnniversary" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cAnnivColor }};">{{ $cAnniv }}</div>
                                                     <div class="festival-main-title live-editable-text" id="liveTitleText" contenteditable="true" data-bind="liveInputTitle" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cTitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cTitle }}</div>
                                                     <div class="festival-subtitle live-editable-text" id="liveSubtitleText" contenteditable="true" data-bind="liveInputSubtitle" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cSubtitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cSub }}</div>
                                                 </div>
                                             </div>
 
-                                            {{-- Top Right Ribbon & Card No --}}
-                                            <div class="card-badge-wrap card-interactive-node" id="liveBadgeWrap" data-node="badge" data-tab="tab-text-pane" style="{{ $cShowBadge ? '' : 'display: none !important;' }}">
-                                                <div class="vertical-invite-ribbon live-editable-text" id="liveRibbonText" contenteditable="true" data-bind="liveInputBadge" title="ক্লিক করে সরাসরি এডিট করুন" style="font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cBadge }}</div>
-                                                <div class="card-number-pill" id="liveCardNo">কার্ড নং- ০১</div>
+                                            {{-- Right: Badge / Symmetrical Spacer --}}
+                                            <div class="header-right-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-end;">
+                                                <div class="card-badge-wrap card-interactive-node" id="liveBadgeWrap" data-node="badge" data-tab="tab-text-pane" style="{{ $cShowBadge ? '' : 'display: none !important;' }}">
+                                                    <div class="vertical-invite-ribbon live-editable-text" id="liveRibbonText" contenteditable="true" data-bind="liveInputBadge" title="ক্লিক করে সরাসরি এডিট করুন" style="font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cBadge }}</div>
+                                                    <div class="card-number-pill" id="liveCardNo">কার্ড নং- ০১</div>
+                                                </div>
                                             </div>
                                         </div>
 

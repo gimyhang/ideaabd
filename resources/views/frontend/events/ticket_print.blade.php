@@ -474,7 +474,7 @@
         }
 
         /* ==========================================================================
-           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns - Structured & Clean)
+           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns - Centered & Clean)
            ========================================================================== */
         .card-organizers-section {
             position: relative;
@@ -485,43 +485,49 @@
             padding-top: 6px;
             margin-top: 4px;
             gap: 6px;
+            text-align: center;
         }
         .org-col {
             color: {{ $orgColor }};
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
         }
         .org-col:not(:last-child) {
             border-right: 1px solid rgba(255, 255, 255, 0.35);
-            padding-right: 5px;
+            padding-right: 4px;
         }
         .org-col .org-name {
             font-size: 10px;
             font-weight: 800;
-            line-height: 1.2;
+            line-height: 1.25;
             margin-bottom: 2px;
             color: {{ $orgColor }};
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            text-align: center;
+            width: 100%;
         }
         .org-col .org-role {
             font-size: 7.2px;
-            line-height: 1.3;
+            line-height: 1.35;
             color: rgba(255, 255, 255, 0.95);
             margin-bottom: 3px;
+            text-align: center;
+            width: 100%;
             flex-grow: 1;
         }
         .org-col .org-phone {
             font-size: 7.8px;
             font-weight: 700;
             color: {{ $orgColor }};
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 3px;
             font-family: Arial, sans-serif;
+            text-align: center;
         }
     </style>
 </head>
@@ -551,13 +557,42 @@
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
             @endif
 
-            {{-- 1. TOP HEADER ROW (Reserved Clean Area for Event Logo) --}}
-            <div class="card-top-section" style="min-height: {{ $headerHeight }}px; display: flex; align-items: center; justify-content: center;">
-                @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
-                    <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center;">
-                        <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
-                    </div>
-                @endif
+            {{-- 1. TOP HEADER ROW (Left Org Logo, Center Event Logo & Title, Right Badge / Spacer) --}}
+            <div class="card-top-section" style="min-height: {{ $headerHeight }}px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                
+                {{-- Left: Organization Logo --}}
+                <div class="header-left-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-start;">
+                    @if($showLogo && $logoImage && (file_exists(public_path('storage/' . $logoImage)) || file_exists(storage_path('app/public/' . $logoImage))))
+                        <div class="phiredekha-logo" style="width: {{ $logoSize }}px; height: {{ $logoSize }}px;">
+                            <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Center: Event Logo & Title --}}
+                <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
+                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center;">
+                            <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
+                        </div>
+                    @endif
+                    @if($showHeader)
+                        <div class="festival-anniversary">{{ $anniversaryText }}</div>
+                        <div class="festival-main-title">{{ $titleText }}</div>
+                        <div class="festival-subtitle">{{ $subtitleText }}</div>
+                    @endif
+                </div>
+
+                {{-- Right: Badge / Symmetrical Spacer --}}
+                <div class="header-right-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-end;">
+                    @if($showBadge)
+                        <div class="card-badge-wrap">
+                            <div class="vertical-invite-ribbon">{{ $badgeText }}</div>
+                            <div class="card-number-pill">কার্ড নং- {{ $cardNo }}</div>
+                        </div>
+                    @endif
+                </div>
+
             </div>
 
             {{-- 2. CENTER SECTION: AUTHOR PHOTO & CREAM PLATE (Toggleable) --}}
@@ -596,7 +631,7 @@
                 </div>
             @endif
 
-            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Structured & Clean) --}}
+            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Centered & Clean) --}}
             @if($showOrganizers)
                 <div class="card-organizers-section">
                     
