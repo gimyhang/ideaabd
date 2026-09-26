@@ -785,9 +785,9 @@ class EventCampaignAdminController extends Controller
                 $cardDesign['event_logo_image'] = $eventLogoPath;
             }
 
-            $cardDesign['show_logo_border']  = $request->boolean('show_logo_border', false);
+            $cardDesign['show_logo_border']  = $request->has('show_logo_border');
             $cardDesign['logo_border_width'] = intval($request->input('logo_border_width', $cardDesign['logo_border_width'] ?? 0));
-            $cardDesign['show_event_logo']   = $request->boolean('show_event_logo', true);
+            $cardDesign['show_event_logo']   = $request->has('show_event_logo');
             $cardDesign['event_logo_size']   = intval($request->input('event_logo_size', $cardDesign['event_logo_size'] ?? 64));
             $cardDesign['event_logo_offset_x'] = intval($request->input('event_logo_offset_x', $cardDesign['event_logo_offset_x'] ?? 0));
             $cardDesign['event_logo_offset_y'] = intval($request->input('event_logo_offset_y', $cardDesign['event_logo_offset_y'] ?? 0));
@@ -815,8 +815,8 @@ class EventCampaignAdminController extends Controller
             $cardDesign['bg_blur']           = intval($request->input('bg_blur', $cardDesign['bg_blur'] ?? 0));
             
             // 3. Header Texts & Logo Sizing
-            $cardDesign['show_header']       = $request->boolean('show_header', true);
-            $cardDesign['show_logo']         = $request->boolean('show_logo', true);
+            $cardDesign['show_header']       = $request->has('show_header');
+            $cardDesign['show_logo']         = $request->has('show_logo');
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));
             $cardDesign['logo_offset_x']     = intval($request->input('logo_offset_x', $cardDesign['logo_offset_x'] ?? 0));
             $cardDesign['logo_offset_y']     = intval($request->input('logo_offset_y', $cardDesign['logo_offset_y'] ?? 0));
@@ -825,11 +825,11 @@ class EventCampaignAdminController extends Controller
             $cardDesign['subtitle_text']     = $request->input('subtitle_text', 'ও ৩য় লিটিলম্যাগ মেলা');
             
             // 4. Badge & Card No
-            $cardDesign['show_badge']        = $request->boolean('show_badge', true);
+            $cardDesign['show_badge']        = $request->has('show_badge');
             $cardDesign['badge_text']        = $request->input('card_badge_text', 'আমন্ত্রণ কার্ড');
             
             // 5. Author Photo, Shape & Studio Filters (ফটো এডিটর স্যুট)
-            $cardDesign['show_photo']          = $request->boolean('show_photo', true);
+            $cardDesign['show_photo']          = $request->has('show_photo');
             $cardDesign['photo_size']          = intval($request->input('photo_size', 82));
             $cardDesign['photo_offset_x']      = intval($request->input('photo_offset_x', $cardDesign['photo_offset_x'] ?? 0));
             $cardDesign['photo_offset_y']      = intval($request->input('photo_offset_y', $cardDesign['photo_offset_y'] ?? 0));
@@ -844,19 +844,19 @@ class EventCampaignAdminController extends Controller
             $cardDesign['photo_sepia']         = intval($request->input('photo_sepia', $cardDesign['photo_sepia'] ?? 0));
             
             // 6. Name Plate & Font Size & Line Spacing
-            $cardDesign['show_name_plate']   = $request->boolean('show_name_plate', true);
+            $cardDesign['show_name_plate']   = $request->has('show_name_plate');
             $cardDesign['name_font_size']    = intval($request->input('name_font_size', 16));
             $cardDesign['name_line_height']  = floatval($request->input('name_line_height', $cardDesign['name_line_height'] ?? 1.25));
             $cardDesign['name_spacing']      = intval($request->input('name_spacing', $cardDesign['name_spacing'] ?? 2));
             $cardDesign['plate_padding']     = intval($request->input('plate_padding', $cardDesign['plate_padding'] ?? 14));
             
             // 7. Quotation & Artwork
-            $cardDesign['show_quote']        = $request->boolean('show_quote', true);
+            $cardDesign['show_quote']        = $request->has('show_quote');
             $cardDesign['quote_text']        = $request->input('quote_text', "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।");
-            $cardDesign['show_artwork']      = $request->boolean('show_artwork', true);
+            $cardDesign['show_artwork']      = $request->has('show_artwork');
             
             // 8. Organizers 3 Columns
-            $cardDesign['show_organizers']   = $request->boolean('show_organizers', true);
+            $cardDesign['show_organizers']   = $request->has('show_organizers');
             $cardDesign['org_1_name']        = $request->input('org_1_name', 'সাকিল মাসুদ');
             $cardDesign['org_1_role']        = $request->input('org_1_role', "সদস্যসচিব, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাধারণ সম্পাদক, ফিরেদেখা");
             $cardDesign['org_1_phone']       = $request->input('org_1_phone', '০১৭২৬৯৭৬৯৮২');
