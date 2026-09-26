@@ -2182,52 +2182,39 @@
                                         {{-- 2. MIDDLE SECTION: PHOTO & NAME PLATE --}}
                                         <div class="card-middle-section" id="liveMiddleSection" style="{{ ($cShowPhoto || $cShowNamePlate) ? '' : 'display: none;' }}">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
-                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif {{ $cShowPhoto ? '' : 'display: none !important;' }}">
+                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: -8px; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
                                                 <div class="photo-placeholder">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>
                                             </div>
-                                            <div class="author-name-plate card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-size-pane" style="background: {{ $cPlateBg }}; padding: {{ $cShowPhoto ? ($cPlatePadding + 8) : $cPlatePadding }}px 8px {{ $cPlatePadding }}px 8px; {{ $cShowNamePlate ? '' : 'display: none !important;' }}">
+                                            <div class="author-name-plate card-interactive-node" id="liveNamePlate" data-node="nameplate" data-tab="tab-size-pane" style="background: {{ $cPlateBg }}; padding: {{ $cShowPhoto ? ($cPlatePadding + 2) : $cPlatePadding }}px 8px {{ $cPlatePadding }}px 8px; {{ $cShowNamePlate ? '' : 'display: none !important;' }}">
                                                 <div class="author-name live-editable-text" id="liveAuthorName" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="font-size: {{ $cNameSize }}px; line-height: {{ $cNameLineHeight }}; margin-bottom: {{ $cNameSpacing }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">লেখক / অতিথির নাম</div>
                                                 <div class="author-designation live-editable-text" id="liveAuthorDesignation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cMetaColor }};">কবি, কথাসাহিত্যিক ও প্রাবন্ধিক</div>
                                                 <div class="author-location live-editable-text" id="liveAuthorLocation" contenteditable="true" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cMetaColor }}; opacity: 0.85;">রংপুর</div>
                                             </div>
                                         </div>
 
-                                        {{-- 3. MESSAGE & ARTWORK SECTION --}}
-                                        <div class="card-message-section" id="liveMessageSection" style="{{ ($cShowQuote || $cShowArtwork) ? '' : 'display: none;' }}">
-                                            <div class="invitation-quote-text card-interactive-node live-editable-text" id="liveQuoteText" data-node="quote" data-tab="tab-text-pane" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; {{ $cShowQuote ? '' : 'display: none !important;' }}">{!! nl2br(e($cQuote)) !!}</div>
-                                            <div class="book-art-wrap card-interactive-node" id="liveArtworkWrap" data-node="artwork" data-tab="tab-toggle-pane" style="{{ $cShowArtwork ? '' : 'display: none !important;' }}">
-                                                <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M50 20 C32 6 12 14 6 22 C6 50 10 65 50 72 C90 65 94 50 94 22 C88 14 68 6 50 20 Z" fill="#ffffff" fill-opacity="0.95" stroke="#713f12" stroke-width="2"/>
-                                                    <path d="M50 22 C34 10 16 16 10 24 L10 60 C30 52 46 58 50 68 C54 58 70 52 90 60 L90 24 C84 16 66 10 50 22 Z" fill="#fef9c3"/>
-                                                    <path d="M50 22 L50 68" stroke="#ca8a04" stroke-width="2.5"/>
-                                                    <path d="M22 32 C30 30 38 32 44 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M22 40 C30 38 38 40 44 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M22 48 C30 46 38 48 44 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M78 32 C70 30 62 32 56 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M78 40 C70 38 62 40 56 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                    <path d="M78 48 C70 46 62 48 56 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                                </svg>
-                                            </div>
+                                        {{-- 3. MESSAGE SECTION (Artwork Removed) --}}
+                                        <div class="card-message-section" id="liveMessageSection" style="{{ $cShowQuote ? '' : 'display: none;' }}; justify-content: center; text-align: center; padding: 6px 10px 4px 10px;">
+                                            <div class="invitation-quote-text card-interactive-node live-editable-text" id="liveQuoteText" data-node="quote" data-tab="tab-text-pane" contenteditable="true" data-bind="liveInputQuote" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; color: {{ $cQuoteColor }}; font-size: 11px; line-height: 1.45; text-align: center; width: 100%;">{!! nl2br(e($cQuote)) !!}</div>
                                         </div>
 
                                         {{-- 4. ORGANIZERS 3 COLUMNS SECTION --}}
-                                        <div class="card-organizers-section card-interactive-node" id="liveOrganizersSection" data-node="organizers" data-tab="tab-org-pane" style="color: {{ $cOrgColor }}; {{ $cShowOrganizers ? '' : 'display: none !important;' }}">
+                                        <div class="card-organizers-section card-interactive-node" id="liveOrganizersSection" data-node="organizers" data-tab="tab-org-pane" style="color: {{ $cOrgColor }}; {{ $cShowOrganizers ? '' : 'display: none !important;' }}; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 6px; margin-top: 4px; gap: 6px;">
                                             <div class="org-col" style="color: {{ $cOrgColor }};">
-                                                <div class="org-name live-editable-text" id="liveOrg1Name" contenteditable="true" data-bind="liveInputOrg1Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};">{{ $cOrg1Name }}</div>
-                                                <div class="org-role live-editable-text" id="liveOrg1Role" contenteditable="true" data-bind="liveInputOrg1Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line;">{!! nl2br(e($cOrg1Role)) !!}</div>
-                                                <div class="org-phone live-editable-text" id="liveOrg1Phone" contenteditable="true" data-bind="liveInputOrg1Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg1Phone }}</div>
+                                                <div class="org-name live-editable-text" id="liveOrg1Name" contenteditable="true" data-bind="liveInputOrg1Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 10px; font-weight: 800;">{{ $cOrg1Name }}</div>
+                                                <div class="org-role live-editable-text" id="liveOrg1Role" contenteditable="true" data-bind="liveInputOrg1Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; font-size: 7.2px; line-height: 1.3;">{!! nl2br(e($cOrg1Role)) !!}</div>
+                                                <div class="org-phone live-editable-text" id="liveOrg1Phone" contenteditable="true" data-bind="liveInputOrg1Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 7.8px; font-weight: 700;"><i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $cOrg1Phone }}</div>
                                             </div>
                                             <div class="org-col" style="color: {{ $cOrgColor }};">
-                                                <div class="org-name live-editable-text" id="liveOrg2Name" contenteditable="true" data-bind="liveInputOrg2Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};">{{ $cOrg2Name }}</div>
-                                                <div class="org-role live-editable-text" id="liveOrg2Role" contenteditable="true" data-bind="liveInputOrg2Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line;">{!! nl2br(e($cOrg2Role)) !!}</div>
-                                                <div class="org-phone live-editable-text" id="liveOrg2Phone" contenteditable="true" data-bind="liveInputOrg2Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg2Phone }}</div>
+                                                <div class="org-name live-editable-text" id="liveOrg2Name" contenteditable="true" data-bind="liveInputOrg2Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 10px; font-weight: 800;">{{ $cOrg2Name }}</div>
+                                                <div class="org-role live-editable-text" id="liveOrg2Role" contenteditable="true" data-bind="liveInputOrg2Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; font-size: 7.2px; line-height: 1.3;">{!! nl2br(e($cOrg2Role)) !!}</div>
+                                                <div class="org-phone live-editable-text" id="liveOrg2Phone" contenteditable="true" data-bind="liveInputOrg2Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 7.8px; font-weight: 700;"><i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $cOrg2Phone }}</div>
                                             </div>
                                             <div class="org-col" style="color: {{ $cOrgColor }};">
-                                                <div class="org-name live-editable-text" id="liveOrg3Name" contenteditable="true" data-bind="liveInputOrg3Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};">{{ $cOrg3Name }}</div>
-                                                <div class="org-role live-editable-text" id="liveOrg3Role" contenteditable="true" data-bind="liveInputOrg3Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line;">{!! nl2br(e($cOrg3Role)) !!}</div>
-                                                <div class="org-phone live-editable-text" id="liveOrg3Phone" contenteditable="true" data-bind="liveInputOrg3Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg3Phone }}</div>
+                                                <div class="org-name live-editable-text" id="liveOrg3Name" contenteditable="true" data-bind="liveInputOrg3Name" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 10px; font-weight: 800;">{{ $cOrg3Name }}</div>
+                                                <div class="org-role live-editable-text" id="liveOrg3Role" contenteditable="true" data-bind="liveInputOrg3Role" title="ক্লিক করে সরাসরি এডিট করুন" style="white-space: pre-line; font-size: 7.2px; line-height: 1.3;">{!! nl2br(e($cOrg3Role)) !!}</div>
+                                                <div class="org-phone live-editable-text" id="liveOrg3Phone" contenteditable="true" data-bind="liveInputOrg3Phone" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cOrgColor }}; font-size: 7.8px; font-weight: 700;"><i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $cOrg3Phone }}</div>
                                             </div>
                                         </div>
 

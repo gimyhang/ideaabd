@@ -375,10 +375,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 4px 0 2px 0;
+            margin: 2px 0 2px 0;
         }
 
-        /* Circular/Custom Author Photo (Customizable Size, Radius, Borders & Filters) */
+        /* Circular/Custom Author Photo (10px upwards from nameplate) */
         .author-photo-frame {
             width: {{ $photoSize }}px;
             height: {{ $photoSize }}px;
@@ -396,7 +396,7 @@
             filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
             background: #f8fafc;
             overflow: hidden;
-            margin-bottom: -18px;
+            margin-bottom: -8px; /* shifted 10px upwards from -18px */
             position: relative;
             z-index: 4;
         }
@@ -417,13 +417,13 @@
             font-size: 32px;
         }
 
-        /* Cream Author Name Plate (Customizable Font Size, Line Spacing & Background) */
+        /* Cream Author Name Plate */
         .author-name-plate {
             width: 92%;
             background: {{ $plateBgColor }};
             border-radius: 14px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-            padding: {{ $showPhoto ? ($platePadding + 10) : $platePadding }}px 12px {{ $platePadding }}px 12px;
+            padding: {{ $showPhoto ? ($platePadding + 2) : $platePadding }}px 12px {{ $platePadding }}px 12px;
             text-align: center;
             border: 1px solid #d8be92;
             position: relative;
@@ -453,81 +453,74 @@
         }
 
         /* ==========================================================================
-           INVITATION MESSAGE & BOOK ARTWORK SECTION
+           INVITATION MESSAGE SECTION (Clean without artwork)
            ========================================================================== */
         .card-message-section {
             position: relative;
             z-index: 2;
             display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding: 4px 6px 2px 6px;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6px 10px 4px 10px;
         }
         .invitation-quote-text {
             color: {{ $quoteColor }};
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
-            line-height: 1.4;
+            line-height: 1.45;
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-            flex-grow: 1;
-        }
-
-        /* Open Book & Hand Artwork */
-        .book-art-wrap {
-            width: 78px;
-            height: 64px;
-            flex-shrink: 0;
-            position: relative;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-        .book-art-wrap svg {
             width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
         }
 
         /* ==========================================================================
-           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns)
+           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns - Structured & Clean)
            ========================================================================== */
         .card-organizers-section {
             position: relative;
             z-index: 2;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            border-top: 1px solid rgba(255, 255, 255, 0.35);
-            padding-top: 5px;
-            gap: 4px;
+            border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+            padding-top: 6px;
+            margin-top: 4px;
+            gap: 6px;
         }
         .org-col {
             color: {{ $orgColor }};
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .org-col:not(:last-child) {
             border-right: 1px solid rgba(255, 255, 255, 0.35);
-            padding-right: 4px;
+            padding-right: 5px;
         }
         .org-col .org-name {
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 800;
             line-height: 1.2;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
             color: {{ $orgColor }};
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .org-col .org-role {
-            font-size: 6.8px;
-            line-height: 1.25;
-            color: rgba(255, 255, 255, 0.92);
-            margin-bottom: 2px;
+            font-size: 7.2px;
+            line-height: 1.3;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 3px;
+            flex-grow: 1;
         }
         .org-col .org-phone {
-            font-size: 7.2px;
+            font-size: 7.8px;
             font-weight: 700;
             color: {{ $orgColor }};
             display: flex;
             align-items: center;
-            gap: 2px;
+            gap: 3px;
             font-family: Arial, sans-serif;
         }
     </style>
@@ -558,54 +551,19 @@
                 <div style="position: absolute; inset: 0; background: {{ $bgOverlayColor }}; opacity: {{ $bgOverlayOpacity / 100 }}; @if($bgBlur > 0) backdrop-filter: blur({{ $bgBlur }}px); -webkit-backdrop-filter: blur({{ $bgBlur }}px); @endif pointer-events: none; border-radius: 12px; z-index: 1;"></div>
             @endif
 
-            {{-- 1. TOP HEADER ROW (Reserved Blank Header Area) --}}
-            <div class="card-top-section" style="@if(!$showHeader && !$showBadge) min-height: {{ $headerHeight }}px; height: {{ $headerHeight }}px; @endif">
-                @if($showHeader || $showBadge)
-                    
-                    @if($showHeader)
-                        {{-- Top Left Emblem / Custom Logo --}}
-                        @if($showLogo)
-                            <div class="phiredekha-logo">
-                                @if($logoImage && (file_exists(public_path('storage/' . $logoImage)) || file_exists(storage_path('app/public/' . $logoImage))))
-                                    <img src="{{ asset('storage/' . $logoImage) }}" alt="Logo" class="custom-logo-img" crossorigin="anonymous">
-                                @else
-                                    <div class="logo-inner-ring">
-                                        <div class="logo-brand">ফিরেদেখা</div>
-                                        <i class="fa-solid fa-feather-pointed logo-icon"></i>
-                                        <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-
-                        {{-- Top Center Festival Headings & Event Logo --}}
-                        <div class="festival-text-wrap">
-                            @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
-                                <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: 2px;">
-                                    <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
-                                </div>
-                            @endif
-                            <div class="festival-anniversary">{{ $anniversaryText }}</div>
-                            <div class="festival-main-title">{{ $titleText }}</div>
-                            <div class="festival-subtitle">{{ $subtitleText }}</div>
-                        </div>
-                    @endif
-
-                    {{-- Top Right Vertical Ribbon & Card No (Toggleable) --}}
-                    @if($showBadge)
-                        <div class="card-badge-wrap">
-                            <div class="vertical-invite-ribbon">{{ $badgeText }}</div>
-                            <div class="card-number-pill">কার্ড নং- {{ $cardNo }}</div>
-                        </div>
-                    @endif
-
+            {{-- 1. TOP HEADER ROW (Reserved Clean Area for Event Logo) --}}
+            <div class="card-top-section" style="min-height: {{ $headerHeight }}px; display: flex; align-items: center; justify-content: center;">
+                @if($showEventLogo && $eventLogoImage && (file_exists(public_path('storage/' . $eventLogoImage)) || file_exists(storage_path('app/public/' . $eventLogoImage))))
+                    <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center;">
+                        <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
+                    </div>
                 @endif
             </div>
 
             {{-- 2. CENTER SECTION: AUTHOR PHOTO & CREAM PLATE (Toggleable) --}}
             @if($showPhoto || $showNamePlate)
                 <div class="card-middle-section">
-                    {{-- Circular Author Portrait --}}
+                    {{-- Circular Author Portrait (10px upwards) --}}
                     @if($showPhoto)
                         <div class="author-photo-frame">
                             @if($photoPath && (file_exists(public_path('storage/' . $photoPath)) || file_exists(storage_path('app/public/' . $photoPath))))
@@ -629,35 +587,16 @@
                 </div>
             @endif
 
-            {{-- 3. INVITATION MESSAGE & ARTWORK SECTION (Toggleable) --}}
-            @if($showQuote || $showArtwork)
+            {{-- 3. INVITATION MESSAGE SECTION (Artwork Removed) --}}
+            @if($showQuote)
                 <div class="card-message-section">
-                    @if($showQuote)
-                        <div class="invitation-quote-text">
-                            {!! nl2br(e($quoteText)) !!}
-                        </div>
-                    @endif
-
-                    {{-- Stylized Open Book Artwork --}}
-                    @if($showArtwork)
-                        <div class="book-art-wrap">
-                            <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M50 48 L20 10 L28 8 L50 46 Z" fill="#ef4444"/>
-                                <path d="M50 48 L32 6 L40 5 L50 46 Z" fill="#3b82f6"/>
-                                <path d="M50 48 L46 4 L54 4 L50 46 Z" fill="#10b981"/>
-                                <path d="M50 48 L60 5 L68 6 L50 46 Z" fill="#f59e0b"/>
-                                <path d="M50 48 L72 8 L80 10 L50 46 Z" fill="#ec4899"/>
-                                <path d="M50 48 C35 44 20 46 8 52 C8 52 14 62 50 60 Z" fill="#fef3c7" stroke="#b45309" stroke-width="1.2"/>
-                                <path d="M50 48 C65 44 80 46 92 52 C92 52 86 62 50 60 Z" fill="#fef3c7" stroke="#b45309" stroke-width="1.2"/>
-                                <path d="M48 58 L52 58 L52 78 L48 78 Z" fill="#be185d"/>
-                                <path d="M42 66 C42 66 48 64 52 64 C56 64 58 72 58 78 L42 78 Z" fill="#9d174d"/>
-                            </svg>
-                        </div>
-                    @endif
+                    <div class="invitation-quote-text">
+                        {!! nl2br(e($quoteText)) !!}
+                    </div>
                 </div>
             @endif
 
-            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Toggleable) --}}
+            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Structured & Clean) --}}
             @if($showOrganizers)
                 <div class="card-organizers-section">
                     
