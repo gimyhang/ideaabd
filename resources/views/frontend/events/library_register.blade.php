@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Library Grant 2026 — Registration & Application — ideaabd')
+@section('title', 'Library Book Grant — Registration & Application — ideaabd')
 
 @section('content')
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -217,7 +217,7 @@
                         <i class="fa-solid fa-book-bookmark"></i>
                     </div>
                     <div>
-                        <span>Library Book Grant 2026</span>
+                        <span>Library Book Grant</span>
                     </div>
                 </div>
                 <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5 rounded-pill shadow-xs" style="font-size: 11px; letter-spacing: 0.5px;">LIBRARY COPY</span>

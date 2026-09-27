@@ -189,7 +189,7 @@
 
     <div class="token-card" id="printArea">
         <div class="token-header">
-            <div class="token-badge">Annual Free Book Distribution Campaign 2026</div>
+            <div class="token-badge">Free Book Distribution Campaign</div>
             <h1>Idea Prokashon & Books of Idea</h1>
             <p>Library Book Grant Allocation Token & Official Slip</p>
         </div>

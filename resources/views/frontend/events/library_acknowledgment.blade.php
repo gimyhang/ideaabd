@@ -70,7 +70,7 @@
 
     <div class="ack-card">
         <div class="ack-header">
-            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Annual Book Distribution 2026</span>
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Book Distribution & Grant</span>
             <h2 class="fw-bold mb-1">Book Grant Receipt Acknowledgment</h2>
             <p class="mb-0 text-white-75">Idea Prokashon & Books of Idea CSR Initiative</p>
         </div>
