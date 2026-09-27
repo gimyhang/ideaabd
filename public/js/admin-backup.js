@@ -485,3 +485,444 @@ function showToast(type, message) {
     container.innerHTML = alertHtml;
     container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+/* ── 9. Database Diff & Analytics Modal ── */
+let currentDiffData = null;
+let currentDiffFilename = '';
+
+function openDiffModal(filename) {
+    currentDiffFilename = filename;
+    const fnEl = document.getElementById('diffModalFilename');
+    if (fnEl) fnEl.textContent = filename;
+
+    const modalEl = document.getElementById('diffModal');
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    if (modal) modal.show();
+
+    const body = document.getElementById('diffModalBody');
+    if (body) {
+        body.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <div class="spinner-border text-info mb-2" role="status"></div>
+                <div class="fw-semibold font-monospace">লাইভ ডাটাবেজের সাথে ব্যাকআপ ফাইল তুলনা করা হচ্ছে...</div>
+            </div>
+        `;
+    }
+
+    const diffUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.diff : '/admin/backup/diff') + '/' + encodeURIComponent(filename);
+
+    fetch(diffUrl, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            currentDiffData = data;
+            renderDiffResults(data);
+        } else {
+            if (body) body.innerHTML = `<div class="alert alert-danger mb-0">${data.message}</div>`;
+        }
+    })
+    .catch(err => {
+        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">ডিফ লোড করতে ব্যর্থ হয়েছে।</div>`;
+    });
+}
+
+function renderDiffResults(data) {
+    const body = document.getElementById('diffModalBody');
+    if (!body) return;
+
+    let html = `
+        <div class="row g-2.5 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3 text-center border">
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">মোট টেবিল</small>
+                    <strong class="font-monospace text-primary fs-5">${data.total_tables} টি</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3 text-center border">
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">পরিবর্তন সনাক্ত</small>
+                    <strong class="font-monospace ${data.changed_tables_count > 0 ? 'text-warning' : 'text-success'} fs-5">${data.changed_tables_count} টি টেবিল</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3 text-center border">
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">লাইভ মোট রেকর্ড</small>
+                    <strong class="font-monospace text-dark fs-5">${data.total_live_rows.toLocaleString()}</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-3 bg-light rounded-3 text-center border">
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">ব্যাকআপ মোট রেকর্ড</small>
+                    <strong class="font-monospace text-dark fs-5">${data.total_backup_rows.toLocaleString()}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">টেবিলভিত্তিক তুলনামূলক রিপোর্ট:</h6>
+                <span class="badge ${data.changed_tables_count === 0 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} border rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 10px;">
+                    ${data.changed_tables_count === 0 ? '১০০% হুবহু মিল' : `${data.changed_tables_count} টেবিলে তফাত আছে`}
+                </span>
+            </div>
+            <input type="search" id="diffSearchInput" class="form-control form-control-sm font-monospace" style="max-width: 220px;" placeholder="টেবিল ফিল্টার করুন..." oninput="filterDiffTable(this.value)">
+        </div>
+
+        <div class="table-responsive rounded-3 border" style="max-height: 350px; overflow-y: auto;">
+            <table class="table table-sm table-hover align-middle mb-0 font-monospace small" id="diffTable">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th class="ps-3 py-2">টেবিল নাম</th>
+                        <th class="py-2 text-center">লাইভ রেকর্ড</th>
+                        <th class="py-2 text-center">ব্যাকআপ রেকর্ড</th>
+                        <th class="py-2 text-center">পার্থক্য (Diff)</th>
+                        <th class="text-end pe-3 py-2">স্ট্যাটাস</th>
+                    </tr>
+                </thead>
+                <tbody id="diffTableBody">
+    `;
+
+    (data.tables || []).forEach(row => {
+        let statusBadge = '';
+        let diffBadge = '';
+
+        if (row.status === 'equal') {
+            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-check me-1"></i> হুবহু মিল</span>';
+            diffBadge = '<span class="text-muted font-monospace">০</span>';
+        } else if (row.status === 'live_higher') {
+            statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-up me-1"></i> লাইভে বেশি</span>';
+            diffBadge = `<span class="badge bg-primary text-white font-monospace">+${row.diff}</span>`;
+        } else if (row.status === 'backup_higher') {
+            statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-down me-1"></i> ব্যাকআপে বেশি</span>';
+            diffBadge = `<span class="badge bg-warning text-dark font-monospace">${row.diff}</span>`;
+        } else if (row.status === 'only_in_live') {
+            statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5">শুধুমাত্র লাইভে</span>';
+            diffBadge = '<span class="text-info font-monospace">New</span>';
+        } else if (row.status === 'only_in_backup') {
+            statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">শুধুমাত্র ব্যাকআপে</span>';
+            diffBadge = '<span class="text-danger font-monospace">Removed</span>';
+        }
+
+        html += `
+            <tr class="diff-table-row" data-tbl="${(row.table || '').toLowerCase()}">
+                <td class="ps-3 font-monospace fw-bold text-dark">${row.table}</td>
+                <td class="text-center font-monospace">${row.live_rows !== null ? row.live_rows.toLocaleString() : '—'}</td>
+                <td class="text-center font-monospace">${row.backup_rows !== null ? row.backup_rows.toLocaleString() : '—'}</td>
+                <td class="text-center font-monospace">${diffBadge}</td>
+                <td class="text-end pe-3">${statusBadge}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    body.innerHTML = html;
+}
+
+function filterDiffTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#diffTableBody tr.diff-table-row');
+    rows.forEach(r => {
+        const tbl = r.dataset.tbl || '';
+        r.style.display = (!q || tbl.includes(q)) ? '' : 'none';
+    });
+}
+
+function openSelectiveFromDiff() {
+    const diffModalEl = document.getElementById('diffModal');
+    if (diffModalEl) bootstrap.Modal.getInstance(diffModalEl)?.hide();
+
+    if (currentDiffFilename) {
+        openSelectiveRestoreModal(currentDiffFilename);
+    }
+}
+
+/* ── 10. Safe Dry-Run Simulation Modal ── */
+function runDryRunSimulation(filename) {
+    const modalEl = document.getElementById('dryRunModal');
+    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    if (modal) modal.show();
+
+    const body = document.getElementById('dryRunModalBody');
+    if (body) {
+        body.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                <h6 class="fw-bold text-dark font-monospace mb-1">স্যান্ডবক্সে রিস্টোর পরীক্ষা চলছে...</h6>
+                <p class="text-muted small mb-0">SQL সিনট্যাক্স, ফরেন-কী ও টেবিল স্ট্রাকচার পরীক্ষা করা হচ্ছে (লাইভ ডাটা সম্পূর্ণ অপরিবর্তিত থাকবে)।</p>
+            </div>
+        `;
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const dryRunUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.dryRun : '/admin/backup/dry-run') + '/' + encodeURIComponent(filename);
+
+    fetch(dryRunUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.status === 'passed') {
+            if (body) {
+                body.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
+                            <i class="fa-solid fa-circle-check fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1 font-monospace">ড্রাই-রান সফল ও ত্রুটিমুক্ত!</h5>
+                        <p class="text-muted small mb-3">${data.message}</p>
+                        
+                        <div class="row g-2 text-start p-3 bg-light rounded-3 border mb-3">
+                            <div class="col-6">
+                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">সিমুলেশন লেটেন্সি:</small>
+                                <strong class="font-monospace text-primary">${data.execution_time_ms} ms</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">ডাটাবেজ সুরক্ষা:</small>
+                                <strong class="font-monospace text-success"><i class="fa-solid fa-shield-halved me-1"></i> 100% Uncommitted Sandbox</strong>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            <button type="button" class="btn-backup-gradient btn-gradient-emerald px-4" onclick="bootstrap.Modal.getInstance(document.getElementById('dryRunModal'))?.hide(); confirmRestore('${filename}', true)">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>লাইভ রিস্টোর নিশ্চিত করুন</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            if (body) {
+                body.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="rounded-circle bg-danger-subtle text-danger p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
+                            <i class="fa-solid fa-triangle-exclamation fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-danger mb-1 font-monospace">ড্রাই-রানে সমস্যা সনাক্ত হয়েছে!</h5>
+                        <p class="text-muted small mb-3">${data.message || 'SQL স্টেটমেন্টে ত্রুটি পাওয়া গেছে।'}</p>
+                        ${data.error_details ? `<div class="p-3 bg-danger-subtle text-danger rounded-3 font-monospace small text-start border border-danger-subtle mb-3">${data.error_details}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+    })
+    .catch(err => {
+        if (body) {
+            body.innerHTML = `<div class="alert alert-danger mb-0">ড্রাই-রান সিমুলেশনে নেটওয়ার্ক বা সার্ভার ত্রুটি ঘটেছে।</div>`;
+        }
+    });
+}
+
+/* ── 11. Selective Table Restore Modal & Handler ── */
+let currentSelectiveFilename = '';
+
+function openSelectiveRestoreModal(filename) {
+    currentSelectiveFilename = filename;
+    const fnEl = document.getElementById('selectiveModalFilename');
+    if (fnEl) fnEl.textContent = filename;
+
+    // Reset checkboxes
+    toggleAllSelectiveTables(false);
+
+    const modalEl = document.getElementById('selectiveRestoreModal');
+    if (modalEl) new bootstrap.Modal(modalEl).show();
+
+    initSelectiveSearch();
+}
+
+function toggleAllSelectiveTables(check) {
+    const cbs = document.querySelectorAll('.selective-tbl-cb');
+    cbs.forEach(cb => {
+        const col = cb.closest('.selective-tbl-col');
+        if (col && col.style.display !== 'none') {
+            cb.checked = check;
+        }
+    });
+    updateSelectiveCount();
+}
+
+function updateSelectiveCount() {
+    const checked = document.querySelectorAll('.selective-tbl-cb:checked');
+    const badge = document.getElementById('selectiveSelectedBadge');
+    if (badge) {
+        badge.textContent = `${checked.length} টি নির্বাচিত`;
+    }
+}
+
+function initSelectiveSearch() {
+    const input = document.getElementById('selectiveSearchInput');
+    if (!input) return;
+
+    input.value = '';
+    input.oninput = function() {
+        const q = (input.value || '').toLowerCase().trim();
+        const cols = document.querySelectorAll('.selective-tbl-col');
+        cols.forEach(col => {
+            const tbl = col.dataset.tbl || '';
+            col.style.display = (!q || tbl.includes(q)) ? '' : 'none';
+        });
+    };
+}
+
+function submitSelectiveRestore() {
+    const checked = document.querySelectorAll('.selective-tbl-cb:checked');
+    if (checked.length === 0) {
+        alert('অনুগ্রহ করে অন্তত একটি টেবিল নির্বাচন করুন।');
+        return;
+    }
+
+    const tables = Array.from(checked).map(cb => cb.value);
+    if (!confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${tables.length}টি টেবিল (${tables.slice(0, 3).join(', ')}${tables.length > 3 ? '...' : ''}) রিস্টোর করতে চান?`)) {
+        return;
+    }
+
+    const btn = document.getElementById('btnExecuteSelectiveRestore');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> রিস্টোর হচ্ছে...';
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const selectiveUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.selectiveRestore : '/admin/backup/selective-restore') + '/' + encodeURIComponent(currentSelectiveFilename);
+
+    fetch(selectiveUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ tables: tables })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>নির্বাচিত টেবিল রিস্টোর করুন</span>';
+        }
+        const modalEl = document.getElementById('selectiveRestoreModal');
+        if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+
+        if (data.success) {
+            showToast('success', data.message || 'সিলেক্টিভ রিস্টোর সফলভাবে সম্পন্ন হয়েছে!');
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast('danger', data.message || 'সিলেক্টিভ রিস্টোরে ত্রুটি ঘটেছে।');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>নির্বাচিত টেবিল রিস্টোর করুন</span>';
+        }
+        showToast('danger', 'সিলেক্টিভ রিস্টোর প্রক্রিয়াকরণে সমস্যা হয়েছে।');
+    });
+}
+
+/* ── 12. Anonymized Developer Dump ── */
+function generateAnonymizedDump() {
+    if (!confirm('আপনি কি গ্রাহকদের সংবেদনশীল তথ্য (পাসওয়ার্ড, ফোন, ইমেইল) মাস্ক করে নিরাপদ ডেভেলপার ডাম্প তৈরি করতে চান?')) {
+        return;
+    }
+
+    showToast('info', 'অ্যানোনিমাস ডাম্প তৈরি হচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...');
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const exportUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.exportAnonymized : '/admin/backup/export-anonymized';
+
+    fetch(exportUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message || 'অ্যানোনিমাস ডাম্প সফলভাবে তৈরি হয়েছে!');
+            if (data.download_url) {
+                const a = document.createElement('a');
+                a.href = data.download_url;
+                a.download = data.filename || 'anonymized_backup.sql';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showToast('danger', data.message || 'অ্যানোনিমাস ডাম্প তৈরিতে ত্রুটি!');
+        }
+    })
+    .catch(() => {
+        // Fallback to standard form download
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = exportUrl;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        document.body.appendChild(form);
+        form.submit();
+    });
+}
+
+/* ── 13. Test Telegram Instant Alert Notification ── */
+function testTelegramNotification() {
+    const token = document.getElementById('telegramBotTokenInput')?.value;
+    const chatId = document.getElementById('telegramChatIdInput')?.value;
+
+    if (!token || !chatId) {
+        alert('অনুগ্রহ করে টেলিগ্রাম বট টোকেন এবং চ্যাট আইডি ইনপুট দিন।');
+        return;
+    }
+
+    showToast('info', 'টেলিগ্রাম টেস্ট মেসেজ পাঠানো হচ্ছে...');
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const testUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.testNotification : '/admin/backup/test-notification';
+
+    fetch(testUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            type: 'telegram',
+            telegram_bot_token: token,
+            telegram_chat_id: chatId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message || 'টেলিগ্রাম মেসেজ সফলভাবে পৌঁছেছে!');
+        } else {
+            showToast('danger', data.message || 'টেলিগ্রাম মেসেজ পাঠাতে ব্যর্থ হয়েছে।');
+        }
+    })
+    .catch(() => {
+        showToast('danger', 'টেলিগ্রাম নোটিফিকেশন সার্ভারের সাথে যোগাযোগ করা যায়নি।');
+    });
+}
+

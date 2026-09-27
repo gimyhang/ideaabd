@@ -265,6 +265,28 @@
     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+.btn-action-purple {
+    background: #f3e8ff;
+    color: #7e22ce !important;
+    border-color: #e9d5ff;
+}
+.btn-action-purple:hover {
+    background: #8b5cf6;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.btn-action-sky {
+    background: #e0f2fe;
+    color: #0369a1 !important;
+    border-color: #bae6fd;
+}
+.btn-action-sky:hover {
+    background: #0ea5e9;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
 .btn-action-rose {
     background: #ffe4e6;
     color: #be123c !important;

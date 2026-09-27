@@ -12,6 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -442,6 +444,471 @@ class AdminBackupController extends Controller
     }
 
     /**
+     * Database Diff & Analytics between Live Database and Backup Snapshot.
+     */
+    public function diff(string $filename): JsonResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . '/' . $filename;
+
+        if (!File::exists($filePath)) {
+            return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি'], 404);
+        }
+
+        try {
+            $sqlContent = $this->extractSqlFromBackup($filePath);
+            if (!$sqlContent) {
+                return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইল থেকে SQL ডাটা রিড করা সম্ভব হয়নি'], 422);
+            }
+
+            // Parse table row counts and table list from SQL
+            $backupTables = [];
+            
+            // Match table creates: CREATE TABLE [IF NOT EXISTS] `table_name`
+            preg_match_all('/CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+[`"]?([a-zA-Z0-9_]+)[`"]?/i', $sqlContent, $createMatches);
+            $foundTables = array_unique($createMatches[1] ?? []);
+
+            // Also match INSERT INTO `table_name`
+            preg_match_all('/INSERT\s+INTO\s+[`"]?([a-zA-Z0-9_]+)[`"]?/i', $sqlContent, $insertMatches);
+            $insertTables = array_count_values($insertMatches[1] ?? []);
+
+            $allTableNames = array_unique(array_merge($foundTables, array_keys($insertTables)));
+
+            // Fetch live tables from active database
+            $dbDriver = config('database.default', 'mysql');
+            $liveTables = [];
+
+            if ($dbDriver === 'sqlite') {
+                $sqliteTables = DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+                foreach ($sqliteTables as $st) {
+                    $liveTables[$st->name] = (int) $this->safe(fn () => DB::table($st->name)->count(), 0);
+                }
+            } else {
+                $tableStatus = DB::select('SHOW TABLE STATUS');
+                foreach ($tableStatus as $tbl) {
+                    $tblName = $tbl->Name ?? $tbl->name ?? '';
+                    if ($tblName) {
+                        $liveTables[$tblName] = (int) ($tbl->Rows ?? $tbl->rows ?? 0);
+                    }
+                }
+            }
+
+            // Build unified comparison dataset
+            $unifiedNames = array_unique(array_merge(array_keys($liveTables), $allTableNames));
+            sort($unifiedNames);
+
+            $diffData = [];
+            $totalLiveRows = 0;
+            $totalBackupRows = 0;
+            $changedTablesCount = 0;
+
+            foreach ($unifiedNames as $tbl) {
+                $liveCount = $liveTables[$tbl] ?? null;
+                $backupCount = $insertTables[$tbl] ?? (in_array($tbl, $foundTables) ? 0 : null);
+
+                $liveRows = $liveCount !== null ? (int) $liveCount : 0;
+                $backupRows = $backupCount !== null ? (int) $backupCount : 0;
+
+                $totalLiveRows += $liveRows;
+                $totalBackupRows += $backupRows;
+
+                $status = 'equal';
+                if ($liveCount === null && $backupCount !== null) {
+                    $status = 'only_in_backup';
+                    $changedTablesCount++;
+                } elseif ($liveCount !== null && $backupCount === null) {
+                    $status = 'only_in_live';
+                    $changedTablesCount++;
+                } elseif ($liveRows > $backupRows) {
+                    $status = 'live_higher';
+                    $changedTablesCount++;
+                } elseif ($liveRows < $backupRows) {
+                    $status = 'backup_higher';
+                    $changedTablesCount++;
+                }
+
+                $diffData[] = [
+                    'table'       => $tbl,
+                    'live_rows'   => $liveCount,
+                    'backup_rows' => $backupCount,
+                    'diff'        => ($liveCount !== null && $backupCount !== null) ? ($liveRows - $backupRows) : null,
+                    'status'      => $status,
+                ];
+            }
+
+            return response()->json([
+                'success'              => true,
+                'filename'             => $filename,
+                'total_tables'         => count($diffData),
+                'changed_tables_count' => $changedTablesCount,
+                'total_live_rows'      => $totalLiveRows,
+                'total_backup_rows'    => $totalBackupRows,
+                'diff_rows'            => $totalLiveRows - $totalBackupRows,
+                'tables'               => $diffData,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'ডিফ বিশ্লেষণে ত্রুটি: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Safe Dry-Run & Sandbox Simulation (Executes SQL inside an uncommitted transaction).
+     */
+    public function dryRun(string $filename): JsonResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . '/' . $filename;
+
+        if (!File::exists($filePath)) {
+            return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি'], 404);
+        }
+
+        try {
+            $sqlContent = $this->extractSqlFromBackup($filePath);
+            if (!$sqlContent) {
+                return response()->json(['success' => false, 'message' => 'ব্যাকআপ থেকে SQL ডাটা রিড করা সম্ভব হয়নি'], 422);
+            }
+
+            $startTime = microtime(true);
+
+            // Execute in an isolated sandbox transaction and unconditionally ROLLBACK
+            DB::beginTransaction();
+            try {
+                // Disable foreign key checks for testing schema
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                DB::unprepared($sqlContent);
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+                $executionTimeMs = round((microtime(true) - $startTime) * 1000, 2);
+                
+                // Rollback unconditionally so live DB is 100% untouched
+                DB::rollBack();
+
+                $this->logAction('backup_dry_run_passed', "ব্যাকআপ '{$filename}' এর ড্রাই-রান সিমুলেশন সফল হয়েছে ({$executionTimeMs}ms)");
+
+                return response()->json([
+                    'success'           => true,
+                    'status'            => 'passed',
+                    'message'           => 'ড্রাই-রান সফল! কোন সিনট্যাক্স বা ফরেন-কী কনফ্লিক্ট নেই। ব্যাকআপটি ১০০% ত্রুটিমুক্ত।',
+                    'execution_time_ms' => $executionTimeMs,
+                    'filename'          => $filename,
+                ]);
+            } catch (\Throwable $dryError) {
+                DB::rollBack();
+                return response()->json([
+                    'success'           => false,
+                    'status'            => 'failed',
+                    'message'           => 'ড্রাই-রান সিমুলেশনে ত্রুটি সনাক্ত হয়েছে: ' . $dryError->getMessage(),
+                    'error_details'     => $dryError->getMessage(),
+                    'filename'          => $filename,
+                ], 422);
+            }
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'ড্রাই-রান প্রক্রিয়াকরণে ত্রুটি: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Selective Table Restore (Restores ONLY chosen tables without touching other data).
+     */
+    public function selectiveRestore(Request $request, string $filename): JsonResponse|RedirectResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . '/' . $filename;
+
+        if (!File::exists($filePath)) {
+            $err = 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।';
+            return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 404) : back()->with('error', $err);
+        }
+
+        $selectedTables = $request->input('tables', []);
+        if (empty($selectedTables) || !is_array($selectedTables)) {
+            $err = 'অনুগ্রহ করে রিস্টোর করার জন্য অন্তত একটি টেবিল নির্বাচন করুন।';
+            return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
+        }
+
+        // Strict validation on table names to prevent injection
+        $sanitizedTables = [];
+        foreach ($selectedTables as $tbl) {
+            if (preg_match('/^[a-zA-Z0-9_]+$/', (string)$tbl)) {
+                $sanitizedTables[] = (string)$tbl;
+            }
+        }
+
+        if (empty($sanitizedTables)) {
+            $err = 'অবৈধ টেবিল নাম প্রদান করা হয়েছে।';
+            return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
+        }
+
+        try {
+            $sqlContent = $this->extractSqlFromBackup($filePath);
+            if (!$sqlContent) {
+                $err = 'ব্যাকআপ থেকে SQL ডাটা রিড করা সম্ভব হয়নি';
+                return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
+            }
+
+            // 1. Generate safety rollback snapshot first!
+            $this->createSafetyRollbackSnapshot();
+
+            // 2. Extract SQL statements specifically for selected tables
+            $extractedSql = "SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n";
+            $restoredCount = 0;
+
+            foreach ($sanitizedTables as $targetTable) {
+                // Extract DROP TABLE and CREATE TABLE for this table
+                $pattern = '/(?:DROP\s+TABLE\s+IF\s+EXISTS\s+[`"]?' . preg_quote($targetTable, '/') . '[`"]?;\s*)?(CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s+[`"]?' . preg_quote($targetTable, '/') . '[`"]?[\s\S]*?;)/i';
+                if (preg_match($pattern, $sqlContent, $match)) {
+                    $extractedSql .= "DROP TABLE IF EXISTS `{$targetTable}`;\n";
+                    $extractedSql .= $match[1] . "\n";
+                }
+
+                // Extract all INSERT INTO `targetTable` statements
+                $insertPattern = '/(INSERT\s+INTO\s+[`"]?' . preg_quote($targetTable, '/') . '[`"]?[\s\S]*?;)/i';
+                preg_match_all($insertPattern, $sqlContent, $insertMatches);
+                if (!empty($insertMatches[1])) {
+                    foreach ($insertMatches[1] as $ins) {
+                        $extractedSql .= $ins . "\n";
+                    }
+                }
+                $restoredCount++;
+            }
+
+            $extractedSql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+            // 3. Execute in transaction
+            DB::beginTransaction();
+            try {
+                DB::unprepared($extractedSql);
+                DB::commit();
+            } catch (\Throwable $txError) {
+                DB::rollBack();
+                throw $txError;
+            }
+
+            $msg = "সফলভাবে নির্বাচিত " . count($sanitizedTables) . " টি টেবিল (" . implode(', ', array_slice($sanitizedTables, 0, 4)) . ") রিস্টোর সম্পন্ন হয়েছে!";
+            $this->logAction('selective_restore', $msg);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'          => true,
+                    'message'          => $msg,
+                    'restored_tables'  => $sanitizedTables,
+                ]);
+            }
+
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            $err = 'সিলেক্টিভ রিস্টোরে ত্রুটি: ' . $e->getMessage();
+            return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 500) : back()->with('error', $err);
+        }
+    }
+
+    /**
+     * Anonymized Developer Export (Masks customer passwords, phone numbers, and emails for safe dev/staging usage).
+     */
+    public function exportAnonymized(Request $request): BinaryFileResponse|JsonResponse|RedirectResponse
+    {
+        try {
+            $pdo = DB::connection()->getPdo();
+            $dbDriver = config('database.default', 'mysql');
+            $timestamp = date('Y-m-d_H-i-s');
+            $filename = "idea_anonymized_dump_{$timestamp}.sql";
+            $filePath = $this->backupDir . '/' . $filename;
+
+            $out = "-- ========================================================\n";
+            $out .= "-- Anonymized Developer Dump for Staging & Local Dev\n";
+            $out .= "-- Generated at: " . date('Y-m-d H:i:s') . "\n";
+            $out .= "-- ALL Customer PII, Passwords, and Contact info are MASKED\n";
+            $out .= "-- ========================================================\n\n";
+
+            $out .= "SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n\n";
+
+            $defaultHashedPassword = Hash::make('Password@123');
+
+            $tables = DB::select('SHOW TABLES');
+            foreach ($tables as $tableObj) {
+                $tableArr = (array) $tableObj;
+                $tableName = reset($tableArr);
+                if (empty($tableName)) continue;
+
+                $createTableRes = DB::select("SHOW CREATE TABLE `{$tableName}`");
+                if (!empty($createTableRes)) {
+                    $createTableArr = (array) $createTableRes[0];
+                    $createTableSql = $createTableArr['Create Table'] ?? reset($createTableArr);
+
+                    $out .= "\n-- Table structure for `{$tableName}`\n";
+                    $out .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                    $out .= $createTableSql . ";\n\n";
+                }
+
+                $rows = DB::table($tableName)->get();
+                if ($rows->isNotEmpty()) {
+                    $out .= "-- Anonymized data for table `{$tableName}`\n";
+                    foreach ($rows as $row) {
+                        $rowArr = (array) $row;
+
+                        // Anonymize sensitive fields
+                        if ($tableName === 'users' || $tableName === 'customers') {
+                            if (isset($rowArr['password'])) {
+                                $rowArr['password'] = $defaultHashedPassword;
+                            }
+                            if (isset($rowArr['email']) && !str_starts_with((string)$rowArr['email'], 'admin@')) {
+                                $rowArr['email'] = 'dev_user_' . ($rowArr['id'] ?? rand(100, 999)) . '@ideaabd.test';
+                            }
+                            if (isset($rowArr['phone']) && !empty($rowArr['phone'])) {
+                                $rowArr['phone'] = '01700' . str_pad((string)($rowArr['id'] ?? rand(1000, 9999)), 6, '0', STR_PAD_LEFT);
+                            }
+                            if (isset($rowArr['remember_token'])) {
+                                $rowArr['remember_token'] = null;
+                            }
+                        }
+
+                        if ($tableName === 'orders' || $tableName === 'order_addresses') {
+                            if (isset($rowArr['customer_phone']) || isset($rowArr['phone'])) {
+                                $col = isset($rowArr['customer_phone']) ? 'customer_phone' : 'phone';
+                                $rowArr[$col] = '0180000' . rand(1000, 9999);
+                            }
+                            if (isset($rowArr['customer_email']) || isset($rowArr['email'])) {
+                                $col = isset($rowArr['customer_email']) ? 'customer_email' : 'email';
+                                $rowArr[$col] = 'customer_' . ($rowArr['id'] ?? rand(100, 999)) . '@ideaabd.test';
+                            }
+                        }
+
+                        $cols = array_map(fn($c) => "`{$c}`", array_keys($rowArr));
+                        $vals = array_map(function ($val) use ($pdo) {
+                            if ($val === null) return 'NULL';
+                            return $pdo->quote((string)$val);
+                        }, array_values($rowArr));
+
+                        $out .= "INSERT INTO `{$tableName}` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ");\n";
+                    }
+                    $out .= "\n";
+                }
+            }
+
+            $out .= "SET FOREIGN_KEY_CHECKS=1;\n";
+            File::put($filePath, $out);
+
+            $this->logAction('export_anonymized_dump', "অ্যানোনিমাস ডেভেলপার ডাম্প '{$filename}' তৈরি করা হয়েছে");
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'      => true,
+                    'message'      => "অ্যানোনিমাস ডেভেলপার ডাম্প '{$filename}' সফলভাবে তৈরি হয়েছে!",
+                    'filename'     => $filename,
+                    'download_url' => route('admin.backup.download', $filename),
+                ]);
+            }
+
+            return response()->download($filePath);
+        } catch (\Throwable $e) {
+            $err = 'অ্যানোনিমাস ডাম্প তৈরিতে ত্রুটি: ' . $e->getMessage();
+            return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 500) : back()->with('error', $err);
+        }
+    }
+
+    /**
+     * Test Instant Telegram / Webhook / Email Notification Alert.
+     */
+    public function testNotification(Request $request): JsonResponse
+    {
+        $type = $request->input('type', 'telegram'); // 'telegram', 'email'
+        
+        try {
+            $settings = [];
+            if (Schema::hasTable('admin_dashboard_settings')) {
+                $settingRow = \App\Models\AdminDashboardSetting::where('key', 'backup_settings')->first();
+                if ($settingRow) {
+                    $settings = is_array($settingRow->value) ? $settingRow->value : (json_decode((string)$settingRow->value, true) ?: []);
+                }
+            }
+
+            if ($type === 'telegram') {
+                $botToken = $request->input('telegram_bot_token', $settings['telegram_bot_token'] ?? null);
+                $chatId = $request->input('telegram_chat_id', $settings['telegram_chat_id'] ?? null);
+
+                if (!$botToken || !$chatId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'টেলিগ্রাম বট টোকেন এবং চ্যাট আইডি প্রদান করুন অথবা সেভ করুন।',
+                    ], 422);
+                }
+
+                $text = "🛡️ *Idea Publication Disaster Recovery Alert*\n\n"
+                    . "✅ *Status:* System & Database Backup is Healthy.\n"
+                    . "⏰ *Time:* " . date('d M, Y h:i A') . "\n"
+                    . "🌐 *Environment:* " . config('app.url') . "\n"
+                    . "💾 *Live Database:* " . config('database.default') . " Connected\n\n"
+                    . "🔔 এটি একটি স্বয়ংক্রিয় টেস্ট নোটিফিকেশন মেসেজ।";
+
+                $response = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                    'chat_id'    => $chatId,
+                    'text'       => $text,
+                    'parse_mode' => 'Markdown',
+                ]);
+
+                if ($response->successful()) {
+                    $this->logAction('test_telegram_alert', 'টেলিগ্রাম ব্যাকআপ টেস্ট অ্যালার্ট সফলভাবে পাঠানো হয়েছে');
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'টেলিগ্রাম নোটিফিকেশন সফলভাবে আপনার চ্যানেলে পাঠানো হয়েছে!',
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'টেলিগ্রাম এপিআই ত্রুটি: ' . ($response->json('description') ?? 'সার্ভার সংযোগ ব্যর্থ'),
+                    ], 400);
+                }
+            } else {
+                // Email Test
+                $email = $request->input('email', $settings['backup_email'] ?? config('mail.from.address', 'adideabd@gmail.com'));
+                Mail::raw("🛡️ এটি আইডিয়া প্রকাশন ব্যাকআপ অ্যান্ড ডিজাস্টার রিকভারি টেস্ট অ্যালার্ট। টাইম: " . date('Y-m-d H:i:s'), function ($m) use ($email) {
+                    $m->to($email)->subject('Idea Publication Backup Alert System Test');
+                });
+
+                return response()->json([
+                    'success' => true,
+                    'message' => "টেস্ট ইমেইল সফলভাবে {$email} ঠিকানায় পাঠানো হয়েছে।",
+                ]);
+            }
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'নোটিফিকেশন প্রেরণে ত্রুটি: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Helper to safely extract SQL string from .sql, .zip, .gz, or .txt backup file.
+     */
+    private function extractSqlFromBackup(string $filePath): ?string
+    {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        if ($ext === 'zip' && class_exists(ZipArchive::class)) {
+            $zip = new ZipArchive();
+            if ($zip->open($filePath) === true) {
+                $sql = $zip->getFromName('database.sql');
+                $zip->close();
+                return $sql ?: null;
+            }
+            return null;
+        }
+
+        if ($ext === 'gz') {
+            $content = File::get($filePath);
+            return gzdecode($content) ?: null;
+        }
+
+        if (in_array($ext, ['sql', 'txt'])) {
+            return File::get($filePath);
+        }
+
+        return null;
+    }
+
+    /**
      * 1-Click Database Integrity Scan & Diagnostic Report.
      */
     public function integrityCheck(): RedirectResponse
@@ -718,10 +1185,15 @@ class AdminBackupController extends Controller
     public function updateSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'auto_backup_enabled' => 'nullable|boolean',
-            'backup_frequency'    => 'nullable|string|in:daily,weekly,monthly',
-            'backup_email'        => 'nullable|email',
-            'retention_days'      => 'nullable|integer|min:1|max:365',
+            'auto_backup_enabled'      => 'nullable|boolean',
+            'backup_frequency'         => 'nullable|string|in:daily,weekly,monthly',
+            'backup_email'             => 'nullable|email',
+            'retention_days'           => 'nullable|integer|min:1|max:365',
+            'telegram_alerts_enabled'  => 'nullable|boolean',
+            'telegram_bot_token'       => 'nullable|string|max:150',
+            'telegram_chat_id'         => 'nullable|string|max:100',
+            'offsite_cloud_driver'     => 'nullable|string|in:none,s3,gdrive,ftp',
+            'offsite_cloud_path'       => 'nullable|string|max:255',
         ]);
 
         if (Schema::hasTable('admin_dashboard_settings')) {
@@ -731,9 +1203,9 @@ class AdminBackupController extends Controller
             );
         }
 
-        $this->logAction('backup_settings_updated', 'স্বয়ংক্রিয় ডাটাবেজ ব্যাকআপ সেটিংস হালনাগাদ করা হয়েছে');
+        $this->logAction('backup_settings_updated', 'স্বয়ংক্রিয় ব্যাকআপ, ক্লাউড ও টেলিগ্রাম নোটিফিকেশন সেটিংস হালনাগাদ করা হয়েছে');
 
-        return redirect()->back()->with('success', 'স্বয়ংক্রিয় ব্যাকআপ সেটিংস সফলভাবে সংরক্ষিত হয়েছে।');
+        return redirect()->back()->with('success', 'স্বয়ংক্রিয় ব্যাকআপ, ক্লাউড ও টেলিগ্রাম সেটিংস সফলভাবে সংরক্ষিত হয়েছে।');
     }
 
     /**

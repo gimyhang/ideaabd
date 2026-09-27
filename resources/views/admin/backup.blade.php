@@ -10,13 +10,19 @@
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
-        {{-- 1. Upload Backup Button (Pink/Rose Gradient) --}}
+        {{-- 1. Upload Backup Button (Rose Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-rose" onclick="document.getElementById('backupFileInput').click()" title="বাহ্যিক ব্যাকআপ আপলোড">
             <i class="fa-solid fa-cloud-arrow-up"></i>
             <span>আপলোড ব্যাকআপ</span>
         </button>
 
-        {{-- 2. 1-Click Integrity Health Check (Purple Gradient) --}}
+        {{-- 2. Anonymized Developer Dump (Amber Gradient) --}}
+        <button type="button" class="btn-backup-gradient btn-gradient-amber" onclick="generateAnonymizedDump()" title="ডেভেলপার ও স্টেজিং এর জন্য কাস্টমার ডাটা মাস্ক করে ডাম্প">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>অ্যানোনিমাস ডাম্প</span>
+        </button>
+
+        {{-- 3. 1-Click Integrity Health Check (Purple Gradient) --}}
         <form action="{{ route('admin.backup.integrity') }}" method="POST" class="m-0">
             @csrf
             <button type="submit" class="btn-backup-gradient btn-gradient-purple" title="ডাটাবেজ টেবিল ইন্টিগ্রিটি স্ক্যান">
@@ -25,26 +31,26 @@
             </button>
         </form>
 
-        {{-- 3. 1-Click Database Table Optimizer (Amber Gradient) --}}
+        {{-- 4. 1-Click Database Table Optimizer (Sky Gradient) --}}
         <form action="{{ route('admin.backup.optimize') }}" method="POST" class="m-0"
               data-confirm="আপনি কি ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স অপ্টিমাইজ করতে চান?"
               data-confirm-title="ডাটাবেজ অপ্টিমাইজেশন"
               data-confirm-icon="info"
               data-confirm-btn="<i class='fa-solid fa-wand-magic-sparkles me-1'></i> হ্যাঁ, অপ্টিমাইজ করুন">
             @csrf
-            <button type="submit" class="btn-backup-gradient btn-gradient-amber" title="টেবিল ইনডেক্স ও সাইজ অপ্টিমাইজ">
+            <button type="submit" class="btn-backup-gradient btn-gradient-sky" title="টেবিল ইনডেক্স ও সাইজ অপ্টিমাইজ">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <span>ডাটাবেজ অপ্টিমাইজ</span>
             </button>
         </form>
 
-        {{-- 4. 1-Click Complete Data & Media Images Backup (.ZIP) (Emerald Gradient) --}}
+        {{-- 5. 1-Click Complete Data & Media Images Backup (.ZIP) (Emerald Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-emerald" onclick="triggerLiveBackup('data_media', 'সমস্ত ডাটা ও ছবি ব্যাকআপ (.ZIP)')" title="ডাটাবেজ + সমস্ত বইয়ের প্রচ্ছদ ও মিডিয়া ব্যাকআপ">
             <i class="fa-solid fa-box-archive"></i>
             <span>ডাটা ও ছবি ব্যাকআপ (.ZIP)</span>
         </button>
 
-        {{-- 5. 1-Click Full System Backup (.ZIP) (Indigo Gradient) --}}
+        {{-- 6. 1-Click Full System Backup (.ZIP) (Indigo Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-indigo" onclick="triggerLiveBackup('full_system', 'সম্পূর্ণ সিস্টেম ও সোর্স কোড ব্যাকআপ')" title="সম্পূর্ণ সিস্টেম ও ডাটাবেজ মাস্টার ব্যাকআপ">
             <i class="fa-solid fa-file-zipper"></i>
             <span>সম্পূর্ণ সিস্টেম ব্যাকআপ</span>
@@ -53,7 +59,7 @@
 @endsection
 
 @section('content')
-<link rel="stylesheet" href="{{ asset('css/admin-backup.css') }}?v={{ @filemtime(public_path('css/admin-backup.css')) ?: 2 }}">
+<link rel="stylesheet" href="{{ asset('css/admin-backup.css') }}?v={{ @filemtime(public_path('css/admin-backup.css')) ?: 3 }}">
 
 <script>
     window.BACKUP_ROUTES = {
@@ -61,6 +67,11 @@
         upload: "{{ route('admin.backup.upload') }}",
         bulkDelete: "{{ route('admin.backup.bulk-delete') }}",
         inspect: "{{ url('admin/backup/inspect') }}",
+        diff: "{{ url('admin/backup/diff') }}",
+        dryRun: "{{ url('admin/backup/dry-run') }}",
+        selectiveRestore: "{{ url('admin/backup/selective-restore') }}",
+        exportAnonymized: "{{ route('admin.backup.export-anonymized') }}",
+        testNotification: "{{ route('admin.backup.test-notification') }}",
         email: "{{ url('admin/backup/email') }}",
         restore: "{{ url('admin/backup/restore') }}"
     };
@@ -358,31 +369,46 @@
                                     <small class="text-muted font-monospace" style="font-size: 11px;">{{ $b['created_at']->diffForHumans() }}</small>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                        {{-- 1. Inspect ZIP Preview --}}
+                                    <div class="d-flex align-items-center justify-content-end flex-wrap gap-1.5">
+                                        {{-- 1. Diff & Analytics --}}
+                                        <button type="button" class="btn-action-pill btn-action-cyan" onclick="openDiffModal('{{ $b['filename'] }}')" title="ডাটাবেজ ও ব্যাকআপ তুলনা (Diff)">
+                                            <i class="fa-solid fa-code-compare"></i> ডিফ
+                                        </button>
+
+                                        {{-- 2. Safe Dry-Run Simulation --}}
+                                        <button type="button" class="btn-action-pill btn-action-purple" onclick="runDryRunSimulation('{{ $b['filename'] }}')" title="স্যান্ডবক্স ড্রাই-রান সিমুলেশন">
+                                            <i class="fa-solid fa-flask-vial"></i> টেস্ট
+                                        </button>
+
+                                        {{-- 3. Selective Table Restore --}}
+                                        <button type="button" class="btn-action-pill btn-action-amber" onclick="openSelectiveRestoreModal('{{ $b['filename'] }}')" title="নির্দিষ্ট টেবিল রিস্টোর">
+                                            <i class="fa-solid fa-list-check"></i> সিলেক্টিভ
+                                        </button>
+
+                                        {{-- 4. Inspect ZIP Preview --}}
                                         @if($b['is_master_zip'])
-                                            <button type="button" class="btn-action-pill btn-action-cyan" onclick="inspectZipArchive('{{ $b['filename'] }}')" title="আর্কাইভ প্রিভিউ দেখুন">
+                                            <button type="button" class="btn-action-pill btn-action-sky" onclick="inspectZipArchive('{{ $b['filename'] }}')" title="আর্কাইভ প্রিভিউ দেখুন">
                                                 <i class="fa-solid fa-eye"></i> প্রিভিউ
                                             </button>
                                         @endif
 
-                                        {{-- 2. Download --}}
+                                        {{-- 5. Download --}}
                                         <a href="{{ route('admin.backup.download', $b['filename']) }}" class="btn-action-pill btn-action-indigo" title="কম্পিউটারে ডাউনলোড করুন">
-                                            <i class="fa-solid fa-download"></i> ডাউনলোড
+                                            <i class="fa-solid fa-download"></i>
                                         </a>
 
-                                        {{-- 3. Email Dispatch --}}
-                                        <button type="button" class="btn-action-pill btn-action-amber" onclick="openEmailModal('{{ $b['filename'] }}')" title="ইমেইলে ব্যাকআপ পাঠান">
-                                            <i class="fa-solid fa-paper-plane"></i> ইমেইল
+                                        {{-- 6. Email Dispatch --}}
+                                        <button type="button" class="btn-action-pill btn-action-emerald" onclick="openEmailModal('{{ $b['filename'] }}')" title="ইমেইলে ব্যাকআপ পাঠান">
+                                            <i class="fa-solid fa-paper-plane"></i>
                                         </button>
 
-                                        {{-- 4. Restore with Safety Guarantee --}}
+                                        {{-- 7. Full Restore with Safety Guarantee --}}
                                         <button type="button" class="btn-action-pill btn-action-emerald" 
-                                                onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="সিস্টেম রিস্টোর">
+                                                onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="সম্পূর্ণ রিস্টোর">
                                             <i class="fa-solid fa-rotate-left"></i> রিস্টোর
                                         </button>
 
-                                        {{-- 5. Delete --}}
+                                        {{-- 8. Delete --}}
                                         <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
                                               data-confirm="আপনি কি নিশ্চিত এই ব্যাকআপ ফাইলটি ({{ $b['filename'] }}) মুছে ফেলতে চান?"
                                               data-confirm-title="ব্যাকআপ ফাইল অপসারণ"
@@ -591,44 +617,121 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 5: AUTOMATED BACKUP SETTINGS MODAL                                  --}}
+{{-- MODAL 5: AUTOMATED BACKUP, TELEGRAM & CLOUD SETTINGS MODAL                 --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="backupSettingsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow-lg">
             <div class="modal-header bg-dark text-white py-3 px-4 rounded-top-4">
                 <h6 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2">
                     <i class="fa-solid fa-gear text-warning"></i>
-                    <span>স্বয়ংক্রিয় ব্যাকআপ কনফিগারেশন</span>
+                    <span>স্বয়ংক্রিয় ব্যাকআপ, টেলিগ্রাম ও ক্লাউড সিঙ্ক সেটিংস</span>
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ route('admin.backup.settings') }}" method="POST">
                 @csrf
                 <div class="modal-body p-4">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="autoBackupSwitch" name="auto_backup_enabled" value="1" {{ !empty($settings['auto_backup_enabled']) ? 'checked' : '' }}>
-                        <label class="form-check-label fw-bold text-dark small" for="autoBackupSwitch">স্বয়ংক্রিয় শিডিউল ব্যাকআপ সক্রিয় রাখুন</label>
+                    
+                    {{-- Nav Tabs --}}
+                    <ul class="nav nav-pills nav-fill mb-3 p-1 bg-light rounded-3 gap-1" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active py-2 rounded-2 fw-bold small" id="auto-tab" data-bs-toggle="pill" data-bs-target="#tab-auto" type="button" role="tab">
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i> অটো শিডিউলিং
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 rounded-2 fw-bold small" id="telegram-tab" data-bs-toggle="pill" data-bs-target="#tab-telegram" type="button" role="tab">
+                                <i class="fa-brands fa-telegram me-1 text-primary"></i> টেলিগ্রাম অ্যালার্ট
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link py-2 rounded-2 fw-bold small" id="cloud-tab" data-bs-toggle="pill" data-bs-target="#tab-cloud" type="button" role="tab">
+                                <i class="fa-solid fa-cloud-arrow-up me-1 text-info"></i> অফসাইট ক্লাউড
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content pt-2" id="settingsTabContent">
+                        
+                        {{-- Tab 1: Auto Scheduling --}}
+                        <div class="tab-pane fade show active" id="tab-auto" role="tabpanel">
+                            <div class="form-check form-switch mb-3 p-3 bg-light rounded-3 border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="autoBackupSwitch" name="auto_backup_enabled" value="1" {{ !empty($settings['auto_backup_enabled']) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-bold text-dark small" for="autoBackupSwitch">স্বয়ংক্রিয় শিডিউল ব্যাকআপ সক্রিয় রাখুন</label>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">ব্যাকআপের পুনরাবৃত্তি (Frequency):</label>
+                                    <select name="backup_frequency" class="form-select form-select-sm fw-semibold">
+                                        <option value="daily" {{ ($settings['backup_frequency'] ?? 'daily') === 'daily' ? 'selected' : '' }}>দৈনিক (Daily — রাত ১২টায়)</option>
+                                        <option value="weekly" {{ ($settings['backup_frequency'] ?? '') === 'weekly' ? 'selected' : '' }}>সাপ্তাহিক (Weekly — শুক্রবার)</option>
+                                        <option value="monthly" {{ ($settings['backup_frequency'] ?? '') === 'monthly' ? 'selected' : '' }}>মাসিক (Monthly)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">রিটেনশন লিমিট (সর্বোচ্চ কতটি ফাইল থাকবে):</label>
+                                    <input type="number" name="retention_days" class="form-control form-control-sm font-monospace fw-bold" min="1" max="100" value="{{ $settings['retention_days'] ?? $retentionLimit }}">
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-dark">স্বয়ংক্রিয় ব্যাকআপ রিসিভ ইমেইল:</label>
+                                <input type="email" name="backup_email" class="form-control form-control-sm font-monospace" placeholder="backup@ideaabd.com" value="{{ $settings['backup_email'] ?? config('mail.from.address', 'adideabd@gmail.com') }}">
+                            </div>
+                        </div>
+
+                        {{-- Tab 2: Telegram Alerts --}}
+                        <div class="tab-pane fade" id="tab-telegram" role="tabpanel">
+                            <div class="form-check form-switch mb-3 p-3 bg-light rounded-3 border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="telegramAlertsSwitch" name="telegram_alerts_enabled" value="1" {{ !empty($settings['telegram_alerts_enabled']) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-bold text-dark small" for="telegramAlertsSwitch">ব্যাকআপ তৈরি ও অ্যালার্টের তাৎক্ষণিক টেলিগ্রাম মেসেজ নোটিফিকেশন</label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">টেলিগ্রাম বট টোকেন (Telegram Bot Token):</label>
+                                <input type="text" name="telegram_bot_token" id="telegramBotTokenInput" class="form-control form-control-sm font-monospace" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" value="{{ $settings['telegram_bot_token'] ?? '' }}">
+                                <small class="text-muted font-monospace" style="font-size: 11px;">BotFather থেকে পাওয়া বট টোকেন</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">টেলিগ্রাম চ্যাট / চ্যানেল আইডি (Chat ID):</label>
+                                <input type="text" name="telegram_chat_id" id="telegramChatIdInput" class="form-control form-control-sm font-monospace" placeholder="-1001234567890 অথবা 987654321" value="{{ $settings['telegram_chat_id'] ?? '' }}">
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="testTelegramNotification()">
+                                    <i class="fa-solid fa-paper-plane me-1"></i> টেস্ট টেলিগ্রাম মেসেজ পাঠান
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Tab 3: Offsite Cloud Sync --}}
+                        <div class="tab-pane fade" id="tab-cloud" role="tabpanel">
+                            <div class="p-3 bg-light rounded-3 border mb-3">
+                                <h6 class="fw-bold text-dark small mb-1"><i class="fa-solid fa-cloud-arrow-up text-primary me-1"></i> অফসাইট ক্লাউড স্টোরেজ সিঙ্ক</h6>
+                                <p class="text-muted small mb-0 font-monospace" style="font-size: 11px;">প্রতিবার ব্যাকআপ তৈরি হওয়ার পর স্বয়ংক্রিয়ভাবে ক্লাউড ড্রাইভ বা অফসাইট স্টোরেজে কপি সংরক্ষিত হবে।</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">ক্লাউড ড্রাইভ টাইপ:</label>
+                                <select name="offsite_cloud_driver" class="form-select form-select-sm fw-semibold">
+                                    <option value="none" {{ ($settings['offsite_cloud_driver'] ?? 'none') === 'none' ? 'selected' : '' }}>নিষ্ক্রিয় (Local Disk Only)</option>
+                                    <option value="s3" {{ ($settings['offsite_cloud_driver'] ?? '') === 's3' ? 'selected' : '' }}>Amazon AWS S3 / Cloudflare R2</option>
+                                    <option value="gdrive" {{ ($settings['offsite_cloud_driver'] ?? '') === 'gdrive' ? 'selected' : '' }}>Google Drive</option>
+                                    <option value="ftp" {{ ($settings['offsite_cloud_driver'] ?? '') === 'ftp' ? 'selected' : '' }}>Remote FTP / SFTP Server</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-dark">রিমোট ব্যাকআপ ফোল্ডার পাথ:</label>
+                                <input type="text" name="offsite_cloud_path" class="form-control form-control-sm font-monospace" placeholder="/backups/ideaabd" value="{{ $settings['offsite_cloud_path'] ?? '/backups/ideaabd' }}">
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ব্যাকআপের পুনরাবৃত্তি (Frequency):</label>
-                        <select name="backup_frequency" class="form-select form-select-sm fw-semibold">
-                            <option value="daily" {{ ($settings['backup_frequency'] ?? 'daily') === 'daily' ? 'selected' : '' }}>দৈনিক (Daily — রাত ১২টায়)</option>
-                            <option value="weekly" {{ ($settings['backup_frequency'] ?? '') === 'weekly' ? 'selected' : '' }}>সাপ্তাহিক (Weekly — শুক্রবার)</option>
-                            <option value="monthly" {{ ($settings['backup_frequency'] ?? '') === 'monthly' ? 'selected' : '' }}>মাসিক (Monthly)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">স্বয়ংক্রিয় ব্যাকআপ রিসিভ ইমেইল:</label>
-                        <input type="email" name="backup_email" class="form-control form-control-sm font-monospace" placeholder="backup@ideaabd.com" value="{{ $settings['backup_email'] ?? config('mail.from.address', 'adideabd@gmail.com') }}">
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="form-label small fw-bold text-dark">রিটেনশন লিমিট (সর্বোচ্চ কতটি ব্যাকআপ সংরক্ষিত থাকবে):</label>
-                        <input type="number" name="retention_days" class="form-control form-control-sm font-monospace fw-bold" min="1" max="100" value="{{ $settings['retention_days'] ?? $retentionLimit }}">
-                    </div>
                 </div>
                 <div class="modal-footer bg-light py-2.5 px-4 rounded-bottom-4 d-flex justify-content-between">
                     <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
@@ -642,7 +745,131 @@
     </div>
 </div>
 
+{{-- ========================================================================= --}}
+{{-- MODAL 6: DATABASE DIFF & ANALYTICS MODAL                                   --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="diffModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-3 px-4 rounded-top-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-code-compare"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0">ডাটাবেজ ও ব্যাকআপ তুলনা (Diff & Analytics)</h6>
+                        <small class="text-white-50 font-monospace" style="font-size: 11px;">ফাইল: <span id="diffModalFilename" class="text-warning"></span></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body p-4" id="diffModalBody">
+                <div class="text-center py-5 text-muted">
+                    <div class="spinner-border text-info mb-2" role="status"></div>
+                    <div class="fw-semibold">লাইভ ডাটাবেজের সাথে ব্যাকআপ ফাইল তুলনা করা হচ্ছে...</div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light py-2.5 px-4 rounded-bottom-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">বন্ধ করুন</button>
+                <button type="button" class="btn-backup-gradient btn-gradient-amber px-4" id="btnDiffToSelective" onclick="openSelectiveFromDiff()">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>নির্বাচিত টেবিল রিস্টোর করুন</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 7: SAFE DRY-RUN & SANDBOX SIMULATION MODAL                           --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="dryRunModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-3 px-4 rounded-top-4">
+                <h6 class="modal-title fw-bold text-white mb-0 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-flask-vial text-warning"></i>
+                    <span>নিরাপদ স্যান্ডবক্স ড্রাই-রান সিমুলেশন</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="dryRunModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                    <h6 class="fw-bold text-dark font-monospace mb-1">স্যান্ডবক্সে রিস্টোর পরীক্ষা চলছে...</h6>
+                    <p class="text-muted small mb-0">SQL সিনট্যাক্স, ফরেন-কী ও টেবিল স্ট্রাকচার পরীক্ষা করা হচ্ছে (লাইভ ডাটা সম্পূর্ণ অপরিবর্তিত থাকবে)।</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2.5 px-4 rounded-bottom-4">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-4 fw-bold ms-auto" data-bs-dismiss="modal">বন্ধ করুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 8: SELECTIVE TABLE RESTORE MODAL                                     --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="selectiveRestoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white py-3 px-4 rounded-top-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-white mb-0">সিলেক্টিভ টেবিল রিস্টোর (Selective Restore)</h6>
+                        <small class="text-white-50 font-monospace" style="font-size: 11px;">ফাইল: <span id="selectiveModalFilename" class="text-warning"></span></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-warning d-flex align-items-center gap-2 rounded-3 py-2 px-3 small mb-3 border-0 border-start border-4 border-warning">
+                    <i class="fa-solid fa-shield-halved fs-5"></i>
+                    <div>শুধুমাত্র নির্বাচিত টেবিলগুলো ব্যাকআপ থেকে ওভাররাইট হবে। অন্য কোনো টেবিলের ডাটা পরিবর্তন হবে না।</div>
+                </div>
+
+                {{-- Table Filter & Quick Controls --}}
+                <div class="d-flex align-items-center justify-content-between mb-3 gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 font-monospace fw-bold" onclick="toggleAllSelectiveTables(true)">সব নির্বাচন</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 font-monospace fw-bold" onclick="toggleAllSelectiveTables(false)">সব বাতিল</button>
+                        <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 font-monospace small" id="selectiveSelectedBadge">০ টি নির্বাচিত</span>
+                    </div>
+                    <input type="search" id="selectiveSearchInput" class="form-control form-control-sm font-monospace" style="max-width: 200px;" placeholder="টেবিল খুঁজুন...">
+                </div>
+
+                <div class="border rounded-3 p-3 bg-light" style="max-height: 280px; overflow-y: auto;">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2" id="selectiveTablesList">
+                        @foreach($tables as $t)
+                            <div class="col selective-tbl-col" data-tbl="{{ strtolower($t['name']) }}">
+                                <div class="form-check p-2 bg-white rounded-2 border shadow-xs h-100 d-flex align-items-center">
+                                    <input class="form-check-input ms-0 me-2 selective-tbl-cb" type="checkbox" value="{{ $t['name'] }}" id="tbl_cb_{{ $loop->index }}" onchange="updateSelectiveCount()">
+                                    <label class="form-check-label small font-monospace text-dark fw-semibold text-truncate" for="tbl_cb_{{ $loop->index }}" title="{{ $t['name'] }}">
+                                        {{ $t['name'] }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2.5 px-4 rounded-bottom-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn-backup-gradient btn-gradient-amber px-4" id="btnExecuteSelectiveRestore" onclick="submitSelectiveRestore()">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>নির্বাচিত টেবিল রিস্টোর করুন</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
-<script src="{{ asset('js/admin-backup.js') }}?v={{ @filemtime(public_path('js/admin-backup.js')) ?: 2 }}"></script>
+<script src="{{ asset('js/admin-backup.js') }}?v={{ @filemtime(public_path('js/admin-backup.js')) ?: 3 }}"></script>
 @endpush
 @endsection

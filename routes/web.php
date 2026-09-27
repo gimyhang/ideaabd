@@ -740,6 +740,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
         Route::get('/inspect/{filename}', 'inspect')->name('inspect');
+        Route::get('/diff/{filename}', 'diff')->name('diff');
+        Route::post('/dry-run/{filename}', 'dryRun')->name('dry-run');
+        Route::post('/selective-restore/{filename}', 'selectiveRestore')->name('selective-restore');
+        Route::post('/export-anonymized', 'exportAnonymized')->name('export-anonymized');
+        Route::post('/test-notification', 'testNotification')->name('test-notification');
         Route::post('/email/{filename}', 'sendEmail')->name('email');
         Route::post('/restore/{filename}', 'restore')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
