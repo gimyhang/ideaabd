@@ -671,6 +671,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
         Route::post('/send-otp-test', 'sendOtpTest')->name('send-otp-test');
         Route::post('/broadcast-dual', 'broadcastDual')->name('broadcast-dual');
+        Route::post('/templates', 'storeTemplate')->name('templates.store');
+        Route::delete('/templates/{id}', 'deleteTemplate')->name('templates.delete');
+        Route::post('/logs/clear', 'clearLogs')->name('logs.clear');
+        Route::get('/logs/export', 'exportLogs')->name('logs.export');
     });
 
     // Quick AJAX resource creators for books/ebooks/blog forms

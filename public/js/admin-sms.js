@@ -3,15 +3,34 @@
  * Enterprise Grade Frontend Logic - Idea Prokashon
  */
 
+// Global Recipient Counts passed from Blade
+window.messagingCounts = window.messagingCounts || {
+    total_users: 0,
+    customers: 0,
+    authors: 0,
+    publishers: 0,
+    sellers: 0,
+    libraries: 0
+};
+
+// Global Templates Cache
+window.savedTemplates = window.savedTemplates || [];
+
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Tab Persistence across page reloads
     initTabPersistence();
 
-    // 2. Initialize real-time character counters on all textareas
+    // 2. Initialize real-time character counters & simulator on all textareas
     initCharacterCounters();
 
     // 3. Initialize test dispatch handlers
     initAjaxDispatchers();
+
+    // 4. Initialize Live Cost Estimators
+    initCostEstimators();
+
+    // 5. Initialize Campaign Logs Search Filter
+    initLogsFilter();
 });
 
 /**
@@ -19,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initTabPersistence() {
     const mainTabBtns = document.querySelectorAll('#messagingHubTabs button[data-bs-toggle="pill"]');
-    const storedTab = localStorage.getItem('active_messaging_tab');
+    const storedTab = localStorage.getItem('active_messaging_hub_tab');
 
     if (storedTab) {
         const targetBtn = document.querySelector(`#messagingHubTabs button[data-bs-target="${storedTab}"]`);
@@ -32,16 +51,27 @@ function initTabPersistence() {
         btn.addEventListener('shown.bs.tab', function(e) {
             const target = e.target.getAttribute('data-bs-target');
             if (target) {
-                localStorage.setItem('active_messaging_tab', target);
+                localStorage.setItem('active_messaging_hub_tab', target);
             }
         });
     });
 }
 
 /**
+ * Switch Tab Programmatically
+ */
+function switchMessagingTab(tabBtnId) {
+    const btn = document.getElementById(tabBtnId);
+    if (btn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+        new bootstrap.Tab(btn).show();
+        btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+/**
  * Real-time SMS Character, Part & Unicode Calculator
  */
-function calculateSmsParts(textarea, counterId, progressId) {
+function calculateSmsParts(textarea, counterId, progressId, previewPhoneId, costBadgeId, targetGroupSelectId) {
     if (!textarea) return;
     const text = textarea.value || '';
     const len = text.length;
@@ -68,84 +98,313 @@ function calculateSmsParts(textarea, counterId, progressId) {
     }
 
     // Update Counter Text
-    const counterEl = document.getElementById(counterId);
-    if (counterEl) {
-        const langBadge = isUnicode ? '<span class="text-primary fw-bold">Unicode (বাংলা)</span>' : '<span class="text-secondary">GSM English</span>';
-        counterEl.innerHTML = `${len} ক্যারেক্টার &bull; <strong class="text-dark">${parts} SMS</strong> &bull; ${langBadge}`;
+    if (counterId) {
+        const counterEl = document.getElementById(counterId);
+        if (counterEl) {
+            const langBadge = isUnicode 
+                ? '<span class="badge bg-primary-subtle text-primary fw-bold px-2">Unicode (বাংলা)</span>' 
+                : '<span class="badge bg-secondary-subtle text-secondary px-2">GSM English</span>';
+            counterEl.innerHTML = `${len} ক্যারেক্টার &bull; <strong class="text-dark">${parts} SMS পার্ট</strong> &bull; ${langBadge}`;
+        }
     }
 
     // Update Progress Bar
-    const progressEl = document.getElementById(progressId);
-    if (progressEl) {
-        let currentPartLimit = parts === 1 ? maxPartLen : multiPartLen;
-        let remainder = len % currentPartLimit;
-        if (remainder === 0 && len > 0) remainder = currentPartLimit;
-        let pct = Math.min(100, Math.round((remainder / currentPartLimit) * 100));
-        
-        progressEl.style.width = pct + '%';
-        progressEl.className = 'sms-counter-progress';
-        if (parts > 2) {
-            progressEl.classList.add('danger');
-        } else if (parts > 1) {
-            progressEl.classList.add('warning');
+    if (progressId) {
+        const progressEl = document.getElementById(progressId);
+        if (progressEl) {
+            let currentPartLimit = parts === 1 ? maxPartLen : multiPartLen;
+            let remainder = len % currentPartLimit;
+            if (remainder === 0 && len > 0) remainder = currentPartLimit;
+            let pct = Math.min(100, Math.round((remainder / currentPartLimit) * 100));
+            
+            progressEl.style.width = pct + '%';
+            progressEl.className = 'sms-counter-progress';
+            if (parts > 2) {
+                progressEl.classList.add('danger');
+            } else if (parts > 1) {
+                progressEl.classList.add('warning');
+            }
         }
     }
+
+    // Update Live Smartphone Preview Bubble
+    if (previewPhoneId) {
+        const phoneBubble = document.getElementById(previewPhoneId);
+        if (phoneBubble) {
+            phoneBubble.innerText = text.trim() || 'এখানে মেসেজ টাইপ করলে লাইভ প্রিভিউ দেখতে পাবেন...';
+        }
+    }
+
+    // Update Dynamic Cost Estimator if requested
+    if (costBadgeId && targetGroupSelectId) {
+        updateCostEstimate(costBadgeId, targetGroupSelectId, parts);
+    }
 }
 
 /**
- * Initialize Character Counters on all textareas
+ * Initialize Character Counters & Live Preview on all textareas
  */
 function initCharacterCounters() {
+    // 1. Quick Test SMS
     const testMsg = document.getElementById('testMessage');
     if (testMsg) {
-        testMsg.addEventListener('input', () => calculateSmsParts(testMsg, 'testMsgCounter', 'testMsgProgress'));
-        calculateSmsParts(testMsg, 'testMsgCounter', 'testMsgProgress');
+        testMsg.addEventListener('input', () => calculateSmsParts(testMsg, 'testMsgCounter', 'testMsgProgress', 'phoneSimPreviewQuick'));
+        calculateSmsParts(testMsg, 'testMsgCounter', 'testMsgProgress', 'phoneSimPreviewQuick');
     }
 
+    // 2. Simple Bulk SMS
     const bulkMsg = document.getElementById('bulkMessage');
     if (bulkMsg) {
-        bulkMsg.addEventListener('input', () => calculateSmsParts(bulkMsg, 'bulkMsgCounter', 'bulkMsgProgress'));
-        calculateSmsParts(bulkMsg, 'bulkMsgCounter', 'bulkMsgProgress');
+        bulkMsg.addEventListener('input', () => calculateSmsParts(bulkMsg, 'bulkMsgCounter', 'bulkMsgProgress', 'phoneSimPreviewBulk', 'bulkCostSummary', 'bulkTargetGroup'));
+        calculateSmsParts(bulkMsg, 'bulkMsgCounter', 'bulkMsgProgress', 'phoneSimPreviewBulk', 'bulkCostSummary', 'bulkTargetGroup');
     }
 
-    const manyMsg = document.getElementById('manyMessageTemplate');
-    if (manyMsg) {
-        manyMsg.addEventListener('input', () => calculateSmsParts(manyMsg, 'manyMsgCounter', 'manyMsgProgress'));
-        calculateSmsParts(manyMsg, 'manyMsgCounter', 'manyMsgProgress');
+    // 3. Many-to-Many Template
+    const manyTpl = document.getElementById('manyTemplate');
+    if (manyTpl) {
+        manyTpl.addEventListener('input', () => calculateSmsParts(manyTpl, 'manyMsgCounter', 'manyMsgProgress', 'phoneSimPreviewMany', 'manyCostSummary', 'manyTargetGroup'));
+        calculateSmsParts(manyTpl, 'manyMsgCounter', 'manyMsgProgress', 'phoneSimPreviewMany', 'manyCostSummary', 'manyTargetGroup');
+    }
+
+    // 4. Dual Marketing Message
+    const dualMsg = document.getElementById('dualMessage');
+    if (dualMsg) {
+        dualMsg.addEventListener('input', () => calculateSmsParts(dualMsg, 'dualMsgCounter', 'dualMsgProgress', 'phoneSimPreviewDual'));
+        calculateSmsParts(dualMsg, 'dualMsgCounter', 'dualMsgProgress', 'phoneSimPreviewDual');
     }
 }
 
 /**
- * Fast Template Inserter
+ * Initialize Cost Estimator triggers on group changes
  */
-function applySmsTemplate(type, targetInputId, counterId, progressId) {
-    const input = document.getElementById(targetInputId);
-    if (!input) return;
+function initCostEstimators() {
+    const bulkGroup = document.getElementById('bulkTargetGroup');
+    if (bulkGroup) {
+        bulkGroup.addEventListener('change', () => {
+            const bulkMsg = document.getElementById('bulkMessage');
+            if (bulkMsg) calculateSmsParts(bulkMsg, 'bulkMsgCounter', 'bulkMsgProgress', 'phoneSimPreviewBulk', 'bulkCostSummary', 'bulkTargetGroup');
+        });
+    }
 
-    const templates = {
-        'order_confirm': 'আইডিয়া প্রকাশন: আপনার অর্ডার #{order_id} নিশ্চিত হয়েছে। শীঘ্রই ডেলিভারি প্রক্রিয়া শুরু হবে। ধন্যবাদ!',
-        'order_shipped': 'আইডিয়া প্রকাশন: আপনার বই কুরিয়ারে হস্তান্তর করা হয়েছে। ট্র্যাকিং কোড: {tracking_code}। সাথে থাকার জন্য ধন্যবাদ!',
-        'book_grant': 'আইডিয়া প্রকাশন: অভিনন্দন! আপনার পাঠাগার বাৎসরিক বই বিতরণ কর্মসূচির আওতায় বই অনুদানের জন্য নির্বাচিত হয়েছে। বিস্তারিত জানতে ইনবক্স চেক করুন।',
-        'otp_code': 'আইডিয়া প্রকাশন সিকিউরিটি ওটিপি: {otp}। কোডটি কারো সাথে শেয়ার করবেন না। মেয়াদ ৫ মিনিট।',
-        'welcome': 'প্রিয় {name}, আইডিয়া প্রকাশনে আপনাকে স্বাগতম! সেরা সব বই ও অফার দেখতে ভিজিট করুন www.ideaabd.com',
-        'discount': 'আইডিয়া প্রকাশন মেগা অফার! নির্বাচিত সকল বইয়ে পাচ্ছেন ২৫% পর্যন্ত বিশেষ ছাড়। অফার সীমিত সময়ের জন্য: www.ideaabd.com'
-    };
-
-    if (templates[type]) {
-        input.value = templates[type];
-        input.focus();
-        calculateSmsParts(input, counterId, progressId);
+    const manyGroup = document.getElementById('manyTargetGroup');
+    if (manyGroup) {
+        manyGroup.addEventListener('change', () => {
+            const manyTpl = document.getElementById('manyTemplate');
+            if (manyTpl) calculateSmsParts(manyTpl, 'manyMsgCounter', 'manyMsgProgress', 'phoneSimPreviewMany', 'manyCostSummary', 'manyTargetGroup');
+        });
     }
 }
 
 /**
- * Live SMS Balance Refresh with Ajax
+ * Update Cost Estimate Badge & Balance Warning
+ */
+function updateCostEstimate(costBadgeId, targetGroupSelectId, partsCount) {
+    const badgeEl = document.getElementById(costBadgeId);
+    const selectEl = document.getElementById(targetGroupSelectId);
+    if (!badgeEl || !selectEl) return;
+
+    const group = selectEl.value;
+    let recipientCount = 0;
+
+    if (group === 'all') recipientCount = window.messagingCounts.total_users || 0;
+    else if (group === 'customers') recipientCount = window.messagingCounts.customers || 0;
+    else if (group === 'authors') recipientCount = window.messagingCounts.authors || 0;
+    else if (group === 'publishers') recipientCount = window.messagingCounts.publishers || 0;
+    else if (group === 'sellers') recipientCount = window.messagingCounts.sellers || 0;
+    else if (group === 'libraries') recipientCount = window.messagingCounts.libraries || 0;
+    else recipientCount = 1; // Custom
+
+    const totalSmsCredits = recipientCount * partsCount;
+    const estCostBdt = (totalSmsCredits * 0.35).toFixed(2); // ৳0.35 per SMS part estimate
+
+    badgeEl.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span><i class="fa-solid fa-users me-1 text-primary"></i> প্রাপক: <strong>${recipientCount.toLocaleString()}</strong> জন</span>
+            <span><i class="fa-solid fa-comment-sms me-1 text-success"></i> মোট ক্রেডিট: <strong>${totalSmsCredits.toLocaleString()} SMS</strong></span>
+            <span><i class="fa-solid fa-bangladeshi-taka-sign me-1 text-warning"></i> আনুমানিক খরচ: <strong>৳${estCostBdt}</strong></span>
+        </div>
+    `;
+}
+
+/**
+ * Insert Shortcode Chip into active Textarea
+ */
+function insertShortcode(shortcode, textareaId) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const text = textarea.value;
+
+    textarea.value = text.substring(0, start) + shortcode + text.substring(end);
+    textarea.focus();
+    textarea.selectionStart = textarea.selectionEnd = start + shortcode.length;
+
+    // Trigger input event to re-calculate parts & simulator
+    textarea.dispatchEvent(new Event('input'));
+}
+
+/**
+ * Apply a saved template into a form
+ */
+function applyTemplate(templateId, targetType) {
+    const tpl = window.savedTemplates.find(t => t.id === templateId);
+    if (!tpl) return;
+
+    if (targetType === 'bulk_sms') {
+        const textarea = document.getElementById('bulkMessage');
+        if (textarea) {
+            textarea.value = tpl.body;
+            textarea.dispatchEvent(new Event('input'));
+            switchMessagingTab('tab-sms-btn');
+        }
+    } else if (targetType === 'many_sms') {
+        const textarea = document.getElementById('manyTemplate');
+        if (textarea) {
+            textarea.value = tpl.body;
+            textarea.dispatchEvent(new Event('input'));
+            switchMessagingTab('tab-sms-btn');
+        }
+    } else if (targetType === 'email') {
+        const subj = document.getElementById('bulkEmailSubject');
+        const body = document.getElementById('bulkEmailBody');
+        const actText = document.getElementById('bulkEmailActionText');
+        const actUrl = document.getElementById('bulkEmailActionUrl');
+
+        if (subj && tpl.subject) subj.value = tpl.subject;
+        if (body) body.value = tpl.body;
+        if (actText && tpl.action_text) actText.value = tpl.action_text;
+        if (actUrl && tpl.action_url) actUrl.value = tpl.action_url;
+
+        switchMessagingTab('tab-email-btn');
+    } else if (targetType === 'dual') {
+        const subj = document.getElementById('dualSubject');
+        const body = document.getElementById('dualMessage');
+        const actText = document.getElementById('dualActionText');
+        const actUrl = document.getElementById('dualActionUrl');
+
+        if (subj && tpl.subject) subj.value = tpl.subject;
+        if (body) {
+            body.value = tpl.body;
+            body.dispatchEvent(new Event('input'));
+        }
+        if (actText && tpl.action_text) actText.value = tpl.action_text;
+        if (actUrl && tpl.action_url) actUrl.value = tpl.action_url;
+
+        switchMessagingTab('tab-unified-btn');
+    }
+}
+
+/**
+ * Edit Template Modal Filler
+ */
+function editTemplateModal(templateJson) {
+    try {
+        const tpl = typeof templateJson === 'string' ? JSON.parse(templateJson) : templateJson;
+        document.getElementById('templateId').value = tpl.id || '';
+        document.getElementById('templateTitle').value = tpl.title || '';
+        document.getElementById('templateChannel').value = tpl.channel || 'sms';
+        document.getElementById('templateTag').value = tpl.tag || 'General';
+        document.getElementById('templateSubject').value = tpl.subject || '';
+        document.getElementById('templateBody').value = tpl.body || '';
+        document.getElementById('templateActionText').value = tpl.action_text || '';
+        document.getElementById('templateActionUrl').value = tpl.action_url || '';
+
+        const modalEl = document.getElementById('templateFormModal');
+        if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            new bootstrap.Modal(modalEl).show();
+        }
+    } catch (e) {
+        console.error('Error opening template modal:', e);
+    }
+}
+
+/**
+ * Reset Template Modal for New Entry
+ */
+function openNewTemplateModal() {
+    document.getElementById('templateId').value = '';
+    document.getElementById('templateTitle').value = '';
+    document.getElementById('templateChannel').value = 'both';
+    document.getElementById('templateTag').value = 'General';
+    document.getElementById('templateSubject').value = '';
+    document.getElementById('templateBody').value = '';
+    document.getElementById('templateActionText').value = '';
+    document.getElementById('templateActionUrl').value = '';
+
+    const modalEl = document.getElementById('templateFormModal');
+    if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        new bootstrap.Modal(modalEl).show();
+    }
+}
+
+/**
+ * Filter & Search Campaign History Table
+ */
+function initLogsFilter() {
+    const searchInput = document.getElementById('campaignLogSearch');
+    const channelSelect = document.getElementById('campaignLogChannel');
+    const tableBody = document.getElementById('campaignLogsTableBody');
+
+    if (!searchInput || !tableBody) return;
+
+    function applyFilter() {
+        const term = (searchInput.value || '').toLowerCase().trim();
+        const selectedChannel = channelSelect ? channelSelect.value.toLowerCase() : 'all';
+        const rows = tableBody.querySelectorAll('tr.log-row');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const rowChannel = (row.getAttribute('data-channel') || '').toLowerCase();
+
+            const matchesTerm = !term || text.includes(term);
+            const matchesChannel = selectedChannel === 'all' || rowChannel === selectedChannel;
+
+            if (matchesTerm && matchesChannel) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', applyFilter);
+    if (channelSelect) channelSelect.addEventListener('change', applyFilter);
+}
+
+/**
+ * View Log Details Modal
+ */
+function viewLogDetails(logJson) {
+    try {
+        const log = typeof logJson === 'string' ? JSON.parse(logJson) : logJson;
+        document.getElementById('logDetailId').innerText = log.id || '';
+        document.getElementById('logDetailDate').innerText = log.created_at || '';
+        document.getElementById('logDetailChannel').innerText = (log.channel || 'SMS').toUpperCase();
+        document.getElementById('logDetailTarget').innerText = (log.target_group || '').toUpperCase();
+        document.getElementById('logDetailStats').innerText = `মোট: ${log.total || 0} | সফল: ${log.sent || 0} | ব্যর্থ: ${log.failed || 0}`;
+        document.getElementById('logDetailAdmin').innerText = log.admin_name || 'Admin';
+        document.getElementById('logDetailTitle').innerText = log.title || '';
+        document.getElementById('logDetailPreview').innerText = log.preview || '';
+
+        const modalEl = document.getElementById('logDetailsModal');
+        if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            new bootstrap.Modal(modalEl).show();
+        }
+    } catch (e) {
+        console.error('Error opening log details modal:', e);
+    }
+}
+
+/**
+ * Refresh Live Gateway SMS Balance via AJAX
  */
 function refreshSmsBalance() {
     const icon = document.getElementById('refreshIcon');
-    const display = document.getElementById('smsBalanceDisplay');
-    const statusBadge = document.getElementById('smsBalanceStatus');
+    const balanceNumEl = document.getElementById('heroBalanceNum');
     const pillBadge = document.getElementById('pillSmsBadge');
+    const statusTextEl = document.getElementById('heroBalanceStatus');
 
     if (icon) icon.classList.add('fa-spin');
 
@@ -155,319 +414,195 @@ function refreshSmsBalance() {
             'Accept': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (icon) icon.classList.remove('fa-spin');
-        if (data && data.balance !== null && data.balance !== undefined) {
-            const formatted = new Intl.NumberFormat('en-US').format(data.balance);
-            if (display) display.textContent = formatted;
-            if (pillBadge) pillBadge.textContent = `${formatted} SMS`;
-            if (statusBadge) {
-                statusBadge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1';
-                statusBadge.textContent = 'Active (সক্রিয়)';
+        if (data.balance !== null) {
+            const formatted = Number(data.balance).toLocaleString();
+            if (balanceNumEl) balanceNumEl.innerText = formatted;
+            if (pillBadge) pillBadge.innerText = formatted + ' SMS';
+            if (statusTextEl) {
+                statusTextEl.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> অনলাইন ও সক্রিয়';
             }
         } else {
-            if (statusBadge) {
-                statusBadge.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill ms-1';
-                statusBadge.textContent = 'Check Failed';
+            if (statusTextEl) {
+                statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> ${data.error || 'অপ্রাপ্য'}`;
             }
         }
     })
     .catch(err => {
         if (icon) icon.classList.remove('fa-spin');
-        console.error('Balance fetch error:', err);
+        console.error('Balance refresh error:', err);
     });
 }
 
 /**
- * Insert placeholder tag into Many-to-Many message template
- */
-function insertPlaceholder(tag) {
-    const textarea = document.getElementById('manyMessageTemplate');
-    if (!textarea) return;
-
-    const startPos = textarea.selectionStart;
-    const endPos = textarea.selectionEnd;
-    const val = textarea.value;
-
-    textarea.value = val.substring(0, startPos) + tag + val.substring(endPos, val.length);
-    textarea.focus();
-    textarea.selectionStart = startPos + tag.length;
-    textarea.selectionEnd = startPos + tag.length;
-
-    calculateSmsParts(textarea, 'manyMsgCounter', 'manyMsgProgress');
-}
-
-/**
- * Copy Code Snippet Helper with Feedback
- */
-function copySnippet(elementId, btn) {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-
-    const text = el.innerText || el.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa-solid fa-check text-success me-1"></i> Copied!';
-        btn.classList.add('btn-success');
-        btn.classList.remove('btn-dark');
-
-        setTimeout(() => {
-            btn.innerHTML = originalHtml;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-dark');
-        }, 2000);
-    });
-}
-
-/**
- * Preset Gateway Configuration Loaders
- */
-function loadGatewayPreset(preset) {
-    const providerSelect = document.getElementById('smsProviderSelect');
-    const urlInput = document.getElementById('smsGatewayUrl');
-    const apiKeyInput = document.getElementById('smsApiKeyInput');
-    const senderIdInput = document.getElementById('smsSenderIdInput');
-    const badge = document.getElementById('activeProviderBadge');
-
-    if (preset === 'bulksmsbd') {
-        if (providerSelect) providerSelect.value = 'bulksmsbd';
-        if (urlInput) urlInput.value = 'http://bulksmsbd.net/api/smsapi';
-        if (apiKeyInput && (!apiKeyInput.value || apiKeyInput.value.includes('your_'))) apiKeyInput.value = 'NDZQOR8CI0fWSxqk1go8';
-        if (senderIdInput && (!senderIdInput.value || senderIdInput.value.includes('your_'))) senderIdInput.value = '8809617634835';
-        if (badge) badge.textContent = 'BULKSMSBD';
-    } else if (preset === 'greenweb') {
-        if (providerSelect) providerSelect.value = 'greenweb';
-        if (urlInput) urlInput.value = 'http://api.greenweb.com.bd/api.php';
-        if (badge) badge.textContent = 'GREENWEB';
-    } else if (preset === 'alaapcloud') {
-        if (providerSelect) providerSelect.value = 'alaapcloud';
-        if (urlInput) urlInput.value = 'https://www.alaapcloud.gov.bd/api/sms/send';
-        if (badge) badge.textContent = 'ALAAPCLOUD';
-    } else if (preset === 'alphasms') {
-        if (providerSelect) providerSelect.value = 'alphasms';
-        if (urlInput) urlInput.value = 'https://api.sms.net.bd/sendsms';
-        if (badge) badge.textContent = 'ALPHASMS';
-    }
-}
-
-/**
- * Toggle Visibility of Custom Input Boxes
- */
-function toggleCustomNumbersBox(val) {
-    const container = document.getElementById('customNumbersContainer');
-    if (container) container.classList.toggle('d-none', val !== 'custom');
-}
-
-function toggleManyCustomBox(val) {
-    const container = document.getElementById('manyCustomBox');
-    if (container) container.classList.toggle('d-none', val !== 'custom');
-}
-
-function toggleCustomEmailsBox(val) {
-    const container = document.getElementById('customEmailsContainer');
-    if (container) container.classList.toggle('d-none', val !== 'custom');
-}
-
-function toggleDualCustomBox(val) {
-    const container = document.getElementById('dualCustomBox');
-    if (container) container.classList.toggle('d-none', val !== 'custom');
-}
-
-function autoFillGatewayUrl(provider) {
-    loadGatewayPreset(provider);
-}
-
-/**
- * Toggle Password / API Key visibility
- */
-function togglePasswordVisibility(inputId, btn) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    const icon = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        if (icon) {
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        }
-    } else {
-        input.type = 'password';
-        if (icon) {
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
-}
-
-/**
- * AJAX Dispatch Handlers for Diagnostics
+ * Initialize AJAX Dispatchers for Test Single Actions
  */
 function initAjaxDispatchers() {
-    // 1. Test SMS Dispatcher
-    document.getElementById('formSendTestSms')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('btnSubmitTestSms');
-        const spinner = document.getElementById('testSmsLoading');
-        const resultBox = document.getElementById('testResultBox');
-        const resultAlert = document.getElementById('testResultAlert');
-        const resultIcon = document.getElementById('testResultIcon');
-        const resultTitle = document.getElementById('testResultTitle');
-        const resultDetails = document.getElementById('testResultDetails');
+    // Test SMS AJAX Form
+    const testSmsForm = document.getElementById('quickTestSmsForm');
+    if (testSmsForm) {
+        testSmsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = testSmsForm.querySelector('button[type="submit"]');
+            const resultBox = document.getElementById('testSmsResult');
+            const originalHtml = btn ? btn.innerHTML : '';
 
-        if (btn) btn.disabled = true;
-        if (spinner) spinner.classList.remove('d-none');
-        if (resultBox) resultBox.classList.add('d-none');
-
-        const formData = new FormData(this);
-
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-
-            if (data.success) {
-                resultAlert.className = 'sms-result-box sms-result-success';
-                resultIcon.className = 'fa-solid fa-circle-check text-success fs-5';
-                resultTitle.textContent = 'টেস্ট এসএমএস সফলভাবে পাঠানো হয়েছে!';
-                resultDetails.textContent = `নম্বর: ${data.numbers} | রেসপন্স কোড: ${data.response_code || '202'} | গেটওয়ে বার্তা: ${data.message || 'Success'}`;
-                refreshSmsBalance();
-            } else {
-                resultAlert.className = 'sms-result-box sms-result-error';
-                resultIcon.className = 'fa-solid fa-circle-xmark text-danger fs-5';
-                resultTitle.textContent = 'এসএমএস পাঠাতে ব্যর্থ হয়েছে!';
-                resultDetails.textContent = `ত্রুটি: ${data.error || data.message || 'Unknown Error'} ${data.raw_response ? ' | Raw Response: ' + data.raw_response : ''}`;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1.5"></i> পাঠানো হচ্ছে...';
             }
-        })
-        .catch(err => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-            resultAlert.className = 'sms-result-box sms-result-error';
-            resultIcon.className = 'fa-solid fa-triangle-exclamation text-danger fs-5';
-            resultTitle.textContent = 'সার্ভার সংযোগ ত্রুটি!';
-            resultDetails.textContent = err.message;
+            if (resultBox) resultBox.classList.add('d-none');
+
+            const formData = new FormData(testSmsForm);
+
+            fetch(testSmsForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
+                    if (res.success) {
+                        resultBox.classList.add('sms-result-success');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> টেস্ট এসএমএস সফল!</strong><div class="small mt-1">${res.message || 'গেটওয়ে রেসপন্স সম্পন্ন'}</div>`;
+                        refreshSmsBalance();
+                    } else {
+                        resultBox.classList.add('sms-result-error');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${res.message || res.error || 'অজানা সমস্যা'}</div>`;
+                    }
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-error');
+                    resultBox.innerHTML = '<strong><i class="fa-solid fa-circle-xmark me-1.5"></i> নেটওয়ার্ক রিকোয়েস্ট ব্যর্থ হয়েছে!</strong>';
+                }
+            });
         });
-    });
+    }
 
-    // 2. Test Email Dispatcher
-    document.getElementById('formSendTestEmail')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('btnSubmitTestEmail');
-        const spinner = document.getElementById('testEmailLoading');
-        const resultBox = document.getElementById('testEmailResultBox');
-        const resultAlert = document.getElementById('testEmailResultAlert');
-        const resultIcon = document.getElementById('testEmailResultIcon');
-        const resultTitle = document.getElementById('testEmailResultTitle');
-        const resultDetails = document.getElementById('testEmailResultDetails');
+    // Test Email AJAX Form
+    const testEmailForm = document.getElementById('testEmailForm');
+    if (testEmailForm) {
+        testEmailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = testEmailForm.querySelector('button[type="submit"]');
+            const resultBox = document.getElementById('testEmailResult');
+            const originalHtml = btn ? btn.innerHTML : '';
 
-        if (btn) btn.disabled = true;
-        if (spinner) spinner.classList.remove('d-none');
-        if (resultBox) resultBox.classList.add('d-none');
-
-        const formData = new FormData(this);
-
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-
-            if (data.success) {
-                resultAlert.className = 'sms-result-box sms-result-success';
-                resultIcon.className = 'fa-solid fa-circle-check text-success fs-5';
-                resultTitle.textContent = 'টেস্ট ইমেইল সফলভাবে পাঠানো হয়েছে!';
-                resultDetails.textContent = `প্রাপক: ${data.recipient || ''} | স্ট্যাটাস: ${data.message || 'Delivered'}`;
-            } else {
-                resultAlert.className = 'sms-result-box sms-result-error';
-                resultIcon.className = 'fa-solid fa-circle-xmark text-danger fs-5';
-                resultTitle.textContent = 'ইমেইল পাঠাতে ব্যর্থ হয়েছে!';
-                resultDetails.textContent = `ত্রুটি: ${data.message || 'Unknown Error'}`;
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1.5"></i> সেন্ড হচ্ছে...';
             }
-        })
-        .catch(err => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-            resultAlert.className = 'sms-result-box sms-result-error';
-            resultIcon.className = 'fa-solid fa-triangle-exclamation text-danger fs-5';
-            resultTitle.textContent = 'সার্ভার সংযোগ ত্রুটি!';
-            resultDetails.textContent = err.message;
+            if (resultBox) resultBox.classList.add('d-none');
+
+            const formData = new FormData(testEmailForm);
+
+            fetch(testEmailForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
+                    if (res.success) {
+                        resultBox.classList.add('sms-result-success');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ইমেইল পাঠানো সফল!</strong><div class="small mt-1">${res.message || 'সার্ভার রেসপন্স সম্পন্ন'}</div>`;
+                    } else {
+                        resultBox.classList.add('sms-result-error');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${res.message || 'ইমেইল সেন্ড ব্যর্থ'}</div>`;
+                    }
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-error');
+                    resultBox.innerHTML = '<strong><i class="fa-solid fa-circle-xmark me-1.5"></i> রিকোয়েস্ট ব্যর্থ!</strong>';
+                }
+            });
         });
-    });
+    }
 
-    // 3. Unified OTP Dispatcher
-    document.getElementById('formUnifiedOtp')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const btn = document.getElementById('btnSubmitUnifiedOtp');
-        const spinner = document.getElementById('otpLoadingSpinner');
-        const resultBox = document.getElementById('unifiedOtpResultBox');
-        const resultAlert = document.getElementById('unifiedOtpAlert');
-        const resultIcon = document.getElementById('unifiedOtpIcon');
-        const resultTitle = document.getElementById('unifiedOtpTitle');
-        const resultDetails = document.getElementById('unifiedOtpDetails');
+    // Test OTP AJAX Form
+    const testOtpForm = document.getElementById('testOtpForm');
+    if (testOtpForm) {
+        testOtpForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = testOtpForm.querySelector('button[type="submit"]');
+            const resultBox = document.getElementById('testOtpResult');
+            const originalHtml = btn ? btn.innerHTML : '';
 
-        if (btn) btn.disabled = true;
-        if (spinner) spinner.classList.remove('d-none');
-        if (resultBox) resultBox.classList.add('d-none');
-
-        const formData = new FormData(this);
-
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-
-            if (data.success) {
-                resultAlert.className = 'sms-result-box sms-result-success';
-                resultIcon.className = 'fa-solid fa-circle-check text-success fs-5';
-                resultTitle.textContent = `ওটিপি কোড (${data.otp}) সফলভাবে পাঠানো হয়েছে!`;
-                
-                const smsStatus = data.results?.sms ? (data.results.sms.success ? 'SMS: সফল ✅' : 'SMS: ব্যর্থ ❌') : '';
-                const emailStatus = data.results?.email ? (data.results.email.success ? 'Email: সফল ✅' : 'Email: ব্যর্থ ❌') : '';
-                resultDetails.textContent = [smsStatus, emailStatus].filter(Boolean).join(' | ');
-                refreshSmsBalance();
-            } else {
-                resultAlert.className = 'sms-result-box sms-result-error';
-                resultIcon.className = 'fa-solid fa-circle-xmark text-danger fs-5';
-                resultTitle.textContent = 'ওটিপি পাঠাতে সমস্যা হয়েছে!';
-                resultDetails.textContent = 'গেটওয়ে রেসপন্স বা ইমেইল ঠিকানা চেক করুন।';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-bolt-lightning fa-bounce me-1.5"></i> ওটিপি তৈরি ও পাঠানো হচ্ছে...';
             }
-        })
-        .catch(err => {
-            if (btn) btn.disabled = false;
-            if (spinner) spinner.classList.add('d-none');
-            if (resultBox) resultBox.classList.remove('d-none');
-            resultAlert.className = 'sms-result-box sms-result-error';
-            resultIcon.className = 'fa-solid fa-triangle-exclamation text-danger fs-5';
-            resultTitle.textContent = 'সার্ভার সংযোগ ত্রুটি!';
-            resultDetails.textContent = err.message;
+            if (resultBox) resultBox.classList.add('d-none');
+
+            const formData = new FormData(testOtpForm);
+
+            fetch(testOtpForm.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
+                    if (res.success) {
+                        resultBox.classList.add('sms-result-success');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ওটিপি টেস্ট সফল! [OTP: ${res.otp}]</strong><div class="small mt-1">চ্যানেল রেসপন্স সম্পন্ন হয়েছে।</div>`;
+                    } else {
+                        resultBox.classList.add('sms-result-error');
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> ওটিপি পাঠানো ব্যর্থ:</strong><div class="small mt-1">গেটওয়ে সেটিংস চেক করুন।</div>`;
+                    }
+                }
+            })
+            .catch(err => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                if (resultBox) {
+                    resultBox.classList.remove('d-none', 'sms-result-error');
+                    resultBox.innerHTML = '<strong><i class="fa-solid fa-circle-xmark me-1.5"></i> ওটিপি রিকোয়েস্ট ফেইল করেছে!</strong>';
+                }
+            });
         });
-    });
+    }
 }
