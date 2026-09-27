@@ -305,13 +305,11 @@ class AdminMediaController extends Controller
                     }
 
                     // Generate Web URL
-                    $relStorage = str_replace([$storagePublic, $publicImages, public_path()], '', $pathname);
-                    $relClean = str_replace('\\', '/', $relStorage);
-
                     if (str_starts_with($pathname, $storagePublic)) {
                         $url = asset('storage' . str_replace('\\', '/', str_replace($storagePublic, '', $pathname)));
                     } else {
-                        $url = asset(ltrim($relClean, '/'));
+                        $relFromPublic = str_replace(public_path(), '', $pathname);
+                        $url = asset(ltrim(str_replace('\\', '/', $relFromPublic), '/'));
                     }
 
                     // Extract Dimensions & Metadata (Cached per file mtime for ultra-fast page speed)
@@ -590,12 +588,12 @@ class AdminMediaController extends Controller
 
         // Generate web URL
         $storagePublic = storage_path('app/public');
-        $publicImages = public_path('images');
 
         if (str_starts_with($savePath, $storagePublic)) {
             $url = asset('storage' . str_replace('\\', '/', str_replace($storagePublic, '', $savePath)));
         } else {
-            $url = asset(ltrim(str_replace([$publicImages, public_path()], '', $savePath), '/\\'));
+            $relFromPublic = str_replace(public_path(), '', $savePath);
+            $url = asset(ltrim(str_replace('\\', '/', $relFromPublic), '/'));
         }
 
         return response()->json([
