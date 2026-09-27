@@ -388,7 +388,8 @@ class LoginController extends Controller
         }
 
         // 3. CAPTCHA Verification Check (Triggered after 3+ failed attempts)
-        $mustVerifyCaptcha = LoginSecurityLog::requiresCaptcha($request->ip(), $loginInput);
+        $isLocalhost = in_array($request->ip(), ['127.0.0.1', '::1', 'localhost'], true) || app()->environment('local');
+        $mustVerifyCaptcha = !$isLocalhost && LoginSecurityLog::requiresCaptcha($request->ip(), $loginInput);
         if ($mustVerifyCaptcha) {
             $captchaToken = (string) ($request->input('captcha_token') ?? $request->input('g-recaptcha-response') ?? $request->input('recaptcha_token') ?? '');
             $captchaCode = (string) $request->input('captcha_code', '');

@@ -50,6 +50,17 @@ class LoginSecurityLog extends Model
     public static function checkIpStatus(string $ip, ?string $username = null): array
     {
         try {
+            if (in_array($ip, ['127.0.0.1', '::1', 'localhost'], true) && app()->environment('local')) {
+                return [
+                    'status'                    => 'clean',
+                    'attempts'                  => 0,
+                    'is_security_issue'         => false,
+                    'requires_visual_challenge' => false,
+                    'requires_captcha'          => false,
+                    'show_captcha'              => false,
+                ];
+            }
+
             $log = self::where('ip_address', $ip)->first();
 
             if (!$log) {
@@ -128,6 +139,10 @@ class LoginSecurityLog extends Model
      */
     public static function requiresHumanChallenge(string $ip, ?string $username = null): bool
     {
+        if (in_array($ip, ['127.0.0.1', '::1', 'localhost'], true) && app()->environment('local')) {
+            return false;
+        }
+
         try {
             $threshold = (int) config('services.recaptcha.threshold', 3);
             $log = self::where('ip_address', $ip)->first();

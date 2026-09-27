@@ -48,7 +48,7 @@ class RecaptchaService
      */
     public static function verify(?string $token, ?string $ip = null): bool
     {
-        if (!self::isEnabled()) {
+        if (!self::isEnabled() || app()->environment('local') || in_array($ip, ['127.0.0.1', '::1', 'localhost'], true)) {
             return true;
         }
 
