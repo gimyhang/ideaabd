@@ -1102,18 +1102,20 @@
             <div class="modal-body p-4 bg-light">
                 <!-- Step 1: Configuration Form -->
                 <div id="webpEngineConfigView">
-                    <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-3 mb-3 border-0 bg-success-subtle text-success-emphasis">
-                        <i class="fa-solid fa-wand-magic-sparkles fs-3"></i>
+                    <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-3 mb-4 border-0 bg-success-subtle text-success-emphasis shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles fs-2 text-success"></i>
                         <div>
-                            <strong class="d-block">স্বয়ংক্রিয় ইমেজ কম্প্রেশন ও স্পিড অপ্টিমাইজেশন</strong>
-                            <span class="small">PNG ও JPG ফাইলগুলোকে লসলেস/উচ্চ কোয়ালিটির WebP-তে রূপান্তর করে পেজ লোডিং গতি ৭০% দ্রুত এবং স্টোরেজ সাশ্রয় করুন।</span>
+                            <strong class="d-block fs-6">স্বয়ংক্রিয় ইমেজ কম্প্রেশন ও স্পিড অপ্টিমাইজেশন</strong>
+                            <span class="small opacity-90">PNG ও JPG ফাইলগুলোকে লসলেস/উচ্চ কোয়ালিটির WebP-তে রূপান্তর করে পেজ লোডিং গতি ৭০% পর্যন্ত দ্রুত এবং মেমোরি সাশ্রয় করুন।</span>
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-dark">টার্গেট ফোল্ডার নির্বাচন</label>
-                            <select id="webpTargetFolderSelect" class="form-select form-select-sm rounded-3 fw-semibold">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="fa-regular fa-folder-open text-primary me-1"></i> টার্গেট ফোল্ডার নির্বাচন
+                            </label>
+                            <select id="webpTargetFolderSelect" class="form-select rounded-3 fw-semibold py-2">
                                 <option value="all" selected>🌐 সকল ফোল্ডার (পুরো সিস্টেম)</option>
                                 @foreach($folderDefs as $fk => $finfo)
                                     <option value="{{ $fk }}">{{ $finfo['label'] }}</option>
@@ -1121,27 +1123,32 @@
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-bold text-dark">WebP কোয়ালিটি লেভেল</label>
-                            <select id="webpQualitySelect" class="form-select form-select-sm rounded-3 fw-semibold">
+                            <label class="form-label small fw-bold text-dark">
+                                <i class="fa-solid fa-gauge-high text-success me-1"></i> WebP কোয়ালিটি লেভেল
+                            </label>
+                            <select id="webpQualitySelect" class="form-select rounded-3 fw-semibold py-2">
                                 <option value="85" selected>85% (Optimal — দ্রুত ও ক্রিস্প)</option>
                                 <option value="90">90% (Ultra High Quality)</option>
                                 <option value="75">75% (Maximum Storage Saving)</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <div class="form-check form-switch p-2 bg-white rounded-3 border">
+                            <div class="form-check form-switch p-3 bg-white rounded-3 border shadow-sm">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" id="webpDeleteOriginalCheck" checked>
                                 <label class="form-check-label small fw-bold text-dark cursor-pointer" for="webpDeleteOriginalCheck">
                                     মূল PNG / JPG ফাইল মুছে স্টোরেজ ডিস্ক মেমোরি খালি করুন (Recommended)
                                 </label>
+                                <div class="fs-xs text-muted ms-4 ps-2">কনভার্সন সফল হলে মূল ভারি ফাইলটি মুছে স্পেস ফ্রি করবে।</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                        <button type="button" class="btn btn-sm btn-webp-gradient rounded-pill px-4 shadow-sm" onclick="startWebpConversionEngine()">
-                            <i class="fa-solid fa-play me-1"></i> রূপান্তর প্রক্রিয়া শুরু করুন
+                    <div class="d-flex justify-content-end align-items-center gap-2 pt-3 border-top">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">
+                            বাতিল
+                        </button>
+                        <button type="button" class="btn btn-webp-gradient rounded-pill px-4 py-2 shadow fw-bold" onclick="startWebpConversionEngine()">
+                            <i class="fa-solid fa-bolt-lightning me-1.5"></i> রূপান্তর প্রক্রিয়া শুরু করুন
                         </button>
                     </div>
                 </div>

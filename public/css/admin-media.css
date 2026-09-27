@@ -631,3 +631,30 @@
     color: #ffffff;
     border-color: #f59e0b;
 }
+
+/* ========================================================================= */
+/* NEXT-GEN WEBP & OPTIMIZATION ENGINE STYLES                                */
+/* ========================================================================= */
+.btn-webp-gradient {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4) !important;
+    transition: all 0.25s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-webp-gradient:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5) !important;
+    transform: translateY(-1px);
+}
+
+.btn-webp-gradient:active {
+    transform: translateY(0);
+}
+
