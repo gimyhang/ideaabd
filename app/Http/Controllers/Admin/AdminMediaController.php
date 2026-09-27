@@ -694,7 +694,7 @@ class AdminMediaController extends Controller
                 $totalBytesSaved += $saved;
             } elseif ($action === 'convert_webp') {
                 $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                if (in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp', 'svg'])) {
                     $webpRes = \App\Services\ImageOptimizerService::convertImageToWebp($path, 85, true);
                     if ($webpRes['success']) {
                         $processedCount++;
@@ -936,7 +936,7 @@ class AdminMediaController extends Controller
                     continue;
                 }
                 $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                if (in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif'])) {
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif', 'svg'])) {
                     $res = \App\Services\ImageOptimizerService::convertImageToWebp($path, $quality, $deleteOriginal);
                     if ($res['success']) {
                         $totalConverted++;

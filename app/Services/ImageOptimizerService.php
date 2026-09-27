@@ -279,7 +279,7 @@ class ImageOptimizerService
             $filePath = $file->getPathname();
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
-            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif'])) {
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif', 'svg'])) {
                 continue;
             }
 
@@ -627,11 +627,75 @@ SVG;
             return ['success' => true, 'webp_path' => $sourcePath, 'bytes_saved' => 0, 'already_webp' => true];
         }
 
-        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp', 'svg'])) {
             return ['success' => false, 'message' => 'Unsupported format for WebP conversion', 'bytes_saved' => 0];
         }
 
         $origSize = filesize($sourcePath);
+
+        // Handle SVG to WebP conversion
+        if ($ext === 'svg') {
+            $dir = dirname($sourcePath);
+            $baseName = pathinfo($sourcePath, PATHINFO_FILENAME);
+            $webpPath = $dir . '/' . $baseName . '.webp';
+            $tempWebp = $webpPath . '.tmp';
+
+            $rawContent = @file_get_contents($sourcePath);
+            preg_match_all('/<text[^>]*>([^<]+)<\/text>/u', $rawContent ?: '', $matches);
+            $texts = $matches[1] ?? [];
+
+            $title = $texts[1] ?? ($texts[0] ?? Str::headline(preg_replace('/[_-]/', ' ', $baseName)));
+            $author = $texts[2] ?? ($texts[1] ?? 'আইডিয়া প্রকাশন');
+            $category = $texts[0] ?? 'বই';
+
+            $w = 800;
+            $h = 1200;
+            $srcImage = @imagecreatetruecolor($w, $h);
+            if ($srcImage) {
+                $bg = imagecolorallocate($srcImage, 15, 23, 42);
+                imagefilledrectangle($srcImage, 0, 0, $w, $h, $bg);
+                $accent = imagecolorallocate($srcImage, 234, 179, 8);
+                $white = imagecolorallocate($srcImage, 255, 255, 255);
+                $authorCol = imagecolorallocate($srcImage, 253, 224, 71);
+
+                imagesetthickness($srcImage, 3);
+                imagerectangle($srcImage, 35, 35, $w - 35, $h - 35, $accent);
+
+                $fontPath = public_path('fonts/kalpurush/kalpurush.ttf');
+                if (file_exists($fontPath)) {
+                    imagettftext($srcImage, 16, 0, 290, 110, $accent, $fontPath, "✦ আইডিয়া প্রকাশন ✦");
+                    imagettftext($srcImage, 36, 0, 150, 500, $white, $fontPath, Str::limit($title, 40));
+                    imagettftext($srcImage, 22, 0, 240, 650, $authorCol, $fontPath, Str::limit($author, 30));
+                    imagettftext($srcImage, 14, 0, 280, 1130, $accent, $fontPath, "ideaabd.com");
+                } else {
+                    imagestring($srcImage, 5, 200, 500, $title, $white);
+                    imagestring($srcImage, 4, 200, 600, $author, $authorCol);
+                }
+
+                $saved = imagewebp($srcImage, $tempWebp, $quality);
+                imagedestroy($srcImage);
+
+                if ($saved && file_exists($tempWebp)) {
+                    $newSize = filesize($tempWebp);
+                    rename($tempWebp, $webpPath);
+                    $bytesSaved = max(0, $origSize - $newSize);
+
+                    if ($deleteOriginal && $webpPath !== $sourcePath && file_exists($sourcePath)) {
+                        @unlink($sourcePath);
+                    }
+
+                    return [
+                        'success'       => true,
+                        'webp_path'     => $webpPath,
+                        'original_path' => $sourcePath,
+                        'original_size' => $origSize,
+                        'new_size'      => $newSize,
+                        'bytes_saved'   => $bytesSaved,
+                        'filename'      => basename($webpPath),
+                    ];
+                }
+            }
+        }
 
         // Load source image resource with multiple fallback decoders
         $srcImage = null;
