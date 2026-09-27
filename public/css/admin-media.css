@@ -43,6 +43,28 @@
     font-size: 1.2rem;
 }
 
+.btn-webp-gradient {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 9999px;
+    padding: 0.45rem 1.15rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    transition: var(--media-transition);
+    cursor: pointer;
+}
+.btn-webp-gradient:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+}
+
 /* Folder Navigation Horizontal Bar */
 .media-folder-bar {
     display: flex;

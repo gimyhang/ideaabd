@@ -645,34 +645,90 @@ function handleFilesSelected(files) {
     if (box) box.classList.remove('d-none');
 }
 
-function submitMultiUploadAjax() {
+/**
+ * Convert any File (PNG/JPG/BMP) to a WebP Blob directly in the browser via HTML5 Canvas
+ */
+async function convertFileToWebpInBrowser(file, quality = 0.85, maxDim = 1920) {
+    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/webp') {
+        return file; // SVGs and WebPs pass through natively
+    }
+
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let w = img.naturalWidth;
+                let h = img.naturalHeight;
+
+                if (maxDim > 0 && (w > maxDim || h > maxDim)) {
+                    const ratio = Math.min(maxDim / w, maxDim / h);
+                    w = Math.round(w * ratio);
+                    h = Math.round(h * ratio);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                        const webpFile = new File([blob], `${originalName}.webp`, { type: 'image/webp' });
+                        resolve(webpFile);
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/webp', quality);
+            };
+            img.onerror = () => resolve(file);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function submitMultiUploadAjax() {
     if (pendingUploadFiles.length === 0) {
         showMediaAlert('warning', 'অনুগ্রহ করে অন্তত একটি ছবি নির্বাচন করুন!');
         return;
     }
 
-    const formData = new FormData();
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const folder = document.getElementById('uploadTargetFolder')?.value || 'uploads';
-    const autoWebp = document.getElementById('uploadAutoWebp')?.checked ? 1 : 0;
-    const maxDim = document.getElementById('uploadMaxDim')?.value || 1920;
-
-    formData.append('_token', token);
-    formData.append('folder', folder);
-    formData.append('auto_webp', autoWebp);
-    formData.append('max_dim', maxDim);
-
-    pendingUploadFiles.forEach(f => {
-        formData.append('files[]', f);
-    });
-
     const btn = document.getElementById('btnSubmitUpload');
     const progressBar = document.getElementById('uploadProgressBar');
     const progressWrap = document.getElementById('uploadProgressWrap');
+    const percentLabel = document.getElementById('uploadPercentLabel');
 
     if (btn) btn.disabled = true;
     if (progressWrap) progressWrap.classList.remove('d-none');
-    if (progressBar) progressBar.style.width = '20%';
+    if (progressBar) progressBar.style.width = '10%';
+    if (percentLabel) percentLabel.textContent = 'ব্রাউজারে WebP রূপান্তর ও অপ্টিমাইজেশন চলছে...';
+
+    const formData = new FormData();
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const folder = document.getElementById('uploadTargetFolder')?.value || 'uploads';
+    const autoWebp = document.getElementById('uploadAutoWebp')?.checked;
+    const maxDim = parseInt(document.getElementById('uploadMaxDim')?.value) || 1920;
+
+    formData.append('_token', token);
+    formData.append('folder', folder);
+    formData.append('auto_webp', autoWebp ? 1 : 0);
+    formData.append('max_dim', maxDim);
+
+    // Client-side WebP pre-conversion
+    for (let i = 0; i < pendingUploadFiles.length; i++) {
+        let f = pendingUploadFiles[i];
+        if (autoWebp) {
+            f = await convertFileToWebpInBrowser(f, 0.85, maxDim);
+        }
+        formData.append('files[]', f);
+    }
+
+    if (progressBar) progressBar.style.width = '35%';
+    if (percentLabel) percentLabel.textContent = 'সার্ভারে দ্রুত আপলোড হচ্ছে...';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/admin/media/upload', true);
@@ -681,13 +737,15 @@ function submitMultiUploadAjax() {
 
     xhr.upload.onprogress = (e) => {
         if (e.lengthComputable && progressBar) {
-            const percent = Math.round((e.loaded / e.total) * 100);
+            const percent = 35 + Math.round((e.loaded / e.total) * 60);
             progressBar.style.width = percent + '%';
+            if (percentLabel) percentLabel.textContent = `আপলোড সম্পন্ন: ${percent}%`;
         }
     };
 
     xhr.onload = () => {
         if (btn) btn.disabled = false;
+        if (progressBar) progressBar.style.width = '100%';
         if (xhr.status >= 200 && xhr.status < 300) {
             try {
                 const res = JSON.parse(xhr.responseText);
@@ -707,6 +765,50 @@ function submitMultiUploadAjax() {
     };
 
     xhr.send(formData);
+}
+
+/**
+ * 1-Click Convert All Existing PNG/JPG Images to WebP Across Whole System
+ */
+function runConvertAllToWebp(btn) {
+    if (!confirm('আপনি কি বিদ্যমান সকল PNG ও JPG ইমেজকে আধুনিক WebP ফরম্যাটে রূপান্তর করতে চান?')) {
+        return;
+    }
+
+    const origContent = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5"></span><span>WebP কনভার্সন চলছে...</span>`;
+    }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    fetch('/admin/media/convert-all-webp', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showMediaAlert('success', data.message);
+            setTimeout(() => window.location.reload(), 1500);
+        } else {
+            showMediaAlert('danger', data.message || 'WebP কনভার্সন ব্যর্থ হয়েছে।');
+        }
+    })
+    .catch(() => {
+        showMediaAlert('danger', 'সার্ভার রেসপন্স দিতে ব্যর্থ হয়েছে।');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origContent;
+        }
+    });
 }
 
 /* ========================================================================= */

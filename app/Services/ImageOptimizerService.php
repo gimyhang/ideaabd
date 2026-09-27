@@ -91,24 +91,10 @@ class ImageOptimizerService
                 }
             }
 
-            // Output to AVIF (or WebP fallback)
+            // Output to WebP as primary high-performance web standard
             $folder = trim($folder, '/');
             $randomName = Str::random(24) . '_' . time();
 
-            if (function_exists('imageavif')) {
-                ob_start();
-                $success = @imageavif($gdImage, null, $quality);
-                $avifData = ob_get_clean();
-
-                if ($success && !empty($avifData)) {
-                    imagedestroy($gdImage);
-                    $path = "{$folder}/{$randomName}.avif";
-                    Storage::disk($disk)->put($path, $avifData);
-                    return $path;
-                }
-            }
-
-            // Fallback to WebP
             if (function_exists('imagewebp')) {
                 ob_start();
                 $success = @imagewebp($gdImage, null, $quality);
@@ -118,6 +104,20 @@ class ImageOptimizerService
                     imagedestroy($gdImage);
                     $path = "{$folder}/{$randomName}.webp";
                     Storage::disk($disk)->put($path, $webpData);
+                    return $path;
+                }
+            }
+
+            // Fallback to AVIF if available
+            if (function_exists('imageavif')) {
+                ob_start();
+                $success = @imageavif($gdImage, null, $quality);
+                $avifData = ob_get_clean();
+
+                if ($success && !empty($avifData)) {
+                    imagedestroy($gdImage);
+                    $path = "{$folder}/{$randomName}.avif";
+                    Storage::disk($disk)->put($path, $avifData);
                     return $path;
                 }
             }
@@ -249,6 +249,93 @@ class ImageOptimizerService
             Log::warning("ImageOptimizerService failed base64 conversion: " . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Batch convert all PNG, JPG, JPEG, BMP raster files in a directory to WebP.
+     * Preserves transparency for PNGs and creates optimal WebP compression.
+     */
+    public static function batchConvertDirectoryToWebp(string $directoryPath, int $quality = 85, bool $deleteOriginal = false): array
+    {
+        if (!is_dir($directoryPath) || !function_exists('imagewebp')) {
+            return ['converted_count' => 0, 'bytes_saved' => 0, 'files' => []];
+        }
+
+        $convertedCount = 0;
+        $totalBytesSaved = 0;
+        $processedFiles = [];
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directoryPath, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+
+            $filePath = $file->getPathname();
+            $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'bmp'])) {
+                continue;
+            }
+
+            $origSize = $file->getSize();
+            $dir = pathinfo($filePath, PATHINFO_DIRNAME);
+            $filenameWithoutExt = pathinfo($filePath, PATHINFO_FILENAME);
+            $webpPath = $dir . DIRECTORY_SEPARATOR . $filenameWithoutExt . '.webp';
+
+            // If webp already exists and is not this file, skip or update
+            $binary = @file_get_contents($filePath);
+            if (empty($binary)) {
+                continue;
+            }
+
+            $gdImage = @imagecreatefromstring($binary);
+            if (!$gdImage) {
+                continue;
+            }
+
+            if (function_exists('imageistruecolor') && !imageistruecolor($gdImage) && function_exists('imagepalettetotruecolor')) {
+                imagepalettetotruecolor($gdImage);
+            }
+
+            // Preserve alpha channel for PNG/transparent images
+            if ($ext === 'png') {
+                imagealphablending($gdImage, false);
+                imagesavealpha($gdImage, true);
+            }
+
+            ob_start();
+            $success = @imagewebp($gdImage, null, $quality);
+            $webpData = ob_get_clean();
+            imagedestroy($gdImage);
+
+            if ($success && !empty($webpData)) {
+                @file_put_contents($webpPath, $webpData);
+                $newSize = strlen($webpData);
+                $saved = max(0, $origSize - $newSize);
+
+                $convertedCount++;
+                $totalBytesSaved += $saved;
+                $processedFiles[] = [
+                    'original' => $filePath,
+                    'webp'     => $webpPath,
+                    'saved'    => $saved,
+                ];
+
+                if ($deleteOriginal && $webpPath !== $filePath && file_exists($webpPath)) {
+                    @unlink($filePath);
+                }
+            }
+        }
+
+        return [
+            'converted_count' => $convertedCount,
+            'bytes_saved'     => $totalBytesSaved,
+            'files'           => $processedFiles,
+        ];
     }
 
     /**

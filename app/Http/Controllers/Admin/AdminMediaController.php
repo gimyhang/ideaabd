@@ -715,6 +715,46 @@ class AdminMediaController extends Controller
     }
 
     /**
+     * 1-Click Convert All Existing PNG / JPG Images Across the Application to Modern WebP.
+     */
+    public function convertAllToWebp(Request $request): JsonResponse
+    {
+        $deleteOriginal = $request->boolean('delete_original', false);
+        $dirsToScan = [
+            storage_path('app/public'),
+            public_path('images'),
+        ];
+
+        $totalConverted = 0;
+        $totalBytesSaved = 0;
+
+        foreach ($dirsToScan as $dir) {
+            if (is_dir($dir)) {
+                $res = \App\Services\ImageOptimizerService::batchConvertDirectoryToWebp($dir, 85, $deleteOriginal);
+                $totalConverted += $res['converted_count'];
+                $totalBytesSaved += $res['bytes_saved'];
+            }
+        }
+
+        $formattedSaved = $this->formatBytes($totalBytesSaved);
+
+        if ($this->accessService) {
+            $this->accessService->log('convert_all_webp', "মিডিয়া লাইব্রেরির {$totalConverted}টি ছবিকে WebP ফরম্যাটে রূপান্তর করা হয়েছে (সাশ্রয়: {$formattedSaved})");
+        }
+
+        $msg = $totalConverted > 0
+            ? "সফল! মোট {$totalConverted}টি PNG/JPG ফাইলকে আধুনিক WebP ফরম্যাটে রূপান্তর করা হয়েছে! ({$formattedSaved} মেমোরি সাশ্রয়)"
+            : "সকল ছবি ইতোমধ্যে WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজ করা রয়েছে।";
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
+            'count'   => $totalConverted,
+            'saved'   => $formattedSaved,
+        ]);
+    }
+
+    /**
      * Optimize a single image file in place.
      * Returns the number of bytes saved, or 0 if unchanged.
      */

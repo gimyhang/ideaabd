@@ -14,6 +14,12 @@
 
 @section('actions')
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        {{-- 1-Click Convert All Existing to WebP --}}
+        <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="runConvertAllToWebp(this)" title="বিদ্যমান সকল PNG ও JPG ফাইলকে WebP তে রূপান্তর করুন">
+            <i class="fa-solid fa-bolt-lightning"></i>
+            <span>সকল ফাইল WebP-তে রূপান্তর</span>
+        </button>
+
         {{-- Create Folder Modal Trigger --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#createFolderModal">
             <i class="fa-solid fa-folder-plus text-warning"></i>
@@ -106,7 +112,12 @@
                     <h3 class="text-success fs-4 fw-bold font-monospace mb-0">{{ $webpPercent }}%</h3>
                     <span class="badge bg-success-subtle text-success font-monospace">{{ $webpCount }} WebP</span>
                 </div>
-                <div class="text-muted small">হাই-স্পিড কম্প্রেশন ও অপ্টিমাইজড লোডিং</div>
+                <div class="d-flex align-items-center justify-content-between text-muted small">
+                    <span>হাই-স্পিড কম্প্রেশন</span>
+                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" onclick="runConvertAllToWebp(this)">
+                        <i class="fa-solid fa-bolt me-1"></i> রূপান্তর
+                    </button>
+                </div>
             </div>
         </div>
 
