@@ -258,8 +258,39 @@ class AdminMediaController extends Controller
                     // Apply Search Filter
                     $filenameBase = pathinfo($filename, PATHINFO_FILENAME);
                     $itemInfo = $titleLookup[$filename] ?? ($titleLookup[$filenameBase] ?? null);
-                    $itemTitle = $itemInfo['title'] ?? null;
-                    $itemSubtitle = $itemInfo['subtitle'] ?? null;
+                    
+                    if (!$itemInfo) {
+                        // Smart auto-formatter for human-friendly titles
+                        $cleanBase = preg_replace('/[_-]/', ' ', $filenameBase);
+                        $isHash = (strlen($filenameBase) > 20 && !str_contains($cleanBase, ' '));
+
+                        $fallbackTitle = match($folderKey) {
+                            'books'       => $isHash ? 'বইয়ের প্রচ্ছদ (Book Cover)' : Str::headline($cleanBase),
+                            'banners'     => $isHash ? 'প্রমোশনাল ব্যানার (Banner)' : Str::headline($cleanBase),
+                            'avatars'     => 'ইউজার প্রোফাইল ছবি (Avatar)',
+                            'payments'    => 'পেমেন্ট গেটওয়ে QR কোড',
+                            'ebooks'      => 'ডিজিটাল ই-বুক অ্যাসেট',
+                            'signatures'  => 'ডিজিটাল স্বাক্ষর ও সিল',
+                            'publishers'  => 'প্রকাশনীর অফিসিয়াল লোগো',
+                            'brands'      => 'ব্র্যান্ডিং ও ট্রেডমার্ক আইকন',
+                            default       => $isHash ? 'মিডিয়া অ্যাসেট' : Str::headline($cleanBase),
+                        };
+
+                        $fallbackSubtitle = match($folderKey) {
+                            'books'       => 'আইডিয়া প্রকাশন',
+                            'banners'     => 'মার্কেটিং ও ক্যাম্পেইন',
+                            'avatars'     => 'প্রোফাইল পিকচার',
+                            'payments'    => 'পেমেন্ট গেটওয়ে',
+                            'ebooks'      => 'ই-বুক লাইব্রেরি',
+                            default       => $folderDefs[$folderKey]['label'] ?? 'অ্যাসেট লাইব্রেরি',
+                        };
+
+                        $itemTitle = $fallbackTitle;
+                        $itemSubtitle = $fallbackSubtitle;
+                    } else {
+                        $itemTitle = $itemInfo['title'] ?? null;
+                        $itemSubtitle = $itemInfo['subtitle'] ?? null;
+                    }
                     $itemLink = $itemInfo['link'] ?? null;
 
                     if ($search) {
@@ -888,20 +919,35 @@ class AdminMediaController extends Controller
      */
     public function convertAllToWebp(Request $request): JsonResponse
     {
-        $deleteOriginal = $request->boolean('delete_original', false);
-        $dirsToScan = [
-            storage_path('app/public'),
-            public_path('images'),
-        ];
+        $deleteOriginal = $request->boolean('delete_original', true);
+        $folder = $request->input('folder', 'all');
+        $quality = (int) $request->input('quality', 85);
+        if ($quality < 50 || $quality > 100) $quality = 85;
+
+        $folderDefs = $this->getFolderDefinitions();
+
+        $dirsToScan = [];
+        if ($folder !== 'all' && isset($folderDefs[$folder])) {
+            $dirsToScan = $folderDefs[$folder]['dirs'];
+        } else {
+            $dirsToScan = [
+                storage_path('app/public'),
+                public_path('images'),
+            ];
+        }
 
         $totalConverted = 0;
         $totalBytesSaved = 0;
+        $convertedList = [];
 
         foreach ($dirsToScan as $dir) {
             if (is_dir($dir)) {
-                $res = \App\Services\ImageOptimizerService::batchConvertDirectoryToWebp($dir, 85, $deleteOriginal);
+                $res = \App\Services\ImageOptimizerService::batchConvertDirectoryToWebp($dir, $quality, $deleteOriginal);
                 $totalConverted += $res['converted_count'];
                 $totalBytesSaved += $res['bytes_saved'];
+                if (!empty($res['converted_files'])) {
+                    $convertedList = array_merge($convertedList, $res['converted_files']);
+                }
             }
         }
 
@@ -912,14 +958,15 @@ class AdminMediaController extends Controller
         }
 
         $msg = $totalConverted > 0
-            ? "সফল! মোট {$totalConverted}টি PNG/JPG ফাইলকে আধুনিক WebP ফরম্যাটে রূপান্তর করা হয়েছে! ({$formattedSaved} মেমোরি সাশ্রয়)"
-            : "সকল ছবি ইতোমধ্যে WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজ করা রয়েছে।";
+            ? "মোট {$totalConverted}টি PNG/JPG ফাইল সফলভাবে আধুনিক WebP ফরম্যাটে রূপান্তর করা হয়েছে! সর্বমোট {$formattedSaved} স্টোরেজ সাশ্রয় হয়েছে।"
+            : "নির্বাচিত ফোল্ডারের সকল ছবি ইতোমধ্যে আধুনিক WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজড অবস্থায় রয়েছে।";
 
         return response()->json([
             'success' => true,
             'message' => $msg,
             'count'   => $totalConverted,
             'saved'   => $formattedSaved,
+            'items'   => array_slice($convertedList, 0, 50),
         ]);
     }
 

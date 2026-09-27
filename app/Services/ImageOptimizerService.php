@@ -601,4 +601,133 @@ SVG;
         Storage::disk($disk)->put($path, $jpgData);
         return $path;
     }
+
+    /**
+     * Convert a single image file (JPG, PNG, AVIF, BMP) to WebP format.
+     *
+     * @return array ['success' => bool, 'webp_path' => string, 'bytes_saved' => int, 'original_size' => int, 'new_size' => int]
+     */
+    public static function convertImageToWebp(string $sourcePath, int $quality = 85, bool $deleteOriginal = false): array
+    {
+        if (!file_exists($sourcePath)) {
+            return ['success' => false, 'message' => 'Source file not found', 'bytes_saved' => 0];
+        }
+
+        $ext = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
+        if ($ext === 'webp') {
+            return ['success' => true, 'webp_path' => $sourcePath, 'bytes_saved' => 0, 'already_webp' => true];
+        }
+
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+            return ['success' => false, 'message' => 'Unsupported format for WebP conversion', 'bytes_saved' => 0];
+        }
+
+        $origSize = filesize($sourcePath);
+
+        // Load source image resource
+        $srcImage = null;
+        try {
+            $srcImage = match ($ext) {
+                'jpg', 'jpeg' => @imagecreatefromjpeg($sourcePath),
+                'png'         => @imagecreatefrompng($sourcePath),
+                'avif'        => function_exists('imagecreatefromavif') ? @imagecreatefromavif($sourcePath) : null,
+                'bmp'         => function_exists('imagecreatefrombmp') ? @imagecreatefrombmp($sourcePath) : null,
+                default       => null,
+            };
+        } catch (\Throwable $e) {
+            $srcImage = null;
+        }
+
+        if (!$srcImage) {
+            return ['success' => false, 'message' => 'Could not decode image', 'bytes_saved' => 0];
+        }
+
+        $w = imagesx($srcImage);
+        $h = imagesy($srcImage);
+
+        $targetImage = imagecreatetruecolor($w, $h);
+
+        // Preserve PNG / Alpha transparency
+        imagealphablending($targetImage, false);
+        imagesavealpha($targetImage, true);
+        $transparent = imagecolorallocatealpha($targetImage, 255, 255, 255, 127);
+        imagefilledrectangle($targetImage, 0, 0, $w, $h, $transparent);
+
+        imagecopyresampled($targetImage, $srcImage, 0, 0, 0, 0, $w, $h, $w, $h);
+
+        $dir = dirname($sourcePath);
+        $baseName = pathinfo($sourcePath, PATHINFO_FILENAME);
+        $webpPath = $dir . '/' . $baseName . '.webp';
+
+        // Temporary target file
+        $tempWebp = $webpPath . '.tmp';
+        $saved = imagewebp($targetImage, $tempWebp, $quality);
+
+        imagedestroy($srcImage);
+        imagedestroy($targetImage);
+
+        if (!$saved || !file_exists($tempWebp)) {
+            if (file_exists($tempWebp)) @unlink($tempWebp);
+            return ['success' => false, 'message' => 'WebP encoding failed', 'bytes_saved' => 0];
+        }
+
+        $newSize = filesize($tempWebp);
+        rename($tempWebp, $webpPath);
+
+        $bytesSaved = max(0, $origSize - $newSize);
+
+        if ($deleteOriginal && $webpPath !== $sourcePath && file_exists($sourcePath)) {
+            @unlink($sourcePath);
+        }
+
+        return [
+            'success'       => true,
+            'webp_path'     => $webpPath,
+            'original_path' => $sourcePath,
+            'original_size' => $origSize,
+            'new_size'      => $newSize,
+            'bytes_saved'   => $bytesSaved,
+            'filename'      => basename($webpPath),
+        ];
+    }
+
+    /**
+     * Batch convert all JPG, PNG, AVIF images in a directory recursively to WebP.
+     *
+     * @return array ['converted_count' => int, 'bytes_saved' => int, 'converted_files' => array]
+     */
+    public static function batchConvertDirectoryToWebp(string $dirPath, int $quality = 85, bool $deleteOriginal = false): array
+    {
+        if (!is_dir($dirPath)) {
+            return ['converted_count' => 0, 'bytes_saved' => 0, 'converted_files' => []];
+        }
+
+        $files = \Illuminate\Support\Facades\File::allFiles($dirPath);
+        $convertedCount = 0;
+        $totalBytesSaved = 0;
+        $convertedFiles = [];
+
+        foreach ($files as $file) {
+            $ext = strtolower($file->getExtension());
+            if (in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+                $res = self::convertImageToWebp($file->getPathname(), $quality, $deleteOriginal);
+                if ($res['success']) {
+                    $convertedCount++;
+                    $totalBytesSaved += $res['bytes_saved'];
+                    $convertedFiles[] = [
+                        'filename'    => $file->getFilename(),
+                        'webp_name'   => basename($res['webp_path']),
+                        'saved_bytes' => $res['bytes_saved'],
+                    ];
+                }
+            }
+        }
+
+        return [
+            'converted_count' => $convertedCount,
+            'bytes_saved'     => $totalBytesSaved,
+            'converted_files' => $convertedFiles,
+            'files'           => $convertedFiles,
+        ];
+    }
 }

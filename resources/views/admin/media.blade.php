@@ -15,7 +15,7 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         {{-- 1-Click Convert All Existing to WebP --}}
-        <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="runConvertAllToWebp(this)" title="বিদ্যমান সকল PNG ও JPG ফাইলকে WebP তে রূপান্তর করুন">
+        <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="openConvertWebpEngineModal()" title="বিদ্যমান সকল PNG ও JPG ফাইলকে WebP তে রূপান্তর করুন">
             <i class="fa-solid fa-bolt-lightning"></i>
             <span>সকল ফাইল WebP-তে রূপান্তর</span>
         </button>
@@ -114,7 +114,7 @@
                 </div>
                 <div class="d-flex align-items-center justify-content-between text-muted small">
                     <span>হাই-স্পিড কম্প্রেশন</span>
-                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" onclick="runConvertAllToWebp(this)">
+                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" onclick="openConvertWebpEngineModal()">
                         <i class="fa-solid fa-bolt me-1"></i> রূপান্তর
                     </button>
                 </div>
@@ -1086,12 +1086,126 @@
     </div>
 </div>
 
-{{-- Global Full-Page Drag & Drop Overlay --}}
-<div id="globalDragOverlay" class="global-drag-overlay d-none">
-    <div class="global-drag-box">
-        <i class="fa-solid fa-cloud-arrow-up global-drag-icon"></i>
-        <h4 class="fw-bold text-dark mt-2 mb-1">ছবি এখানে ড্রপ করুন</h4>
-        <p class="text-muted small mb-0">স্বয়ংক্রিয়ভাবে আপলোড ও WebP-তে অপ্টিমাইজ হবে</p>
+{{-- ========================================================================= --}}
+{{-- MODAL 8: DYNAMIC WEBP CONVERSION & STORAGE BOOSTER ENGINE                 --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="convertWebpEngineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
+                <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-bolt-lightning text-warning"></i>
+                    <span>Next-Gen WebP রূপান্তর ও মেমোরি বুস্টার ইঞ্জিন</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <!-- Step 1: Configuration Form -->
+                <div id="webpEngineConfigView">
+                    <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-3 mb-3 border-0 bg-success-subtle text-success-emphasis">
+                        <i class="fa-solid fa-wand-magic-sparkles fs-3"></i>
+                        <div>
+                            <strong class="d-block">স্বয়ংক্রিয় ইমেজ কম্প্রেশন ও স্পিড অপ্টিমাইজেশন</strong>
+                            <span class="small">PNG ও JPG ফাইলগুলোকে লসলেস/উচ্চ কোয়ালিটির WebP-তে রূপান্তর করে পেজ লোডিং গতি ৭০% দ্রুত এবং স্টোরেজ সাশ্রয় করুন।</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-dark">টার্গেট ফোল্ডার নির্বাচন</label>
+                            <select id="webpTargetFolderSelect" class="form-select form-select-sm rounded-3 fw-semibold">
+                                <option value="all" selected>🌐 সকল ফোল্ডার (পুরো সিস্টেম)</option>
+                                @foreach($folderDefs as $fk => $finfo)
+                                    <option value="{{ $fk }}">{{ $finfo['label'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-bold text-dark">WebP কোয়ালিটি লেভেল</label>
+                            <select id="webpQualitySelect" class="form-select form-select-sm rounded-3 fw-semibold">
+                                <option value="85" selected>85% (Optimal — দ্রুত ও ক্রিস্প)</option>
+                                <option value="90">90% (Ultra High Quality)</option>
+                                <option value="75">75% (Maximum Storage Saving)</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check form-switch p-2 bg-white rounded-3 border">
+                                <input class="form-check-input ms-0 me-2" type="checkbox" id="webpDeleteOriginalCheck" checked>
+                                <label class="form-check-label small fw-bold text-dark cursor-pointer" for="webpDeleteOriginalCheck">
+                                    মূল PNG / JPG ফাইল মুছে স্টোরেজ ডিস্ক মেমোরি খালি করুন (Recommended)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="button" class="btn btn-sm btn-webp-gradient rounded-pill px-4 shadow-sm" onclick="startWebpConversionEngine()">
+                            <i class="fa-solid fa-play me-1"></i> রূপান্তর প্রক্রিয়া শুরু করুন
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Live Progress Screen -->
+                <div id="webpEngineProgressView" class="d-none">
+                    <div class="text-center py-3">
+                        <div class="spinner-grow text-success mb-2" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1" id="webpProgressTitle">ইমেজ স্ক্যান ও WebP রূপান্তর চলছে...</h5>
+                        <p class="text-muted small mb-3" id="webpProgressSubtitle">সার্ভারের ছবিগুলো প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="media-upload-progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="webpEngineProgressBar" style="width: 25%;"></div>
+                    </div>
+
+                    <!-- Live Stat Counter Boxes -->
+                    <div class="row g-2 mb-3 text-center font-monospace">
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-3 border">
+                                <div class="fs-xs text-muted">প্রসেসিং স্ট্যাটাস</div>
+                                <div class="fw-bold text-primary small" id="webpStatusBadge">চলছে...</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-3 border">
+                                <div class="fs-xs text-muted">কনভার্ট সম্পন্ন</div>
+                                <div class="fw-bold text-success small" id="webpConvertedCount">0 টি ফাইল</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2 bg-white rounded-3 border">
+                                <div class="fs-xs text-muted">মেমোরি সাশ্রয়</div>
+                                <div class="fw-bold text-dark small" id="webpMemorySaved">0 B</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Log Terminal Box -->
+                    <div class="p-2.5 bg-dark text-success rounded-3 font-monospace small" id="webpEngineLogBox" style="max-height: 150px; overflow-y: auto; font-size: 11px; scrollbar-width: thin;">
+                        <div>[Init] WebP রূপান্তর ইঞ্জিন প্রস্তুত...</div>
+                        <div>[Scan] সিস্টেম ইমেজ ডিরেক্টরি স্ক্যান করা হচ্ছে...</div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Finished Success Screen -->
+                <div id="webpEngineSuccessView" class="d-none text-center py-4">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-circle-check text-success fs-1 animate__animated animate__bounceIn" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">WebP রূপান্তর সফলভাবে সম্পন্ন!</h4>
+                    <p class="text-muted small mb-4" id="webpSuccessMessage">সকল ছবি আধুনিক WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজ হয়েছে।</p>
+
+                    <div class="d-inline-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="window.location.reload()">
+                            <i class="fa-solid fa-rotate me-1"></i> পেজ রিফ্রেশ করুন
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

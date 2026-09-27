@@ -842,18 +842,65 @@ async function submitMultiUploadAjax() {
 }
 
 /**
- * 1-Click Convert All Existing PNG/JPG Images to WebP Across Whole System
+ * 1-Click Dynamic WebP Conversion Engine & Live Storage Optimizer Modal
  */
-function runConvertAllToWebp(btn) {
-    if (!confirm('আপনি কি বিদ্যমান সকল PNG ও JPG ইমেজকে আধুনিক WebP ফরম্যাটে রূপান্তর করতে চান?')) {
-        return;
-    }
+function openConvertWebpEngineModal() {
+    const configView = document.getElementById('webpEngineConfigView');
+    const progressView = document.getElementById('webpEngineProgressView');
+    const successView = document.getElementById('webpEngineSuccessView');
 
-    const origContent = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5"></span><span>WebP কনভার্সন চলছে...</span>`;
+    if (configView) configView.classList.remove('d-none');
+    if (progressView) progressView.classList.add('d-none');
+    if (successView) successView.classList.add('d-none');
+
+    const modalEl = document.getElementById('convertWebpEngineModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        m.show();
     }
+}
+
+function startWebpConversionEngine() {
+    const configView = document.getElementById('webpEngineConfigView');
+    const progressView = document.getElementById('webpEngineProgressView');
+    const successView = document.getElementById('webpEngineSuccessView');
+
+    const folder = document.getElementById('webpTargetFolderSelect')?.value || 'all';
+    const quality = parseInt(document.getElementById('webpQualitySelect')?.value || '85');
+    const deleteOriginal = document.getElementById('webpDeleteOriginalCheck')?.checked ? true : false;
+
+    if (configView) configView.classList.add('d-none');
+    if (progressView) progressView.classList.remove('d-none');
+    if (successView) successView.classList.add('d-none');
+
+    const progressBar = document.getElementById('webpEngineProgressBar');
+    const statusBadge = document.getElementById('webpStatusBadge');
+    const countBadge = document.getElementById('webpConvertedCount');
+    const memSavedBadge = document.getElementById('webpMemorySaved');
+    const logBox = document.getElementById('webpEngineLogBox');
+
+    if (progressBar) progressBar.style.width = '20%';
+    if (statusBadge) statusBadge.textContent = 'স্ক্যানিং চলছে...';
+
+    const appendLog = (text) => {
+        if (!logBox) return;
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+    };
+
+    appendLog(`টার্গেট ফোল্ডার: ${folder.toUpperCase()} | কোয়ালিটি: ${quality}%`);
+    appendLog(`মূল ফাইল অপসারণ অপশন: ${deleteOriginal ? 'সক্রিয় (Reclaim Disk)' : 'নিষ্ক্রিয়'}`);
+
+    let progressSim = 25;
+    const interval = setInterval(() => {
+        if (progressSim < 85) {
+            progressSim += 10;
+            if (progressBar) progressBar.style.width = progressSim + '%';
+            if (statusBadge) statusBadge.textContent = 'রূপান্তর চলছে (' + progressSim + '%)...';
+        }
+    }, 400);
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -862,27 +909,64 @@ function runConvertAllToWebp(btn) {
         headers: {
             'X-CSRF-TOKEN': token,
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            folder: folder,
+            quality: quality,
+            delete_original: deleteOriginal
+        })
     })
     .then(r => r.json())
     .then(data => {
+        clearInterval(interval);
+        if (progressBar) progressBar.style.width = '100%';
+
         if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1500);
+            if (statusBadge) statusBadge.textContent = 'সম্পন্ন!';
+            if (countBadge) countBadge.textContent = `${data.count} টি ফাইল`;
+            if (memSavedBadge) memSavedBadge.textContent = data.saved || '0 B';
+
+            appendLog(`সফল! মোট ${data.count}টি ফাইল WebP-তে রূপান্তর সম্পন্ন।`);
+            appendLog(`সর্বমোট সাশ্রয়: ${data.saved}`);
+
+            if (data.items && data.items.length > 0) {
+                data.items.slice(0, 10).forEach(item => {
+                    appendLog(`✓ ${item.filename} ➔ ${item.webp_name}`);
+                });
+            }
+
+            setTimeout(() => {
+                if (progressView) progressView.classList.add('d-none');
+                if (successView) {
+                    successView.classList.remove('d-none');
+                    const msgEl = document.getElementById('webpSuccessMessage');
+                    if (msgEl) msgEl.textContent = data.message;
+                }
+            }, 1000);
         } else {
-            showMediaAlert('danger', data.message || 'WebP কনভার্সন ব্যর্থ হয়েছে।');
+            appendLog(`ত্রুটি: ${data.message || 'রূপান্তর ব্যর্থ হয়েছে।'}`);
+            showMediaAlert('danger', data.message || 'WebP রূপান্তর ব্যর্থ হয়েছে।');
+            setTimeout(() => {
+                if (configView) configView.classList.remove('d-none');
+                if (progressView) progressView.classList.add('d-none');
+            }, 2000);
         }
     })
-    .catch(() => {
-        showMediaAlert('danger', 'সার্ভার রেসপন্স দিতে ব্যর্থ হয়েছে।');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origContent;
-        }
+    .catch((err) => {
+        clearInterval(interval);
+        appendLog(`নেটওয়ার্ক বা সার্ভার ত্রুটি!`);
+        showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।');
+        setTimeout(() => {
+            if (configView) configView.classList.remove('d-none');
+            if (progressView) progressView.classList.add('d-none');
+        }, 2000);
     });
+}
+
+function runConvertAllToWebp(btn) {
+    openConvertWebpEngineModal();
 }
 
 /* ========================================================================= */
