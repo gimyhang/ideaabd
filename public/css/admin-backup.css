@@ -1,0 +1,321 @@
+/**
+ * ============================================================================
+ * Enterprise Disaster Recovery & Master Backup Hub — Stylesheet
+ * Idea Publication (ideaabd.com)
+ * ============================================================================
+ */
+
+:root {
+    --backup-primary-gradient: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+    --backup-success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    --backup-warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    --backup-info-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    --backup-purple-gradient: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+    --backup-rose-gradient: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+}
+
+/* ── Modern Top Action Buttons ── */
+.btn-backup-gradient {
+    position: relative;
+    border: none;
+    border-radius: 50rem;
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 0.58rem 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #ffffff !important;
+    text-decoration: none;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-backup-gradient:hover {
+    transform: translateY(-2px);
+    color: #ffffff !important;
+}
+
+.btn-backup-gradient:active {
+    transform: translateY(0);
+}
+
+/* Color Variants */
+.btn-gradient-emerald {
+    background: var(--backup-success-gradient);
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+}
+.btn-gradient-emerald:hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+}
+
+.btn-gradient-indigo {
+    background: var(--backup-primary-gradient);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35);
+}
+.btn-gradient-indigo:hover {
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.5);
+}
+
+.btn-gradient-sky {
+    background: var(--backup-info-gradient);
+    box-shadow: 0 4px 16px rgba(14, 165, 233, 0.35);
+}
+.btn-gradient-sky:hover {
+    box-shadow: 0 8px 24px rgba(14, 165, 233, 0.5);
+}
+
+.btn-gradient-amber {
+    background: var(--backup-warning-gradient);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+}
+.btn-gradient-amber:hover {
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
+}
+
+.btn-gradient-purple {
+    background: var(--backup-purple-gradient);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+}
+.btn-gradient-purple:hover {
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+}
+
+.btn-gradient-rose {
+    background: var(--backup-rose-gradient);
+    box-shadow: 0 4px 16px rgba(244, 63, 94, 0.35);
+}
+.btn-gradient-rose:hover {
+    box-shadow: 0 8px 24px rgba(244, 63, 94, 0.5);
+}
+
+/* ── KPI Diagnostic Cards ── */
+.backup-kpi-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.backup-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3.5px;
+    background: transparent;
+    transition: background 0.3s ease;
+}
+
+.backup-kpi-card.kpi-indigo::before { background: var(--backup-primary-gradient); }
+.backup-kpi-card.kpi-emerald::before { background: var(--backup-success-gradient); }
+.backup-kpi-card.kpi-amber::before { background: var(--backup-warning-gradient); }
+.backup-kpi-card.kpi-sky::before { background: var(--backup-info-gradient); }
+
+.backup-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.kpi-avatar-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.backup-kpi-card:hover .kpi-avatar-icon {
+    transform: scale(1.08) rotate(3deg);
+}
+
+/* ── Live Drag & Drop Ingest Zone ── */
+.enterprise-dropzone {
+    border: 2px dashed #94a3b8;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 2.25rem 1.5rem;
+    text-align: center;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    position: relative;
+}
+
+.enterprise-dropzone:hover, .enterprise-dropzone.dragover {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    transform: scale(1.003);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.08);
+}
+
+.dropzone-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+    margin-bottom: 0.85rem;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    transition: transform 0.2s ease;
+}
+
+.enterprise-dropzone:hover .dropzone-icon-circle {
+    transform: scale(1.1);
+}
+
+/* ── Pulse Indicator ── */
+.pulse-online-badge {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    background-color: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulseRing 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes pulseRing {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* ── Table Row Action Pill Buttons ── */
+.btn-action-pill {
+    padding: 0.38rem 0.85rem;
+    border-radius: 50rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn-action-pill:hover {
+    transform: translateY(-1.5px);
+}
+
+.btn-action-cyan {
+    background: #e0f2fe;
+    color: #0284c7 !important;
+    border-color: #bae6fd;
+}
+.btn-action-cyan:hover {
+    background: #0284c7;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+}
+
+.btn-action-indigo {
+    background: #e0e7ff;
+    color: #4338ca !important;
+    border-color: #c7d2fe;
+}
+.btn-action-indigo:hover {
+    background: #4f46e5;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-action-emerald {
+    background: #d1fae5;
+    color: #047857 !important;
+    border-color: #a7f3d0;
+}
+.btn-action-emerald:hover {
+    background: #10b981;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-action-amber {
+    background: #fef3c7;
+    color: #b45309 !important;
+    border-color: #fde68a;
+}
+.btn-action-amber:hover {
+    background: #f59e0b;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-action-rose {
+    background: #ffe4e6;
+    color: #be123c !important;
+    border-color: #fecdd3;
+    padding: 0.38rem 0.65rem;
+}
+.btn-action-rose:hover {
+    background: #f43f5e;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+
+/* ── Live Search & Filter Bar ── */
+.backup-search-bar {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+/* ── Bulk Selection Bar ── */
+.bulk-action-bar {
+    position: sticky;
+    top: 70px;
+    z-index: 100;
+    background: #1e1b4b;
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 10px 30px rgba(30, 27, 75, 0.3);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 768px) {
+    .btn-backup-gradient {
+        padding: 0.45rem 0.95rem;
+        font-size: 0.8rem;
+    }
+    .kpi-avatar-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+}

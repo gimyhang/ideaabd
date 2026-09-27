@@ -123,8 +123,15 @@ class AdminBackupController extends Controller
         $formattedTotalBackupSize = $this->formatBytes($totalBackupSizeBytes);
         $latestBackup = !empty($backups) ? $backups[0] : null;
 
-        // Retention policy
+        // Retention policy & automated settings
         $retentionLimit = (int) config('idea.backup_retention', 10);
+        $settings = [];
+        if (Schema::hasTable('admin_dashboard_settings')) {
+            $settingRow = \App\Models\AdminDashboardSetting::where('key', 'backup_settings')->first();
+            if ($settingRow) {
+                $settings = is_array($settingRow->value) ? $settingRow->value : (json_decode((string)$settingRow->value, true) ?: []);
+            }
+        }
 
         return view('admin.backup', compact(
             'backups',
@@ -136,7 +143,8 @@ class AdminBackupController extends Controller
             'totalBackupSizeBytes',
             'formattedTotalBackupSize',
             'latestBackup',
-            'retentionLimit'
+            'retentionLimit',
+            'settings'
         ));
     }
 
@@ -146,7 +154,7 @@ class AdminBackupController extends Controller
      * - 'full_system': Full System & database backup
      * - 'db_only': Pure SQL database dump
      */
-    public function create(Request $request): RedirectResponse
+    public function create(Request $request): JsonResponse|RedirectResponse
     {
         $mode = $request->input('mode', 'data_media'); // 'data_media', 'full_system', 'db_only'
         $includeMedia = ($mode !== 'db_only');
@@ -244,9 +252,29 @@ class AdminBackupController extends Controller
                 : "সিস্টেম ব্যাকআপ '{$zipFilename}' সফলভাবে তৈরি ও সংরক্ষিত হয়েছে!";
 
             $this->logAction('create_backup', $msg);
+
+            $targetFile = $this->backupDir . '/' . $zipFilename;
+            $fileSize = File::exists($targetFile) ? $this->formatBytes(File::size($targetFile)) : '0 B';
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success'      => true,
+                    'message'      => $msg,
+                    'filename'     => $zipFilename,
+                    'size'         => $fileSize,
+                    'is_master_zip'=> str_ends_with(strtolower($zipFilename), '.zip'),
+                    'download_url' => route('admin.backup.download', $zipFilename),
+                    'created_at'   => date('d M, Y h:i A'),
+                ]);
+            }
+
             return back()->with('success', $msg);
         } catch (\Throwable $e) {
-            return back()->with('error', 'ব্যাকআপ তৈরিতে ত্রুটি: ' . $e->getMessage());
+            $err = 'ব্যাকআপ তৈরিতে ত্রুটি: ' . $e->getMessage();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $err], 500);
+            }
+            return back()->with('error', $err);
         }
     }
 
