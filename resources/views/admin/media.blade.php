@@ -14,6 +14,12 @@
 
 @section('actions')
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        {{-- 1-Click Purge Unused / Replaced Images & Cache --}}
+        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="btnPurgeUnusedMedia" onclick="triggerPurgeUnusedMedia(this)" title="Purge unused, replaced, or orphaned cache images not in database">
+            <i class="fa-solid fa-broom text-danger"></i>
+            <span>Purge Unused / Cache</span>
+        </button>
+
         {{-- 1-Click Convert All Existing to WebP --}}
         <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="openConvertWebpEngineModal()" title="Batch convert all PNG and JPG images to WebP">
             <i class="fa-solid fa-bolt-lightning"></i>

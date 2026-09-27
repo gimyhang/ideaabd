@@ -591,4 +591,310 @@ SVG;
             'filename'      => basename($webpPath),
         ];
     }
+
+    /**
+     * Safely delete an existing image file from storage or public directory when replaced or removed.
+     * Handles relative paths, storage URLs, and full URLs.
+     */
+    public static function deleteImageFile(?string $path): bool
+    {
+        if (empty($path)) {
+            return false;
+        }
+
+        // Clean query strings or domain prefixes
+        $clean = parse_url($path, PHP_URL_PATH) ?: $path;
+        $clean = ltrim(str_replace('\\', '/', $clean), '/');
+
+        // If prefixed with 'storage/'
+        if (str_starts_with($clean, 'storage/')) {
+            $storageRel = substr($clean, 8);
+            $fullStoragePath = storage_path('app/public/' . $storageRel);
+            if (file_exists($fullStoragePath) && is_file($fullStoragePath)) {
+                @unlink($fullStoragePath);
+                return true;
+            }
+        }
+
+        // Check directly under storage/app/public/
+        $directStorage = storage_path('app/public/' . $clean);
+        if (file_exists($directStorage) && is_file($directStorage)) {
+            @unlink($directStorage);
+            return true;
+        }
+
+        // Check directly under public/
+        $directPublic = public_path($clean);
+        if (file_exists($directPublic) && is_file($directPublic)) {
+            @unlink($directPublic);
+            return true;
+        }
+
+        // If an absolute file path is passed
+        if (file_exists($path) && is_file($path)) {
+            @unlink($path);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Scan storage and purge all orphaned / replaced images not currently referenced in the database.
+     *
+     * @return array ['purged_count' => int, 'bytes_saved' => int, 'formatted_saved' => string, 'files' => array]
+     */
+    public static function purgeOrphanedImages(): array
+    {
+        $activeBasenames = [];
+
+        // 1. Collect all active image references from Books
+        if (\Illuminate\Support\Facades\Schema::hasTable('books')) {
+            $cols = [];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('books', 'cover_image')) $cols[] = 'cover_image';
+            if (\Illuminate\Support\Facades\Schema::hasColumn('books', 'look_inside_images')) $cols[] = 'look_inside_images';
+            if (!empty($cols)) {
+                $books = \Illuminate\Support\Facades\DB::table('books')->get($cols);
+                foreach ($books as $b) {
+                    if (isset($b->cover_image) && !empty($b->cover_image)) {
+                        $bn = basename((string)$b->cover_image);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                    if (isset($b->look_inside_images) && !empty($b->look_inside_images)) {
+                        $inside = is_string($b->look_inside_images) && str_starts_with(trim($b->look_inside_images), '[')
+                            ? json_decode($b->look_inside_images, true)
+                            : explode(',', (string)$b->look_inside_images);
+                        if (is_array($inside)) {
+                            foreach ($inside as $img) {
+                                if (!empty($img)) {
+                                    $bn = basename(trim((string)$img));
+                                    $activeBasenames[$bn] = true;
+                                    $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Authors
+        if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('authors', 'avatar')) {
+                $authors = \Illuminate\Support\Facades\DB::table('authors')->whereNotNull('avatar')->pluck('avatar');
+                foreach ($authors as $av) {
+                    if (!empty($av)) {
+                        $bn = basename((string)$av);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // 3. Publishers
+        if (\Illuminate\Support\Facades\Schema::hasTable('publishers')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('publishers', 'logo')) {
+                $pubs = \Illuminate\Support\Facades\DB::table('publishers')->whereNotNull('logo')->pluck('logo');
+                foreach ($pubs as $logo) {
+                    if (!empty($logo)) {
+                        $bn = basename((string)$logo);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // 4. Ebooks
+        if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('ebooks', 'cover_image')) {
+                $ebooks = \Illuminate\Support\Facades\DB::table('ebooks')->whereNotNull('cover_image')->pluck('cover_image');
+                foreach ($ebooks as $eb) {
+                    if (!empty($eb)) {
+                        $bn = basename((string)$eb);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // 5. Blog Posts
+        if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('blog_posts', 'featured_image')) {
+                $posts = \Illuminate\Support\Facades\DB::table('blog_posts')->whereNotNull('featured_image')->pluck('featured_image');
+                foreach ($posts as $fi) {
+                    if (!empty($fi)) {
+                        $bn = basename((string)$fi);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // 6. Users / Avatars
+        if (\Illuminate\Support\Facades\Schema::hasTable('users')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'avatar')) {
+                $avatars = \Illuminate\Support\Facades\DB::table('users')->whereNotNull('avatar')->pluck('avatar');
+                foreach ($avatars as $av) {
+                    if (!empty($av)) {
+                        $bn = basename((string)$av);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // 7. Sliders / Banners
+        if (\Illuminate\Support\Facades\Schema::hasTable('sliders')) {
+            $sliderCols = array_filter(['image', 'banner_image', 'cover_image'], fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('sliders', $c));
+            if (!empty($sliderCols)) {
+                $sliders = \Illuminate\Support\Facades\DB::table('sliders')->get($sliderCols);
+                foreach ($sliders as $s) {
+                    foreach ($sliderCols as $sc) {
+                        if (!empty($s->{$sc})) {
+                            $bn = basename((string)$s->{$sc});
+                            $activeBasenames[$bn] = true;
+                            $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 8. Categories
+        if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
+            $catCols = array_filter(['image', 'icon', 'cover_image', 'banner'], fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('categories', $c));
+            if (!empty($catCols)) {
+                $cats = \Illuminate\Support\Facades\DB::table('categories')->get($catCols);
+                foreach ($cats as $ci) {
+                    foreach ($catCols as $cc) {
+                        if (!empty($ci->{$cc})) {
+                            $bn = basename((string)$ci->{$cc});
+                            $activeBasenames[$bn] = true;
+                            $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 9. Campaigns / Events
+        if (\Illuminate\Support\Facades\Schema::hasTable('event_campaigns')) {
+            $campCols = array_filter(['banner_image', 'card_bg_image', 'card_logo_image', 'card_event_logo_image', 'image'], fn($c) => \Illuminate\Support\Facades\Schema::hasColumn('event_campaigns', $c));
+            if (!empty($campCols)) {
+                $events = \Illuminate\Support\Facades\DB::table('event_campaigns')->get($campCols);
+                foreach ($events as $ev) {
+                    foreach ($campCols as $col) {
+                        if (!empty($ev->{$col})) {
+                            $bn = basename((string)$ev->{$col});
+                            $activeBasenames[$bn] = true;
+                            $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 10. Site Settings
+        if (\Illuminate\Support\Facades\Schema::hasTable('site_settings')) {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('site_settings', 'value')) {
+                $settings = \Illuminate\Support\Facades\DB::table('site_settings')->pluck('value');
+                foreach ($settings as $val) {
+                    if (is_string($val) && (str_contains($val, '.webp') || str_contains($val, '.png') || str_contains($val, '.jpg') || str_contains($val, '.svg'))) {
+                        $bn = basename($val);
+                        $activeBasenames[$bn] = true;
+                        $activeBasenames[pathinfo($bn, PATHINFO_FILENAME)] = true;
+                    }
+                }
+            }
+        }
+
+        // Target directories to scan for orphaned files
+        $dirsToScan = [
+            storage_path('app/public/books/covers'),
+            storage_path('app/public/books/look_inside'),
+            storage_path('app/public/authors'),
+            storage_path('app/public/publishers'),
+            storage_path('app/public/publishers/logos'),
+            storage_path('app/public/ebooks/covers'),
+            storage_path('app/public/blog'),
+            storage_path('app/public/avatars'),
+            storage_path('app/public/signatures'),
+            storage_path('app/public/uploads'),
+            storage_path('app/public/campaigns'),
+            public_path('images/books'),
+            public_path('images/authors'),
+            public_path('images/publishers'),
+        ];
+
+        $purgedCount = 0;
+        $totalBytesSaved = 0;
+        $purgedFiles = [];
+
+        // Protected system filenames that must never be deleted
+        $protectedNames = [
+            'default.png', 'default.webp', 'default.jpg', 'placeholder.png', 'placeholder.webp',
+            'no-cover.png', 'no-cover.webp', 'logo.png', 'logo.webp', 'favicon.ico', 'favicon.png',
+            'og-image.jpg', 'og-image.webp', 'avatar-default.png', 'avatar-default.webp', '.gitignore',
+        ];
+
+        foreach ($dirsToScan as $dir) {
+            if (!\Illuminate\Support\Facades\File::isDirectory($dir)) {
+                continue;
+            }
+
+            $files = \Illuminate\Support\Facades\File::allFiles($dir);
+            foreach ($files as $file) {
+                $filename = $file->getFilename();
+                $baseNoExt = pathinfo($filename, PATHINFO_FILENAME);
+                $ext = strtolower($file->getExtension());
+
+                if (in_array($filename, $protectedNames, true) || in_array($ext, ['gitignore', 'gitkeep', 'htaccess'])) {
+                    continue;
+                }
+
+                if (!in_array($ext, ['webp', 'jpg', 'jpeg', 'png', 'gif', 'svg', 'bmp', 'avif'])) {
+                    continue;
+                }
+
+                // If not referenced in active database records
+                if (!isset($activeBasenames[$filename]) && !isset($activeBasenames[$baseNoExt])) {
+                    $size = $file->getSize();
+                    $fullPath = $file->getPathname();
+                    
+                    if (@unlink($fullPath)) {
+                        $purgedCount++;
+                        $totalBytesSaved += $size;
+                        $purgedFiles[] = [
+                            'name' => $filename,
+                            'path' => $fullPath,
+                            'size' => $size,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Invalidate media lookup cache
+        \Illuminate\Support\Facades\Cache::forget('media_asset_title_lookup_v3');
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $b = max($totalBytesSaved, 0);
+        $pow = floor(($b ? log($b) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $b /= (1 << (10 * $pow));
+        $formattedSaved = round($b, 2) . ' ' . $units[$pow];
+
+        return [
+            'purged_count'    => $purgedCount,
+            'bytes_saved'     => $totalBytesSaved,
+            'formatted_saved' => $formattedSaved,
+            'purged_files'    => array_slice($purgedFiles, 0, 50),
+        ];
+    }
 }

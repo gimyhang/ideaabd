@@ -757,6 +757,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/upload', 'upload')->name('upload');
         Route::post('/optimize-all', 'optimizeAll')->name('optimize-all');
         Route::post('/convert-all-webp', 'convertAllToWebp')->name('convert-all-webp');
+        Route::post('/purge-unused', 'purgeUnused')->name('purge-unused');
         Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
         Route::post('/save-customized', 'saveCustomized')->name('save-customized');
         Route::post('/rename', 'renameFile')->name('rename');

@@ -1421,4 +1421,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+/* ========================================================================= */
+/* 13. 1-CLICK PURGE UNUSED / REPLACED IMAGES & CACHE                         */
+/* ========================================================================= */
+function triggerPurgeUnusedMedia(btn) {
+    if (!confirm('Are you sure you want to scan and purge all unused, replaced, or orphaned cache images not currently linked in the database?')) {
+        return;
+    }
+
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Purging...';
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    fetch('/admin/media/purge-unused', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+        if (data.success) {
+            showMediaAlert('success', data.message);
+            if (data.count > 0) {
+                setTimeout(() => window.location.reload(), 1200);
+            }
+        } else {
+            showMediaAlert('danger', data.message || 'Error occurred during cleanup.');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+        showMediaAlert('danger', 'Could not communicate with server.');
+    });
+}
+
+
 

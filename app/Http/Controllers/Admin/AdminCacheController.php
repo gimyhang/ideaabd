@@ -198,7 +198,7 @@ class AdminCacheController extends Controller
     }
 
     /**
-     * Purge temp image cache and thumbnails.
+     * Purge temp image cache, thumbnails, and orphaned/replaced images.
      */
     public function clearImages(Request $request): JsonResponse|RedirectResponse
     {
@@ -208,20 +208,27 @@ class AdminCacheController extends Controller
                 storage_path('app/temp'),
             ];
 
-            $purgedFiles = 0;
+            $purgedTemp = 0;
             foreach ($tempDirs as $dir) {
                 if (File::isDirectory($dir)) {
                     $files = File::allFiles($dir);
                     foreach ($files as $file) {
                         File::delete($file->getPathname());
-                        $purgedFiles++;
+                        $purgedTemp++;
                     }
                 }
             }
 
-            $msg = "সাময়িক ইমেজ ক্যাশ ও টেম্পোরারি {$purgedFiles} টি ফাইল সফলভাবে পরিষ্কার করা হয়েছে!";
+            // Purge orphaned / replaced images across the library
+            $purgeRes = \App\Services\ImageOptimizerService::purgeOrphanedImages();
+            $totalCleaned = $purgedTemp + ($purgeRes['purged_count'] ?? 0);
+            $savedFormatted = $purgeRes['formatted_saved'] ?? '0 B';
+
+            $msg = "ইমেজ ক্যাশ ও অব্যবহৃত/রিপ্লেস হওয়া মোট {$totalCleaned} টি পুরানো ফাইল সফলভাবে পরিষ্কার করা হয়েছে! ({$savedFormatted} স্টোরেজ মুক্ত হয়েছে)";
+            $this->logAction('clear_images_cache', $msg);
+
             if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['success' => true, 'message' => $msg]);
+                return response()->json(['success' => true, 'message' => $msg, 'purged_count' => $totalCleaned, 'saved' => $savedFormatted]);
             }
             return back()->with('success', $msg);
         } catch (\Throwable $e) {

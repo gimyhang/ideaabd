@@ -1048,6 +1048,44 @@ class AdminMediaController extends Controller
     }
 
     /**
+     * 1-Click Purge Unused / Replaced Images & Temporary Cache from Media Studio.
+     */
+    public function purgeUnused(Request $request): JsonResponse|RedirectResponse
+    {
+        try {
+            $purgeRes = \App\Services\ImageOptimizerService::purgeOrphanedImages();
+            $purgedCount = $purgeRes['purged_count'] ?? 0;
+            $savedFormatted = $purgeRes['formatted_saved'] ?? '0 B';
+
+            if ($this->accessService) {
+                $this->accessService->log('purge_unused_media', "Media Studio: Purged {$purgedCount} unused/replaced images ({$savedFormatted} freed)");
+            }
+
+            $msg = $purgedCount > 0
+                ? "সফলভাবে {$purgedCount}টি অব্যবহৃত ও পুরানো ক্যাশ ইমেজ মুছে ফেলা হয়েছে! ({$savedFormatted} স্টোরেজ মুক্ত হয়েছে)"
+                : "লাইব্রেরিতে কোনো অব্যবহৃত বা অতিরিক্ত পুরানো ইমেজ ফাইল নেই। সমস্ত ছবি বর্তমানে ডেটাবেজে ব্যবহৃত হচ্ছে।";
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'      => true,
+                    'message'      => $msg,
+                    'count'        => $purgedCount,
+                    'saved'        => $savedFormatted,
+                    'purged_files' => $purgeRes['purged_files'] ?? [],
+                ]);
+            }
+
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            $err = 'অব্যবহৃত ইমেজ ক্লিনআপে সমস্যা হয়েছে: ' . $e->getMessage();
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $err], 500);
+            }
+            return back()->with('error', $err);
+        }
+    }
+
+    /**
      * 1-Click Convert All Existing PNG / JPG Images Across the Application or Specific Paths to Modern WebP.
      */
     public function convertAllToWebp(Request $request): JsonResponse

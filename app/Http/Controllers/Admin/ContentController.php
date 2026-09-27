@@ -1120,10 +1120,7 @@ class ContentController extends Controller
     }
 
     /**
-     * Remove a previously uploaded file.
-     *
-     * Only paths under the public disk's own URL prefix are touched, so a legacy
-     * value pointing at an external CDN is left alone.
+     * Remove a previously uploaded file cleanly from disk.
      */
     private function deleteStoredFile(?string $value): void
     {
@@ -1131,17 +1128,7 @@ class ContentController extends Controller
             return;
         }
 
-        $prefix = rtrim(Storage::disk(self::UPLOAD_DISK)->url(''), '/') . '/';
-
-        if (! str_starts_with($value, $prefix)) {
-            return;
-        }
-
-        $relative = substr($value, strlen($prefix));
-
-        if ($relative !== '' && ! str_contains($relative, '..')) {
-            Storage::disk(self::UPLOAD_DISK)->delete($relative);
-        }
+        \App\Services\ImageOptimizerService::deleteImageFile($value);
     }
 
     /**
