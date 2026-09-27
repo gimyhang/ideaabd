@@ -746,11 +746,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/{filename}', 'destroy')->name('destroy');
     });
 
-    // Media & Library
+    // Media & Asset Studio Library
     Route::prefix('media')->name('media.')->controller(\App\Http\Controllers\Admin\AdminMediaController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/upload', 'upload')->name('upload');
         Route::post('/optimize-all', 'optimizeAll')->name('optimize-all');
+        Route::post('/bulk-action', 'bulkAction')->name('bulk-action');
+        Route::post('/save-customized', 'saveCustomized')->name('save-customized');
+        Route::post('/rename', 'renameFile')->name('rename');
+        Route::post('/create-folder', 'createFolder')->name('create-folder');
+        Route::post('/download-zip', 'downloadZip')->name('download-zip');
         Route::delete('/', 'destroy')->name('destroy');
     });
 

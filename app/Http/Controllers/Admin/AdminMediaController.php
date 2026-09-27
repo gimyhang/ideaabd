@@ -6,11 +6,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AdminAccessService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 class AdminMediaController extends Controller
 {
@@ -19,148 +23,665 @@ class AdminMediaController extends Controller
     }
 
     /**
+     * Folder definitions mapping keys to their disk paths.
+     */
+    private function getFolderDefinitions(): array
+    {
+        $storagePublic = storage_path('app/public');
+        $publicImages = public_path('images');
+
+        return [
+            'books' => [
+                'label' => 'বই ও কাভার',
+                'icon' => 'fa-solid fa-book-open',
+                'dirs' => [
+                    $storagePublic . '/books',
+                    $storagePublic . '/books/covers',
+                    $publicImages . '/books',
+                ],
+                'default_upload' => $storagePublic . '/books',
+            ],
+            'banners' => [
+                'label' => 'ব্যানার ও ক্যাম্পেইন',
+                'icon' => 'fa-solid fa-images',
+                'dirs' => [
+                    $publicImages . '/banners',
+                    $storagePublic . '/campaigns',
+                ],
+                'default_upload' => $publicImages . '/banners',
+            ],
+            'settings' => [
+                'label' => 'ব্র্যান্ডিং ও সেটিংস',
+                'icon' => 'fa-solid fa-gear',
+                'dirs' => [
+                    $publicImages . '/settings',
+                    $storagePublic . '/settings',
+                ],
+                'default_upload' => $publicImages . '/settings',
+            ],
+            'authors' => [
+                'label' => 'লেখক ও গবেষক',
+                'icon' => 'fa-solid fa-user-pen',
+                'dirs' => [
+                    $storagePublic . '/authors',
+                    $publicImages . '/authors',
+                ],
+                'default_upload' => $storagePublic . '/authors',
+            ],
+            'blog' => [
+                'label' => 'ব্লগ ও ফিচার',
+                'icon' => 'fa-solid fa-newspaper',
+                'dirs' => [
+                    $storagePublic . '/blog',
+                    $publicImages . '/blog',
+                ],
+                'default_upload' => $storagePublic . '/blog',
+            ],
+            'payments' => [
+                'label' => 'পেমেন্ট ও QR কোড',
+                'icon' => 'fa-solid fa-qrcode',
+                'dirs' => [
+                    $storagePublic . '/settings/qrcodes',
+                    $publicImages . '/payments',
+                ],
+                'default_upload' => $storagePublic . '/settings/qrcodes',
+            ],
+            'avatars' => [
+                'label' => 'ইউজার অ্যাভাটার',
+                'icon' => 'fa-solid fa-circle-user',
+                'dirs' => [
+                    $storagePublic . '/avatars',
+                ],
+                'default_upload' => $storagePublic . '/avatars',
+            ],
+            'ebooks' => [
+                'label' => 'ই-বুক অ্যাসেট',
+                'icon' => 'fa-solid fa-file-pdf',
+                'dirs' => [
+                    $storagePublic . '/ebooks',
+                ],
+                'default_upload' => $storagePublic . '/ebooks',
+            ],
+            'signatures' => [
+                'label' => 'স্বাক্ষর ও ডকুমেন্টস',
+                'icon' => 'fa-solid fa-signature',
+                'dirs' => [
+                    $storagePublic . '/signatures',
+                ],
+                'default_upload' => $storagePublic . '/signatures',
+            ],
+            'uploads' => [
+                'label' => 'সাধারণ আপলোড',
+                'icon' => 'fa-solid fa-cloud-arrow-up',
+                'dirs' => [
+                    $storagePublic . '/uploads',
+                    $storagePublic . '/images',
+                ],
+                'default_upload' => $storagePublic . '/uploads',
+            ],
+            'general' => [
+                'label' => 'রুট মিডিয়া',
+                'icon' => 'fa-solid fa-folder',
+                'dirs' => [
+                    $publicImages,
+                ],
+                'default_upload' => $publicImages,
+            ],
+        ];
+    }
+
+    /**
      * Display media library files.
      */
     public function index(Request $request): View
     {
         $folderFilter = $request->string('folder')->trim()->value() ?: 'all';
+        $formatFilter = $request->string('format')->trim()->value() ?: 'all';
+        $dimensionFilter = $request->string('dim')->trim()->value() ?: 'all';
+        $sort = $request->string('sort')->trim()->value() ?: 'latest';
+        $viewMode = $request->string('view')->trim()->value() ?: 'grid';
         $search = $request->string('search')->trim()->value();
 
         $storagePublic = storage_path('app/public');
         $publicImages = public_path('images');
 
-        $directories = [
-            'covers'   => $storagePublic . '/books/covers',
-            'banners'  => $publicImages . '/banners',
-            'settings' => $publicImages . '/settings',
-            'qrcodes'  => $storagePublic . '/settings/qrcodes',
-            'authors'  => $storagePublic . '/authors',
-            'general'  => $publicImages,
-        ];
+        $folderDefs = $this->getFolderDefinitions();
 
         $mediaItems = [];
         $totalBytes = 0;
+        $webpCount = 0;
+        $folderStats = [];
 
-        foreach ($directories as $key => $dir) {
-            if ($folderFilter !== 'all' && $folderFilter !== $key) {
-                continue;
-            }
+        // Initialize folder counters
+        foreach ($folderDefs as $k => $fInfo) {
+            $folderStats[$k] = [
+                'count' => 0,
+                'bytes' => 0,
+                'formatted' => '0 B',
+                'label' => $fInfo['label'],
+                'icon' => $fInfo['icon'],
+            ];
+        }
 
-            if (File::isDirectory($dir)) {
-                $files = File::files($dir);
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico', 'bmp', 'avif'];
+        $scannedPaths = [];
+
+        foreach ($folderDefs as $folderKey => $folderConfig) {
+            foreach ($folderConfig['dirs'] as $dir) {
+                if (!File::isDirectory($dir)) {
+                    continue;
+                }
+
+                // If scanning root publicImages, avoid recursively grabbing subdirectories already listed
+                $files = ($dir === $publicImages) ? File::files($dir) : File::allFiles($dir);
+
                 foreach ($files as $file) {
+                    $pathname = $file->getPathname();
+                    if (isset($scannedPaths[$pathname])) {
+                        continue;
+                    }
+                    $scannedPaths[$pathname] = true;
+
                     $ext = strtolower($file->getExtension());
-                    if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'ico'])) {
+                    if (!in_array($ext, $allowedExtensions)) {
                         continue;
                     }
 
                     $filename = $file->getFilename();
-                    if ($search && !str_contains(strtolower($filename), strtolower($search))) {
+                    $size = $file->getSize();
+
+                    // Accumulate stats
+                    $totalBytes += $size;
+                    $folderStats[$folderKey]['count']++;
+                    $folderStats[$folderKey]['bytes'] += $size;
+
+                    if ($ext === 'webp') {
+                        $webpCount++;
+                    }
+
+                    // Apply Folder Filter
+                    if ($folderFilter !== 'all' && $folderFilter !== $folderKey) {
                         continue;
                     }
 
-                    $size = $file->getSize();
-                    $totalBytes += $size;
+                    // Apply Format Filter
+                    if ($formatFilter !== 'all') {
+                        if ($formatFilter === 'jpg' && !in_array($ext, ['jpg', 'jpeg'])) {
+                            continue;
+                        } elseif ($formatFilter !== 'jpg' && $ext !== $formatFilter) {
+                            continue;
+                        }
+                    }
 
-                    // Generate web URL
-                    $relPath = str_replace([$storagePublic, $publicImages, public_path()], '', $file->getPathname());
-                    $relPath = str_replace('\\', '/', $relPath);
+                    // Apply Search Filter
+                    if ($search && !str_contains(strtolower($filename), strtolower($search)) && !str_contains(strtolower($folderKey), strtolower($search))) {
+                        continue;
+                    }
 
-                    if (str_starts_with($file->getPathname(), $storagePublic)) {
-                        $url = asset('storage' . str_replace('\\', '/', str_replace($storagePublic, '', $file->getPathname())));
+                    // Generate Web URL
+                    $relStorage = str_replace([$storagePublic, $publicImages, public_path()], '', $pathname);
+                    $relClean = str_replace('\\', '/', $relStorage);
+
+                    if (str_starts_with($pathname, $storagePublic)) {
+                        $url = asset('storage' . str_replace('\\', '/', str_replace($storagePublic, '', $pathname)));
                     } else {
-                        $url = asset(ltrim($relPath, '/'));
+                        $url = asset(ltrim($relClean, '/'));
+                    }
+
+                    // Extract Dimensions & Metadata
+                    $width = null;
+                    $height = null;
+                    $aspectRatio = 'Auto';
+
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'avif'])) {
+                        $imgInfo = @getimagesize($pathname);
+                        if ($imgInfo) {
+                            $width = $imgInfo[0];
+                            $height = $imgInfo[1];
+
+                            if ($width > 0 && $height > 0) {
+                                $ratioVal = round($width / $height, 2);
+                                if ($width === $height) {
+                                    $aspectRatio = '1:1';
+                                } elseif ($ratioVal >= 1.75 && $ratioVal <= 1.8) {
+                                    $aspectRatio = '16:9';
+                                } elseif ($ratioVal >= 1.3 && $ratioVal <= 1.35) {
+                                    $aspectRatio = '4:3';
+                                } elseif ($ratioVal >= 1.48 && $ratioVal <= 1.52) {
+                                    $aspectRatio = '3:2';
+                                } elseif ($ratioVal >= 2.0) {
+                                    $aspectRatio = 'Banner';
+                                } elseif ($ratioVal < 0.8) {
+                                    $aspectRatio = 'Portrait';
+                                } else {
+                                    $aspectRatio = "{$width}x{$height}";
+                                }
+                            }
+                        }
+                    }
+
+                    // Apply Dimension Filter
+                    if ($dimensionFilter !== 'all') {
+                        if ($dimensionFilter === 'banner' && ($width === null || $width < 1200)) {
+                            continue;
+                        } elseif ($dimensionFilter === 'square' && ($width === null || $height === null || abs($width - $height) > 20)) {
+                            continue;
+                        } elseif ($dimensionFilter === 'thumb' && ($width === null || $width > 400)) {
+                            continue;
+                        }
                     }
 
                     $mediaItems[] = [
-                        'filename'   => $filename,
-                        'folder'     => $key,
-                        'path'       => $file->getPathname(),
-                        'url'        => $url,
-                        'size'       => $this->formatBytes($size),
-                        'size_bytes' => $size,
-                        'ext'        => $ext,
-                        'updated_at' => \Carbon\Carbon::createFromTimestamp($file->getMTime()),
+                        'filename'     => $filename,
+                        'folder'       => $folderKey,
+                        'folder_label' => $folderDefs[$folderKey]['label'],
+                        'folder_icon'  => $folderDefs[$folderKey]['icon'],
+                        'path'         => $pathname,
+                        'url'          => $url,
+                        'size'         => $this->formatBytes($size),
+                        'size_bytes'   => $size,
+                        'ext'          => $ext,
+                        'width'        => $width,
+                        'height'       => $height,
+                        'aspect_ratio' => $aspectRatio,
+                        'mime'         => mime_content_type($pathname) ?: "image/{$ext}",
+                        'updated_at'   => Carbon::createFromTimestamp($file->getMTime()),
+                        'is_webp'      => ($ext === 'webp'),
                     ];
                 }
             }
         }
 
-        // Sort latest first
-        usort($mediaItems, fn ($a, $b) => $b['updated_at']->timestamp <=> $a['updated_at']->timestamp);
+        // Format folder storage bytes
+        foreach ($folderStats as $k => &$fs) {
+            $fs['formatted'] = $this->formatBytes($fs['bytes']);
+        }
+        unset($fs);
+
+        // Sorting
+        match ($sort) {
+            'oldest'    => usort($mediaItems, fn ($a, $b) => $a['updated_at']->timestamp <=> $b['updated_at']->timestamp),
+            'size_desc' => usort($mediaItems, fn ($a, $b) => $b['size_bytes'] <=> $a['size_bytes']),
+            'size_asc'  => usort($mediaItems, fn ($a, $b) => $a['size_bytes'] <=> $b['size_bytes']),
+            'name_asc'  => usort($mediaItems, fn ($a, $b) => strcasecmp($a['filename'], $b['filename'])),
+            'name_desc' => usort($mediaItems, fn ($a, $b) => strcasecmp($b['filename'], $a['filename'])),
+            default     => usort($mediaItems, fn ($a, $b) => $b['updated_at']->timestamp <=> $a['updated_at']->timestamp),
+        };
 
         $totalFormatted = $this->formatBytes($totalBytes);
-        $totalCount = count($mediaItems);
+        $totalCount = count($scannedPaths);
+        $filteredCount = count($mediaItems);
+        $webpPercent = $totalCount > 0 ? round(($webpCount / $totalCount) * 100, 1) : 0;
+        $gdLoaded = extension_loaded('gd');
 
-        return view('admin.media', compact('mediaItems', 'totalCount', 'totalFormatted', 'folderFilter', 'search'));
+        return view('admin.media', compact(
+            'mediaItems',
+            'totalCount',
+            'filteredCount',
+            'totalFormatted',
+            'webpCount',
+            'webpPercent',
+            'folderFilter',
+            'formatFilter',
+            'dimensionFilter',
+            'sort',
+            'viewMode',
+            'search',
+            'folderDefs',
+            'folderStats',
+            'gdLoaded'
+        ));
     }
 
     /**
-     * Upload new media asset.
+     * Upload new media asset(s) with multi-file support and auto-optimization.
      */
-    public function upload(Request $request): RedirectResponse
+    public function upload(Request $request): JsonResponse|RedirectResponse
     {
         $request->validate([
-            'file'   => 'required|image|mimes:jpeg,png,jpg,webp,svg,gif,ico|max:5120',
-            'folder' => 'nullable|string|in:banners,covers,settings,qrcodes,authors,general',
+            'files.*'   => 'nullable|image|mimes:jpeg,png,jpg,webp,svg,gif,ico,bmp,avif|max:10240',
+            'file'      => 'nullable|image|mimes:jpeg,png,jpg,webp,svg,gif,ico,bmp,avif|max:10240',
+            'folder'    => 'nullable|string',
+            'auto_webp' => 'nullable|boolean',
+            'max_dim'   => 'nullable|integer|in:800,1200,1920,0',
         ]);
 
-        $folder = $request->input('folder', 'general');
-        $file = $request->file('file');
+        $folder = $request->input('folder', 'uploads');
+        $folderDefs = $this->getFolderDefinitions();
 
-        if ($file && $file->isValid()) {
-            $name = uniqid('media_', true) . '.' . $file->getClientOriginalExtension();
+        $targetDir = $folderDefs[$folder]['default_upload'] ?? storage_path('app/public/uploads');
 
-            if ($folder === 'banners' || $folder === 'settings') {
-                $targetDir = public_path('images/' . $folder);
-                if (!File::isDirectory($targetDir)) File::makeDirectory($targetDir, 0755, true);
-                $destinationPath = $targetDir . '/' . $name;
-                $file->move($targetDir, $name);
-            } else {
-                $relPath = $file->storeAs('settings/qrcodes', $name, 'public');
-                $destinationPath = storage_path('app/public/' . $relPath);
-            }
-
-            // Auto-optimize uploaded image
-            $this->optimizeImageFile($destinationPath);
-
-            if ($this->accessService) {
-                $this->accessService->log('upload_media', "মিডিয়া লাইব্রেরিতে নতুন ছবি আপলোড ও অপ্টিমাইজ করা হয়েছে");
-            }
-
-            return back()->with('success', 'ছবি সফলভাবে মিডিয়া লাইব্রেরিতে আপলোড ও অপ্টিমাইজ করা হয়েছে!');
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true, true);
         }
 
-        return back()->with('error', 'ফাইল আপলোড ব্যর্থ হয়েছে।');
+        $uploadedFiles = $request->file('files') ?: ($request->file('file') ? [$request->file('file')] : []);
+
+        if (empty($uploadedFiles)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'কোনো ফাইল পাওয়া যায়নি।'], 422);
+            }
+            return back()->with('error', 'কোনো ফাইল নির্বাচন করা হয়নি।');
+        }
+
+        $uploadedResults = [];
+        $autoWebp = $request->boolean('auto_webp', false);
+        $maxDim = (int) $request->input('max_dim', 1920);
+
+        foreach ($uploadedFiles as $file) {
+            if (!$file->isValid()) {
+                continue;
+            }
+
+            $origName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $slugName = Str::slug($origName) ?: 'media';
+            $ext = strtolower($file->getClientOriginalExtension());
+            $finalName = $slugName . '_' . substr(uniqid(), -6) . '.' . $ext;
+
+            $file->move($targetDir, $finalName);
+            $destinationPath = $targetDir . '/' . $finalName;
+
+            // Auto-optimize uploaded image
+            $this->optimizeImageFile($destinationPath, $maxDim, $autoWebp);
+
+            $uploadedResults[] = [
+                'filename' => basename($destinationPath),
+                'path'     => $destinationPath,
+            ];
+        }
+
+        if ($this->accessService) {
+            $count = count($uploadedResults);
+            $this->accessService->log('upload_media', "মিডিয়া লাইব্রেরিতে {$count}টি ফাইল আপলোড ও অপ্টিমাইজ করা হয়েছে");
+        }
+
+        $msg = count($uploadedResults) . 'টি ফাইল সফলভাবে আপলোড ও অপ্টিমাইজ সম্পন্ন হয়েছে!';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'items'   => $uploadedResults,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Save customized image from Studio (HTML5 Canvas Base64 Payload).
+     */
+    public function saveCustomized(Request $request): JsonResponse
+    {
+        $request->validate([
+            'data_url'      => 'required|string',
+            'original_path' => 'nullable|string',
+            'mode'          => 'required|string|in:overwrite,new_copy',
+            'new_filename'  => 'nullable|string',
+            'folder'        => 'nullable|string',
+            'target_format' => 'nullable|string|in:webp,png,jpg,jpeg',
+        ]);
+
+        $dataUrl = $request->input('data_url');
+        $mode = $request->input('mode');
+        $originalPath = $request->input('original_path');
+        $newFilename = $request->input('new_filename');
+        $targetFormat = $request->input('target_format', 'webp');
+
+        // Extract base64 image data
+        if (!preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+            return response()->json(['success' => false, 'message' => 'অবৈধ ইমেজ ডাটা ফরম্যাট!'], 422);
+        }
+
+        $imageData = substr($dataUrl, strpos($dataUrl, ',') + 1);
+        $imageData = base64_decode($imageData);
+
+        if ($imageData === false) {
+            return response()->json(['success' => false, 'message' => 'ইমেজ ডাটা ডিকোড ব্যর্থ হয়েছে।'], 422);
+        }
+
+        $folderDefs = $this->getFolderDefinitions();
+        $targetFolder = $request->input('folder', 'uploads');
+
+        if ($mode === 'overwrite' && $originalPath && File::exists($originalPath)) {
+            $savePath = $originalPath;
+        } else {
+            $targetDir = $folderDefs[$targetFolder]['default_upload'] ?? storage_path('app/public/uploads');
+            if (!File::isDirectory($targetDir)) {
+                File::makeDirectory($targetDir, 0755, true, true);
+            }
+
+            $baseName = $newFilename ? Str::slug(pathinfo($newFilename, PATHINFO_FILENAME)) : 'customized_' . substr(uniqid(), -6);
+            $ext = strtolower($targetFormat ?: 'webp');
+            $savePath = $targetDir . '/' . $baseName . '.' . $ext;
+        }
+
+        // Security check
+        if (!$this->isSafePath($savePath)) {
+            return response()->json(['success' => false, 'message' => 'অননুমোদিত ফাইল পাথ এক্সেস!'], 403);
+        }
+
+        File::put($savePath, $imageData);
+
+        if ($this->accessService) {
+            $this->accessService->log('customize_media', "মিডিয়া স্টুডিওতে ছবি কাস্টমাইজ ও সংরক্ষণ করা হয়েছে: " . basename($savePath));
+        }
+
+        // Generate web URL
+        $storagePublic = storage_path('app/public');
+        $publicImages = public_path('images');
+
+        if (str_starts_with($savePath, $storagePublic)) {
+            $url = asset('storage' . str_replace('\\', '/', str_replace($storagePublic, '', $savePath)));
+        } else {
+            $url = asset(ltrim(str_replace([$publicImages, public_path()], '', $savePath), '/\\'));
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'কাস্টমাইজড ছবি সফলভাবে সংরক্ষণ করা হয়েছে!',
+            'url'      => $url,
+            'filename' => basename($savePath),
+            'size'     => $this->formatBytes(File::size($savePath)),
+        ]);
+    }
+
+    /**
+     * Rename a media file safely.
+     */
+    public function renameFile(Request $request): JsonResponse
+    {
+        $request->validate([
+            'path'     => 'required|string',
+            'new_name' => 'required|string|max:150',
+        ]);
+
+        $path = $request->input('path');
+        $newName = $request->input('new_name');
+
+        if (!File::exists($path) || !$this->isSafePath($path)) {
+            return response()->json(['success' => false, 'message' => 'ফাইলটি খুঁজে পাওয়া যায়নি বা পাথ অবৈধ।'], 404);
+        }
+
+        $dir = dirname($path);
+        $origExt = pathinfo($path, PATHINFO_EXTENSION);
+        $cleanBase = Str::slug(pathinfo($newName, PATHINFO_FILENAME));
+
+        if (!$cleanBase) {
+            return response()->json(['success' => false, 'message' => 'অবৈধ ফাইলের নাম।'], 422);
+        }
+
+        $newPath = $dir . '/' . $cleanBase . '.' . $origExt;
+
+        if (File::exists($newPath) && $newPath !== $path) {
+            $newPath = $dir . '/' . $cleanBase . '_' . substr(uniqid(), -4) . '.' . $origExt;
+        }
+
+        File::move($path, $newPath);
+
+        if ($this->accessService) {
+            $this->accessService->log('rename_media', "ফাইলের নাম পরিবর্তন: " . basename($path) . " -> " . basename($newPath));
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'ফাইলের নাম সফলভাবে পরিবর্তন করা হয়েছে!',
+            'new_name' => basename($newPath),
+            'new_path' => $newPath,
+        ]);
+    }
+
+    /**
+     * Bulk action: Delete, Move, or Optimize selected assets.
+     */
+    public function bulkAction(Request $request): JsonResponse
+    {
+        $request->validate([
+            'action'        => 'required|string|in:delete,move,optimize',
+            'paths'         => 'required|array|min:1',
+            'paths.*'       => 'required|string',
+            'target_folder' => 'nullable|string',
+        ]);
+
+        $action = $request->input('action');
+        $paths = $request->input('paths', []);
+        $targetFolder = $request->input('target_folder');
+        $folderDefs = $this->getFolderDefinitions();
+
+        $processedCount = 0;
+        $totalBytesSaved = 0;
+
+        foreach ($paths as $path) {
+            if (!File::exists($path) || !$this->isSafePath($path)) {
+                continue;
+            }
+
+            if ($action === 'delete') {
+                File::delete($path);
+                $processedCount++;
+            } elseif ($action === 'move' && $targetFolder && isset($folderDefs[$targetFolder])) {
+                $targetDir = $folderDefs[$targetFolder]['default_upload'];
+                if (!File::isDirectory($targetDir)) {
+                    File::makeDirectory($targetDir, 0755, true, true);
+                }
+                $destination = $targetDir . '/' . basename($path);
+                if ($destination !== $path) {
+                    File::move($path, $destination);
+                    $processedCount++;
+                }
+            } elseif ($action === 'optimize') {
+                $saved = $this->optimizeImageFile($path);
+                $processedCount++;
+                $totalBytesSaved += $saved;
+            }
+        }
+
+        $msg = match ($action) {
+            'delete'   => "নির্বাচিত {$processedCount}টি ফাইল সফলভাবে মুছে ফেলা হয়েছে!",
+            'move'     => "নির্বাচিত {$processedCount}টি ফাইল '{$folderDefs[$targetFolder]['label']}' ফোল্ডারে সরানো হয়েছে!",
+            'optimize' => "নির্বাচিত {$processedCount}টি ফাইল অপ্টিমাইজ সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
+        };
+
+        if ($this->accessService) {
+            $this->accessService->log('bulk_media_' . $action, $msg);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
+            'count'   => $processedCount,
+        ]);
+    }
+
+    /**
+     * Create a new folder directory.
+     */
+    public function createFolder(Request $request): JsonResponse
+    {
+        $request->validate([
+            'folder_name' => 'required|string|max:50',
+            'location'    => 'required|string|in:storage,public',
+        ]);
+
+        $name = Str::slug($request->input('folder_name'));
+        $loc = $request->input('location');
+
+        $baseDir = ($loc === 'public') ? public_path('images/' . $name) : storage_path('app/public/' . $name);
+
+        if (File::isDirectory($baseDir)) {
+            return response()->json(['success' => false, 'message' => 'এই নামের ফোল্ডার ইতোমধ্যে বিদ্যমান রয়েছে।'], 422);
+        }
+
+        File::makeDirectory($baseDir, 0755, true, true);
+
+        if ($this->accessService) {
+            $this->accessService->log('create_media_folder', "নতুন ফোল্ডার তৈরি করা হয়েছে: {$name}");
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "নতুন ফোল্ডার '{$name}' সফলভাবে তৈরি হয়েছে!",
+        ]);
+    }
+
+    /**
+     * Download selected files as a ZIP archive.
+     */
+    public function downloadZip(Request $request): BinaryFileResponse|JsonResponse
+    {
+        $request->validate([
+            'paths' => 'required|array|min:1',
+        ]);
+
+        if (!class_exists('ZipArchive')) {
+            return response()->json(['success' => false, 'message' => 'সার্ভারে ZipArchive এক্সটেনশন সক্রিয় নেই।'], 500);
+        }
+
+        $paths = $request->input('paths', []);
+        $zipName = 'ideaabd_media_assets_' . date('Ymd_His') . '.zip';
+        $tempZipPath = storage_path('app/' . $zipName);
+
+        $zip = new ZipArchive();
+        if ($zip->open($tempZipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            return response()->json(['success' => false, 'message' => 'ZIP ফাইল তৈরি ব্যর্থ হয়েছে।'], 500);
+        }
+
+        $addedCount = 0;
+        foreach ($paths as $p) {
+            if (File::exists($p) && $this->isSafePath($p)) {
+                $zip->addFile($p, basename($p));
+                $addedCount++;
+            }
+        }
+
+        $zip->close();
+
+        if ($addedCount === 0 || !File::exists($tempZipPath)) {
+            return response()->json(['success' => false, 'message' => 'কোনো বৈধ ফাইল জিপে যুক্ত করা যায়নি।'], 422);
+        }
+
+        return response()->download($tempZipPath, $zipName)->deleteFileAfterSend(true);
     }
 
     /**
      * Auto-Optimize All Existing Images in Library.
      */
-    public function optimizeAll(Request $request)
+    public function optimizeAll(Request $request): JsonResponse|RedirectResponse
     {
-        $storagePublic = storage_path('app/public');
-        $publicImages = public_path('images');
-
-        $directories = [
-            $storagePublic . '/books/covers',
-            $publicImages . '/banners',
-            $publicImages . '/settings',
-            $storagePublic . '/settings/qrcodes',
-            $storagePublic . '/authors',
-            $publicImages,
-        ];
-
+        $folderDefs = $this->getFolderDefinitions();
         $optimizedCount = 0;
         $totalBytesSaved = 0;
 
-        foreach ($directories as $dir) {
-            if (File::isDirectory($dir)) {
-                $files = File::files($dir);
+        foreach ($folderDefs as $fConfig) {
+            foreach ($fConfig['dirs'] as $dir) {
+                if (!File::isDirectory($dir)) {
+                    continue;
+                }
+
+                $files = File::allFiles($dir);
                 foreach ($files as $file) {
                     $ext = strtolower($file->getExtension());
                     if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-                        $beforeSize = $file->getSize();
                         $saved = $this->optimizeImageFile($file->getPathname());
                         if ($saved > 0) {
                             $optimizedCount++;
@@ -197,7 +718,7 @@ class AdminMediaController extends Controller
      * Optimize a single image file in place.
      * Returns the number of bytes saved, or 0 if unchanged.
      */
-    private function optimizeImageFile(string $filePath): int
+    private function optimizeImageFile(string $filePath, int $maxWidth = 1920, bool $convertToWebp = false): int
     {
         if (!File::exists($filePath) || !extension_loaded('gd')) {
             return 0;
@@ -218,8 +739,7 @@ class AdminMediaController extends Controller
 
             $origWidth = $imageInfo[0];
             $origHeight = $imageInfo[1];
-            $maxWidth = 1920;
-            $maxHeight = 1920;
+            $maxHeight = $maxWidth;
 
             // Load source image
             $srcImage = match ($ext) {
@@ -233,11 +753,11 @@ class AdminMediaController extends Controller
                 return 0;
             }
 
-            // Calculate resized dimensions if exceeding 1920px
+            // Calculate resized dimensions if needed
             $newWidth = $origWidth;
             $newHeight = $origHeight;
 
-            if ($origWidth > $maxWidth || $origHeight > $maxHeight) {
+            if ($maxWidth > 0 && ($origWidth > $maxWidth || $origHeight > $maxHeight)) {
                 $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
                 $newWidth = (int) round($origWidth * $ratio);
                 $newHeight = (int) round($origHeight * $ratio);
@@ -245,8 +765,8 @@ class AdminMediaController extends Controller
 
             $targetImage = imagecreatetruecolor($newWidth, $newHeight);
 
-            // Handle transparency for PNG & WebP
-            if ($ext === 'png' || $ext === 'webp') {
+            // Handle transparency
+            if ($ext === 'png' || $ext === 'webp' || $convertToWebp) {
                 imagealphablending($targetImage, false);
                 imagesavealpha($targetImage, true);
                 $transparent = imagecolorallocatealpha($targetImage, 255, 255, 255, 127);
@@ -255,10 +775,9 @@ class AdminMediaController extends Controller
 
             imagecopyresampled($targetImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
 
-            // Save to a temporary file first
             $tempPath = $filePath . '.tmp';
             $saved = match ($ext) {
-                'jpg', 'jpeg' => imagejpeg($targetImage, $tempPath, 83),
+                'jpg', 'jpeg' => imagejpeg($targetImage, $tempPath, 84),
                 'png'         => imagepng($targetImage, $tempPath, 8),
                 'webp'        => imagewebp($targetImage, $tempPath, 82),
                 default       => false,
@@ -269,7 +788,6 @@ class AdminMediaController extends Controller
 
             if ($saved && File::exists($tempPath)) {
                 $newSize = File::size($tempPath);
-                // Keep the new file only if it is smaller or resized
                 if ($newSize < $origSize || $newWidth < $origWidth) {
                     File::move($tempPath, $filePath);
                     return max(0, $origSize - $newSize);
@@ -286,31 +804,50 @@ class AdminMediaController extends Controller
     }
 
     /**
-     * Delete media asset.
+     * Delete single media asset.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request): RedirectResponse|JsonResponse
     {
         $path = $request->input('path');
-        if (!$path || !File::exists($path)) {
-            return back()->with('error', 'ফাইলটি খুঁজে পাওয়া যায়নি।');
+        if (!$path || !File::exists($path) || !$this->isSafePath($path)) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'ফাইলটি খুঁজে পাওয়া যায়নি বা অননুমোদিত পাথ!'], 404);
+            }
+            return back()->with('error', 'ফাইলটি খুঁজে পাওয়া যায়নি বা অননুমোদিত পাথ!');
         }
 
-        // Security check: ensure path is within public or storage
+        File::delete($path);
+
+        if ($this->accessService) {
+            $this->accessService->log('delete_media', "মিডিয়া লাইব্রেরি থেকে ফাইল '" . basename($path) . "' মুছে ফেলা হয়েছে");
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'মিডিয়া ফাইল সফলভাবে মুছে ফেলা হয়েছে!']);
+        }
+
+        return back()->with('success', 'মিডিয়া ফাইল সফলভাবে মুছে ফেলা হয়েছে!');
+    }
+
+    /**
+     * Security check: ensure path is within public or storage.
+     */
+    private function isSafePath(string $path): bool
+    {
         $publicDir = realpath(public_path());
         $storageDir = realpath(storage_path());
         $realPath = realpath($path);
 
-        if (!$realPath || (!str_starts_with($realPath, $publicDir) && !str_starts_with($realPath, $storageDir))) {
-            return back()->with('error', 'অননুমোদিত ফাইল মোছার চেষ্টা!');
+        if (!$realPath) {
+            // Path may not exist yet if writing a new file
+            $parentDir = realpath(dirname($path));
+            if (!$parentDir) {
+                return false;
+            }
+            return str_starts_with($parentDir, $publicDir) || str_starts_with($parentDir, $storageDir);
         }
 
-        File::delete($realPath);
-
-        if ($this->accessService) {
-            $this->accessService->log('delete_media', "মিডিয়া লাইব্রেরি থেকে ফাইল '" . basename($realPath) . "' মুছে ফেলা হয়েছে");
-        }
-
-        return back()->with('success', 'মিডিয়া ফাইল সফলভাবে মুছে ফেলা হয়েছে!');
+        return str_starts_with($realPath, $publicDir) || str_starts_with($realPath, $storageDir);
     }
 
     /**
