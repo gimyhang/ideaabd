@@ -304,6 +304,20 @@ class Author extends Model
 
         // Clean leading slashes
         $cleanPath = ltrim($avatar, '/');
+        $relPath = ltrim(str_replace(['storage/', 'public/'], '', $cleanPath), '/');
+
+        if (!file_exists(storage_path('app/public/' . $relPath)) && !file_exists(public_path($cleanPath))) {
+            $baseNoExt = preg_replace('/\.[^.]+$/', '', $relPath);
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.webp'))) {
+                return asset('storage/' . $baseNoExt . '.webp');
+            }
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.avif'))) {
+                return asset('storage/' . $baseNoExt . '.avif');
+            }
+            if (file_exists(public_path($baseNoExt . '.webp'))) {
+                return asset($baseNoExt . '.webp');
+            }
+        }
 
         // Check if path starts with storage/
         if (str_starts_with($cleanPath, 'storage/')) {

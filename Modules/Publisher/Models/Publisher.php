@@ -77,6 +77,17 @@ class Publisher extends Model
 
         // Clean leading slashes
         $cleanPath = ltrim($logo, '/');
+        $relPath = ltrim(str_replace(['storage/', 'public/'], '', $cleanPath), '/');
+
+        if (!file_exists(storage_path('app/public/' . $relPath)) && !file_exists(public_path($cleanPath))) {
+            $baseNoExt = preg_replace('/\.[^.]+$/', '', $relPath);
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.webp'))) {
+                return asset('storage/' . $baseNoExt . '.webp');
+            }
+            if (file_exists(public_path($baseNoExt . '.webp'))) {
+                return asset($baseNoExt . '.webp');
+            }
+        }
 
         if (str_starts_with($cleanPath, 'storage/')) {
             return asset($cleanPath);

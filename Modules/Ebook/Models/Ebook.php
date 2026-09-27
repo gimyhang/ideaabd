@@ -239,15 +239,31 @@ class Ebook extends Model
     }
 
     /**
-     * Resolved Cover URL
+     * Resolved Cover URL with converted WebP/AVIF auto-detection
      */
     public function getCoverUrlAttribute(): ?string
     {
         if (!$this->cover_image) return null;
-        if (str_starts_with($this->cover_image, 'http://') || str_starts_with($this->cover_image, 'https://')) {
-            return $this->cover_image;
+        $cover = trim((string) $this->cover_image);
+        if (str_starts_with($cover, 'http://') || str_starts_with($cover, 'https://')) {
+            return $cover;
         }
-        return asset('storage/' . ltrim($this->cover_image, '/'));
+
+        $relPath = ltrim(str_replace(['storage/', '/storage/'], '', $cover), '/');
+        if (!file_exists(storage_path('app/public/' . $relPath)) && !file_exists(public_path($cover))) {
+            $baseNoExt = preg_replace('/\.[^.]+$/', '', $relPath);
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.webp'))) {
+                return asset('storage/' . $baseNoExt . '.webp');
+            }
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.avif'))) {
+                return asset('storage/' . $baseNoExt . '.avif');
+            }
+            if (file_exists(public_path($baseNoExt . '.webp'))) {
+                return asset($baseNoExt . '.webp');
+            }
+        }
+
+        return asset('storage/' . $relPath);
     }
 
     /**
