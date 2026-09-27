@@ -32,14 +32,14 @@
         <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
             <i class="fa-solid fa-folder-tree me-1"></i> Categories
         </a>
-        <button type="button" class="btn btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" style="background: linear-gradient(135deg, #10b981, #059669); border: none;" onclick="openQuickAddBookModal()" title="Fast 10-Second Quick Book Upload">
-            <i class="fa-solid fa-bolt me-1 text-warning"></i> <span>কুইক বই যোগ</span>
+        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" onclick="openQuickAddBookModal()" title="Fast 10-Second Quick Book Upload">
+            <i class="fa-solid fa-bolt me-1 text-warning"></i> Quick Add Book
         </button>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fa-solid fa-circle-plus me-1"></i> Add New Book
+            <i class="fa-solid fa-circle-plus me-1"></i> Add Full Book
         </a>
         <a href="{{ route('book.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Storefront
+            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Storefront
         </a>
     </div>
 @endsection
@@ -930,9 +930,9 @@
                     </span>
                     <div>
                         <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel" style="font-size: 1.05rem;">
-                            দ্রুত বই আপলোড (1-Click Fast Book Add)
+                            <i class="fa-solid fa-bolt me-1 text-warning"></i> Quick Book Add (দ্রুত বই আপলোড)
                         </h5>
-                        <small class="text-white text-opacity-75" style="font-size: 11.5px;">শুধু বাংলা নাম, ক্যাটাগরি, কভার ও দাম দিলেই সরাসরি শপে লাইভ হবে</small>
+                        <small class="text-white text-opacity-75" style="font-size: 11.5px;">Book title, category, cover & price — publish in seconds, edit details anytime</small>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -982,11 +982,11 @@
                             {{-- Manual Upload Option --}}
                             <div>
                                 <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1 text-primary"></i> নিজের কভার ছবি আপলোড
+                                    <i class="fa-solid fa-cloud-arrow-up me-1 text-primary"></i> Upload Custom Cover
                                 </label>
                                 <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewQaSelectedCover(this)">
                                 <button type="button" id="qaResetAutoCoverBtn" class="btn btn-xs btn-link text-muted d-none text-decoration-none mt-1" onclick="resetToQaAutoCover()" style="font-size: 11px;">
-                                    <i class="fa-solid fa-rotate-left me-0.5"></i> অটো কভারে ফেরত যান
+                                    <i class="fa-solid fa-rotate-left me-0.5"></i> Reset to Auto Cover
                                 </button>
                             </div>
                         </div>
@@ -994,20 +994,20 @@
                         {{-- Right Column: Basic Info & Live Commission Calculator --}}
                         <div class="col-12 col-md-7">
                             
-                            {{-- 1. Bengali Title --}}
+                            {{-- 1. Book Title (Bengali / English) --}}
                             <div class="mb-2.5">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    বইয়ের পূর্ণ বাংলা নাম <span class="text-danger">*</span>
+                                    Book Title (বইয়ের নাম) <span class="text-danger">*</span>
                                 </label>
                                 <input type="text" id="qaTitle" name="title" class="form-control form-control-sm fw-bold border-primary-subtle" 
-                                       placeholder="যেমন: নদীর ওপার আকাশ / গীতাঞ্জলি" required oninput="renderQaAutoCover()">
+                                       placeholder="e.g. The Art of Thinking / নদীর ওপার আকাশ" required oninput="renderQaAutoCover()">
                             </div>
 
                             {{-- 2. Category & Author --}}
                             <div class="row g-2 mb-2.5">
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-dark mb-1">
-                                        ক্যাটাগরি <span class="text-danger">*</span>
+                                        Category (ক্যাটাগরি) <span class="text-danger">*</span>
                                     </label>
                                     <select id="qaCategoryId" name="category_id" class="form-select form-select-sm fw-semibold">
                                         @foreach($categories as $cId => $cName)
@@ -1017,10 +1017,10 @@
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label small fw-bold text-dark mb-1">
-                                        লেখক / অনুবাদক
+                                        Author Name (লেখক)
                                     </label>
                                     <input type="text" id="qaAuthorName" name="author_name" class="form-control form-control-sm" 
-                                           placeholder="যেমন: শাকিল মাসুদ" value="আইডিয়া প্রকাশন" oninput="renderQaAutoCover()">
+                                           placeholder="e.g. শাকিল মাসুদ / Idea Author" value="আইডিয়া প্রকাশন" oninput="renderQaAutoCover()">
                                 </div>
                             </div>
 
@@ -1029,7 +1029,7 @@
                                 <div class="row g-2 mb-2">
                                     <div class="col-4">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            মুদ্রিত মূল্য (MRP) <span class="text-danger">*</span>
+                                            Printed MRP <span class="text-danger">*</span>
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
@@ -1037,14 +1037,14 @@
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">কমিশন (%)</label>
+                                        <label class="form-label small fw-semibold text-dark mb-1">Sale Discount (%)</label>
                                         <div class="input-group input-group-sm">
                                             <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="20" oninput="recalcQaSalePriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">বিক্রয় মূল্য (৳)</label>
+                                        <label class="form-label small fw-semibold text-dark mb-1">Sale Price (৳)</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
                                             <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="240" oninput="recalcQaSaleCommissionFromPrice()">
@@ -1055,14 +1055,14 @@
                                 {{-- Wholesale Buy Price --}}
                                 <div class="row g-2 align-items-center pt-2 border-top">
                                     <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">পাইকারি ক্রয় কমিশন (%):</label>
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale Buy Discount (%):</label>
                                         <div class="input-group input-group-sm">
                                             <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" placeholder="40" oninput="recalcQaCostPriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
                                         </div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">পাইকারি ক্রয় মূল্য (Cost ৳):</label>
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale Cost Price (৳):</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
                                             <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" placeholder="180" oninput="recalcQaBuyCommissionFromPrice()">
@@ -1074,18 +1074,18 @@
                             {{-- 4. Stock & Binding Format --}}
                             <div class="row g-2 align-items-center">
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">প্রাথমিক স্টক (pcs)</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Initial Stock (pcs)</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" id="qaStockQuantity" name="stock_quantity" min="0" value="10" class="form-control fw-bold">
-                                        <span class="input-group-text">কপি</span>
+                                        <span class="input-group-text">pcs</span>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">কভার ফরম্যাট</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Binding Format</label>
                                     <select id="qaCoverType" name="cover_type" class="form-select form-select-sm">
-                                        <option value="paperback" selected>📖 পেপারব্যাক (Paperback)</option>
-                                        <option value="hardcover">💎 হার্ডকভার (Hardcover)</option>
-                                        <option value="both">📚 উভয় ফরম্যাট (Both)</option>
+                                        <option value="paperback" selected>📖 Paperback (পেপারব্যাক)</option>
+                                        <option value="hardcover">💎 Hardcover (হার্ডকভার)</option>
+                                        <option value="both">📚 Both Formats (উভয়)</option>
                                     </select>
                                 </div>
                             </div>
@@ -1096,12 +1096,12 @@
 
                 <div class="modal-footer bg-light py-2.5 d-flex align-items-center justify-content-between">
                     <small class="text-muted" style="font-size: 11px;">
-                        <i class="fa-solid fa-circle-info text-primary me-0.5"></i> বিস্তারিত বিবরণ, প্রিভিউ পেজ ও সূচিপত্র পরে পূর্ণাঙ্গ এডিটর থেকে যোগ করা যাবে।
+                        <i class="fa-solid fa-circle-info text-primary me-0.5"></i> Full book summary, look-inside preview and ISBN can be added anytime in full editor.
                     </small>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" id="qaSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
-                            <i class="fa-solid fa-bolt me-1 text-warning"></i> ১-ক্লিকে প্রকাশ করুন
+                            <i class="fa-solid fa-bolt me-1 text-warning"></i> 1-Click Publish
                         </button>
                     </div>
                 </div>

@@ -65,22 +65,23 @@
             {{-- ROW 2: Title (BN) * & Title (EN) --}}
             <div class="col-12 col-md-6">
                 <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-book text-primary me-1"></i> Title (Bengali) <span class="text-danger">*</span>
+                    <i class="fa-solid fa-book text-primary me-1"></i> Title (Bengali / Primary) <span class="text-danger">*</span>
                 </label>
                 <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
                        class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
-                       placeholder="Book Title in Bengali"
-                       oninput="updateLiveMockupCard()">
+                       placeholder="Book Title (বাংলা বা ইংরেজি)"
+                       oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="f-title_en" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-language text-secondary me-1"></i> Title (English) <span class="text-danger">*</span>
+                    <i class="fa-solid fa-language text-secondary me-1"></i> Title (English / Secondary)
                 </label>
                 <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? $val('subtitle')) }}"
                        class="form-control form-control-sm @error('title_en') is-invalid @enderror"
-                       placeholder="Book Title in English">
+                       placeholder="Book Title in English (optional)"
+                       oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
                 @error('title_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
@@ -1117,7 +1118,16 @@
         if (themeInp) themeInp.value = key;
 
         const swatches = document.querySelectorAll('#autoCoverThemeSwatches .cover-theme-btn');
-        swatches.forEach(btn => btn.classList.remove('border-primary', 'shadow'));
+        swatches.forEach(btn => {
+            btn.classList.remove('border-primary', 'shadow', 'active');
+            if (btn.getAttribute('onclick')?.includes(`'${key}'`)) {
+                btn.classList.add('border-primary', 'shadow', 'active');
+                btn.style.outline = '2px solid #3b82f6';
+                btn.style.outlineOffset = '2px';
+            } else {
+                btn.style.outline = 'none';
+            }
+        });
 
         generateAutoBookCoverLive(true);
     }
@@ -1142,7 +1152,12 @@
         }
 
         const titleInput = document.getElementById('f-title');
-        const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
+        const titleEnInput = document.getElementById('f-title_en');
+        let title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : '';
+        if (!title && titleEnInput && titleEnInput.value.trim()) {
+            title = titleEnInput.value.trim();
+        }
+        if (!title) title = 'বইয়ের নাম';
 
         let authorName = '';
         const authorInputs = document.querySelectorAll('.author-name-input');
@@ -1165,50 +1180,88 @@
         const authorColor = theme.author;
         const accentColor = theme.accent || '#fbbf24';
         const selectedFont = theme.font || 'Hind Siliguri';
+        const firstLetter = title.charAt(0) || 'ব';
 
         const canvas = document.createElement('canvas');
         canvas.width = 600;
         canvas.height = 900;
         const ctx = canvas.getContext('2d');
 
-        // Solid Background
+        // 1. Solid Background Gradient
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 600, 900);
 
-        // Subtle gradient shading
-        const grad = ctx.createLinearGradient(0, 0, 0, 900);
-        grad.addColorStop(0, 'rgba(255,255,255,0.06)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.35)');
+        const grad = ctx.createLinearGradient(0, 0, 600, 900);
+        grad.addColorStop(0, 'rgba(255,255,255,0.08)');
+        grad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.45)');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 600, 900);
 
-        // Framing
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        // 2. Pattern Overlay
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+        for (let x = 20; x < 600; x += 30) {
+            for (let y = 20; y < 900; y += 30) {
+                ctx.beginPath();
+                ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // 3. Ornate Framing
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
         ctx.lineWidth = 2;
         ctx.strokeRect(25, 25, 550, 850);
         ctx.strokeStyle = accentColor;
         ctx.lineWidth = 3;
         ctx.strokeRect(35, 35, 530, 830);
 
-        // Top Badge
+        // 4. Header Brand Badge
+        ctx.fillStyle = accentColor;
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        ctx.roundRect(175, 60, 250, 44, 22);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
         ctx.textAlign = 'center';
         ctx.fillStyle = accentColor;
-        ctx.font = '600 15px "' + selectedFont + '", "Kalpurush", sans-serif';
-        ctx.fillText('✦ আইডিয়া প্রকাশন ✦', 300, 85);
+        ctx.font = 'bold 16px "Inter", sans-serif';
+        ctx.fillText('IDEA PUBLICATION', 300, 88);
 
-        // Bengali Title wrap
-        const fontSize = title.length > 35 ? 36 : (title.length > 18 ? 44 : 52);
-        ctx.font = '800 ' + fontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", serif';
+        // 5. Stylized Central Letter Monogram
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.arc(300, 260, 80, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.arc(300, 260, 74, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 88px "' + selectedFont + '", "SolaimanLipi", serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(firstLetter, 300, 265);
+        ctx.textBaseline = 'alphabetic';
+
+        // 6. Title wrap
+        const fontSize = title.length > 35 ? 36 : (title.length > 18 ? 44 : 50);
+        ctx.font = 'bold ' + fontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", serif';
         ctx.fillStyle = titleColor;
 
         const words = title.split(' ');
         let lines = [];
         let currentLine = '';
-        const maxChars = fontSize > 45 ? 10 : (fontSize > 38 ? 13 : 16);
+        const maxChars = fontSize > 45 ? 12 : (fontSize > 38 ? 16 : 20);
         words.forEach(word => {
             const testLine = currentLine ? currentLine + ' ' + word : word;
-            if (testLine.length > maxChars) {
-                if (currentLine) lines.push(currentLine);
+            if (testLine.length > maxChars && currentLine) {
+                lines.push(currentLine);
                 currentLine = word;
             } else {
                 currentLine = testLine;
@@ -1216,41 +1269,39 @@
         });
         if (currentLine) lines.push(currentLine);
 
-        const lineHeight = fontSize * 1.25;
+        if (lines.length > 3) {
+            lines = lines.slice(0, 3);
+            lines[2] += '...';
+        }
+
+        const lineHeight = fontSize * 1.28;
         const titleBlockHeight = lines.length * lineHeight;
-        const startY = 340 - (titleBlockHeight / 2) + (lineHeight / 2);
+        const startY = 460;
 
         lines.forEach((line, idx) => {
             ctx.fillText(line, 300, startY + (idx * lineHeight));
         });
 
-        // Divider
-        const dividerY = Math.max(480, startY + titleBlockHeight + 25);
+        // 7. Divider Accent Line
+        const dividerY = startY + titleBlockHeight + 20;
         ctx.strokeStyle = accentColor;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.8;
         ctx.beginPath();
-        ctx.moveTo(150, dividerY);
-        ctx.lineTo(250, dividerY);
+        ctx.moveTo(200, dividerY);
+        ctx.lineTo(400, dividerY);
         ctx.stroke();
+        ctx.globalAlpha = 1.0;
 
-        ctx.beginPath();
-        ctx.moveTo(350, dividerY);
-        ctx.lineTo(450, dividerY);
-        ctx.stroke();
-
-        ctx.fillStyle = accentColor;
-        ctx.font = '14px sans-serif';
-        ctx.fillText('❖ ✦ ❖', 300, dividerY + 5);
-
-        // Author
+        // 8. Author
         ctx.fillStyle = authorColor;
-        ctx.font = '600 24px "' + selectedFont + '", "SolaimanLipi", serif';
-        ctx.fillText(authorName, 300, dividerY + 50);
+        ctx.font = '600 26px "' + selectedFont + '", "SolaimanLipi", serif';
+        ctx.fillText(authorName, 300, dividerY + 45);
 
-        // Bottom Footer
+        // 9. Bottom Footer
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.font = '500 12px "' + selectedFont + '", sans-serif';
-        ctx.fillText('আইডিয়া প্রকাশন | www.ideaabd.com', 300, 835);
+        ctx.font = '500 13px "' + selectedFont + '", sans-serif';
+        ctx.fillText('আইডিয়া প্রকাশন • প্রিমিয়াম সংস্করণ', 300, 835);
 
         const dataUrl = canvas.toDataURL('image/webp', 0.95);
 
