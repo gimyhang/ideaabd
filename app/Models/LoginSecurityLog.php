@@ -184,24 +184,28 @@ class LoginSecurityLog extends Model
             $log->last_username = $username;
             $log->attempt_count += 1;
 
-            $cooldownSeconds = 0;
-            if ($log->attempt_count >= 8) {
-                $cooldownSeconds = 900; // 15 minutes
-                $log->threat_level = 'critical';
-            } elseif ($log->attempt_count >= 6) {
-                $cooldownSeconds = 120; // 2 minutes
-                $log->threat_level = 'high';
-            } elseif ($log->attempt_count === 5) {
-                $cooldownSeconds = 60; // 1 minute
-                $log->threat_level = 'high';
-            } elseif ($log->attempt_count === 4) {
-                $cooldownSeconds = 30; // 30 seconds
-                $log->threat_level = 'medium';
-            }
+            $isLocalhost = (in_array($ip, ['127.0.0.1', '::1', 'localhost'], true) || app()->environment('local'));
 
-            if ($cooldownSeconds > 0) {
-                $log->locked_until = Carbon::now()->addSeconds($cooldownSeconds);
-                \App\Services\SecurityAuditService::cooldownTriggered($username, $cooldownSeconds, $log->attempt_count);
+            $cooldownSeconds = 0;
+            if (!$isLocalhost) {
+                if ($log->attempt_count >= 8) {
+                    $cooldownSeconds = 900; // 15 minutes
+                    $log->threat_level = 'critical';
+                } elseif ($log->attempt_count >= 6) {
+                    $cooldownSeconds = 120; // 2 minutes
+                    $log->threat_level = 'high';
+                } elseif ($log->attempt_count === 5) {
+                    $cooldownSeconds = 60; // 1 minute
+                    $log->threat_level = 'high';
+                } elseif ($log->attempt_count === 4) {
+                    $cooldownSeconds = 30; // 30 seconds
+                    $log->threat_level = 'medium';
+                }
+
+                if ($cooldownSeconds > 0) {
+                    $log->locked_until = Carbon::now()->addSeconds($cooldownSeconds);
+                    \App\Services\SecurityAuditService::cooldownTriggered($username, $cooldownSeconds, $log->attempt_count);
+                }
             }
 
             if ($log->attempt_count >= $threshold) {

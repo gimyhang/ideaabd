@@ -463,9 +463,11 @@ class LoginController extends Controller
                         ->orWhere('phone', '880' . $last10);
                 }
 
-                // 4. Admin identifier fallback: allow logging in with 'admin', ADMIN_USERNAME, or admin emails
+                // 4. Admin identifier fallback: allow logging in with 'admin', ADMIN_USERNAME, admin emails, or admin phones
                 $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
-                if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com'], true)) {
+                $adminEmails = ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com', strtolower(env('ADMIN_EMAIL', ''))];
+                $adminPhones = ['01726976982', '01728976982', '1726976982', '1728976982', preg_replace('/[^\d]/', '', env('ADMIN_PHONE', ''))];
+                if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true)) {
                     $query->orWhere('role', \App\Models\User::ROLE_ADMIN)
                           ->orWhere('id', 1);
                 }
