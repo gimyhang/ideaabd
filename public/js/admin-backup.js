@@ -443,10 +443,24 @@ function deleteSelectedBackups() {
     form.submit();
 }
 
+/* ── Modal Instance Helper (Robust Bootstrap 5 & jQuery compatibility) ── */
+function getBsModal(element) {
+    if (!element) return null;
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        return bootstrap.Modal.getOrCreateInstance(element);
+    } else if (typeof jQuery !== 'undefined' && jQuery(element).modal) {
+        return {
+            show: () => jQuery(element).modal('show'),
+            hide: () => jQuery(element).modal('hide')
+        };
+    }
+    return null;
+}
+
 /* ── 4. Live AJAX 1-Click Backup Creation with Progress Modal ── */
 function triggerLiveBackup(mode, modeLabel) {
     const modalEl = document.getElementById('backupProgressModal');
-    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const modal = getBsModal(modalEl);
     if (modal) modal.show();
 
     const titleEl = document.getElementById('backupProgressTitle');
@@ -524,7 +538,7 @@ function inspectZipArchive(filename) {
     if (fnEl) fnEl.textContent = filename;
 
     const modalEl = document.getElementById('inspectModal');
-    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const modal = getBsModal(modalEl);
     if (modal) modal.show();
 
     const body = document.getElementById('inspectBody');
@@ -605,7 +619,8 @@ function openEmailModal(filename) {
     if (fnDisplay) fnDisplay.textContent = filename;
 
     const modalEl = document.getElementById('emailDispatchModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    const modal = getBsModal(modalEl);
+    if (modal) modal.show();
 }
 
 function submitEmailDispatch() {
@@ -643,7 +658,7 @@ function submitEmailDispatch() {
             btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send via Email';
         }
         const modalEl = document.getElementById('emailDispatchModal');
-        if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+        getBsModal(modalEl)?.hide();
 
         if (data.success) {
             showToast('success', data.message || 'Backup archive successfully sent to email!');
@@ -670,7 +685,8 @@ function confirmRestore(filename, isMasterZip) {
     if (form) form.action = restoreBase + '/' + encodeURIComponent(filename);
 
     const modalEl = document.getElementById('restoreModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    const modal = getBsModal(modalEl);
+    if (modal) modal.show();
 }
 
 /* ── 8. Global Dynamic Toast ── */
@@ -699,7 +715,7 @@ function openDiffModal(filename) {
     if (fnEl) fnEl.textContent = filename;
 
     const modalEl = document.getElementById('diffModal');
-    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const modal = getBsModal(modalEl);
     if (modal) modal.show();
 
     const body = document.getElementById('diffModalBody');
@@ -837,7 +853,7 @@ function filterDiffTable(query) {
 
 function openSelectiveFromDiff() {
     const diffModalEl = document.getElementById('diffModal');
-    if (diffModalEl) bootstrap.Modal.getInstance(diffModalEl)?.hide();
+    getBsModal(diffModalEl)?.hide();
 
     if (currentDiffFilename) {
         openSelectiveRestoreModal(currentDiffFilename);
@@ -847,7 +863,7 @@ function openSelectiveFromDiff() {
 /* ── 10. Safe Dry-Run Simulation Modal ── */
 function runDryRunSimulation(filename) {
     const modalEl = document.getElementById('dryRunModal');
-    const modal = modalEl ? new bootstrap.Modal(modalEl) : null;
+    const modal = getBsModal(modalEl);
     if (modal) modal.show();
 
     const body = document.getElementById('dryRunModalBody');
@@ -898,7 +914,7 @@ function runDryRunSimulation(filename) {
 
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn-backup-gradient btn-gradient-emerald px-4" onclick="bootstrap.Modal.getInstance(document.getElementById('dryRunModal'))?.hide(); confirmRestore('${filename}', true)">
+                            <button type="button" class="btn-backup-gradient btn-gradient-emerald px-4" onclick="getBsModal(document.getElementById('dryRunModal'))?.hide(); confirmRestore('${filename}', true)">
                                 <i class="fa-solid fa-rotate-left"></i>
                                 <span>Confirm Live Restore</span>
                             </button>
@@ -940,7 +956,8 @@ function openSelectiveRestoreModal(filename) {
     toggleAllSelectiveTables(false);
 
     const modalEl = document.getElementById('selectiveRestoreModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    const modal = getBsModal(modalEl);
+    if (modal) modal.show();
 
     initSelectiveSearch();
 }
@@ -1017,7 +1034,7 @@ function submitSelectiveRestore() {
             btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Restore Selected Tables</span>';
         }
         const modalEl = document.getElementById('selectiveRestoreModal');
-        if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
+        getBsModal(modalEl)?.hide();
 
         if (data.success) {
             showToast('success', data.message || 'Selective restore completed successfully!');
@@ -1128,3 +1145,25 @@ function testTelegramNotification() {
         showToast('danger', 'Could not reach the Telegram notification server.');
     });
 }
+
+/* ── Global Window Exports for Inline HTML onclick handlers ── */
+window.getBsModal = getBsModal;
+window.confirmRestore = confirmRestore;
+window.openDiffModal = openDiffModal;
+window.runDryRunSimulation = runDryRunSimulation;
+window.openSelectiveRestoreModal = openSelectiveRestoreModal;
+window.inspectZipArchive = inspectZipArchive;
+window.openEmailModal = openEmailModal;
+window.submitEmailDispatch = submitEmailDispatch;
+window.generateAnonymizedDump = generateAnonymizedDump;
+window.triggerLiveBackup = triggerLiveBackup;
+window.deleteSelectedBackups = deleteSelectedBackups;
+window.testTelegramNotification = testTelegramNotification;
+window.toggleAllSelectiveTables = toggleAllSelectiveTables;
+window.submitSelectiveRestore = submitSelectiveRestore;
+window.handleDynamicUpload = handleDynamicUpload;
+window.openSelectiveFromDiff = openSelectiveFromDiff;
+window.filterDiffTable = filterDiffTable;
+window.updateSelectiveCount = updateSelectiveCount;
+window.applyUnifiedFilter = applyUnifiedFilter;
+
