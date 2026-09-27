@@ -865,7 +865,7 @@ class AdminMediaController extends Controller
     }
 
     /**
-     * Auto-Optimize All Existing Images in Library.
+     * Auto-Optimize All Existing Images and SVGs in Library.
      */
     public function optimizeAll(Request $request): JsonResponse|RedirectResponse
     {
@@ -882,7 +882,7 @@ class AdminMediaController extends Controller
                 $files = File::allFiles($dir);
                 foreach ($files as $file) {
                     $ext = strtolower($file->getExtension());
-                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'svg'])) {
                         $saved = $this->optimizeImageFile($file->getPathname());
                         if ($saved > 0) {
                             $optimizedCount++;
@@ -896,12 +896,12 @@ class AdminMediaController extends Controller
         $formattedSaved = $this->formatBytes($totalBytesSaved);
 
         if ($this->accessService) {
-            $this->accessService->log('optimize_media', "মিডিয়া লাইব্রেরির {$optimizedCount}টি ছবি অপ্টিমাইজ করা হয়েছে (সাশ্রয়: {$formattedSaved})");
+            $this->accessService->log('optimize_media', "Media Studio: Optimized {$optimizedCount} files (Saved: {$formattedSaved})");
         }
 
         $msg = $optimizedCount > 0
-            ? "মোট {$optimizedCount}টি ছবি অপ্টিমাইজ সম্পন্ন হয়েছে! সর্বমোট {$formattedSaved} স্টোরেজ সাশ্রয় হয়েছে।"
-            : "সকল ছবি ইতোমধ্যে সর্বোচ্চ অপ্টিমাইজড অবস্থায় রয়েছে।";
+            ? "Successfully optimized {$optimizedCount} image(s) and SVG file(s)! Total {$formattedSaved} storage saved."
+            : "All images and SVG assets are already in fully optimized state.";
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -1002,38 +1002,42 @@ class AdminMediaController extends Controller
      */
     private function optimizeImageFile(string $filePath, int $maxWidth = 1920, bool $convertToWebp = false): int
     {
-        if (!File::exists($filePath) || !extension_loaded('gd')) {
+        if (!File::exists($filePath)) {
+            return 0;
+        }
+
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+        // SVG file optimization
+        if ($ext === 'svg') {
+            return \App\Services\ImageOptimizerService::optimizeSvgFile($filePath);
+        }
+
+        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp']) || !extension_loaded('gd')) {
             return 0;
         }
 
         $origSize = File::size($filePath);
-        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-
-        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-            return 0;
-        }
 
         try {
-            $imageInfo = @getimagesize($filePath);
-            if (!$imageInfo) {
-                return 0;
+            $rawContent = @file_get_contents($filePath);
+            $srcImage = !empty($rawContent) ? @imagecreatefromstring($rawContent) : null;
+
+            if (!$srcImage) {
+                $srcImage = match ($ext) {
+                    'jpg', 'jpeg' => @imagecreatefromjpeg($filePath),
+                    'png'         => @imagecreatefrompng($filePath),
+                    'webp'        => @imagecreatefromwebp($filePath),
+                    default       => null,
+                };
             }
-
-            $origWidth = $imageInfo[0];
-            $origHeight = $imageInfo[1];
-            $maxHeight = $maxWidth;
-
-            // Load source image
-            $srcImage = match ($ext) {
-                'jpg', 'jpeg' => @imagecreatefromjpeg($filePath),
-                'png'         => @imagecreatefrompng($filePath),
-                'webp'        => @imagecreatefromwebp($filePath),
-                default       => null,
-            };
 
             if (!$srcImage) {
                 return 0;
             }
+
+            $origWidth = imagesx($srcImage);
+            $origHeight = imagesy($srcImage);
 
             // Calculate resized dimensions if needed
             $newWidth = $origWidth;

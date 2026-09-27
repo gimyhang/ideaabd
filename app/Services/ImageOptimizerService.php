@@ -306,6 +306,53 @@ class ImageOptimizerService
         ];
     }
 
+    /**
+     * Minify and optimize an SVG file in place.
+     * Strips redundant comments, formatting whitespace, doctype/metadata, and cleans namespaces.
+     *
+     * @return int Bytes saved (positive integer) or 0 if unchanged.
+     */
+    public static function optimizeSvgFile(string $filePath): int
+    {
+        if (!file_exists($filePath) || strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) !== 'svg') {
+            return 0;
+        }
+
+        $content = @file_get_contents($filePath);
+        if (empty($content) || !str_contains($content, '<svg')) {
+            return 0;
+        }
+
+        $origSize = strlen($content);
+
+        // Strip XML comments
+        $cleaned = preg_replace('/<!--(?!<!)[^\[>][\s\S]*?-->/u', '', $content);
+
+        // Strip XML declaration & doctype
+        $cleaned = preg_replace('/<\?xml[^>]*\?>/i', '', $cleaned);
+        $cleaned = preg_replace('/<!DOCTYPE[^>]*>/i', '', $cleaned);
+
+        // Strip metadata tags
+        $cleaned = preg_replace('/<metadata[\s\S]*?<\/metadata>/i', '', $cleaned);
+
+        // Collapse formatting whitespace between tags
+        $cleaned = preg_replace('/>\s+</u', '><', $cleaned);
+        $cleaned = preg_replace('/\s{2,}/u', ' ', $cleaned);
+        $cleaned = trim($cleaned);
+
+        if (!str_contains($cleaned, '<svg')) {
+            return 0;
+        }
+
+        $newSize = strlen($cleaned);
+        if ($newSize < $origSize) {
+            @file_put_contents($filePath, $cleaned);
+            return max(0, $origSize - $newSize);
+        }
+
+        return 0;
+    }
+
 
     /**
      * Generate an aesthetic luxury photocard (SVG) with flawless Bengali typography and store it in storage disk.
