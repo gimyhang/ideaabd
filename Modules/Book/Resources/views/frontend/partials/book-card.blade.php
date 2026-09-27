@@ -1,15 +1,15 @@
 @php
-    $cover = $book->cover_image;
-    $coverUrl = null;
-    if ($cover) {
+    $coverUrl = $book->cover_url;
+    if (!$coverUrl && !empty($book->cover_image)) {
+        $cover = trim($book->cover_image);
         if (str_starts_with($cover, 'http')) {
             $coverUrl = $cover;
         } elseif (str_starts_with($cover, 'storage/')) {
             $coverUrl = asset($cover);
-        } elseif (str_starts_with($cover, '/storage/')) {
-            $coverUrl = asset(ltrim($cover, '/'));
+        } elseif (str_starts_with($cover, 'images/')) {
+            $coverUrl = asset($cover);
         } else {
-            $coverUrl = asset('storage/' . $cover);
+            $coverUrl = asset('storage/' . ltrim($cover, '/'));
         }
     }
     

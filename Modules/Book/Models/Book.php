@@ -203,7 +203,7 @@ class Book extends Model
     }
 
     /**
-     * Get Cover URL safely across all storage formats and live environments.
+     * Get Cover URL safely across all storage formats, converted WebP/AVIF files, and live environments.
      */
     public function getCoverUrlAttribute(): ?string
     {
@@ -214,6 +214,23 @@ class Book extends Model
         if (str_starts_with($cover, 'http://') || str_starts_with($cover, 'https://')) {
             return $cover;
         }
+
+        // Check if original file exists or if webp/avif replacement exists on disk
+        $relPath = ltrim(str_replace(['storage/', '/storage/'], '', $cover), '/');
+        
+        if (!file_exists(storage_path('app/public/' . $relPath)) && !file_exists(public_path($cover))) {
+            $baseNoExt = preg_replace('/\.[^.]+$/', '', $relPath);
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.webp'))) {
+                return asset('storage/' . $baseNoExt . '.webp');
+            }
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.avif'))) {
+                return asset('storage/' . $baseNoExt . '.avif');
+            }
+            if (file_exists(public_path($baseNoExt . '.webp'))) {
+                return asset($baseNoExt . '.webp');
+            }
+        }
+
         if (str_starts_with($cover, 'storage/')) {
             return asset($cover);
         }
