@@ -3347,6 +3347,229 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Ultra-fast Quick Book Creation with Bengali Auto Cover Generator.
+     */
+    public function quickStoreBook(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'title'                    => 'required|string|max:255',
+                'category_id'              => 'nullable',
+                'author_name'              => 'nullable|string|max:255',
+                'author_id'                => 'nullable',
+                'publisher_id'             => 'nullable',
+                'cover_type'               => 'nullable|string|in:paperback,hardcover,both',
+                'price'                    => 'required|numeric|min:0',
+                'discount_price'           => 'nullable|numeric|min:0',
+                'cost_price'               => 'nullable|numeric|min:0',
+                'hardcover_price'          => 'nullable|numeric|min:0',
+                'hardcover_discount_price' => 'nullable|numeric|min:0',
+                'edition'                  => 'nullable|string|max:100',
+                'stock_quantity'           => 'nullable|integer|min:0',
+                'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
+                'is_active'                => 'nullable',
+                'cover_theme'              => 'nullable|string|max:50',
+                'cover_image_file'         => 'nullable|image|max:5120',
+                'auto_cover_base64'        => 'nullable|string',
+            ]);
+
+            $title = trim($validated['title']);
+            $slugBase = \Illuminate\Support\Str::slug($title);
+            if (empty($slugBase)) {
+                $slugBase = 'book-' . time() . '-' . rand(100, 999);
+            }
+            $slug = $slugBase;
+            $count = 1;
+            while (\Modules\Book\Models\Book::where('slug', $slug)->exists()) {
+                $slug = $slugBase . '-' . $count++;
+            }
+
+            // Cover handling
+            $coverPath = null;
+            if ($request->hasFile('cover_image_file') && $request->file('cover_image_file')->isValid()) {
+                $coverPath = \App\Services\ImageOptimizerService::convertAndStore(
+                    $request->file('cover_image_file'),
+                    'books/covers',
+                    'public'
+                );
+            } elseif ($request->filled('auto_cover_base64') && str_starts_with($request->input('auto_cover_base64'), 'data:image')) {
+                // Decode base64 canvas image and store
+                $dataUrl = $request->input('auto_cover_base64');
+                if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+                    $imageData = substr($dataUrl, strpos($dataUrl, ',') + 1);
+                    $imageData = base64_decode($imageData);
+                    if ($imageData !== false) {
+                        $ext = strtolower($type[1]) === 'png' ? 'png' : 'webp';
+                        $filename = 'cover_' . time() . '_' . \Illuminate\Support\Str::random(8) . '.' . $ext;
+                        $folder = 'books/covers';
+                        \Illuminate\Support\Facades\Storage::disk('public')->put($folder . '/' . $filename, $imageData);
+                        $coverPath = $folder . '/' . $filename;
+                    }
+                }
+            }
+
+            // If still no cover image, auto-generate a stunning vector SVG cover
+            if (!$coverPath) {
+                $theme = $request->input('cover_theme', 'indigo');
+                $authorForCover = $request->input('author_name', 'আইডিয়া প্রকাশন');
+                $coverPath = $this->generateVectorSvgCover($title, $authorForCover, $theme);
+            }
+
+            // Next SKU / Idea Serial generator
+            $nextId = (\Modules\Book\Models\Book::max('id') ?? 0) + 1;
+            $sku = 'IP' . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
+
+            $authorName = $request->input('author_name');
+            $authorId = $request->filled('author_id') ? (int) $request->input('author_id') : null;
+            if (!$authorName && $authorId) {
+                $authorObj = \Modules\Author\Models\Author::find($authorId);
+                if ($authorObj) {
+                    $authorName = $authorObj->name;
+                }
+            }
+            if (!$authorName) {
+                $authorName = 'আইডিয়া প্রকাশন';
+            }
+
+            $price = (float) $request->input('price', 0);
+            $discountPrice = $request->filled('discount_price') && $request->input('discount_price') !== '' ? (float) $request->input('discount_price') : null;
+            $costPrice = $request->filled('cost_price') && $request->input('cost_price') !== '' ? (float) $request->input('cost_price') : null;
+            $hardPrice = $request->filled('hardcover_price') && $request->input('hardcover_price') !== '' ? (float) $request->input('hardcover_price') : null;
+            $hardDisc = $request->filled('hardcover_discount_price') && $request->input('hardcover_discount_price') !== '' ? (float) $request->input('hardcover_discount_price') : null;
+
+            $stock = $request->filled('stock_quantity') && $request->input('stock_quantity') !== '' ? max(0, (int) $request->input('stock_quantity')) : 10;
+            $stockStatus = $request->input('stock_status') ?: ($stock <= 0 ? 'out' : ($stock <= 5 ? 'low' : 'in_stock'));
+
+            $categoryId = $request->filled('category_id') && is_numeric($request->input('category_id')) ? (int) $request->input('category_id') : null;
+            $publisherId = $request->filled('publisher_id') && is_numeric($request->input('publisher_id')) ? (int) $request->input('publisher_id') : null;
+
+            $book = \Modules\Book\Models\Book::create([
+                'title'                    => $title,
+                'slug'                     => $slug,
+                'category_id'              => $categoryId,
+                'author_name'              => $authorName,
+                'author_link_id'           => $authorId,
+                'publisher_id'             => $publisherId,
+                'sku'                      => $sku,
+                'price'                    => $price,
+                'discount_price'           => $discountPrice,
+                'cost_price'               => $costPrice,
+                'hardcover_price'          => $hardPrice,
+                'hardcover_discount_price' => $hardDisc,
+                'cover_type'               => $request->input('cover_type', 'paperback'),
+                'edition'                  => $request->input('edition', '১ম প্রকাশ ' . date('Y')),
+                'cover_image'              => $coverPath,
+                'stock_quantity'           => $stock,
+                'stock_status'             => $stockStatus,
+                'is_active'                => $request->boolean('is_active', true),
+                'mod_status'               => 'approved',
+                'language'                 => 'বাংলা',
+                'country'                  => 'Bangladesh',
+                'product_type'             => 'book',
+                'format'                   => 'printed',
+                'reviewed_by'              => auth()->id(),
+                'reviewed_at'              => now(),
+            ]);
+
+            if ($this->accessService) {
+                $this->accessService->log('book_quick_created', "নতুন বই '{$book->title}' (ID: {$book->id}) দ্রুত আপলোড করা হয়েছে");
+            }
+
+            $coverUrl = asset('storage/' . ltrim($coverPath, '/'));
+
+            return response()->json([
+                'success' => true,
+                'message' => "বইটি সফলভাবে ক্যাটালগে যুক্ত হয়েছে!",
+                'book' => [
+                    'id'        => $book->id,
+                    'title'     => $book->title,
+                    'slug'      => $book->slug,
+                    'price'     => $book->price,
+                    'cover_url' => $coverUrl,
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ইনপুট ফিল্ড যাচাইকরণে সমস্যা হয়েছে।',
+                'errors'  => $ve->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Quick Book Store error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'সার্ভার ত্রুটি: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate an elegant vector SVG book cover for instant publishing.
+     */
+    private function generateVectorSvgCover(string $title, string $author = '', string $theme = 'indigo'): string
+    {
+        $palettes = [
+            'indigo'  => ['from' => '#1e1b4b', 'mid' => '#312e81', 'to' => '#4338ca', 'accent' => '#38bdf8', 'sub' => '#cbd5e1'],
+            'rose'    => ['from' => '#4c0519', 'mid' => '#881337', 'to' => '#be123c', 'accent' => '#f43f5e', 'sub' => '#fecdd3'],
+            'emerald' => ['from' => '#022c22', 'mid' => '#064e3b', 'to' => '#047857', 'accent' => '#34d399', 'sub' => '#a7f3d0'],
+            'amber'   => ['from' => '#451a03', 'mid' => '#78350f', 'to' => '#b45309', 'accent' => '#fbbf24', 'sub' => '#fde68a'],
+            'dark'    => ['from' => '#090d16', 'mid' => '#1e293b', 'to' => '#334155', 'accent' => '#60a5fa', 'sub' => '#94a3b8'],
+            'purple'  => ['from' => '#2e1065', 'mid' => '#581c87', 'to' => '#7e22ce', 'accent' => '#c084fc', 'sub' => '#e9d5ff'],
+        ];
+
+        $pal = $palettes[$theme] ?? $palettes['indigo'];
+        $firstLetter = mb_substr(trim($title ?: 'ব'), 0, 1, 'UTF-8');
+        $safeTitle = htmlspecialchars(mb_strimwidth($title ?: 'নতুন বই', 0, 38, '...'), ENT_QUOTES, 'UTF-8');
+        $safeAuthor = htmlspecialchars(mb_strimwidth($author ?: 'আইডিয়া প্রকাশন', 0, 28, '...'), ENT_QUOTES, 'UTF-8');
+
+        $svg = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $svg .= '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">';
+        $svg .= '<defs>';
+        $svg .= '  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">';
+        $svg .= '    <stop offset="0%" stop-color="' . $pal['from'] . '"/>';
+        $svg .= '    <stop offset="50%" stop-color="' . $pal['mid'] . '"/>';
+        $svg .= '    <stop offset="100%" stop-color="' . $pal['to'] . '"/>';
+        $svg .= '  </linearGradient>';
+        $svg .= '  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">';
+        $svg .= '    <circle cx="2" cy="2" r="1" fill="#ffffff" opacity="0.08"/>';
+        $svg .= '  </pattern>';
+        $svg .= '</defs>';
+        $svg .= '<rect width="400" height="600" fill="url(#bgGrad)"/>';
+        $svg .= '<rect width="400" height="600" fill="url(#grid)"/>';
+        
+        // Inner ornate border
+        $svg .= '<rect x="20" y="20" width="360" height="560" rx="16" fill="none" stroke="' . $pal['accent'] . '" stroke-width="2" opacity="0.35"/>';
+        
+        // Brand header badge
+        $svg .= '<rect x="110" y="45" width="180" height="32" rx="16" fill="' . $pal['accent'] . '" opacity="0.2"/>';
+        $svg .= '<text x="200" y="66" text-anchor="middle" fill="' . $pal['accent'] . '" font-size="13" font-weight="bold" font-family="sans-serif" letter-spacing="1">IDEA PUBLICATION</text>';
+        
+        // Giant Stylized Letter Motif
+        $svg .= '<circle cx="200" cy="220" r="75" fill="' . $pal['from'] . '" opacity="0.45"/>';
+        $svg .= '<circle cx="200" cy="220" r="70" fill="none" stroke="' . $pal['accent'] . '" stroke-width="2" opacity="0.5"/>';
+        $svg .= '<text x="200" y="245" text-anchor="middle" fill="' . $pal['accent'] . '" font-size="78" font-weight="bold" font-family="serif">' . $firstLetter . '</text>';
+
+        // Title
+        $svg .= '<text x="200" y="360" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="bold" font-family="sans-serif">' . $safeTitle . '</text>';
+        
+        // Divider line
+        $svg .= '<line x1="140" y1="390" x2="260" y2="390" stroke="' . $pal['accent'] . '" stroke-width="2" opacity="0.7"/>';
+        
+        // Author
+        $svg .= '<text x="200" y="430" text-anchor="middle" fill="' . $pal['sub'] . '" font-size="16" font-weight="500" font-family="sans-serif">' . $safeAuthor . '</text>';
+        
+        // Footer tag
+        $svg .= '<text x="200" y="540" text-anchor="middle" fill="#94a3b8" font-size="11" font-family="sans-serif" letter-spacing="0.5">আইডিয়া প্রকাশন • প্রিমিয়াম গ্রন্থ সংস্করণ</text>';
+        $svg .= '</svg>';
+
+        $filename = 'cover_' . time() . '_' . \Illuminate\Support\Str::random(8) . '.svg';
+        $folder = 'books/covers';
+        \Illuminate\Support\Facades\Storage::disk('public')->put($folder . '/' . $filename, $svg);
+        
+        return $folder . '/' . $filename;
+    }
+
     // ─── internals ──────────────────────────────────────────────────────
 
     /**

@@ -32,6 +32,9 @@
         <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
             <i class="fa-solid fa-folder-tree me-1"></i> Categories
         </a>
+        <button type="button" class="btn btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" style="background: linear-gradient(135deg, #10b981, #059669); border: none;" onclick="openQuickAddBookModal()" title="Fast 10-Second Quick Book Upload">
+            <i class="fa-solid fa-bolt me-1 text-warning"></i> <span>কুইক বই যোগ</span>
+        </button>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
             <i class="fa-solid fa-circle-plus me-1"></i> Add New Book
         </a>
@@ -912,6 +915,199 @@
         @endif
     </div>
 
+</div>
+
+{{-- ========================================================================= --}}
+{{-- 1-CLICK FAST QUICK BOOK ADD MODAL (বই কুইক এড)                               --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="quickAddBookModal" tabindex="-1" aria-labelledby="quickAddBookModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="p-2 bg-white bg-opacity-25 rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                        <i class="fa-solid fa-bolt text-warning"></i>
+                    </span>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel" style="font-size: 1.05rem;">
+                            দ্রুত বই আপলোড (1-Click Fast Book Add)
+                        </h5>
+                        <small class="text-white text-opacity-75" style="font-size: 11.5px;">শুধু বাংলা নাম, ক্যাটাগরি, কভার ও দাম দিলেই সরাসরি শপে লাইভ হবে</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form id="quickAddBookForm" onsubmit="handleQuickAddBookSubmit(event)" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" id="qaAutoCoverBase64" name="auto_cover_base64">
+                <input type="hidden" id="qaCoverTheme" name="cover_theme" value="indigo">
+
+                <div class="modal-body p-4 bg-white">
+                    <div id="qaAlertBox"></div>
+
+                    <div class="row g-4">
+                        {{-- Left Column: Dynamic Live Auto-Cover Canvas & Options --}}
+                        <div class="col-12 col-md-5 border-end-md text-center">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <label class="form-label small fw-bold text-dark mb-0">
+                                    <i class="fa-solid fa-image text-primary me-1"></i> কভার প্রিভিউ (Live Cover)
+                                </label>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace" style="font-size: 10px;">
+                                    অটো জেনারেটেড
+                                </span>
+                            </div>
+
+                            {{-- Live Rendered Canvas for Auto-Cover --}}
+                            <div class="position-relative d-inline-block shadow-sm rounded-3 overflow-hidden mb-2.5 border" style="width: 150px; height: 220px; background: #1e1b4b;">
+                                <canvas id="qaCoverCanvas" width="300" height="440" style="width: 150px; height: 220px; display: block;"></canvas>
+                                <img id="qaCoverFilePreview" src="" alt="Custom Cover" class="d-none w-100 h-100" style="object-fit: cover;">
+                            </div>
+
+                            {{-- Theme Color Chooser for Auto SVG Cover --}}
+                            <div id="qaCoverThemeSection" class="mb-3">
+                                <label class="form-label small fw-semibold text-muted d-block mb-1.5" style="font-size: 11px;">
+                                    কভার থিম সিলেক্ট করুন:
+                                </label>
+                                <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap">
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn active" style="width: 22px; height: 22px; background: linear-gradient(135deg, #1e1b4b, #4338ca);" data-theme="indigo" onclick="selectQaCoverTheme('indigo')" title="Royal Indigo"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #4c0519, #be123c);" data-theme="rose" onclick="selectQaCoverTheme('rose')" title="Sunset Rose"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #022c22, #047857);" data-theme="emerald" onclick="selectQaCoverTheme('emerald')" title="Emerald Forest"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #451a03, #b45309);" data-theme="amber" onclick="selectQaCoverTheme('amber')" title="Golden Amber"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #2e1065, #7e22ce);" data-theme="purple" onclick="selectQaCoverTheme('purple')" title="Royal Purple"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #090d16, #334155);" data-theme="dark" onclick="selectQaCoverTheme('dark')" title="Midnight Slate"></button>
+                                </div>
+                            </div>
+
+                            {{-- Manual Upload Option --}}
+                            <div>
+                                <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1 text-primary"></i> নিজের কভার ছবি আপলোড
+                                </label>
+                                <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewQaSelectedCover(this)">
+                                <button type="button" id="qaResetAutoCoverBtn" class="btn btn-xs btn-link text-muted d-none text-decoration-none mt-1" onclick="resetToQaAutoCover()" style="font-size: 11px;">
+                                    <i class="fa-solid fa-rotate-left me-0.5"></i> অটো কভারে ফেরত যান
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Right Column: Basic Info & Live Commission Calculator --}}
+                        <div class="col-12 col-md-7">
+                            
+                            {{-- 1. Bengali Title --}}
+                            <div class="mb-2.5">
+                                <label class="form-label small fw-bold text-dark mb-1">
+                                    বইয়ের পূর্ণ বাংলা নাম <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="qaTitle" name="title" class="form-control form-control-sm fw-bold border-primary-subtle" 
+                                       placeholder="যেমন: নদীর ওপার আকাশ / গীতাঞ্জলি" required oninput="renderQaAutoCover()">
+                            </div>
+
+                            {{-- 2. Category & Author --}}
+                            <div class="row g-2 mb-2.5">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        ক্যাটাগরি <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="qaCategoryId" name="category_id" class="form-select form-select-sm fw-semibold">
+                                        @foreach($categories as $cId => $cName)
+                                            <option value="{{ $cId }}" @selected($cId == ($bibidhId ?? 0))>{{ $cName }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        লেখক / অনুবাদক
+                                    </label>
+                                    <input type="text" id="qaAuthorName" name="author_name" class="form-control form-control-sm" 
+                                           placeholder="যেমন: শাকিল মাসুদ" value="আইডিয়া প্রকাশন" oninput="renderQaAutoCover()">
+                                </div>
+                            </div>
+
+                            {{-- 3. Pricing, Sale Discount & Wholesale Calculator Box --}}
+                            <div class="p-2.5 bg-light rounded-3 mb-2.5 border">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4">
+                                        <label class="form-label small fw-bold text-dark mb-1">
+                                            মুদ্রিত মূল্য (MRP) <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control fw-bold" placeholder="300" required oninput="recalcQaPricingFromMrp()">
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark mb-1">কমিশন (%)</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="20" oninput="recalcQaSalePriceFromCommission()">
+                                            <span class="input-group-text bg-white">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="form-label small fw-semibold text-dark mb-1">বিক্রয় মূল্য (৳)</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="240" oninput="recalcQaSaleCommissionFromPrice()">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Wholesale Buy Price --}}
+                                <div class="row g-2 align-items-center pt-2 border-top">
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">পাইকারি ক্রয় কমিশন (%):</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" placeholder="40" oninput="recalcQaCostPriceFromCommission()">
+                                            <span class="input-group-text bg-white">%</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">পাইকারি ক্রয় মূল্য (Cost ৳):</label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white">৳</span>
+                                            <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" placeholder="180" oninput="recalcQaBuyCommissionFromPrice()">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- 4. Stock & Binding Format --}}
+                            <div class="row g-2 align-items-center">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">প্রাথমিক স্টক (pcs)</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" id="qaStockQuantity" name="stock_quantity" min="0" value="10" class="form-control fw-bold">
+                                        <span class="input-group-text">কপি</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold text-dark mb-1">কভার ফরম্যাট</label>
+                                    <select id="qaCoverType" name="cover_type" class="form-select form-select-sm">
+                                        <option value="paperback" selected>📖 পেপারব্যাক (Paperback)</option>
+                                        <option value="hardcover">💎 হার্ডকভার (Hardcover)</option>
+                                        <option value="both">📚 উভয় ফরম্যাট (Both)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light py-2.5 d-flex align-items-center justify-content-between">
+                    <small class="text-muted" style="font-size: 11px;">
+                        <i class="fa-solid fa-circle-info text-primary me-0.5"></i> বিস্তারিত বিবরণ, প্রিভিউ পেজ ও সূচিপত্র পরে পূর্ণাঙ্গ এডিটর থেকে যোগ করা যাবে।
+                    </small>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="submit" id="qaSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                            <i class="fa-solid fa-bolt me-1 text-warning"></i> ১-ক্লিকে প্রকাশ করুন
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {{-- ========================================================================= --}}
@@ -2133,7 +2329,387 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/* ═════════════════════════════════════════════════════════════════════════
+   FAST QUICK BOOK ADD (বই কুইক আপলোড) ENGINE & AUTO-COVER RENDERER
+   ═════════════════════════════════════════════════════════════════════════ */
+const QA_PALETTES = {
+    indigo:  { from: '#1e1b4b', mid: '#312e81', to: '#4338ca', accent: '#38bdf8', sub: '#cbd5e1' },
+    rose:    { from: '#4c0519', mid: '#881337', to: '#be123c', accent: '#f43f5e', sub: '#fecdd3' },
+    emerald: { from: '#022c22', mid: '#064e3b', to: '#047857', accent: '#34d399', sub: '#a7f3d0' },
+    amber:   { from: '#451a03', mid: '#78350f', to: '#b45309', accent: '#fbbf24', sub: '#fde68a' },
+    purple:  { from: '#2e1065', mid: '#581c87', to: '#7e22ce', accent: '#c084fc', sub: '#e9d5ff' },
+    dark:    { from: '#090d16', mid: '#1e293b', to: '#334155', accent: '#60a5fa', sub: '#94a3b8' }
+};
+
+let currentQaTheme = 'indigo';
+
+function openQuickAddBookModal() {
+    const form = document.getElementById('quickAddBookForm');
+    if (form) form.reset();
+
+    const authorInput = document.getElementById('qaAuthorName');
+    if (authorInput) authorInput.value = 'আইডিয়া প্রকাশন';
+
+    const stockInput = document.getElementById('qaStockQuantity');
+    if (stockInput) stockInput.value = '10';
+
+    const alertBox = document.getElementById('qaAlertBox');
+    if (alertBox) alertBox.innerHTML = '';
+
+    resetToQaAutoCover();
+    selectQaCoverTheme('indigo');
+
+    const modalEl = document.getElementById('quickAddBookModal');
+    if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    setTimeout(() => {
+        document.getElementById('qaTitle')?.focus();
+    }, 350);
+}
+
+function selectQaCoverTheme(theme) {
+    currentQaTheme = QA_PALETTES[theme] ? theme : 'indigo';
+    const themeInput = document.getElementById('qaCoverTheme');
+    if (themeInput) themeInput.value = currentQaTheme;
+
+    document.querySelectorAll('.qa-theme-btn').forEach(btn => {
+        if (btn.dataset.theme === currentQaTheme) {
+            btn.classList.add('active');
+            btn.style.outline = '2px solid #2563eb';
+            btn.style.outlineOffset = '2px';
+        } else {
+            btn.classList.remove('active');
+            btn.style.outline = 'none';
+        }
+    });
+
+    renderQaAutoCover();
+}
+
+function renderQaAutoCover() {
+    const canvas = document.getElementById('qaCoverCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const pal = QA_PALETTES[currentQaTheme] || QA_PALETTES.indigo;
+    const title = (document.getElementById('qaTitle')?.value || 'বইয়ের বাংলা নাম').trim();
+    const author = (document.getElementById('qaAuthorName')?.value || 'আইডিয়া প্রকাশন').trim();
+    const firstLetter = title ? title.charAt(0) : 'ব';
+
+    const W = canvas.width;  // 300
+    const H = canvas.height; // 440
+
+    // 1. Background Gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, pal.from);
+    bgGrad.addColorStop(0.5, pal.mid);
+    bgGrad.addColorStop(1, pal.to);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Pattern Overlay
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+    for (let x = 10; x < W; x += 20) {
+        for (let y = 10; y < H; y += 20) {
+            ctx.beginPath();
+            ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // 3. Ornate Golden/Accent Border
+    ctx.strokeStyle = pal.accent;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.4;
+    ctx.strokeRect(12, 12, W - 24, H - 24);
+    ctx.globalAlpha = 1.0;
+
+    // 4. Header Brand Badge
+    ctx.fillStyle = pal.accent;
+    ctx.globalAlpha = 0.2;
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - 75, 26, 150, 22, 11);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = 'bold 10px "Inter", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('IDEA PUBLICATION', W / 2, 41);
+
+    // 5. Stylized Central Letter Monogram
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    ctx.beginPath();
+    ctx.arc(W / 2, 140, 52, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = pal.accent;
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.arc(W / 2, 140, 48, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    ctx.fillStyle = pal.accent;
+    ctx.font = 'bold 56px "Noto Serif Bengali", "Kalpurush", serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(firstLetter, W / 2, 142);
+    ctx.textBaseline = 'alphabetic';
+
+    // 6. Bengali Book Title with Word-Wrap
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px "SolaimanLipi", "Hind Siliguri", sans-serif';
+    const words = title.split(' ');
+    let lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+        const testLine = currentLine ? currentLine + ' ' + word : word;
+        const testWidth = ctx.measureText(testLine).width;
+        if (testWidth > W - 50 && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    });
+    if (currentLine) lines.push(currentLine);
+
+    if (lines.length > 3) {
+        lines = lines.slice(0, 3);
+        lines[2] += '...';
+    }
+
+    let startY = 245;
+    const lineHeight = 24;
+    lines.forEach((line, idx) => {
+        ctx.fillText(line, W / 2, startY + (idx * lineHeight));
+    });
+
+    const dividerY = startY + (lines.length * lineHeight) + 6;
+
+    // 7. Divider Accent Line
+    ctx.strokeStyle = pal.accent;
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 40, dividerY);
+    ctx.lineTo(W / 2 + 40, dividerY);
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+
+    // 8. Author Name
+    ctx.fillStyle = pal.sub;
+    ctx.font = '13px "SolaimanLipi", "Hind Siliguri", sans-serif';
+    ctx.fillText(author, W / 2, dividerY + 26);
+
+    // 9. Footer Watermark
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.font = '9.5px "SolaimanLipi", sans-serif';
+    ctx.fillText('আইডিয়া প্রকাশন • প্রিমিয়াম সংস্করণ', W / 2, H - 22);
+
+    // Update base64 hidden field
+    const base64Input = document.getElementById('qaAutoCoverBase64');
+    if (base64Input) {
+        base64Input.value = canvas.toDataURL('image/png', 0.92);
+    }
+}
+
+function previewQaSelectedCover(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImg = document.getElementById('qaCoverFilePreview');
+            const canvas = document.getElementById('qaCoverCanvas');
+            const resetBtn = document.getElementById('qaResetAutoCoverBtn');
+
+            if (previewImg) {
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('d-none');
+            }
+            if (canvas) canvas.classList.add('d-none');
+            if (resetBtn) resetBtn.classList.remove('d-none');
+
+            const base64Input = document.getElementById('qaAutoCoverBase64');
+            if (base64Input) base64Input.value = '';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function resetToQaAutoCover() {
+    const input = document.getElementById('qaCoverInput');
+    const previewImg = document.getElementById('qaCoverFilePreview');
+    const canvas = document.getElementById('qaCoverCanvas');
+    const resetBtn = document.getElementById('qaResetAutoCoverBtn');
+
+    if (input) input.value = '';
+    if (previewImg) {
+        previewImg.src = '';
+        previewImg.classList.add('d-none');
+    }
+    if (canvas) canvas.classList.remove('d-none');
+    if (resetBtn) resetBtn.classList.add('d-none');
+
+    renderQaAutoCover();
+}
+
+// ── Live Pricing & Commission Calculators for Quick Add ──
+function recalcQaPricingFromMrp() {
+    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
+    const saleComm = parseFloat(document.getElementById('qaSaleCommission')?.value) || 0;
+    const buyComm = parseFloat(document.getElementById('qaBuyCommission')?.value) || 0;
+    const discountPrice = parseFloat(document.getElementById('qaDiscountPrice')?.value) || 0;
+    const costPrice = parseFloat(document.getElementById('qaCostPrice')?.value) || 0;
+
+    if (saleComm > 0) {
+        recalcQaSalePriceFromCommission();
+    } else if (discountPrice > 0 && mrp > 0) {
+        recalcQaSaleCommissionFromPrice();
+    } else if (mrp > 0 && !discountPrice) {
+        document.getElementById('qaSaleCommission').value = '20';
+        recalcQaSalePriceFromCommission();
+    }
+
+    if (buyComm > 0) {
+        recalcQaCostPriceFromCommission();
+    } else if (costPrice > 0 && mrp > 0) {
+        recalcQaBuyCommissionFromPrice();
+    } else if (mrp > 0 && !costPrice) {
+        document.getElementById('qaBuyCommission').value = '40';
+        recalcQaCostPriceFromCommission();
+    }
+}
+
+function recalcQaSalePriceFromCommission() {
+    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
+    const comm = parseFloat(document.getElementById('qaSaleCommission')?.value) || 0;
+    if (mrp > 0 && comm > 0) {
+        const salePrice = mrp * (1 - (comm / 100));
+        document.getElementById('qaDiscountPrice').value = Math.round(salePrice);
+    }
+}
+
+function recalcQaSaleCommissionFromPrice() {
+    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
+    const salePrice = parseFloat(document.getElementById('qaDiscountPrice')?.value) || 0;
+    if (mrp > 0 && salePrice > 0 && salePrice < mrp) {
+        const comm = ((mrp - salePrice) / mrp) * 100;
+        document.getElementById('qaSaleCommission').value = comm.toFixed(1);
+    } else if (salePrice <= 0) {
+        document.getElementById('qaSaleCommission').value = '';
+    }
+}
+
+function recalcQaCostPriceFromCommission() {
+    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
+    const comm = parseFloat(document.getElementById('qaBuyCommission')?.value) || 0;
+    if (mrp > 0 && comm > 0) {
+        const costPrice = mrp * (1 - (comm / 100));
+        document.getElementById('qaCostPrice').value = Math.round(costPrice);
+    }
+}
+
+function recalcQaBuyCommissionFromPrice() {
+    const mrp = parseFloat(document.getElementById('qaPrice')?.value) || 0;
+    const costPrice = parseFloat(document.getElementById('qaCostPrice')?.value) || 0;
+    if (mrp > 0 && costPrice > 0 && costPrice < mrp) {
+        const comm = ((mrp - costPrice) / mrp) * 100;
+        document.getElementById('qaBuyCommission').value = comm.toFixed(1);
+    } else if (costPrice <= 0) {
+        document.getElementById('qaBuyCommission').value = '';
+    }
+}
+
+// ── 1-Click Fast Submit Handler ──
+function handleQuickAddBookSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('qaSubmitBtn');
+    const alertBox = document.getElementById('qaAlertBox');
+    const form = document.getElementById('quickAddBookForm');
+    const formData = new FormData(form);
+
+    const fileInput = document.getElementById('qaCoverInput');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        const canvas = document.getElementById('qaCoverCanvas');
+        if (canvas) {
+            formData.set('auto_cover_base64', canvas.toDataURL('image/png', 0.92));
+        }
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> প্রকাশ হচ্ছে...';
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+    fetch("{{ route('admin.books.quick-store') }}", {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: formData
+    })
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({ success: false, message: 'Server response error' }));
+        if (res.ok && data.success) {
+            if (alertBox) {
+                alertBox.innerHTML = `<div class="alert alert-success p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-circle-check me-1"></i> ${data.message || 'বইটি সফলভাবে ক্যাটালগে যুক্ত হয়েছে!'}</div>`;
+            }
+            if (typeof window.SwalToast === 'function') {
+                window.SwalToast('success', data.message || 'বইটি সফলভাবে ক্যাটালগে যুক্ত হয়েছে!');
+            } else if (typeof showBookToast === 'function') {
+                showBookToast('success', data.message || 'বইটি সফলভাবে ক্যাটালগে যুক্ত হয়েছে!');
+            }
+            setTimeout(() => {
+                location.reload();
+            }, 750);
+        } else {
+            let errorText = data.message || 'বই যুক্ত করতে ব্যর্থ হয়েছে।';
+            if (data.errors) {
+                const errorList = Object.values(data.errors).flat();
+                errorText = errorList.join('<br>');
+            }
+            if (alertBox) {
+                alertBox.innerHTML = `<div class="alert alert-danger p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-circle-exclamation me-1"></i> ${errorText}</div>`;
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-bolt me-1 text-warning"></i> ১-ক্লিকে প্রকাশ করুন';
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Quick book add error:', err);
+        if (alertBox) {
+            alertBox.innerHTML = `<div class="alert alert-danger p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-triangle-exclamation me-1"></i> সার্ভারের সাথে সংযোগ বিচ্ছিন্ন হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</div>`;
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-bolt me-1 text-warning"></i> ১-ক্লিকে প্রকাশ করুন';
+        }
+    });
+}
+
 /* ── Global Window Exports for Books Management ── */
+window.openQuickAddBookModal = openQuickAddBookModal;
+window.handleQuickAddBookSubmit = handleQuickAddBookSubmit;
+window.selectQaCoverTheme = selectQaCoverTheme;
+window.renderQaAutoCover = renderQaAutoCover;
+window.previewQaSelectedCover = previewQaSelectedCover;
+window.resetToQaAutoCover = resetToQaAutoCover;
+window.recalcQaPricingFromMrp = recalcQaPricingFromMrp;
+window.recalcQaSalePriceFromCommission = recalcQaSalePriceFromCommission;
+window.recalcQaSaleCommissionFromPrice = recalcQaSaleCommissionFromPrice;
+window.recalcQaCostPriceFromCommission = recalcQaCostPriceFromCommission;
+window.recalcQaBuyCommissionFromPrice = recalcQaBuyCommissionFromPrice;
 window.openQuickEditModal = openQuickEditModal;
 window.handleQuickBookEditSubmit = handleQuickBookEditSubmit;
 window.onQeCoverTypeChange = onQeCoverTypeChange;

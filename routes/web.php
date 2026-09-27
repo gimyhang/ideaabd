@@ -560,6 +560,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/reports/print', [AdminController::class, 'printReport'])->name('reports.print');
     Route::post('/books/quick-stock', [AdminController::class, 'quickUpdateStock'])->name('books.quick-stock');
     Route::post('/books/quick-update', [AdminController::class, 'quickUpdateBook'])->name('books.quick-update');
+    Route::post('/books/quick-store', [AdminController::class, 'quickStoreBook'])->name('books.quick-store');
     Route::get('/customers', [AdminController::class, 'customers'])->name('customers');
     Route::get('/customer-registrations', [AdminController::class, 'customers'])->name('customer-registrations');
     Route::post('/customers/{user}/toggle-verification', [AdminController::class, 'toggleCustomerVerification'])->name('customers.toggle-verification');
