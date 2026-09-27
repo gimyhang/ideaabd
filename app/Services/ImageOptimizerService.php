@@ -254,11 +254,13 @@ class ImageOptimizerService
     /**
      * Batch convert all PNG, JPG, JPEG, BMP raster files in a directory to WebP.
      * Preserves transparency for PNGs and creates optimal WebP compression.
+     *
+     * @return array ['converted_count' => int, 'bytes_saved' => int, 'converted_files' => array, 'files' => array]
      */
     public static function batchConvertDirectoryToWebp(string $directoryPath, int $quality = 85, bool $deleteOriginal = false): array
     {
         if (!is_dir($directoryPath) || !function_exists('imagewebp')) {
-            return ['converted_count' => 0, 'bytes_saved' => 0, 'files' => []];
+            return ['converted_count' => 0, 'bytes_saved' => 0, 'converted_files' => [], 'files' => []];
         }
 
         $convertedCount = 0;
@@ -281,69 +283,29 @@ class ImageOptimizerService
                 continue;
             }
 
-            $origSize = $file->getSize();
-            $dir = pathinfo($filePath, PATHINFO_DIRNAME);
-            $filenameWithoutExt = pathinfo($filePath, PATHINFO_FILENAME);
-            $webpPath = $dir . DIRECTORY_SEPARATOR . $filenameWithoutExt . '.webp';
-
-            // Load GD Image Resource
-            $gdImage = null;
-            if ($ext === 'avif' && function_exists('imagecreatefromavif')) {
-                $gdImage = @imagecreatefromavif($filePath);
-            }
-
-            if (!$gdImage) {
-                $binary = @file_get_contents($filePath);
-                if (empty($binary)) {
-                    continue;
-                }
-                $gdImage = @imagecreatefromstring($binary);
-            }
-
-            if (!$gdImage) {
-                continue;
-            }
-
-            if (function_exists('imageistruecolor') && !imageistruecolor($gdImage) && function_exists('imagepalettetotruecolor')) {
-                imagepalettetotruecolor($gdImage);
-            }
-
-            // Preserve alpha channel for PNG/AVIF transparent images
-            if ($ext === 'png' || $ext === 'avif') {
-                imagealphablending($gdImage, false);
-                imagesavealpha($gdImage, true);
-            }
-
-            ob_start();
-            $success = @imagewebp($gdImage, null, $quality);
-            $webpData = ob_get_clean();
-            imagedestroy($gdImage);
-
-            if ($success && !empty($webpData)) {
-                @file_put_contents($webpPath, $webpData);
-                $newSize = strlen($webpData);
-                $saved = max(0, $origSize - $newSize);
-
+            $res = self::convertImageToWebp($filePath, $quality, $deleteOriginal);
+            if ($res['success']) {
                 $convertedCount++;
-                $totalBytesSaved += $saved;
+                $totalBytesSaved += $res['bytes_saved'];
                 $processedFiles[] = [
-                    'original' => $filePath,
-                    'webp'     => $webpPath,
-                    'saved'    => $saved,
+                    'original'    => $filePath,
+                    'filename'    => basename($filePath),
+                    'webp'        => $res['webp_path'],
+                    'webp_name'   => basename($res['webp_path']),
+                    'saved'       => $res['bytes_saved'],
+                    'saved_bytes' => $res['bytes_saved'],
                 ];
-
-                if ($deleteOriginal && $webpPath !== $filePath && file_exists($webpPath)) {
-                    @unlink($filePath);
-                }
             }
         }
 
         return [
             'converted_count' => $convertedCount,
             'bytes_saved'     => $totalBytesSaved,
+            'converted_files' => $processedFiles,
             'files'           => $processedFiles,
         ];
     }
+
 
     /**
      * Generate an aesthetic luxury photocard (SVG) with flawless Bengali typography and store it in storage disk.
@@ -688,46 +650,6 @@ SVG;
             'new_size'      => $newSize,
             'bytes_saved'   => $bytesSaved,
             'filename'      => basename($webpPath),
-        ];
-    }
-
-    /**
-     * Batch convert all JPG, PNG, AVIF images in a directory recursively to WebP.
-     *
-     * @return array ['converted_count' => int, 'bytes_saved' => int, 'converted_files' => array]
-     */
-    public static function batchConvertDirectoryToWebp(string $dirPath, int $quality = 85, bool $deleteOriginal = false): array
-    {
-        if (!is_dir($dirPath)) {
-            return ['converted_count' => 0, 'bytes_saved' => 0, 'converted_files' => []];
-        }
-
-        $files = \Illuminate\Support\Facades\File::allFiles($dirPath);
-        $convertedCount = 0;
-        $totalBytesSaved = 0;
-        $convertedFiles = [];
-
-        foreach ($files as $file) {
-            $ext = strtolower($file->getExtension());
-            if (in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
-                $res = self::convertImageToWebp($file->getPathname(), $quality, $deleteOriginal);
-                if ($res['success']) {
-                    $convertedCount++;
-                    $totalBytesSaved += $res['bytes_saved'];
-                    $convertedFiles[] = [
-                        'filename'    => $file->getFilename(),
-                        'webp_name'   => basename($res['webp_path']),
-                        'saved_bytes' => $res['bytes_saved'],
-                    ];
-                }
-            }
-        }
-
-        return [
-            'converted_count' => $convertedCount,
-            'bytes_saved'     => $totalBytesSaved,
-            'converted_files' => $convertedFiles,
-            'files'           => $convertedFiles,
         ];
     }
 }
