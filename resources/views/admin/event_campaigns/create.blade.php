@@ -70,7 +70,8 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold text-dark small">Type <span class="text-danger">*</span></label>
                             <select name="type" class="form-select" required>
-                                <option value="event" {{ old('type') == 'event' ? 'selected' : '' }}>Event</option>
+                                <option value="library" {{ old('type') == 'library' ? 'selected' : '' }}>📚 Library / Book Grant (পাঠাগার বই অনুদান)</option>
+                                <option value="event" {{ old('type', 'event') == 'event' ? 'selected' : '' }}>Event</option>
                                 <option value="scholarship" {{ old('type') == 'scholarship' ? 'selected' : '' }}>Scholarship</option>
                                 <option value="donation" {{ old('type') == 'donation' ? 'selected' : '' }}>Donation</option>
                                 <option value="competition" {{ old('type') == 'competition' ? 'selected' : '' }}>Competition</option>

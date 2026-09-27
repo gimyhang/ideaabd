@@ -1,78 +1,284 @@
 @extends('layouts.app')
 
-@section('title', $campaign->title . ' — Registration Completed')
+@section('title', 'ধন্যবাদ! নিবন্ধন সম্পন্ন হয়েছে — ' . $campaign->title)
+
+@push('styles')
+<style>
+    .thankyou-card {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        overflow: hidden;
+        position: relative;
+    }
+    .thankyou-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 38px 24px 30px;
+        color: #ffffff;
+        text-align: center;
+        position: relative;
+    }
+    .thankyou-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(245, 158, 11, 0.25), transparent 60%),
+                    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.2), transparent 50%);
+        pointer-events: none;
+    }
+    .celebrate-icon-wrap {
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45);
+        animation: pulseIcon 2s infinite ease-in-out;
+    }
+    @keyframes pulseIcon {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+    }
+    .thankyou-title {
+        font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif;
+        font-weight: 800;
+        font-size: 32px;
+        letter-spacing: -0.5px;
+        margin-bottom: 6px;
+        color: #f8fafc;
+    }
+    .thankyou-subtitle {
+        font-size: 15px;
+        color: #cbd5e1;
+        max-width: 520px;
+        margin: 0 auto;
+        line-height: 1.55;
+    }
+    .info-summary-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        font-size: 14px;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .info-label {
+        color: #64748b;
+        font-size: 13.5px;
+    }
+    .info-val {
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .countdown-bar-wrap {
+        background: #f1f5f9;
+        border-radius: 30px;
+        height: 6px;
+        overflow: hidden;
+        margin: 14px auto 0;
+        max-width: 320px;
+    }
+    .countdown-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981, #059669);
+        width: 100%;
+        transition: width 1s linear;
+    }
+    .btn-action-lg {
+        padding: 12px 24px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 14.5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+    }
+    .btn-action-lg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="container py-5">
+<div class="container py-4 py-md-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6 col-md-8">
+        <div class="col-lg-7 col-md-9">
 
-            <div class="card border-0 shadow-sm rounded-4 text-center p-4 p-md-5 bg-white" style="border: 1px solid #e2e8f0;">
-                <div class="rounded-circle bg-success-subtle text-success mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px;">
-                    <i class="fa-solid fa-circle-check fs-1"></i>
+            <div class="thankyou-card">
+                
+                {{-- Festive Header --}}
+                <div class="thankyou-header">
+                    <div class="celebrate-icon-wrap">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <h1 class="thankyou-title">ধন্যবাদ!</h1>
+                    <p class="thankyou-subtitle">
+                        <strong>{{ $campaign->title }}</strong>-এ আপনার তথ্য ও আবেদন সফলভাবে জমা হয়েছে।
+                    </p>
                 </div>
 
-                <h2 class="h4 fw-bold text-dark mb-1">রেজিস্ট্রেশন সফল হয়েছে!</h2>
-                <p class="text-secondary small mb-4">
-                    {{ $campaign->title }}-এ আপনার অংশগ্রহণ নিশ্চিত করা হয়েছে।
-                </p>
+                <div class="p-4 p-md-5">
 
-                @if($summary)
-                    <div class="p-3.5 rounded-3 bg-light border text-start mb-4" style="font-size: 13.5px;">
-                        <div class="d-flex justify-content-between py-1 border-bottom">
-                            <span class="text-muted">রেজিস্ট্রেশন নম্বর:</span>
-                            <strong class="font-monospace text-primary">#{{ $summary['registration_number'] }}</strong>
+                    {{-- Important Delegate / Writer Notice --}}
+                    <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-start gap-3" style="background: #fffbeb; border-color: #fde68a !important; color: #92400e;">
+                        <i class="fa-solid fa-clock-rotate-left fs-4 text-warning flex-shrink-0 mt-0.5"></i>
+                        <div style="font-size: 13.5px; line-height: 1.6;">
+                            <strong>বিশেষ বিজ্ঞপ্তি:</strong> আপনার আবেদনটি আয়োজক কমিটি কর্তৃক যাচাই করা হচ্ছে। <strong>২৪ ঘণ্টা পর</strong> আপনার মোবাইল নম্বর দিয়ে লগইন করে চূড়ান্ত আমন্ত্রণ কার্ড ও আসন নম্বর ডাউনলোড করতে পারবেন।
                         </div>
-                        <div class="d-flex justify-content-between py-1 border-bottom">
-                            <span class="text-muted">নাম:</span>
-                            <strong>{{ $summary['name'] }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between py-1 border-bottom">
-                            <span class="text-muted">মোবাইল:</span>
-                            <strong>{{ $summary['phone'] }}</strong>
-                        </div>
-                        @if($summary['amount_paid'] > 0)
-                            <div class="d-flex justify-content-between py-1 border-bottom">
-                                <span class="text-muted">পরিশোধিত ফি/অনুদান:</span>
-                                <strong class="text-success">৳{{ number_format($summary['amount_paid'], 2) }}</strong>
+                    </div>
+
+                    {{-- Summary Box --}}
+                    @if($summary)
+                        <div class="info-summary-box mb-4">
+                            <div class="info-row">
+                                <span class="info-label"><i class="fa-solid fa-hashtag me-1 text-muted"></i> রেজিস্ট্রেশন নম্বর:</span>
+                                <span class="info-val font-monospace text-primary fs-6">#{{ $summary['registration_number'] }}</span>
                             </div>
-                        @endif
-                        <div class="d-flex justify-content-between py-1">
-                            <span class="text-muted">তারিখ ও সময়:</span>
-                            <span>{{ $summary['created_at'] }}</span>
+                            <div class="info-row">
+                                <span class="info-label"><i class="fa-solid fa-user-pen me-1 text-muted"></i> লেখক নাম:</span>
+                                <span class="info-val">{{ $summary['name'] }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="fa-solid fa-phone me-1 text-muted"></i> মোবাইল নম্বর:</span>
+                                <span class="info-val font-monospace">{{ $summary['phone'] }}</span>
+                            </div>
+                            @if(!empty($summary['category']))
+                                <div class="info-row">
+                                    <span class="info-label"><i class="fa-solid fa-feather me-1 text-muted"></i> ক্যাটাগরি:</span>
+                                    <span class="badge bg-danger-subtle text-danger fw-bold">{{ $summary['category'] }}</span>
+                                </div>
+                            @endif
+                            <div class="info-row">
+                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> আবেদনের সময়:</span>
+                                <span class="text-dark fw-semibold" style="font-size: 13px;">{{ $summary['created_at'] ?? now()->format('d M, Y - h:i A') }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Card Download & Print Action Buttons --}}
+                    @if(!empty($summary['registration_number']))
+                        <div class="d-grid gap-2 d-sm-flex justify-content-center mb-4">
+                            <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-warning btn-action-lg shadow-sm text-dark">
+                                <i class="fa-solid fa-id-card"></i> আমন্ত্রণ কার্ড দেখুন ও ডাউনলোড করুন
+                            </a>
+                            <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-outline-danger btn-action-lg">
+                                <i class="fa-solid fa-file-pdf"></i> কার্ড PDF ডাউনলোড
+                            </a>
+                        </div>
+                    @endif
+
+                    <hr class="my-4" style="opacity: 0.12;">
+
+                    {{-- Auto Redirect Countdown Section --}}
+                    <div class="text-center p-3 rounded-4 bg-light border">
+                        <div class="d-flex align-items-center justify-content-center gap-2 mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">
+                            <i class="fa-solid fa-arrows-rotate fa-spin text-success" id="countdownSpinner"></i>
+                            <span>স্বয়ংক্রিয়ভাবে মূল ওয়েবসাইট <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...</span>
+                        </div>
+                        <div class="fw-bold text-dark font-monospace mb-2" style="font-size: 17px;">
+                            <span id="countdownSecs">6</span> সেকেন্ড বাকি
+                        </div>
+
+                        <div class="countdown-bar-wrap mb-3">
+                            <div class="countdown-bar-fill" id="countdownBar"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" id="btnPauseCountdown" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" onclick="toggleCountdown()" style="font-size: 12.5px;">
+                                <i class="fa-solid fa-pause me-1"></i> রিডাইরেক্ট থামান
+                            </button>
+                            <a href="{{ url('/') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold" style="font-size: 12.5px;">
+                                <i class="fa-solid fa-house me-1"></i> এখনই হোমপেজে যান
+                            </a>
                         </div>
                     </div>
-                @endif
 
-                <div class="alert alert-success small py-2.5 px-3 rounded-3 mb-4 text-start d-flex align-items-start gap-2 border-0 bg-success-subtle text-success-emphasis">
-                    <i class="fa-solid fa-circle-info fs-5 flex-shrink-0 mt-0.5"></i>
-                    <div>
-                        আপনার প্রদত্ত মোবাইল নম্বরে একটি এসএমএস কনফার্মেশন পাঠানো হয়েছে। এছাড়া আপনার অ্যাকাউন্টটি স্বয়ংক্রিয়ভাবে আমাদের সিস্টেমে কাস্টমার হিসেবে যুক্ত হয়েছে।
-                    </div>
                 </div>
 
-                @if(!empty($summary['registration_number']))
-                    <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
-                        <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-dark rounded-pill px-4 py-2 fw-semibold">
-                            <i class="fa-solid fa-print me-1"></i> প্রিন্ট ফরম (Print Form)
-                        </a>
-                        <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-danger rounded-pill px-4 py-2 fw-semibold">
-                            <i class="fa-solid fa-file-pdf me-1"></i> পিডিএফ ডাউনলোড (Download PDF)
-                        </a>
-                    </div>
-                @endif
-
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <a href="{{ route('home') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
-                        <i class="fa-solid fa-house me-1"></i> মূল ওয়েবসাইটে ফিরে যান
-                    </a>
-                    <a href="{{ route('books.index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
-                        <i class="fa-solid fa-book me-1"></i> বইসমূহ দেখুন
-                    </a>
-                </div>
             </div>
 
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    let timeLeft = 6;
+    const totalTime = 6;
+    let isPaused = false;
+    let timerInterval = null;
+
+    const countdownDisplay = document.getElementById('countdownSecs');
+    const countdownBar = document.getElementById('countdownBar');
+    const btnPause = document.getElementById('btnPauseCountdown');
+    const countdownSpinner = document.getElementById('countdownSpinner');
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (isPaused) return;
+
+            timeLeft -= 1;
+            if (countdownDisplay) {
+                countdownDisplay.textContent = timeLeft;
+            }
+            if (countdownBar) {
+                const percent = (timeLeft / totalTime) * 100;
+                countdownBar.style.width = percent + '%';
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                window.location.href = "{{ url('/') }}";
+            }
+        }, 1000);
+    }
+
+    function toggleCountdown() {
+        isPaused = !isPaused;
+        if (isPaused) {
+            if (btnPause) {
+                btnPause.innerHTML = '<i class="fa-solid fa-play me-1"></i> রিডাইরেক্ট শুরু করুন';
+                btnPause.classList.remove('btn-outline-secondary');
+                btnPause.classList.add('btn-success');
+            }
+            if (countdownSpinner) {
+                countdownSpinner.classList.remove('fa-spin');
+            }
+        } else {
+            if (btnPause) {
+                btnPause.innerHTML = '<i class="fa-solid fa-pause me-1"></i> রিডাইরেক্ট থামান';
+                btnPause.classList.remove('btn-success');
+                btnPause.classList.add('btn-outline-secondary');
+            }
+            if (countdownSpinner) {
+                countdownSpinner.classList.add('fa-spin');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startTimer();
+    });
+</script>
+@endpush
 @endsection

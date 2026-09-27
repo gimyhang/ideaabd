@@ -119,7 +119,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- html2pdf for high quality Bengali Card PDF Export -->
+    
+    <!-- html2canvas and html2pdf for robust Bengali Card Image & PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -134,10 +136,10 @@
         }
         html, body {
             font-family: 'Hind Siliguri', 'SolaimanLipi', Arial, sans-serif;
-            background-color: #f1f5f9;
+            background-color: #0f172a;
             color: #1e1b4b;
             margin: 0;
-            padding: 24px 0;
+            padding: 20px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -148,6 +150,12 @@
             display: block;
             margin-bottom: 16px;
         }
+
+        /* Suppress any intrusive third-party ads or offerwall overlay conflicts */
+        ins.adsbygoogle, .google-auto-placed, #monetag-overlay, .ad-banner, .rewarded-ad-overlay, .adsense-slot {
+            display: none !important;
+        }
+
         @media print {
             html, body {
                 background: none !important;
@@ -183,28 +191,44 @@
 
         .action-bar {
             display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
             align-items: center;
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+            z-index: 100;
         }
         .btn-action {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 8px 18px;
+            padding: 9px 18px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 700;
             text-decoration: none;
             cursor: pointer;
             border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
             transition: all 0.2s ease;
         }
-        .btn-print { background: #0f172a; color: #ffffff; }
-        .btn-pdf { background: #dc2626; color: #ffffff; }
-        .btn-back { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; }
-        .btn-action:hover { transform: translateY(-1px); }
+        .btn-image { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; }
+        .btn-pdf { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #ffffff; }
+        .btn-print { background: #334155; color: #ffffff; }
+        .btn-back { background: #ffffff; color: #0f172a; }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+        .status-badge-pill {
+            background: #fef08a;
+            color: #854d0e;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid #facc15;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
 
         /* ==========================================================================
            RSU OFFICIAL INVITATION CARD (3.8 x 5.4 inch Layout)
@@ -544,14 +568,22 @@
     {{-- Top Action Bar (Hidden on Print / PDF) --}}
     @if(!$isPdf)
         <div class="action-bar no-print">
-            <button type="button" onclick="window.print()" class="btn-action btn-print">
-                <i class="fa-solid fa-print"></i> Print Card
+            @if($registration->status === 'pending')
+                <div class="status-badge-pill">
+                    <i class="fa-solid fa-hourglass-half"></i> আবেদনকারীর কপি / তথ্য যাচাইাধীন
+                </div>
+            @endif
+            <button type="button" id="btnDownloadImage" onclick="downloadCardImage()" class="btn-action btn-image">
+                <i class="fa-solid fa-image"></i> কার্ড ছবি ডাউনলোড (PNG)
             </button>
             <button type="button" id="btnDownloadPdf" onclick="downloadCardPdf()" class="btn-action btn-pdf">
-                <i class="fa-solid fa-file-pdf"></i> Download PDF
+                <i class="fa-solid fa-file-pdf"></i> PDF ডাউনলোড
+            </button>
+            <button type="button" onclick="window.print()" class="btn-action btn-print">
+                <i class="fa-solid fa-print"></i> প্রিন্ট করুন
             </button>
             <a href="{{ url('/') }}" class="btn-action btn-back">
-                <i class="fa-solid fa-house"></i> Home
+                <i class="fa-solid fa-house"></i> হোমপেজ
             </a>
         </div>
     @endif
@@ -699,18 +731,64 @@
     </div>
 
     <script>
-        function downloadCardPdf() {
-            const btn = document.getElementById('btnDownloadPdf');
+        function downloadCardImage() {
+            const btn = document.getElementById('btnDownloadImage');
             let originalHtml = '';
             if (btn) {
                 originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> কার্ড তৈরি হচ্ছে...';
                 btn.disabled = true;
             }
 
             const element = document.getElementById('printableCard');
             const safeName = "{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name) }}";
-            const filename = "Event_Pass_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".pdf";
+            const filename = "Invitation_Card_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".png";
+
+            const readyPromise = document.fonts ? document.fonts.ready : Promise.resolve();
+
+            readyPromise.then(() => {
+                return html2canvas(element, {
+                    scale: 3,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    backgroundColor: null,
+                    scrollY: 0
+                });
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                console.error('Image Generation Error:', err);
+                if (btn) {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+                // Fallback to PDF download
+                downloadCardPdf();
+            });
+        }
+
+        function downloadCardPdf() {
+            const btn = document.getElementById('btnDownloadPdf');
+            let originalHtml = '';
+            if (btn) {
+                originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PDF তৈরি হচ্ছে...';
+                btn.disabled = true;
+            }
+
+            const element = document.getElementById('printableCard');
+            const safeName = "{{ preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name) }}";
+            const filename = "Invitation_Card_{{ $registration->registration_number }}_" + (safeName || 'delegate') + ".pdf";
 
             const opt = {
                 margin:       0,
@@ -719,7 +797,7 @@
                 html2canvas:  { 
                     scale: 3, 
                     useCORS: true, 
-                    allowTaint: true,
+                    allowTaint: true, 
                     logging: false,
                     letterRendering: true,
                     scrollY: 0
@@ -748,10 +826,12 @@
             });
         }
 
-        // Auto trigger download if URL has ?download=1 or ?pdf=1
+        // Auto trigger download if URL has ?download=1 or ?pdf=1 or ?image=1
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('download') === '1' || urlParams.get('pdf') === '1') {
+            if (urlParams.get('image') === '1') {
+                setTimeout(downloadCardImage, 600);
+            } else if (urlParams.get('download') === '1' || urlParams.get('pdf') === '1') {
                 setTimeout(downloadCardPdf, 600);
             }
         });

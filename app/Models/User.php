@@ -13,6 +13,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     // Role constants
+    const ROLE_SUPER_ADMIN= 'super_admin';
     const ROLE_ADMIN      = 'admin';
     const ROLE_SUB_ADMIN  = 'sub_admin';
     const ROLE_SELLER     = 'seller';

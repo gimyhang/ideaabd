@@ -14,6 +14,7 @@
     $customFields = $campaign->custom_fields ?? [];
     $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
     $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
+    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
 @endphp
 
 <div class="container-fluid px-3 px-md-4 py-4 pb-5 mb-5">
@@ -145,9 +146,9 @@
         <div class="col-6 col-lg-3">
             <div class="aec-stat-card">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="stat-label">{{ $isScholarship ? 'Selected Students' : 'Approved Delegates' }}</span>
+                    <span class="stat-label">{{ $isScholarship ? 'Selected Students' : ($isLibrary ? 'Approved Libraries' : 'Approved Delegates') }}</span>
                     <div class="stat-icon bg-success-subtle text-success">
-                        <i class="fa-solid {{ $isScholarship ? 'fa-award' : 'fa-user-check' }}"></i>
+                        <i class="fa-solid {{ $isScholarship ? 'fa-award' : ($isLibrary ? 'fa-book-open-reader' : 'fa-user-check') }}"></i>
                     </div>
                 </div>
                 <div class="stat-value text-success">{{ number_format($selectedCount) }}</div>

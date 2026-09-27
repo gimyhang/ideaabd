@@ -19,6 +19,9 @@
             </h1>
         </div>
         <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('admin.event-campaigns.pathagar') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-2">
+                <i class="fa-solid fa-book-open-reader"></i> পাঠাগার নিবন্ধন
+            </a>
             <a href="{{ route('admin.event-campaigns.create') }}" class="btn btn-primary rounded-pill px-3.5 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
                 <i class="fa-solid fa-plus"></i> New Campaign
             </a>
@@ -108,6 +111,7 @@
                 <div class="col-6 col-md-3">
                     <select name="type" class="form-select bg-light">
                         <option value="">All Types</option>
+                        <option value="library" {{ request('type') == 'library' ? 'selected' : '' }}>📚 Library / Book Grant (পাঠাগার)</option>
                         <option value="event" {{ request('type') == 'event' ? 'selected' : '' }}>Event</option>
                         <option value="scholarship" {{ request('type') == 'scholarship' ? 'selected' : '' }}>Scholarship</option>
                         <option value="donation" {{ request('type') == 'donation' ? 'selected' : '' }}>Donation</option>

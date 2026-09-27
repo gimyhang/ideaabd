@@ -212,6 +212,29 @@ class UserController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        // 14. Library Registrations & Book Grants
+        $myLibraryRegistrations = collect();
+        if (class_exists(\App\Models\EventRegistration::class)) {
+            try {
+                $myLibraryRegistrations = \App\Models\EventRegistration::with('campaign')
+                    ->where(function ($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                          ->orWhere('phone', $user->phone);
+                    })
+                    ->where(function ($q) {
+                        $q->whereHas('campaign', function ($cq) {
+                            $cq->where('type', 'library')->orWhere('slug', 'pathagar');
+                        })
+                        ->orWhereNotNull('form_data->library_name')
+                        ->orWhereNotNull('form_data->reader_count');
+                    })
+                    ->latest('id')
+                    ->get();
+            } catch (\Throwable $e) {
+                $myLibraryRegistrations = collect();
+            }
+        }
+
         return view('frontend.pages.my-account', compact(
             'user',
             'myOrders',
@@ -235,7 +258,8 @@ class UserController extends Controller
             'kycItems',
             'kycPercent',
             'walletBalance',
-            'monthlyRoyalty'
+            'monthlyRoyalty',
+            'myLibraryRegistrations'
         ));
     }
 

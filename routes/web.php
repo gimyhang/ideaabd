@@ -598,6 +598,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('event-campaigns')->name('event-campaigns.')->controller(\App\Http\Controllers\Admin\EventCampaignAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
+        Route::get('/pathagar', 'pathagar')->name('pathagar');
         Route::post('/', 'store')->name('store');
         Route::get('/{campaign}', 'show')->name('show');
         Route::get('/{campaign}/edit', 'edit')->name('edit');
@@ -619,6 +620,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
         Route::get('/{campaign}/export-csv', 'exportCsv')->name('export');
         Route::post('/{campaign}/bulk-action', 'bulkAction')->name('bulk-action');
+    });
+
+    // Library & Book Grant Management (Admin Dedicated Dashboard)
+    Route::prefix('libraries')->name('libraries.')->controller(\App\Http\Controllers\Admin\LibraryRegistrationAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/export', 'exportCsv')->name('export');
+        Route::post('/{registration}/dispatch', 'updateDispatch')->name('dispatch');
+        Route::post('/{registration}/acknowledgment', 'updateAcknowledgment')->name('acknowledgment');
+        Route::match(['post', 'patch'], '/{registration}/toggle-approval', 'toggleApproval')->name('toggle-approval');
+        Route::get('/{registration}/print', 'printSlip')->name('print');
     });
 
     // Registration approval (admin only)
@@ -850,6 +861,9 @@ Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,
 
 // --- Dynamic Event / Donation Campaign Public Direct Routes (e.g. ideaabd.com/rsutshab, ideaabd.com/jshikkhabritti) ---
 Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class)->group(function () {
+    Route::get('/pathagar/acknowledgment/{registrationNumber}', 'showAcknowledgment')->name('pathagar.acknowledgment.show');
+    Route::post('/pathagar/acknowledgment/{registrationNumber}', 'submitAcknowledgment')->name('pathagar.acknowledgment.submit');
+    Route::get('/pathagar/slip/{registrationNumber}', 'printLibrarySlip')->name('pathagar.slip.print');
     Route::get('/event-registration/{registrationNumber}/print', 'print')->name('event.registration.print');
     Route::get('/event-registration/{registrationNumber}/pdf', 'downloadPdf')->name('event.registration.pdf');
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');

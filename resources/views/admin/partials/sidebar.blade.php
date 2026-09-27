@@ -88,7 +88,8 @@
             ['route' => 'admin.users.security.index',    'icon' => 'shield-halved',   'label' => 'Security',
              'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
             ['route' => 'admin.sub-admins.index',        'icon' => 'user-shield',     'label' => 'Staff'],
-            ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns'],
+            ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns & Events'],
+            ['route' => 'admin.libraries.index',         'icon' => 'book-open-reader','label' => 'Libraries & Grants'],
             ['route' => 'admin.tickets.index',           'icon' => 'ticket',          'label' => 'Tickets'],
         ],
         'Administration' => [

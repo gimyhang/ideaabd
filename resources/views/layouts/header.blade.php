@@ -671,6 +671,29 @@
                         <span>যোগাযোগ</span>
                     </a>
                 </li>
+
+                {{-- 12. [Library Grant / Pathagar Apply with Ultra-Dynamic Neon Lighting] --}}
+                @php
+                    $navPathagarCamp = \App\Models\EventCampaign::where('slug', 'pathagar')->orWhere('type', 'library')->first();
+                    $isPathagarActive = $navPathagarCamp ? ($navPathagarCamp->is_active && !$navPathagarCamp->isExpired()) : true;
+                @endphp
+                <li class="nav-item site-nav__item ms-lg-2 my-auto">
+                    <a class="btn-pathagar-nav {{ $isPathagarActive ? 'is-live-lighting' : '' }} {{ request()->is('pathagar*') || request()->is('library*') ? 'is-current-page' : '' }}"
+                       href="{{ url('/pathagar') }}"
+                       title="Annual Free Book Distribution Campaign — Library Grant Application">
+                        <span class="btn-pathagar-sheen"></span>
+                        <span class="btn-pathagar-icon"><i class="fa-solid fa-gift"></i></span>
+                        <span class="btn-pathagar-text">Library Grant</span>
+                        <span class="btn-pathagar-pill">Apply</span>
+                        @if($isPathagarActive)
+                            <span class="pathagar-live-beacon" title="Registration Live">
+                                <span class="beacon-pulse"></span>
+                                <span class="beacon-dot"></span>
+                                <span class="beacon-text">LIVE</span>
+                            </span>
+                        @endif
+                    </a>
+                </li>
             </ul>
         </div>
     </nav>
@@ -678,6 +701,152 @@
          DYNAMIC FUNCTIONAL ICON & AUTH BUTTON STYLES
     ══════════════════════════════════════════════════════════════════ --}}
     <style>
+        /* Ultra-Dynamic Library Grant Button in Main Header Navigation */
+        .btn-pathagar-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6.5px;
+            background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+            color: #ffffff !important;
+            padding: 5px 13px;
+            border-radius: 50px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            text-decoration: none !important;
+            position: relative;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+            letter-spacing: 0.2px;
+        }
+        .btn-pathagar-sheen {
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 60%;
+            height: 200%;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.38) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(25deg);
+            animation: sheenSweep 3.6s infinite ease-in-out;
+            pointer-events: none;
+        }
+        @keyframes sheenSweep {
+            0%, 20% { left: -100%; }
+            50%, 100% { left: 160%; }
+        }
+        .btn-pathagar-nav:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 8px 26px rgba(16, 185, 129, 0.55), 0 0 15px rgba(245, 158, 11, 0.4);
+            color: #ffffff !important;
+            border-color: #fde047;
+        }
+        .btn-pathagar-nav:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .btn-pathagar-nav.is-live-lighting {
+            animation: liveLightingNeon 2.2s infinite alternate ease-in-out;
+        }
+        @keyframes liveLightingNeon {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 14px rgba(5, 150, 105, 0.35);
+                border-color: rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 14px 2px rgba(52, 211, 153, 0.7), 0 0 22px rgba(245, 158, 11, 0.6), 0 4px 18px rgba(5, 150, 105, 0.5);
+                border-color: #fde047;
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 14px rgba(5, 150, 105, 0.35);
+                border-color: rgba(255, 255, 255, 0.5);
+            }
+        }
+        .btn-pathagar-icon {
+            font-size: 13.5px;
+            color: #fef08a;
+            display: inline-flex;
+            align-items: center;
+            animation: iconWiggle 3s infinite ease-in-out;
+        }
+        @keyframes iconWiggle {
+            0%, 80%, 100% { transform: rotate(0); }
+            85% { transform: rotate(-12deg) scale(1.1); }
+            90% { transform: rotate(12deg) scale(1.1); }
+            95% { transform: rotate(-6deg); }
+        }
+        .btn-pathagar-text {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+        .btn-pathagar-pill {
+            font-size: 9.5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);
+            color: #713f12;
+            padding: 1.5px 7px;
+            border-radius: 12px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        .pathagar-live-beacon {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #ffffff;
+            font-size: 8.5px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 12px;
+            letter-spacing: 0.6px;
+            margin-left: 2px;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+        }
+        .beacon-pulse {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 14px;
+            background: #ef4444;
+            opacity: 0.8;
+            animation: beaconPulseAnim 1.6s infinite ease-out;
+            z-index: 1;
+        }
+        .beacon-dot {
+            width: 4px;
+            height: 4px;
+            background: #ffffff;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+        }
+        .beacon-text {
+            position: relative;
+            z-index: 2;
+        }
+        @keyframes beaconPulseAnim {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
         /* Modern Header Action Buttons */
         .btn-hdr-auth {
             position: relative;

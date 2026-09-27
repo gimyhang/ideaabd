@@ -1312,5 +1312,22 @@ function restoreDraft() {
         if (data.village && !document.getElementById('writerVillage').value) document.getElementById('writerVillage').value = data.village;
     } catch (e) {}
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('writerRegisterForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const btn = document.getElementById('submitWriterBtn');
+            if (btn) {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> তথ্য জমা হচ্ছে...';
+                btn.style.opacity = '0.8';
+                btn.style.pointerEvents = 'none';
+            }
+            try {
+                localStorage.removeItem('rsutshab_writer_draft');
+            } catch (e) {}
+        });
+    }
+});
 </script>
 @endpush

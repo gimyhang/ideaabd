@@ -336,6 +336,24 @@
                     </div>
                 </div>
 
+                <!-- CARD: Library & Book Grants -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('libraryGrant')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('libraryGrant')">
+                    <div class="amz-icon-holder" style="background: #ecfdf5; color: #047857;">
+                        <i class="fa-solid fa-book-open-reader" style="font-size: 26px;"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline d-flex align-items-center justify-content-between">
+                            <span>পাঠাগার ও বই অনুদান</span>
+                            @if(isset($myLibraryRegistrations) && $myLibraryRegistrations->isNotEmpty())
+                                <span class="badge bg-success rounded-pill" style="font-size: 11px;">{{ $myLibraryRegistrations->count() }} টি</span>
+                            @else
+                                <span class="badge bg-warning text-dark rounded-pill" style="font-size: 10px;">Apply Live</span>
+                            @endif
+                        </div>
+                        <p class="amz-card-summary">বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি, বরাদ্দ স্ট্যাটাস ও প্রাপ্তিস্বীকার এন্ট্রি</p>
+                    </div>
+                </div>
+
                 <!-- CARD 1: Your Orders -->
                 <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('orders')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('orders')">
                     <div class="amz-icon-holder ic-orders">
@@ -1353,6 +1371,124 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- SECTION PANEL: পাঠাগার ও বই অনুদান (Library Grants & Receipt Acknowledgment) -->
+        <div id="panel-libraryGrant" class="amz-section-panel d-none">
+            <div class="amz-panel-header">
+                <button type="button" class="amz-back-btn" onclick="closeAllPanels()">
+                    <i class="fa-solid fa-arrow-left"></i> Your Account
+                </button>
+                <h2 class="amz-panel-title">
+                    <i class="fa-solid fa-book-open-reader text-success me-2"></i> পাঠাগার ও বাৎসরিক বই অনুদান
+                </h2>
+                <p class="text-muted small mb-0">আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির বিবরণ ও প্রাপ্তিস্বীকার।</p>
+            </div>
+            <div class="amz-panel-body p-4">
+                @if(isset($myLibraryRegistrations) && $myLibraryRegistrations->isNotEmpty())
+                    <div class="d-flex flex-column gap-3">
+                        @foreach($myLibraryRegistrations as $reg)
+                            @php
+                                $fd = $reg->form_data ?? [];
+                                $allocated = intval($fd['books_allocated'] ?? 0);
+                                $dispatchedDate = $fd['dispatched_date'] ?? null;
+                                $receivedCount = intval($fd['received_books_count'] ?? 0);
+                                $receivedDate = $fd['received_date'] ?? null;
+                                $isAck = $reg->isAcknowledged();
+                                $libName = $reg->institution_or_org ?: ($fd['library_name'] ?? 'পাঠাগার');
+                            @endphp
+                            <div class="card border rounded-4 shadow-sm p-4 bg-white">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1 text-dark">{{ $libName }}</h5>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap small">
+                                            <span class="badge bg-light text-secondary border">#{{ $reg->registration_number }}</span>
+                                            <span class="text-muted">{{ $reg->district ?? '' }}{{ $reg->thana ? ', ' . $reg->thana : '' }}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        @if(in_array($reg->status, ['confirmed', 'selected', 'approved']))
+                                            <span class="badge bg-success-subtle text-success border px-3 py-1.5 rounded-pill fw-bold">
+                                                <i class="fa-solid fa-circle-check me-1"></i> অনুমোদিত (Approved)
+                                            </span>
+                                        @else
+                                            <span class="badge bg-warning-subtle text-warning border px-3 py-1.5 rounded-pill fw-bold">
+                                                <i class="fa-solid fa-hourglass-half me-1"></i> অপেক্ষমাণ (Pending)
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 p-3 rounded-3 bg-light mb-3">
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-muted small d-block">বরাদ্দকৃত বই</span>
+                                        <strong class="text-success fs-6">{{ $allocated > 0 ? $allocated . ' টি বই' : 'যাচাইাধীন' }}</strong>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-muted small d-block">বিতরণের তারিখ</span>
+                                        <strong class="text-dark">{{ $dispatchedDate ? date('d M, Y', strtotime($dispatchedDate)) : '—' }}</strong>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-muted small d-block">প্রাপ্তিস্বীকার স্ট্যাটাস</span>
+                                        @if($isAck)
+                                            <span class="badge bg-success text-white">প্রাপ্তি নিশ্চিত ({{ $receivedCount ?: $allocated }} টি)</span>
+                                        @elseif($allocated > 0)
+                                            <span class="badge bg-warning text-dark">প্রেরিত (প্রাপ্তিস্বীকার দিন)</span>
+                                        @else
+                                            <span class="badge bg-secondary text-white">অপেক্ষমাণ</span>
+                                        @endif
+                                    </div>
+                                    <div class="col-6 col-md-3 text-md-end">
+                                        <a href="{{ route('admin.libraries.print', $reg->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                            <i class="fa-solid fa-print me-1"></i> স্লিপ প্রিন্ট
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {{-- Acknowledgment Form inside Panel if not acknowledged --}}
+                                @if(!$isAck)
+                                    <div class="border-top pt-3 mt-2">
+                                        <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-signature me-1"></i> বই বুঝে পেয়েছেন? প্রাপ্তিস্বীকার দিন:</h6>
+                                        <form action="{{ url('/pathagar/acknowledgment/' . $reg->registration_number) }}" method="POST" class="row g-2 align-items-center">
+                                            @csrf
+                                            <div class="col-md-3">
+                                                <input type="number" name="received_books_count" class="form-control form-control-sm rounded-3" placeholder="প্রাপ্ত বই সংখ্যা" value="{{ $allocated > 0 ? $allocated : '' }}" required min="1">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <input type="date" name="received_date" class="form-control form-control-sm rounded-3" value="{{ date('Y-m-d') }}" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="text" name="acknowledgment_notes" class="form-control form-control-sm rounded-3" placeholder="মন্তব্য (যেমন: সঠিক অবস্থায় পেয়েছি)">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-sm btn-success rounded-pill w-100 fw-semibold">
+                                                    প্রাপ্তিস্বীকার জমা
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @else
+                                    <div class="alert alert-success rounded-3 p-2.5 small mb-0 d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <i class="fa-solid fa-circle-check text-success me-1"></i>
+                                            <strong>{{ $receivedDate ? date('d M, Y', strtotime($receivedDate)) : '' }}</strong> তারিখে <strong>{{ $receivedCount ?: $allocated }} টি বই</strong> প্রাপ্তিস্বীকার নিশ্চিত করা হয়েছে।
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-book-open-reader fs-1 text-success opacity-50 mb-3 d-block"></i>
+                        <h5 class="fw-bold text-dark">কোনো পাঠাগার নিবন্ধন পাওয়া যায়নি</h5>
+                        <p class="text-muted small mb-3">আপনার পাঠাগার বা শিক্ষা প্রতিষ্ঠানের জন্য বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে আবেদন করুন।</p>
+                        <a href="{{ url('/pathagar') }}" target="_blank" class="btn btn-success rounded-pill px-4 fw-semibold">
+                            <i class="fa-solid fa-plus me-1"></i> এখনই পাঠাগার আবেদন করুন
+                        </a>
+                    </div>
+                @endif
             </div>
         </div>
 

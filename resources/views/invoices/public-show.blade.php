@@ -187,46 +187,46 @@
                 box-sizing: border-box !important;
             }
 
-            .col-7, .col-print-7 {
+            .col-print-12 {
+                flex: 0 0 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .col-7, .col-print-7, .row > .col-7, .row > .col-print-7 {
                 flex: 0 0 58.333333% !important;
                 width: 58.333333% !important;
                 max-width: 58.333333% !important;
             }
 
-            .col-5, .col-print-5 {
+            .col-5, .col-print-5, .row > .col-5, .row > .col-print-5 {
                 flex: 0 0 41.666667% !important;
                 width: 41.666667% !important;
                 max-width: 41.666667% !important;
             }
 
-            .col-6, .col-print-6 {
+            .col-6, .col-print-6, .row > .col-6, .row > .col-print-6 {
                 flex: 0 0 50% !important;
                 width: 50% !important;
                 max-width: 50% !important;
             }
 
-            .col-4, .col-print-4 {
+            .col-4, .col-print-4, .row > .col-4, .row > .col-print-4 {
                 flex: 0 0 33.333333% !important;
                 width: 33.333333% !important;
                 max-width: 33.333333% !important;
             }
 
-            .col-3, .col-print-3 {
+            .col-3, .col-print-3, .row > .col-3, .row > .col-print-3 {
                 flex: 0 0 25% !important;
                 width: 25% !important;
                 max-width: 25% !important;
             }
 
-            .col-2, .col-print-2 {
+            .col-2, .col-print-2, .row > .col-2, .row > .col-print-2 {
                 flex: 0 0 16.666667% !important;
                 width: 16.666667% !important;
                 max-width: 16.666667% !important;
-            }
-
-            .col-12, .col-print-12 {
-                flex: 0 0 100% !important;
-                width: 100% !important;
-                max-width: 100% !important;
             }
 
             .invoice-page-card {
@@ -440,7 +440,7 @@
                 
                 {{-- Institutional / Company Header in 2-Column Responsive Layout --}}
                 <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
-                    <div class="col-12 col-md-7 col-print-7">
+                    <div class="col-7 col-print-7">
                         <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
                             <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                                  class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
@@ -473,7 +473,7 @@
                         </div>
                     </div>
 
-                    <div class="col-12 col-md-5 col-print-5 text-md-end text-start mt-2 mt-md-0">
+                    <div class="col-5 col-print-5 text-end mt-0">
                         @php
                             $badgeStyles = [
                                 'challan'   => 'background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;',
@@ -737,7 +737,7 @@
                 <div class="invoice-summary-container mb-2.5">
                     <div class="row g-2 align-items-stretch">
                         {{-- Left Column: Total in Words & Payment Status --}}
-                        <div class="col-12 col-md-6 col-print-6 d-flex flex-column">
+                        <div class="col-6 col-print-6 d-flex flex-column">
                             <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                                 <div>
                                     <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
@@ -772,7 +772,7 @@
                         </div>
 
                         {{-- Right Column: Detailed Calculation Breakdown --}}
-                        <div class="col-12 col-md-6 col-print-6 ms-auto">
+                        <div class="col-6 col-print-6 ms-auto">
                             <div class="border rounded-2 overflow-hidden bg-white">
                                 <table class="table table-sm table-borderless align-middle mb-0 summary-table" style="font-size: 10px;">
                                     <tbody>
@@ -923,7 +923,7 @@
                     
                     {{-- Institutional / Company Header in 2-Column Responsive Layout --}}
                     <div class="row align-items-center border-bottom pb-2 mb-2 g-2">
-                        <div class="col-12 col-md-7 col-print-7">
+                        <div class="col-7 col-print-7">
                             <div class="d-flex align-items-center gap-2.5 invoice-brand-header">
                                 <img src="{{ $logoSrc }}" alt="{{ $settings['business_name'] ?? 'Idea Publication' }}" 
                                      class="img-fluid invoice-logo-img" style="height: 48px; width: 96px; aspect-ratio: 2/1; object-fit: contain; flex-shrink: 0; margin-right: 4px;">
@@ -956,7 +956,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-md-5 col-print-5 text-md-end text-start mt-2 mt-md-0">
+                        <div class="col-5 col-print-5 text-end mt-0">
                             <span class="badge border px-2 py-0.5 rounded-pill mb-0.5 d-inline-block fw-bold" style="font-size: 10px; background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc;">
                                 DELIVERY CHALLAN
                             </span>

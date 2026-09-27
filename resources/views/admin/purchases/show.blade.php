@@ -352,7 +352,7 @@
             <div class="purchase-summary-container mb-2.5">
                 <div class="row g-2 align-items-stretch">
                     {{-- Left Column: Total in Words & Previous Invoices Breakdown --}}
-                    <div class="col-12 col-md-6 col-print-6 d-flex flex-column">
+                    <div class="col-6 col-print-6 d-flex flex-column">
                         <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
@@ -381,7 +381,7 @@
                     </div>
 
                     {{-- Right Column: Calculation Breakdown --}}
-                    <div class="col-12 col-md-6 col-print-6 ms-auto">
+                    <div class="col-6 col-print-6 ms-auto">
                         <div class="border rounded-2 overflow-hidden bg-white">
                             <table class="table table-sm table-borderless align-middle mb-0 summary-table" style="font-size: 10px;">
                                 <tbody>

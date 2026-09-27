@@ -61,4 +61,71 @@ class EventRegistration extends Model
         }
         return $prefix . '-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
     }
+
+    /**
+     * Check if this registration belongs to a library grant campaign
+     */
+    public function isLibrary(): bool
+    {
+        return ($this->campaign && ($this->campaign->type === 'library' || $this->campaign->slug === 'pathagar' || !empty($this->campaign->form_settings['is_library_form'])))
+            || !empty($this->form_data['library_name'])
+            || !empty($this->form_data['is_library_grant']);
+    }
+
+    /**
+     * Get allocated books count
+     */
+    public function getBooksAllocatedAttribute(): int
+    {
+        return intval($this->form_data['books_allocated'] ?? 0);
+    }
+
+    /**
+     * Get dispatched date
+     */
+    public function getDispatchedDateAttribute(): ?string
+    {
+        return $this->form_data['dispatched_date'] ?? null;
+    }
+
+    /**
+     * Get received books count
+     */
+    public function getReceivedBooksCountAttribute(): int
+    {
+        return intval($this->form_data['received_books_count'] ?? 0);
+    }
+
+    /**
+     * Get received date
+     */
+    public function getReceivedDateAttribute(): ?string
+    {
+        return $this->form_data['received_date'] ?? null;
+    }
+
+    /**
+     * Get receipt acknowledgment status
+     */
+    public function getAcknowledgmentStatusAttribute(): string
+    {
+        if (!empty($this->form_data['acknowledgment_status'])) {
+            return $this->form_data['acknowledgment_status'];
+        }
+        if (!empty($this->form_data['received_date']) || !empty($this->form_data['received_books_count'])) {
+            return 'acknowledged';
+        }
+        if (!empty($this->form_data['books_allocated']) || !empty($this->form_data['dispatched_date'])) {
+            return 'dispatched';
+        }
+        return 'pending';
+    }
+
+    /**
+     * Check if acknowledgment is completed
+     */
+    public function isAcknowledged(): bool
+    {
+        return $this->acknowledgment_status === 'acknowledged' || !empty($this->form_data['is_acknowledged']);
+    }
 }
