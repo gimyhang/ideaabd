@@ -12,7 +12,35 @@ document.addEventListener('DOMContentLoaded', () => {
     initQuickCategoryTabs();
     initViewSwitcher();
     initStorageGrowthChart();
+    initSchemaTableSearch();
 });
+
+/* ── 0.1 Schema Explorer Live Table Search ── */
+function initSchemaTableSearch() {
+    const searchInput = document.getElementById('schemaSearchInput');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#schemaTablesBody tr.schema-table-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const tblName = (row.dataset.tablename || '').toLowerCase();
+            if (!query || tblName.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const badge = document.getElementById('schemaTableCountBadge');
+        if (badge) {
+            badge.textContent = `${visibleCount} Tables`;
+        }
+    });
+}
 
 /* ── 0. Smart Quick Category Tabs & View Switcher ── */
 let currentActiveCategory = 'all';

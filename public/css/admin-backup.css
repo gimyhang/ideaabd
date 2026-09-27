@@ -551,6 +551,148 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── High-End Action Pill Buttons ── */
+.btn-action-pill {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: 50rem;
+    padding: 0.32rem 0.65rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    font-family: var(--bs-font-monospace);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-decoration: none !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.btn-action-pill:hover {
+    transform: translateY(-1.5px);
+}
+
+.btn-action-pill:active {
+    transform: translateY(0);
+}
+
+/* Action Variants */
+.btn-action-cyan {
+    background: #ecfeff;
+    color: #0891b2 !important;
+    border-color: #a5f3fc;
+}
+.btn-action-cyan:hover {
+    background: #0891b2;
+    color: #ffffff !important;
+    border-color: #0891b2;
+    box-shadow: 0 4px 12px rgba(8, 145, 178, 0.35);
+}
+
+.btn-action-purple {
+    background: #f5f3ff;
+    color: #7c3aed !important;
+    border-color: #ddd6fe;
+}
+.btn-action-purple:hover {
+    background: #7c3aed;
+    color: #ffffff !important;
+    border-color: #7c3aed;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+.btn-action-amber {
+    background: #fffbeb;
+    color: #d97706 !important;
+    border-color: #fde68a;
+}
+.btn-action-amber:hover {
+    background: #d97706;
+    color: #ffffff !important;
+    border-color: #d97706;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+}
+
+.btn-action-sky {
+    background: #f0f9ff;
+    color: #0284c7 !important;
+    border-color: #bae6fd;
+}
+.btn-action-sky:hover {
+    background: #0284c7;
+    color: #ffffff !important;
+    border-color: #0284c7;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.btn-action-indigo {
+    background: #eef2ff;
+    color: #4f46e5 !important;
+    border-color: #c7d2fe;
+}
+.btn-action-indigo:hover {
+    background: #4f46e5;
+    color: #ffffff !important;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+.btn-action-emerald {
+    background: #ecfdf5;
+    color: #059669 !important;
+    border-color: #a7f3d0;
+}
+.btn-action-emerald:hover {
+    background: #059669;
+    color: #ffffff !important;
+    border-color: #059669;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+.btn-action-rose {
+    background: #fff1f2;
+    color: #e11d48 !important;
+    border-color: #fecdd3;
+}
+.btn-action-rose:hover {
+    background: #e11d48;
+    color: #ffffff !important;
+    border-color: #e11d48;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+}
+
+/* ── Primary 1-Click Restore Special Glow Pill ── */
+.btn-action-restore-main {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #ffffff !important;
+    border: none;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+.btn-action-restore-main:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+    color: #ffffff !important;
+}
+
+/* ── Schema Explorer Table Styles ── */
+.schema-stat-badge {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50rem;
+    border: 1px solid #e2e8f0;
+}
+
+.schema-table-row:hover {
+    background-color: #f8fafc !important;
+}
+
 /* ── Responsive adjustments ── */
 @media (max-width: 768px) {
     .btn-backup-gradient {
@@ -564,5 +706,9 @@
     }
     .backup-grid-view {
         grid-template-columns: 1fr;
+    }
+    .btn-action-pill {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.70rem;
     }
 }

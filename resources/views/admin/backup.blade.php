@@ -496,46 +496,48 @@
                                 </td>
                                 <td>
                                     <div class="text-dark small fw-semibold font-monospace">{{ $b['created_at']->format('d M, Y h:i A') }}</div>
-                                    <small class="text-muted font-monospace" style="font-size: 11px;">{{ $b['created_at']->diffForHumans() }}</small>
+                                    <span class="badge bg-light text-secondary border font-monospace mt-0.5 d-inline-flex align-items-center gap-1" style="font-size: 11px;">
+                                        <i class="fa-regular fa-clock text-muted"></i> {{ $b['created_at']->locale('en')->diffForHumans() }}
+                                    </span>
                                 </td>
                                 <td class="text-end pe-4">
                                     <div class="d-flex align-items-center justify-content-end flex-wrap gap-1.5">
-                                        {{-- 1. Diff & Analytics --}}
+                                        {{-- 1. Full Disaster Restore --}}
+                                        <button type="button" class="btn-action-pill btn-action-restore-main" 
+                                                onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="Full Disaster Recovery Restore">
+                                            <i class="fa-solid fa-rotate-left"></i> Restore
+                                        </button>
+
+                                        {{-- 2. Diff & Analytics --}}
                                         <button type="button" class="btn-action-pill btn-action-cyan" onclick="openDiffModal('{{ $b['filename'] }}')" title="Compare Live Database vs Backup Snapshot">
                                             <i class="fa-solid fa-code-compare"></i> Diff
                                         </button>
 
-                                        {{-- 2. Safe Dry-Run Simulation --}}
+                                        {{-- 3. Safe Dry-Run Simulation --}}
                                         <button type="button" class="btn-action-pill btn-action-purple" onclick="runDryRunSimulation('{{ $b['filename'] }}')" title="Safe Sandbox Dry-Run Simulation">
                                             <i class="fa-solid fa-flask-vial"></i> Dry-Run
                                         </button>
 
-                                        {{-- 3. Selective Table Restore --}}
+                                        {{-- 4. Selective Table Restore --}}
                                         <button type="button" class="btn-action-pill btn-action-amber" onclick="openSelectiveRestoreModal('{{ $b['filename'] }}')" title="Restore specific chosen tables only">
                                             <i class="fa-solid fa-list-check"></i> Selective
                                         </button>
 
-                                        {{-- 4. Inspect ZIP Preview --}}
+                                        {{-- 5. Inspect ZIP Preview --}}
                                         @if($b['is_master_zip'])
                                             <button type="button" class="btn-action-pill btn-action-sky" onclick="inspectZipArchive('{{ $b['filename'] }}')" title="Inspect Archive Content & Manifest">
                                                 <i class="fa-solid fa-eye"></i> Preview
                                             </button>
                                         @endif
 
-                                        {{-- 5. Download --}}
+                                        {{-- 6. Download --}}
                                         <a href="{{ route('admin.backup.download', $b['filename']) }}" class="btn-action-pill btn-action-indigo" title="Download backup archive">
                                             <i class="fa-solid fa-download"></i>
                                         </a>
 
-                                        {{-- 6. Email Dispatch --}}
+                                        {{-- 7. Email Dispatch --}}
                                         <button type="button" class="btn-action-pill btn-action-emerald" onclick="openEmailModal('{{ $b['filename'] }}')" title="Send backup to admin email">
                                             <i class="fa-solid fa-paper-plane"></i>
-                                        </button>
-
-                                        {{-- 7. Full Restore with Safety Guarantee --}}
-                                        <button type="button" class="btn-action-pill btn-action-emerald" 
-                                                onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="Full Disaster Recovery Restore">
-                                            <i class="fa-solid fa-rotate-left"></i> Restore
                                         </button>
 
                                         {{-- 8. Delete --}}
@@ -612,7 +614,7 @@
                             </h6>
                             <div class="d-flex align-items-center justify-content-between text-muted font-monospace small mb-3" style="font-size: 11px;">
                                 <span><i class="fa-solid fa-calendar-day me-1"></i> {{ $b['created_at']->format('d M, Y') }}</span>
-                                <span><i class="fa-solid fa-clock me-1"></i> {{ $b['created_at']->diffForHumans() }}</span>
+                                <span class="badge bg-light text-secondary border"><i class="fa-solid fa-clock me-1"></i> {{ $b['created_at']->locale('en')->diffForHumans() }}</span>
                             </div>
                         </div>
 
@@ -634,14 +636,14 @@
                                 @endif
                             </div>
                             <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn-action-pill btn-action-restore-main" onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="Restore">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
                                 <a href="{{ route('admin.backup.download', $b['filename']) }}" class="btn-action-pill btn-action-indigo" title="Download">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                                 <button type="button" class="btn-action-pill btn-action-emerald" onclick="openEmailModal('{{ $b['filename'] }}')" title="Email">
                                     <i class="fa-solid fa-paper-plane"></i>
-                                </button>
-                                <button type="button" class="btn-action-pill btn-action-emerald" onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="Restore">
-                                    <i class="fa-solid fa-rotate-left"></i>
                                 </button>
                                 <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
                                       data-confirm="Are you sure you want to permanently delete backup file ({{ $b['filename'] }})?"
@@ -673,39 +675,70 @@
         </div>
     </div>
 
-    <!-- 5. Database Tables & Records Breakdown Accordion -->
+    <!-- 5. Database Tables & Live Schema Explorer -->
     @if(!empty($tables))
         <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
-            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 px-4 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-table-list"></i>
+            <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2 py-3 px-4 border-bottom">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="rounded-circle bg-info-subtle text-info d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="fa-solid fa-table-cells fs-6"></i>
                     </div>
-                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.96rem;">Database Tables & Schema Breakdown ({{ count($tables) }} Tables)</h6>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h6 class="fw-bold text-dark mb-0" style="font-size: 0.96rem;">Database Tables & Schema Explorer</h6>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" id="schemaTableCountBadge" style="font-size: 0.70rem;">{{ count($tables) }} Tables</span>
+                        </div>
+                        <small class="text-muted font-monospace" style="font-size: 11px;">{{ number_format($totalRowsCount) }} Total Records Across Schema • {{ $formattedDbSize }} Volume</small>
+                    </div>
                 </div>
-                <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold font-monospace" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTables" aria-expanded="false">
-                    <i class="fa-solid fa-chevron-down me-1"></i> View Schema Details
-                </button>
+
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    {{-- Live Schema Search Input --}}
+                    <div class="input-group input-group-sm" style="max-width: 220px;">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="search" id="schemaSearchInput" class="form-control border-start-0 ps-0 fw-semibold font-monospace" placeholder="Filter tables...">
+                    </div>
+
+                    <button class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold font-monospace" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTables" aria-expanded="true">
+                        <i class="fa-solid fa-chevron-down me-1"></i> Toggle Schema
+                    </button>
+                </div>
             </div>
-            <div class="collapse" id="collapseTables">
+
+            <div class="collapse show" id="collapseTables">
                 <div class="card-body p-0">
-                    <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
-                        <table class="table table-hover table-sm align-middle mb-0 small">
-                            <thead class="table-light sticky-top font-monospace">
+                    <div class="table-responsive" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0 small" id="schemaTablesTable">
+                            <thead class="table-light sticky-top font-monospace text-uppercase text-muted" style="font-size: 0.72rem; z-index: 10;">
                                 <tr>
-                                    <th class="ps-4 py-2.5">TABLE NAME</th>
-                                    <th class="py-2.5">TOTAL ROW COUNT</th>
-                                    <th class="text-end pe-4 py-2.5">SIZE (DATA + INDEX)</th>
+                                    <th class="ps-4 py-2.5" style="width: 45%;">TABLE NAME</th>
+                                    <th class="py-2.5" style="width: 25%;">RECORD COUNT</th>
+                                    <th class="py-2.5" style="width: 15%;">STORAGE ALLOCATION</th>
+                                    <th class="text-end pe-4 py-2.5" style="width: 15%;">STATUS</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="schemaTablesBody">
                                 @foreach($tables as $tbl)
-                                    <tr>
-                                        <td class="ps-4 font-monospace text-dark fw-semibold">{{ $tbl['name'] }}</td>
-                                        <td>
-                                            <span class="badge bg-light text-dark border font-monospace">{{ number_format($tbl['rows']) }} rows</span>
+                                    <tr class="schema-table-row" data-tablename="{{ strtolower($tbl['name']) }}">
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="fa-solid fa-table text-muted opacity-50"></i>
+                                                <span class="font-monospace text-dark fw-bold">{{ $tbl['name'] }}</span>
+                                            </div>
                                         </td>
-                                        <td class="text-end pe-4 font-monospace text-muted">{{ $tbl['size'] }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border font-monospace px-2.5 py-1 rounded-pill">
+                                                <i class="fa-solid fa-database text-info me-1"></i>{{ number_format($tbl['rows']) }} rows
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="font-monospace text-muted fw-semibold">{{ $tbl['size'] }}</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace px-2 py-0.5" style="font-size: 0.68rem;">
+                                                <i class="fa-solid fa-check me-0.5"></i> Healthy
+                                            </span>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
