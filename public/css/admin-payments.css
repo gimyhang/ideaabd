@@ -1,0 +1,220 @@
+/**
+ * Admin Payment Gateways & Transaction Management Stylesheet
+ * Enterprise Grade UI - Idea Prokashon
+ */
+
+:root {
+    --pay-primary: #2563eb;
+    --pay-success: #10b981;
+    --pay-warning: #f59e0b;
+    --pay-danger: #ef4444;
+    --pay-dark: #0f172a;
+    --pay-slate: #1e293b;
+    --pay-border: #e2e8f0;
+    --pay-radius: 1rem;
+    --pay-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Brand Colors */
+    --brand-bkash: #d82a6f;
+    --brand-nagad: #e8590c;
+    --brand-rocket: #8c3494;
+    --brand-upay: #0084c7;
+    --brand-cellfin: #059669;
+    --brand-ssl: #0369a1;
+    --brand-shurjo: #1e3a8a;
+    --brand-aamar: #b91c1c;
+    --brand-bank: #475569;
+    --brand-cod: #047857;
+}
+
+/* KPI Summary Cards */
+.pay-kpi-card {
+    background: #ffffff;
+    border: 1px solid var(--pay-border);
+    border-radius: var(--pay-radius);
+    padding: 1.25rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--pay-transition);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+    height: 100%;
+}
+
+.pay-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.pay-kpi-revenue {
+    border-left: 4px solid var(--pay-success);
+}
+
+.pay-kpi-paid {
+    border-left: 4px solid var(--pay-primary);
+}
+
+.pay-kpi-pending {
+    border-left: 4px solid var(--pay-warning);
+}
+
+.pay-kpi-mfs {
+    border-left: 4px solid var(--pay-danger);
+}
+
+/* Master Tab Navigation */
+.pay-master-nav {
+    background: #ffffff;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--pay-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.pay-master-nav .nav-link {
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    color: #475569;
+    transition: var(--pay-transition);
+    border: 1px solid transparent;
+}
+
+.pay-master-nav .nav-link:hover {
+    color: var(--pay-primary);
+    background: #f1f5f9;
+}
+
+.pay-master-nav .nav-link.active {
+    background: var(--pay-dark);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+}
+
+/* Gateway Cards */
+.pay-gw-card {
+    background: #ffffff;
+    border: 1px solid var(--pay-border);
+    border-radius: var(--pay-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    transition: var(--pay-transition);
+    height: 100%;
+}
+
+.pay-gw-card:hover {
+    box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.06);
+    border-color: #cbd5e1;
+}
+
+.pay-gw-header {
+    background: #f8fafc;
+    border-bottom: 1px solid var(--pay-border);
+    padding: 0.875rem 1.25rem;
+}
+
+.pay-gw-body {
+    padding: 1.25rem;
+}
+
+/* Branded Badges */
+.badge-bkash { background: var(--brand-bkash); color: #fff; }
+.badge-nagad { background: var(--brand-nagad); color: #fff; }
+.badge-rocket { background: var(--brand-rocket); color: #fff; }
+.badge-upay { background: var(--brand-upay); color: #fff; }
+.badge-cellfin { background: var(--brand-cellfin); color: #fff; }
+.badge-ssl { background: var(--brand-ssl); color: #fff; }
+.badge-shurjo { background: var(--brand-shurjo); color: #fff; }
+.badge-aamar { background: var(--brand-aamar); color: #fff; }
+.badge-bank { background: var(--brand-bank); color: #fff; }
+.badge-cod { background: var(--brand-cod); color: #fff; }
+
+/* QR Code Preview Box */
+.pay-qr-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 0.625rem;
+}
+
+.pay-qr-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 0.375rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 2px;
+}
+
+/* Mode Container & Smooth Reveal */
+.gw-mode-sec {
+    animation: fadeInMode 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInMode {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Inputs */
+.pay-form-control {
+    border-radius: 0.5rem;
+    border: 1.5px solid #cbd5e1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    transition: var(--pay-transition);
+}
+
+.pay-form-control:focus {
+    border-color: var(--pay-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* Code Snippet Box */
+.pay-code-box {
+    background: #090d16;
+    color: #e2e8f0;
+    border-radius: 0.625rem;
+    border: 1px solid #1e293b;
+    padding: 0.875rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.82rem;
+}
+
+/* Transaction Data Table */
+.pay-trx-table th {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #475569;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--pay-border);
+}
+
+.pay-trx-table td {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--pay-border);
+    vertical-align: middle;
+}
+
+.pay-trx-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .pay-master-nav {
+        border-radius: 1rem;
+        flex-direction: column;
+    }
+    .pay-master-nav .nav-link {
+        border-radius: 0.625rem;
+        justify-content: flex-start;
+    }
+}

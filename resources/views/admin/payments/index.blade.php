@@ -3,6 +3,10 @@
 @section('title', 'Payments & Gateway Settings')
 @section('heading', 'পেমেন্ট গেটওয়ে, মোবাইল ব্যাংকিং ও লাইভ লেনদেন সেটিংস')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-payments.css') }}">
+@endpush
+
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
     <li class="breadcrumb-item active">পেমেন্ট গেটওয়ে ও লেনদেন সেটিংস</li>
@@ -24,7 +28,7 @@
 
     <!-- Flash Messages -->
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs border-0 p-3" role="alert">
             <i class="fa-solid fa-circle-check me-2 text-success fs-5"></i>
             <div class="fw-semibold">{{ session('success') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -32,7 +36,7 @@
     @endif
 
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs border-0 p-3" role="alert">
             <i class="fa-solid fa-triangle-exclamation me-2 text-danger fs-5"></i>
             <div class="fw-semibold">{{ session('error') }}</div>
             <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -42,7 +46,7 @@
     <!-- Payment Stats KPI Grid -->
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-success h-100">
+            <div class="pay-kpi-card pay-kpi-revenue">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">সর্বমোট আদায়কৃত রেভিনিউ</span>
                     <div class="rounded-circle bg-success-subtle text-success p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
@@ -55,7 +59,7 @@
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-primary h-100">
+            <div class="pay-kpi-card pay-kpi-paid">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">পরিশোধিত অর্ডার</span>
                     <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
@@ -68,7 +72,7 @@
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-warning h-100">
+            <div class="pay-kpi-card pay-kpi-pending">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">অপেক্ষমান পেমেন্ট যাচাই</span>
                     <div class="rounded-circle bg-warning-subtle text-warning p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
@@ -81,7 +85,7 @@
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-danger h-100">
+            <div class="pay-kpi-card pay-kpi-mfs">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small text-muted fw-semibold">মোবাইল ব্যাংকিং (MFS)</span>
                     <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
@@ -100,38 +104,40 @@
 
         <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
             <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 py-3 px-4 border-bottom">
-                <ul class="nav nav-pills gap-2" id="paymentTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active rounded-pill fw-semibold py-1.5 px-3" 
-                                id="tab-mfs-btn" data-bs-toggle="pill" data-bs-target="#tab-mfs" type="button" role="tab">
-                            <i class="fa-solid fa-mobile-screen-button me-1.5 text-danger"></i> ১. মোবাইল ব্যাংকিং (MFS)
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
-                                id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab">
-                            <i class="fa-solid fa-credit-card me-1.5 text-primary"></i> ২. অনলাইন গেটওয়ে ও কার্ড
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
-                                id="tab-cod-btn" data-bs-toggle="pill" data-bs-target="#tab-cod" type="button" role="tab">
-                            <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> ৩. ক্যাশ অন ডেলিভারি (COD)
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
-                                id="tab-scripts-btn" data-bs-toggle="pill" data-bs-target="#tab-scripts" type="button" role="tab">
-                            <i class="fa-solid fa-code me-1.5 text-dark"></i> ৪. লাইভ স্ক্রিপ্ট ও পেমেন্ট কোড
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill fw-semibold py-1.5 px-3" 
-                                id="tab-trx-btn" data-bs-toggle="pill" data-bs-target="#tab-trx" type="button" role="tab">
-                            <i class="fa-solid fa-receipt me-1.5 text-info"></i> ৫. লেনদেন হিস্ট্রি ও ট্রানজাকশন
-                        </button>
-                    </li>
-                </ul>
+                <div class="pay-master-nav">
+                    <ul class="nav nav-pills gap-2" id="paymentTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" 
+                                    id="tab-mfs-btn" data-bs-toggle="pill" data-bs-target="#tab-mfs" type="button" role="tab">
+                                <i class="fa-solid fa-mobile-screen-button me-1.5 text-danger"></i> ১. মোবাইল ব্যাংকিং (MFS)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" 
+                                    id="tab-online-btn" data-bs-toggle="pill" data-bs-target="#tab-online" type="button" role="tab">
+                                <i class="fa-solid fa-credit-card me-1.5 text-primary"></i> ২. অনলাইন গেটওয়ে ও কার্ড
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" 
+                                    id="tab-cod-btn" data-bs-toggle="pill" data-bs-target="#tab-cod" type="button" role="tab">
+                                <i class="fa-solid fa-hand-holding-dollar me-1.5 text-success"></i> ৩. ক্যাশ অন ডেলিভারি (COD)
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" 
+                                    id="tab-scripts-btn" data-bs-toggle="pill" data-bs-target="#tab-scripts" type="button" role="tab">
+                                <i class="fa-solid fa-code me-1.5 text-dark"></i> ৪. লাইভ স্ক্রিপ্ট ও পেমেন্ট কোড
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" 
+                                    id="tab-trx-btn" data-bs-toggle="pill" data-bs-target="#tab-trx" type="button" role="tab">
+                                <i class="fa-solid fa-receipt me-1.5 text-info"></i> ৫. লেনদেন হিস্ট্রি ও ট্রানজাকশন
+                            </button>
+                        </li>
+                    </ul>
+                </div>
 
                 <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
                     <i class="fa-solid fa-floppy-disk me-1.5"></i> পরিবর্তন সেভ করুন
@@ -1089,73 +1095,45 @@
 
 </div>
 
-<script>
-    // Tab switcher helper
-    function switchTab(tabBtnId) {
-        const btn = document.getElementById(tabBtnId);
-        if (btn) {
-            const tabInstance = new bootstrap.Tab(btn);
-            tabInstance.show();
+@endsection
+
+@push('scripts')
+    <script src="{{ asset('js/admin-payments.js') }}"></script>
+    <script>
+        // Apply transactions filter helper
+        function applyTrxFilter() {
+            const search = document.getElementById('trxSearchInput') ? document.getElementById('trxSearchInput').value : '';
+            const method = document.getElementById('trxMethodFilter') ? document.getElementById('trxMethodFilter').value : '';
+            const status = document.getElementById('trxStatusFilter') ? document.getElementById('trxStatusFilter').value : '';
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', 'trx');
+            if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
+            if (method) url.searchParams.set('method', method); else url.searchParams.delete('method');
+            if (status) url.searchParams.set('status', status); else url.searchParams.delete('status');
+
+            window.location.href = url.toString();
         }
-    }
 
-    // Toggle Gateway Mode (Manual / Automated PGW / Custom Code)
-    function toggleGwMode(gateway, mode) {
-        const manualSec = document.getElementById(gateway + '_mode_manual');
-        const autoSec = document.getElementById(gateway + '_mode_automated');
-        const codeSec = document.getElementById(gateway + '_mode_custom_code');
-
-        if (manualSec) manualSec.classList.toggle('d-none', mode !== 'manual');
-        if (autoSec) autoSec.classList.toggle('d-none', mode !== 'automated');
-        if (codeSec) codeSec.classList.toggle('d-none', mode !== 'custom_code');
-    }
-
-    // QR Code instant file preview
-    function previewQr(input, previewImgId) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                let img = document.getElementById(previewImgId);
-                if (img) {
-                    img.src = e.target.result;
-                }
-            };
-            reader.readAsDataURL(input.files[0]);
+        // Change payment status via dynamic form submission
+        function changePaymentStatus(orderId, status) {
+            if (typeof SwalConfirm === 'function') {
+                SwalConfirm({
+                    title: 'পেমেন্ট স্ট্যাটাস পরিবর্তন',
+                    text: 'আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?',
+                    icon: 'question',
+                    confirmButtonText: '<i class="fa-solid fa-check me-1"></i> হ্যাঁ, পরিবর্তন করুন',
+                    cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
+                }).then(function(result) {
+                    if (!result.isConfirmed) return;
+                    submitStatusChange(orderId, status);
+                });
+            } else if (confirm('আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?')) {
+                submitStatusChange(orderId, status);
+            }
         }
-    }
 
-    // Copy to clipboard helper
-    function copyText(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('কপি হয়েছে: ' + text);
-        });
-    }
-
-    // Apply transactions filter
-    function applyTrxFilter() {
-        const search = document.getElementById('trxSearchInput').value;
-        const method = document.getElementById('trxMethodFilter').value;
-        const status = document.getElementById('trxStatusFilter').value;
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('tab', 'trx');
-        if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
-        if (method) url.searchParams.set('method', method); else url.searchParams.delete('method');
-        if (status) url.searchParams.set('status', status); else url.searchParams.delete('status');
-
-        window.location.href = url.toString();
-    }
-
-    // Change payment status via dynamic form submission
-    function changePaymentStatus(orderId, status) {
-        SwalConfirm({
-            title: 'পেমেন্ট স্ট্যাটাস পরিবর্তন',
-            text: 'আপনি কি এই অর্ডারের পেমেন্ট স্ট্যাটাস ' + status + ' করতে চান?',
-            icon: 'question',
-            confirmButtonText: '<i class="fa-solid fa-check me-1"></i> হ্যাঁ, পরিবর্তন করুন',
-            cancelButtonText: '<i class="fa-solid fa-times me-1"></i> বাতিল'
-        }).then(function(result) {
-            if (!result.isConfirmed) return;
+        function submitStatusChange(orderId, status) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `/admin/payments/${orderId}/status`;
@@ -1166,21 +1144,14 @@
             `;
             document.body.appendChild(form);
             form.submit();
-        });
-    }
-
-    // Check tab query parameter on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('tab') === 'trx') {
-            switchTab('tab-trx-btn');
         }
-    });
-</script>
 
-<style>
-    .gw-mode-sec {
-        transition: all 0.2s ease-in-out;
-    }
-</style>
-@endsection
+        // Check tab query parameter on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'trx') {
+                switchTab('tab-trx-btn');
+            }
+        });
+    </script>
+@endpush
