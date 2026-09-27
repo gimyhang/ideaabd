@@ -67,29 +67,7 @@ class EventCampaignAdminController extends Controller
      */
     public function pathagar(Request $request)
     {
-        $campaign = EventCampaign::where('slug', 'pathagar')
-            ->orWhere('type', 'library')
-            ->first();
-
-        if (!$campaign) {
-            $campaign = EventCampaign::create([
-                'title'               => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬',
-                'slug'                => 'pathagar',
-                'type'                => 'library',
-                'badge_text'          => 'পাঠাগার বই অনুদান ২০২৬',
-                'short_description'   => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
-                'description'         => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় বাংলাদেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
-                'theme_color'         => '#047857',
-                'has_fee_or_donation' => false,
-                'fee_amount'          => 0.00,
-                'is_active'           => true,
-                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! আমাদের প্রতিনিধি আপনার সাথে দ্রুত যোগাযোগ করবে এবং যাচাই শেষে বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
-                'custom_fields'       => [],
-                'form_settings'       => ['is_library_form' => true, 'requires_approval' => true],
-            ]);
-        }
-
-        return redirect()->route('admin.event-campaigns.show', $campaign->id);
+        return redirect()->route('admin.libraries.index');
     }
 
     /**

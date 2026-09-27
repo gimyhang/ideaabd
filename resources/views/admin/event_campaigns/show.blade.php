@@ -14,7 +14,7 @@
     $customFields = $campaign->custom_fields ?? [];
     $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
     $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
-    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
+    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || $campaign->id === 3 || !empty($campaign->form_settings['is_library_form']));
 @endphp
 
 <div class="container-fluid px-3 px-md-4 py-4 pb-5 mb-5">
@@ -79,8 +79,13 @@
 
             {{-- Right Top Action Buttons --}}
             <div class="d-flex flex-wrap align-items-center gap-2">
+                @if($isLibrary)
+                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-light text-dark rounded-pill px-3 py-2 small fw-bold shadow-sm">
+                        <i class="fa-solid fa-building-columns text-success me-1"></i> Main Library Dashboard
+                    </a>
+                @endif
                 <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
-                    <i class="fa-solid fa-user-plus me-1"></i> নতুন নিবন্ধন
+                    <i class="fa-solid fa-user-plus me-1"></i> {{ $isLibrary ? 'নতুন পাঠাগার এন্ট্রি' : 'নতুন নিবন্ধন' }}
                 </button>
                 <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm">
                     <i class="fa-solid {{ $campaign->is_active ? 'fa-pause' : 'fa-play' }} me-1"></i>
@@ -98,6 +103,36 @@
             </div>
         </div>
     </div>
+
+    @if($isLibrary)
+        {{-- Dedicated Library Synchronization Banner --}}
+        <div class="alert bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4 p-3 mb-4 shadow-sm">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-3 bg-success text-white shadow-sm flex-shrink-0" style="width: 44px; height: 44px; font-size: 20px;">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold text-success-emphasis mb-1 d-flex align-items-center gap-2">
+                            <span>Main Library Registration & Book Grant System</span>
+                            <span class="badge bg-success text-white px-2 py-0.5 fw-normal" style="font-size: 11px;">Auto-Synchronized</span>
+                        </h6>
+                        <p class="text-muted small mb-0">
+                            This campaign is directly connected to the central library management database. All registrations, book dispatch logs, and grant slips are unified without conflicts.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-success rounded-pill px-3 py-1.5 small fw-bold shadow-sm">
+                        <i class="fa-solid fa-layer-group me-1"></i> Go to Library Dashboard
+                    </a>
+                    <a href="{{ url('/pathagar') }}" target="_blank" class="btn btn-outline-success rounded-pill px-3 py-1.5 small fw-semibold">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Public Apply Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Alerts --}}
     @if(session('success'))
@@ -323,7 +358,7 @@
                         <th class="col-contact {{ in_array('contact', $visibleCols) ? '' : 'd-none' }}">Contact</th>
                         <th class="col-location {{ in_array('location', $visibleCols) ? '' : 'd-none' }}">Location</th>
                         <th class="col-institution {{ in_array('institution', $visibleCols) ? '' : 'd-none' }}">
-                            {{ $isWriter ? 'Literary Info / Genre' : ($isScholarship ? 'Class / Institution' : 'Institution / Org') }}
+                            {{ $isWriter ? 'Literary Info / Genre' : ($isScholarship ? 'Class / Institution' : ($isLibrary ? 'Library Type / Books' : 'Institution / Org')) }}
                         </th>
                         
                         {{-- Custom Dynamic Columns --}}
@@ -377,12 +412,21 @@
                                     @if($authorPhoto)
                                         <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" class="aec-avatar" onerror="this.style.display='none'">
                                     @else
-                                        <div class="aec-avatar-placeholder">
-                                            {{ mb_substr($reg->name, 0, 1) }}
+                                        <div class="aec-avatar-placeholder {{ $isLibrary ? 'bg-success-subtle text-success' : '' }}">
+                                            @if($isLibrary)
+                                                <i class="fa-solid fa-book-open" style="font-size: 13px;"></i>
+                                            @else
+                                                {{ mb_substr($reg->name, 0, 1) }}
+                                            @endif
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="fw-bold text-dark fs-6">{{ $reg->name }}</div>
+                                        @if($isLibrary && !empty($reg->form_data['library_name']))
+                                            <div class="fw-bold text-dark fs-6">{{ $reg->form_data['library_name'] }}</div>
+                                            <small class="text-muted d-block"><i class="fa-regular fa-user me-1"></i>{{ $reg->name }}</small>
+                                        @else
+                                            <div class="fw-bold text-dark fs-6">{{ $reg->name }}</div>
+                                        @endif
                                         @if(!empty($reg->form_data['pen_name']))
                                             <small class="text-muted d-block">কলমী নাম: {{ $reg->form_data['pen_name'] }}</small>
                                         @endif
@@ -432,6 +476,21 @@
                                     @endif
                                     @if(!empty($reg->form_data['published_book_count']))
                                         <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-book me-1"></i>বই: {{ $reg->form_data['published_book_count'] }} টি</small>
+                                    @endif
+                                @elseif($isLibrary)
+                                    <div class="fw-medium text-dark">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style="font-size: 11px;">
+                                            {{ $reg->form_data['library_type'] ?? ($reg->institution_or_org ?: 'General Library') }}
+                                        </span>
+                                    </div>
+                                    @if(!empty($reg->form_data['reader_count']))
+                                        <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-users me-1"></i>Readers: {{ $reg->form_data['reader_count'] }}</small>
+                                    @endif
+                                    @if(!empty($reg->form_data['books_allocated']) || !empty($reg->form_data['allocated_books_count']))
+                                        @php $bCount = $reg->form_data['allocated_books_count'] ?? (is_array($reg->form_data['books_allocated']) ? count($reg->form_data['books_allocated']) : $reg->form_data['books_allocated']); @endphp
+                                        <small class="text-success fw-bold d-block mt-0.5">
+                                            <i class="fa-solid fa-box-open me-1"></i>Allocated: {{ $bCount }} Books
+                                        </small>
                                     @endif
                                 @else
                                     <div class="fw-medium text-dark">{{ $reg->institution_or_org ?: '-' }}</div>
@@ -549,6 +608,13 @@
                                                 </button>
                                             @endif
                                         </form>
+                                    @endif
+
+                                    @if($isLibrary)
+                                        {{-- Library Grant Slip Print Button --}}
+                                        <a href="{{ route('admin.libraries.print', $reg->id) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Print Official Library Grant Slip">
+                                            <i class="fa-solid fa-file-invoice me-1"></i> Grant Slip
+                                        </a>
                                     @endif
 
                                     {{-- Print Form / Pass Button --}}
