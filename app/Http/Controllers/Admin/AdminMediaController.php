@@ -31,101 +31,125 @@ class AdminMediaController extends Controller
         $publicImages = public_path('images');
 
         return [
-            'books' => [
-                'label' => 'Books & Covers',
-                'icon' => 'fa-solid fa-book-open',
-                'dirs' => [
-                    $storagePublic . '/books',
+            'covers' => [
+                'label'          => 'Book Covers (প্রচ্ছদ)',
+                'badge'          => 'Book Cover',
+                'icon'           => 'fa-solid fa-book',
+                'dirs'           => [
                     $storagePublic . '/books/covers',
                     $publicImages . '/books',
                 ],
-                'default_upload' => $storagePublic . '/books',
+                'default_upload' => $storagePublic . '/books/covers',
             ],
-            'banners' => [
-                'label' => 'Banners & Campaigns',
-                'icon' => 'fa-solid fa-images',
-                'dirs' => [
-                    $publicImages . '/banners',
-                    $storagePublic . '/campaigns',
+            'look_inside' => [
+                'label'          => 'Look Inside (একটু পড়ুন)',
+                'badge'          => 'Look Inside',
+                'icon'           => 'fa-solid fa-book-open-reader',
+                'dirs'           => [
+                    $storagePublic . '/books/look_inside',
+                    $storagePublic . '/look_inside',
                 ],
-                'default_upload' => $publicImages . '/banners',
-            ],
-            'settings' => [
-                'label' => 'Branding & Settings',
-                'icon' => 'fa-solid fa-gear',
-                'dirs' => [
-                    $publicImages . '/settings',
-                    $storagePublic . '/settings',
-                ],
-                'default_upload' => $publicImages . '/settings',
+                'default_upload' => $storagePublic . '/books/look_inside',
             ],
             'authors' => [
-                'label' => 'Authors',
-                'icon' => 'fa-solid fa-user-pen',
-                'dirs' => [
+                'label'          => 'Authors (লেখক ছবি)',
+                'badge'          => 'Author Photo',
+                'icon'           => 'fa-solid fa-user-pen',
+                'dirs'           => [
                     $storagePublic . '/authors',
                     $publicImages . '/authors',
                 ],
                 'default_upload' => $storagePublic . '/authors',
             ],
+            'publishers' => [
+                'label'          => 'Publishers (প্রকাশক লোগো)',
+                'badge'          => 'Publisher Logo',
+                'icon'           => 'fa-solid fa-building',
+                'dirs'           => [
+                    $storagePublic . '/publishers/logos',
+                    $storagePublic . '/publishers',
+                    $publicImages . '/publishers',
+                ],
+                'default_upload' => $storagePublic . '/publishers/logos',
+            ],
+            'ebooks' => [
+                'label'          => 'E-Books (ই-বুক কভার)',
+                'badge'          => 'E-Book Asset',
+                'icon'           => 'fa-solid fa-tablet-screen-button',
+                'dirs'           => [
+                    $storagePublic . '/ebooks/covers',
+                    $storagePublic . '/ebooks',
+                ],
+                'default_upload' => $storagePublic . '/ebooks/covers',
+            ],
+            'banners' => [
+                'label'          => 'Banners & Sliders (ব্যানার)',
+                'badge'          => 'Banner',
+                'icon'           => 'fa-solid fa-images',
+                'dirs'           => [
+                    $publicImages . '/banners',
+                    $storagePublic . '/campaigns',
+                    $storagePublic . '/banners',
+                ],
+                'default_upload' => $publicImages . '/banners',
+            ],
             'blog' => [
-                'label' => 'Blog & Articles',
-                'icon' => 'fa-solid fa-newspaper',
-                'dirs' => [
+                'label'          => 'Blog & Articles (ব্লগ)',
+                'badge'          => 'Blog Asset',
+                'icon'           => 'fa-solid fa-newspaper',
+                'dirs'           => [
                     $storagePublic . '/blog',
                     $publicImages . '/blog',
                 ],
                 'default_upload' => $storagePublic . '/blog',
             ],
+            'avatars' => [
+                'label'          => 'User Avatars (প্রোফাইল)',
+                'badge'          => 'User Avatar',
+                'icon'           => 'fa-solid fa-circle-user',
+                'dirs'           => [
+                    $storagePublic . '/avatars',
+                ],
+                'default_upload' => $storagePublic . '/avatars',
+            ],
             'payments' => [
-                'label' => 'Payments & QR',
-                'icon' => 'fa-solid fa-qrcode',
-                'dirs' => [
+                'label'          => 'Payments & QR (পেমেন্ট QR)',
+                'badge'          => 'Payment QR',
+                'icon'           => 'fa-solid fa-qrcode',
+                'dirs'           => [
                     $storagePublic . '/settings/qrcodes',
                     $publicImages . '/payments',
                 ],
                 'default_upload' => $storagePublic . '/settings/qrcodes',
             ],
-            'avatars' => [
-                'label' => 'Avatars',
-                'icon' => 'fa-solid fa-circle-user',
-                'dirs' => [
-                    $storagePublic . '/avatars',
+            'settings' => [
+                'label'          => 'Branding & Logos (লোগো)',
+                'badge'          => 'Brand Logo',
+                'icon'           => 'fa-solid fa-gear',
+                'dirs'           => [
+                    $publicImages . '/settings',
+                    $storagePublic . '/settings',
                 ],
-                'default_upload' => $storagePublic . '/avatars',
-            ],
-            'ebooks' => [
-                'label' => 'E-Books',
-                'icon' => 'fa-solid fa-file-pdf',
-                'dirs' => [
-                    $storagePublic . '/ebooks',
-                ],
-                'default_upload' => $storagePublic . '/ebooks',
+                'default_upload' => $publicImages . '/settings',
             ],
             'signatures' => [
-                'label' => 'Signatures & Docs',
-                'icon' => 'fa-solid fa-signature',
-                'dirs' => [
+                'label'          => 'Signatures (স্বাক্ষর ও সনদ)',
+                'badge'          => 'Signature / Seal',
+                'icon'           => 'fa-solid fa-signature',
+                'dirs'           => [
                     $storagePublic . '/signatures',
                 ],
                 'default_upload' => $storagePublic . '/signatures',
             ],
             'uploads' => [
-                'label' => 'Uploads',
-                'icon' => 'fa-solid fa-cloud-arrow-up',
-                'dirs' => [
+                'label'          => 'General Uploads (অন্যান্য)',
+                'badge'          => 'Upload Asset',
+                'icon'           => 'fa-solid fa-cloud-arrow-up',
+                'dirs'           => [
                     $storagePublic . '/uploads',
                     $storagePublic . '/images',
                 ],
                 'default_upload' => $storagePublic . '/uploads',
-            ],
-            'general' => [
-                'label' => 'Root Media',
-                'icon' => 'fa-solid fa-folder',
-                'dirs' => [
-                    $publicImages,
-                ],
-                'default_upload' => $publicImages,
             ],
         ];
     }
@@ -136,6 +160,10 @@ class AdminMediaController extends Controller
     public function index(Request $request): View
     {
         $folderFilter = $request->string('folder')->trim()->value() ?: 'all';
+        if ($folderFilter === 'books') {
+            $folderFilter = 'covers';
+        }
+
         $formatFilter = $request->string('format')->trim()->value() ?: 'all';
         $dimensionFilter = $request->string('dim')->trim()->value() ?: 'all';
         $sort = $request->string('sort')->trim()->value() ?: 'latest';
@@ -146,18 +174,48 @@ class AdminMediaController extends Controller
         $publicImages = public_path('images');
 
         // Title & Model association lookup (Cached for fast retrieval)
-        $titleLookup = \Illuminate\Support\Facades\Cache::remember('media_asset_title_lookup_v2', 300, function () {
+        $titleLookup = \Illuminate\Support\Facades\Cache::remember('media_asset_title_lookup_v3', 300, function () {
             $map = [];
 
-            // Books
+            // Books - Covers & Look Inside Pages
             if (\Illuminate\Support\Facades\Schema::hasTable('books')) {
-                $books = \Illuminate\Support\Facades\DB::table('books')->whereNotNull('cover_image')->get(['title', 'author_name', 'cover_image', 'slug']);
+                $books = \Illuminate\Support\Facades\DB::table('books')->get(['title', 'author_name', 'cover_image', 'look_inside_images', 'slug']);
                 foreach ($books as $b) {
-                    $base = basename((string) $b->cover_image);
-                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
-                    $info = ['title' => $b->title, 'subtitle' => $b->author_name ?: 'আইডিয়া প্রকাশন', 'type' => 'বই', 'link' => url('/books/' . ($b->slug ?: $b->title))];
-                    $map[$base] = $info;
-                    $map[$baseNoExt] = $info;
+                    if ($b->cover_image) {
+                        $base = basename((string) $b->cover_image);
+                        $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                        $info = [
+                            'title'    => $b->title,
+                            'subtitle' => 'বইয়ের প্রচ্ছদ • ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'),
+                            'type'     => 'বইয়ের কভার',
+                            'link'     => url('/books/' . ($b->slug ?: $b->title)),
+                        ];
+                        $map[$base] = $info;
+                        $map[$baseNoExt] = $info;
+                    }
+
+                    if ($b->look_inside_images) {
+                        $insideList = is_string($b->look_inside_images) && str_starts_with(trim($b->look_inside_images), '[')
+                            ? json_decode($b->look_inside_images, true)
+                            : explode(',', (string)$b->look_inside_images);
+
+                        if (is_array($insideList)) {
+                            foreach ($insideList as $pageImg) {
+                                if (!empty($pageImg)) {
+                                    $inBase = basename(trim((string)$pageImg));
+                                    $inBaseNoExt = pathinfo($inBase, PATHINFO_FILENAME);
+                                    $inInfo = [
+                                        'title'    => $b->title . ' (একটু পড়ুন)',
+                                        'subtitle' => 'ইনার পেজ প্রিভিউ',
+                                        'type'     => 'একটু পড়ুন',
+                                        'link'     => url('/books/' . ($b->slug ?: $b->title)),
+                                    ];
+                                    $map[$inBase] = $inInfo;
+                                    $map[$inBaseNoExt] = $inInfo;
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -167,7 +225,46 @@ class AdminMediaController extends Controller
                 foreach ($authors as $a) {
                     $base = basename((string) $a->avatar);
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
-                    $info = ['title' => $a->name_bn ?: $a->name, 'subtitle' => 'লেখক / গবেষক', 'type' => 'লেখক', 'link' => url('/authors/' . ($a->slug ?: $a->name))];
+                    $info = [
+                        'title'    => $a->name_bn ?: $a->name,
+                        'subtitle' => 'লেখক ছবি • প্রোফাইল',
+                        'type'     => 'লেখক',
+                        'link'     => url('/authors/' . ($a->slug ?: $a->name)),
+                    ];
+                    $map[$base] = $info;
+                    $map[$baseNoExt] = $info;
+                }
+            }
+
+            // Publishers
+            if (\Illuminate\Support\Facades\Schema::hasTable('publishers')) {
+                $pubs = \Illuminate\Support\Facades\DB::table('publishers')->whereNotNull('logo')->get(['name', 'logo', 'slug']);
+                foreach ($pubs as $pub) {
+                    $base = basename((string) $pub->logo);
+                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                    $info = [
+                        'title'    => $pub->name,
+                        'subtitle' => 'প্রকাশক অফিসিয়াল লোগো',
+                        'type'     => 'প্রকাশক',
+                        'link'     => url('/publishers/' . ($pub->slug ?: $pub->name)),
+                    ];
+                    $map[$base] = $info;
+                    $map[$baseNoExt] = $info;
+                }
+            }
+
+            // Ebooks
+            if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+                $ebooks = \Illuminate\Support\Facades\DB::table('ebooks')->whereNotNull('cover_image')->get(['title', 'author_name', 'cover_image', 'slug']);
+                foreach ($ebooks as $eb) {
+                    $base = basename((string) $eb->cover_image);
+                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                    $info = [
+                        'title'    => $eb->title,
+                        'subtitle' => 'ই-বুক প্রচ্ছদ • ' . ($eb->author_name ?: 'আইডিয়া প্রকাশন'),
+                        'type'     => 'ই-বুক',
+                        'link'     => url('/ebooks/' . ($eb->slug ?: $eb->title)),
+                    ];
                     $map[$base] = $info;
                     $map[$baseNoExt] = $info;
                 }
@@ -179,7 +276,12 @@ class AdminMediaController extends Controller
                 foreach ($posts as $p) {
                     $base = basename((string) $p->featured_image);
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
-                    $info = ['title' => $p->title, 'subtitle' => 'ব্লগ ও প্রবন্ধ', 'type' => 'ব্লগ', 'link' => url('/blog/' . ($p->slug ?: $p->title))];
+                    $info = [
+                        'title'    => $p->title,
+                        'subtitle' => 'ব্লগ ও প্রবন্ধ ফিচারড ইমেজ',
+                        'type'     => 'ব্লগ',
+                        'link'     => url('/blog/' . ($p->slug ?: $p->title)),
+                    ];
                     $map[$base] = $info;
                     $map[$baseNoExt] = $info;
                 }
@@ -198,11 +300,11 @@ class AdminMediaController extends Controller
         // Initialize folder counters
         foreach ($folderDefs as $k => $fInfo) {
             $folderStats[$k] = [
-                'count' => 0,
-                'bytes' => 0,
+                'count'     => 0,
+                'bytes'     => 0,
                 'formatted' => '0 B',
-                'label' => $fInfo['label'],
-                'icon' => $fInfo['icon'],
+                'label'     => $fInfo['label'],
+                'icon'      => $fInfo['icon'],
             ];
         }
 
@@ -265,28 +367,34 @@ class AdminMediaController extends Controller
                         $isHash = (strlen($filenameBase) > 20 && !str_contains($cleanBase, ' '));
 
                         $fallbackTitle = match($folderKey) {
-                            'books'       => $isHash ? 'বইয়ের প্রচ্ছদ (Book Cover)' : Str::headline($cleanBase),
+                            'covers'      => $isHash ? 'বইয়ের প্রচ্ছদ (Book Cover)' : Str::headline($cleanBase),
+                            'look_inside' => 'একটু পড়ুন — বইয়ের ইনার পেজ',
+                            'authors'     => 'লেখক ছবি • প্রোফাইল ফটো',
+                            'publishers'  => 'প্রকাশনীর অফিসিয়াল লোগো',
+                            'ebooks'      => 'ডিজিটাল ই-বুক কভার',
                             'banners'     => $isHash ? 'প্রমোশনাল ব্যানার (Banner)' : Str::headline($cleanBase),
+                            'blog'        => 'ব্লগ ও আর্টিকেলের ছবি',
                             'avatars'     => 'ইউজার প্রোফাইল ছবি (Avatar)',
                             'payments'    => 'পেমেন্ট গেটওয়ে QR কোড',
-                            'ebooks'      => 'ডিজিটাল ই-বুক অ্যাসেট',
                             'signatures'  => 'ডিজিটাল স্বাক্ষর ও সিল',
-                            'publishers'  => 'প্রকাশনীর অফিসিয়াল লোগো',
-                            'brands'      => 'ব্র্যান্ডিং ও ট্রেডমার্ক আইকন',
+                            'settings'    => 'ব্র্যান্ডিং ও ট্রেডমার্ক আইকন',
                             default       => $isHash ? 'মিডিয়া অ্যাসেট' : Str::headline($cleanBase),
                         };
 
                         $fallbackSubtitle = match($folderKey) {
-                            'books'       => 'আইডিয়া প্রকাশন',
+                            'covers'      => 'আইডিয়া প্রকাশন',
+                            'look_inside' => 'ইনার পেজ প্রিভিউ',
+                            'authors'     => 'লেখক / গবেষক',
+                            'publishers'  => 'প্রকাশক পার্টনার',
+                            'ebooks'      => 'ই-বুক লাইব্রেরি',
                             'banners'     => 'মার্কেটিং ও ক্যাম্পেইন',
+                            'blog'        => 'সাহিত্য ও চিন্তাপত্র',
                             'avatars'     => 'প্রোফাইল পিকচার',
                             'payments'    => 'পেমেন্ট গেটওয়ে',
-                            'ebooks'      => 'ই-বুক লাইব্রেরি',
                             default       => $folderDefs[$folderKey]['label'] ?? 'অ্যাসেট লাইব্রেরি',
                         };
 
                         $itemTitle = $fallbackTitle;
-                        $itemSubtitle = $fallbackSubtitle;
                     } else {
                         $itemTitle = $itemInfo['title'] ?? null;
                         $itemSubtitle = $itemInfo['subtitle'] ?? null;
