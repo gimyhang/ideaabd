@@ -30,6 +30,9 @@ function toggleSelectAll(masterCb) {
     document.querySelectorAll('.media-select-cb').forEach(cb => {
         cb.checked = isChecked;
     });
+    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
+        if (el !== masterCb) el.checked = isChecked;
+    });
     updateSelectionState();
 }
 
@@ -37,8 +40,9 @@ function clearAllSelections() {
     document.querySelectorAll('.media-select-cb').forEach(cb => {
         cb.checked = false;
     });
-    const master = document.getElementById('selectAllMaster');
-    if (master) master.checked = false;
+    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
+        el.checked = false;
+    });
     updateSelectionState();
 }
 
@@ -66,6 +70,12 @@ function updateSelectionState() {
         if (row) row.classList.remove('table-primary');
     });
 
+    const totalCheckboxes = document.querySelectorAll('.media-select-cb');
+    const allChecked = totalCheckboxes.length > 0 && checkboxes.length === totalCheckboxes.length;
+    document.querySelectorAll('#selectAllMaster, .select-all-master').forEach(el => {
+        el.checked = allChecked;
+    });
+
     const count = selectedMediaPaths.length;
     const bar = document.getElementById('mediaFloatingBar');
     const badge = document.getElementById('selectedMediaCountBadge');
@@ -90,37 +100,11 @@ function copySelectedUrls() {
 }
 
 function executeBulkConvertToWebp() {
-    if (selectedMediaPaths.length === 0) return;
-    if (!confirm(`Convert ${selectedMediaPaths.length} selected file(s) to modern WebP format?`)) {
+    if (selectedMediaPaths.length === 0) {
+        showMediaAlert('warning', 'Please select at least one image file first.');
         return;
     }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    showMediaAlert('warning', `Converting ${selectedMediaPaths.length} file(s) to WebP...`);
-
-    fetch('/admin/media/bulk-action', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            action: 'convert_webp',
-            paths: selectedMediaPaths
-        })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            showMediaAlert('success', data.message);
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showMediaAlert('danger', data.message || 'Conversion failed.');
-        }
-    })
-    .catch(() => showMediaAlert('danger', 'Server request failed.'));
+    openConvertWebpEngineModal('selected');
 }
 
 function openBulkMoveModal() {
@@ -844,7 +828,10 @@ async function submitMultiUploadAjax() {
 /**
  * 1-Click Dynamic WebP Conversion Engine & Live Storage Optimizer Modal
  */
-function openConvertWebpEngineModal() {
+/**
+ * 1-Click Dynamic WebP Conversion Engine & Live Storage Optimizer Modal
+ */
+function openConvertWebpEngineModal(scope = 'auto') {
     const configView = document.getElementById('webpEngineConfigView');
     const progressView = document.getElementById('webpEngineProgressView');
     const successView = document.getElementById('webpEngineSuccessView');
@@ -852,6 +839,26 @@ function openConvertWebpEngineModal() {
     if (configView) configView.classList.remove('d-none');
     if (progressView) progressView.classList.add('d-none');
     if (successView) successView.classList.add('d-none');
+
+    const folderSelect = document.getElementById('webpTargetFolderSelect');
+    if (folderSelect) {
+        let selectedOption = document.getElementById('webpScopeSelectedOption');
+        if (scope === 'selected' || (scope === 'auto' && selectedMediaPaths.length > 0)) {
+            if (!selectedOption) {
+                selectedOption = document.createElement('option');
+                selectedOption.id = 'webpScopeSelectedOption';
+                selectedOption.value = 'selected';
+                folderSelect.insertBefore(selectedOption, folderSelect.firstChild);
+            }
+            selectedOption.textContent = `🎯 Selected Assets (${selectedMediaPaths.length} items)`;
+            folderSelect.value = 'selected';
+        } else {
+            if (selectedOption) selectedOption.remove();
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentFolder = urlParams.get('folder') || 'all';
+            folderSelect.value = folderSelect.querySelector(`option[value="${currentFolder}"]`) ? currentFolder : 'all';
+        }
+    }
 
     const modalEl = document.getElementById('convertWebpEngineModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
@@ -880,7 +887,7 @@ function startWebpConversionEngine() {
     const logBox = document.getElementById('webpEngineLogBox');
 
     if (progressBar) progressBar.style.width = '20%';
-    if (statusBadge) statusBadge.textContent = 'Scanning in progress...';
+    if (statusBadge) statusBadge.textContent = 'Processing conversion...';
 
     const appendLog = (text) => {
         if (!logBox) return;
@@ -890,7 +897,11 @@ function startWebpConversionEngine() {
         logBox.scrollTop = logBox.scrollHeight;
     };
 
-    appendLog(`Target Folder: ${folder.toUpperCase()} | Quality: ${quality}%`);
+    if (folder === 'selected') {
+        appendLog(`Target: ${selectedMediaPaths.length} Selected Image(s) | Quality: ${quality}%`);
+    } else {
+        appendLog(`Target Folder: ${folder.toUpperCase()} | Quality: ${quality}%`);
+    }
     appendLog(`Delete originals: ${deleteOriginal ? 'Enabled (Reclaim Disk)' : 'Disabled'}`);
 
     let progressSim = 25;
@@ -904,6 +915,10 @@ function startWebpConversionEngine() {
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
+    const payload = (folder === 'selected')
+        ? { paths: selectedMediaPaths, quality: quality, delete_original: deleteOriginal }
+        : { folder: folder, quality: quality, delete_original: deleteOriginal };
+
     fetch('/admin/media/convert-all-webp', {
         method: 'POST',
         headers: {
@@ -912,11 +927,7 @@ function startWebpConversionEngine() {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            folder: folder,
-            quality: quality,
-            delete_original: deleteOriginal
-        })
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
     .then(data => {
@@ -932,7 +943,7 @@ function startWebpConversionEngine() {
             appendLog(`Total Saved: ${data.saved}`);
 
             if (data.items && data.items.length > 0) {
-                data.items.slice(0, 10).forEach(item => {
+                data.items.slice(0, 15).forEach(item => {
                     appendLog(`✓ ${item.filename} ➔ ${item.webp_name}`);
                 });
             }

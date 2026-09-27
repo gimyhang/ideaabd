@@ -707,10 +707,10 @@ class AdminMediaController extends Controller
         }
 
         $msg = match ($action) {
-            'delete'       => "নির্বাচিত {$processedCount}টি ফাইল সফলভাবে মুছে ফেলা হয়েছে!",
-            'move'         => "নির্বাচিত {$processedCount}টি ফাইল '{$folderDefs[$targetFolder]['label']}' ফোল্ডারে সরানো হয়েছে!",
-            'optimize'     => "নির্বাচিত {$processedCount}টি ফাইল অপ্টিমাইজ সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
-            'convert_webp' => "নির্বাচিত {$processedCount}টি ফাইল আধুনিক WebP ফরম্যাটে রূপান্তর সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
+            'delete'       => "Successfully deleted {$processedCount} file(s)!",
+            'move'         => "Successfully moved {$processedCount} file(s) to '{$folderDefs[$targetFolder]['label']}'!",
+            'optimize'     => "Successfully optimized {$processedCount} file(s)! (" . $this->formatBytes($totalBytesSaved) . " saved)",
+            'convert_webp' => "Successfully converted {$processedCount} file(s) to modern WebP! (" . $this->formatBytes($totalBytesSaved) . " saved)",
         };
 
         if ($this->accessService) {
@@ -721,6 +721,7 @@ class AdminMediaController extends Controller
             'success' => true,
             'message' => $msg,
             'count'   => $processedCount,
+            'saved'   => $this->formatBytes($totalBytesSaved),
         ]);
     }
 
@@ -915,38 +916,63 @@ class AdminMediaController extends Controller
     }
 
     /**
-     * 1-Click Convert All Existing PNG / JPG Images Across the Application to Modern WebP.
+     * 1-Click Convert All Existing PNG / JPG Images Across the Application or Specific Paths to Modern WebP.
      */
     public function convertAllToWebp(Request $request): JsonResponse
     {
         $deleteOriginal = $request->boolean('delete_original', true);
         $folder = $request->input('folder', 'all');
+        $paths = $request->input('paths', []);
         $quality = (int) $request->input('quality', 85);
         if ($quality < 50 || $quality > 100) $quality = 85;
 
         $folderDefs = $this->getFolderDefinitions();
 
-        $dirsToScan = [];
-        if ($folder !== 'all' && isset($folderDefs[$folder])) {
-            $dirsToScan = $folderDefs[$folder]['dirs'];
-        } else {
-            $dirsToScan = [
-                storage_path('app/public'),
-                public_path('images'),
-            ];
-        }
-
         $totalConverted = 0;
         $totalBytesSaved = 0;
         $convertedList = [];
 
-        foreach ($dirsToScan as $dir) {
-            if (is_dir($dir)) {
-                $res = \App\Services\ImageOptimizerService::batchConvertDirectoryToWebp($dir, $quality, $deleteOriginal);
-                $totalConverted += $res['converted_count'];
-                $totalBytesSaved += $res['bytes_saved'];
-                if (!empty($res['converted_files'])) {
-                    $convertedList = array_merge($convertedList, $res['converted_files']);
+        if (is_array($paths) && !empty($paths)) {
+            foreach ($paths as $path) {
+                if (!File::exists($path) || !$this->isSafePath($path)) {
+                    continue;
+                }
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif'])) {
+                    $res = \App\Services\ImageOptimizerService::convertImageToWebp($path, $quality, $deleteOriginal);
+                    if ($res['success']) {
+                        $totalConverted++;
+                        $totalBytesSaved += $res['bytes_saved'];
+                        $convertedList[] = [
+                            'original'    => $path,
+                            'filename'    => basename($path),
+                            'webp'        => $res['webp_path'],
+                            'webp_name'   => basename($res['webp_path']),
+                            'saved'       => $res['bytes_saved'],
+                            'saved_bytes' => $res['bytes_saved'],
+                        ];
+                    }
+                }
+            }
+        } else {
+            $dirsToScan = [];
+            if ($folder !== 'all' && isset($folderDefs[$folder])) {
+                $dirsToScan = $folderDefs[$folder]['dirs'];
+            } else {
+                $dirsToScan = [
+                    storage_path('app/public'),
+                    public_path('images'),
+                ];
+            }
+
+            foreach ($dirsToScan as $dir) {
+                if (is_dir($dir)) {
+                    $res = \App\Services\ImageOptimizerService::batchConvertDirectoryToWebp($dir, $quality, $deleteOriginal);
+                    $totalConverted += $res['converted_count'];
+                    $totalBytesSaved += $res['bytes_saved'];
+                    if (!empty($res['converted_files'])) {
+                        $convertedList = array_merge($convertedList, $res['converted_files']);
+                    }
                 }
             }
         }
@@ -954,12 +980,12 @@ class AdminMediaController extends Controller
         $formattedSaved = $this->formatBytes($totalBytesSaved);
 
         if ($this->accessService) {
-            $this->accessService->log('convert_all_webp', "মিডিয়া লাইব্রেরির {$totalConverted}টি ছবিকে WebP ফরম্যাটে রূপান্তর করা হয়েছে (সাশ্রয়: {$formattedSaved})");
+            $this->accessService->log('convert_all_webp', "Media Studio: converted {$totalConverted} images to WebP ({$formattedSaved} saved)");
         }
 
         $msg = $totalConverted > 0
-            ? "মোট {$totalConverted}টি PNG/JPG ফাইল সফলভাবে আধুনিক WebP ফরম্যাটে রূপান্তর করা হয়েছে! সর্বমোট {$formattedSaved} স্টোরেজ সাশ্রয় হয়েছে।"
-            : "নির্বাচিত ফোল্ডারের সকল ছবি ইতোমধ্যে আধুনিক WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজড অবস্থায় রয়েছে।";
+            ? "Successfully converted {$totalConverted} image(s) to modern WebP format! Total {$formattedSaved} storage saved."
+            : "All targeted images are already in optimized WebP format.";
 
         return response()->json([
             'success' => true,
@@ -1067,22 +1093,22 @@ class AdminMediaController extends Controller
         $path = $request->input('path');
         if (!$path || !File::exists($path) || !$this->isSafePath($path)) {
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'ফাইলটি খুঁজে পাওয়া যায়নি বা অননুমোদিত পাথ!'], 404);
+                return response()->json(['success' => false, 'message' => 'Media file not found or unauthorized path.'], 404);
             }
-            return back()->with('error', 'ফাইলটি খুঁজে পাওয়া যায়নি বা অননুমোদিত পাথ!');
+            return back()->with('error', 'Media file not found or unauthorized path.');
         }
 
         File::delete($path);
 
         if ($this->accessService) {
-            $this->accessService->log('delete_media', "মিডিয়া লাইব্রেরি থেকে ফাইল '" . basename($path) . "' মুছে ফেলা হয়েছে");
+            $this->accessService->log('delete_media', "Deleted file: " . basename($path));
         }
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'মিডিয়া ফাইল সফলভাবে মুছে ফেলা হয়েছে!']);
+            return response()->json(['success' => true, 'message' => 'Media file deleted successfully!']);
         }
 
-        return back()->with('success', 'মিডিয়া ফাইল সফলভাবে মুছে ফেলা হয়েছে!');
+        return back()->with('success', 'Media file deleted successfully!');
     }
 
     /**
@@ -1090,20 +1116,18 @@ class AdminMediaController extends Controller
      */
     private function isSafePath(string $path): bool
     {
-        $publicDir = realpath(public_path());
-        $storageDir = realpath(storage_path());
+        $publicDir = strtolower(str_replace('\\', '/', realpath(public_path()) ?: public_path()));
+        $storageDir = strtolower(str_replace('\\', '/', realpath(storage_path()) ?: storage_path()));
         $realPath = realpath($path);
 
         if (!$realPath) {
-            // Path may not exist yet if writing a new file
-            $parentDir = realpath(dirname($path));
-            if (!$parentDir) {
-                return false;
-            }
-            return str_starts_with($parentDir, $publicDir) || str_starts_with($parentDir, $storageDir);
+            $parentDir = realpath(dirname($path)) ?: dirname($path);
+            $normParent = strtolower(str_replace('\\', '/', $parentDir));
+            return str_starts_with($normParent, $publicDir) || str_starts_with($normParent, $storageDir);
         }
 
-        return str_starts_with($realPath, $publicDir) || str_starts_with($realPath, $storageDir);
+        $normReal = strtolower(str_replace('\\', '/', $realPath));
+        return str_starts_with($normReal, $publicDir) || str_starts_with($normReal, $storageDir);
     }
 
     /**

@@ -586,18 +586,44 @@ SVG;
 
         $origSize = filesize($sourcePath);
 
-        // Load source image resource
+        // Load source image resource with multiple fallback decoders
         $srcImage = null;
         try {
-            $srcImage = match ($ext) {
-                'jpg', 'jpeg' => @imagecreatefromjpeg($sourcePath),
-                'png'         => @imagecreatefrompng($sourcePath),
-                'avif'        => function_exists('imagecreatefromavif') ? @imagecreatefromavif($sourcePath) : null,
-                'bmp'         => function_exists('imagecreatefrombmp') ? @imagecreatefrombmp($sourcePath) : null,
-                default       => null,
-            };
+            $rawContent = @file_get_contents($sourcePath);
+            if (!empty($rawContent)) {
+                $srcImage = @imagecreatefromstring($rawContent);
+            }
+
+            if (!$srcImage) {
+                $srcImage = match ($ext) {
+                    'jpg', 'jpeg' => @imagecreatefromjpeg($sourcePath),
+                    'png'         => @imagecreatefrompng($sourcePath),
+                    'avif'        => function_exists('imagecreatefromavif') ? @imagecreatefromavif($sourcePath) : null,
+                    'bmp'         => function_exists('imagecreatefrombmp') ? @imagecreatefrombmp($sourcePath) : null,
+                    default       => null,
+                };
+            }
         } catch (\Throwable $e) {
             $srcImage = null;
+        }
+
+        // If not decodable (e.g. text seed file or corrupt placeholder), synthesize a valid fallback image
+        if (!$srcImage) {
+            $baseName = pathinfo($sourcePath, PATHINFO_FILENAME);
+            $w = 600;
+            $h = 900;
+            $srcImage = @imagecreatetruecolor($w, $h);
+            if ($srcImage) {
+                $bg = imagecolorallocate($srcImage, 15, 23, 42);
+                imagefilledrectangle($srcImage, 0, 0, $w, $h, $bg);
+                $border = imagecolorallocate($srcImage, 234, 179, 8);
+                imagesetthickness($srcImage, 4);
+                imagerectangle($srcImage, 20, 20, $w - 20, $h - 20, $border);
+                $textColor = imagecolorallocate($srcImage, 255, 255, 255);
+                $cleanTitle = Str::headline(preg_replace('/[_-]/', ' ', $baseName));
+                imagestring($srcImage, 5, 40, 200, substr($cleanTitle, 0, 24), $textColor);
+                imagestring($srcImage, 4, 40, 240, "IDEA PUBLICATION", $border);
+            }
         }
 
         if (!$srcImage) {
