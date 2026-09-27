@@ -230,6 +230,82 @@ class AdminCacheController extends Controller
     }
 
     /**
+     * Clear Events and Listeners Cache.
+     */
+    public function clearEvents(Request $request): JsonResponse|RedirectResponse
+    {
+        try {
+            Artisan::call('event:clear');
+            $msg = 'ইভেন্টস ও ডিসপ্যাচার ক্যাশ (Event Listeners) সফলভাবে ক্লিয়ার হয়েছে!';
+            $this->logAction('clear_events_cache', $msg);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => true, 'message' => $msg]);
+            }
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            $err = 'ইভেন্টস ক্যাশ ক্লিয়ার ব্যর্থ: ' . $e->getMessage();
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $err], 500);
+            }
+            return back()->with('error', $err);
+        }
+    }
+
+    /**
+     * Run Whitelisted Artisan Cache Command safely with live console output.
+     */
+    public function runArtisan(Request $request): JsonResponse
+    {
+        $command = trim((string) $request->input('command'));
+        $allowed = [
+            'optimize'        => 'php artisan optimize',
+            'optimize:clear'  => 'php artisan optimize:clear',
+            'config:cache'    => 'php artisan config:cache',
+            'config:clear'    => 'php artisan config:clear',
+            'route:cache'     => 'php artisan route:cache',
+            'route:clear'     => 'php artisan route:clear',
+            'view:cache'      => 'php artisan view:cache',
+            'view:clear'      => 'php artisan view:clear',
+            'event:cache'     => 'php artisan event:cache',
+            'event:clear'     => 'php artisan event:clear',
+            'cache:clear'     => 'php artisan cache:clear',
+        ];
+
+        if (!isset($allowed[$command])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Command '{$command}' is not in the allowed artisan whitelist.",
+            ], 403);
+        }
+
+        try {
+            Artisan::call($command);
+            $output = trim(Artisan::output());
+            if (empty($output)) {
+                $output = "Command '{$command}' executed successfully with exit code 0.";
+            }
+
+            $this->logAction('artisan_command_run', "Executed: php artisan {$command}");
+
+            return response()->json([
+                'success'   => true,
+                'command'   => $command,
+                'output'    => $output,
+                'timestamp' => now()->format('H:i:s'),
+                'message'   => "Artisan '{$command}' successfully executed!",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'command' => $command,
+                'output'  => 'Error: ' . $e->getMessage(),
+                'message' => 'Command execution failed.',
+            ], 500);
+        }
+    }
+
+    /**
      * 1-Click Production Turbo Optimizer (Caches config, routes & views).
      */
     public function optimize(Request $request): JsonResponse|RedirectResponse
