@@ -48,11 +48,11 @@ class AdminBackupController extends Controller
 
             $isMasterZip = ($ext === 'zip');
             $typeLabel = match ($ext) {
-                'zip'    => 'মাষ্টার অল-ইন-ওয়ান জিপ (Master ZIP)',
-                'sql'    => 'স্ট্যান্ডার্ড SQL ডাম্প',
-                'sqlite' => 'SQLite স্ন্যাপশট',
-                'gz'     => 'কম্প্রেসড SQL (Gzip)',
-                default  => strtoupper($ext) . ' আর্কাইভ',
+                'zip'    => 'Master All-in-One (.ZIP)',
+                'sql'    => 'Standard SQL Dump (.SQL)',
+                'sqlite' => 'SQLite Snapshot (.SQLITE)',
+                'gz'     => 'Compressed SQL (.GZ)',
+                default  => strtoupper($ext) . ' Archive',
             };
 
             $backups[] = [
@@ -250,8 +250,8 @@ class AdminBackupController extends Controller
             $this->pruneOldBackups();
 
             $msg = ($mode === 'data_media') 
-                ? "সমস্ত ডাটাবেজ ও মিডিয়া ছবির সফল ব্যাকআপ '{$zipFilename}' তৈরি ও সংরক্ষিত হয়েছে!"
-                : "সিস্টেম ব্যাকআপ '{$zipFilename}' সফলভাবে তৈরি ও সংরক্ষিত হয়েছে!";
+                ? "Complete Database & Media Backup '{$zipFilename}' created successfully!" 
+                : "System Backup '{$zipFilename}' created successfully!";
 
             $this->logAction('create_backup', $msg);
 
@@ -272,7 +272,7 @@ class AdminBackupController extends Controller
 
             return back()->with('success', $msg);
         } catch (\Throwable $e) {
-            $err = 'ব্যাকআপ তৈরিতে ত্রুটি: ' . $e->getMessage();
+            $err = 'Backup creation failed: ' . $e->getMessage();
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $err], 500);
             }
@@ -294,7 +294,7 @@ class AdminBackupController extends Controller
             $ext = strtolower($file->getClientOriginalExtension());
 
             if (!in_array($ext, ['zip', 'sql', 'sqlite', 'gz', 'txt'])) {
-                $err = 'শুধুমাত্র .zip, .sql, .sqlite বা .gz ফরম্যাটের ব্যাকআপ ফাইল গ্রহণযোগ্য।';
+                $err = 'Only .zip, .sql, .sqlite or .gz backup archive formats are supported.';
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json(['success' => false, 'message' => $err], 422);
                 }
@@ -304,9 +304,9 @@ class AdminBackupController extends Controller
             $cleanName = 'uploaded_' . date('Y-m-d_H-i-s') . '_' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $file->getClientOriginalName());
             $file->move($this->backupDir, $cleanName);
 
-            $this->logAction('upload_backup', "ব্যাকআপ ফাইল '{$cleanName}' আপলোড করা হয়েছে");
+            $this->logAction('upload_backup', "Backup archive '{$cleanName}' uploaded.");
 
-            $msg = "ব্যাকআপ ফাইল '{$cleanName}' স্বয়ংক্রিয়ভাবে সফলভাবে আপলোড হয়েছে!";
+            $msg = "Backup archive '{$cleanName}' uploaded successfully!";
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success'  => true,
@@ -317,7 +317,7 @@ class AdminBackupController extends Controller
 
             return back()->with('success', $msg);
         } catch (\Throwable $e) {
-            $err = 'ব্যাকআপ ফাইল আপলোডে ত্রুটি: ' . $e->getMessage();
+            $err = 'Failed to upload backup archive: ' . $e->getMessage();
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $err], 500);
             }
@@ -335,7 +335,7 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            return back()->with('error', 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।');
+            return back()->with('error', 'Backup archive not found.');
         }
 
         try {
@@ -375,7 +375,7 @@ class AdminBackupController extends Controller
 
                     File::deleteDirectory($tempExtractDir);
                 } else {
-                    return back()->with('error', 'জিপ আর্কাইভটি খোলা সম্ভব হয়নি।');
+                    return back()->with('error', 'Could not open ZIP archive.');
                 }
             } elseif ($ext === 'sqlite' && $dbDriver === 'sqlite') {
                 $dbPath = config("database.connections.sqlite.database");
@@ -390,10 +390,10 @@ class AdminBackupController extends Controller
                 DB::unprepared($sqlContent);
             }
 
-            $this->logAction('restore_backup', "ডাটাবেজ ও মিডিয়া '{$filename}' ফাইল থেকে সফলভাবে রিস্টোর করা হয়েছে");
-            return back()->with('success', "অভিনন্দন! মাষ্টার ব্যাকআপ '{$filename}' থেকে ডাটাবেজ ও মিডিয়া সফলভাবে রিস্টোর করা হয়েছে!");
+            $this->logAction('restore_backup', "Database & Media restored from '{$filename}'");
+            return back()->with('success', "Disaster recovery complete! Database & Media restored from '{$filename}'.");
         } catch (\Throwable $e) {
-            return back()->with('error', 'ডাটাবেজ রিস্টোরে ত্রুটি: ' . $e->getMessage());
+            return back()->with('error', 'Restore failed: ' . $e->getMessage());
         }
     }
 
@@ -406,7 +406,7 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            return response()->json(['success' => false, 'message' => 'ফাইলটি পাওয়া যায়নি'], 404);
+            return response()->json(['success' => false, 'message' => 'Archive file not found'], 404);
         }
 
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
@@ -452,13 +452,13 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি'], 404);
+            return response()->json(['success' => false, 'message' => 'Backup archive not found'], 404);
         }
 
         try {
             $sqlContent = $this->extractSqlFromBackup($filePath);
             if (!$sqlContent) {
-                return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইল থেকে SQL ডাটা রিড করা সম্ভব হয়নি'], 422);
+                return response()->json(['success' => false, 'message' => 'Could not parse SQL data from backup archive'], 422);
             }
 
             // Parse table row counts and table list from SQL
@@ -547,7 +547,7 @@ class AdminBackupController extends Controller
                 'tables'               => $diffData,
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'ডিফ বিশ্লেষণে ত্রুটি: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Diff analysis error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -560,13 +560,13 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি'], 404);
+            return response()->json(['success' => false, 'message' => 'Backup archive not found'], 404);
         }
 
         try {
             $sqlContent = $this->extractSqlFromBackup($filePath);
             if (!$sqlContent) {
-                return response()->json(['success' => false, 'message' => 'ব্যাকআপ থেকে SQL ডাটা রিড করা সম্ভব হয়নি'], 422);
+                return response()->json(['success' => false, 'message' => 'Could not parse SQL data from backup archive'], 422);
             }
 
             $startTime = microtime(true);
@@ -584,12 +584,12 @@ class AdminBackupController extends Controller
                 // Rollback unconditionally so live DB is 100% untouched
                 DB::rollBack();
 
-                $this->logAction('backup_dry_run_passed', "ব্যাকআপ '{$filename}' এর ড্রাই-রান সিমুলেশন সফল হয়েছে ({$executionTimeMs}ms)");
+                $this->logAction('backup_dry_run_passed', "Dry-run simulation passed for '{$filename}' ({$executionTimeMs}ms)");
 
                 return response()->json([
                     'success'           => true,
                     'status'            => 'passed',
-                    'message'           => 'ড্রাই-রান সফল! কোন সিনট্যাক্স বা ফরেন-কী কনফ্লিক্ট নেই। ব্যাকআপটি ১০০% ত্রুটিমুক্ত।',
+                    'message'           => 'Dry-run simulation passed with zero errors! Schema and constraints are 100% valid.',
                     'execution_time_ms' => $executionTimeMs,
                     'filename'          => $filename,
                 ]);
@@ -598,13 +598,13 @@ class AdminBackupController extends Controller
                 return response()->json([
                     'success'           => false,
                     'status'            => 'failed',
-                    'message'           => 'ড্রাই-রান সিমুলেশনে ত্রুটি সনাক্ত হয়েছে: ' . $dryError->getMessage(),
+                    'message'           => 'Dry-run simulation detected errors: ' . $dryError->getMessage(),
                     'error_details'     => $dryError->getMessage(),
                     'filename'          => $filename,
                 ], 422);
             }
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'message' => 'ড্রাই-রান প্রক্রিয়াকরণে ত্রুটি: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Dry-run execution error: ' . $e->getMessage()], 500);
         }
     }
 
@@ -617,13 +617,13 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            $err = 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।';
+            $err = 'Backup archive not found.';
             return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 404) : back()->with('error', $err);
         }
 
         $selectedTables = $request->input('tables', []);
         if (empty($selectedTables) || !is_array($selectedTables)) {
-            $err = 'অনুগ্রহ করে রিস্টোর করার জন্য অন্তত একটি টেবিল নির্বাচন করুন।';
+            $err = 'Please select at least one database table to restore.';
             return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
         }
 
@@ -636,14 +636,14 @@ class AdminBackupController extends Controller
         }
 
         if (empty($sanitizedTables)) {
-            $err = 'অবৈধ টেবিল নাম প্রদান করা হয়েছে।';
+            $err = 'Invalid database table names provided.';
             return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
         }
 
         try {
             $sqlContent = $this->extractSqlFromBackup($filePath);
             if (!$sqlContent) {
-                $err = 'ব্যাকআপ থেকে SQL ডাটা রিড করা সম্ভব হয়নি';
+                $err = 'Could not parse SQL data from backup archive';
                 return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 422) : back()->with('error', $err);
             }
 
@@ -685,7 +685,7 @@ class AdminBackupController extends Controller
                 throw $txError;
             }
 
-            $msg = "সফলভাবে নির্বাচিত " . count($sanitizedTables) . " টি টেবিল (" . implode(', ', array_slice($sanitizedTables, 0, 4)) . ") রিস্টোর সম্পন্ন হয়েছে!";
+            $msg = "Successfully restored " . count($sanitizedTables) . " table(s) (" . implode(', ', array_slice($sanitizedTables, 0, 4)) . ")!";
             $this->logAction('selective_restore', $msg);
 
             if ($request->wantsJson()) {
@@ -698,7 +698,7 @@ class AdminBackupController extends Controller
 
             return back()->with('success', $msg);
         } catch (\Throwable $e) {
-            $err = 'সিলেক্টিভ রিস্টোরে ত্রুটি: ' . $e->getMessage();
+            $err = 'Selective restore failed: ' . $e->getMessage();
             return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 500) : back()->with('error', $err);
         }
     }
@@ -789,12 +789,12 @@ class AdminBackupController extends Controller
             $out .= "SET FOREIGN_KEY_CHECKS=1;\n";
             File::put($filePath, $out);
 
-            $this->logAction('export_anonymized_dump', "অ্যানোনিমাস ডেভেলপার ডাম্প '{$filename}' তৈরি করা হয়েছে");
+            $this->logAction('export_anonymized_dump', "Anonymized developer dump '{$filename}' generated");
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'success'      => true,
-                    'message'      => "অ্যানোনিমাস ডেভেলপার ডাম্প '{$filename}' সফলভাবে তৈরি হয়েছে!",
+                    'message'      => "Anonymized developer dump '{$filename}' generated successfully!",
                     'filename'     => $filename,
                     'download_url' => route('admin.backup.download', $filename),
                 ]);
@@ -802,7 +802,7 @@ class AdminBackupController extends Controller
 
             return response()->download($filePath);
         } catch (\Throwable $e) {
-            $err = 'অ্যানোনিমাস ডাম্প তৈরিতে ত্রুটি: ' . $e->getMessage();
+            $err = 'Failed to generate anonymized dump: ' . $e->getMessage();
             return $request->wantsJson() ? response()->json(['success' => false, 'message' => $err], 500) : back()->with('error', $err);
         }
     }
@@ -830,7 +830,7 @@ class AdminBackupController extends Controller
                 if (!$botToken || !$chatId) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'টেলিগ্রাম বট টোকেন এবং চ্যাট আইডি প্রদান করুন অথবা সেভ করুন।',
+                        'message' => 'Please configure Telegram Bot Token and Chat ID.',
                     ], 422);
                 }
 
@@ -839,7 +839,7 @@ class AdminBackupController extends Controller
                     . "⏰ *Time:* " . date('d M, Y h:i A') . "\n"
                     . "🌐 *Environment:* " . config('app.url') . "\n"
                     . "💾 *Live Database:* " . config('database.default') . " Connected\n\n"
-                    . "🔔 এটি একটি স্বয়ংক্রিয় টেস্ট নোটিফিকেশন মেসেজ।";
+                    . "🔔 This is an automated test alert notification.";
 
                 $response = Http::timeout(10)->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                     'chat_id'    => $chatId,
@@ -848,33 +848,33 @@ class AdminBackupController extends Controller
                 ]);
 
                 if ($response->successful()) {
-                    $this->logAction('test_telegram_alert', 'টেলিগ্রাম ব্যাকআপ টেস্ট অ্যালার্ট সফলভাবে পাঠানো হয়েছে');
+                    $this->logAction('test_telegram_alert', 'Telegram test alert delivered successfully');
                     return response()->json([
                         'success' => true,
-                        'message' => 'টেলিগ্রাম নোটিফিকেশন সফলভাবে আপনার চ্যানেলে পাঠানো হয়েছে!',
+                        'message' => 'Telegram test notification delivered to your channel successfully!',
                     ]);
                 } else {
                     return response()->json([
                         'success' => false,
-                        'message' => 'টেলিগ্রাম এপিআই ত্রুটি: ' . ($response->json('description') ?? 'সার্ভার সংযোগ ব্যর্থ'),
+                        'message' => 'Telegram API error: ' . ($response->json('description') ?? 'Connection failed'),
                     ], 400);
                 }
             } else {
                 // Email Test
                 $email = $request->input('email', $settings['backup_email'] ?? config('mail.from.address', 'adideabd@gmail.com'));
-                Mail::raw("🛡️ এটি আইডিয়া প্রকাশন ব্যাকআপ অ্যান্ড ডিজাস্টার রিকভারি টেস্ট অ্যালার্ট। টাইম: " . date('Y-m-d H:i:s'), function ($m) use ($email) {
-                    $m->to($email)->subject('Idea Publication Backup Alert System Test');
+                Mail::raw("🛡️ Idea Publication Disaster Recovery Test Alert. Time: " . date('Y-m-d H:i:s'), function ($message) use ($email) {
+                    $message->to($email)->subject('Idea Publication Backup Alert System Test');
                 });
 
                 return response()->json([
                     'success' => true,
-                    'message' => "টেস্ট ইমেইল সফলভাবে {$email} ঠিকানায় পাঠানো হয়েছে।",
+                    'message' => "Test email delivered successfully to {$email}.",
                 ]);
             }
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'নোটিফিকেশন প্রেরণে ত্রুটি: ' . $e->getMessage(),
+                'message' => 'Notification dispatch error: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -916,14 +916,14 @@ class AdminBackupController extends Controller
         $startTime = microtime(true);
         try {
             $dbDriver = config('database.default', 'mysql');
-            $status = 'পাস (Healthy)';
+            $status = 'Passed (Healthy)';
             $details = [];
 
             if ($dbDriver === 'sqlite') {
                 $check = DB::select('PRAGMA integrity_check');
                 $resultStr = $check[0]->integrity_check ?? 'ok';
                 if (strtolower($resultStr) !== 'ok') {
-                    $status = 'সমস্যা সনাক্ত হয়েছে: ' . $resultStr;
+                    $status = 'Issues detected: ' . $resultStr;
                 }
             } else {
                 $tables = DB::select('SHOW TABLES');
@@ -939,17 +939,17 @@ class AdminBackupController extends Controller
                     }
                 }
                 if (!empty($details)) {
-                    $status = 'কিছু টেবিলে ত্রুটি: ' . implode(', ', array_slice($details, 0, 3));
+                    $status = 'Errors in tables: ' . implode(', ', array_slice($details, 0, 3));
                 }
             }
 
             $latency = round((microtime(true) - $startTime) * 1000, 2);
-            $msg = "ডাটাবেজ ইন্টিগ্রিটি চেক সম্পন্ন ({$latency}ms)! স্ট্যাটাস: {$status}";
+            $msg = "Database integrity scan complete ({$latency}ms)! Status: {$status}";
             $this->logAction('integrity_check', $msg);
 
             return back()->with('success', $msg);
         } catch (\Throwable $e) {
-            return back()->with('error', 'ইন্টিগ্রিটি চেকিংয়ে ত্রুটি: ' . $e->getMessage());
+            return back()->with('error', 'Integrity check error: ' . $e->getMessage());
         }
     }
 
@@ -979,10 +979,10 @@ class AdminBackupController extends Controller
                 }
             }
 
-            $this->logAction('optimize_db', 'ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স অপ্টিমাইজ করা হয়েছে');
-            return back()->with('success', 'ডাটাবেজের সমস্ত টেবিল ও ইনডেক্স সফলভাবে অপ্টিমাইজ করা হয়েছে!');
+            $this->logAction('optimize_db', 'All database tables and indexes optimized');
+            return back()->with('success', 'All database tables and indexes optimized successfully!');
         } catch (\Throwable $e) {
-            return back()->with('error', 'ডাটাবেজ অপ্টিমাইজেশনে ত্রুটি: ' . $e->getMessage());
+            return back()->with('error', 'Database optimization error: ' . $e->getMessage());
         }
     }
 
@@ -993,7 +993,7 @@ class AdminBackupController extends Controller
     {
         $filenames = $request->input('filenames', []);
         if (empty($filenames) || !is_array($filenames)) {
-            return back()->with('error', 'মুছে ফেলার জন্য কোনো ব্যাকআপ ফাইল নির্বাচন করা হয়নি।');
+            return back()->with('error', 'No backup files were selected for deletion.');
         }
 
         $count = 0;
@@ -1006,8 +1006,8 @@ class AdminBackupController extends Controller
             }
         }
 
-        $this->logAction('bulk_delete_backup', "একসাথে {$count} টি ব্যাকআপ ফাইল মুছে ফেলা হয়েছে");
-        return back()->with('success', "নির্বাচিত {$count} টি ব্যাকআপ ফাইল সফলভাবে মুছে ফেলা হয়েছে!");
+        $this->logAction('bulk_delete_backup', "Bulk deleted {$count} backup archives");
+        return back()->with('success', "{$count} backup archive(s) deleted successfully!");
     }
 
     /**
@@ -1019,7 +1019,7 @@ class AdminBackupController extends Controller
         $filePath = $this->backupDir . '/' . $filename;
 
         if (!File::exists($filePath)) {
-            return back()->with('error', 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।');
+            return back()->with('error', 'Backup archive not found.');
         }
 
         return response()->download($filePath);
@@ -1035,11 +1035,11 @@ class AdminBackupController extends Controller
 
         if (File::exists($filePath)) {
             File::delete($filePath);
-            $this->logAction('delete_backup', "ডাটাবেজ ব্যাকআপ '{$filename}' মুছে ফেলা হয়েছে");
-            return back()->with('success', "ব্যাকআপ ফাইল '{$filename}' সফলভাবে মুছে ফেলা হয়েছে!");
+            $this->logAction('delete_backup', "Backup archive '{$filename}' deleted");
+            return back()->with('success', "Backup archive '{$filename}' deleted successfully!");
         }
 
-        return back()->with('error', 'ফাইলটি পাওয়া যায়নি।');
+        return back()->with('error', 'Backup archive not found.');
     }
 
     /**
@@ -1203,9 +1203,9 @@ class AdminBackupController extends Controller
             );
         }
 
-        $this->logAction('backup_settings_updated', 'স্বয়ংক্রিয় ব্যাকআপ, ক্লাউড ও টেলিগ্রাম নোটিফিকেশন সেটিংস হালনাগাদ করা হয়েছে');
+        $this->logAction('backup_settings_updated', 'Automated backup, cloud & telegram settings updated');
 
-        return redirect()->back()->with('success', 'স্বয়ংক্রিয় ব্যাকআপ, ক্লাউড ও টেলিগ্রাম সেটিংস সফলভাবে সংরক্ষিত হয়েছে।');
+        return redirect()->back()->with('success', 'Backup, cloud & notification settings saved successfully.');
     }
 
     /**
@@ -1218,33 +1218,33 @@ class AdminBackupController extends Controller
 
         if (!File::exists($filePath)) {
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।'], 404);
+                return response()->json(['success' => false, 'message' => 'Backup archive not found.'], 404);
             }
-            return redirect()->back()->with('error', 'ব্যাকআপ ফাইলটি পাওয়া যায়নি।');
+            return redirect()->back()->with('error', 'Backup archive not found.');
         }
 
         $recipientEmail = $request->input('email', config('mail.from.address', 'adideabd@gmail.com'));
 
         try {
-            Mail::raw("আইডিয়া প্রকাশনের ডাটাবেজ ব্যাকআপ ফাইল '{$filename}' সংযুক্ত করা হয়েছে।", function ($message) use ($recipientEmail, $filePath, $filename) {
+            Mail::raw("Database backup archive '{$filename}' is attached.", function ($message) use ($recipientEmail, $filePath, $filename) {
                 $message->to($recipientEmail)
                     ->subject("Database Backup - {$filename}")
                     ->attach($filePath);
             });
 
-            $this->logAction('backup_emailed', "ব্যাকআপ ফাইল '{$filename}' {$recipientEmail} ঠিকানায় প্রেরণ করা হয়েছে");
+            $this->logAction('backup_emailed', "Backup archive '{$filename}' sent to {$recipientEmail}");
 
             if ($request->wantsJson()) {
-                return response()->json(['success' => true, 'message' => "ব্যাকআপ ফাইলটি সফলভাবে {$recipientEmail} ঠিকানায় পাঠানো হয়েছে।"]);
+                return response()->json(['success' => true, 'message' => "Backup archive successfully sent to {$recipientEmail}."]);
             }
-            return redirect()->back()->with('success', "ব্যাকআপ ফাইলটি সফলভাবে {$recipientEmail} ঠিকানায় পাঠানো হয়েছে।");
+            return redirect()->back()->with('success', "Backup archive successfully sent to {$recipientEmail}.");
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error("Backup email dispatch error: " . $e->getMessage());
 
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'ইমেইল পাঠাতে ব্যর্থ হয়েছে: ' . $e->getMessage()], 500);
+                return response()->json(['success' => false, 'message' => 'Failed to send email: ' . $e->getMessage()], 500);
             }
-            return redirect()->back()->with('error', 'ইমেইল পাঠাতে ব্যর্থ হয়েছে: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
         }
     }
 

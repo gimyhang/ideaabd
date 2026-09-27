@@ -59,7 +59,7 @@ function handleDynamicUpload(files) {
 
     if (prompt) prompt.classList.add('d-none');
     if (progressSection) progressSection.classList.remove('d-none');
-    if (filenameText) filenameText.textContent = `'${file.name}' আপলোড হচ্ছে...`;
+    if (filenameText) filenameText.textContent = `Uploading '${file.name}'...`;
 
     const xhr = new XMLHttpRequest();
     const uploadUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.upload : '/admin/backup/upload';
@@ -78,18 +78,18 @@ function handleDynamicUpload(files) {
         if (xhr.status === 200) {
             try {
                 const res = JSON.parse(xhr.responseText);
-                if (filenameText) filenameText.textContent = 'আপলোড সম্পন্ন! তালিকা আপডেট হচ্ছে...';
+                if (filenameText) filenameText.textContent = 'Upload complete! Refreshing archive list...';
                 if (progressBar) {
                     progressBar.classList.remove('bg-primary');
                     progressBar.classList.add('bg-success');
                 }
-                showToast('success', res.message || 'ফাইল সফলভাবে আপলোড হয়েছে!');
+                showToast('success', res.message || 'Backup archive uploaded successfully!');
                 setTimeout(() => window.location.reload(), 600);
             } catch(e) {
                 window.location.reload();
             }
         } else {
-            let err = 'আপলোডে ত্রুটি ঘটেছে! দয়া করে ফাইলটি পরীক্ষা করুন।';
+            let err = 'Upload failed! Please check the archive file format and size.';
             try {
                 const errRes = JSON.parse(xhr.responseText);
                 if (errRes.message) err = errRes.message;
@@ -100,7 +100,7 @@ function handleDynamicUpload(files) {
     };
 
     xhr.onerror = function() {
-        showToast('danger', 'নেটওয়ার্ক ত্রুটি! আপলোড সম্পন্ন করা যায়নি।');
+        showToast('danger', 'Network error! Upload could not be completed.');
         resetUploadZone();
     };
 
@@ -154,7 +154,7 @@ function initLiveSearch() {
 
         const countBadge = document.getElementById('backupCountBadge');
         if (countBadge) {
-            countBadge.textContent = `${visibleCount} টি ফাইল`;
+            countBadge.textContent = `${visibleCount} File${visibleCount === 1 ? '' : 's'}`;
         }
 
         const emptySearch = document.getElementById('emptySearchRow');
@@ -199,7 +199,7 @@ function initBulkSelection() {
         if (bar) {
             if (count > 0) {
                 bar.style.display = 'flex';
-                if (selectedCountSpan) selectedCountSpan.textContent = `${count} টি নির্বাচিত`;
+                if (selectedCountSpan) selectedCountSpan.textContent = `${count} Selected`;
             } else {
                 bar.style.display = 'none';
             }
@@ -211,7 +211,7 @@ function deleteSelectedBackups() {
     const checked = document.querySelectorAll('.backup-select-cb:checked');
     if (checked.length === 0) return;
 
-    if (!confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${checked.length}টি ব্যাকআপ ফাইল মুছে ফেলতে চান?`)) {
+    if (!confirm(`Are you sure you want to permanently delete ${checked.length} selected backup archive(s)? This action cannot be undone.`)) {
         return;
     }
 
@@ -250,8 +250,8 @@ function triggerLiveBackup(mode, modeLabel) {
     const statusText = document.getElementById('backupProgressStatusText');
     const progressBar = document.getElementById('backupCreationProgressBar');
 
-    if (titleEl) titleEl.textContent = modeLabel || 'ব্যাকআপ তৈরি হচ্ছে...';
-    if (statusText) statusText.textContent = 'ডাটাবেজ টেবিল বিশ্লেষণ ও SQL ডাম্প তৈরি হচ্ছে...';
+    if (titleEl) titleEl.textContent = modeLabel || 'Creating Backup Archive...';
+    if (statusText) statusText.textContent = 'Analyzing database tables & generating SQL dump...';
     if (progressBar) {
         progressBar.style.width = '30%';
         progressBar.classList.add('progress-bar-animated');
@@ -259,7 +259,7 @@ function triggerLiveBackup(mode, modeLabel) {
 
     // Step 2 timer animation
     setTimeout(() => {
-        if (statusText) statusText.textContent = 'মিডিয়া ফাইল, কভার ও ডকুমেন্টস প্যাকেজিং চলছে...';
+        if (statusText) statusText.textContent = 'Packaging media files, book covers & documents...';
         if (progressBar) progressBar.style.width = '65%';
     }, 1200);
 
@@ -279,19 +279,19 @@ function triggerLiveBackup(mode, modeLabel) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            if (statusText) statusText.textContent = 'সম্পূর্ণ হয়েছে! আর্কাইভ ফাইল সংরক্ষণ করা হয়েছে।';
+            if (statusText) statusText.textContent = 'Completed! Master archive saved successfully.';
             if (progressBar) {
                 progressBar.style.width = '100%';
                 progressBar.classList.remove('bg-primary');
                 progressBar.classList.add('bg-success');
             }
-            showToast('success', data.message || 'ব্যাকআপ সফলভাবে সম্পন্ন হয়েছে!');
+            showToast('success', data.message || 'Backup completed successfully!');
             setTimeout(() => {
                 window.location.reload();
             }, 800);
         } else {
             if (modal) modal.hide();
-            showToast('danger', data.message || 'ব্যাকআপ তৈরিতে ত্রুটি ঘটেছে!');
+            showToast('danger', data.message || 'Error occurred while creating backup!');
         }
     })
     .catch(err => {
@@ -326,7 +326,7 @@ function inspectZipArchive(filename) {
 
     const body = document.getElementById('inspectBody');
     if (body) {
-        body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> আর্কাইভ ফাইল স্ক্যান করা হচ্ছে...</div>';
+        body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Scanning archive contents...</div>';
     }
 
     const inspectUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.inspect : '/admin/backup/inspect') + '/' + encodeURIComponent(filename);
@@ -344,33 +344,33 @@ function inspectZipArchive(filename) {
                 <div class="row g-2.5 mb-3">
                     <div class="col-6 col-md-4">
                         <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">মোট ফাইল সংখ্যা</small>
-                            <strong class="font-monospace text-primary fs-5">${data.files_count} টি</strong>
+                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Files</small>
+                            <strong class="font-monospace text-primary fs-5">${data.files_count}</strong>
                         </div>
                     </div>
                     <div class="col-6 col-md-4">
                         <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">আর্কাইভ সাইজ</small>
+                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Archive Size</small>
                             <strong class="font-monospace text-success fs-5">${data.size}</strong>
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">ডাটাবেজ ইঞ্জিন</small>
+                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Database Engine</small>
                             <strong class="font-monospace text-dark fs-5">${data.manifest ? data.manifest.driver.toUpperCase() : 'MySQL'}</strong>
                         </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">আর্কাইভের ফাইল তালিকা:</h6>
-                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 10px;">প্রিভিউ মোড</span>
+                    <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">Archive File Manifest:</h6>
+                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 10px;">Preview Mode</span>
                 </div>
                 <div class="table-responsive rounded-3 border" style="max-height: 260px; overflow-y: auto;">
                     <table class="table table-sm table-hover small mb-0 font-monospace">
                         <thead class="table-light sticky-top">
                             <tr>
-                                <th class="ps-3 py-2">ফাইলের পথ</th>
-                                <th class="text-end pe-3 py-2">সাইজ</th>
+                                <th class="ps-3 py-2">File Path</th>
+                                <th class="text-end pe-3 py-2">Size</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -390,7 +390,7 @@ function inspectZipArchive(filename) {
         }
     })
     .catch(() => {
-        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">আর্কাইভ প্রিভিউ লোড করতে ব্যর্থ হয়েছে।</div>`;
+        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">Failed to load archive preview.</div>`;
     });
 }
 
@@ -411,13 +411,13 @@ function submitEmailDispatch() {
     const btn = document.getElementById('btnSubmitEmail');
 
     if (!filename || !email) {
-        alert('অনুগ্রহ করে সঠিক ইমেইল ঠিকানা প্রদান করুন।');
+        alert('Please provide a valid recipient email address.');
         return;
     }
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> পাঠানো হচ্ছে...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending email...';
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -437,23 +437,23 @@ function submitEmailDispatch() {
     .then(data => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> ইমেইলে পাঠান';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send via Email';
         }
         const modalEl = document.getElementById('emailDispatchModal');
         if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
 
         if (data.success) {
-            showToast('success', data.message || 'ইমেইল সফলভাবে পাঠানো হয়েছে!');
+            showToast('success', data.message || 'Backup archive successfully sent to email!');
         } else {
-            showToast('danger', data.message || 'ইমেইল পাঠাতে ব্যর্থ হয়েছে।');
+            showToast('danger', data.message || 'Failed to dispatch email.');
         }
     })
     .catch(() => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> ইমেইলে পাঠান';
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send via Email';
         }
-        showToast('danger', 'ইমেইল প্রেরণ প্রক্রিয়ায় সমস্যা হয়েছে।');
+        showToast('danger', 'Error occurred during email dispatch process.');
     });
 }
 
@@ -504,7 +504,7 @@ function openDiffModal(filename) {
         body.innerHTML = `
             <div class="text-center py-5 text-muted">
                 <div class="spinner-border text-info mb-2" role="status"></div>
-                <div class="fw-semibold font-monospace">লাইভ ডাটাবেজের সাথে ব্যাকআপ ফাইল তুলনা করা হচ্ছে...</div>
+                <div class="fw-semibold font-monospace">Comparing backup schema and rows against live database...</div>
             </div>
         `;
     }
@@ -527,7 +527,7 @@ function openDiffModal(filename) {
         }
     })
     .catch(err => {
-        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">ডিফ লোড করতে ব্যর্থ হয়েছে।</div>`;
+        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">Failed to load database diff analysis.</div>`;
     });
 }
 
@@ -539,25 +539,25 @@ function renderDiffResults(data) {
         <div class="row g-2.5 mb-3">
             <div class="col-6 col-md-3">
                 <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">মোট টেবিল</small>
-                    <strong class="font-monospace text-primary fs-5">${data.total_tables} টি</strong>
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Tables</small>
+                    <strong class="font-monospace text-primary fs-5">${data.total_tables}</strong>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">পরিবর্তন সনাক্ত</small>
-                    <strong class="font-monospace ${data.changed_tables_count > 0 ? 'text-warning' : 'text-success'} fs-5">${data.changed_tables_count} টি টেবিল</strong>
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Changes Detected</small>
+                    <strong class="font-monospace ${data.changed_tables_count > 0 ? 'text-warning' : 'text-success'} fs-5">${data.changed_tables_count} Table${data.changed_tables_count === 1 ? '' : 's'}</strong>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">লাইভ মোট রেকর্ড</small>
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Live Rows</small>
                     <strong class="font-monospace text-dark fs-5">${data.total_live_rows.toLocaleString()}</strong>
                 </div>
             </div>
             <div class="col-6 col-md-3">
                 <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">ব্যাকআপ মোট রেকর্ড</small>
+                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Backup Rows</small>
                     <strong class="font-monospace text-dark fs-5">${data.total_backup_rows.toLocaleString()}</strong>
                 </div>
             </div>
@@ -565,23 +565,23 @@ function renderDiffResults(data) {
 
         <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
             <div class="d-flex align-items-center gap-2">
-                <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">টেবিলভিত্তিক তুলনামূলক রিপোর্ট:</h6>
+                <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">Table-by-Table Comparison:</h6>
                 <span class="badge ${data.changed_tables_count === 0 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} border rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 10px;">
-                    ${data.changed_tables_count === 0 ? '১০০% হুবহু মিল' : `${data.changed_tables_count} টেবিলে তফাত আছে`}
+                    ${data.changed_tables_count === 0 ? '100% Exact Match' : `${data.changed_tables_count} Differences Found`}
                 </span>
             </div>
-            <input type="search" id="diffSearchInput" class="form-control form-control-sm font-monospace" style="max-width: 220px;" placeholder="টেবিল ফিল্টার করুন..." oninput="filterDiffTable(this.value)">
+            <input type="search" id="diffSearchInput" class="form-control form-control-sm font-monospace" style="max-width: 220px;" placeholder="Filter tables..." oninput="filterDiffTable(this.value)">
         </div>
 
         <div class="table-responsive rounded-3 border" style="max-height: 350px; overflow-y: auto;">
             <table class="table table-sm table-hover align-middle mb-0 font-monospace small" id="diffTable">
                 <thead class="table-light sticky-top">
                     <tr>
-                        <th class="ps-3 py-2">টেবিল নাম</th>
-                        <th class="py-2 text-center">লাইভ রেকর্ড</th>
-                        <th class="py-2 text-center">ব্যাকআপ রেকর্ড</th>
-                        <th class="py-2 text-center">পার্থক্য (Diff)</th>
-                        <th class="text-end pe-3 py-2">স্ট্যাটাস</th>
+                        <th class="ps-3 py-2">Table Name</th>
+                        <th class="py-2 text-center">Live Records</th>
+                        <th class="py-2 text-center">Backup Records</th>
+                        <th class="py-2 text-center">Difference (Diff)</th>
+                        <th class="text-end pe-3 py-2">Status</th>
                     </tr>
                 </thead>
                 <tbody id="diffTableBody">
@@ -592,19 +592,19 @@ function renderDiffResults(data) {
         let diffBadge = '';
 
         if (row.status === 'equal') {
-            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-check me-1"></i> হুবহু মিল</span>';
-            diffBadge = '<span class="text-muted font-monospace">০</span>';
+            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-check me-1"></i> Exact Match</span>';
+            diffBadge = '<span class="text-muted font-monospace">0</span>';
         } else if (row.status === 'live_higher') {
-            statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-up me-1"></i> লাইভে বেশি</span>';
+            statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-up me-1"></i> Higher in Live</span>';
             diffBadge = `<span class="badge bg-primary text-white font-monospace">+${row.diff}</span>`;
         } else if (row.status === 'backup_higher') {
-            statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-down me-1"></i> ব্যাকআপে বেশি</span>';
+            statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-down me-1"></i> Higher in Backup</span>';
             diffBadge = `<span class="badge bg-warning text-dark font-monospace">${row.diff}</span>`;
         } else if (row.status === 'only_in_live') {
-            statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5">শুধুমাত্র লাইভে</span>';
+            statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5">Live Only</span>';
             diffBadge = '<span class="text-info font-monospace">New</span>';
         } else if (row.status === 'only_in_backup') {
-            statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">শুধুমাত্র ব্যাকআপে</span>';
+            statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">Backup Only</span>';
             diffBadge = '<span class="text-danger font-monospace">Removed</span>';
         }
 
@@ -652,8 +652,8 @@ function runDryRunSimulation(filename) {
         body.innerHTML = `
             <div class="text-center py-5">
                 <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-                <h6 class="fw-bold text-dark font-monospace mb-1">স্যান্ডবক্সে রিস্টোর পরীক্ষা চলছে...</h6>
-                <p class="text-muted small mb-0">SQL সিনট্যাক্স, ফরেন-কী ও টেবিল স্ট্রাকচার পরীক্ষা করা হচ্ছে (লাইভ ডাটা সম্পূর্ণ অপরিবর্তিত থাকবে)।</p>
+                <h6 class="fw-bold text-dark font-monospace mb-1">Running sandbox restore simulation...</h6>
+                <p class="text-muted small mb-0">Validating SQL syntax, foreign-key constraints & schema integrity without altering live data.</p>
             </div>
         `;
     }
@@ -679,25 +679,25 @@ function runDryRunSimulation(filename) {
                         <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
                             <i class="fa-solid fa-circle-check fs-1"></i>
                         </div>
-                        <h5 class="fw-bold text-dark mb-1 font-monospace">ড্রাই-রান সফল ও ত্রুটিমুক্ত!</h5>
+                        <h5 class="fw-bold text-dark mb-1 font-monospace">Dry-Run Passed with Zero Errors!</h5>
                         <p class="text-muted small mb-3">${data.message}</p>
                         
                         <div class="row g-2 text-start p-3 bg-light rounded-3 border mb-3">
                             <div class="col-6">
-                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">সিমুলেশন লেটেন্সি:</small>
+                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">Simulation Latency:</small>
                                 <strong class="font-monospace text-primary">${data.execution_time_ms} ms</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">ডাটাবেজ সুরক্ষা:</small>
+                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">Database Safety:</small>
                                 <strong class="font-monospace text-success"><i class="fa-solid fa-shield-halved me-1"></i> 100% Uncommitted Sandbox</strong>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
                             <button type="button" class="btn-backup-gradient btn-gradient-emerald px-4" onclick="bootstrap.Modal.getInstance(document.getElementById('dryRunModal'))?.hide(); confirmRestore('${filename}', true)">
                                 <i class="fa-solid fa-rotate-left"></i>
-                                <span>লাইভ রিস্টোর নিশ্চিত করুন</span>
+                                <span>Confirm Live Restore</span>
                             </button>
                         </div>
                     </div>
@@ -710,8 +710,8 @@ function runDryRunSimulation(filename) {
                         <div class="rounded-circle bg-danger-subtle text-danger p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
                             <i class="fa-solid fa-triangle-exclamation fs-1"></i>
                         </div>
-                        <h5 class="fw-bold text-danger mb-1 font-monospace">ড্রাই-রানে সমস্যা সনাক্ত হয়েছে!</h5>
-                        <p class="text-muted small mb-3">${data.message || 'SQL স্টেটমেন্টে ত্রুটি পাওয়া গেছে।'}</p>
+                        <h5 class="fw-bold text-danger mb-1 font-monospace">Dry-Run Failed! Issues Detected</h5>
+                        <p class="text-muted small mb-3">${data.message || 'Errors encountered in SQL statements or constraint checks.'}</p>
                         ${data.error_details ? `<div class="p-3 bg-danger-subtle text-danger rounded-3 font-monospace small text-start border border-danger-subtle mb-3">${data.error_details}</div>` : ''}
                     </div>
                 `;
@@ -720,7 +720,7 @@ function runDryRunSimulation(filename) {
     })
     .catch(err => {
         if (body) {
-            body.innerHTML = `<div class="alert alert-danger mb-0">ড্রাই-রান সিমুলেশনে নেটওয়ার্ক বা সার্ভার ত্রুটি ঘটেছে।</div>`;
+            body.innerHTML = `<div class="alert alert-danger mb-0">Network or server error occurred during dry-run simulation.</div>`;
         }
     });
 }
@@ -757,7 +757,7 @@ function updateSelectiveCount() {
     const checked = document.querySelectorAll('.selective-tbl-cb:checked');
     const badge = document.getElementById('selectiveSelectedBadge');
     if (badge) {
-        badge.textContent = `${checked.length} টি নির্বাচিত`;
+        badge.textContent = `${checked.length} Selected`;
     }
 }
 
@@ -779,19 +779,19 @@ function initSelectiveSearch() {
 function submitSelectiveRestore() {
     const checked = document.querySelectorAll('.selective-tbl-cb:checked');
     if (checked.length === 0) {
-        alert('অনুগ্রহ করে অন্তত একটি টেবিল নির্বাচন করুন।');
+        alert('Please select at least one database table to restore.');
         return;
     }
 
     const tables = Array.from(checked).map(cb => cb.value);
-    if (!confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${tables.length}টি টেবিল (${tables.slice(0, 3).join(', ')}${tables.length > 3 ? '...' : ''}) রিস্টোর করতে চান?`)) {
+    if (!confirm(`Are you sure you want to restore ${tables.length} selected table(s) (${tables.slice(0, 3).join(', ')}${tables.length > 3 ? '...' : ''})?`)) {
         return;
     }
 
     const btn = document.getElementById('btnExecuteSelectiveRestore');
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> রিস্টোর হচ্ছে...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Restoring tables...';
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -811,34 +811,34 @@ function submitSelectiveRestore() {
     .then(data => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>নির্বাচিত টেবিল রিস্টোর করুন</span>';
+            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Restore Selected Tables</span>';
         }
         const modalEl = document.getElementById('selectiveRestoreModal');
         if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
 
         if (data.success) {
-            showToast('success', data.message || 'সিলেক্টিভ রিস্টোর সফলভাবে সম্পন্ন হয়েছে!');
+            showToast('success', data.message || 'Selective restore completed successfully!');
             setTimeout(() => window.location.reload(), 1000);
         } else {
-            showToast('danger', data.message || 'সিলেক্টিভ রিস্টোরে ত্রুটি ঘটেছে।');
+            showToast('danger', data.message || 'Selective restore encountered errors.');
         }
     })
     .catch(err => {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>নির্বাচিত টেবিল রিস্টোর করুন</span>';
+            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Restore Selected Tables</span>';
         }
-        showToast('danger', 'সিলেক্টিভ রিস্টোর প্রক্রিয়াকরণে সমস্যা হয়েছে।');
+        showToast('danger', 'Error occurred during selective restore execution.');
     });
 }
 
 /* ── 12. Anonymized Developer Dump ── */
 function generateAnonymizedDump() {
-    if (!confirm('আপনি কি গ্রাহকদের সংবেদনশীল তথ্য (পাসওয়ার্ড, ফোন, ইমেইল) মাস্ক করে নিরাপদ ডেভেলপার ডাম্প তৈরি করতে চান?')) {
+    if (!confirm('Do you want to export an anonymized database dump with sensitive customer data (passwords, emails, phone numbers) masked?')) {
         return;
     }
 
-    showToast('info', 'অ্যানোনিমাস ডাম্প তৈরি হচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...');
+    showToast('info', 'Generating anonymized developer dump, please wait...');
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const exportUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.exportAnonymized : '/admin/backup/export-anonymized';
@@ -855,7 +855,7 @@ function generateAnonymizedDump() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast('success', data.message || 'অ্যানোনিমাস ডাম্প সফলভাবে তৈরি হয়েছে!');
+            showToast('success', data.message || 'Anonymized dump generated successfully!');
             if (data.download_url) {
                 const a = document.createElement('a');
                 a.href = data.download_url;
@@ -866,7 +866,7 @@ function generateAnonymizedDump() {
             }
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showToast('danger', data.message || 'অ্যানোনিমাস ডাম্প তৈরিতে ত্রুটি!');
+            showToast('danger', data.message || 'Error occurred while generating anonymized dump!');
         }
     })
     .catch(() => {
@@ -890,11 +890,11 @@ function testTelegramNotification() {
     const chatId = document.getElementById('telegramChatIdInput')?.value;
 
     if (!token || !chatId) {
-        alert('অনুগ্রহ করে টেলিগ্রাম বট টোকেন এবং চ্যাট আইডি ইনপুট দিন।');
+        alert('Please provide both Telegram Bot Token and Chat ID.');
         return;
     }
 
-    showToast('info', 'টেলিগ্রাম টেস্ট মেসেজ পাঠানো হচ্ছে...');
+    showToast('info', 'Sending test Telegram message...');
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     const testUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.testNotification : '/admin/backup/test-notification';
@@ -916,13 +916,12 @@ function testTelegramNotification() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast('success', data.message || 'টেলিগ্রাম মেসেজ সফলভাবে পৌঁছেছে!');
+            showToast('success', data.message || 'Telegram test notification delivered successfully!');
         } else {
-            showToast('danger', data.message || 'টেলিগ্রাম মেসেজ পাঠাতে ব্যর্থ হয়েছে।');
+            showToast('danger', data.message || 'Failed to send Telegram test message.');
         }
     })
     .catch(() => {
-        showToast('danger', 'টেলিগ্রাম নোটিফিকেশন সার্ভারের সাথে যোগাযোগ করা যায়নি।');
+        showToast('danger', 'Could not reach the Telegram notification server.');
     });
 }
-
