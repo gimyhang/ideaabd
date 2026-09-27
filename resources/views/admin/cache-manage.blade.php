@@ -37,7 +37,7 @@
 
         {{-- 1-Click Production Turbo Optimizer --}}
         <button type="button" class="btn btn-cache-action btn-cache-primary btn-sm px-4 py-2 fw-bold hover-lift" onclick="executeCacheAction('{{ route('admin.cache.optimize') }}', 'Optimizing system...', this)">
-            <i class="fa-solid fa-bolt"></i>
+            <i class="fa-solid fa-bolt-lightning"></i>
             <span>Turbo Optimize</span>
         </button>
 
@@ -101,7 +101,7 @@
                         </div>
                     </div>
                     <div class="cache-kpi-icon">
-                        <i class="fa-solid fa-tv"></i>
+                        <i class="fa-solid fa-desktop"></i>
                     </div>
                 </div>
                 <div class="cache-kpi-footer">
@@ -183,14 +183,14 @@
                 </div>
                 <div class="cache-kpi-footer">
                     <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                        <span class="badge {{ $stats['is_config_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2 py-0.5">
-                            Config {{ $stats['is_config_cached'] ? '✓' : '✗' }}
+                        <span class="badge {{ $stats['is_config_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
+                            <i class="fa-solid {{ $stats['is_config_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Config
                         </span>
-                        <span class="badge {{ $stats['is_route_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2 py-0.5">
-                            Route {{ $stats['is_route_cached'] ? '✓' : '✗' }}
+                        <span class="badge {{ $stats['is_route_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
+                            <i class="fa-solid {{ $stats['is_route_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Route
                         </span>
-                        <span class="badge {{ $stats['is_events_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2 py-0.5">
-                            Event {{ $stats['is_events_cached'] ? '✓' : '✗' }}
+                        <span class="badge {{ $stats['is_events_cached'] ? 'bg-success text-white' : 'bg-light text-muted border' }} rounded-pill px-2.5 py-0.5 font-monospace">
+                            <i class="fa-solid {{ $stats['is_events_cached'] ? 'fa-check' : 'fa-xmark' }} me-1"></i> Event
                         </span>
                     </div>
                 </div>
@@ -206,8 +206,8 @@
         <div class="cache-section-card p-4">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-4">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="fa-solid fa-memory fs-4"></i>
+                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
+                        <i class="fa-solid fa-microchip fs-3 text-warning"></i>
                     </div>
                     <div>
                         <div class="fw-bold text-dark mb-0.5">OPcache Bytecode Memory Allocation</div>
@@ -271,7 +271,7 @@
                         <div class="cache-module-header">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-primary">
-                                    <i class="fa-solid fa-tv"></i>
+                                    <i class="fa-solid fa-desktop"></i>
                                 </div>
                                 <div>
                                     <h6 class="cache-module-title">Blade Views</h6>
@@ -299,7 +299,7 @@
                         <div class="cache-module-header">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-info">
-                                    <i class="fa-solid fa-layer-group"></i>
+                                    <i class="fa-solid fa-database"></i>
                                 </div>
                                 <div>
                                     <h6 class="cache-module-title">App Data</h6>
@@ -314,7 +314,7 @@
                     </div>
                     <div class="cache-module-footer">
                         <button type="button" class="btn btn-cache-action btn-cache-info w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-app') }}', 'Purging Data...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear App Data
+                            <i class="fa-solid fa-layer-group"></i> Clear App Data
                         </button>
                     </div>
                 </div>
@@ -327,7 +327,7 @@
                         <div class="cache-module-header">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-success">
-                                    <i class="fa-solid fa-gears"></i>
+                                    <i class="fa-solid fa-sliders"></i>
                                 </div>
                                 <div>
                                     <h6 class="cache-module-title">Config & Env</h6>
@@ -342,7 +342,7 @@
                     </div>
                     <div class="cache-module-footer">
                         <button type="button" class="btn btn-cache-action btn-cache-success w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-config') }}', 'Purging Config...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear Config Cache
+                            <i class="fa-solid fa-gears"></i> Clear Config Cache
                         </button>
                     </div>
                 </div>
@@ -355,7 +355,7 @@
                         <div class="cache-module-header">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-warning text-dark">
-                                    <i class="fa-solid fa-route"></i>
+                                    <i class="fa-solid fa-signs-post"></i>
                                 </div>
                                 <div>
                                     <h6 class="cache-module-title">Routes</h6>
@@ -370,7 +370,7 @@
                     </div>
                     <div class="cache-module-footer">
                         <button type="button" class="btn btn-cache-action btn-cache-warning w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-routes') }}', 'Purging Routes...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear Route Cache
+                            <i class="fa-solid fa-diamond-turn-right"></i> Clear Route Cache
                         </button>
                     </div>
                 </div>
@@ -426,7 +426,7 @@
                     </div>
                     <div class="cache-module-footer">
                         <button type="button" class="btn btn-cache-action btn-cache-purple w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-images') }}', 'Clearing Images...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear Temp Images
+                            <i class="fa-solid fa-trash-can"></i> Clear Temp Images
                         </button>
                     </div>
                 </div>
@@ -454,7 +454,7 @@
                     </div>
                     <div class="cache-module-footer">
                         <button type="button" class="btn btn-cache-action btn-cache-dark w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-events') }}', 'Purging Events...', this)">
-                            <i class="fa-solid fa-broom"></i> Clear Event Cache
+                            <i class="fa-solid fa-bolt"></i> Clear Event Cache
                         </button>
                     </div>
                 </div>
@@ -476,7 +476,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" onclick="copyTerminalOutput()">
-                    <i class="fa-solid fa-copy me-1"></i> Copy Log
+                    <i class="fa-solid fa-copy me-1 text-primary"></i> Copy Log
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold" onclick="clearTerminalLog()">
                     <i class="fa-solid fa-eraser me-1"></i> Clear
@@ -487,10 +487,10 @@
         {{-- Preset Command Chips --}}
         <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
             <span class="small text-muted fw-bold text-uppercase font-monospace me-1">Quick Presets:</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('optimize')"><i class="fa-solid fa-bolt text-primary"></i> php artisan optimize</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('view:clear')"><i class="fa-solid fa-tv text-info"></i> php artisan view:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('route:clear')"><i class="fa-solid fa-route text-warning"></i> php artisan route:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('config:clear')"><i class="fa-solid fa-gears text-success"></i> php artisan config:clear</span>
+            <span class="terminal-preset-chip" onclick="runTerminalCommand('optimize')"><i class="fa-solid fa-bolt-lightning text-primary"></i> php artisan optimize</span>
+            <span class="terminal-preset-chip" onclick="runTerminalCommand('view:clear')"><i class="fa-solid fa-desktop text-info"></i> php artisan view:clear</span>
+            <span class="terminal-preset-chip" onclick="runTerminalCommand('route:clear')"><i class="fa-solid fa-signs-post text-warning"></i> php artisan route:clear</span>
+            <span class="terminal-preset-chip" onclick="runTerminalCommand('config:clear')"><i class="fa-solid fa-sliders text-success"></i> php artisan config:clear</span>
             <span class="terminal-preset-chip" onclick="runTerminalCommand('cache:clear')"><i class="fa-solid fa-database text-danger"></i> php artisan cache:clear</span>
             <span class="terminal-preset-chip" onclick="runTerminalCommand('event:clear')"><i class="fa-solid fa-bell text-secondary"></i> php artisan event:clear</span>
             <span class="terminal-preset-chip" onclick="runTerminalCommand('about')"><i class="fa-solid fa-circle-info text-info"></i> php artisan about</span>
@@ -516,7 +516,7 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
             <span class="input-group-text bg-dark text-white border-0 font-monospace px-3">$ php artisan</span>
             <input type="text" id="customArtisanCmd" class="form-control font-monospace border-0 bg-light px-3" placeholder="e.g. optimize, view:clear, config:cache, route:list">
             <button type="button" class="btn btn-cache-action btn-cache-primary px-4 fw-bold" onclick="runCustomTerminalCommand()">
-                <i class="fa-solid fa-play me-1"></i> Execute
+                <i class="fa-solid fa-play me-1.5"></i> Execute
             </button>
         </div>
     </div>
@@ -547,49 +547,60 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
             <table class="cache-table" id="cacheKeysTable">
                 <thead>
                     <tr>
-                        <th style="width: 30%;">Key Identifier</th>
-                        <th style="width: 35%;">Description & Purpose</th>
+                        <th style="width: 28%;">Key Identifier</th>
+                        <th style="width: 32%;">Description & Purpose</th>
                         <th style="width: 15%;">Type / Category</th>
-                        <th style="width: 10%;">Status</th>
-                        <th style="width: 10%;" class="text-end">Actions</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 13%;" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($cachedKeys as $k)
+                        @php
+                            $catType = strtolower($k['type'] ?? 'general');
+                            $typeIcon = match($catType) {
+                                'settings' => 'fa-solid fa-gear text-primary',
+                                'catalog' => 'fa-solid fa-book text-success',
+                                'authors' => 'fa-solid fa-user-pen text-info',
+                                'navigation' => 'fa-solid fa-compass text-warning',
+                                'marketing' => 'fa-solid fa-bullhorn text-danger',
+                                default => 'fa-solid fa-layer-group text-secondary'
+                            };
+                        @endphp
                         <tr class="cache-key-row" data-key="{{ strtolower($k['key']) }}" data-label="{{ strtolower($k['label']) }}">
                             <td>
-                                <div class="fw-bold text-dark font-monospace" style="font-size: 0.92rem;">
-                                    {{ $k['key'] }}
+                                <div class="fw-bold text-dark font-monospace" style="font-size: 0.94rem;">
+                                    <i class="fa-solid fa-key text-muted me-1.5" style="font-size: 0.8rem;"></i>{{ $k['key'] }}
                                 </div>
-                                <div class="text-muted small fs-xs font-monospace">TTL: {{ $k['ttl'] ?? 'Persistent' }}</div>
+                                <div class="text-muted small fs-xs font-monospace mt-0.5">TTL: {{ $k['ttl'] ?? 'Persistent' }}</div>
                             </td>
                             <td>
-                                <div class="fw-semibold text-dark small">{{ $k['label'] }}</div>
-                                <div class="text-muted small" style="font-size: 0.8rem;">{{ $k['description'] }}</div>
+                                <div class="fw-bold text-dark small">{{ $k['label'] }}</div>
+                                <div class="text-muted small" style="font-size: 0.82rem; line-height: 1.4;">{{ $k['description'] }}</div>
                             </td>
                             <td>
-                                <span class="badge bg-light text-dark border font-monospace px-2.5 py-1 rounded-pill">
-                                    {{ $k['type'] ?? 'General' }}
+                                <span class="badge bg-light text-dark border font-monospace px-2.5 py-1.5 rounded-pill">
+                                    <i class="{{ $typeIcon }} me-1"></i> {{ $k['type'] ?? 'General' }}
                                 </span>
                             </td>
                             <td>
                                 @if(!empty($k['is_cached']))
-                                    <span class="badge bg-success-subtle text-success key-status-badge rounded-pill px-2.5 py-1 font-monospace">
+                                    <span class="badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold">
                                         <i class="fa-solid fa-circle-check me-1"></i> Cached
                                     </span>
                                 @else
-                                    <span class="badge bg-warning-subtle text-warning-emphasis key-status-badge rounded-pill px-2.5 py-1 font-monospace">
-                                        <i class="fa-solid fa-hourglass-half me-1"></i> Empty
+                                    <span class="badge bg-warning-subtle text-warning-emphasis key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold">
+                                        <i class="fa-solid fa-circle-pause me-1"></i> Empty
                                     </span>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                    <button type="button" class="btn btn-sm btn-outline-info rounded-circle p-2" title="Inspect JSON Payload" onclick="inspectKeyPayload('{{ $k['key'] }}')">
-                                        <i class="fa-solid fa-eye"></i>
+                                    <button type="button" class="btn btn-table-action btn-table-inspect" onclick="inspectKeyPayload('{{ $k['key'] }}')">
+                                        <i class="fa-solid fa-eye me-1"></i> Inspect
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-circle p-2" title="Flush Memory Key" onclick="deleteSingleKey('{{ $k['key'] }}', this)">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="button" class="btn btn-table-action btn-table-flush" onclick="deleteSingleKey('{{ $k['key'] }}', this)">
+                                        <i class="fa-solid fa-trash-can me-1"></i> Flush
                                     </button>
                                 </div>
                             </td>
@@ -630,7 +641,7 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
                     <div class="terminal-header">
                         <span class="small text-muted font-monospace">Payload Content (JSON)</span>
                         <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="navigator.clipboard.writeText(document.getElementById('keyModalPayload').textContent); showCacheAlert('success', 'Payload copied!');">
-                            <i class="fa-solid fa-copy me-1"></i> Copy
+                            <i class="fa-solid fa-copy me-1 text-primary"></i> Copy
                         </button>
                     </div>
                     <pre class="terminal-screen mb-0" id="keyModalPayload" style="min-height: 250px; max-height: 400px; color: #38bdf8;">Loading payload from cache storage...</pre>
