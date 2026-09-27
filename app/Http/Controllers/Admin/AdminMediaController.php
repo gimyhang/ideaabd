@@ -228,37 +228,36 @@ class AdminMediaController extends Controller
                         $url = asset(ltrim($relClean, '/'));
                     }
 
-                    // Extract Dimensions & Metadata
-                    $width = null;
-                    $height = null;
-                    $aspectRatio = 'Auto';
+                    // Extract Dimensions & Metadata (Cached per file mtime for ultra-fast page speed)
+                    $mtime = $file->getMTime();
+                    $cacheKey = 'media_dim_' . md5($pathname) . '_' . $mtime;
 
-                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'avif'])) {
-                        $imgInfo = @getimagesize($pathname);
-                        if ($imgInfo) {
-                            $width = $imgInfo[0];
-                            $height = $imgInfo[1];
-
-                            if ($width > 0 && $height > 0) {
-                                $ratioVal = round($width / $height, 2);
-                                if ($width === $height) {
-                                    $aspectRatio = '1:1';
-                                } elseif ($ratioVal >= 1.75 && $ratioVal <= 1.8) {
-                                    $aspectRatio = '16:9';
-                                } elseif ($ratioVal >= 1.3 && $ratioVal <= 1.35) {
-                                    $aspectRatio = '4:3';
-                                } elseif ($ratioVal >= 1.48 && $ratioVal <= 1.52) {
-                                    $aspectRatio = '3:2';
-                                } elseif ($ratioVal >= 2.0) {
-                                    $aspectRatio = 'Banner';
-                                } elseif ($ratioVal < 0.8) {
-                                    $aspectRatio = 'Portrait';
-                                } else {
-                                    $aspectRatio = "{$width}x{$height}";
-                                }
-                            }
+                    $dimMeta = \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($pathname, $ext) {
+                        if (!in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'avif'])) {
+                            return ['w' => null, 'h' => null, 'ratio' => 'Vector'];
                         }
-                    }
+                        $imgInfo = @getimagesize($pathname);
+                        if (!$imgInfo || $imgInfo[0] <= 0 || $imgInfo[1] <= 0) {
+                            return ['w' => null, 'h' => null, 'ratio' => 'Auto'];
+                        }
+                        $w = $imgInfo[0];
+                        $h = $imgInfo[1];
+                        $r = round($w / $h, 2);
+                        $aspect = match(true) {
+                            $w === $h => '1:1',
+                            $r >= 1.75 && $r <= 1.8 => '16:9',
+                            $r >= 1.3 && $r <= 1.35 => '4:3',
+                            $r >= 1.48 && $r <= 1.52 => '3:2',
+                            $r >= 2.0 => 'Banner',
+                            $r < 0.8 => 'Portrait',
+                            default => "{$w}x{$h}",
+                        };
+                        return ['w' => $w, 'h' => $h, 'ratio' => $aspect];
+                    });
+
+                    $width = $dimMeta['w'] ?? null;
+                    $height = $dimMeta['h'] ?? null;
+                    $aspectRatio = $dimMeta['ratio'] ?? 'Auto';
 
                     // Apply Dimension Filter
                     if ($dimensionFilter !== 'all') {
@@ -270,6 +269,17 @@ class AdminMediaController extends Controller
                             continue;
                         }
                     }
+
+                    $mime = match ($ext) {
+                        'webp' => 'image/webp',
+                        'png' => 'image/png',
+                        'jpg', 'jpeg' => 'image/jpeg',
+                        'svg' => 'image/svg+xml',
+                        'gif' => 'image/gif',
+                        'avif' => 'image/avif',
+                        'ico' => 'image/x-icon',
+                        default => 'image/' . $ext,
+                    };
 
                     $mediaItems[] = [
                         'filename'     => $filename,
@@ -284,8 +294,8 @@ class AdminMediaController extends Controller
                         'width'        => $width,
                         'height'       => $height,
                         'aspect_ratio' => $aspectRatio,
-                        'mime'         => mime_content_type($pathname) ?: "image/{$ext}",
-                        'updated_at'   => Carbon::createFromTimestamp($file->getMTime()),
+                        'mime'         => $mime,
+                        'updated_at'   => Carbon::createFromTimestamp($mtime),
                         'is_webp'      => ($ext === 'webp'),
                     ];
                 }

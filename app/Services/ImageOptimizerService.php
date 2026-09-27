@@ -277,7 +277,7 @@ class ImageOptimizerService
             $filePath = $file->getPathname();
             $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
-            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'bmp'])) {
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'bmp', 'avif'])) {
                 continue;
             }
 
@@ -286,13 +286,20 @@ class ImageOptimizerService
             $filenameWithoutExt = pathinfo($filePath, PATHINFO_FILENAME);
             $webpPath = $dir . DIRECTORY_SEPARATOR . $filenameWithoutExt . '.webp';
 
-            // If webp already exists and is not this file, skip or update
-            $binary = @file_get_contents($filePath);
-            if (empty($binary)) {
-                continue;
+            // Load GD Image Resource
+            $gdImage = null;
+            if ($ext === 'avif' && function_exists('imagecreatefromavif')) {
+                $gdImage = @imagecreatefromavif($filePath);
             }
 
-            $gdImage = @imagecreatefromstring($binary);
+            if (!$gdImage) {
+                $binary = @file_get_contents($filePath);
+                if (empty($binary)) {
+                    continue;
+                }
+                $gdImage = @imagecreatefromstring($binary);
+            }
+
             if (!$gdImage) {
                 continue;
             }
@@ -301,8 +308,8 @@ class ImageOptimizerService
                 imagepalettetotruecolor($gdImage);
             }
 
-            // Preserve alpha channel for PNG/transparent images
-            if ($ext === 'png') {
+            // Preserve alpha channel for PNG/AVIF transparent images
+            if ($ext === 'png' || $ext === 'avif') {
                 imagealphablending($gdImage, false);
                 imagesavealpha($gdImage, true);
             }
