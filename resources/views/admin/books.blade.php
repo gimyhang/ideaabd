@@ -1298,6 +1298,19 @@ if (booksFilterForm) {
 // In-Memory Book Store for Quick Editing
 window.booksDataMap = {
     @foreach ($books as $b)
+        @php
+            $bCover = $b->cover_image;
+            $bCoverUrl = 'https://placehold.co/120x170/e2e8f0/475569?text=Cover';
+            if ($bCover) {
+                if (str_starts_with($bCover, 'http')) {
+                    $bCoverUrl = $bCover;
+                } elseif (str_starts_with($bCover, 'storage/')) {
+                    $bCoverUrl = asset($bCover);
+                } else {
+                    $bCoverUrl = asset('storage/' . ltrim($bCover, '/'));
+                }
+            }
+        @endphp
         {{ $b->id }}: {
             id: {{ $b->id }},
             title: {!! json_encode($b->title) !!},
@@ -1312,28 +1325,29 @@ window.booksDataMap = {
             stock_status: {!! json_encode($b->stock_status ?? 'in_stock') !!},
             is_active: {{ $b->is_active ? 1 : 0 }},
             mod_status: {!! json_encode($b->mod_status ?? 'approved') !!},
-            cover_url: {!! json_encode($b->cover_image ? (str_starts_with($b->cover_image, 'http') ? $b->cover_image : asset('storage/' . ltrim($b->cover_image, '/'))) : '') !!}
+            cover_url: {!! json_encode($bCoverUrl) !!}
         },
     @endforeach
 };
 
 function onQeCoverTypeChange() {
-    const isHardcover = document.getElementById('qeCoverType_hardcover').checked;
-    const isPaperback = document.getElementById('qeCoverType_paperback').checked;
-    const isBoth = document.getElementById('qeCoverType_both').checked;
+    const hardRadio = document.getElementById('qeCoverType_hardcover');
+    const bothRadio = document.getElementById('qeCoverType_both');
+    const isHardcover = hardRadio ? hardRadio.checked : false;
+    const isBoth = bothRadio ? bothRadio.checked : false;
 
     const paperBlock = document.getElementById('qePaperbackPriceBlock');
     const hardBlock = document.getElementById('qeHardcoverPriceBlock');
 
     if (isBoth) {
-        paperBlock.style.display = 'block';
-        hardBlock.style.display = 'block';
+        if (paperBlock) paperBlock.style.display = 'block';
+        if (hardBlock) hardBlock.style.display = 'block';
     } else if (isHardcover) {
-        paperBlock.style.display = 'none';
-        hardBlock.style.display = 'block';
+        if (paperBlock) paperBlock.style.display = 'none';
+        if (hardBlock) hardBlock.style.display = 'block';
     } else {
-        paperBlock.style.display = 'block';
-        hardBlock.style.display = 'none';
+        if (paperBlock) paperBlock.style.display = 'block';
+        if (hardBlock) hardBlock.style.display = 'none';
     }
 }
 
@@ -1348,32 +1362,54 @@ function openQuickEditModal(bookId, focusTab = 'all') {
             try {
                 book = typeof row.dataset.book === 'string' ? JSON.parse(row.dataset.book) : row.dataset.book;
             } catch (e) {
-                console.error(e);
+                console.error('Error parsing row data-book:', e);
             }
         }
     }
     if (!book) {
         console.error('Book not found for ID:', bookId);
+        if (typeof showBookToast === 'function') {
+            showBookToast('error', 'বইটির তথ্য লোড করা যায়নি।');
+        }
         return;
     }
 
-    document.getElementById('qeBookId').value = book.id;
-    document.getElementById('qeTitle').value = book.title;
-    document.getElementById('qeEdition').value = book.edition || '';
-    document.getElementById('qePrice').value = book.price > 0 ? book.price : '';
-    document.getElementById('qeDiscountPrice').value = book.discount_price > 0 ? book.discount_price : '';
-    document.getElementById('qeCostPrice').value = book.cost_price > 0 ? book.cost_price : '';
-    document.getElementById('qeHardcoverPrice').value = book.hardcover_price > 0 ? book.hardcover_price : '';
-    document.getElementById('qeHardcoverDiscountPrice').value = book.hardcover_discount_price > 0 ? book.hardcover_discount_price : '';
-    document.getElementById('qeStockQuantity').value = book.stock_quantity;
-    document.getElementById('qeStockStatus').value = book.stock_status || (book.stock_quantity <= 0 ? 'out' : 'in_stock');
-    document.getElementById('qeIsActive').checked = (book.is_active === 1);
-    if (document.getElementById('qeModStatus')) {
-        document.getElementById('qeModStatus').value = book.mod_status || 'approved';
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val !== undefined && val !== null ? val : '';
+    };
+
+    setVal('qeBookId', book.id);
+    setVal('qeTitle', book.title || '');
+    setVal('qeEdition', book.edition || '');
+    setVal('qePrice', book.price > 0 ? book.price : '');
+    setVal('qeDiscountPrice', book.discount_price > 0 ? book.discount_price : '');
+    setVal('qeCostPrice', book.cost_price > 0 ? book.cost_price : '');
+    setVal('qeHardcoverPrice', book.hardcover_price > 0 ? book.hardcover_price : '');
+    setVal('qeHardcoverDiscountPrice', book.hardcover_discount_price > 0 ? book.hardcover_discount_price : '');
+    setVal('qeStockQuantity', book.stock_quantity !== undefined ? book.stock_quantity : 0);
+    setVal('qeStockStatus', book.stock_status || (book.stock_quantity <= 0 ? 'out' : 'in_stock'));
+    
+    const activeSwitch = document.getElementById('qeIsActive');
+    if (activeSwitch) {
+        activeSwitch.checked = (book.is_active === 1 || book.is_active === true || book.is_active === '1');
     }
-    document.getElementById('qeCoverPreview').src = book.cover_url;
-    document.getElementById('qeCoverInput').value = '';
-    document.getElementById('qeAlertBox').innerHTML = '';
+
+    const modSelect = document.getElementById('qeModStatus');
+    if (modSelect) {
+        modSelect.value = book.mod_status || 'approved';
+    }
+
+    const coverPreview = document.getElementById('qeCoverPreview');
+    if (coverPreview) {
+        coverPreview.src = book.cover_url || 'https://placehold.co/120x170/e2e8f0/475569?text=Cover';
+    }
+
+    const coverInput = document.getElementById('qeCoverInput');
+    if (coverInput) coverInput.value = '';
+
+    const alertBox = document.getElementById('qeAlertBox');
+    if (alertBox) alertBox.innerHTML = '';
 
     // Set Binding Cover Type
     let cType = book.cover_type || 'paperback';
@@ -1383,12 +1419,16 @@ function openQuickEditModal(bookId, focusTab = 'all') {
         cType = 'hardcover';
     }
 
-    if (cType === 'both') {
-        document.getElementById('qeCoverType_both').checked = true;
-    } else if (cType === 'hardcover') {
-        document.getElementById('qeCoverType_hardcover').checked = true;
-    } else {
-        document.getElementById('qeCoverType_paperback').checked = true;
+    const radioBoth = document.getElementById('qeCoverType_both');
+    const radioHard = document.getElementById('qeCoverType_hardcover');
+    const radioPaper = document.getElementById('qeCoverType_paperback');
+
+    if (cType === 'both' && radioBoth) {
+        radioBoth.checked = true;
+    } else if (cType === 'hardcover' && radioHard) {
+        radioHard.checked = true;
+    } else if (radioPaper) {
+        radioPaper.checked = true;
     }
     onQeCoverTypeChange();
 
@@ -1398,21 +1438,29 @@ function openQuickEditModal(bookId, focusTab = 'all') {
     recalcBuyCommissionFromPrice();
 
     const modalEl = document.getElementById('quickBookEditModal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    if (modalEl) {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        } else if (window.jQuery && jQuery(modalEl).modal) {
+            jQuery(modalEl).modal('show');
+        }
+    }
 
     // Autofocus specific inputs
     setTimeout(() => {
         if (focusTab === 'edition') {
-            document.getElementById('qeEdition').focus();
+            document.getElementById('qeEdition')?.focus();
         } else if (focusTab === 'pricing') {
             if (cType === 'hardcover') {
-                document.getElementById('qeHardcoverPrice').focus();
+                document.getElementById('qeHardcoverPrice')?.focus();
             } else {
-                document.getElementById('qePrice').focus();
+                document.getElementById('qePrice')?.focus();
             }
         } else if (focusTab === 'stock') {
-            document.getElementById('qeStockQuantity').focus();
+            document.getElementById('qeStockQuantity')?.focus();
+        } else if (focusTab === 'cover') {
+            document.getElementById('qeCoverInput')?.click();
         }
     }, 400);
 }
@@ -1547,8 +1595,10 @@ function handleQuickBookEditSubmit(e) {
     const form = document.getElementById('quickBookEditForm');
     const formData = new FormData(form);
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving changes...';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving changes...';
+    }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
@@ -1560,23 +1610,44 @@ function handleQuickBookEditSubmit(e) {
         },
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alertBox.innerHTML = `<div class="alert alert-success p-2 small mb-3"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>`;
+    .then(async (res) => {
+        const data = await res.json().catch(() => ({ success: false, message: 'Server response error' }));
+        if (res.ok && data.success) {
+            if (alertBox) {
+                alertBox.innerHTML = `<div class="alert alert-success p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-circle-check me-1"></i> ${data.message || 'বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!'}</div>`;
+            }
+            if (typeof window.SwalToast === 'function') {
+                window.SwalToast('success', data.message || 'বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!');
+            } else if (typeof showBookToast === 'function') {
+                showBookToast('success', data.message || 'বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!');
+            }
             setTimeout(() => {
                 location.reload();
-            }, 800);
+            }, 700);
         } else {
-            alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">${data.message || 'An error occurred'}</div>`;
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
+            let errorText = data.message || 'তথ্য আপডেট করতে ব্যর্থ হয়েছে।';
+            if (data.errors) {
+                const errorList = Object.values(data.errors).flat();
+                errorText = errorList.join('<br>');
+            }
+            if (alertBox) {
+                alertBox.innerHTML = `<div class="alert alert-danger p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-circle-exclamation me-1"></i> ${errorText}</div>`;
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
+            }
         }
     })
     .catch(err => {
-        alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-3">Server error occurred.</div>`;
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
+        console.error('Quick edit error:', err);
+        if (alertBox) {
+            alertBox.innerHTML = `<div class="alert alert-danger p-2.5 small mb-3 rounded-3 shadow-xs"><i class="fa-solid fa-triangle-exclamation me-1"></i> সার্ভারের সাথে সংযোগ বিচ্ছিন্ন হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।</div>`;
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Save Changes';
+        }
     });
 }
 
@@ -2057,5 +2128,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/* ── Global Window Exports for Books Management ── */
+window.openQuickEditModal = openQuickEditModal;
+window.handleQuickBookEditSubmit = handleQuickBookEditSubmit;
+window.onQeCoverTypeChange = onQeCoverTypeChange;
+window.recalcPricingFromMrp = recalcPricingFromMrp;
+window.recalcSalePriceFromCommission = recalcSalePriceFromCommission;
+window.recalcSaleCommissionFromPrice = recalcSaleCommissionFromPrice;
+window.recalcHardcoverPricingFromMrp = recalcHardcoverPricingFromMrp;
+window.recalcHardcoverSalePriceFromCommission = recalcHardcoverSalePriceFromCommission;
+window.recalcHardcoverSaleCommissionFromPrice = recalcHardcoverSaleCommissionFromPrice;
+window.recalcCostPriceFromCommission = recalcCostPriceFromCommission;
+window.recalcBuyCommissionFromPrice = recalcBuyCommissionFromPrice;
+window.previewSelectedCover = previewSelectedCover;
+window.openBarcodeModal = openBarcodeModal;
+window.ajaxApproveBook = ajaxApproveBook;
+window.openBookRejectModal = openBookRejectModal;
+window.ajaxRejectBookSubmit = ajaxRejectBookSubmit;
+window.ajaxSetBookPending = ajaxSetBookPending;
+window.toggleBookActive = toggleBookActive;
+window.confirmDeleteBook = confirmDeleteBook;
+window.syncAllBookSerials = syncAllBookSerials;
+window.exportBooksToCSV = exportBooksToCSV;
+window.showBookToast = showBookToast;
 </script>
 @endpush

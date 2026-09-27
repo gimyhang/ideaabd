@@ -3188,125 +3188,163 @@ class AdminController extends Controller
 
     public function quickUpdateBook(Request $request): \Illuminate\Http\JsonResponse
     {
-        $validated = $request->validate([
-            'book_id'                  => 'required|integer|exists:books,id',
-            'title'                    => 'nullable|string|max:255',
-            'cover_type'               => 'nullable|string|in:paperback,hardcover,both',
-            'price'                    => 'nullable|numeric|min:0',
-            'discount_price'           => 'nullable|numeric|min:0',
-            'cost_price'               => 'nullable|numeric|min:0',
-            'hardcover_price'          => 'nullable|numeric|min:0',
-            'hardcover_discount_price' => 'nullable|numeric|min:0',
-            'edition'                  => 'nullable|string|max:100',
-            'stock_quantity'           => 'nullable|integer|min:0',
-            'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
-            'is_active'                => 'nullable|boolean',
-            'mod_status'               => 'nullable|string|in:pending,approved,rejected',
-            'cover_image_file'         => 'nullable|image|max:5120',
-        ]);
+        try {
+            $validated = $request->validate([
+                'book_id'                  => 'required|integer|exists:books,id',
+                'title'                    => 'nullable|string|max:255',
+                'cover_type'               => 'nullable|string|in:paperback,hardcover,both',
+                'price'                    => 'nullable|numeric|min:0',
+                'discount_price'           => 'nullable|numeric|min:0',
+                'cost_price'               => 'nullable|numeric|min:0',
+                'hardcover_price'          => 'nullable|numeric|min:0',
+                'hardcover_discount_price' => 'nullable|numeric|min:0',
+                'edition'                  => 'nullable|string|max:100',
+                'stock_quantity'           => 'nullable|integer|min:0',
+                'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
+                'is_active'                => 'nullable',
+                'mod_status'               => 'nullable|string|in:pending,approved,rejected',
+                'cover_image_file'         => 'nullable|image|max:5120',
+            ]);
 
-        $book = \Modules\Book\Models\Book::findOrFail($validated['book_id']);
+            $book = \Modules\Book\Models\Book::findOrFail($validated['book_id']);
 
-        $updates = [];
+            $updates = [];
 
-        if ($request->has('title') && $validated['title'] !== null) {
-            $updates['title'] = $validated['title'];
-        }
-        if ($request->has('cover_type') && $validated['cover_type'] !== null) {
-            $updates['cover_type'] = $validated['cover_type'];
-        }
-        if ($request->has('edition')) {
-            $updates['edition'] = $validated['edition'];
-        }
-        if ($request->has('price')) {
-            $updates['price'] = $validated['price'] !== null ? (float) $validated['price'] : 0;
-        }
-        if ($request->has('discount_price')) {
-            $updates['discount_price'] = $validated['discount_price'] !== null && $validated['discount_price'] !== '' ? (float) $validated['discount_price'] : null;
-        }
-        if ($request->has('cost_price')) {
-            $updates['cost_price'] = $validated['cost_price'] !== null && $validated['cost_price'] !== '' ? (float) $validated['cost_price'] : null;
-        }
-        if ($request->has('hardcover_price')) {
-            $updates['hardcover_price'] = $validated['hardcover_price'] !== null && $validated['hardcover_price'] !== '' ? (float) $validated['hardcover_price'] : null;
-        }
-        if ($request->has('hardcover_discount_price')) {
-            $updates['hardcover_discount_price'] = $validated['hardcover_discount_price'] !== null && $validated['hardcover_discount_price'] !== '' ? (float) $validated['hardcover_discount_price'] : null;
-        }
-        if ($request->has('stock_quantity') && $validated['stock_quantity'] !== null) {
-            $qty = (int) $validated['stock_quantity'];
-            $updates['stock_quantity'] = $qty;
-            if (!$request->filled('stock_status')) {
-                $updates['stock_status'] = $qty <= 0 ? 'out' : ($qty <= 5 ? 'low' : 'in_stock');
+            if ($request->filled('title')) {
+                $updates['title'] = trim($request->input('title'));
             }
-        }
-        if ($request->filled('stock_status')) {
-            $updates['stock_status'] = $validated['stock_status'];
-        }
-        if ($request->filled('mod_status')) {
-            $updates['mod_status'] = $validated['mod_status'];
-            if ($validated['mod_status'] === 'approved') {
-                $updates['is_active'] = true;
-                $updates['reviewed_by'] = auth()->id();
-                $updates['reviewed_at'] = now();
-                $updates['rejection_reason'] = null;
-            } elseif ($validated['mod_status'] === 'rejected') {
-                $updates['is_active'] = false;
-                $updates['reviewed_by'] = auth()->id();
-                $updates['reviewed_at'] = now();
+            if ($request->has('cover_type')) {
+                $updates['cover_type'] = $request->input('cover_type') ?: 'paperback';
             }
+            if ($request->has('edition')) {
+                $updates['edition'] = $request->input('edition') ? trim($request->input('edition')) : null;
+            }
+            if ($request->has('price')) {
+                $rawPrice = $request->input('price');
+                $updates['price'] = ($rawPrice !== null && $rawPrice !== '') ? max(0, (float) $rawPrice) : 0;
+            }
+            if ($request->has('discount_price')) {
+                $rawDisc = $request->input('discount_price');
+                $updates['discount_price'] = ($rawDisc !== null && $rawDisc !== '') ? max(0, (float) $rawDisc) : null;
+            }
+            if ($request->has('cost_price')) {
+                $rawCost = $request->input('cost_price');
+                $updates['cost_price'] = ($rawCost !== null && $rawCost !== '') ? max(0, (float) $rawCost) : null;
+            }
+            if ($request->has('hardcover_price')) {
+                $rawHard = $request->input('hardcover_price');
+                $updates['hardcover_price'] = ($rawHard !== null && $rawHard !== '') ? max(0, (float) $rawHard) : null;
+            }
+            if ($request->has('hardcover_discount_price')) {
+                $rawHardDisc = $request->input('hardcover_discount_price');
+                $updates['hardcover_discount_price'] = ($rawHardDisc !== null && $rawHardDisc !== '') ? max(0, (float) $rawHardDisc) : null;
+            }
+            if ($request->has('stock_quantity')) {
+                $qty = max(0, (int) $request->input('stock_quantity'));
+                $updates['stock_quantity'] = $qty;
+                if (!$request->filled('stock_status')) {
+                    $updates['stock_status'] = $qty <= 0 ? 'out' : ($qty <= 5 ? 'low' : 'in_stock');
+                }
+            }
+            if ($request->filled('stock_status')) {
+                $updates['stock_status'] = $request->input('stock_status');
+            }
+
+            // Moderation & Live Visibility Status Handling
+            if ($request->filled('mod_status')) {
+                $modStatus = $request->input('mod_status');
+                $updates['mod_status'] = $modStatus;
+
+                if ($modStatus === 'approved') {
+                    $updates['reviewed_by'] = auth()->id();
+                    $updates['reviewed_at'] = now();
+                    $updates['rejection_reason'] = null;
+                    $updates['is_active'] = $request->boolean('is_active', true);
+                } elseif ($modStatus === 'rejected') {
+                    $updates['is_active'] = false;
+                    $updates['reviewed_by'] = auth()->id();
+                    $updates['reviewed_at'] = now();
+                } elseif ($modStatus === 'pending') {
+                    $updates['is_active'] = false;
+                }
+            } elseif ($request->has('is_active')) {
+                $updates['is_active'] = $request->boolean('is_active');
+            }
+
+            // Handle direct cover image file upload
+            if ($request->hasFile('cover_image_file') && $request->file('cover_image_file')->isValid()) {
+                $path = \App\Services\ImageOptimizerService::convertAndStore(
+                    $request->file('cover_image_file'),
+                    'books/covers',
+                    'public'
+                );
+                $updates['cover_image'] = $path;
+            }
+
+            $book->update($updates);
+
+            if ($this->accessService) {
+                $this->accessService->log('book_quick_update', "বই '{$book->title}' (ID: {$book->id}) শর্টকাট তথ্য আপডেট করা হয়েছে");
+            }
+
+            // Calculate commissions for response
+            $price = (float) ($book->price ?: 0);
+            $discountPrice = (float) ($book->discount_price ?: 0);
+            $costPrice = (float) ($book->cost_price ?: 0);
+
+            $saleCommissionPercent = ($price > 0 && $discountPrice > 0 && $discountPrice < $price)
+                ? round((($price - $discountPrice) / $price) * 100, 1)
+                : 0;
+
+            $buyCommissionPercent = ($price > 0 && $costPrice > 0 && $costPrice < $price)
+                ? round((($price - $costPrice) / $price) * 100, 1)
+                : 0;
+
+            $coverUrl = 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
+            if ($book->cover_image) {
+                if (str_starts_with($book->cover_image, 'http')) {
+                    $coverUrl = $book->cover_image;
+                } elseif (str_starts_with($book->cover_image, 'storage/')) {
+                    $coverUrl = asset($book->cover_image);
+                } else {
+                    $coverUrl = asset('storage/' . ltrim($book->cover_image, '/'));
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!",
+                'book' => [
+                    'id'                      => $book->id,
+                    'title'                   => $book->title,
+                    'edition'                 => $book->edition,
+                    'price'                   => $price,
+                    'discount_price'          => $discountPrice,
+                    'cost_price'              => $costPrice,
+                    'hardcover_price'         => (float) $book->hardcover_price,
+                    'hardcover_discount_price'=> (float) $book->hardcover_discount_price,
+                    'sale_commission_percent' => $saleCommissionPercent,
+                    'buy_commission_percent'  => $buyCommissionPercent,
+                    'stock_quantity'          => (int) $book->stock_quantity,
+                    'stock_status'            => $book->stock_status,
+                    'is_active'               => (bool) $book->is_active,
+                    'mod_status'              => $book->mod_status,
+                    'cover_url'               => $coverUrl,
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ইনপুট ভ্যালিডেশন ব্যর্থ হয়েছে।',
+                'errors'  => $ve->errors()
+            ], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Quick book update error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'সার্ভার ত্রুটি: ' . $e->getMessage()
+            ], 500);
         }
-        if ($request->has('is_active') && !$request->filled('mod_status')) {
-            $updates['is_active'] = $request->boolean('is_active');
-        }
-
-        // Handle direct cover image file upload
-        if ($request->hasFile('cover_image_file')) {
-            $path = \App\Services\ImageOptimizerService::convertAndStore($request->file('cover_image_file'), 'books/covers', 'public');
-            $updates['cover_image'] = $path;
-        }
-
-        $book->update($updates);
-
-        $this->accessService->log('book_quick_update', "বই '{$book->title}' (ID: {$book->id}) শর্টকাট তথ্য আপডেট করা হয়েছে");
-
-        // Calculate commissions for response
-        $price = (float) $book->price;
-        $discountPrice = (float) ($book->discount_price ?? 0);
-        $costPrice = (float) ($book->cost_price ?? 0);
-
-        $saleCommissionPercent = ($price > 0 && $discountPrice > 0 && $discountPrice < $price)
-            ? round((($price - $discountPrice) / $price) * 100, 1)
-            : 0;
-
-        $buyCommissionPercent = ($price > 0 && $costPrice > 0 && $costPrice < $price)
-            ? round((($price - $costPrice) / $price) * 100, 1)
-            : 0;
-
-        $coverUrl = $book->cover_image 
-            ? (str_starts_with($book->cover_image, 'http') ? $book->cover_image : asset('storage/' . ltrim($book->cover_image, '/')))
-            : 'https://placehold.co/100x150/e2e8f0/475569?text=Cover';
-
-        return response()->json([
-            'success' => true,
-            'message' => "বইয়ের তথ্য সফলভাবে আপডেট হয়েছে!",
-            'book' => [
-                'id'                      => $book->id,
-                'title'                   => $book->title,
-                'edition'                 => $book->edition,
-                'price'                   => $price,
-                'discount_price'          => $discountPrice,
-                'cost_price'              => $costPrice,
-                'hardcover_price'         => (float) $book->hardcover_price,
-                'hardcover_discount_price'=> (float) $book->hardcover_discount_price,
-                'sale_commission_percent' => $saleCommissionPercent,
-                'buy_commission_percent'  => $buyCommissionPercent,
-                'stock_quantity'          => (int) $book->stock_quantity,
-                'stock_status'            => $book->stock_status,
-                'is_active'               => (bool) $book->is_active,
-                'cover_url'               => $coverUrl,
-            ]
-        ]);
     }
 
     // ─── internals ──────────────────────────────────────────────────────
