@@ -299,6 +299,228 @@
     box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
 }
 
+/* ── Smart Health Audit & Disaster Score Widget ── */
+.health-score-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+    border-radius: 20px;
+    color: #ffffff;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.health-score-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.health-score-dial {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: conic-gradient(#10b981 var(--health-deg, 350deg), rgba(255, 255, 255, 0.12) 0deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+    flex-shrink: 0;
+}
+
+.health-score-dial::before {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #0f172a;
+}
+
+.health-score-dial-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    line-height: 1;
+}
+
+.health-score-num {
+    font-size: 1.25rem;
+    font-weight: 800;
+    font-family: var(--bs-font-monospace);
+    color: #ffffff;
+}
+
+.health-score-pct {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    display: block;
+}
+
+.cron-heartbeat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50rem;
+    font-size: 0.75rem;
+    font-family: var(--bs-font-monospace);
+    color: #e2e8f0;
+}
+
+/* ── Storage Analytics Chart Card ── */
+.storage-chart-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+    height: 100%;
+}
+
+.chart-container-wrap {
+    position: relative;
+    height: 160px;
+    width: 100%;
+}
+
+/* ── Smart Quick Category Tabs ── */
+.quick-filter-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+}
+.quick-filter-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.btn-filter-tab {
+    padding: 0.45rem 1rem;
+    border-radius: 50rem;
+    font-size: 0.80rem;
+    font-weight: 700;
+    font-family: var(--bs-font-monospace);
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.btn-filter-tab:hover {
+    background: #eef2ff;
+    color: #4f46e5;
+    border-color: #c7d2fe;
+    transform: translateY(-1px);
+}
+
+.btn-filter-tab.active {
+    background: #4f46e5;
+    color: #ffffff;
+    border-color: #4338ca;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+
+.btn-filter-tab .tab-badge {
+    padding: 1px 7px;
+    border-radius: 50rem;
+    font-size: 0.70rem;
+    background: rgba(0, 0, 0, 0.06);
+    color: inherit;
+}
+
+.btn-filter-tab.active .tab-badge {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+/* ── View Switcher Buttons ── */
+.view-switcher-group {
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-view-toggle {
+    border: none;
+    background: transparent;
+    padding: 4px 10px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-view-toggle.active {
+    background: #ffffff;
+    color: #0f172a;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Backup Grid Card View ── */
+.backup-grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.backup-file-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.backup-file-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.07);
+    border-color: #cbd5e1;
+}
+
+.backup-file-card.card-master-zip {
+    border-left: 4px solid #4f46e5;
+}
+
+.backup-file-card.card-sql {
+    border-left: 4px solid #0ea5e9;
+}
+
+.backup-file-card.card-safety {
+    border-left: 4px solid #10b981;
+}
+
+.backup-file-card.card-anonymized {
+    border-left: 4px solid #f59e0b;
+}
+
 /* ── Live Search & Filter Bar ── */
 .backup-search-bar {
     background: #ffffff;
@@ -339,5 +561,8 @@
         width: 40px;
         height: 40px;
         font-size: 1.1rem;
+    }
+    .backup-grid-view {
+        grid-template-columns: 1fr;
     }
 }

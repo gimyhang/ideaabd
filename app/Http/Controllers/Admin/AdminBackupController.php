@@ -35,18 +35,33 @@ class AdminBackupController extends Controller
     /**
      * Display comprehensive disaster recovery & master backup dashboard.
      */
+    /**
+     * Display comprehensive disaster recovery & master backup dashboard.
+     */
     public function index(): View
     {
         $files = File::files($this->backupDir);
         $backups = [];
         $totalBackupSizeBytes = 0;
 
+        $categoryCounts = [
+            'all'         => 0,
+            'master_zip'  => 0,
+            'sql_dump'    => 0,
+            'safety'      => 0,
+            'anonymized'  => 0,
+        ];
+
         foreach ($files as $file) {
             $ext = strtolower($file->getExtension());
             $size = $file->getSize();
             $totalBackupSizeBytes += $size;
+            $filename = $file->getFilename();
 
             $isMasterZip = ($ext === 'zip');
+            $isSafetySnapshot = str_contains($filename, 'pre_restore_safety_') || str_contains($filename, 'safety_snapshot');
+            $isAnonymized = str_contains($filename, 'anonymized');
+
             $typeLabel = match ($ext) {
                 'zip'    => 'Master All-in-One (.ZIP)',
                 'sql'    => 'Standard SQL Dump (.SQL)',
@@ -55,14 +70,32 @@ class AdminBackupController extends Controller
                 default  => strtoupper($ext) . ' Archive',
             };
 
+            if ($isSafetySnapshot) {
+                $category = 'safety';
+                $categoryCounts['safety']++;
+            } elseif ($isAnonymized) {
+                $category = 'anonymized';
+                $categoryCounts['anonymized']++;
+            } elseif ($isMasterZip) {
+                $category = 'master_zip';
+                $categoryCounts['master_zip']++;
+            } else {
+                $category = 'sql_dump';
+                $categoryCounts['sql_dump']++;
+            }
+            $categoryCounts['all']++;
+
             $backups[] = [
-                'filename'       => $file->getFilename(),
-                'type'           => $typeLabel,
-                'is_master_zip'  => $isMasterZip,
-                'extension'      => $ext,
-                'size'           => $this->formatBytes($size),
-                'size_bytes'     => $size,
-                'created_at'     => \Carbon\Carbon::createFromTimestamp($file->getMTime()),
+                'filename'           => $filename,
+                'type'               => $typeLabel,
+                'category'           => $category,
+                'is_master_zip'      => $isMasterZip,
+                'is_safety_snapshot' => $isSafetySnapshot,
+                'is_anonymized'      => $isAnonymized,
+                'extension'          => $ext,
+                'size'               => $this->formatBytes($size),
+                'size_bytes'         => $size,
+                'created_at'         => \Carbon\Carbon::createFromTimestamp($file->getMTime()),
             ];
         }
 
@@ -135,6 +168,117 @@ class AdminBackupController extends Controller
             }
         }
 
+        // 1. Smart Disaster Recovery Health Score Engine (0 - 100)
+        $healthScore = 100;
+        $healthIssues = [];
+        $isOverdue = false;
+        $lastBackupHours = null;
+
+        if (empty($backups)) {
+            $healthScore = 35;
+            $healthIssues[] = 'No backup archives found. Take a 1-click backup now!';
+            $isOverdue = true;
+        } else {
+            $lastMtime = $latestBackup['created_at']->timestamp;
+            $lastBackupHours = round((time() - $lastMtime) / 3600, 1);
+
+            if ($lastBackupHours > 168) { // > 7 days
+                $healthScore -= 35;
+                $isOverdue = true;
+                $healthIssues[] = 'Last backup was created over 7 days ago';
+            } elseif ($lastBackupHours > 72) { // > 3 days
+                $healthScore -= 15;
+                $healthIssues[] = 'Last backup is over 3 days old';
+            }
+        }
+
+        $freeDiskBytes = @disk_free_space($this->backupDir) ?: 10737418240; // 10GB default
+        if ($freeDiskBytes < 524288000) { // < 500 MB
+            $healthScore -= 25;
+            $healthIssues[] = 'Low disk storage available for new backups';
+        }
+
+        $autoEnabled = !empty($settings['auto_backup_enabled']);
+        if (!$autoEnabled) {
+            $healthScore -= 10;
+        }
+
+        $healthScore = max(20, min(100, $healthScore));
+        $healthGrade = match(true) {
+            $healthScore >= 90 => 'A+',
+            $healthScore >= 80 => 'A',
+            $healthScore >= 70 => 'B',
+            $healthScore >= 50 => 'C',
+            default            => 'F',
+        };
+
+        $healthStatus = match(true) {
+            $healthScore >= 90 => 'Optimal & Resilient',
+            $healthScore >= 80 => 'Secure & Protected',
+            $healthScore >= 70 => 'Fair & Stable',
+            default            => 'Attention Recommended',
+        };
+
+        $healthAudit = [
+            'score'                => $healthScore,
+            'grade'                => $healthGrade,
+            'status'               => $healthStatus,
+            'is_overdue'           => $isOverdue,
+            'last_backup_hours'    => $lastBackupHours,
+            'last_backup_human'    => !empty($latestBackup) ? $latestBackup['created_at']->diffForHumans() : 'Never',
+            'issues'               => $healthIssues,
+            'free_disk'            => $freeDiskBytes > 0 ? $this->formatBytes((float)$freeDiskBytes) : 'Adequate',
+            'free_disk_bytes'      => $freeDiskBytes,
+            'free_disk_formatted'  => $freeDiskBytes > 0 ? $this->formatBytes((float)$freeDiskBytes) : 'Adequate',
+            'auto_enabled'         => $autoEnabled,
+            'frequency'            => $settings['backup_frequency'] ?? 'daily',
+            'next_run'             => $autoEnabled ? 'Tonight at 00:00 UTC' : 'Automated Cron Disabled',
+        ];
+
+        // 2. Storage Timeline & Analytics (Last 6 Months History)
+        $timelineMonths = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $dt = \Carbon\Carbon::now()->subMonths($i);
+            $monthKey = $dt->format('Y-m');
+            $monthLabel = $dt->format('M Y');
+            $timelineMonths[$monthKey] = [
+                'label'        => $monthLabel,
+                'bytes'        => 0,
+                'count'        => 0,
+                'db_size_mb'   => round($totalDbSizeBytes / (1024 * 1024), 2),
+            ];
+        }
+
+        foreach ($backups as $b) {
+            $mk = $b['created_at']->format('Y-m');
+            if (isset($timelineMonths[$mk])) {
+                $timelineMonths[$mk]['bytes'] += $b['size_bytes'];
+                $timelineMonths[$mk]['count']++;
+            }
+        }
+
+        $chartLabels = [];
+        $chartBackupSizesMb = [];
+        $chartArchiveCounts = [];
+
+        foreach ($timelineMonths as $tm) {
+            $chartLabels[] = $tm['label'];
+            $chartBackupSizesMb[] = round($tm['bytes'] / (1024 * 1024), 2);
+            $chartArchiveCounts[] = $tm['count'];
+        }
+
+        // Ensure current active month shows at least current volume
+        if (end($chartBackupSizesMb) == 0 && $totalBackupSizeBytes > 0) {
+            $chartBackupSizesMb[count($chartBackupSizesMb) - 1] = round($totalBackupSizeBytes / (1024 * 1024), 2);
+            $chartArchiveCounts[count($chartArchiveCounts) - 1] = count($backups);
+        }
+
+        $storageTimeline = [
+            'labels'           => $chartLabels,
+            'backup_sizes_mb'  => $chartBackupSizesMb,
+            'archive_counts'   => $chartArchiveCounts,
+        ];
+
         return view('admin.backup', compact(
             'backups',
             'dbName',
@@ -146,7 +290,10 @@ class AdminBackupController extends Controller
             'formattedTotalBackupSize',
             'latestBackup',
             'retentionLimit',
-            'settings'
+            'settings',
+            'categoryCounts',
+            'healthAudit',
+            'storageTimeline'
         ));
     }
 
@@ -1264,12 +1411,12 @@ class AdminBackupController extends Controller
         }
     }
 
-    private function formatBytes(int $bytes, int $precision = 2): string
+    private function formatBytes(int|float $bytes, int $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
+        $bytes = max((float)$bytes, 0.0);
         $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $pow = min((int)$pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
         return round($bytes, $precision) . ' ' . $units[$pow];

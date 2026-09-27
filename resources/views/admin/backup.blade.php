@@ -61,7 +61,9 @@
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/admin-backup.css') }}?v={{ @filemtime(public_path('css/admin-backup.css')) ?: 4 }}">
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    window.STORAGE_TIMELINE_DATA = @json($storageTimeline ?? []);
     window.BACKUP_ROUTES = {
         create: "{{ route('admin.backup.create') }}",
         upload: "{{ route('admin.backup.upload') }}",
@@ -98,6 +100,93 @@
 
     <!-- Dynamic Toast Notification Container -->
     <div id="dynamicAlertContainer"></div>
+
+    <!-- 0. Disaster Recovery Health Audit & Storage Timeline Hero Section -->
+    <div class="row g-3">
+        {{-- Left: Smart Disaster Recovery & Health Score Card --}}
+        <div class="col-12 col-xl-5">
+            <div class="health-score-card h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-white bg-opacity-20 text-white font-monospace px-2.5 py-1 rounded-pill small">
+                                <i class="fa-solid fa-shield-halved text-success me-1"></i> System Health Audit
+                            </span>
+                        </div>
+                        <div class="cron-heartbeat-pill">
+                            <span class="pulse-online-badge"></span>
+                            <span>Daily 00:00 Auto-Schedule</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3.5 my-2">
+                        <div class="health-score-dial" style="--health-deg: {{ ( ($healthAudit['score'] ?? 95) / 100) * 360 }}deg;">
+                            <div class="health-score-dial-inner">
+                                <div class="health-score-num">{{ $healthAudit['score'] ?? 95 }}</div>
+                                <span class="health-score-pct">Score / 100</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h5 class="fw-bold text-white mb-0">{{ $healthAudit['status'] ?? 'Optimal & Resilient' }}</h5>
+                                <span class="badge font-monospace px-2 py-0.5 rounded-pill text-white" style="background:#10b981; font-size: 0.70rem;">
+                                    Grade {{ $healthAudit['grade'] ?? 'A+' }}
+                                </span>
+                            </div>
+                            <p class="text-white-50 small mb-0 font-monospace" style="font-size: 11px;">
+                                @if(!empty($healthAudit['is_overdue']))
+                                    <span class="text-warning"><i class="fa-solid fa-circle-exclamation me-1"></i> Last backup was {{ $healthAudit['last_backup_human'] }}. New backup recommended!</span>
+                                @else
+                                    <span class="text-emerald-300"><i class="fa-solid fa-circle-check me-1"></i> Continuous protection active. Last backup: {{ $healthAudit['last_backup_human'] ?? 'Recently' }}.</span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Metric Checklist --}}
+                <div class="pt-3 mt-3 border-top border-white border-opacity-10 d-flex flex-wrap align-items-center justify-content-between gap-2 font-monospace small">
+                    <div class="text-white-50">
+                        <i class="fa-solid fa-hard-drive me-1 text-info"></i> Free Disk: <strong class="text-white">{{ $healthAudit['free_disk'] ?? 'Adequate' }}</strong>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fa-solid fa-database me-1 text-warning"></i> DB Footprint: <strong class="text-white">{{ $formattedDbSize }}</strong>
+                    </div>
+                    <div class="text-white-50">
+                        <i class="fa-solid fa-clock-rotate-left me-1 text-success"></i> Auto-Retention: <strong class="text-white">Active</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Right: Storage Growth & Backup Volume Analytics Timeline --}}
+        <div class="col-12 col-xl-7">
+            <div class="storage-chart-card h-100 d-flex flex-column justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.96rem;">
+                            <i class="fa-solid fa-chart-line text-primary me-1.5"></i> Storage Growth & Backup Volume Timeline
+                        </h6>
+                        <small class="text-muted font-monospace" style="font-size: 11px;">Monthly archive size & volume trend history</small>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-2.5 py-1 rounded-pill small">
+                        {{ $formattedTotalBackupSize }} Total Allocated
+                    </span>
+                </div>
+
+                <div class="chart-container-wrap my-1">
+                    <canvas id="storageGrowthChartCanvas"></canvas>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted font-monospace" style="font-size: 11px;">
+                    <span><i class="fa-solid fa-box-archive text-primary me-1"></i> Master ZIPs: <strong>{{ $categoryCounts['master_zip'] ?? 0 }}</strong></span>
+                    <span><i class="fa-solid fa-file-code text-info me-1"></i> SQL Dumps: <strong>{{ $categoryCounts['sql_dump'] ?? 0 }}</strong></span>
+                    <span><i class="fa-solid fa-shield-heart text-success me-1"></i> Snapshots: <strong>{{ $categoryCounts['safety'] ?? 0 }}</strong></span>
+                    <span><i class="fa-solid fa-user-shield text-warning me-1"></i> Masked: <strong>{{ $categoryCounts['anonymized'] ?? 0 }}</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 1. Symmetrical & Vibrant 4-Card Diagnostic Grid -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3">
@@ -259,7 +348,44 @@
         </div>
     </div>
 
-    <!-- 4. Master Backup Archive Records Table -->
+    <!-- 4. Quick Category Filter Tabs & View Switcher Bar -->
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2.5">
+        {{-- Category Pills --}}
+        <div class="quick-filter-nav">
+            <button type="button" class="btn-filter-tab active" data-category="all">
+                <i class="fa-solid fa-layer-group"></i> All Archives
+                <span class="tab-badge">{{ $categoryCounts['all'] ?? count($backups) }}</span>
+            </button>
+            <button type="button" class="btn-filter-tab" data-category="master_zip">
+                <i class="fa-solid fa-file-zipper text-primary"></i> Master ZIP (DB + Media)
+                <span class="tab-badge">{{ $categoryCounts['master_zip'] ?? 0 }}</span>
+            </button>
+            <button type="button" class="btn-filter-tab" data-category="sql_dump">
+                <i class="fa-solid fa-database text-info"></i> SQL Dumps
+                <span class="tab-badge">{{ $categoryCounts['sql_dump'] ?? 0 }}</span>
+            </button>
+            <button type="button" class="btn-filter-tab" data-category="safety">
+                <i class="fa-solid fa-shield-heart text-success"></i> Safety Snapshots
+                <span class="tab-badge">{{ $categoryCounts['safety'] ?? 0 }}</span>
+            </button>
+            <button type="button" class="btn-filter-tab" data-category="anonymized">
+                <i class="fa-solid fa-user-shield text-warning"></i> Anonymized Dev Dumps
+                <span class="tab-badge">{{ $categoryCounts['anonymized'] ?? 0 }}</span>
+            </button>
+        </div>
+
+        {{-- View Switcher Buttons --}}
+        <div class="view-switcher-group ms-auto">
+            <button type="button" class="btn-view-toggle active" id="btnViewTable" title="Table View">
+                <i class="fa-solid fa-table-list me-1"></i> Table View
+            </button>
+            <button type="button" class="btn-view-toggle" id="btnViewGrid" title="Card Grid View">
+                <i class="fa-solid fa-grip me-1"></i> Grid View
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. Master Backup Archive Records Container -->
     <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
         
         {{-- Card Header with Live Search & Format Filter --}}
@@ -304,8 +430,8 @@
             </div>
         </div>
 
-        {{-- Table Container --}}
-        <div class="card-body p-0">
+        {{-- Table View Container --}}
+        <div class="card-body p-0" id="backupTableViewContainer">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="backupsTable">
                     <thead class="table-light small text-uppercase font-monospace text-muted">
@@ -322,9 +448,13 @@
                     </thead>
                     <tbody id="backupsTableBody">
                         @forelse($backups as $b)
+                            @php
+                                $categoryKey = $b['category'] ?? ($b['is_master_zip'] ? 'master_zip' : (str_contains(strtolower($b['filename']), 'safety') ? 'safety' : (str_contains(strtolower($b['filename']), 'anonymized') ? 'anonymized' : 'sql_dump')));
+                            @endphp
                             <tr class="table-custom-row" id="row-{{ md5($b['filename']) }}" 
                                 data-filename="{{ strtolower($b['filename']) }}" 
                                 data-ext="{{ strtolower($b['extension']) }}"
+                                data-category="{{ $categoryKey }}"
                                 data-date="{{ $b['created_at']->format('d M, Y') }}">
                                 <td class="ps-4">
                                     <input type="checkbox" class="form-check-input backup-select-cb" value="{{ $b['filename'] }}">
@@ -442,6 +572,103 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        {{-- Grid Cards View Container --}}
+        <div class="card-body p-4" id="backupGridViewContainer" style="display: none;">
+            <div class="backup-grid-view">
+                @forelse($backups as $b)
+                    @php
+                        $categoryKey = $b['category'] ?? ($b['is_master_zip'] ? 'master_zip' : (str_contains(strtolower($b['filename']), 'safety') ? 'safety' : (str_contains(strtolower($b['filename']), 'anonymized') ? 'anonymized' : 'sql_dump')));
+                        $cardClass = $b['is_master_zip'] ? 'card-master-zip' : ($categoryKey === 'safety' ? 'card-safety' : ($categoryKey === 'anonymized' ? 'card-anonymized' : 'card-sql'));
+                    @endphp
+                    <div class="backup-file-card {{ $cardClass }}"
+                         data-filename="{{ strtolower($b['filename']) }}"
+                         data-ext="{{ strtolower($b['extension']) }}"
+                         data-category="{{ $categoryKey }}"
+                         data-date="{{ $b['created_at']->format('d M, Y') }}">
+                        <div>
+                            <div class="d-flex align-items-start justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-3 {{ $b['is_master_zip'] ? 'bg-primary text-white' : 'bg-light border text-muted' }} p-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;">
+                                        @if($b['is_master_zip'])
+                                            <i class="fa-solid fa-file-zipper"></i>
+                                        @elseif($b['extension'] === 'sqlite')
+                                            <i class="fa-solid fa-database text-success"></i>
+                                        @else
+                                            <i class="fa-solid fa-file-code"></i>
+                                        @endif
+                                    </div>
+                                    <span class="badge {{ $b['is_master_zip'] ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-dark border' }} rounded-pill font-monospace" style="font-size: 0.68rem;">
+                                        {{ $b['is_master_zip'] ? 'MASTER .ZIP' : strtoupper($b['extension']) }}
+                                    </span>
+                                </div>
+                                <span class="fw-bold text-dark font-monospace" style="font-size: 0.88rem;">{{ $b['size'] }}</span>
+                            </div>
+
+                            <h6 class="fw-bold text-dark font-monospace text-truncate mb-1" title="{{ $b['filename'] }}" style="font-size: 0.90rem;">
+                                {{ $b['filename'] }}
+                            </h6>
+                            <div class="d-flex align-items-center justify-content-between text-muted font-monospace small mb-3" style="font-size: 11px;">
+                                <span><i class="fa-solid fa-calendar-day me-1"></i> {{ $b['created_at']->format('d M, Y') }}</span>
+                                <span><i class="fa-solid fa-clock me-1"></i> {{ $b['created_at']->diffForHumans() }}</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-top d-flex align-items-center justify-content-between flex-wrap gap-1.5">
+                            <div class="d-flex align-items-center gap-1">
+                                <button type="button" class="btn-action-pill btn-action-cyan" onclick="openDiffModal('{{ $b['filename'] }}')" title="Diff Snapshot">
+                                    <i class="fa-solid fa-code-compare"></i>
+                                </button>
+                                <button type="button" class="btn-action-pill btn-action-purple" onclick="runDryRunSimulation('{{ $b['filename'] }}')" title="Dry-Run Sandbox">
+                                    <i class="fa-solid fa-flask-vial"></i>
+                                </button>
+                                <button type="button" class="btn-action-pill btn-action-amber" onclick="openSelectiveRestoreModal('{{ $b['filename'] }}')" title="Selective Restore">
+                                    <i class="fa-solid fa-list-check"></i>
+                                </button>
+                                @if($b['is_master_zip'])
+                                    <button type="button" class="btn-action-pill btn-action-sky" onclick="inspectZipArchive('{{ $b['filename'] }}')" title="Preview ZIP">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                @endif
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <a href="{{ route('admin.backup.download', $b['filename']) }}" class="btn-action-pill btn-action-indigo" title="Download">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                                <button type="button" class="btn-action-pill btn-action-emerald" onclick="openEmailModal('{{ $b['filename'] }}')" title="Email">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                                <button type="button" class="btn-action-pill btn-action-emerald" onclick="confirmRestore('{{ $b['filename'] }}', {{ $b['is_master_zip'] ? 'true' : 'false' }})" title="Restore">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                </button>
+                                <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
+                                      data-confirm="Are you sure you want to permanently delete backup file ({{ $b['filename'] }})?"
+                                      data-confirm-title="Delete Backup File"
+                                      data-confirm-icon="warning"
+                                      data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete File"
+                                      class="d-inline m-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn-action-pill btn-action-rose" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fa-solid fa-file-zipper fs-1 text-secondary opacity-40 mb-3 d-block"></i>
+                        <h6 class="fw-bold text-dark">No Backup Archives Found</h6>
+                    </div>
+                @endforelse
+            </div>
+            <div id="emptyGridState" class="text-center py-5 text-muted" style="display: none;">
+                <i class="fa-solid fa-magnifying-glass fs-2 text-secondary opacity-50 mb-2 d-block"></i>
+                <h6 class="fw-bold text-dark mb-1">No Matching Backup Archives</h6>
+                <p class="small text-muted mb-0">Try clearing the search query or switching category filter tab.</p>
             </div>
         </div>
     </div>

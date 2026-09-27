@@ -9,7 +9,137 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
     initLiveSearch();
     initBulkSelection();
+    initQuickCategoryTabs();
+    initViewSwitcher();
+    initStorageGrowthChart();
 });
+
+/* ── 0. Smart Quick Category Tabs & View Switcher ── */
+let currentActiveCategory = 'all';
+
+function initQuickCategoryTabs() {
+    const tabs = document.querySelectorAll('.btn-filter-tab');
+    if (!tabs || tabs.length === 0) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentActiveCategory = tab.dataset.category || 'all';
+
+            // Sync with format dropdown if exists
+            const formatSelect = document.getElementById('backupFormatFilter');
+            if (formatSelect) {
+                if (currentActiveCategory === 'master_zip') formatSelect.value = 'zip';
+                else if (currentActiveCategory === 'sql_dump') formatSelect.value = 'sql';
+                else formatSelect.value = 'all';
+            }
+
+            applyUnifiedFilter();
+        });
+    });
+}
+
+function initViewSwitcher() {
+    const btnTable = document.getElementById('btnViewTable');
+    const btnGrid = document.getElementById('btnViewGrid');
+    const tableView = document.getElementById('backupTableViewContainer');
+    const gridView = document.getElementById('backupGridViewContainer');
+
+    if (!btnTable || !btnGrid) return;
+
+    const savedView = localStorage.getItem('idea_backup_view_pref') || 'table';
+    setViewMode(savedView);
+
+    btnTable.addEventListener('click', () => setViewMode('table'));
+    btnGrid.addEventListener('click', () => setViewMode('grid'));
+
+    function setViewMode(mode) {
+        if (mode === 'grid') {
+            btnTable.classList.remove('active');
+            btnGrid.classList.add('active');
+            if (tableView) tableView.style.display = 'none';
+            if (gridView) gridView.style.display = 'grid';
+            localStorage.setItem('idea_backup_view_pref', 'grid');
+        } else {
+            btnGrid.classList.remove('active');
+            btnTable.classList.add('active');
+            if (gridView) gridView.style.display = 'none';
+            if (tableView) tableView.style.display = 'block';
+            localStorage.setItem('idea_backup_view_pref', 'table');
+        }
+    }
+}
+
+/* ── Storage Growth Trend Chart (Chart.js Integration) ── */
+function initStorageGrowthChart() {
+    const ctx = document.getElementById('storageGrowthChartCanvas');
+    if (!ctx || typeof Chart === 'undefined') return;
+
+    const chartData = window.STORAGE_TIMELINE_DATA || {
+        labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep'],
+        backup_sizes_mb: [10, 15, 20, 25, 30],
+        archive_counts: [2, 3, 4, 5, 6]
+    };
+
+    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 160);
+    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.35)');
+    gradient.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Total Backup Size (MB)',
+                data: chartData.backup_sizes_mb,
+                borderColor: '#4f46e5',
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.38,
+                pointBackgroundColor: '#4f46e5',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    titleFont: { size: 12, family: 'monospace', weight: 'bold' },
+                    bodyFont: { size: 11, family: 'monospace' },
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return ' Backup Volume: ' + context.parsed.y + ' MB';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11, family: 'monospace' }, color: '#64748b' }
+                },
+                y: {
+                    grid: { color: 'rgba(226, 232, 240, 0.6)' },
+                    ticks: {
+                        font: { size: 10, family: 'monospace' },
+                        color: '#64748b',
+                        callback: function(value) { return value + ' MB'; }
+                    }
+                }
+            }
+        }
+    });
+}
 
 /* ── 1. Drag and Drop Upload Handler ── */
 function initDragAndDrop() {
@@ -123,48 +253,93 @@ function resetUploadZone() {
     if (input) input.value = '';
 }
 
-/* ── 2. Live Table Search & Filter ── */
+/* ── 2. Unified Live Table & Grid Search & Category Filter ── */
+function applyUnifiedFilter() {
+    const searchInput = document.getElementById('backupSearchInput');
+    const formatSelect = document.getElementById('backupFormatFilter');
+    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+    const format = (formatSelect ? formatSelect.value : 'all').toLowerCase();
+
+    const tableRows = document.querySelectorAll('#backupsTableBody tr.table-custom-row');
+    const gridCards = document.querySelectorAll('#backupGridViewContainer .backup-file-card');
+
+    let visibleCount = 0;
+
+    function matchesFilter(element) {
+        const filename = (element.dataset.filename || '').toLowerCase();
+        const ext = (element.dataset.ext || '').toLowerCase();
+        const date = (element.dataset.date || '').toLowerCase();
+        const category = (element.dataset.category || '').toLowerCase();
+
+        // 1. Text Query Match
+        const matchQuery = !query || filename.includes(query) || date.includes(query);
+
+        // 2. Format Dropdown Match
+        const matchFormat = (format === 'all') || (format === ext) || (format === 'zip' && ext === 'zip');
+
+        // 3. Category Tab Match
+        let matchCategory = true;
+        if (currentActiveCategory === 'master_zip') {
+            matchCategory = (category === 'master_zip' || ext === 'zip');
+        } else if (currentActiveCategory === 'sql_dump') {
+            matchCategory = (category === 'sql_dump' || ext === 'sql' || ext === 'sqlite' || ext === 'gz');
+        } else if (currentActiveCategory === 'safety') {
+            matchCategory = (category === 'safety' || filename.includes('safety') || filename.includes('snapshot'));
+        } else if (currentActiveCategory === 'anonymized') {
+            matchCategory = (category === 'anonymized' || filename.includes('anonymized') || filename.includes('masked') || filename.includes('dev'));
+        }
+
+        return matchQuery && matchFormat && matchCategory;
+    }
+
+    // Filter Table Rows
+    tableRows.forEach(row => {
+        if (matchesFilter(row)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Filter Grid Cards
+    let gridVisibleCount = 0;
+    gridCards.forEach(card => {
+        if (matchesFilter(card)) {
+            card.style.display = '';
+            gridVisibleCount++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // If grid is active, use its count or table count
+    const totalVisible = tableRows.length > 0 ? visibleCount : gridVisibleCount;
+
+    const countBadge = document.getElementById('backupCountBadge');
+    if (countBadge) {
+        countBadge.textContent = `${totalVisible} File${totalVisible === 1 ? '' : 's'}`;
+    }
+
+    const emptySearch = document.getElementById('emptySearchRow');
+    if (emptySearch) {
+        emptySearch.style.display = (visibleCount === 0 && tableRows.length > 0) ? '' : 'none';
+    }
+
+    const emptyGrid = document.getElementById('emptyGridState');
+    if (emptyGrid) {
+        emptyGrid.style.display = (gridVisibleCount === 0 && gridCards.length > 0) ? 'block' : 'none';
+    }
+}
+
 function initLiveSearch() {
     const searchInput = document.getElementById('backupSearchInput');
     const formatSelect = document.getElementById('backupFormatFilter');
-    if (!searchInput && !formatSelect) return;
 
-    function applyFilter() {
-        const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
-        const format = (formatSelect ? formatSelect.value : 'all').toLowerCase();
-
-        const rows = document.querySelectorAll('#backupsTableBody tr.table-custom-row');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const filename = (row.dataset.filename || '').toLowerCase();
-            const ext = (row.dataset.ext || '').toLowerCase();
-            const date = (row.dataset.date || '').toLowerCase();
-
-            const matchQuery = !query || filename.includes(query) || date.includes(query);
-            const matchFormat = (format === 'all') || (format === ext) || (format === 'zip' && ext === 'zip');
-
-            if (matchQuery && matchFormat) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        const countBadge = document.getElementById('backupCountBadge');
-        if (countBadge) {
-            countBadge.textContent = `${visibleCount} File${visibleCount === 1 ? '' : 's'}`;
-        }
-
-        const emptySearch = document.getElementById('emptySearchRow');
-        if (emptySearch) {
-            emptySearch.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
-        }
-    }
-
-    if (searchInput) searchInput.addEventListener('input', applyFilter);
-    if (formatSelect) formatSelect.addEventListener('change', applyFilter);
+    if (searchInput) searchInput.addEventListener('input', applyUnifiedFilter);
+    if (formatSelect) formatSelect.addEventListener('change', () => {
+        applyUnifiedFilter();
+    });
 }
 
 /* ── 3. Bulk Selection & Batch Actions ── */
