@@ -140,30 +140,69 @@
         </div>
     </div>
 
-    <!-- Folder Navigation Horizontal Bar -->
-    <div class="card bg-white rounded-4 shadow-sm border-0 p-3">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="small text-muted fw-bold text-uppercase font-monospace">
-                <i class="fa-solid fa-folder-tree text-primary me-1"></i> Folder Directories
-            </span>
-            <span class="small text-muted font-monospace">Total {{ count($folderDefs) }} Directories</span>
+    <!-- 2-Row Modern Folder Directories Button Grid -->
+    <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 media-folder-hub-card">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <div class="folder-header-icon-box">
+                    <i class="fa-solid fa-folder-tree"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.94rem;">ফোল্ডার ডিরেক্টরি লাইব্রেরি (Folder Directories)</h6>
+                    <small class="text-muted font-monospace" style="font-size: 11px;">ক্যাটাগরি অনুযায়ী অটোমেটিক ফোল্ডার অর্গানাইজার</small>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 font-monospace small">
+                    <i class="fa-solid fa-folder-open text-primary me-1"></i> মোট {{ count($folderDefs) }} টি ফোল্ডার ডিরেক্টরি
+                </span>
+            </div>
         </div>
-        <div class="media-folder-bar">
-            {{-- All Folders --}}
-            <a href="{{ route('admin.media.index', array_merge(request()->query(), ['folder' => 'all'])) }}" class="media-folder-pill {{ $folderFilter === 'all' ? 'active' : '' }}">
-                <i class="fa-solid fa-layer-group text-primary"></i>
-                <span>All Media</span>
-                <span class="media-folder-count">{{ $totalCount }}</span>
+
+        <div class="media-folder-grid-container">
+            {{-- 1. All Media Master Button --}}
+            <a href="{{ route('admin.media.index', array_merge(request()->query(), ['folder' => 'all'])) }}" 
+               class="folder-btn-card folder-theme-indigo {{ $folderFilter === 'all' ? 'active' : '' }}" 
+               data-folder="all"
+               title="All Media Library ({{ $totalFormatted }})">
+                <div class="folder-btn-icon">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div class="folder-btn-content">
+                    <span class="folder-btn-title">All Media (সকল ফাইল)</span>
+                    <span class="folder-btn-meta">
+                        <span class="folder-btn-count">{{ $totalCount }} টি</span>
+                        <span class="folder-btn-size">{{ $totalFormatted }}</span>
+                    </span>
+                </div>
+                @if($folderFilter === 'all')
+                    <span class="folder-btn-active-check"><i class="fa-solid fa-circle-check"></i></span>
+                @endif
             </a>
 
+            {{-- 2. Categorized Folders --}}
             @foreach($folderDefs as $k => $fInfo)
                 @php
                     $fStat = $folderStats[$k] ?? ['count' => 0, 'formatted' => '0 B'];
+                    $themeClass = $fInfo['theme'] ?? ('folder-theme-' . ($fInfo['color'] ?? 'indigo'));
                 @endphp
-                <a href="{{ route('admin.media.index', array_merge(request()->query(), ['folder' => $k])) }}" class="media-folder-pill {{ $folderFilter === $k ? 'active' : '' }}" title="{{ $fInfo['label'] }} ({{ $fStat['formatted'] }})">
-                    <i class="{{ $fInfo['icon'] }}"></i>
-                    <span>{{ $fInfo['label'] }}</span>
-                    <span class="media-folder-count">{{ $fStat['count'] }}</span>
+                <a href="{{ route('admin.media.index', array_merge(request()->query(), ['folder' => $k])) }}" 
+                   class="folder-btn-card {{ $themeClass }} {{ $folderFilter === $k ? 'active' : '' }}" 
+                   data-folder="{{ $k }}"
+                   title="{{ $fInfo['label'] }} ({{ $fStat['formatted'] }})">
+                    <div class="folder-btn-icon">
+                        <i class="{{ $fInfo['icon'] }}"></i>
+                    </div>
+                    <div class="folder-btn-content">
+                        <span class="folder-btn-title">{{ $fInfo['label'] }}</span>
+                        <span class="folder-btn-meta">
+                            <span class="folder-btn-count">{{ $fStat['count'] }} টি</span>
+                            <span class="folder-btn-size">{{ $fStat['formatted'] }}</span>
+                        </span>
+                    </div>
+                    @if($folderFilter === $k)
+                        <span class="folder-btn-active-check"><i class="fa-solid fa-circle-check"></i></span>
+                    @endif
                 </a>
             @endforeach
         </div>

@@ -65,54 +65,496 @@
     box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
 }
 
-/* Folder Navigation Horizontal Bar */
-.media-folder-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.35rem;
-    scrollbar-width: thin;
+/* ── 2-Row Modern Folder Directories Button Grid ── */
+.media-folder-hub-card {
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
-.media-folder-pill {
+.folder-header-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    background: #e0e7ff;
+    color: #4f46e5;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.45rem 0.95rem;
-    font-size: 0.825rem;
-    font-weight: 600;
-    border-radius: 9999px;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.media-folder-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 0.65rem;
+}
+
+@media (min-width: 1400px) {
+    .media-folder-grid-container {
+        grid-template-columns: repeat(7, 1fr);
+    }
+}
+@media (min-width: 992px) and (max-width: 1399px) {
+    .media-folder-grid-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+@media (min-width: 576px) and (max-width: 991px) {
+    .media-folder-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 575px) {
+    .media-folder-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+}
+
+/* Individual Folder Button Card */
+.folder-btn-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 13px;
     background: #ffffff;
-    color: #475569;
-    border: 1px solid var(--media-border);
-    text-decoration: none;
-    transition: var(--media-transition);
+    border: 1.5px solid #e2e8f0;
+    text-decoration: none !important;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
+}
+
+.folder-btn-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.folder-btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.folder-btn-card:hover .folder-btn-icon {
+    transform: scale(1.12);
+}
+
+.folder-btn-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.folder-btn-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1e293b;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.25;
 }
 
-.media-folder-pill:hover {
-    background: #f1f5f9;
-    color: #0f172a;
-    border-color: #cbd5e1;
-}
-
-.media-folder-pill.active {
-    background: var(--media-dark);
-    color: #ffffff;
-    border-color: var(--media-dark);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
-}
-
-.media-folder-count {
-    background: rgba(0, 0, 0, 0.06);
-    padding: 0.1rem 0.45rem;
-    border-radius: 9999px;
-    font-size: 0.725rem;
+.folder-btn-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 10.5px;
     font-family: monospace;
+    color: #64748b;
+    margin-top: 2px;
 }
 
-.media-folder-pill.active .media-folder-count {
+.folder-btn-count {
+    font-weight: 700;
+}
+
+.folder-btn-size {
+    opacity: 0.85;
+}
+
+.folder-btn-active-check {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    font-size: 0.70rem;
+    color: currentColor;
+    opacity: 0.9;
+}
+
+/* ── Vibrant Color Themes ── */
+
+/* 1. Indigo (All Media) */
+.folder-theme-indigo {
+    border-color: #e0e7ff;
+    background: #fcfdff;
+}
+.folder-theme-indigo .folder-btn-icon {
+    background: #e0e7ff;
+    color: #4f46e5;
+}
+.folder-theme-indigo:hover {
+    border-color: #818cf8;
+    background: #f5f7ff;
+}
+.folder-theme-indigo.active {
+    background: #4f46e5;
+    border-color: #4338ca;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+.folder-theme-indigo.active .folder-btn-title,
+.folder-theme-indigo.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-theme-indigo.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 2. Emerald (Covers) */
+.folder-btn-emerald {
+    border-color: #d1fae5;
+    background: #fafffc;
+}
+.folder-btn-emerald .folder-btn-icon {
+    background: #d1fae5;
+    color: #059669;
+}
+.folder-btn-emerald:hover {
+    border-color: #34d399;
+    background: #ecfdf5;
+}
+.folder-btn-emerald.active {
+    background: #059669;
+    border-color: #047857;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+}
+.folder-btn-emerald.active .folder-btn-title,
+.folder-btn-emerald.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-emerald.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 3. Amber (Look Inside) */
+.folder-btn-amber {
+    border-color: #fef3c7;
+    background: #fffdfa;
+}
+.folder-btn-amber .folder-btn-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+.folder-btn-amber:hover {
+    border-color: #fbbf24;
+    background: #fffbeb;
+}
+.folder-btn-amber.active {
+    background: #d97706;
+    border-color: #b45309;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+}
+.folder-btn-amber.active .folder-btn-title,
+.folder-btn-amber.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-amber.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 4. Purple (Authors) */
+.folder-btn-purple {
+    border-color: #f3e8ff;
+    background: #fdfaff;
+}
+.folder-btn-purple .folder-btn-icon {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+.folder-btn-purple:hover {
+    border-color: #c084fc;
+    background: #faf5ff;
+}
+.folder-btn-purple.active {
+    background: #7c3aed;
+    border-color: #6d28d9;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+}
+.folder-btn-purple.active .folder-btn-title,
+.folder-btn-purple.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-purple.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 5. Sky (Publishers) */
+.folder-btn-sky {
+    border-color: #e0f2fe;
+    background: #fafffe;
+}
+.folder-btn-sky .folder-btn-icon {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+.folder-btn-sky:hover {
+    border-color: #38bdf8;
+    background: #f0f9ff;
+}
+.folder-btn-sky.active {
+    background: #0284c7;
+    border-color: #0369a1;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+}
+.folder-btn-sky.active .folder-btn-title,
+.folder-btn-sky.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-sky.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 6. Rose (E-Books) */
+.folder-btn-rose {
+    border-color: #ffe4e6;
+    background: #fffbfa;
+}
+.folder-btn-rose .folder-btn-icon {
+    background: #ffe4e6;
+    color: #e11d48;
+}
+.folder-btn-rose:hover {
+    border-color: #fb7185;
+    background: #fff1f2;
+}
+.folder-btn-rose.active {
+    background: #e11d48;
+    border-color: #be123c;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+}
+.folder-btn-rose.active .folder-btn-title,
+.folder-btn-rose.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-rose.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 7. Teal (Banners) */
+.folder-btn-teal {
+    border-color: #ccfbf1;
+    background: #fafffd;
+}
+.folder-btn-teal .folder-btn-icon {
+    background: #ccfbf1;
+    color: #0d9488;
+}
+.folder-btn-teal:hover {
+    border-color: #2dd4bf;
+    background: #f0fdfa;
+}
+.folder-btn-teal.active {
+    background: #0d9488;
+    border-color: #0f766e;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+}
+.folder-btn-teal.active .folder-btn-title,
+.folder-btn-teal.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-teal.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 8. Pink (Blog) */
+.folder-btn-pink {
+    border-color: #fce7f3;
+    background: #fffbfe;
+}
+.folder-btn-pink .folder-btn-icon {
+    background: #fce7f3;
+    color: #db2777;
+}
+.folder-btn-pink:hover {
+    border-color: #f472b6;
+    background: #fdf2f8;
+}
+.folder-btn-pink.active {
+    background: #db2777;
+    border-color: #be185d;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(219, 39, 119, 0.35);
+}
+.folder-btn-pink.active .folder-btn-title,
+.folder-btn-pink.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-pink.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 9. Cyan (Avatars) */
+.folder-btn-cyan {
+    border-color: #cffafe;
+    background: #fafffe;
+}
+.folder-btn-cyan .folder-btn-icon {
+    background: #cffafe;
+    color: #0891b2;
+}
+.folder-btn-cyan:hover {
+    border-color: #22d3ee;
+    background: #ecfeff;
+}
+.folder-btn-cyan.active {
+    background: #0891b2;
+    border-color: #0e7490;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(8, 145, 178, 0.35);
+}
+.folder-btn-cyan.active .folder-btn-title,
+.folder-btn-cyan.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-cyan.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 10. Orange (Payments) */
+.folder-btn-orange {
+    border-color: #ffedd5;
+    background: #fffdfb;
+}
+.folder-btn-orange .folder-btn-icon {
+    background: #ffedd5;
+    color: #ea580c;
+}
+.folder-btn-orange:hover {
+    border-color: #fb923c;
+    background: #fff7ed;
+}
+.folder-btn-orange.active {
+    background: #ea580c;
+    border-color: #c2410c;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+}
+.folder-btn-orange.active .folder-btn-title,
+.folder-btn-orange.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-orange.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 11. Slate (Branding & Settings) */
+.folder-btn-slate {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+}
+.folder-btn-slate .folder-btn-icon {
+    background: #e2e8f0;
+    color: #475569;
+}
+.folder-btn-slate:hover {
+    border-color: #94a3b8;
+    background: #f1f5f9;
+}
+.folder-btn-slate.active {
+    background: #475569;
+    border-color: #334155;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(71, 85, 105, 0.35);
+}
+.folder-btn-slate.active .folder-btn-title,
+.folder-btn-slate.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-slate.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 12. Violet (Signatures) */
+.folder-btn-violet {
+    border-color: #ede9fe;
+    background: #fdfaff;
+}
+.folder-btn-violet .folder-btn-icon {
+    background: #ede9fe;
+    color: #8b5cf6;
+}
+.folder-btn-violet:hover {
+    border-color: #a78bfa;
+    background: #f5f3ff;
+}
+.folder-btn-violet.active {
+    background: #8b5cf6;
+    border-color: #7c3aed;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+}
+.folder-btn-violet.active .folder-btn-title,
+.folder-btn-violet.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-violet.active .folder-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* 13. Blue (Uploads) */
+.folder-btn-blue {
+    border-color: #dbeafe;
+    background: #fbfdff;
+}
+.folder-btn-blue .folder-btn-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+.folder-btn-blue:hover {
+    border-color: #60a5fa;
+    background: #eff6ff;
+}
+.folder-btn-blue.active {
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+.folder-btn-blue.active .folder-btn-title,
+.folder-btn-blue.active .folder-btn-meta {
+    color: #ffffff;
+}
+.folder-btn-blue.active .folder-btn-icon {
     background: rgba(255, 255, 255, 0.2);
     color: #ffffff;
 }

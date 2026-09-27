@@ -35,6 +35,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Book Covers (প্রচ্ছদ)',
                 'badge'          => 'Book Cover',
                 'icon'           => 'fa-solid fa-book',
+                'color'          => 'emerald',
+                'theme'          => 'folder-btn-emerald',
                 'dirs'           => [
                     $storagePublic . '/books/covers',
                     $publicImages . '/books',
@@ -45,6 +47,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Look Inside (একটু পড়ুন)',
                 'badge'          => 'Look Inside',
                 'icon'           => 'fa-solid fa-book-open-reader',
+                'color'          => 'amber',
+                'theme'          => 'folder-btn-amber',
                 'dirs'           => [
                     $storagePublic . '/books/look_inside',
                     $storagePublic . '/look_inside',
@@ -55,6 +59,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Authors (লেখক ছবি)',
                 'badge'          => 'Author Photo',
                 'icon'           => 'fa-solid fa-user-pen',
+                'color'          => 'purple',
+                'theme'          => 'folder-btn-purple',
                 'dirs'           => [
                     $storagePublic . '/authors',
                     $publicImages . '/authors',
@@ -65,6 +71,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Publishers (প্রকাশক লোগো)',
                 'badge'          => 'Publisher Logo',
                 'icon'           => 'fa-solid fa-building',
+                'color'          => 'sky',
+                'theme'          => 'folder-btn-sky',
                 'dirs'           => [
                     $storagePublic . '/publishers/logos',
                     $storagePublic . '/publishers',
@@ -76,6 +84,8 @@ class AdminMediaController extends Controller
                 'label'          => 'E-Books (ই-বুক কভার)',
                 'badge'          => 'E-Book Asset',
                 'icon'           => 'fa-solid fa-tablet-screen-button',
+                'color'          => 'rose',
+                'theme'          => 'folder-btn-rose',
                 'dirs'           => [
                     $storagePublic . '/ebooks/covers',
                     $storagePublic . '/ebooks',
@@ -86,6 +96,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Banners & Sliders (ব্যানার)',
                 'badge'          => 'Banner',
                 'icon'           => 'fa-solid fa-images',
+                'color'          => 'teal',
+                'theme'          => 'folder-btn-teal',
                 'dirs'           => [
                     $publicImages . '/banners',
                     $storagePublic . '/campaigns',
@@ -97,6 +109,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Blog & Articles (ব্লগ)',
                 'badge'          => 'Blog Asset',
                 'icon'           => 'fa-solid fa-newspaper',
+                'color'          => 'pink',
+                'theme'          => 'folder-btn-pink',
                 'dirs'           => [
                     $storagePublic . '/blog',
                     $publicImages . '/blog',
@@ -107,6 +121,8 @@ class AdminMediaController extends Controller
                 'label'          => 'User Avatars (প্রোফাইল)',
                 'badge'          => 'User Avatar',
                 'icon'           => 'fa-solid fa-circle-user',
+                'color'          => 'cyan',
+                'theme'          => 'folder-btn-cyan',
                 'dirs'           => [
                     $storagePublic . '/avatars',
                 ],
@@ -116,6 +132,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Payments & QR (পেমেন্ট QR)',
                 'badge'          => 'Payment QR',
                 'icon'           => 'fa-solid fa-qrcode',
+                'color'          => 'orange',
+                'theme'          => 'folder-btn-orange',
                 'dirs'           => [
                     $storagePublic . '/settings/qrcodes',
                     $publicImages . '/payments',
@@ -126,6 +144,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Branding & Logos (লোগো)',
                 'badge'          => 'Brand Logo',
                 'icon'           => 'fa-solid fa-gear',
+                'color'          => 'slate',
+                'theme'          => 'folder-btn-slate',
                 'dirs'           => [
                     $publicImages . '/settings',
                     $storagePublic . '/settings',
@@ -136,6 +156,8 @@ class AdminMediaController extends Controller
                 'label'          => 'Signatures (স্বাক্ষর ও সনদ)',
                 'badge'          => 'Signature / Seal',
                 'icon'           => 'fa-solid fa-signature',
+                'color'          => 'violet',
+                'theme'          => 'folder-btn-violet',
                 'dirs'           => [
                     $storagePublic . '/signatures',
                 ],
@@ -145,6 +167,8 @@ class AdminMediaController extends Controller
                 'label'          => 'General Uploads (অন্যান্য)',
                 'badge'          => 'Upload Asset',
                 'icon'           => 'fa-solid fa-cloud-arrow-up',
+                'color'          => 'blue',
+                'theme'          => 'folder-btn-blue',
                 'dirs'           => [
                     $storagePublic . '/uploads',
                     $storagePublic . '/images',

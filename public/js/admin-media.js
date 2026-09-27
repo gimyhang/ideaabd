@@ -1410,3 +1410,15 @@ function showMediaAlert(type, message) {
     }, 4500);
 }
 
+/* ========================================================================= */
+/* 12. FOLDER BUTTON INTERACTIONS & ACTIVE CLICK                             */
+/* ========================================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.folder-btn-card').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.style.transform = 'scale(0.96)';
+        });
+    });
+});
+
+
