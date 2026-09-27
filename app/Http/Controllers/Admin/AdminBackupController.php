@@ -1134,30 +1134,6 @@ class AdminBackupController extends Controller
     }
 
     /**
-     * Bulk Delete selected backups.
-     */
-    public function bulkDelete(Request $request): RedirectResponse
-    {
-        $filenames = $request->input('filenames', []);
-        if (empty($filenames) || !is_array($filenames)) {
-            return back()->with('error', 'No backup files were selected for deletion.');
-        }
-
-        $count = 0;
-        foreach ($filenames as $name) {
-            $cleanName = basename($name);
-            $path = $this->backupDir . '/' . $cleanName;
-            if (File::exists($path)) {
-                File::delete($path);
-                $count++;
-            }
-        }
-
-        $this->logAction('bulk_delete_backup', "Bulk deleted {$count} backup archives");
-        return back()->with('success', "{$count} backup archive(s) deleted successfully!");
-    }
-
-    /**
      * Download a specific backup file.
      */
     public function download(string $filename): BinaryFileResponse|RedirectResponse
@@ -1172,22 +1148,6 @@ class AdminBackupController extends Controller
         return response()->download($filePath);
     }
 
-    /**
-     * Delete a single backup file.
-     */
-    public function destroy(string $filename): RedirectResponse
-    {
-        $filename = basename($filename);
-        $filePath = $this->backupDir . '/' . $filename;
-
-        if (File::exists($filePath)) {
-            File::delete($filePath);
-            $this->logAction('delete_backup', "Backup archive '{$filename}' deleted");
-            return back()->with('success', "Backup archive '{$filename}' deleted successfully!");
-        }
-
-        return back()->with('error', 'Backup archive not found.');
-    }
 
     /**
      * Pre-restore safety snapshot generator.
@@ -1393,6 +1353,63 @@ class AdminBackupController extends Controller
             }
             return redirect()->back()->with('error', 'Failed to send email: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Delete a single backup archive permanently.
+     */
+    public function destroy(Request $request, string $filename): JsonResponse|RedirectResponse
+    {
+        $filename = basename($filename);
+        $filePath = $this->backupDir . DIRECTORY_SEPARATOR . $filename;
+
+        if (File::exists($filePath)) {
+            File::delete($filePath);
+            $this->logAction('backup_deleted', "Backup archive '{$filename}' deleted permanently.");
+
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => "Backup archive '{$filename}' deleted successfully."]);
+            }
+            return redirect()->route('admin.backup.index')->with('success', "Backup archive '{$filename}' deleted successfully.");
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => "Backup archive '{$filename}' not found."], 404);
+        }
+        return redirect()->route('admin.backup.index')->with('error', "Backup archive '{$filename}' not found.");
+    }
+
+    /**
+     * Delete multiple selected backup archives.
+     */
+    public function bulkDelete(Request $request): JsonResponse|RedirectResponse
+    {
+        $filenames = $request->input('filenames', []);
+        if (empty($filenames) && $request->has('filename')) {
+            $filenames = [$request->input('filename')];
+        }
+
+        $deletedCount = 0;
+        foreach ($filenames as $filename) {
+            $filename = basename($filename);
+            $filePath = $this->backupDir . DIRECTORY_SEPARATOR . $filename;
+            if (File::exists($filePath)) {
+                File::delete($filePath);
+                $deletedCount++;
+            }
+        }
+
+        $this->logAction('backup_bulk_deleted', "{$deletedCount} backup archive(s) deleted permanently.");
+
+        $message = $deletedCount > 0 
+            ? "{$deletedCount} backup archive(s) deleted successfully."
+            : "No backup archives were found to delete.";
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $message, 'deleted_count' => $deletedCount]);
+        }
+
+        return redirect()->route('admin.backup.index')->with('success', $message);
     }
 
     private function logAction(string $action, string $details): void

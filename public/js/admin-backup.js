@@ -412,18 +412,171 @@ function initBulkSelection() {
 
 function deleteSelectedBackups() {
     const checked = document.querySelectorAll('.backup-select-cb:checked');
-    if (checked.length === 0) return;
-
-    if (!confirm(`Are you sure you want to permanently delete ${checked.length} selected backup archive(s)? This action cannot be undone.`)) {
+    if (checked.length === 0) {
+        showToast('warning', 'Please select at least one backup archive to delete.');
         return;
     }
 
+    const count = checked.length;
+    const msg = `Are you sure you want to permanently delete ${count} selected backup archive(s)? This cannot be undone.`;
+
+    if (window.SwalConfirm) {
+        window.SwalConfirm({
+            title: 'Delete Selected Backups',
+            text: msg,
+            icon: 'warning',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Delete Selected',
+            cancelButtonText: 'Cancel'
+        }).then(result => {
+            if (result.isConfirmed) {
+                executeBulkDeleteSubmit(checked);
+            }
+        });
+    } else if (confirm(msg)) {
+        executeBulkDeleteSubmit(checked);
+    }
+}
+
+function executeBulkDeleteSubmit(checked) {
     const filenames = Array.from(checked).map(cb => cb.value);
+    if (filenames.length === 0) return;
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const targetUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.bulkDelete : '/admin/backup/bulk-delete';
+
+    showToast('info', `Deleting ${filenames.length} selected backup archives...`);
+
+    fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ filenames: filenames })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast('success', data.message || 'Selected backups deleted successfully.');
+            filenames.forEach(fn => {
+                const escapedFn = fn.toLowerCase();
+                const row = document.querySelector(`tr[data-filename="${escapedFn}"]`);
+                if (row) row.remove();
+                const card = document.querySelector(`.backup-file-card[data-filename="${escapedFn}"]`);
+                if (card) card.remove();
+            });
+            const bulkBar = document.getElementById('bulkActionBar');
+            if (bulkBar) bulkBar.style.display = 'none';
+            const selectAll = document.getElementById('selectAllBackups');
+            if (selectAll) selectAll.checked = false;
+            applyUnifiedFilter();
+        } else {
+            showToast('danger', data.message || 'Failed to delete selected archives.');
+        }
+    })
+    .catch(() => {
+        // Fallback to standard form submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = targetUrl;
+
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        filenames.forEach(fn => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'filenames[]';
+            input.value = fn;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+}
+
+function deleteSingleBackup(filename) {
+    if (!filename) return;
+
+    const msg = `Are you sure you want to permanently delete backup archive '${filename}'? This cannot be undone.`;
+
+    const runDelete = () => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const baseUrl = window.BACKUP_ROUTES && window.BACKUP_ROUTES.destroyBase ? window.BACKUP_ROUTES.destroyBase : '/admin/backup';
+        const targetUrl = baseUrl + '/' + encodeURIComponent(filename);
+
+        showToast('info', `Deleting '${filename}'...`);
+
+        fetch(targetUrl, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('success', data.message || `Backup '${filename}' deleted successfully.`);
+                const escapedFn = filename.toLowerCase();
+                const row = document.querySelector(`tr[data-filename="${escapedFn}"]`);
+                if (row) {
+                    row.style.transition = 'all 0.3s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.95)';
+                    setTimeout(() => row.remove(), 300);
+                }
+                const card = document.querySelector(`.backup-file-card[data-filename="${escapedFn}"]`);
+                if (card) {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                }
+                setTimeout(() => {
+                    applyUnifiedFilter();
+                }, 350);
+            } else {
+                showToast('danger', data.message || 'Could not delete backup archive.');
+            }
+        })
+        .catch(() => {
+            executeSingleDeleteSubmit(filename);
+        });
+    };
+
+    if (window.SwalConfirm) {
+        window.SwalConfirm({
+            title: 'Delete Backup Archive',
+            text: msg,
+            icon: 'warning',
+            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Permanently',
+            cancelButtonText: 'Cancel'
+        }).then(result => {
+            if (result.isConfirmed) {
+                runDelete();
+            }
+        });
+    } else if (confirm(msg)) {
+        runDelete();
+    }
+}
+
+function executeSingleDeleteSubmit(filename) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const baseUrl = window.BACKUP_ROUTES && window.BACKUP_ROUTES.destroyBase ? window.BACKUP_ROUTES.destroyBase : '/admin/backup';
 
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.bulkDelete : '/admin/backup/bulk-delete';
+    form.action = baseUrl + '/' + encodeURIComponent(filename);
 
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
@@ -431,13 +584,11 @@ function deleteSelectedBackups() {
     csrfInput.value = csrfToken;
     form.appendChild(csrfInput);
 
-    filenames.forEach(fn => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'filenames[]';
-        input.value = fn;
-        form.appendChild(input);
-    });
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'DELETE';
+    form.appendChild(methodInput);
 
     document.body.appendChild(form);
     form.submit();
@@ -1158,6 +1309,7 @@ window.submitEmailDispatch = submitEmailDispatch;
 window.generateAnonymizedDump = generateAnonymizedDump;
 window.triggerLiveBackup = triggerLiveBackup;
 window.deleteSelectedBackups = deleteSelectedBackups;
+window.deleteSingleBackup = deleteSingleBackup;
 window.testTelegramNotification = testTelegramNotification;
 window.toggleAllSelectiveTables = toggleAllSelectiveTables;
 window.submitSelectiveRestore = submitSelectiveRestore;

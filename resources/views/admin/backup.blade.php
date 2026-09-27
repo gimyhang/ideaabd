@@ -75,7 +75,8 @@
         exportAnonymized: "{{ route('admin.backup.export-anonymized') }}",
         testNotification: "{{ route('admin.backup.test-notification') }}",
         email: "{{ url('admin/backup/email') }}",
-        restore: "{{ url('admin/backup/restore') }}"
+        restore: "{{ url('admin/backup/restore') }}",
+        destroyBase: "{{ url('admin/backup') }}"
     };
 </script>
 
@@ -541,18 +542,9 @@
                                         </button>
 
                                         {{-- 8. Delete --}}
-                                        <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
-                                              data-confirm="Are you sure you want to permanently delete backup file ({{ $b['filename'] }})?"
-                                              data-confirm-title="Delete Backup File"
-                                              data-confirm-icon="warning"
-                                              data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete File"
-                                              class="d-inline m-0">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn-action-pill btn-action-rose" title="Delete backup">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn-action-pill btn-action-rose" onclick="deleteSingleBackup('{{ $b['filename'] }}')" title="Delete backup archive">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -645,18 +637,9 @@
                                 <button type="button" class="btn-action-pill btn-action-emerald" onclick="openEmailModal('{{ $b['filename'] }}')" title="Email">
                                     <i class="fa-solid fa-paper-plane"></i>
                                 </button>
-                                <form action="{{ route('admin.backup.destroy', $b['filename']) }}" method="POST"
-                                      data-confirm="Are you sure you want to permanently delete backup file ({{ $b['filename'] }})?"
-                                      data-confirm-title="Delete Backup File"
-                                      data-confirm-icon="warning"
-                                      data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete File"
-                                      class="d-inline m-0">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-action-pill btn-action-rose" title="Delete">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-action-pill btn-action-rose" onclick="deleteSingleBackup('{{ $b['filename'] }}')" title="Delete">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
