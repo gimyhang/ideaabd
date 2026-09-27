@@ -521,8 +521,11 @@
                 <tbody>
                     @forelse ($books as $index => $book)
                         @php
+                            $firstLetter = mb_substr(trim($book->title ?? 'B'), 0, 1, 'UTF-8');
+                            $fallbackSvg = "data:image/svg+xml;utf8," . rawurlencode("<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150' viewBox='0 0 100 150'><rect width='100' height='150' fill='#1e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#38bdf8' font-weight='bold' font-size='32' font-family='sans-serif'>{$firstLetter}</text></svg>");
+
                             $cover = $book->cover_image;
-                            $coverUrl = null;
+                            $coverUrl = $fallbackSvg;
                             if ($cover) {
                                 if (str_starts_with($cover, 'http')) {
                                     $coverUrl = $cover;
@@ -531,10 +534,6 @@
                                 } else {
                                     $coverUrl = asset('storage/' . ltrim($cover, '/'));
                                 }
-                            } else {
-                                $firstLetter = mb_substr($book->title ?? 'B', 0, 1, 'UTF-8');
-                                $svg = "<svg xmlns='http://www.w3.org/2000/svg' width='100' height='150' viewBox='0 0 100 150'><rect width='100' height='150' fill='#1e293b'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#38bdf8' font-weight='bold' font-size='32' font-family='sans-serif'>{$firstLetter}</text></svg>";
-                                $coverUrl = "data:image/svg+xml;utf8," . rawurlencode($svg);
                             }
                             
                             $isHardcover = ($book->cover_type === 'hardcover');
@@ -583,9 +582,12 @@
                             
                             <td>
                                 <div class="d-flex align-items-center gap-2.5">
-                                    <div class="position-relative flex-shrink-0 cursor-pointer" onclick="openQuickEditModal({{ $book->id }}, 'cover')" title="Click to change cover image">
-                                        <img src="{{ $coverUrl }}" alt="{{ $book->title }}" 
-                                             class="rounded shadow-xs border" style="width: 44px; height: 60px; object-fit: cover;" id="bookCoverImg_{{ $book->id }}">
+                                    <div class="position-relative flex-shrink-0 cursor-pointer" style="width: 44px; height: 60px;" onclick="openQuickEditModal({{ $book->id }}, 'cover')" title="Click to change cover image">
+                                        <img src="{{ $coverUrl }}" alt="Cover" 
+                                             class="rounded shadow-xs border bg-secondary bg-opacity-10" 
+                                             style="width: 44px; height: 60px; min-width: 44px; max-width: 44px; object-fit: cover; display: block;" 
+                                             id="bookCoverImg_{{ $book->id }}"
+                                             onerror="this.onerror=null;this.src='{{ $fallbackSvg }}';">
                                         <span class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 text-white p-0.5 rounded-circle" style="font-size: 8px; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;">
                                             <i class="fa-solid fa-camera"></i>
                                         </span>
@@ -935,11 +937,13 @@
                         {{-- Left Column: Cover Image & Preview --}}
                         <div class="col-12 col-md-4 border-end-md text-center">
                             <label class="form-label small fw-bold text-dark d-block">Cover Image</label>
-                            <div class="position-relative d-inline-block mb-2.5">
+                            <div class="position-relative d-inline-block mb-2.5" style="width: 125px; height: 175px;">
                                 <img src="https://placehold.co/120x170/e2e8f0/475569?text=Cover" 
                                      id="qeCoverPreview" 
-                                     class="rounded-3 border shadow-sm" 
-                                     style="width: 125px; height: 175px; object-fit: cover;">
+                                     alt="Cover Preview"
+                                     class="rounded-3 border shadow-sm bg-light" 
+                                     style="width: 125px; height: 175px; object-fit: cover; display: block;"
+                                     onerror="this.onerror=null;this.src='https://placehold.co/120x170/e2e8f0/475569?text=Cover';">
                             </div>
                             <div>
                                 <label for="qeCoverInput" class="btn btn-sm btn-outline-primary rounded-pill px-3 cursor-pointer">
