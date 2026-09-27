@@ -32,7 +32,7 @@ class AdminMediaController extends Controller
 
         return [
             'books' => [
-                'label' => 'বই ও কাভার',
+                'label' => 'Books & Covers',
                 'icon' => 'fa-solid fa-book-open',
                 'dirs' => [
                     $storagePublic . '/books',
@@ -42,7 +42,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/books',
             ],
             'banners' => [
-                'label' => 'ব্যানার ও ক্যাম্পেইন',
+                'label' => 'Banners & Campaigns',
                 'icon' => 'fa-solid fa-images',
                 'dirs' => [
                     $publicImages . '/banners',
@@ -51,7 +51,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $publicImages . '/banners',
             ],
             'settings' => [
-                'label' => 'ব্র্যান্ডিং ও সেটিংস',
+                'label' => 'Branding & Settings',
                 'icon' => 'fa-solid fa-gear',
                 'dirs' => [
                     $publicImages . '/settings',
@@ -60,7 +60,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $publicImages . '/settings',
             ],
             'authors' => [
-                'label' => 'লেখক ও গবেষক',
+                'label' => 'Authors',
                 'icon' => 'fa-solid fa-user-pen',
                 'dirs' => [
                     $storagePublic . '/authors',
@@ -69,7 +69,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/authors',
             ],
             'blog' => [
-                'label' => 'ব্লগ ও ফিচার',
+                'label' => 'Blog & Articles',
                 'icon' => 'fa-solid fa-newspaper',
                 'dirs' => [
                     $storagePublic . '/blog',
@@ -78,7 +78,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/blog',
             ],
             'payments' => [
-                'label' => 'পেমেন্ট ও QR কোড',
+                'label' => 'Payments & QR',
                 'icon' => 'fa-solid fa-qrcode',
                 'dirs' => [
                     $storagePublic . '/settings/qrcodes',
@@ -87,7 +87,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/settings/qrcodes',
             ],
             'avatars' => [
-                'label' => 'ইউজার অ্যাভাটার',
+                'label' => 'Avatars',
                 'icon' => 'fa-solid fa-circle-user',
                 'dirs' => [
                     $storagePublic . '/avatars',
@@ -95,7 +95,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/avatars',
             ],
             'ebooks' => [
-                'label' => 'ই-বুক অ্যাসেট',
+                'label' => 'E-Books',
                 'icon' => 'fa-solid fa-file-pdf',
                 'dirs' => [
                     $storagePublic . '/ebooks',
@@ -103,7 +103,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/ebooks',
             ],
             'signatures' => [
-                'label' => 'স্বাক্ষর ও ডকুমেন্টস',
+                'label' => 'Signatures & Docs',
                 'icon' => 'fa-solid fa-signature',
                 'dirs' => [
                     $storagePublic . '/signatures',
@@ -111,7 +111,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/signatures',
             ],
             'uploads' => [
-                'label' => 'সাধারণ আপলোড',
+                'label' => 'Uploads',
                 'icon' => 'fa-solid fa-cloud-arrow-up',
                 'dirs' => [
                     $storagePublic . '/uploads',
@@ -120,7 +120,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/uploads',
             ],
             'general' => [
-                'label' => 'রুট মিডিয়া',
+                'label' => 'Root Media',
                 'icon' => 'fa-solid fa-folder',
                 'dirs' => [
                     $publicImages,

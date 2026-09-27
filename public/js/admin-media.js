@@ -70,7 +70,7 @@ function updateSelectionState() {
     const bar = document.getElementById('mediaFloatingBar');
     const badge = document.getElementById('selectedMediaCountBadge');
 
-    if (badge) badge.textContent = `${count} টি নির্বাচিত`;
+    if (badge) badge.textContent = `${count} Selected`;
 
     if (bar) {
         if (count > 0) {
@@ -85,18 +85,18 @@ function copySelectedUrls() {
     if (selectedMediaUrls.length === 0) return;
     const text = selectedMediaUrls.join('\n');
     navigator.clipboard.writeText(text).then(() => {
-        showMediaAlert('success', `${selectedMediaUrls.length}টি ছবির URL ক্লিপবোর্ডে কপি করা হয়েছে!`);
+        showMediaAlert('success', `${selectedMediaUrls.length} image URL(s) copied to clipboard!`);
     });
 }
 
 function executeBulkConvertToWebp() {
     if (selectedMediaPaths.length === 0) return;
-    if (!confirm(`আপনি কি নির্বাচিত ${selectedMediaPaths.length}টি ফাইলকে আধুনিক WebP ফরম্যাটে রূপান্তর করতে চান?`)) {
+    if (!confirm(`Convert ${selectedMediaPaths.length} selected file(s) to modern WebP format?`)) {
         return;
     }
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    showMediaAlert('warning', `নির্বাচিত ${selectedMediaPaths.length}টি ফাইলের WebP রূপান্তর চলছে...`);
+    showMediaAlert('warning', `Converting ${selectedMediaPaths.length} file(s) to WebP...`);
 
     fetch('/admin/media/bulk-action', {
         method: 'POST',
@@ -117,10 +117,10 @@ function executeBulkConvertToWebp() {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showMediaAlert('danger', data.message || 'রূপান্তর ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Conversion failed.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'));
+    .catch(() => showMediaAlert('danger', 'Server request failed.'));
 }
 
 function openBulkMoveModal() {
@@ -160,10 +160,10 @@ function executeBulkMove() {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showMediaAlert('danger', data.message || 'ফাইল সরানো ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to move files.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'))
+    .catch(() => showMediaAlert('danger', 'Server request failed.'))
     .finally(() => {
         if (btn) btn.disabled = false;
     });
@@ -171,7 +171,7 @@ function executeBulkMove() {
 
 function executeBulkDelete() {
     if (selectedMediaPaths.length === 0) return;
-    if (!confirm(`আপনি কি নিশ্চিত নির্বাচিত ${selectedMediaPaths.length}টি ছবি স্থায়ীভাবে মুছে ফেলতে চান?`)) {
+    if (!confirm(`Permanently delete ${selectedMediaPaths.length} selected image(s)?`)) {
         return;
     }
 
@@ -196,10 +196,10 @@ function executeBulkDelete() {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showMediaAlert('danger', data.message || 'ফাইল মোছা ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to delete files.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'));
+    .catch(() => showMediaAlert('danger', 'Server request failed.'));
 }
 
 function executeBulkDownloadZip() {
@@ -275,7 +275,7 @@ function openStudioModal(url, path, filename, width, height) {
     studioState.watermarkText = '';
 
     const titleEl = document.getElementById('studioModalTitle');
-    if (titleEl) titleEl.textContent = `কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও — ${filename}`;
+    if (titleEl) titleEl.textContent = `Image Customizer & Studio — ${filename}`;
 
     const filenameInput = document.getElementById('studioFilenameInput');
     if (filenameInput) filenameInput.value = filename.substring(0, filename.lastIndexOf('.')) || filename;
@@ -371,7 +371,7 @@ function updateStudioInputs() {
 
     if (widthInput) widthInput.value = studioState.currWidth;
     if (heightInput) heightInput.value = studioState.currHeight;
-    if (metaDisplay) metaDisplay.textContent = `আসল রেজোলিউশন: ${studioState.origWidth} × ${studioState.origHeight} px`;
+    if (metaDisplay) metaDisplay.textContent = `Original Resolution: ${studioState.origWidth} × ${studioState.origHeight} px`;
 }
 
 function setStudioPreset(preset) {
@@ -447,9 +447,9 @@ function copySnippet(type, url, title) {
     }
 
     navigator.clipboard.writeText(snippet).then(() => {
-        showMediaAlert('success', `${type.toUpperCase()} কোড সফলভাবে ক্লিপবোর্ডে কপি হয়েছে!`);
+        showMediaAlert('success', `${type.toUpperCase()} snippet copied to clipboard!`);
     }).catch(() => {
-        prompt('কোড কপি করুন:', snippet);
+        prompt('Copy snippet:', snippet);
     });
 }
 
@@ -626,10 +626,10 @@ function saveCustomizedImage(mode) {
             }
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showMediaAlert('danger', data.message || 'কাস্টমাইজড ছবি সংরক্ষণ ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to save customized image.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার রিকোয়েস্ট ব্যর্থ হয়েছে।'))
+    .catch(() => showMediaAlert('danger', 'Server request failed.'))
     .finally(() => {
         if (btn) btn.disabled = false;
     });
@@ -708,7 +708,7 @@ function handleFilesSelected(files) {
                         <div class="text-muted fs-xs font-monospace">${(file.size / 1024).toFixed(1)} KB</div>
                     </div>
                 </div>
-                <span class="badge bg-primary-subtle text-primary rounded-pill">প্রস্তুত</span>
+                <span class="badge bg-primary-subtle text-primary rounded-pill">Ready</span>
             `;
             if (previewContainer) previewContainer.appendChild(div);
         };
@@ -767,7 +767,7 @@ async function convertFileToWebpInBrowser(file, quality = 0.85, maxDim = 1920) {
 
 async function submitMultiUploadAjax() {
     if (pendingUploadFiles.length === 0) {
-        showMediaAlert('warning', 'অনুগ্রহ করে অন্তত একটি ছবি নির্বাচন করুন!');
+        showMediaAlert('warning', 'Please select at least one image file!');
         return;
     }
 
@@ -779,7 +779,7 @@ async function submitMultiUploadAjax() {
     if (btn) btn.disabled = true;
     if (progressWrap) progressWrap.classList.remove('d-none');
     if (progressBar) progressBar.style.width = '10%';
-    if (percentLabel) percentLabel.textContent = 'ব্রাউজারে WebP রূপান্তর ও অপ্টিমাইজেশন চলছে...';
+    if (percentLabel) percentLabel.textContent = 'Pre-converting and optimizing WebP in browser...';
 
     const formData = new FormData();
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -802,7 +802,7 @@ async function submitMultiUploadAjax() {
     }
 
     if (progressBar) progressBar.style.width = '35%';
-    if (percentLabel) percentLabel.textContent = 'সার্ভারে দ্রুত আপলোড হচ্ছে...';
+    if (percentLabel) percentLabel.textContent = 'Uploading to server...';
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', '/admin/media/upload', true);
@@ -813,7 +813,7 @@ async function submitMultiUploadAjax() {
         if (e.lengthComputable && progressBar) {
             const percent = 35 + Math.round((e.loaded / e.total) * 60);
             progressBar.style.width = percent + '%';
-            if (percentLabel) percentLabel.textContent = `আপলোড সম্পন্ন: ${percent}%`;
+            if (percentLabel) percentLabel.textContent = `Upload complete: ${percent}%`;
         }
     };
 
@@ -823,19 +823,19 @@ async function submitMultiUploadAjax() {
         if (xhr.status >= 200 && xhr.status < 300) {
             try {
                 const res = JSON.parse(xhr.responseText);
-                showMediaAlert('success', res.message || 'আপলোড সফল হয়েছে!');
+                showMediaAlert('success', res.message || 'Upload successful!');
                 setTimeout(() => window.location.reload(), 1000);
             } catch (e) {
                 window.location.reload();
             }
         } else {
-            showMediaAlert('danger', 'ফাইল আপলোড ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', 'Failed to upload files.');
         }
     };
 
     xhr.onerror = () => {
         if (btn) btn.disabled = false;
-        showMediaAlert('danger', 'নেটওয়ার্ক সমস্যা। আপলোড ব্যর্থ।');
+        showMediaAlert('danger', 'Network error. Upload failed.');
     };
 
     xhr.send(formData);
@@ -880,7 +880,7 @@ function startWebpConversionEngine() {
     const logBox = document.getElementById('webpEngineLogBox');
 
     if (progressBar) progressBar.style.width = '20%';
-    if (statusBadge) statusBadge.textContent = 'স্ক্যানিং চলছে...';
+    if (statusBadge) statusBadge.textContent = 'Scanning in progress...';
 
     const appendLog = (text) => {
         if (!logBox) return;
@@ -890,15 +890,15 @@ function startWebpConversionEngine() {
         logBox.scrollTop = logBox.scrollHeight;
     };
 
-    appendLog(`টার্গেট ফোল্ডার: ${folder.toUpperCase()} | কোয়ালিটি: ${quality}%`);
-    appendLog(`মূল ফাইল অপসারণ অপশন: ${deleteOriginal ? 'সক্রিয় (Reclaim Disk)' : 'নিষ্ক্রিয়'}`);
+    appendLog(`Target Folder: ${folder.toUpperCase()} | Quality: ${quality}%`);
+    appendLog(`Delete originals: ${deleteOriginal ? 'Enabled (Reclaim Disk)' : 'Disabled'}`);
 
     let progressSim = 25;
     const interval = setInterval(() => {
         if (progressSim < 85) {
             progressSim += 10;
             if (progressBar) progressBar.style.width = progressSim + '%';
-            if (statusBadge) statusBadge.textContent = 'রূপান্তর চলছে (' + progressSim + '%)...';
+            if (statusBadge) statusBadge.textContent = 'Converting (' + progressSim + '%)...';
         }
     }, 400);
 
@@ -924,12 +924,12 @@ function startWebpConversionEngine() {
         if (progressBar) progressBar.style.width = '100%';
 
         if (data.success) {
-            if (statusBadge) statusBadge.textContent = 'সম্পন্ন!';
-            if (countBadge) countBadge.textContent = `${data.count} টি ফাইল`;
+            if (statusBadge) statusBadge.textContent = 'Completed!';
+            if (countBadge) countBadge.textContent = `${data.count} files`;
             if (memSavedBadge) memSavedBadge.textContent = data.saved || '0 B';
 
-            appendLog(`সফল! মোট ${data.count}টি ফাইল WebP-তে রূপান্তর সম্পন্ন।`);
-            appendLog(`সর্বমোট সাশ্রয়: ${data.saved}`);
+            appendLog(`Success! Total ${data.count} file(s) converted to WebP.`);
+            appendLog(`Total Saved: ${data.saved}`);
 
             if (data.items && data.items.length > 0) {
                 data.items.slice(0, 10).forEach(item => {
@@ -946,8 +946,8 @@ function startWebpConversionEngine() {
                 }
             }, 1000);
         } else {
-            appendLog(`ত্রুটি: ${data.message || 'রূপান্তর ব্যর্থ হয়েছে।'}`);
-            showMediaAlert('danger', data.message || 'WebP রূপান্তর ব্যর্থ হয়েছে।');
+            appendLog(`Error: ${data.message || 'Conversion failed.'}`);
+            showMediaAlert('danger', data.message || 'WebP conversion failed.');
             setTimeout(() => {
                 if (configView) configView.classList.remove('d-none');
                 if (progressView) progressView.classList.add('d-none');
@@ -956,8 +956,8 @@ function startWebpConversionEngine() {
     })
     .catch((err) => {
         clearInterval(interval);
-        appendLog(`নেটওয়ার্ক বা সার্ভার ত্রুটি!`);
-        showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।');
+        appendLog(`Network or server error!`);
+        showMediaAlert('danger', 'Server request failed.');
         setTimeout(() => {
             if (configView) configView.classList.remove('d-none');
             if (progressView) progressView.classList.add('d-none');
@@ -1010,10 +1010,10 @@ function submitRenameFile() {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1000);
         } else {
-            showMediaAlert('danger', data.message || 'নাম পরিবর্তন ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to rename file.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'))
+    .catch(() => showMediaAlert('danger', 'Server request failed.'))
     .finally(() => {
         if (btn) btn.disabled = false;
     });
@@ -1047,10 +1047,10 @@ function submitCreateFolder() {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1000);
         } else {
-            showMediaAlert('danger', data.message || 'ফোল্ডার তৈরি ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to create folder.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'))
+    .catch(() => showMediaAlert('danger', 'Server request failed.'))
     .finally(() => {
         if (btn) btn.disabled = false;
     });
@@ -1064,14 +1064,14 @@ let currentLightboxZoom = 1;
 
 function copyUrl(url) {
     navigator.clipboard.writeText(url).then(() => {
-        showMediaAlert('success', 'ইমেজ লিংক কপি হয়েছে!');
+        showMediaAlert('success', 'Image link copied to clipboard!');
     });
 }
 
 function openLightbox(url, filename, size, date, dimensions, folder) {
     document.getElementById('lightboxImage').src = url;
     document.getElementById('lightboxTitle').textContent = filename;
-    document.getElementById('lightboxMeta').textContent = `রেজোলিউশন: ${dimensions || 'N/A'} | সাইজ: ${size} | ফোল্ডার: ${folder} | আপলোড: ${date}`;
+    document.getElementById('lightboxMeta').textContent = `Resolution: ${dimensions || 'N/A'} | Size: ${size} | Folder: ${folder} | Date: ${date}`;
     document.getElementById('lightboxOpenBtn').href = url;
     document.getElementById('lightboxDownloadBtn').href = url;
     document.getElementById('lightboxDownloadBtn').setAttribute('download', filename || 'image');
@@ -1106,7 +1106,7 @@ function openLightboxByIndex(index) {
     }
 
     document.getElementById('lightboxTitle').textContent = title || 'Image Preview';
-    document.getElementById('lightboxMeta').textContent = `রেজোলিউশন: ${res || 'N/A'} | সাইজ: ${size} | ফোল্ডার: ${folder} | আপলোড: ${date}`;
+    document.getElementById('lightboxMeta').textContent = `Resolution: ${res || 'N/A'} | Size: ${size} | Folder: ${folder} | Date: ${date}`;
     document.getElementById('lightboxOpenBtn').href = url;
     document.getElementById('lightboxDownloadBtn').href = url;
     document.getElementById('lightboxDownloadBtn').setAttribute('download', title || 'image');
@@ -1184,14 +1184,14 @@ function submitReplaceFile() {
     const file = fileInput.files[0];
 
     if (!file) {
-        alert('অনুগ্রহ করে একটি নতুন ছবি নির্বাচন করুন।');
+        alert('Please select a replacement image.');
         return;
     }
 
     const btn = document.getElementById('btnConfirmReplace');
     const origHtml = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> রিপ্লেস হচ্ছে...`;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Replacing...`;
 
     const formData = new FormData();
     formData.append('target_path', targetPath);
@@ -1219,10 +1219,10 @@ function submitReplaceFile() {
             }
             setTimeout(() => window.location.reload(), 1200);
         } else {
-            showMediaAlert('danger', data.message || 'রিপ্লেস ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Failed to replace image.');
         }
     })
-    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'))
+    .catch(() => showMediaAlert('danger', 'Server request failed.'))
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = origHtml;
@@ -1292,7 +1292,7 @@ function initGlobalDragAndPaste() {
         }
 
         if (imageFiles.length > 0) {
-            showMediaAlert('warning', `ক্লিপবোর্ড থেকে ${imageFiles.length}টি ইমেজ পাওয়া গেছে! আপলোড ও অপ্টিমাইজ প্রসেস করা হচ্ছে...`);
+            showMediaAlert('warning', `${imageFiles.length} image(s) detected from clipboard! Processing upload...`);
             handleDroppedFilesDirectly(imageFiles);
         }
     });
@@ -1315,7 +1315,7 @@ function handleDroppedFilesDirectly(files) {
 function runMediaOptimization(btn) {
     const origContent = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5"></span><span>অপ্টিমাইজেশন চলছে...</span>`;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1.5"></span><span>Optimizing...</span>`;
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
@@ -1335,13 +1335,13 @@ function runMediaOptimization(btn) {
             showMediaAlert('success', data.message);
             setTimeout(() => window.location.reload(), 1500);
         } else {
-            showMediaAlert('danger', data.message || 'অপ্টিমাইজেশন ব্যর্থ হয়েছে।');
+            showMediaAlert('danger', data.message || 'Optimization failed.');
         }
     })
     .catch(() => {
         btn.disabled = false;
         btn.innerHTML = origContent;
-        showMediaAlert('danger', 'সার্ভার রেসপন্স দিতে ব্যর্থ হয়েছে।');
+        showMediaAlert('danger', 'Server response error.');
     });
 }
 
@@ -1398,3 +1398,4 @@ function showMediaAlert(type, message) {
         }
     }, 4500);
 }
+

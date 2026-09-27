@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'মিডিয়া ও ডিজিটাল অ্যাসেট স্টুডিও — Media & Asset Studio')
-@section('heading', 'মিডিয়া ও ডিজিটাল অ্যাসেট স্টুডিও (Media & Asset Studio)')
+@section('title', 'Media & Asset Studio — ideaabd')
+@section('heading', 'Media & Asset Studio')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item active">মিডিয়া ও অ্যাসেট স্টুডিও</li>
+    <li class="breadcrumb-item active">Media & Asset Studio</li>
 @endsection
 
 @push('styles')
@@ -15,27 +15,27 @@
 @section('actions')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         {{-- 1-Click Convert All Existing to WebP --}}
-        <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="openConvertWebpEngineModal()" title="বিদ্যমান সকল PNG ও JPG ফাইলকে WebP তে রূপান্তর করুন">
+        <button type="button" class="btn btn-webp-gradient btn-sm shadow-xs" id="btnConvertAllWebp" onclick="openConvertWebpEngineModal()" title="Batch convert all PNG and JPG images to WebP">
             <i class="fa-solid fa-bolt-lightning"></i>
-            <span>সকল ফাইল WebP-তে রূপান্তর</span>
+            <span>Convert All to WebP</span>
         </button>
 
         {{-- Create Folder Modal Trigger --}}
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#createFolderModal">
             <i class="fa-solid fa-folder-plus text-warning"></i>
-            <span>নতুন ফোল্ডার</span>
+            <span>New Folder</span>
         </button>
 
         {{-- 1-Click Auto Optimizer Engine --}}
         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="btnOptimizeAll" onclick="runMediaOptimization(this)">
             <i class="fa-solid fa-bolt text-success"></i>
-            <span>অটো-অপ্টিমাইজেশন</span>
+            <span>Auto Optimize</span>
         </button>
 
         {{-- Upload Modal Trigger --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-bold d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#uploadMediaModal">
             <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span>মিডিয়া আপলোড</span>
+            <span>Upload Media</span>
         </button>
     </div>
 @endsection
@@ -69,15 +69,15 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="media-kpi-card border-start border-4 border-primary">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">মোট অ্যাসেট ফাইল</span>
+                    <span class="small text-muted fw-bold text-uppercase font-monospace">Total Assets</span>
                     <div class="media-kpi-icon bg-primary-subtle text-primary">
                         <i class="fa-solid fa-images"></i>
                     </div>
                 </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1 font-monospace">{{ number_format($totalCount) }} <span class="fs-6 fw-normal text-muted">টি ফাইল</span></h3>
+                <h3 class="text-dark fs-4 fw-bold mb-1 font-monospace">{{ number_format($totalCount) }} <span class="fs-6 fw-normal text-muted">files</span></h3>
                 <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>ফিল্টারকৃত: <strong class="text-primary font-monospace">{{ number_format($filteredCount) }}</strong></span>
-                    <span>ডিস্ক মেমোরি</span>
+                    <span>Filtered: <strong class="text-primary font-monospace">{{ number_format($filteredCount) }}</strong></span>
+                    <span>Disk Storage</span>
                 </div>
             </div>
         </div>
@@ -86,14 +86,14 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="media-kpi-card border-start border-4 border-info">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">মোট স্টোরেজ সাইজ</span>
+                    <span class="small text-muted fw-bold text-uppercase font-monospace">Total Storage</span>
                     <div class="media-kpi-icon bg-info-subtle text-info">
                         <i class="fa-solid fa-hard-drive"></i>
                     </div>
                 </div>
                 <h3 class="text-dark fs-4 fw-bold font-monospace mb-1">{{ $totalFormatted }}</h3>
                 <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>পাবলিক ও স্টোরেজ ডিস্ক</span>
+                    <span>Public & Storage</span>
                     <span class="badge bg-light text-dark border font-monospace">SSD Cloud</span>
                 </div>
             </div>
@@ -103,7 +103,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="media-kpi-card border-start border-4 border-success">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">Next-Gen ফরম্যাট</span>
+                    <span class="small text-muted fw-bold text-uppercase font-monospace">Next-Gen Format</span>
                     <div class="media-kpi-icon bg-success-subtle text-success">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
@@ -113,9 +113,9 @@
                     <span class="badge bg-success-subtle text-success font-monospace">{{ $webpCount }} WebP</span>
                 </div>
                 <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>হাই-স্পিড কম্প্রেশন</span>
+                    <span>Speed Compression</span>
                     <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" onclick="openConvertWebpEngineModal()">
-                        <i class="fa-solid fa-bolt me-1"></i> রূপান্তর
+                        <i class="fa-solid fa-bolt me-1"></i> Convert
                     </button>
                 </div>
             </div>
@@ -125,7 +125,7 @@
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="media-kpi-card border-start border-4 border-warning">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">ইমেজ স্টুডিও ইঞ্জিন</span>
+                    <span class="small text-muted fw-bold text-uppercase font-monospace">Studio Engine</span>
                     <div class="media-kpi-icon bg-warning-subtle text-warning-emphasis">
                         <i class="fa-solid fa-palette"></i>
                     </div>
@@ -135,7 +135,7 @@
                         <i class="fa-solid fa-circle-check me-1"></i> HTML5 Canvas + GD
                     </span>
                 </h3>
-                <div class="text-muted small">রিসাইজ, রোটেট, ওয়াটারমার্ক ও ফিল্টার সক্রিয়</div>
+                <div class="text-muted small">Resize, Rotate, Watermark & Filters Active</div>
             </div>
         </div>
     </div>
@@ -144,15 +144,15 @@
     <div class="card bg-white rounded-4 shadow-sm border-0 p-3">
         <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="small text-muted fw-bold text-uppercase font-monospace">
-                <i class="fa-solid fa-folder-tree text-primary me-1"></i> ফোল্ডার ডিরেক্টরি ক্যাটাগরি
+                <i class="fa-solid fa-folder-tree text-primary me-1"></i> Folder Directories
             </span>
-            <span class="small text-muted font-monospace">মোট {{ count($folderDefs) }} টি ডিরেক্টরি</span>
+            <span class="small text-muted font-monospace">Total {{ count($folderDefs) }} Directories</span>
         </div>
         <div class="media-folder-bar">
             {{-- All Folders --}}
             <a href="{{ route('admin.media.index', array_merge(request()->query(), ['folder' => 'all'])) }}" class="media-folder-pill {{ $folderFilter === 'all' ? 'active' : '' }}">
                 <i class="fa-solid fa-layer-group text-primary"></i>
-                <span>সকল মিডিয়া</span>
+                <span>All Media</span>
                 <span class="media-folder-count">{{ $totalCount }}</span>
             </a>
 
@@ -183,7 +183,7 @@
                             <i class="fa-solid fa-magnifying-glass"></i>
                         </span>
                         <input type="search" name="search" id="mediaLiveSearch" class="form-control border-start-0 ps-0 fw-semibold" 
-                               placeholder="ফাইলের নাম বা ফোল্ডার খুঁজুন..." 
+                               placeholder="Search file name or folder..." 
                                value="{{ $search }}" oninput="filterMediaLive(this.value)">
                     </div>
                 </div>
@@ -191,7 +191,7 @@
                 {{-- Format Filter --}}
                 <div class="col-6 col-md-2 col-xl-2">
                     <select name="format" class="form-select form-select-sm rounded-3 fw-semibold" onchange="document.getElementById('mediaFilterForm').submit()">
-                        <option value="all" {{ $formatFilter === 'all' ? 'selected' : '' }}>সব ফরম্যাট (All)</option>
+                        <option value="all" {{ $formatFilter === 'all' ? 'selected' : '' }}>All Formats</option>
                         <option value="webp" {{ $formatFilter === 'webp' ? 'selected' : '' }}>WebP</option>
                         <option value="png" {{ $formatFilter === 'png' ? 'selected' : '' }}>PNG</option>
                         <option value="jpg" {{ $formatFilter === 'jpg' ? 'selected' : '' }}>JPG / JPEG</option>
@@ -203,38 +203,38 @@
                 {{-- Dimension Filter --}}
                 <div class="col-6 col-md-2 col-xl-2">
                     <select name="dim" class="form-select form-select-sm rounded-3 fw-semibold" onchange="document.getElementById('mediaFilterForm').submit()">
-                        <option value="all" {{ $dimensionFilter === 'all' ? 'selected' : '' }}>সব রেজোলিউশন</option>
-                        <option value="portrait" {{ $dimensionFilter === 'portrait' ? 'selected' : '' }}>বই / পোর্ট্রেট (2:3)</option>
-                        <option value="banner" {{ $dimensionFilter === 'banner' ? 'selected' : '' }}>ব্যানার (≥1200px)</option>
-                        <option value="square" {{ $dimensionFilter === 'square' ? 'selected' : '' }}>বর্গাকার (1:1)</option>
-                        <option value="thumb" {{ $dimensionFilter === 'thumb' ? 'selected' : '' }}>থাম্বনেইল (≤400px)</option>
+                        <option value="all" {{ $dimensionFilter === 'all' ? 'selected' : '' }}>All Dimensions</option>
+                        <option value="portrait" {{ $dimensionFilter === 'portrait' ? 'selected' : '' }}>Book / Portrait (2:3)</option>
+                        <option value="banner" {{ $dimensionFilter === 'banner' ? 'selected' : '' }}>Banner (≥1200px)</option>
+                        <option value="square" {{ $dimensionFilter === 'square' ? 'selected' : '' }}>Square (1:1)</option>
+                        <option value="thumb" {{ $dimensionFilter === 'thumb' ? 'selected' : '' }}>Thumbnail (≤400px)</option>
                     </select>
                 </div>
 
                 {{-- Sorter --}}
                 <div class="col-6 col-md-2 col-xl-2">
                     <select name="sort" class="form-select form-select-sm rounded-3 fw-semibold" onchange="document.getElementById('mediaFilterForm').submit()">
-                        <option value="latest" {{ $sort === 'latest' ? 'selected' : '' }}>সর্বশেষ আপলোড</option>
-                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>পুরোনো আগে</option>
-                        <option value="size_desc" {{ $sort === 'size_desc' ? 'selected' : '' }}>বড় সাইজ (MB)</option>
-                        <option value="size_asc" {{ $sort === 'size_asc' ? 'selected' : '' }}>ছোট সাইজ (KB)</option>
-                        <option value="name_asc" {{ $sort === 'name_asc' ? 'selected' : '' }}>নাম (A - Z)</option>
-                        <option value="name_desc" {{ $sort === 'name_desc' ? 'selected' : '' }}>নাম (Z - A)</option>
+                        <option value="latest" {{ $sort === 'latest' ? 'selected' : '' }}>Latest Upload</option>
+                        <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="size_desc" {{ $sort === 'size_desc' ? 'selected' : '' }}>Size (High to Low)</option>
+                        <option value="size_asc" {{ $sort === 'size_asc' ? 'selected' : '' }}>Size (Low to High)</option>
+                        <option value="name_asc" {{ $sort === 'name_asc' ? 'selected' : '' }}>Name (A - Z)</option>
+                        <option value="name_desc" {{ $sort === 'name_desc' ? 'selected' : '' }}>Name (Z - A)</option>
                     </select>
                 </div>
 
                 {{-- View Switcher Buttons & Select All --}}
                 <div class="col-6 col-md-2 col-xl-2 d-flex align-items-center justify-content-end gap-2">
-                    <div class="form-check d-flex align-items-center gap-1.5 mb-0" title="সকল ছবি সিলেক্ট করুন">
+                    <div class="form-check d-flex align-items-center gap-1.5 mb-0" title="Select all items">
                         <input class="form-check-input" type="checkbox" id="selectAllMaster" onchange="toggleSelectAll(this)">
-                        <label class="form-check-label small fw-bold text-dark cursor-pointer" for="selectAllMaster">সবগুলো</label>
+                        <label class="form-check-label small fw-bold text-dark cursor-pointer" for="selectAllMaster">Select All</label>
                     </div>
 
                     <div class="btn-group btn-group-sm rounded-pill overflow-hidden border">
-                        <button type="button" class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-light' }} px-2.5" onclick="document.getElementById('mediaViewModeInput').value='grid'; document.getElementById('mediaFilterForm').submit();" title="গ্রিড ভিউ">
+                        <button type="button" class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-light' }} px-2.5" onclick="document.getElementById('mediaViewModeInput').value='grid'; document.getElementById('mediaFilterForm').submit();" title="Grid View">
                             <i class="fa-solid fa-table-cells-large"></i>
                         </button>
-                        <button type="button" class="btn {{ $viewMode === 'list' ? 'btn-primary' : 'btn-light' }} px-2.5" onclick="document.getElementById('mediaViewModeInput').value='list'; document.getElementById('mediaFilterForm').submit();" title="লিস্ট ভিউ">
+                        <button type="button" class="btn {{ $viewMode === 'list' ? 'btn-primary' : 'btn-light' }} px-2.5" onclick="document.getElementById('mediaViewModeInput').value='list'; document.getElementById('mediaFilterForm').submit();" title="List View">
                             <i class="fa-solid fa-list"></i>
                         </button>
                     </div>
@@ -273,13 +273,13 @@
 
                         {{-- Action Buttons on Hover Overlay --}}
                         <div class="media-thumb-overlay">
-                            <button type="button" class="btn-thumb-action" title="ফুলস্ক্রিন প্রিভিউ" onclick="openLightboxByIndex({{ $index }})">
+                            <button type="button" class="btn-thumb-action" title="Fullscreen Preview" onclick="openLightboxByIndex({{ $index }})">
                                 <i class="fa-solid fa-expand"></i>
                             </button>
-                            <button type="button" class="btn-thumb-action" title="কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
+                            <button type="button" class="btn-thumb-action" title="Customizer Studio" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
                                 <i class="fa-solid fa-palette"></i>
                             </button>
-                            <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn-thumb-action" title="কম্পিউটারে ডাউনলোড">
+                            <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn-thumb-action" title="Download">
                                 <i class="fa-solid fa-download"></i>
                             </a>
                         </div>
@@ -317,16 +317,16 @@
 
                         {{-- Footer Action Buttons --}}
                         <div class="media-card-footer">
-                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})" title="স্টুডিওতে কাস্টমাইজ করুন">
-                                <i class="fa-solid fa-palette me-0.5"></i> স্টুডিও
+                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})" title="Open Studio">
+                                <i class="fa-solid fa-palette me-0.5"></i> Studio
                             </button>
                             <div class="d-flex align-items-center gap-1">
-                                <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success border-0 p-1" title="কম্পিউটারে ডাউনলোড">
+                                <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success border-0 p-1" title="Download">
                                     <i class="fa-solid fa-download"></i>
                                 </a>
                                 {{-- Quick Snippet Copy Dropdown --}}
                                 <div class="dropdown d-inline-block">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" data-bs-toggle="dropdown" title="কোড ও লিংক কপি">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" data-bs-toggle="dropdown" title="Copy Code & Links">
                                         <i class="fa-regular fa-copy"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-end snippet-dropdown-menu">
@@ -344,22 +344,22 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ছবি রিপ্লেস / আপডেট করুন">
+                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Replace Image">
                                     <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                 </button>
-                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ফাইলের নাম পরিবর্তন">
+                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Rename File">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <form action="{{ route('admin.media.destroy') }}" method="POST"
-                                      data-confirm="আপনি কি নিশ্চিত এই মিডিয়া ফাইলটি মুছে ফেলতে চান?"
-                                      data-confirm-title="মিডিয়া ফাইল অপসারণ"
+                                      data-confirm="Are you sure you want to delete this media file?"
+                                      data-confirm-title="Delete Media File"
                                       data-confirm-icon="warning"
-                                      data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> মুছে ফেলুন"
+                                      data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete"
                                       class="d-inline">
                                     @csrf
                                     @method('DELETE')
                                     <input type="hidden" name="path" value="{{ $item['path'] }}">
-                                    <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="মুছে ফেলুন">
+                                    <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="Delete">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
@@ -371,8 +371,8 @@
                 <div class="col-12" id="emptyMediaNotice">
                     <div class="card bg-white rounded-4 p-5 text-center text-muted border-0 shadow-sm">
                         <i class="fa-solid fa-images fs-1 text-secondary mb-3 opacity-50"></i>
-                        <h5 class="text-dark fw-bold">কোনো মিডিয়া ফাইল পাওয়া যায়নি</h5>
-                        <p class="small mb-3">উপরে <strong>মিডিয়া আপলোড</strong> বাটনে ক্লিক করে ছবি যোগ করুন।</p>
+                        <h5 class="text-dark fw-bold">No Media Files Found</h5>
+                        <p class="small mb-3">Click <strong>Upload Media</strong> button above to add images.</p>
                     </div>
                 </div>
             @endforelse
@@ -389,14 +389,14 @@
                             <th style="width: 40px;">
                                 <input type="checkbox" class="form-check-input" onchange="toggleSelectAll(this)">
                             </th>
-                            <th style="width: 60px;">প্রিভিউ</th>
-                            <th>ফাইলের নাম ও বিবরণ</th>
-                            <th>ফোল্ডার</th>
-                            <th>রেজোলিউশন</th>
-                            <th>ফরম্যাট</th>
-                            <th>সাইজ</th>
-                            <th>তারিখ</th>
-                            <th class="text-end">অ্যাকশন</th>
+                            <th style="width: 60px;">Preview</th>
+                            <th>File Name & Details</th>
+                            <th>Folder</th>
+                            <th>Resolution</th>
+                            <th>Format</th>
+                            <th>Size</th>
+                            <th>Date</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -460,30 +460,30 @@
                                 <td class="text-end">
                                     <div class="d-flex align-items-center justify-content-end gap-1.5">
                                         <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
-                                            <i class="fa-solid fa-palette me-1"></i> কাস্টমাইজ
+                                            <i class="fa-solid fa-palette me-1"></i> Studio
                                         </button>
-                                        <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-1" title="ডাউনলোড">
+                                        <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-1" title="Download">
                                             <i class="fa-solid fa-download"></i>
                                         </a>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')" title="URL কপি করুন">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')" title="Copy URL">
                                             <i class="fa-regular fa-copy"></i>
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ছবি রিপ্লেস / আপডেট">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Replace Image">
                                             <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="নাম পরিবর্তন">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Rename File">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </button>
                                         <form action="{{ route('admin.media.destroy') }}" method="POST"
-                                              data-confirm="আপনি কি নিশ্চিত এই মিডিয়া ফাইলটি মুছে ফেলতে চান?"
-                                              data-confirm-title="মিডিয়া ফাইল অপসারণ"
+                                              data-confirm="Are you sure you want to delete this media file?"
+                                              data-confirm-title="Delete Media File"
                                               data-confirm-icon="warning"
-                                              data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> মুছে ফেলুন"
+                                              data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete"
                                               class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="path" value="{{ $item['path'] }}">
-                                            <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="মুছে ফেলুন">
+                                            <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="Delete">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -494,7 +494,7 @@
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     <i class="fa-solid fa-images fs-1 text-secondary opacity-50 mb-2"></i>
-                                    <div>কোনো মিডিয়া ফাইল পাওয়া যায়নি।</div>
+                                    <div>No media files found.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -509,14 +509,13 @@
         <div class="card bg-white rounded-4 shadow-sm border-0 p-3 mt-2">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                 <div class="small text-muted font-monospace">
-                    মোট <strong>{{ number_format($filteredCount) }}</strong> টি ফাইলের মধ্যে 
-                    <strong>{{ count($paginatedItems) }}</strong> টি প্রদর্শিত (পৃষ্ঠা {{ $currentPage }} / {{ $totalPages }})
+                    Showing <strong>{{ count($paginatedItems) }}</strong> of <strong>{{ number_format($filteredCount) }}</strong> files (Page {{ $currentPage }} of {{ $totalPages }})
                 </div>
 
                 <div class="d-flex align-items-center gap-3">
                     {{-- Per-Page Selector --}}
                     <div class="d-flex align-items-center gap-1.5">
-                        <span class="small text-muted fw-semibold">প্রতি পৃষ্ঠায়:</span>
+                        <span class="small text-muted fw-semibold">Per Page:</span>
                         <select class="form-select form-select-sm rounded-pill font-monospace" style="width: 80px;" onchange="const u = new URL(window.location.href); u.searchParams.set('per_page', this.value); u.searchParams.set('page', '1'); window.location.href = u.toString();">
                             <option value="24" {{ $perPage == '24' ? 'selected' : '' }}>24</option>
                             <option value="48" {{ $perPage == '48' ? 'selected' : '' }}>48</option>
@@ -564,8 +563,8 @@
     <div id="noSearchMatchNotice" class="d-none col-12 mt-3">
         <div class="card bg-white rounded-4 p-5 text-center text-muted border-0 shadow-sm">
             <i class="fa-solid fa-magnifying-glass fs-1 text-secondary mb-3 opacity-50"></i>
-            <h5 class="text-dark fw-bold">কোনো ফলাফল মেলেনি</h5>
-            <p class="small mb-0">ভিন্ন কোনো ফাইলের নাম বা এক্সটেনশন দিয়ে অনুসন্ধান করুন।</p>
+            <h5 class="text-dark fw-bold">No Matching Files</h5>
+            <p class="small mb-0">Try searching with a different file name, extension or folder.</p>
         </div>
     </div>
 
@@ -576,32 +575,32 @@
 {{-- ========================================================================= --}}
 <div id="mediaFloatingBar" class="media-floating-bar">
     <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-primary text-white font-monospace px-3 py-1.5 rounded-pill" id="selectedMediaCountBadge">0 টি নির্বাচিত</span>
+        <span class="badge bg-primary text-white font-monospace px-3 py-1.5 rounded-pill" id="selectedMediaCountBadge">0 Selected</span>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <button type="button" class="btn-floating-action btn-floating-warning" onclick="executeBulkConvertToWebp()" title="নির্বাচিত ফাইলসমূহকে WebP ফরম্যাটে রূপান্তর করুন">
-            <i class="fa-solid fa-bolt-lightning text-warning"></i> WebP রূপান্তর
+        <button type="button" class="btn-floating-action btn-floating-warning" onclick="executeBulkConvertToWebp()" title="Convert selected files to WebP">
+            <i class="fa-solid fa-bolt-lightning text-warning"></i> Convert to WebP
         </button>
         <button type="button" class="btn-floating-action" onclick="copySelectedUrls()">
-            <i class="fa-solid fa-copy"></i> URL কপি
+            <i class="fa-solid fa-copy"></i> Copy URLs
         </button>
         <button type="button" class="btn-floating-action" onclick="openBulkMoveModal()">
-            <i class="fa-solid fa-folder-tree"></i> ফোল্ডারে সরান
+            <i class="fa-solid fa-folder-tree"></i> Move Folder
         </button>
         <button type="button" class="btn-floating-action" onclick="executeBulkDownloadZip()">
-            <i class="fa-solid fa-file-zipper"></i> ZIP ডাউনলোড
+            <i class="fa-solid fa-file-zipper"></i> Download ZIP
         </button>
         <button type="button" class="btn-floating-action btn-floating-danger" onclick="executeBulkDelete()">
-            <i class="fa-solid fa-trash-can"></i> মুছে ফেলুন
+            <i class="fa-solid fa-trash-can"></i> Delete
         </button>
-        <button type="button" class="btn-floating-action" onclick="clearAllSelections()" title="নির্বাচন বাতিল">
+        <button type="button" class="btn-floating-action" onclick="clearAllSelections()" title="Clear Selection">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 1: ✨ কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও (IMAGE CUSTOMIZER STUDIO)        --}}
+{{-- MODAL 1: ✨ IMAGE CUSTOMIZER & STUDIO                                      --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="mediaStudioModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
@@ -609,7 +608,7 @@
             <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
                 <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="studioModalTitle">
                     <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
-                    <span>কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও</span>
+                    <span>Image Customizer & Studio</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -621,10 +620,10 @@
                             <canvas id="studioCanvas" class="studio-canvas"></canvas>
                         </div>
                         <div class="d-flex align-items-center justify-content-between text-muted small px-1 font-monospace">
-                            <span id="studioOrigMetaDisplay">আসল রেজোলিউশন: -</span>
+                            <span id="studioOrigMetaDisplay">Original Resolution: -</span>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5" onclick="downloadStudioCanvasLocally()">
-                                    <i class="fa-solid fa-download me-1"></i> লোকাল ডাউনলোড
+                                    <i class="fa-solid fa-download me-1"></i> Download Local Copy
                                 </button>
                             </div>
                         </div>
@@ -636,35 +635,35 @@
                         {{-- 1. Aspect Ratio & Presets --}}
                         <div class="studio-control-box">
                             <div class="studio-control-title">
-                                <i class="fa-solid fa-crop text-primary"></i> আসপেক্ট রেশিও ও সাইজ প্রিসেট
+                                <i class="fa-solid fa-crop text-primary"></i> Aspect Ratio & Size Presets
                             </div>
                             <div class="d-flex flex-wrap gap-1.5 mb-2.5">
-                                <span class="studio-preset-chip active" data-preset="original" onclick="setStudioPreset('original')">আসল সাইজ</span>
-                                <span class="studio-preset-chip" data-preset="book-cover-std" onclick="setStudioPreset('book-cover-std')">📚 বই কাভার (800×1200)</span>
-                                <span class="studio-preset-chip" data-preset="book-cover-compact" onclick="setStudioPreset('book-cover-compact')">📖 কমপ্যাক্ট (600×900)</span>
-                                <span class="studio-preset-chip" data-preset="1:1" onclick="setStudioPreset('1:1')">1:1 বর্গাকার</span>
-                                <span class="studio-preset-chip" data-preset="16:9" onclick="setStudioPreset('16:9')">16:9 ব্যানার</span>
-                                <span class="studio-preset-chip" data-preset="4:3" onclick="setStudioPreset('4:3')">4:3 স্ট্যান্ডার্ড</span>
-                                <span class="studio-preset-chip" data-preset="1200x630" onclick="setStudioPreset('1200x630')">🔗 সোশ্যাল ব্যানার (1200×630)</span>
-                                <span class="studio-preset-chip" data-preset="1080x1080" onclick="setStudioPreset('1080x1080')">📱 স্কয়ার পোস্ট (1080×1080)</span>
+                                <span class="studio-preset-chip active" data-preset="original" onclick="setStudioPreset('original')">Original</span>
+                                <span class="studio-preset-chip" data-preset="book-cover-std" onclick="setStudioPreset('book-cover-std')">📚 Book Cover (800×1200)</span>
+                                <span class="studio-preset-chip" data-preset="book-cover-compact" onclick="setStudioPreset('book-cover-compact')">📖 Compact (600×900)</span>
+                                <span class="studio-preset-chip" data-preset="1:1" onclick="setStudioPreset('1:1')">1:1 Square</span>
+                                <span class="studio-preset-chip" data-preset="16:9" onclick="setStudioPreset('16:9')">16:9 Banner</span>
+                                <span class="studio-preset-chip" data-preset="4:3" onclick="setStudioPreset('4:3')">4:3 Standard</span>
+                                <span class="studio-preset-chip" data-preset="1200x630" onclick="setStudioPreset('1200x630')">🔗 Social Banner (1200×630)</span>
+                                <span class="studio-preset-chip" data-preset="1080x1080" onclick="setStudioPreset('1080x1080')">📱 Square Post (1080×1080)</span>
                                 <span class="studio-preset-chip" data-preset="1920x1080" onclick="setStudioPreset('1920x1080')">1920×1080 HD</span>
                             </div>
                             <div class="row g-2 align-items-center">
                                 <div class="col-5">
-                                    <label class="form-label fs-xs text-muted mb-0.5">প্রস্থ (Width px)</label>
+                                    <label class="form-label fs-xs text-muted mb-0.5">Width (px)</label>
                                     <input type="number" id="studioWidthInput" class="form-control form-control-sm font-monospace fw-bold" placeholder="Width">
                                 </div>
                                 <div class="col-2 text-center pt-3">
                                     <i class="fa-solid fa-xmark text-muted"></i>
                                 </div>
                                 <div class="col-5">
-                                    <label class="form-label fs-xs text-muted mb-0.5">উচ্চতা (Height px)</label>
+                                    <label class="form-label fs-xs text-muted mb-0.5">Height (px)</label>
                                     <input type="number" id="studioHeightInput" class="form-control form-control-sm font-monospace fw-bold" placeholder="Height">
                                 </div>
                                 <div class="col-12 mt-2">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="studioLockRatio" checked>
-                                        <label class="form-check-label small fw-semibold text-dark" for="studioLockRatio">আসপেক্ট রেশিও লক রাখুন (Lock Ratio)</label>
+                                        <label class="form-check-label small fw-semibold text-dark" for="studioLockRatio">Lock Aspect Ratio</label>
                                     </div>
                                 </div>
                             </div>
@@ -673,7 +672,7 @@
                         {{-- 2. Transform: Rotate & Flip --}}
                         <div class="studio-control-box">
                             <div class="studio-control-title">
-                                <i class="fa-solid fa-arrows-rotate text-info"></i> রোটেট ও ট্রান্সফর্ম
+                                <i class="fa-solid fa-arrows-rotate text-info"></i> Rotate & Transform
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="studioRotate(-90)">
@@ -683,10 +682,10 @@
                                     <i class="fa-solid fa-rotate-right me-1"></i> +90°
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="studioFlip('h')">
-                                    <i class="fa-solid fa-arrows-left-right me-1"></i> ফ্লিপ (H)
+                                    <i class="fa-solid fa-arrows-left-right me-1"></i> Flip (H)
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="studioFlip('v')">
-                                    <i class="fa-solid fa-arrows-up-down me-1"></i> ফ্লিপ (V)
+                                    <i class="fa-solid fa-arrows-up-down me-1"></i> Flip (V)
                                 </button>
                             </div>
                         </div>
@@ -694,31 +693,31 @@
                         {{-- 3. Filters & Tone Adjustment --}}
                         <div class="studio-control-box">
                             <div class="studio-control-title">
-                                <i class="fa-solid fa-sliders text-success"></i> ফিল্টার ও কালার অ্যাডজাস্টমেন্ট
+                                <i class="fa-solid fa-sliders text-success"></i> Filters & Color Adjustment
                             </div>
                             <div class="d-flex flex-wrap gap-1.5 mb-3">
-                                <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2.5" onclick="setStudioQuickFilter('none')">স্বাভাবিক</button>
-                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5" onclick="setStudioQuickFilter('crisp')">উজ্জ্বল ও ক্রিস্প</button>
-                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5" onclick="setStudioQuickFilter('bw')">সাদা-কালো (B&W)</button>
-                                <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-2.5" onclick="setStudioQuickFilter('vintage')">ভিন্টেজ (Sepia)</button>
+                                <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2.5" onclick="setStudioQuickFilter('none')">Normal</button>
+                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5" onclick="setStudioQuickFilter('crisp')">Crisp & Bright</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5" onclick="setStudioQuickFilter('bw')">Black & White</button>
+                                <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-2.5" onclick="setStudioQuickFilter('vintage')">Vintage (Sepia)</button>
                             </div>
                             <div class="mb-2">
                                 <div class="d-flex justify-content-between small text-muted mb-0.5">
-                                    <span>উজ্জ্বলতা (Brightness)</span>
+                                    <span>Brightness</span>
                                     <span id="studioBrightnessVal" class="font-monospace fw-bold text-dark">100%</span>
                                 </div>
                                 <input type="range" class="form-range" id="studioBrightness" min="30" max="180" value="100">
                             </div>
                             <div class="mb-2">
                                 <div class="d-flex justify-content-between small text-muted mb-0.5">
-                                    <span>কনট্রাস্ট (Contrast)</span>
+                                    <span>Contrast</span>
                                     <span id="studioContrastVal" class="font-monospace fw-bold text-dark">100%</span>
                                 </div>
                                 <input type="range" class="form-range" id="studioContrast" min="30" max="180" value="100">
                             </div>
                             <div class="mb-2">
                                 <div class="d-flex justify-content-between small text-muted mb-0.5">
-                                    <span>কালার স্যাচুরেশন (Saturation)</span>
+                                    <span>Saturation</span>
                                     <span id="studioSaturationVal" class="font-monospace fw-bold text-dark">100%</span>
                                 </div>
                                 <input type="range" class="form-range" id="studioSaturation" min="0" max="200" value="100">
@@ -728,7 +727,7 @@
                         {{-- 4. Branding & Watermark Overlay --}}
                         <div class="studio-control-box">
                             <div class="studio-control-title">
-                                <i class="fa-solid fa-stamp text-danger"></i> ওয়াটারমার্ক ও ব্র্যান্ডিং স্ট্যাম্প
+                                <i class="fa-solid fa-stamp text-danger"></i> Watermark & Branding
                             </div>
                             <div class="mb-2">
                                 <input type="text" id="studioWatermarkTextInput" class="form-control form-control-sm" placeholder="e.g. © IDEA Prokashon / ideaabd.com">
@@ -736,18 +735,18 @@
                             <div class="row g-2">
                                 <div class="col-6">
                                     <div class="d-flex justify-content-between small text-muted mb-0.5">
-                                        <span>স্বচ্ছতা (Opacity)</span>
+                                        <span>Opacity</span>
                                         <span id="studioWatermarkOpacityVal" class="font-monospace fw-bold text-dark">60%</span>
                                     </div>
                                     <input type="range" class="form-range" id="studioWatermarkOpacity" min="10" max="100" value="60">
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label fs-xs text-muted mb-0.5">পজিশন</label>
+                                    <label class="form-label fs-xs text-muted mb-0.5">Position</label>
                                     <select id="studioWatermarkPos" class="form-select form-select-sm" onchange="studioState.watermarkPosition = this.value; renderStudioCanvas();">
-                                        <option value="bottom-right" selected>নিচে ডানে (Bottom Right)</option>
-                                        <option value="bottom-left">নিচে বামে (Bottom Left)</option>
-                                        <option value="center">কেন্দ্রে (Center)</option>
-                                        <option value="top-right">উপরে ডানে (Top Right)</option>
+                                        <option value="bottom-right" selected>Bottom Right</option>
+                                        <option value="bottom-left">Bottom Left</option>
+                                        <option value="center">Center</option>
+                                        <option value="top-right">Top Right</option>
                                     </select>
                                 </div>
                             </div>
@@ -756,19 +755,19 @@
                         {{-- 5. Format & Compression --}}
                         <div class="studio-control-box">
                             <div class="studio-control-title">
-                                <i class="fa-solid fa-file-export text-purple"></i> এক্সপোর্ট ফরম্যাট ও কম্প্রেশন কোয়ালিটি
+                                <i class="fa-solid fa-file-export text-purple"></i> Export Format & Quality
                             </div>
                             <div class="row g-2 mb-2">
                                 <div class="col-6">
-                                    <label class="form-label fs-xs text-muted mb-0.5">টার্গেট ফরম্যাট</label>
+                                    <label class="form-label fs-xs text-muted mb-0.5">Target Format</label>
                                     <select id="studioFormatSelect" class="form-select form-select-sm fw-bold">
-                                        <option value="webp" selected>⚡ WebP (সুপার ফাস্ট)</option>
-                                        <option value="png">PNG (স্বচ্ছ ব্যাকগ্রাউন্ড)</option>
-                                        <option value="jpg">JPG / JPEG (স্ট্যান্ডার্ড)</option>
+                                        <option value="webp" selected>⚡ WebP (Optimal)</option>
+                                        <option value="png">PNG (Lossless / Transparent)</option>
+                                        <option value="jpg">JPG / JPEG (Standard)</option>
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label fs-xs text-muted mb-0.5">টার্গেট ফোল্ডার</label>
+                                    <label class="form-label fs-xs text-muted mb-0.5">Target Folder</label>
                                     <select id="studioFolderSelect" class="form-select form-select-sm">
                                         @foreach($folderDefs as $fk => $finfo)
                                             <option value="{{ $fk }}" {{ ($folderFilter !== 'all' && $folderFilter === $fk) || ($folderFilter === 'all' && $fk === 'uploads') ? 'selected' : '' }}>{{ $finfo['label'] }}</option>
@@ -778,7 +777,7 @@
                             </div>
                             <div>
                                 <div class="d-flex justify-content-between small text-muted mb-0.5">
-                                    <span>কোয়ালিটি কম্প্রেশন</span>
+                                    <span>Quality Compression</span>
                                     <span id="studioQualityVal" class="font-monospace fw-bold text-success">85% (Optimal)</span>
                                 </div>
                                 <input type="range" class="form-range" id="studioQuality" min="30" max="100" value="85">
@@ -787,7 +786,7 @@
 
                         {{-- 6. File Name --}}
                         <div class="studio-control-box">
-                            <label class="form-label small fw-bold text-dark mb-1">ফাইলের নাম (File Name)</label>
+                            <label class="form-label small fw-bold text-dark mb-1">File Name</label>
                             <input type="text" id="studioFilenameInput" class="form-control form-control-sm font-monospace fw-semibold" placeholder="e.g. customized_book_cover">
                         </div>
 
@@ -795,13 +794,13 @@
                 </div>
             </div>
             <div class="modal-footer border-top py-3 px-4 bg-white d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3.5 fw-bold" id="btnStudioOverwrite" onclick="saveCustomizedImage('overwrite')">
-                        <i class="fa-solid fa-arrows-rotate me-1"></i> মূল ফাইল ওভাররাইট করুন
+                        <i class="fa-solid fa-arrows-rotate me-1"></i> Overwrite Original
                     </button>
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btnStudioSaveCopy" onclick="saveCustomizedImage('new_copy')">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> নতুন কপি হিসেবে সংরক্ষণ
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Save as New Copy
                     </button>
                 </div>
             </div>
@@ -818,7 +817,7 @@
             <div class="modal-header border-bottom py-3 px-4 bg-light rounded-top-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up text-primary"></i>
-                    <span>মিডিয়া ও অ্যাসেট আপলোড ইঞ্জিন</span>
+                    <span>Media Upload Engine</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -827,10 +826,10 @@
                 {{-- Drop Zone --}}
                 <div class="media-dropzone mb-3" id="mediaUploadZone" onclick="document.getElementById('multiFileInput').click()">
                     <i class="fa-solid fa-cloud-arrow-up media-dropzone-icon"></i>
-                    <h6 class="fw-bold text-dark mb-1">ছবি বা অ্যাসেট ড্র্যাগ করে এখানে ছাড়ুন অথবা ক্লিক করুন</h6>
-                    <p class="text-muted small mb-2">সমর্থিত ফরম্যাট: JPG, PNG, WEBP, SVG, GIF, AVIF, ICO | সর্বোচ্চ প্রতি ফাইল: 10MB</p>
+                    <h6 class="fw-bold text-dark mb-1">Drag and drop images here or click to browse</h6>
+                    <p class="text-muted small mb-2">Supported Formats: JPG, PNG, WEBP, SVG, GIF, AVIF, ICO | Max 10MB per file</p>
                     <span class="badge bg-primary text-white rounded-pill px-3 py-1.5 font-monospace">
-                        <i class="fa-solid fa-folder-open me-1"></i> ফাইল ব্রাউজ করুন
+                        <i class="fa-solid fa-folder-open me-1"></i> Browse Files
                     </span>
                     <input type="file" id="multiFileInput" class="d-none" multiple accept="image/*">
                 </div>
@@ -838,7 +837,7 @@
                 {{-- Upload Options --}}
                 <div class="row g-3 p-3 bg-light rounded-3 border mb-3">
                     <div class="col-12 col-md-6">
-                        <label class="form-label small fw-bold text-dark">টার্গেট ফোল্ডার</label>
+                        <label class="form-label small fw-bold text-dark">Target Folder</label>
                         <select id="uploadTargetFolder" class="form-select form-select-sm rounded-3 fw-semibold">
                             @foreach($folderDefs as $fk => $finfo)
                                 <option value="{{ $fk }}" {{ ($folderFilter !== 'all' && $folderFilter === $fk) || ($folderFilter === 'all' && $fk === 'uploads') ? 'selected' : '' }}>
@@ -848,19 +847,19 @@
                         </select>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label class="form-label small fw-bold text-dark">ম্যাক্সিমাম রেজোলিউশন লিমিট</label>
+                        <label class="form-label small fw-bold text-dark">Max Resolution Limit</label>
                         <select id="uploadMaxDim" class="form-select form-select-sm rounded-3 fw-semibold">
-                            <option value="1920" selected>1920px (Full HD অটো স্কেল)</option>
-                            <option value="1200">1200px (স্ট্যান্ডার্ড ওয়েব)</option>
-                            <option value="800">800px (কমপ্যাক্ট)</option>
-                            <option value="0">আসল সাইজ রাখুন (No Resize)</option>
+                            <option value="1920" selected>1920px (Full HD Auto Scale)</option>
+                            <option value="1200">1200px (Standard Web)</option>
+                            <option value="800">800px (Compact)</option>
+                            <option value="0">Keep Original Size (No Resize)</option>
                         </select>
                     </div>
                     <div class="col-12">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="uploadAutoWebp" checked>
                             <label class="form-check-label small fw-semibold text-dark" for="uploadAutoWebp">
-                                আপলোডের সময় স্বয়ংক্রিয়ভাবে WebP অপ্টিমাইজ করুন (Faster Page Speed)
+                                Auto-convert to WebP during upload (Faster Page Speed)
                             </label>
                         </div>
                     </div>
@@ -868,15 +867,15 @@
 
                 {{-- Preview List for Pending Files --}}
                 <div id="uploadPreviewWrap" class="d-none mb-3">
-                    <label class="form-label small fw-bold text-dark mb-1.5">নির্বাচিত ফাইলসমূহ:</label>
+                    <label class="form-label small fw-bold text-dark mb-1.5">Selected Files:</label>
                     <div id="uploadThumbPreviewList" style="max-height: 180px; overflow-y: auto; scrollbar-width: thin;"></div>
                 </div>
 
                 {{-- Progress Bar --}}
                 <div id="uploadProgressWrap" class="d-none mb-2">
                     <div class="d-flex justify-content-between small text-muted mb-1 font-monospace">
-                        <span>আপলোড ও অপ্টিমাইজেশন চলছে...</span>
-                        <span id="uploadPercentLabel">প্রসেসিং</span>
+                        <span>Uploading & Optimizing...</span>
+                        <span id="uploadPercentLabel">Processing</span>
                     </div>
                     <div class="media-upload-progress">
                         <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" id="uploadProgressBar" style="width: 0%;"></div>
@@ -885,9 +884,9 @@
 
             </div>
             <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4 d-flex justify-content-between">
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btnSubmitUpload" onclick="submitMultiUploadAjax()">
-                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> আপলোড ও অপ্টিমাইজ শুরু করুন
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Start Upload & Optimize
                 </button>
             </div>
         </div>
@@ -903,17 +902,17 @@
             <div class="modal-header border-bottom py-2.5 px-3 bg-light rounded-top-4">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="fa-solid fa-folder-plus text-warning"></i>
-                    <span>নতুন ফোল্ডার তৈরি</span>
+                    <span>Create New Folder</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
                 <div class="mb-2.5">
-                    <label class="form-label small fw-bold text-dark">ফোল্ডারের নাম (English Slug)</label>
+                    <label class="form-label small fw-bold text-dark">Folder Name (Slug)</label>
                     <input type="text" id="newFolderNameInput" class="form-control form-control-sm font-monospace" placeholder="e.g. spring_campaign">
                 </div>
                 <div class="mb-1">
-                    <label class="form-label small fw-bold text-dark">লোকেশন</label>
+                    <label class="form-label small fw-bold text-dark">Storage Location</label>
                     <select id="newFolderLocSelect" class="form-select form-select-sm">
                         <option value="storage" selected>Storage Public (storage/app/public)</option>
                         <option value="public">Root Images (public/images)</option>
@@ -921,9 +920,9 @@
                 </div>
             </div>
             <div class="modal-footer border-top py-2 px-3 bg-light rounded-bottom-4">
-                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-xs btn-warning text-dark fw-bold rounded-pill px-3" id="btnConfirmCreateFolder" onclick="submitCreateFolder()">
-                    <i class="fa-solid fa-check me-1"></i> ফোল্ডার তৈরি
+                    <i class="fa-solid fa-check me-1"></i> Create Folder
                 </button>
             </div>
         </div>
@@ -939,20 +938,20 @@
             <div class="modal-header border-bottom py-2.5 px-3 bg-light rounded-top-4">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-primary"></i>
-                    <span>ফাইলের নাম পরিবর্তন</span>
+                    <span>Rename File</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
                 <input type="hidden" id="renamePathInput">
-                <label class="form-label small fw-bold text-dark">নতুন ফাইলের নাম</label>
+                <label class="form-label small fw-bold text-dark">New File Name</label>
                 <input type="text" id="renameNewNameInput" class="form-control form-control-sm font-monospace fw-semibold" placeholder="new-file-name">
-                <small class="text-muted fs-xs mt-1 d-block">এক্সটেনশন স্বয়ংক্রিয়ভাবে সংরক্ষিত থাকবে।</small>
+                <small class="text-muted fs-xs mt-1 d-block">File extension will be preserved automatically.</small>
             </div>
             <div class="modal-footer border-top py-2 px-3 bg-light rounded-bottom-4">
-                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-xs btn-primary fw-bold rounded-pill px-3" id="btnConfirmRename" onclick="submitRenameFile()">
-                    <i class="fa-solid fa-check me-1"></i> নাম সংরক্ষণ
+                    <i class="fa-solid fa-check me-1"></i> Save Name
                 </button>
             </div>
         </div>
@@ -968,12 +967,12 @@
             <div class="modal-header border-bottom py-2.5 px-3 bg-light rounded-top-4">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="fa-solid fa-folder-tree text-primary"></i>
-                    <span>ফোল্ডারে স্থানান্তর</span>
+                    <span>Move to Folder</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-3">
-                <label class="form-label small fw-bold text-dark">টার্গেট ফোল্ডার নির্বাচন করুন</label>
+                <label class="form-label small fw-bold text-dark">Select Target Folder</label>
                 <select id="bulkMoveTargetFolder" class="form-select form-select-sm fw-semibold">
                     @foreach($folderDefs as $fk => $finfo)
                         <option value="{{ $fk }}">{{ $finfo['label'] }}</option>
@@ -981,9 +980,9 @@
                 </select>
             </div>
             <div class="modal-footer border-top py-2 px-3 bg-light rounded-bottom-4">
-                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-xs btn-primary fw-bold rounded-pill px-3" id="btnConfirmBulkMove" onclick="executeBulkMove()">
-                    <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> স্থানান্তর করুন
+                    <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Move Files
                 </button>
             </div>
         </div>
@@ -999,7 +998,7 @@
             <div class="modal-header border-bottom py-3 px-4 bg-light rounded-top-4">
                 <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
                     <i class="fa-solid fa-arrow-right-arrow-left text-primary"></i>
-                    <span>মিডিয়া ফাইল রিপ্লেস / আপডেট</span>
+                    <span>Replace Media Asset</span>
                 </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -1007,21 +1006,21 @@
                 <input type="hidden" id="replaceTargetPathInput">
                 <div class="alert alert-primary py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
                     <i class="fa-solid fa-circle-info fs-5 text-primary"></i>
-                    <div>ফাইলের নাম ও বর্তমান লিঙ্ক অক্ষুণ্ণ রেখে নতুন ছবি দিয়ে রিপ্লেস হবে এবং স্বয়ংক্রিয়ভাবে অপ্টিমাইজ হবে।</div>
+                    <div>Replaces the asset image while keeping the exact URL and file name, with automatic optimization.</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-dark mb-1">টার্গেট ফাইল:</label>
+                    <label class="form-label small fw-bold text-dark mb-1">Target Asset:</label>
                     <div id="replaceTargetFilenameDisplay" class="font-monospace fw-bold text-primary small p-2.5 bg-light rounded border"></div>
                 </div>
                 <div>
-                    <label class="form-label small fw-bold text-dark mb-1">নতুন ছবি নির্বাচন করুন:</label>
+                    <label class="form-label small fw-bold text-dark mb-1">Select Replacement Image:</label>
                     <input type="file" id="replaceFileInput" class="form-control form-control-sm" accept="image/*">
                 </div>
             </div>
             <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4 d-flex justify-content-between">
-                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-xs btn-primary fw-bold rounded-pill px-4 shadow-sm" id="btnConfirmReplace" onclick="submitReplaceFile()">
-                    <i class="fa-solid fa-check me-1"></i> রিপ্লেস ও সেভ করুন
+                    <i class="fa-solid fa-check me-1"></i> Replace & Save
                 </button>
             </div>
         </div>
@@ -1040,13 +1039,13 @@
                     <h6 class="modal-title fw-bold text-white small text-truncate mb-0" id="lightboxTitle">Image Preview</h6>
                 </div>
                 <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
-                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(0.2)" title="জুম ইন">
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(0.2)" title="Zoom In">
                         <i class="fa-solid fa-magnifying-glass-plus"></i>
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(-0.2)" title="জুম আউট">
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(-0.2)" title="Zoom Out">
                         <i class="fa-solid fa-magnifying-glass-minus"></i>
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxResetZoom()" title="রিসেট">
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxResetZoom()" title="Reset Zoom">
                         <i class="fa-solid fa-rotate-left"></i>
                     </button>
                     <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal"></button>
@@ -1054,14 +1053,14 @@
             </div>
             <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black overflow-hidden" style="min-height: 500px; max-height: 75vh;">
                 <!-- Nav Prev Arrow -->
-                <button type="button" class="lightbox-nav-btn lightbox-nav-prev" onclick="lightboxNavigate(-1)" title="পূর্ববর্তী ছবি (Left Arrow)">
+                <button type="button" class="lightbox-nav-btn lightbox-nav-prev" onclick="lightboxNavigate(-1)" title="Previous (Left Arrow)">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
                 <div class="lightbox-img-wrapper d-flex align-items-center justify-content-center w-100 h-100 p-2" id="lightboxImgWrapper">
                     <img id="lightboxImage" src="" alt="Full Preview" class="img-fluid rounded shadow transition-all" style="max-height: 70vh; max-width: 88vw; object-fit: contain; transition: transform 0.2s ease;">
                 </div>
                 <!-- Nav Next Arrow -->
-                <button type="button" class="lightbox-nav-btn lightbox-nav-next" onclick="lightboxNavigate(1)" title="পরবর্তী ছবি (Right Arrow)">
+                <button type="button" class="lightbox-nav-btn lightbox-nav-next" onclick="lightboxNavigate(1)" title="Next (Right Arrow)">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </div>
@@ -1069,16 +1068,16 @@
                 <div class="small text-light font-monospace" id="lightboxMeta"></div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-3 fw-semibold" id="lightboxStudioBtn" onclick="openStudioFromLightbox()">
-                        <i class="fa-solid fa-palette me-1"></i> স্টুডিওতে খুলুন
+                        <i class="fa-solid fa-palette me-1"></i> Open in Studio
                     </button>
-                    <a href="" id="lightboxDownloadBtn" download class="btn btn-xs btn-outline-success rounded-pill px-3" title="ডাউনলোড">
-                        <i class="fa-solid fa-download me-1"></i> ডাউনলোড
+                    <a href="" id="lightboxDownloadBtn" download class="btn btn-xs btn-outline-success rounded-pill px-3" title="Download">
+                        <i class="fa-solid fa-download me-1"></i> Download
                     </a>
                     <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-3" id="lightboxCopyBtn" onclick="copySnippet('url', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
-                        <i class="fa-regular fa-copy me-1"></i> URL কপি
+                        <i class="fa-regular fa-copy me-1"></i> Copy URL
                     </button>
                     <a href="" target="_blank" class="btn btn-xs btn-primary rounded-pill px-3.5 fw-bold" id="lightboxOpenBtn">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> ব্রাউজারে দেখুন
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open in Browser
                     </a>
                 </div>
             </div>
@@ -1087,7 +1086,7 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 8: DYNAMIC WEBP CONVERSION & STORAGE BOOSTER ENGINE                 --}}
+{{-- MODAL 8: NEXT-GEN WEBP CONVERSION & STORAGE BOOSTER ENGINE                --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="convertWebpEngineModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1095,7 +1094,7 @@
             <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
                 <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
                     <i class="fa-solid fa-bolt-lightning text-warning"></i>
-                    <span>Next-Gen WebP রূপান্তর ও মেমোরি বুস্টার ইঞ্জিন</span>
+                    <span>Next-Gen WebP Conversion & Storage Booster</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -1105,18 +1104,18 @@
                     <div class="alert alert-success d-flex align-items-center gap-3 p-3 rounded-3 mb-4 border-0 bg-success-subtle text-success-emphasis shadow-sm">
                         <i class="fa-solid fa-wand-magic-sparkles fs-2 text-success"></i>
                         <div>
-                            <strong class="d-block fs-6">স্বয়ংক্রিয় ইমেজ কম্প্রেশন ও স্পিড অপ্টিমাইজেশন</strong>
-                            <span class="small opacity-90">PNG ও JPG ফাইলগুলোকে লসলেস/উচ্চ কোয়ালিটির WebP-তে রূপান্তর করে পেজ লোডিং গতি ৭০% পর্যন্ত দ্রুত এবং মেমোরি সাশ্রয় করুন।</span>
+                            <strong class="d-block fs-6">Automatic Image Compression & Speed Optimization</strong>
+                            <span class="small opacity-90">Convert PNG & JPG images to modern lossless/high-quality WebP format to speed up page loading up to 70% and reclaim disk space.</span>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fa-regular fa-folder-open text-primary me-1"></i> টার্গেট ফোল্ডার নির্বাচন
+                                <i class="fa-regular fa-folder-open text-primary me-1"></i> Target Folder
                             </label>
                             <select id="webpTargetFolderSelect" class="form-select rounded-3 fw-semibold py-2">
-                                <option value="all" selected>🌐 সকল ফোল্ডার (পুরো সিস্টেম)</option>
+                                <option value="all" selected>🌐 All Folders (Entire System)</option>
                                 @foreach($folderDefs as $fk => $finfo)
                                     <option value="{{ $fk }}">{{ $finfo['label'] }}</option>
                                 @endforeach
@@ -1124,10 +1123,10 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold text-dark">
-                                <i class="fa-solid fa-gauge-high text-success me-1"></i> WebP কোয়ালিটি লেভেল
+                                <i class="fa-solid fa-gauge-high text-success me-1"></i> WebP Quality Level
                             </label>
                             <select id="webpQualitySelect" class="form-select rounded-3 fw-semibold py-2">
-                                <option value="85" selected>85% (Optimal — দ্রুত ও ক্রিস্প)</option>
+                                <option value="85" selected>85% (Optimal — Fast & Crisp)</option>
                                 <option value="90">90% (Ultra High Quality)</option>
                                 <option value="75">75% (Maximum Storage Saving)</option>
                             </select>
@@ -1136,19 +1135,19 @@
                             <div class="form-check form-switch p-3 bg-white rounded-3 border shadow-sm">
                                 <input class="form-check-input ms-0 me-2" type="checkbox" id="webpDeleteOriginalCheck" checked>
                                 <label class="form-check-label small fw-bold text-dark cursor-pointer" for="webpDeleteOriginalCheck">
-                                    মূল PNG / JPG ফাইল মুছে স্টোরেজ ডিস্ক মেমোরি খালি করুন (Recommended)
+                                    Delete original PNG / JPG files to reclaim disk space (Recommended)
                                 </label>
-                                <div class="fs-xs text-muted ms-4 ps-2">কনভার্সন সফল হলে মূল ভারি ফাইলটি মুছে স্পেস ফ্রি করবে।</div>
+                                <div class="fs-xs text-muted ms-4 ps-2">After successful conversion, the original heavy files will be removed.</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end align-items-center gap-2 pt-3 border-top">
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">
-                            বাতিল
+                            Cancel
                         </button>
                         <button type="button" class="btn btn-webp-gradient rounded-pill px-4 py-2 shadow fw-bold" onclick="startWebpConversionEngine()">
-                            <i class="fa-solid fa-bolt-lightning me-1.5"></i> রূপান্তর প্রক্রিয়া শুরু করুন
+                            <i class="fa-solid fa-bolt-lightning me-1.5"></i> Start Conversion Process
                         </button>
                     </div>
                 </div>
@@ -1159,8 +1158,8 @@
                         <div class="spinner-grow text-success mb-2" role="status" style="width: 3rem; height: 3rem;">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        <h5 class="fw-bold text-dark mb-1" id="webpProgressTitle">ইমেজ স্ক্যান ও WebP রূপান্তর চলছে...</h5>
-                        <p class="text-muted small mb-3" id="webpProgressSubtitle">সার্ভারের ছবিগুলো প্রসেস হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন</p>
+                        <h5 class="fw-bold text-dark mb-1" id="webpProgressTitle">Scanning & Converting to WebP...</h5>
+                        <p class="text-muted small mb-3" id="webpProgressSubtitle">Processing server images, please wait...</p>
                     </div>
 
                     <!-- Progress Bar -->
@@ -1172,19 +1171,19 @@
                     <div class="row g-2 mb-3 text-center font-monospace">
                         <div class="col-4">
                             <div class="p-2 bg-white rounded-3 border">
-                                <div class="fs-xs text-muted">প্রসেসিং স্ট্যাটাস</div>
-                                <div class="fw-bold text-primary small" id="webpStatusBadge">চলছে...</div>
+                                <div class="fs-xs text-muted">Status</div>
+                                <div class="fw-bold text-primary small" id="webpStatusBadge">Processing...</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-white rounded-3 border">
-                                <div class="fs-xs text-muted">কনভার্ট সম্পন্ন</div>
-                                <div class="fw-bold text-success small" id="webpConvertedCount">0 টি ফাইল</div>
+                                <div class="fs-xs text-muted">Converted</div>
+                                <div class="fw-bold text-success small" id="webpConvertedCount">0 files</div>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="p-2 bg-white rounded-3 border">
-                                <div class="fs-xs text-muted">মেমোরি সাশ্রয়</div>
+                                <div class="fs-xs text-muted">Storage Saved</div>
                                 <div class="fw-bold text-dark small" id="webpMemorySaved">0 B</div>
                             </div>
                         </div>
@@ -1192,8 +1191,8 @@
 
                     <!-- Live Log Terminal Box -->
                     <div class="p-2.5 bg-dark text-success rounded-3 font-monospace small" id="webpEngineLogBox" style="max-height: 150px; overflow-y: auto; font-size: 11px; scrollbar-width: thin;">
-                        <div>[Init] WebP রূপান্তর ইঞ্জিন প্রস্তুত...</div>
-                        <div>[Scan] সিস্টেম ইমেজ ডিরেক্টরি স্ক্যান করা হচ্ছে...</div>
+                        <div>[Init] WebP engine initialized...</div>
+                        <div>[Scan] Scanning system image directories...</div>
                     </div>
                 </div>
 
@@ -1202,12 +1201,12 @@
                     <div class="mb-3">
                         <i class="fa-solid fa-circle-check text-success fs-1 animate__animated animate__bounceIn" style="font-size: 4rem;"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-1">WebP রূপান্তর সফলভাবে সম্পন্ন!</h4>
-                    <p class="text-muted small mb-4" id="webpSuccessMessage">সকল ছবি আধুনিক WebP ফরম্যাটে রূপান্তর ও অপ্টিমাইজ হয়েছে।</p>
+                    <h4 class="fw-bold text-dark mb-1">WebP Conversion Completed!</h4>
+                    <p class="text-muted small mb-4" id="webpSuccessMessage">All images converted to modern WebP format and optimized.</p>
 
                     <div class="d-inline-flex gap-2">
                         <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="window.location.reload()">
-                            <i class="fa-solid fa-rotate me-1"></i> পেজ রিফ্রেশ করুন
+                            <i class="fa-solid fa-rotate me-1"></i> Refresh Page
                         </button>
                     </div>
                 </div>
@@ -1220,3 +1219,4 @@
 <script src="{{ asset('js/admin-media.js') }}"></script>
 @endpush
 @endsection
+
