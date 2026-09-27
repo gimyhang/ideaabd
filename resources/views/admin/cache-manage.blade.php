@@ -533,9 +533,12 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
                 <p class="cache-header-subtitle">Monitor, inspect JSON payloads, and flush critical application memory keys.</p>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2.5">
-                <div class="input-group input-group-sm" style="width: 250px;">
+                <button type="button" class="btn btn-warm-all-keys" onclick="warmAllMemoryKeys(this)">
+                    <i class="fa-solid fa-fire-flame-curved"></i> Warm All Keys
+                </button>
+                <div class="input-group input-group-sm" style="width: 230px;">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" id="cacheKeySearchInput" class="form-control border-start-0" placeholder="Search cache keys...">
+                    <input type="text" id="cacheKeySearchInput" class="form-control border-start-0" placeholder="Search cache keys..." onkeyup="filterCacheKeysTable()">
                 </div>
                 <span class="badge bg-light text-dark border rounded-pill px-3 py-2 font-monospace">
                     <span id="cacheKeyVisibleCount">{{ count($cachedKeys) }}</span> Keys Registered
@@ -547,11 +550,11 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
             <table class="cache-table" id="cacheKeysTable">
                 <thead>
                     <tr>
-                        <th style="width: 28%;">Key Identifier</th>
-                        <th style="width: 32%;">Description & Purpose</th>
-                        <th style="width: 15%;">Type / Category</th>
-                        <th style="width: 12%;">Status</th>
-                        <th style="width: 13%;" class="text-end">Actions</th>
+                        <th style="width: 26%;">Key Identifier</th>
+                        <th style="width: 28%;">Description & Purpose</th>
+                        <th style="width: 13%;">Type / Category</th>
+                        <th style="width: 11%;">Status</th>
+                        <th style="width: 22%;" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -596,11 +599,14 @@ ideaabd-cache-runner@production:~$ Click any preset chip above or type a command
                             </td>
                             <td class="text-end">
                                 <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                    <button type="button" class="btn btn-table-action btn-table-inspect" onclick="inspectKeyPayload('{{ $k['key'] }}')">
-                                        <i class="fa-solid fa-eye me-1"></i> Inspect
+                                    <button type="button" class="btn btn-table-action btn-table-warm" title="Warm and populate this cache key" onclick="warmSingleKey('{{ $k['key'] }}', this)">
+                                        <i class="fa-solid fa-fire-flame-curved"></i> Warm
                                     </button>
-                                    <button type="button" class="btn btn-table-action btn-table-flush" onclick="deleteSingleKey('{{ $k['key'] }}', this)">
-                                        <i class="fa-solid fa-trash-can me-1"></i> Flush
+                                    <button type="button" class="btn btn-table-action btn-table-inspect" title="Inspect JSON payload" onclick="inspectKeyPayload('{{ $k['key'] }}')">
+                                        <i class="fa-solid fa-eye"></i> Inspect
+                                    </button>
+                                    <button type="button" class="btn btn-table-action btn-table-flush" title="Flush key from memory" onclick="deleteSingleKey('{{ $k['key'] }}', this)">
+                                        <i class="fa-solid fa-trash-can"></i> Flush
                                     </button>
                                 </div>
                             </td>

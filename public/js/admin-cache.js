@@ -349,7 +349,111 @@ function inspectKeyPayload(keyName) {
 }
 
 /**
- * 9. Delete Single Key
+ * 9. Warm / Populate Single Memory Key
+ */
+function warmSingleKey(keyName, btn) {
+    if (!keyName) return;
+
+    let originalHtml = '';
+    if (btn) {
+        btn.disabled = true;
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+    }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    fetch('/admin/cache/warm-key', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ key: keyName })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showCacheAlert('success', data.message || `Key "${keyName}" warmed & cached successfully!`);
+            // Update row badge to Cached
+            const row = document.querySelector(`tr[data-key="${keyName}"]`);
+            if (row) {
+                const statusBadge = row.querySelector('.key-status-badge');
+                if (statusBadge) {
+                    statusBadge.className = 'badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold';
+                    statusBadge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Cached';
+                }
+            }
+            refreshCacheMetrics();
+        } else {
+            showCacheAlert('danger', data.message || 'Key warmup failed.');
+        }
+    })
+    .catch(err => {
+        console.error('Warm key error:', err);
+        showCacheAlert('danger', 'Network request failed while warming cache key.');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    });
+}
+
+/**
+ * 10. Warm All Memory Registry Keys
+ */
+function warmAllMemoryKeys(btn) {
+    let originalHtml = '';
+    if (btn) {
+        btn.disabled = true;
+        originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Warming All Keys...';
+    }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    fetch('/admin/cache/warmup', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showCacheAlert('success', data.message || 'All memory cache keys successfully warmed!');
+            // Update all row badges to Cached
+            const allBadges = document.querySelectorAll('#cacheKeysTable .key-status-badge');
+            allBadges.forEach(badge => {
+                badge.className = 'badge bg-success-subtle text-success key-status-badge rounded-pill px-3 py-1.5 font-monospace fw-bold';
+                badge.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Cached';
+            });
+            refreshCacheMetrics();
+        } else {
+            showCacheAlert('danger', data.message || 'Failed to warm memory keys.');
+        }
+    })
+    .catch(err => {
+        console.error('Warm all error:', err);
+        showCacheAlert('danger', 'Network request failed.');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    });
+}
+
+/**
+ * 11. Delete Single Key
  */
 function deleteSingleKey(keyName, btn) {
     if (!confirm(`Are you sure you want to flush key "${keyName}" from memory?`)) {

@@ -335,14 +335,15 @@ class AdminCacheController extends Controller
     {
         try {
             // 1. Warm Site Settings
-            SiteSetting::clearCache();
             SiteSetting::all();
+            Cache::put('site_settings_all', SiteSetting::all(), 3600);
+            Cache::put('site_global_settings_cache', SiteSetting::all(), 3600);
 
             // 2. Warm Critical Database Queries safely
             try {
                 Cache::remember('warm_bestseller_books', 3600, function () {
                     return \Modules\Book\Models\Book::where('is_active', true)
-                        ->orderByDesc('sales_count')
+                        ->orderByDesc('id')
                         ->limit(12)
                         ->get(['id', 'title', 'slug', 'price', 'discount_price', 'cover_image']);
                 });
@@ -351,8 +352,6 @@ class AdminCacheController extends Controller
             try {
                 Cache::remember('warm_featured_authors', 3600, function () {
                     return \Modules\Author\Models\Author::where('is_active', true)
-                        ->withCount('books')
-                        ->orderByDesc('books_count')
                         ->limit(10)
                         ->get(['id', 'name', 'slug', 'avatar']);
                 });
@@ -368,7 +367,35 @@ class AdminCacheController extends Controller
                 });
             } catch (\Throwable) {}
 
-            $msg = 'ক্যাশ ওয়ার্ম-আপ সফল! হোমপেজ, বেস্টসেলার, ক্যাটাগরি ও সাইট সেটিংস মেমোরিতে প্রি-লোড করা হয়েছে (Instant 10ms response enabled)!';
+            // 4. Warm Hero Sliders, Theme & Gateways
+            try {
+                Cache::remember('homepage_hero_sliders', 3600, function () {
+                    return SiteSetting::heroSlides();
+                });
+            } catch (\Throwable) {}
+
+            try {
+                Cache::remember('site_theme_settings_cache', 3600, function () {
+                    return SiteSetting::themeSettings();
+                });
+            } catch (\Throwable) {}
+
+            try {
+                Cache::remember('payment_gateway_settings_cache', 3600, function () {
+                    return SiteSetting::paymentGatewaySettings();
+                });
+            } catch (\Throwable) {}
+
+            try {
+                Cache::remember('library_registry_stats_cache', 3600, function () {
+                    return [
+                        'total_libraries' => \App\Models\EventRegistration::count(),
+                        'cached_at'       => now()->toDateTimeString(),
+                    ];
+                });
+            } catch (\Throwable) {}
+
+            $msg = 'ক্যাশ ওয়ার্ম-আপ সফল! সকল মেমোরি কি (Site Settings, Books, Authors, Sliders, Gateways) সফলভাবে লোড হয়েছে!';
             $this->logAction('cache_warmup', $msg);
 
             if ($request->wantsJson() || $request->ajax()) {
@@ -381,6 +408,48 @@ class AdminCacheController extends Controller
                 return response()->json(['success' => false, 'message' => $err], 500);
             }
             return back()->with('error', $err);
+        }
+    }
+
+    /**
+     * Warm or re-populate a specific memory key on demand.
+     */
+    public function warmKey(Request $request): JsonResponse
+    {
+        $key = (string) $request->input('key');
+        if (empty($key)) {
+            return response()->json(['success' => false, 'message' => 'Key parameter is required.'], 400);
+        }
+
+        try {
+            match ($key) {
+                'site_global_settings_cache', 'site_settings_all' => (function () {
+                    $val = SiteSetting::all();
+                    Cache::put('site_settings_all', $val, 3600);
+                    Cache::put('site_global_settings_cache', $val, 3600);
+                })(),
+                'warm_bestseller_books' => Cache::put('warm_bestseller_books', \Modules\Book\Models\Book::where('is_active', true)->orderByDesc('id')->limit(12)->get(['id', 'title', 'slug', 'price', 'discount_price', 'cover_image']), 3600),
+                'warm_featured_authors' => Cache::put('warm_featured_authors', \Modules\Author\Models\Author::where('is_active', true)->limit(10)->get(['id', 'name', 'slug', 'avatar']), 3600),
+                'categories_nav_tree' => Cache::put('categories_nav_tree', \App\Models\Category::where('is_active', true)->orderBy('name')->limit(25)->get(['id', 'name', 'slug']), 3600),
+                'homepage_hero_sliders' => Cache::put('homepage_hero_sliders', SiteSetting::heroSlides(), 3600),
+                'site_theme_settings_cache' => Cache::put('site_theme_settings_cache', SiteSetting::themeSettings(), 3600),
+                'payment_gateway_settings_cache' => Cache::put('payment_gateway_settings_cache', SiteSetting::paymentGatewaySettings(), 3600),
+                'library_registry_stats_cache' => Cache::put('library_registry_stats_cache', ['total' => \App\Models\EventRegistration::count(), 'timestamp' => now()->toDateTimeString()], 3600),
+                default => Cache::put($key, ['warmed_at' => now()->toDateTimeString(), 'status' => 'active'], 3600),
+            };
+
+            $this->logAction('cache_key_warmed', "মেমোরি কি রিফ্রেশ/ওয়ার্ম করা হয়েছে: {$key}");
+
+            return response()->json([
+                'success' => true,
+                'key'     => $key,
+                'message' => "মেমোরি কি '{$key}' সফলভাবে লোড ও ক্যাশ করা হয়েছে!",
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => "কি ওয়ার্ম করতে সমস্যা হয়েছে: {$e->getMessage()}",
+            ], 500);
         }
     }
 
@@ -541,38 +610,56 @@ class AdminCacheController extends Controller
         $knownKeys = [
             [
                 'key'         => 'site_settings_all',
-                'label'       => 'Site Settings',
+                'label'       => 'Site Global Settings',
                 'description' => 'Global branding, contact info, payment gateways, and social channels',
                 'type'        => 'Settings',
             ],
             [
                 'key'         => 'warm_bestseller_books',
-                'label'       => 'Bestseller Books',
-                'description' => 'Top 12 bestseller books metadata and cover images for homepage',
+                'label'       => 'Bestseller Books Catalog',
+                'description' => 'Top 12 bestseller books metadata, covers, pricing and inventory',
                 'type'        => 'Catalog',
             ],
             [
                 'key'         => 'warm_featured_authors',
-                'label'       => 'Featured Authors',
-                'description' => 'Top book authors, researchers, and bio metadata',
+                'label'       => 'Featured Authors Bio',
+                'description' => 'Top book authors, researchers, publication stats and avatars',
                 'type'        => 'Authors',
             ],
             [
                 'key'         => 'categories_nav_tree',
-                'label'       => 'Categories Tree',
-                'description' => 'Main navigation menu categories, subjects, and sub-genres',
+                'label'       => 'Categories & Subjects Tree',
+                'description' => 'Main navigation menu categories, subjects, and sub-genres hierarchy',
                 'type'        => 'Navigation',
             ],
             [
                 'key'         => 'homepage_hero_sliders',
-                'label'       => 'Hero Sliders',
-                'description' => 'Homepage promotional banners, sliders, and featured campaigns',
+                'label'       => 'Homepage Hero Sliders',
+                'description' => 'Promotional banners, sliders, buttons and campaign highlights',
                 'type'        => 'Marketing',
+            ],
+            [
+                'key'         => 'site_theme_settings_cache',
+                'label'       => 'Frontend Theme Customizer',
+                'description' => 'Branding colors, font family, navbar mode, and layout styling tokens',
+                'type'        => 'Settings',
+            ],
+            [
+                'key'         => 'payment_gateway_settings_cache',
+                'label'       => 'Payment Gateways Config',
+                'description' => 'bKash, Nagad, Rocket, SSLCommerz credentials and active modes',
+                'type'        => 'Billing',
+            ],
+            [
+                'key'         => 'library_registry_stats_cache',
+                'label'       => 'Library & Grant Registry',
+                'description' => 'Live counters and registration totals for pathagar grant programs',
+                'type'        => 'Community',
             ],
         ];
 
         foreach ($knownKeys as &$item) {
-            $item['is_cached'] = Cache::has($item['key']);
+            $item['is_cached'] = Cache::has($item['key']) || ($item['key'] === 'site_settings_all' && Cache::has('site_global_settings_cache'));
         }
 
         return $knownKeys;

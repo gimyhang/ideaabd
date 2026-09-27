@@ -721,6 +721,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/clear-opcache', 'clearOpcache')->name('clear-opcache');
         Route::post('/clear-images', 'clearImages')->name('clear-images');
         Route::post('/warmup', 'warmup')->name('warmup');
+        Route::post('/warm-key', 'warmKey')->name('warm-key');
         Route::post('/delete-key', 'deleteKey')->name('delete-key');
         Route::post('/bulk-delete-keys', 'bulkDeleteKeys')->name('bulk-delete-keys');
         Route::post('/inspect-key', 'inspectKey')->name('inspect-key');
