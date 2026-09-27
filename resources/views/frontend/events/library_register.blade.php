@@ -320,37 +320,35 @@
                 <tr>
                     <td class="label-col">Division <span class="text-danger">*</span></td>
                     <td class="val-col" style="width: 30%;">
-                        <select name="division" class="grid-input" required>
+                        <select name="division" id="libDivision" class="grid-input" required>
                             <option value="">-- Select Division --</option>
-                            <option value="Dhaka" {{ old('division') === 'Dhaka' || old('division') === 'ঢাকা' ? 'selected' : '' }}>Dhaka</option>
-                            <option value="Chattogram" {{ old('division') === 'Chattogram' || old('division') === 'চট্টগ্রাম' ? 'selected' : '' }}>Chattogram</option>
-                            <option value="Rajshahi" {{ old('division') === 'Rajshahi' || old('division') === 'রাজশাহী' ? 'selected' : '' }}>Rajshahi</option>
-                            <option value="Rangpur" {{ old('division') === 'Rangpur' || old('division') === 'রংপুর' ? 'selected' : '' }}>Rangpur</option>
-                            <option value="Khulna" {{ old('division') === 'Khulna' || old('division') === 'খুলনা' ? 'selected' : '' }}>Khulna</option>
-                            <option value="Barishal" {{ old('division') === 'Barishal' || old('division') === 'বরিশাল' ? 'selected' : '' }}>Barishal</option>
-                            <option value="Sylhet" {{ old('division') === 'Sylhet' || old('division') === 'সিলেট' ? 'selected' : '' }}>Sylhet</option>
-                            <option value="Mymensingh" {{ old('division') === 'Mymensingh' || old('division') === 'ময়মনসিংহ' ? 'selected' : '' }}>Mymensingh</option>
                         </select>
                     </td>
                     <td class="label-col" style="width: 20%;">District <span class="text-danger">*</span></td>
                     <td class="val-col" style="width: 30%;">
-                        <input type="text" name="district" class="grid-input" placeholder="e.g. Rangpur, Dhaka" value="{{ old('district') }}" required>
+                        <select name="district" id="libDistrict" class="grid-input" required>
+                            <option value="">-- Select District --</option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">Upazila / Thana / Pourashava <span class="text-danger">*</span></td>
                     <td class="val-col">
-                        <input type="text" name="thana" class="grid-input" placeholder="e.g. Kotwali, Pirganj, Rangpur Pourashava" value="{{ old('thana') }}" required>
+                        <select name="thana" id="libUpazila" class="grid-input" required>
+                            <option value="">-- Select Upazila / City / Pourashava --</option>
+                        </select>
                     </td>
                     <td class="label-col">Post Office & Code</td>
                     <td class="val-col">
-                        <input type="text" name="post_office" class="grid-input" placeholder="e.g. Head Post Office - 5400" value="{{ old('post_office') }}">
+                        <select name="post_office" id="libPostOffice" class="grid-input">
+                            <option value="">-- Select Post Office --</option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
                     <td class="label-col">Full Address <span class="text-danger">*</span></td>
                     <td colspan="3" class="val-col">
-                        <input type="text" name="address" class="grid-input" placeholder="Village/Area, Road No, Holding No or details..." value="{{ old('address') }}" required>
+                        <input type="text" name="address" id="libAddress" class="grid-input" placeholder="Village / Area / Ward, Road No, Holding No or landmark..." value="{{ old('address') }}" required>
                     </td>
                 </tr>
             </table>
@@ -524,6 +522,109 @@
         input.value = input.value.replace(/[^0-9]/g, '').slice(0, 11);
     }
 
+    // Dynamic 4-Tier Location Cascading (বিভাগ -> জেলা -> মহানগর/উপজেলা/পৌরসভা -> পোস্ট অফিস)
+    function initLibraryLocationCascade() {
+        const divSelect = document.getElementById('libDivision');
+        const distSelect = document.getElementById('libDistrict');
+        const upaSelect = document.getElementById('libUpazila');
+        const poSelect = document.getElementById('libPostOffice');
+        if (!divSelect || !window.BD_GEO) return;
+
+        const oldDiv = "{{ old('division') }}";
+        const oldDist = "{{ old('district') }}";
+        const oldUpa = "{{ old('thana') }}";
+        const oldPo = "{{ old('post_office') }}";
+
+        // 1. Populate Divisions
+        divSelect.innerHTML = '<option value="">-- Select Division --</option>';
+        if (window.BD_GEO.divisions) {
+            Object.keys(window.BD_GEO.divisions).forEach(div => {
+                const opt = document.createElement('option');
+                opt.value = div;
+                opt.textContent = div;
+                if (oldDiv === div || (oldDiv && oldDiv.toLowerCase() === div.toLowerCase())) {
+                    opt.selected = true;
+                }
+                divSelect.appendChild(opt);
+            });
+        }
+
+        // 2. Populate Districts based on selected Division
+        function populateDistricts(selectedDiv, preselectedDist = '') {
+            distSelect.innerHTML = '<option value="">-- Select District --</option>';
+            upaSelect.innerHTML = '<option value="">-- Select Upazila / City / Pourashava --</option>';
+            poSelect.innerHTML = '<option value="">-- Select Post Office --</option>';
+
+            if (selectedDiv && window.BD_GEO.divisions[selectedDiv]) {
+                window.BD_GEO.divisions[selectedDiv].forEach(dist => {
+                    const opt = document.createElement('option');
+                    opt.value = dist;
+                    opt.textContent = dist;
+                    if (preselectedDist === dist || (preselectedDist && preselectedDist.toLowerCase() === dist.toLowerCase())) {
+                        opt.selected = true;
+                    }
+                    distSelect.appendChild(opt);
+                });
+            }
+        }
+
+        // 3. Populate Upazilas / Pourashavas & Post Offices based on selected District
+        function populateUpazilasAndPostOffices(selectedDist, preselectedUpa = '', preselectedPo = '') {
+            upaSelect.innerHTML = '<option value="">-- Select Upazila / City / Pourashava --</option>';
+            poSelect.innerHTML = '<option value="">-- Select Post Office --</option>';
+
+            if (selectedDist && window.BD_GEO.upazilas && window.BD_GEO.upazilas[selectedDist]) {
+                window.BD_GEO.upazilas[selectedDist].forEach(upa => {
+                    const opt = document.createElement('option');
+                    opt.value = upa;
+                    opt.textContent = upa;
+                    if (preselectedUpa === upa || (preselectedUpa && preselectedUpa.toLowerCase() === upa.toLowerCase())) {
+                        opt.selected = true;
+                    }
+                    upaSelect.appendChild(opt);
+                });
+            }
+
+            // Post Offices
+            if (selectedDist) {
+                let poList = [];
+                if (window.BD_GEO.postOffices && window.BD_GEO.postOffices[selectedDist]) {
+                    poList = window.BD_GEO.postOffices[selectedDist];
+                } else if (window.BD_GEO.upazilas && window.BD_GEO.upazilas[selectedDist]) {
+                    // Fallback generating post offices from district and upazilas
+                    poList.push(`${selectedDist} Head Post Office`);
+                    window.BD_GEO.upazilas[selectedDist].forEach(u => poList.push(`${u} Post Office`));
+                }
+
+                poList.forEach(po => {
+                    const opt = document.createElement('option');
+                    opt.value = po;
+                    opt.textContent = po;
+                    if (preselectedPo === po || (preselectedPo && preselectedPo.toLowerCase() === po.toLowerCase())) {
+                        opt.selected = true;
+                    }
+                    poSelect.appendChild(opt);
+                });
+            }
+        }
+
+        divSelect.addEventListener('change', function() {
+            populateDistricts(this.value);
+        });
+
+        distSelect.addEventListener('change', function() {
+            populateUpazilasAndPostOffices(this.value);
+        });
+
+        // Preload default / old selections
+        if (oldDiv) {
+            populateDistricts(oldDiv, oldDist);
+            if (oldDist) {
+                populateUpazilasAndPostOffices(oldDist, oldUpa, oldPo);
+            }
+        }
+    }
+
     // Prevent double submission & show loading
     document.getElementById('dynamicLibraryForm').addEventListener('submit', function(e) {
         const btn = document.getElementById('submitBtn');
@@ -532,9 +633,19 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
+        initLibraryLocationCascade();
+
         const reason = document.getElementById('reasonText');
         if (reason && reason.value) {
             handleWordCount(reason);
+        }
+    });
+</script>
+<script src="{{ asset('js/bd-geo-data.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof initLibraryLocationCascade === 'function') {
+            initLibraryLocationCascade();
         }
     });
 </script>
