@@ -395,10 +395,12 @@ class AdminMediaController extends Controller
                         };
 
                         $itemTitle = $fallbackTitle;
+                        $itemSubtitle = $fallbackSubtitle;
                     } else {
                         $itemTitle = $itemInfo['title'] ?? null;
                         $itemSubtitle = $itemInfo['subtitle'] ?? null;
                     }
+                    $itemSubtitle = $itemSubtitle ?? ($folderDefs[$folderKey]['label'] ?? 'অ্যাসেট লাইব্রেরি');
                     $itemLink = $itemInfo['link'] ?? null;
 
                     if ($search) {
