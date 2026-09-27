@@ -266,60 +266,73 @@
             
             {{-- Module 1: Blade View Cache --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-views">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-primary">
                                     <i class="fa-solid fa-tv"></i>
                                 </div>
-                                <h6 class="cache-module-title">Blade Views</h6>
+                                <div>
+                                    <h6 class="cache-module-title">Blade Views</h6>
+                                    <span class="badge bg-primary-subtle text-primary font-monospace" style="font-size: 11px;">Templates & UI</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-views') }}" data-name="Blade Views">
                         </div>
                         <p class="cache-module-desc">
-                            Purges compiled Blade HTML templates. Run after frontend layout, CSS, or blade changes.
+                            Purges compiled Blade HTML templates. Run after frontend layout, CSS, or blade changes for immediate reflection.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-primary w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-views') }}', 'Purging Views...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear Blade Views
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-primary w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-views') }}', 'Purging Views...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear Blade Views
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 2: Application Data Cache --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-data">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-info">
                                     <i class="fa-solid fa-layer-group"></i>
                                 </div>
-                                <h6 class="cache-module-title">App Data & Models</h6>
+                                <div>
+                                    <h6 class="cache-module-title">App Data</h6>
+                                    <span class="badge bg-info-subtle text-info font-monospace" style="font-size: 11px;">Queries & Models</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-app') }}" data-name="App Data">
                         </div>
                         <p class="cache-module-desc">
-                            Flushes database query results, cached models, and application runtime keys from memory.
+                            Flushes database queries, models, and cached application runtime keys from memory.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-info w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-app') }}', 'Purging Data...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear App Data
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-info w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-app') }}', 'Purging Data...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear App Data
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 3: Config & Env Cache --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-config">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-success">
                                     <i class="fa-solid fa-gears"></i>
                                 </div>
-                                <h6 class="cache-module-title">Config & .env</h6>
+                                <div>
+                                    <h6 class="cache-module-title">Config & Env</h6>
+                                    <span class="badge bg-success-subtle text-success font-monospace" style="font-size: 11px;">Environment & .env</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-config') }}" data-name="Config">
                         </div>
@@ -327,22 +340,27 @@
                             Clears cached configuration and .env file settings for immediate reflection across the application.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-success w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-config') }}', 'Purging Config...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear Config Cache
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-success w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-config') }}', 'Purging Config...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear Config Cache
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 4: Route Cache --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-routes">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-warning text-dark">
                                     <i class="fa-solid fa-route"></i>
                                 </div>
-                                <h6 class="cache-module-title">Routes Mapping</h6>
+                                <div>
+                                    <h6 class="cache-module-title">Routes</h6>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis font-monospace" style="font-size: 11px;">URL Mapping</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-routes') }}" data-name="Routes">
                         </div>
@@ -350,22 +368,27 @@
                             Rebuilds route mapping tables. Use when new routes or endpoints return 404 Not Found.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-warning w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-routes') }}', 'Purging Routes...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear Route Cache
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-warning w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-routes') }}', 'Purging Routes...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear Route Cache
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 5: OPcache Reset --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-opcache">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-danger">
                                     <i class="fa-solid fa-microchip"></i>
                                 </div>
-                                <h6 class="cache-module-title">PHP OPcache</h6>
+                                <div>
+                                    <h6 class="cache-module-title">OPcache</h6>
+                                    <span class="badge bg-danger-subtle text-danger font-monospace" style="font-size: 11px;">PHP Bytecode</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-opcache') }}" data-name="OPcache">
                         </div>
@@ -373,22 +396,27 @@
                             Resets PHP bytecode cache in server memory to recompile updated PHP scripts immediately.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-danger w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-opcache') }}', 'Resetting OPcache...', this)">
-                        <i class="fa-solid fa-rotate-left"></i> Reset OPcache
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-danger w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-opcache') }}', 'Resetting OPcache...', this)">
+                            <i class="fa-solid fa-rotate-left"></i> Reset OPcache
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 6: Temp Images & Thumbnails --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-images">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-purple">
                                     <i class="fa-solid fa-images"></i>
                                 </div>
-                                <h6 class="cache-module-title">Temp Image Artifacts</h6>
+                                <div>
+                                    <h6 class="cache-module-title">Temp Images</h6>
+                                    <span class="badge bg-purple-subtle text-purple font-monospace" style="font-size: 11px;">Media & Thumbnails</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-images') }}" data-name="Temp Images">
                         </div>
@@ -396,22 +424,27 @@
                             Deletes auto-generated temporary thumbnails and cached image artifacts to reclaim disk space.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-purple w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-images') }}', 'Clearing Images...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear Temp Images
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-purple w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-images') }}', 'Clearing Images...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear Temp Images
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {{-- Module 7: Event & Listener Cache --}}
             <div class="col-12 col-md-6 col-xl-4">
-                <div class="cache-module-card">
+                <div class="cache-module-card cache-card-events">
                     <div>
                         <div class="cache-module-header">
-                            <div class="d-flex align-items-center gap-2.5">
+                            <div class="d-flex align-items-center gap-3">
                                 <div class="cache-module-badge bg-dark">
                                     <i class="fa-solid fa-bell"></i>
                                 </div>
-                                <h6 class="cache-module-title">Events & Listeners</h6>
+                                <div>
+                                    <h6 class="cache-module-title">Events & Listeners</h6>
+                                    <span class="badge bg-dark-subtle text-dark font-monospace" style="font-size: 11px;">Manifests</span>
+                                </div>
                             </div>
                             <input type="checkbox" class="form-check-input module-select-cb cursor-pointer" data-route="{{ route('admin.cache.clear-events') }}" data-name="Events">
                         </div>
@@ -419,9 +452,11 @@
                             Purges cached event discovery and listener manifests for background tasks and mail triggers.
                         </p>
                     </div>
-                    <button type="button" class="btn btn-cache-action btn-cache-dark w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-events') }}', 'Purging Events...', this)">
-                        <i class="fa-solid fa-broom"></i> Clear Event Cache
-                    </button>
+                    <div class="cache-module-footer">
+                        <button type="button" class="btn btn-cache-action btn-cache-dark w-100" onclick="executeCacheAction('{{ route('admin.cache.clear-events') }}', 'Purging Events...', this)">
+                            <i class="fa-solid fa-broom"></i> Clear Event Cache
+                        </button>
+                    </div>
                 </div>
             </div>
 
