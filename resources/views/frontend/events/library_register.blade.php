@@ -1,8 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Library Registration & Free Book Grant Application 2026 — ideaabd')
+@section('title', 'Library Grant 2026 — Registration & Application — ideaabd')
 
 @section('content')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
     :root {
         --lib-navy: #064e3b;
@@ -13,32 +17,59 @@
     .scholarship-form-wrap {
         max-width: 900px;
         margin: 0 auto;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
     .form-table-card {
         background: #ffffff;
         border: 1.5px solid var(--lib-green);
-        border-radius: 8px;
-        box-shadow: 0 4px 22px rgba(0, 0, 0, 0.07);
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(6, 78, 59, 0.08);
         overflow: hidden;
     }
     .form-header-bar {
-        background: linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%);
+        background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%);
         color: #ffffff;
-        padding: 14px 20px;
+        padding: 16px 22px;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .form-title-heading {
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: #ffffff;
+        margin: 0;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-title-heading .title-icon-wrap {
+        width: 34px;
+        height: 34px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fbbf24;
+        font-size: 16px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
     .form-section-head {
-        background: #f1f5f9;
+        background: #f8fafc;
         color: #0f172a;
-        font-size: 13px;
+        font-size: 12.5px;
         font-weight: 700;
-        letter-spacing: 0.5px;
-        padding: 9px 16px;
+        letter-spacing: 0.6px;
+        padding: 10px 18px;
         border-top: 1px solid #cbd5e1;
         border-bottom: 1px solid #cbd5e1;
         text-transform: uppercase;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .grid-table {
         width: 100%;
@@ -181,10 +212,15 @@
 
             {{-- HEADER BAR --}}
             <div class="form-header-bar">
-                <h5 class="mb-0 fw-bold" style="font-size: 16px;">
-                    Annual Free Book Distribution & Library Grant 2026
-                </h5>
-                <span class="badge bg-warning text-dark fw-bold" style="font-size: 11px;">LIBRARY COPY</span>
+                <div class="form-title-heading">
+                    <div class="title-icon-wrap">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <span>Library Book Grant 2026</span>
+                    </div>
+                </div>
+                <span class="badge bg-warning text-dark fw-bold px-2.5 py-1.5 rounded-pill shadow-xs" style="font-size: 11px; letter-spacing: 0.5px;">LIBRARY COPY</span>
             </div>
 
             {{-- 1. LIBRARY DETAILS --}}
@@ -302,9 +338,9 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Upazila / Thana <span class="text-danger">*</span></td>
+                    <td class="label-col">Upazila / Thana / Pourashava <span class="text-danger">*</span></td>
                     <td class="val-col">
-                        <input type="text" name="thana" class="grid-input" placeholder="e.g. Kotwali, Pirganj" value="{{ old('thana') }}" required>
+                        <input type="text" name="thana" class="grid-input" placeholder="e.g. Kotwali, Pirganj, Rangpur Pourashava" value="{{ old('thana') }}" required>
                     </td>
                     <td class="label-col">Post Office & Code</td>
                     <td class="val-col">
