@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragDropZone();
     initMultiSelectListeners();
     initStudioEvents();
+    initGlobalDragAndPaste();
 });
 
 /* ========================================================================= */
@@ -86,6 +87,40 @@ function copySelectedUrls() {
     navigator.clipboard.writeText(text).then(() => {
         showMediaAlert('success', `${selectedMediaUrls.length}টি ছবির URL ক্লিপবোর্ডে কপি করা হয়েছে!`);
     });
+}
+
+function executeBulkConvertToWebp() {
+    if (selectedMediaPaths.length === 0) return;
+    if (!confirm(`আপনি কি নির্বাচিত ${selectedMediaPaths.length}টি ফাইলকে আধুনিক WebP ফরম্যাটে রূপান্তর করতে চান?`)) {
+        return;
+    }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    showMediaAlert('warning', `নির্বাচিত ${selectedMediaPaths.length}টি ফাইলের WebP রূপান্তর চলছে...`);
+
+    fetch('/admin/media/bulk-action', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            action: 'convert_webp',
+            paths: selectedMediaPaths
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showMediaAlert('success', data.message);
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showMediaAlert('danger', data.message || 'রূপান্তর ব্যর্থ হয়েছে।');
+        }
+    })
+    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'));
 }
 
 function openBulkMoveModal() {
@@ -376,6 +411,18 @@ function setStudioPreset(preset) {
     } else if (preset === 'book-cover-compact') {
         studioState.currWidth = 600;
         studioState.currHeight = 900;
+        if (lockCb) lockCb.checked = false;
+    } else if (preset === '1200x630') {
+        studioState.currWidth = 1200;
+        studioState.currHeight = 630;
+        if (lockCb) lockCb.checked = false;
+    } else if (preset === '1080x1080') {
+        studioState.currWidth = 1080;
+        studioState.currHeight = 1080;
+        if (lockCb) lockCb.checked = false;
+    } else if (preset === '1920x1080') {
+        studioState.currWidth = 1920;
+        studioState.currHeight = 1080;
         if (lockCb) lockCb.checked = false;
     }
 
@@ -926,8 +973,11 @@ function submitCreateFolder() {
 }
 
 /* ========================================================================= */
-/* 6. LIGHTBOX & URL COPY                                                    */
+/* 6. LIGHTBOX CAROUSEL, ZOOM & PREVIEW ENGINE                               */
 /* ========================================================================= */
+let currentLightboxIndex = 0;
+let currentLightboxZoom = 1;
+
 function copyUrl(url) {
     navigator.clipboard.writeText(url).then(() => {
         showMediaAlert('success', 'ইমেজ লিংক কপি হয়েছে!');
@@ -939,6 +989,8 @@ function openLightbox(url, filename, size, date, dimensions, folder) {
     document.getElementById('lightboxTitle').textContent = filename;
     document.getElementById('lightboxMeta').textContent = `রেজোলিউশন: ${dimensions || 'N/A'} | সাইজ: ${size} | ফোল্ডার: ${folder} | আপলোড: ${date}`;
     document.getElementById('lightboxOpenBtn').href = url;
+    document.getElementById('lightboxDownloadBtn').href = url;
+    document.getElementById('lightboxDownloadBtn').setAttribute('download', filename || 'image');
 
     const modalEl = document.getElementById('lightboxModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
@@ -947,8 +999,234 @@ function openLightbox(url, filename, size, date, dimensions, folder) {
     }
 }
 
+function openLightboxByIndex(index) {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (index < 0 || index >= items.length) return;
+
+    currentLightboxIndex = index;
+    currentLightboxZoom = 1;
+
+    const el = items[index];
+    const url = el.getAttribute('data-url');
+    const path = el.getAttribute('data-path');
+    const title = el.getAttribute('data-title') || el.getAttribute('data-filename');
+    const size = el.getAttribute('data-size');
+    const date = el.getAttribute('data-date');
+    const res = el.getAttribute('data-res');
+    const folder = el.getAttribute('data-folderlabel');
+
+    const img = document.getElementById('lightboxImage');
+    if (img) {
+        img.src = url;
+        img.style.transform = 'scale(1)';
+    }
+
+    document.getElementById('lightboxTitle').textContent = title || 'Image Preview';
+    document.getElementById('lightboxMeta').textContent = `রেজোলিউশন: ${res || 'N/A'} | সাইজ: ${size} | ফোল্ডার: ${folder} | আপলোড: ${date}`;
+    document.getElementById('lightboxOpenBtn').href = url;
+    document.getElementById('lightboxDownloadBtn').href = url;
+    document.getElementById('lightboxDownloadBtn').setAttribute('download', title || 'image');
+
+    const modalEl = document.getElementById('lightboxModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        m.show();
+    }
+}
+
+function lightboxNavigate(direction) {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (items.length === 0) return;
+    let nextIndex = currentLightboxIndex + direction;
+    if (nextIndex < 0) nextIndex = items.length - 1;
+    if (nextIndex >= items.length) nextIndex = 0;
+    openLightboxByIndex(nextIndex);
+}
+
+function lightboxZoom(step) {
+    currentLightboxZoom = Math.max(0.4, Math.min(3.0, currentLightboxZoom + step));
+    const img = document.getElementById('lightboxImage');
+    if (img) {
+        img.style.transform = `scale(${currentLightboxZoom})`;
+    }
+}
+
+function lightboxResetZoom() {
+    currentLightboxZoom = 1;
+    const img = document.getElementById('lightboxImage');
+    if (img) {
+        img.style.transform = 'scale(1)';
+    }
+}
+
+function openStudioFromLightbox() {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
+        const el = items[currentLightboxIndex];
+        const url = el.getAttribute('data-url');
+        const path = el.getAttribute('data-path');
+        const title = el.getAttribute('data-title') || el.getAttribute('data-filename');
+
+        const modalEl = document.getElementById('lightboxModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const m = bootstrap.Modal.getInstance(modalEl);
+            if (m) m.hide();
+        }
+
+        setTimeout(() => {
+            openStudioModal(url, path, title);
+        }, 300);
+    }
+}
+
 /* ========================================================================= */
-/* 7. RUN BATCH AUTO-OPTIMIZE ALL IMAGES                                     */
+/* 7. REPLACE MEDIA ASSET (KEEP EXACT URL & AUTO-OPTIMIZE)                   */
+/* ========================================================================= */
+function openReplaceModal(targetPath, filename) {
+    document.getElementById('replaceTargetPathInput').value = targetPath;
+    document.getElementById('replaceTargetFilenameDisplay').textContent = filename;
+    document.getElementById('replaceFileInput').value = '';
+
+    const modalEl = document.getElementById('replaceMediaModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        m.show();
+    }
+}
+
+function submitReplaceFile() {
+    const targetPath = document.getElementById('replaceTargetPathInput').value;
+    const fileInput = document.getElementById('replaceFileInput');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('অনুগ্রহ করে একটি নতুন ছবি নির্বাচন করুন।');
+        return;
+    }
+
+    const btn = document.getElementById('btnConfirmReplace');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> রিপ্লেস হচ্ছে...`;
+
+    const formData = new FormData();
+    formData.append('target_path', targetPath);
+    formData.append('file', file);
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    fetch('/admin/media/replace', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showMediaAlert('success', data.message);
+            const modalEl = document.getElementById('replaceMediaModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const m = bootstrap.Modal.getInstance(modalEl);
+                if (m) m.hide();
+            }
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showMediaAlert('danger', data.message || 'রিপ্লেস ব্যর্থ হয়েছে।');
+        }
+    })
+    .catch(() => showMediaAlert('danger', 'সার্ভার অনুরোধ ব্যর্থ হয়েছে।'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+    });
+}
+
+/* ========================================================================= */
+/* 8. GLOBAL WINDOW DRAG & DROP AND CLIPBOARD PASTE ENGINE                   */
+/* ========================================================================= */
+function initGlobalDragAndPaste() {
+    const overlay = document.getElementById('globalDragOverlay');
+    let dragCounter = 0;
+
+    window.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dragCounter++;
+        if (overlay) overlay.classList.remove('d-none');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dragCounter--;
+        if (dragCounter <= 0 && overlay) {
+            overlay.classList.add('d-none');
+            dragCounter = 0;
+        }
+    });
+
+    window.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dragCounter = 0;
+        if (overlay) overlay.classList.add('d-none');
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            handleDroppedFilesDirectly(files);
+        }
+    });
+
+    // Keyboard navigation in lightbox
+    window.addEventListener('keydown', (e) => {
+        const lb = document.getElementById('lightboxModal');
+        if (lb && lb.classList.contains('show')) {
+            if (e.key === 'ArrowLeft') lightboxNavigate(-1);
+            if (e.key === 'ArrowRight') lightboxNavigate(1);
+            if (e.key === '+' || e.key === '=') lightboxZoom(0.2);
+            if (e.key === '-') lightboxZoom(-0.2);
+            if (e.key === '0') lightboxResetZoom();
+        }
+    });
+
+    // Clipboard Paste (Ctrl + V)
+    window.addEventListener('paste', (e) => {
+        const items = (e.clipboardData || e.originalEvent.clipboardData)?.items;
+        if (!items) return;
+
+        const imageFiles = [];
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                const blob = items[i].getAsFile();
+                if (blob) imageFiles.push(blob);
+            }
+        }
+
+        if (imageFiles.length > 0) {
+            showMediaAlert('warning', `ক্লিপবোর্ড থেকে ${imageFiles.length}টি ইমেজ পাওয়া গেছে! আপলোড ও অপ্টিমাইজ প্রসেস করা হচ্ছে...`);
+            handleDroppedFilesDirectly(imageFiles);
+        }
+    });
+}
+
+function handleDroppedFilesDirectly(files) {
+    const modalEl = document.getElementById('uploadMediaModal');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        m.show();
+    }
+
+    pendingUploadFiles = Array.from(files);
+    renderUploadPreviews();
+}
+
+/* ========================================================================= */
+/* 9. RUN BATCH AUTO-OPTIMIZE ALL IMAGES                                     */
 /* ========================================================================= */
 function runMediaOptimization(btn) {
     const origContent = btn.innerHTML;
@@ -984,7 +1262,7 @@ function runMediaOptimization(btn) {
 }
 
 /* ========================================================================= */
-/* 8. CLIENT LIVE SEARCH & FILTER                                            */
+/* 10. CLIENT LIVE SEARCH & FILTER                                           */
 /* ========================================================================= */
 function filterMediaLive(query) {
     const q = (query || '').toLowerCase().trim();
@@ -995,8 +1273,9 @@ function filterMediaLive(query) {
         const name = (el.getAttribute('data-filename') || '').toLowerCase();
         const folder = (el.getAttribute('data-folder') || '').toLowerCase();
         const ext = (el.getAttribute('data-ext') || '').toLowerCase();
+        const title = (el.getAttribute('data-title') || '').toLowerCase();
 
-        if (!q || name.includes(q) || folder.includes(q) || ext.includes(q)) {
+        if (!q || name.includes(q) || folder.includes(q) || ext.includes(q) || title.includes(q)) {
             el.style.display = '';
             count++;
         } else {
@@ -1011,7 +1290,7 @@ function filterMediaLive(query) {
 }
 
 /* ========================================================================= */
-/* 9. TOAST NOTIFICATION                                                     */
+/* 11. TOAST NOTIFICATION                                                    */
 /* ========================================================================= */
 function showMediaAlert(type, message) {
     const container = document.getElementById('mediaLiveAlert');

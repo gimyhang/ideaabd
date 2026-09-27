@@ -757,6 +757,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/rename', 'renameFile')->name('rename');
         Route::post('/create-folder', 'createFolder')->name('create-folder');
         Route::post('/download-zip', 'downloadZip')->name('download-zip');
+        Route::post('/replace', 'replaceFile')->name('replace');
         Route::delete('/', 'destroy')->name('destroy');
     });
 

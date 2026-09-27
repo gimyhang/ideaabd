@@ -318,9 +318,11 @@ class AdminMediaController extends Controller
                     if ($dimensionFilter !== 'all') {
                         if ($dimensionFilter === 'banner' && ($width === null || $width < 1200)) {
                             continue;
-                        } elseif ($dimensionFilter === 'square' && ($width === null || $height === null || abs($width - $height) > 20)) {
+                        } elseif ($dimensionFilter === 'square' && ($width === null || $height === null || abs($width - $height) > 25)) {
                             continue;
                         } elseif ($dimensionFilter === 'thumb' && ($width === null || $width > 400)) {
+                            continue;
+                        } elseif ($dimensionFilter === 'portrait' && ($width === null || $height === null || $height <= $width)) {
                             continue;
                         }
                     }
@@ -625,7 +627,7 @@ class AdminMediaController extends Controller
     public function bulkAction(Request $request): JsonResponse
     {
         $request->validate([
-            'action'        => 'required|string|in:delete,move,optimize',
+            'action'        => 'required|string|in:delete,move,optimize,convert_webp',
             'paths'         => 'required|array|min:1',
             'paths.*'       => 'required|string',
             'target_folder' => 'nullable|string',
@@ -661,13 +663,23 @@ class AdminMediaController extends Controller
                 $saved = $this->optimizeImageFile($path);
                 $processedCount++;
                 $totalBytesSaved += $saved;
+            } elseif ($action === 'convert_webp') {
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                if (in_array($ext, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+                    $webpRes = \App\Services\ImageOptimizerService::convertImageToWebp($path, 85, true);
+                    if ($webpRes['success']) {
+                        $processedCount++;
+                        $totalBytesSaved += max(0, $webpRes['bytes_saved']);
+                    }
+                }
             }
         }
 
         $msg = match ($action) {
-            'delete'   => "নির্বাচিত {$processedCount}টি ফাইল সফলভাবে মুছে ফেলা হয়েছে!",
-            'move'     => "নির্বাচিত {$processedCount}টি ফাইল '{$folderDefs[$targetFolder]['label']}' ফোল্ডারে সরানো হয়েছে!",
-            'optimize' => "নির্বাচিত {$processedCount}টি ফাইল অপ্টিমাইজ সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
+            'delete'       => "নির্বাচিত {$processedCount}টি ফাইল সফলভাবে মুছে ফেলা হয়েছে!",
+            'move'         => "নির্বাচিত {$processedCount}টি ফাইল '{$folderDefs[$targetFolder]['label']}' ফোল্ডারে সরানো হয়েছে!",
+            'optimize'     => "নির্বাচিত {$processedCount}টি ফাইল অপ্টিমাইজ সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
+            'convert_webp' => "নির্বাচিত {$processedCount}টি ফাইল আধুনিক WebP ফরম্যাটে রূপান্তর সম্পন্ন হয়েছে! (" . $this->formatBytes($totalBytesSaved) . " সাশ্রয়)",
         };
 
         if ($this->accessService) {
@@ -679,6 +691,75 @@ class AdminMediaController extends Controller
             'message' => $msg,
             'count'   => $processedCount,
         ]);
+    }
+
+    /**
+     * Replace an existing media asset in-place without changing its file link/URL.
+     */
+    public function replaceFile(Request $request): JsonResponse
+    {
+        $request->validate([
+            'target_path' => 'required|string',
+            'file'        => 'required|image|mimes:jpeg,png,jpg,webp,svg,gif,ico,bmp,avif|max:10240',
+        ]);
+
+        $targetPath = $request->input('target_path');
+        $uploadedFile = $request->file('file');
+
+        if (!File::exists($targetPath) || !$this->isSafePath($targetPath)) {
+            return response()->json(['success' => false, 'message' => 'টার্গেট ফাইল খুঁজে পাওয়া যায়নি বা পাথ অবৈধ!'], 404);
+        }
+
+        if (!$uploadedFile || !$uploadedFile->isValid()) {
+            return response()->json(['success' => false, 'message' => 'অবৈধ আপলোড ফাইল!'], 422);
+        }
+
+        $dir = dirname($targetPath);
+        $filename = basename($targetPath);
+        $targetExt = strtolower(pathinfo($targetPath, PATHINFO_EXTENSION));
+        $newExt = strtolower($uploadedFile->getClientOriginalExtension());
+
+        // Backup existing file temporarily
+        $tempBackup = $targetPath . '.bak';
+        @File::copy($targetPath, $tempBackup);
+
+        try {
+            // If target is webp and uploaded is png/jpg, convert uploaded to webp directly into targetPath
+            if ($targetExt === 'webp' && in_array($newExt, ['jpg', 'jpeg', 'png', 'avif', 'bmp'])) {
+                $tempUpload = $dir . '/temp_' . uniqid() . '.' . $newExt;
+                $uploadedFile->move($dir, basename($tempUpload));
+                $res = \App\Services\ImageOptimizerService::convertImageToWebp($tempUpload, 85, true);
+                if ($res['success'] && File::exists($res['webp_path'])) {
+                    File::move($res['webp_path'], $targetPath);
+                } else {
+                    $uploadedFile->move($dir, $filename);
+                }
+            } else {
+                $uploadedFile->move($dir, $filename);
+            }
+
+            // Optimize in-place
+            $this->optimizeImageFile($targetPath);
+            @File::delete($tempBackup);
+
+            // Clear cached dimension
+            $mtime = File::lastModified($targetPath);
+            \Illuminate\Support\Facades\Cache::forget('media_dim_' . md5($targetPath) . '_' . $mtime);
+
+            if ($this->accessService) {
+                $this->accessService->log('replace_media', "মিডিয়া অ্যাসেট '{$filename}' সফলভাবে রিপ্লেস করা হয়েছে");
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "অ্যাসেট '{$filename}' সফলভাবে নতুন ছবি দিয়ে রিপ্লেস ও অপ্টিমাইজ করা হয়েছে!",
+            ]);
+        } catch (\Throwable $e) {
+            if (File::exists($tempBackup)) {
+                @File::move($tempBackup, $targetPath);
+            }
+            return response()->json(['success' => false, 'message' => 'ফাইল রিপ্লেস ব্যর্থ হয়েছে: ' . $e->getMessage()], 500);
+        }
     }
 
     /**

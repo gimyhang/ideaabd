@@ -204,6 +204,7 @@
                 <div class="col-6 col-md-2 col-xl-2">
                     <select name="dim" class="form-select form-select-sm rounded-3 fw-semibold" onchange="document.getElementById('mediaFilterForm').submit()">
                         <option value="all" {{ $dimensionFilter === 'all' ? 'selected' : '' }}>সব রেজোলিউশন</option>
+                        <option value="portrait" {{ $dimensionFilter === 'portrait' ? 'selected' : '' }}>বই / পোর্ট্রেট (2:3)</option>
                         <option value="banner" {{ $dimensionFilter === 'banner' ? 'selected' : '' }}>ব্যানার (≥1200px)</option>
                         <option value="square" {{ $dimensionFilter === 'square' ? 'selected' : '' }}>বর্গাকার (1:1)</option>
                         <option value="thumb" {{ $dimensionFilter === 'thumb' ? 'selected' : '' }}>থাম্বনেইল (≤400px)</option>
@@ -248,11 +249,19 @@
         {{-- GRID VIEW                                                         --}}
         {{-- ================================================================= --}}
         <div class="row g-3 {{ $folderFilter === 'books' ? 'is-book-folder' : '' }}" id="mediaGridContainer">
-            @forelse($paginatedItems as $item)
+            @forelse($paginatedItems as $index => $item)
                 <div class="col-6 col-sm-4 col-md-3 col-xl-2 media-item-card" 
                      data-filename="{{ strtolower($item['filename']) }}" 
                      data-ext="{{ strtolower($item['ext']) }}" 
-                     data-folder="{{ strtolower($item['folder']) }}">
+                     data-folder="{{ strtolower($item['folder']) }}"
+                     data-index="{{ $index }}"
+                     data-url="{{ $item['url'] }}"
+                     data-path="{{ $item['path'] }}"
+                     data-title="{{ $item['item_title'] ?? $item['filename'] }}"
+                     data-size="{{ $item['size'] }}"
+                     data-date="{{ $item['updated_at']->format('d M, Y h:i A') }}"
+                     data-res="{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}"
+                     data-folderlabel="{{ $item['folder_label'] }}">
                     <div class="card media-card position-relative">
                         {{-- Selection Checkbox --}}
                         <div class="media-select-cb-wrapper">
@@ -264,7 +273,7 @@
 
                         {{-- Action Buttons on Hover Overlay --}}
                         <div class="media-thumb-overlay">
-                            <button type="button" class="btn-thumb-action" title="ফুলস্ক্রিন প্রিভিউ" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
+                            <button type="button" class="btn-thumb-action" title="ফুলস্ক্রিন প্রিভিউ" onclick="openLightboxByIndex({{ $index }})">
                                 <i class="fa-solid fa-expand"></i>
                             </button>
                             <button type="button" class="btn-thumb-action" title="কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
@@ -276,12 +285,12 @@
                         </div>
 
                         {{-- Thumbnail Container --}}
-                        <div class="media-thumb-container" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
+                        <div class="media-thumb-container" onclick="openLightboxByIndex({{ $index }})">
                             <img src="{{ $item['url'] }}" alt="{{ $item['filename'] }}" class="media-thumb-img" loading="lazy">
                             
                             {{-- Dimension & Format Meta Badges on Thumb --}}
                             <div class="media-badge-meta">
-                                <span class="media-badge-tag">{{ strtoupper($item['ext']) }}</span>
+                                <span class="media-badge-tag {{ $item['is_webp'] ? 'badge-webp-glow' : '' }}">{{ strtoupper($item['ext']) }}</span>
                                 @if($item['width'] && $item['height'])
                                     <span class="media-badge-tag">{{ $item['aspect_ratio'] }} ({{ $item['width'] }}×{{ $item['height'] }})</span>
                                 @endif
@@ -335,6 +344,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ছবি রিপ্লেস / আপডেট করুন">
+                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                </button>
                                 <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ফাইলের নাম পরিবর্তন">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
@@ -388,11 +400,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($paginatedItems as $item)
+                        @forelse($paginatedItems as $index => $item)
                             <tr class="media-item-row" 
                                 data-filename="{{ strtolower($item['filename']) }}" 
                                 data-ext="{{ strtolower($item['ext']) }}" 
-                                data-folder="{{ strtolower($item['folder']) }}">
+                                data-folder="{{ strtolower($item['folder']) }}"
+                                data-index="{{ $index }}"
+                                data-url="{{ $item['url'] }}"
+                                data-path="{{ $item['path'] }}"
+                                data-title="{{ $item['item_title'] ?? $item['filename'] }}"
+                                data-size="{{ $item['size'] }}"
+                                data-date="{{ $item['updated_at']->format('d M, Y h:i A') }}"
+                                data-res="{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}"
+                                data-folderlabel="{{ $item['folder_label'] }}">
                                 <td>
                                     <input type="checkbox" class="form-check-input media-select-cb" 
                                            data-path="{{ $item['path'] }}" 
@@ -401,7 +421,7 @@
                                 </td>
                                 <td>
                                     <img src="{{ $item['url'] }}" alt="{{ $item['filename'] }}" class="media-table-thumb" 
-                                         onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')" loading="lazy">
+                                         onclick="openLightboxByIndex({{ $index }})" loading="lazy">
                                 </td>
                                 <td>
                                     @if(!empty($item['item_title']))
@@ -427,7 +447,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="badge bg-primary-subtle text-primary font-monospace text-uppercase px-2 py-0.5">
+                                    <span class="badge {{ $item['is_webp'] ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary' }} font-monospace text-uppercase px-2 py-0.5">
                                         {{ $item['ext'] }}
                                     </span>
                                 </td>
@@ -447,6 +467,9 @@
                                         </a>
                                         <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')" title="URL কপি করুন">
                                             <i class="fa-regular fa-copy"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ছবি রিপ্লেস / আপডেট">
+                                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
                                         </button>
                                         <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="নাম পরিবর্তন">
                                             <i class="fa-solid fa-pen-to-square"></i>
@@ -556,6 +579,9 @@
         <span class="badge bg-primary text-white font-monospace px-3 py-1.5 rounded-pill" id="selectedMediaCountBadge">0 টি নির্বাচিত</span>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        <button type="button" class="btn-floating-action btn-floating-warning" onclick="executeBulkConvertToWebp()" title="নির্বাচিত ফাইলসমূহকে WebP ফরম্যাটে রূপান্তর করুন">
+            <i class="fa-solid fa-bolt-lightning text-warning"></i> WebP রূপান্তর
+        </button>
         <button type="button" class="btn-floating-action" onclick="copySelectedUrls()">
             <i class="fa-solid fa-copy"></i> URL কপি
         </button>
@@ -619,7 +645,8 @@
                                 <span class="studio-preset-chip" data-preset="1:1" onclick="setStudioPreset('1:1')">1:1 বর্গাকার</span>
                                 <span class="studio-preset-chip" data-preset="16:9" onclick="setStudioPreset('16:9')">16:9 ব্যানার</span>
                                 <span class="studio-preset-chip" data-preset="4:3" onclick="setStudioPreset('4:3')">4:3 স্ট্যান্ডার্ড</span>
-                                <span class="studio-preset-chip" data-preset="800x800" onclick="setStudioPreset('800x800')">800×800 px</span>
+                                <span class="studio-preset-chip" data-preset="1200x630" onclick="setStudioPreset('1200x630')">🔗 সোশ্যাল ব্যানার (1200×630)</span>
+                                <span class="studio-preset-chip" data-preset="1080x1080" onclick="setStudioPreset('1080x1080')">📱 স্কয়ার পোস্ট (1080×1080)</span>
                                 <span class="studio-preset-chip" data-preset="1920x1080" onclick="setStudioPreset('1920x1080')">1920×1080 HD</span>
                             </div>
                             <div class="row g-2 align-items-center">
@@ -964,30 +991,107 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL 6: FULLSCREEN LIGHTBOX PREVIEW MODAL                                --}}
+{{-- MODAL 6: REPLACE MEDIA ASSET MODAL                                         --}}
+{{-- ========================================================================= --}}
+<div class="modal fade" id="replaceMediaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-bottom py-3 px-4 bg-light rounded-top-4">
+                <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-primary"></i>
+                    <span>মিডিয়া ফাইল রিপ্লেস / আপডেট</span>
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="replaceTargetPathInput">
+                <div class="alert alert-primary py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-circle-info fs-5 text-primary"></i>
+                    <div>ফাইলের নাম ও বর্তমান লিঙ্ক অক্ষুণ্ণ রেখে নতুন ছবি দিয়ে রিপ্লেস হবে এবং স্বয়ংক্রিয়ভাবে অপ্টিমাইজ হবে।</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-dark mb-1">টার্গেট ফাইল:</label>
+                    <div id="replaceTargetFilenameDisplay" class="font-monospace fw-bold text-primary small p-2.5 bg-light rounded border"></div>
+                </div>
+                <div>
+                    <label class="form-label small fw-bold text-dark mb-1">নতুন ছবি নির্বাচন করুন:</label>
+                    <input type="file" id="replaceFileInput" class="form-control form-control-sm" accept="image/*">
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-xs btn-primary fw-bold rounded-pill px-4 shadow-sm" id="btnConfirmReplace" onclick="submitReplaceFile()">
+                    <i class="fa-solid fa-check me-1"></i> রিপ্লেস ও সেভ করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL 7: FULLSCREEN LIGHTBOX PREVIEW MODAL (CAROUSEL & STUDIO INTEGRATED)   --}}
 {{-- ========================================================================= --}}
 <div class="modal fade" id="lightboxModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header border-bottom py-2.5 px-4 bg-dark text-white">
-                <h6 class="modal-title fw-bold text-white small text-truncate" id="lightboxTitle">Image Preview</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden bg-dark">
+            <div class="modal-header border-bottom border-secondary py-2.5 px-4 bg-dark text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2 text-truncate me-2">
+                    <i class="fa-solid fa-expand text-primary"></i>
+                    <h6 class="modal-title fw-bold text-white small text-truncate mb-0" id="lightboxTitle">Image Preview</h6>
+                </div>
+                <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(0.2)" title="জুম ইন">
+                        <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxZoom(-0.2)" title="জুম আউট">
+                        <i class="fa-solid fa-magnifying-glass-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-2.5" onclick="lightboxResetZoom()" title="রিসেট">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal"></button>
+                </div>
             </div>
-            <div class="modal-body p-3 bg-dark d-flex align-items-center justify-content-center" style="min-height: 380px;">
-                <img id="lightboxImage" src="" alt="Full Preview" class="img-fluid rounded shadow" style="max-height: 72vh; object-fit: contain;">
+            <div class="modal-body p-0 position-relative d-flex align-items-center justify-content-center bg-black overflow-hidden" style="min-height: 500px; max-height: 75vh;">
+                <!-- Nav Prev Arrow -->
+                <button type="button" class="lightbox-nav-btn lightbox-nav-prev" onclick="lightboxNavigate(-1)" title="পূর্ববর্তী ছবি (Left Arrow)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <div class="lightbox-img-wrapper d-flex align-items-center justify-content-center w-100 h-100 p-2" id="lightboxImgWrapper">
+                    <img id="lightboxImage" src="" alt="Full Preview" class="img-fluid rounded shadow transition-all" style="max-height: 70vh; max-width: 88vw; object-fit: contain; transition: transform 0.2s ease;">
+                </div>
+                <!-- Nav Next Arrow -->
+                <button type="button" class="lightbox-nav-btn lightbox-nav-next" onclick="lightboxNavigate(1)" title="পরবর্তী ছবি (Right Arrow)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
             </div>
-            <div class="modal-footer border-top py-2.5 px-4 bg-light d-flex justify-content-between align-items-center">
-                <div class="small text-muted font-monospace" id="lightboxMeta"></div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="lightboxCopyBtn" onclick="copyUrl(document.getElementById('lightboxImage').src)">
+            <div class="modal-footer border-top border-secondary py-2.5 px-4 bg-dark d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="small text-light font-monospace" id="lightboxMeta"></div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-3 fw-semibold" id="lightboxStudioBtn" onclick="openStudioFromLightbox()">
+                        <i class="fa-solid fa-palette me-1"></i> স্টুডিওতে খুলুন
+                    </button>
+                    <a href="" id="lightboxDownloadBtn" download class="btn btn-xs btn-outline-success rounded-pill px-3" title="ডাউনলোড">
+                        <i class="fa-solid fa-download me-1"></i> ডাউনলোড
+                    </a>
+                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-3" id="lightboxCopyBtn" onclick="copySnippet('url', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
                         <i class="fa-regular fa-copy me-1"></i> URL কপি
                     </button>
-                    <a href="" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" id="lightboxOpenBtn">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> সরাসরি লিংক
+                    <a href="" target="_blank" class="btn btn-xs btn-primary rounded-pill px-3.5 fw-bold" id="lightboxOpenBtn">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> ব্রাউজারে দেখুন
                     </a>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Global Full-Page Drag & Drop Overlay --}}
+<div id="globalDragOverlay" class="global-drag-overlay d-none">
+    <div class="global-drag-box">
+        <i class="fa-solid fa-cloud-arrow-up global-drag-icon"></i>
+        <h4 class="fw-bold text-dark mt-2 mb-1">ছবি এখানে ড্রপ করুন</h4>
+        <p class="text-muted small mb-0">স্বয়ংক্রিয়ভাবে আপলোড ও WebP-তে অপ্টিমাইজ হবে</p>
     </div>
 </div>
 
