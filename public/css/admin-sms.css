@@ -1,0 +1,285 @@
+/**
+ * Admin SMS, Email & Unified Communication Hub Stylesheet
+ * Enterprise Grade UI - Idea Prokashon
+ */
+
+:root {
+    --sms-primary: #2563eb;
+    --sms-primary-dark: #1d4ed8;
+    --sms-primary-light: #eff6ff;
+    --sms-success: #10b981;
+    --sms-success-dark: #059669;
+    --sms-warning: #f59e0b;
+    --sms-danger: #ef4444;
+    --sms-dark: #0f172a;
+    --sms-slate: #1e293b;
+    --sms-slate-light: #f8fafc;
+    --sms-border: #e2e8f0;
+    --sms-radius: 1rem;
+    --sms-transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hero & Metric Cards */
+.sms-metric-card {
+    background: #ffffff;
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--sms-transition);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.sms-metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+}
+
+.sms-balance-hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%);
+    color: #ffffff;
+    border: none;
+}
+
+.sms-email-hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    color: #ffffff;
+    border: none;
+}
+
+.sms-hero-watermark {
+    position: absolute;
+    right: -15px;
+    bottom: -15px;
+    font-size: 7.5rem;
+    opacity: 0.12;
+    pointer-events: none;
+    line-height: 1;
+}
+
+/* Master Nav Pills */
+.sms-master-nav {
+    background: #ffffff;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--sms-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.sms-master-nav .nav-link {
+    border-radius: 9999px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    color: #475569;
+    transition: var(--sms-transition);
+    border: 1px solid transparent;
+}
+
+.sms-master-nav .nav-link:hover {
+    color: var(--sms-primary);
+    background: #f1f5f9;
+}
+
+.sms-master-nav .nav-link.active {
+    background: #0f172a;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.sms-master-nav .nav-link#tab-sms-btn.active {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+}
+
+.sms-master-nav .nav-link#tab-email-btn.active {
+    background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
+}
+
+.sms-master-nav .nav-link#tab-unified-btn.active {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+    color: #0f172a;
+}
+
+/* Sub Tabs */
+.sms-sub-nav {
+    border-bottom: 2px solid var(--sms-border);
+    gap: 0.5rem;
+}
+
+.sms-sub-nav .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 0;
+    margin-bottom: -2px;
+    transition: var(--sms-transition);
+}
+
+.sms-sub-nav .nav-link:hover {
+    color: var(--sms-primary);
+}
+
+.sms-sub-nav .nav-link.active {
+    color: var(--sms-primary);
+    border-bottom-color: var(--sms-primary);
+    background: transparent;
+}
+
+/* Content Cards */
+.sms-card {
+    background: #ffffff;
+    border: 1px solid var(--sms-border);
+    border-radius: var(--sms-radius);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.sms-card-header {
+    background: #ffffff;
+    border-bottom: 1px solid var(--sms-border);
+    padding: 1.25rem 1.5rem;
+}
+
+.sms-card-body {
+    padding: 1.5rem;
+}
+
+/* Form Controls & Tags */
+.sms-form-control {
+    border-radius: 0.625rem;
+    border: 1.5px solid #cbd5e1;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    transition: var(--sms-transition);
+}
+
+.sms-form-control:focus {
+    border-color: var(--sms-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Character & SMS Part Meter */
+.sms-counter-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: #e2e8f0;
+    overflow: hidden;
+    margin-top: 0.35rem;
+}
+
+.sms-counter-progress {
+    height: 100%;
+    width: 0%;
+    background: var(--sms-primary);
+    transition: width 0.15s ease-in-out;
+}
+
+.sms-counter-progress.warning {
+    background: var(--sms-warning);
+}
+
+.sms-counter-progress.danger {
+    background: var(--sms-danger);
+}
+
+/* Code Snippet Box */
+.sms-code-box {
+    background: #090d16;
+    color: #e2e8f0;
+    border-radius: 0.75rem;
+    border: 1px solid #1e293b;
+    position: relative;
+    overflow: hidden;
+}
+
+.sms-code-pre {
+    padding: 1.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.84rem;
+    line-height: 1.55;
+    margin-bottom: 0;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Fast Template Pill Buttons */
+.sms-template-pill {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: var(--sms-transition);
+    user-select: none;
+}
+
+.sms-template-pill:hover {
+    background: var(--sms-primary-light);
+    color: var(--sms-primary);
+    border-color: #bfdbfe;
+    transform: translateY(-1px);
+}
+
+/* Diagnostic / Result Alert Box */
+.sms-result-box {
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    border: 1px solid transparent;
+    transition: var(--sms-transition);
+}
+
+.sms-result-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.sms-result-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+/* Shimmer Loading Animation */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.sms-loading-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Custom Scrollbars */
+.sms-custom-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.sms-custom-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+.sms-custom-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .sms-master-nav {
+        border-radius: 1rem;
+        flex-direction: column;
+    }
+    .sms-master-nav .nav-link {
+        border-radius: 0.75rem;
+        justify-content: flex-start;
+    }
+}
