@@ -220,11 +220,17 @@ class Book extends Model
         
         if (!file_exists(storage_path('app/public/' . $relPath)) && !file_exists(public_path($cover))) {
             $baseNoExt = preg_replace('/\.[^.]+$/', '', $relPath);
+            if (file_exists(storage_path('app/public/' . $baseNoExt . '.svg'))) {
+                return asset('storage/' . $baseNoExt . '.svg');
+            }
             if (file_exists(storage_path('app/public/' . $baseNoExt . '.webp'))) {
                 return asset('storage/' . $baseNoExt . '.webp');
             }
             if (file_exists(storage_path('app/public/' . $baseNoExt . '.avif'))) {
                 return asset('storage/' . $baseNoExt . '.avif');
+            }
+            if (file_exists(public_path($baseNoExt . '.svg'))) {
+                return asset($baseNoExt . '.svg');
             }
             if (file_exists(public_path($baseNoExt . '.webp'))) {
                 return asset($baseNoExt . '.webp');

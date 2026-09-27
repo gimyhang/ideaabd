@@ -437,7 +437,7 @@ SVG;
     }
 
     /**
-     * Generate an aesthetic 2:3 portrait book cover (.avif / .webp) and store it in storage disk.
+     * Generate an aesthetic 2:3 portrait book cover (SVG vector) with flawless Bengali typography and store it in storage disk.
      */
     public static function generateBookCoverAndStore(
         string $title,
@@ -448,171 +448,20 @@ SVG;
         string $disk = 'public'
     ): string {
         $folder = trim($folder, '/');
-        $randomName = Str::random(24) . '_' . time();
+        $randomName = 'cover_' . time() . '_' . Str::random(8) . '.svg';
 
-        $themes = [
-            'royal_blue'     => ['bg' => [15, 23, 42],    'title' => [255, 255, 255], 'author' => [253, 224, 71], 'accent' => [251, 191, 36]],
-            'deep_emerald'   => ['bg' => [6, 78, 59],     'title' => [255, 255, 255], 'author' => [254, 240, 138], 'accent' => [167, 243, 208]],
-            'crimson_ruby'   => ['bg' => [69, 10, 10],    'title' => [255, 255, 255], 'author' => [254, 215, 170], 'accent' => [251, 146, 60]],
-            'regal_purple'   => ['bg' => [46, 16, 101],   'title' => [255, 255, 255], 'author' => [254, 240, 138], 'accent' => [216, 180, 254]],
-            'midnight_slate' => ['bg' => [24, 24, 27],    'title' => [255, 255, 255], 'author' => [226, 232, 240], 'accent' => [203, 213, 225]],
-            'warm_brown'     => ['bg' => [59, 29, 17],    'title' => [255, 255, 255], 'author' => [253, 224, 71], 'accent' => [245, 158, 11]],
-            'dark_teal'      => ['bg' => [4, 47, 46],     'title' => [255, 255, 255], 'author' => [167, 243, 208], 'accent' => [45, 212, 191]],
-        ];
+        $themes = \App\Support\BookCoverGenerator::THEMES;
+        $theme = $themes[$themeKey] ?? $themes['royal_blue'];
 
-        $palette = $themes[$themeKey] ?? $themes['royal_blue'];
-
-        // If GD extension is not loaded in PHP, fallback gracefully to SVG
-        if (!function_exists('imagecreatetruecolor') || !function_exists('imagecolorallocate')) {
-            $safeTitle = htmlspecialchars(Str::limit($title, 80), ENT_QUOTES, 'UTF-8');
-            $safeAuthor = htmlspecialchars($authorName, ENT_QUOTES, 'UTF-8');
-            $svg = \App\Support\BookCoverGenerator::renderSvg($title, $authorName, null, $categoryName, [
-                'bg' => sprintf('#%02x%02x%02x', ...$palette['bg']),
-                'title_color' => '#ffffff',
-                'author_color' => sprintf('#%02x%02x%02x', ...$palette['author'])
-            ]);
-            $filename = "{$folder}/cover_" . time() . '_' . Str::random(8) . '.svg';
-            Storage::disk($disk)->put($filename, $svg);
-            return $filename;
-        }
-
-        $width = 800;
-        $height = 1200;
-        $fontPath = public_path('fonts/kalpurush/kalpurush.ttf');
-        $useTtf = file_exists($fontPath);
-
-        $im = @imagecreatetruecolor($width, $height);
-        if (!$im) {
-            $im = imagecreate($width, $height);
-        }
-
-        // Background color & gradient shading
-        for ($y = 0; $y < $height; $y++) {
-            $ratio = $y / $height;
-            $r = (int)($palette['bg'][0] * (1 - $ratio * 0.3));
-            $g = (int)($palette['bg'][1] * (1 - $ratio * 0.3));
-            $b = (int)($palette['bg'][2] * (1 - $ratio * 0.3));
-            $lineColor = imagecolorallocate($im, $r, $g, $b);
-            imageline($im, 0, $y, $width, $y, $lineColor);
-        }
-
-        // Colors
-        $white = imagecolorallocate($im, 255, 255, 255);
-        $accent = imagecolorallocate($im, $palette['accent'][0], $palette['accent'][1], $palette['accent'][2]);
-        $authorCol = imagecolorallocate($im, $palette['author'][0], $palette['author'][1], $palette['author'][2]);
-        $dimAccent = imagecolorallocate($im, (int)($palette['accent'][0] * 0.6), (int)($palette['accent'][1] * 0.6), (int)($palette['accent'][2] * 0.6));
-
-        // Framing
-        imagesetthickness($im, 2);
-        imagerectangle($im, 35, 35, $width - 35, $height - 35, $dimAccent);
-        imagesetthickness($im, 3);
-        imagerectangle($im, 45, 45, $width - 45, $height - 45, $accent);
-
-        if ($useTtf) {
-            // Top Publisher Badge
-            $topBadge = "✦ আইডিয়া প্রকাশন ✦";
-            $bbox = imagettfbbox(16, 0, $fontPath, $topBadge);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, 16, 0, (int)(($width - $w) / 2), 110, $accent, $fontPath, $topBadge);
-
-            // Title with line-wrapping
-            $fontSize = mb_strlen($title) > 40 ? 36 : (mb_strlen($title) > 20 ? 44 : 52);
-            $words = explode(' ', $title);
-            $lines = [];
-            $curLine = '';
-            foreach ($words as $word) {
-                $test = $curLine ? $curLine . ' ' . $word : $word;
-                $bbox = imagettfbbox($fontSize, 0, $fontPath, $test);
-                $w = abs($bbox[4] - $bbox[0]);
-                if ($w > 640 && $curLine) {
-                    $lines[] = $curLine;
-                    $curLine = $word;
-                } else {
-                    $curLine = $test;
-                }
-            }
-            if ($curLine) $lines[] = $curLine;
-
-            $lineH = $fontSize + 24;
-            $totalH = count($lines) * $lineH;
-            $startY = (int)(440 - ($totalH / 2) + ($lineH / 2));
-
-            foreach ($lines as $i => $lineText) {
-                $bbox = imagettfbbox($fontSize, 0, $fontPath, $lineText);
-                $w = abs($bbox[4] - $bbox[0]);
-                $x = (int)(($width - $w) / 2);
-                imagettftext($im, $fontSize, 0, $x, $startY + ($i * $lineH), $white, $fontPath, $lineText);
-            }
-
-            // Divider ornament
-            $dividerY = max(600, $startY + $totalH + 30);
-            imagesetthickness($im, 2);
-            imageline($im, 200, $dividerY, 340, $dividerY, $dimAccent);
-            imageline($im, 460, $dividerY, 600, $dividerY, $dimAccent);
-            $ornament = "❖ ── ✦ ── ❖";
-            $bbox = imagettfbbox(16, 0, $fontPath, $ornament);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, 16, 0, (int)(($width - $w) / 2), $dividerY + 6, $accent, $fontPath, $ornament);
-
-            // Author Name
-            $authorFontSize = 26;
-            $bbox = imagettfbbox($authorFontSize, 0, $fontPath, $authorName);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, $authorFontSize, 0, (int)(($width - $w) / 2), $dividerY + 60, $authorCol, $fontPath, $authorName);
-
-            // Bottom Brand Footer
-            $bottomText = "আইডিয়া প্রকাশন | www.ideaabd.com";
-            $bbox = imagettfbbox(14, 0, $fontPath, $bottomText);
-            $w = abs($bbox[4] - $bbox[0]);
-            imagettftext($im, 14, 0, (int)(($width - $w) / 2), 1130, $accent, $fontPath, $bottomText);
-        } else {
-            $titleCenter = max(20, (int)(($width - (strlen($title) * 9)) / 2));
-            imagestring($im, 5, $titleCenter, 450, $title, $white);
-            imagestring($im, 4, 100, 600, "Author: " . $authorName, $authorCol);
-            imagestring($im, 4, 300, 1100, "ideaabd.com", $accent);
-        }
-
-        // Save as AVIF
-        if (function_exists('imageavif')) {
-            ob_start();
-            $success = @imageavif($im, null, 85);
-            $avifData = ob_get_clean();
-
-            if ($success && !empty($avifData)) {
-                imagedestroy($im);
-                $path = "{$folder}/{$randomName}.avif";
-                Storage::disk($disk)->put($path, $avifData);
-                return $path;
-            }
-        }
-
-        // WebP Fallback
-        if (function_exists('imagewebp')) {
-            ob_start();
-            $success = @imagewebp($im, null, 85);
-            $webpData = ob_get_clean();
-
-            if ($success && !empty($webpData)) {
-                imagedestroy($im);
-                $path = "{$folder}/{$randomName}.webp";
-                Storage::disk($disk)->put($path, $webpData);
-                return $path;
-            }
-        }
-
-        // JPEG Fallback
-        ob_start();
-        imagejpeg($im, null, 90);
-        $jpgData = ob_get_clean();
-        imagedestroy($im);
-
-        $path = "{$folder}/{$randomName}.jpg";
-        Storage::disk($disk)->put($path, $jpgData);
+        $svg = \App\Support\BookCoverGenerator::renderSvg($title, $authorName, null, $categoryName, $theme);
+        $path = "{$folder}/{$randomName}";
+        Storage::disk($disk)->put($path, $svg);
         return $path;
     }
 
     /**
      * Convert a single image file (JPG, PNG, AVIF, BMP) to WebP format.
+     * For SVG files, performs vector XML minification while preserving fonts and vector fidelity.
      *
      * @return array ['success' => bool, 'webp_path' => string, 'bytes_saved' => int, 'original_size' => int, 'new_size' => int]
      */
@@ -633,68 +482,21 @@ SVG;
 
         $origSize = filesize($sourcePath);
 
-        // Handle SVG to WebP conversion
+        // For SVG files, optimize XML without rasterizing to preserve 100% flawless typography
         if ($ext === 'svg') {
-            $dir = dirname($sourcePath);
-            $baseName = pathinfo($sourcePath, PATHINFO_FILENAME);
-            $webpPath = $dir . '/' . $baseName . '.webp';
-            $tempWebp = $webpPath . '.tmp';
+            $bytesSaved = self::optimizeSvgFile($sourcePath);
+            $newSize = filesize($sourcePath);
 
-            $rawContent = @file_get_contents($sourcePath);
-            preg_match_all('/<text[^>]*>([^<]+)<\/text>/u', $rawContent ?: '', $matches);
-            $texts = $matches[1] ?? [];
-
-            $title = $texts[1] ?? ($texts[0] ?? Str::headline(preg_replace('/[_-]/', ' ', $baseName)));
-            $author = $texts[2] ?? ($texts[1] ?? 'আইডিয়া প্রকাশন');
-            $category = $texts[0] ?? 'বই';
-
-            $w = 800;
-            $h = 1200;
-            $srcImage = @imagecreatetruecolor($w, $h);
-            if ($srcImage) {
-                $bg = imagecolorallocate($srcImage, 15, 23, 42);
-                imagefilledrectangle($srcImage, 0, 0, $w, $h, $bg);
-                $accent = imagecolorallocate($srcImage, 234, 179, 8);
-                $white = imagecolorallocate($srcImage, 255, 255, 255);
-                $authorCol = imagecolorallocate($srcImage, 253, 224, 71);
-
-                imagesetthickness($srcImage, 3);
-                imagerectangle($srcImage, 35, 35, $w - 35, $h - 35, $accent);
-
-                $fontPath = public_path('fonts/kalpurush/kalpurush.ttf');
-                if (file_exists($fontPath)) {
-                    imagettftext($srcImage, 16, 0, 290, 110, $accent, $fontPath, "✦ আইডিয়া প্রকাশন ✦");
-                    imagettftext($srcImage, 36, 0, 150, 500, $white, $fontPath, Str::limit($title, 40));
-                    imagettftext($srcImage, 22, 0, 240, 650, $authorCol, $fontPath, Str::limit($author, 30));
-                    imagettftext($srcImage, 14, 0, 280, 1130, $accent, $fontPath, "ideaabd.com");
-                } else {
-                    imagestring($srcImage, 5, 200, 500, $title, $white);
-                    imagestring($srcImage, 4, 200, 600, $author, $authorCol);
-                }
-
-                $saved = imagewebp($srcImage, $tempWebp, $quality);
-                imagedestroy($srcImage);
-
-                if ($saved && file_exists($tempWebp)) {
-                    $newSize = filesize($tempWebp);
-                    rename($tempWebp, $webpPath);
-                    $bytesSaved = max(0, $origSize - $newSize);
-
-                    if ($deleteOriginal && $webpPath !== $sourcePath && file_exists($sourcePath)) {
-                        @unlink($sourcePath);
-                    }
-
-                    return [
-                        'success'       => true,
-                        'webp_path'     => $webpPath,
-                        'original_path' => $sourcePath,
-                        'original_size' => $origSize,
-                        'new_size'      => $newSize,
-                        'bytes_saved'   => $bytesSaved,
-                        'filename'      => basename($webpPath),
-                    ];
-                }
-            }
+            return [
+                'success'       => true,
+                'webp_path'     => $sourcePath,
+                'original_path' => $sourcePath,
+                'original_size' => $origSize,
+                'new_size'      => $newSize,
+                'bytes_saved'   => $bytesSaved,
+                'filename'      => basename($sourcePath),
+                'is_svg'        => true,
+            ];
         }
 
         // Load source image resource with multiple fallback decoders
