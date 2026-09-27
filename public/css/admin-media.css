@@ -172,6 +172,70 @@
     background: #eff6ff;
 }
 
+/* Special Styling for Book Covers Folder */
+.is-book-folder .media-thumb-container {
+    height: 225px;
+    background: #0f172a;
+    padding: 0.65rem;
+}
+
+.is-book-folder .media-thumb-img {
+    box-shadow: -4px 8px 20px rgba(0, 0, 0, 0.45);
+    border-radius: 4px 8px 8px 4px;
+    border-left: 3.5px solid rgba(255, 255, 255, 0.3);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.is-book-folder .media-card:hover .media-thumb-img {
+    transform: scale(1.06) rotate(-1.5deg);
+    box-shadow: -8px 14px 28px rgba(0, 0, 0, 0.55);
+}
+
+.media-item-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.media-item-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Quick Snippet Dropdown */
+.snippet-dropdown-menu {
+    min-width: 220px;
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--media-border);
+}
+
+.snippet-dropdown-item {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: #334155;
+    transition: var(--media-transition);
+}
+
+.snippet-dropdown-item:hover {
+    background: #eff6ff;
+    color: var(--media-primary);
+}
+
 .media-thumb-container {
     height: 165px;
     background: #f8fafc;

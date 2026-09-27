@@ -247,8 +247,8 @@
         {{-- ================================================================= --}}
         {{-- GRID VIEW                                                         --}}
         {{-- ================================================================= --}}
-        <div class="row g-3" id="mediaGridContainer">
-            @forelse($mediaItems as $item)
+        <div class="row g-3 {{ $folderFilter === 'books' ? 'is-book-folder' : '' }}" id="mediaGridContainer">
+            @forelse($paginatedItems as $item)
                 <div class="col-6 col-sm-4 col-md-3 col-xl-2 media-item-card" 
                      data-filename="{{ strtolower($item['filename']) }}" 
                      data-ext="{{ strtolower($item['ext']) }}" 
@@ -264,19 +264,19 @@
 
                         {{-- Action Buttons on Hover Overlay --}}
                         <div class="media-thumb-overlay">
-                            <button type="button" class="btn-thumb-action" title="ফুলস্ক্রিন প্রিভিউ" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
+                            <button type="button" class="btn-thumb-action" title="ফুলস্ক্রিন প্রিভিউ" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
                                 <i class="fa-solid fa-expand"></i>
                             </button>
-                            <button type="button" class="btn-thumb-action" title="কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
+                            <button type="button" class="btn-thumb-action" title="কাস্টমাইজ ও অপ্টিমাইজ স্টুডিও" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
                                 <i class="fa-solid fa-palette"></i>
                             </button>
-                            <button type="button" class="btn-thumb-action" title="লিংক কপি করুন" onclick="copyUrl('{{ $item['url'] }}')">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
+                            <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn-thumb-action" title="কম্পিউটারে ডাউনলোড">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
                         </div>
 
                         {{-- Thumbnail Container --}}
-                        <div class="media-thumb-container" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
+                        <div class="media-thumb-container" onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')">
                             <img src="{{ $item['url'] }}" alt="{{ $item['filename'] }}" class="media-thumb-img" loading="lazy">
                             
                             {{-- Dimension & Format Meta Badges on Thumb --}}
@@ -291,8 +291,13 @@
                         {{-- Details --}}
                         <div class="media-details">
                             <div>
-                                <div class="media-filename" title="{{ $item['filename'] }}">{{ $item['filename'] }}</div>
-                                <div class="media-meta-row">
+                                @if(!empty($item['item_title']))
+                                    <div class="media-item-title" title="{{ $item['item_title'] }}">{{ $item['item_title'] }}</div>
+                                    <div class="media-item-subtitle">{{ $item['item_subtitle'] ?? $item['filename'] }}</div>
+                                @else
+                                    <div class="media-filename" title="{{ $item['filename'] }}">{{ $item['filename'] }}</div>
+                                @endif
+                                <div class="media-meta-row mt-1">
                                     <span class="badge bg-light text-dark border px-1.5 py-0.5 rounded-pill font-monospace" style="font-size: 10px;">
                                         <i class="{{ $item['folder_icon'] }} me-0.5"></i> {{ $item['folder_label'] }}
                                     </span>
@@ -303,10 +308,33 @@
 
                         {{-- Footer Action Buttons --}}
                         <div class="media-card-footer">
-                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})" title="স্টুডিওতে কাস্টমাইজ করুন">
-                                <i class="fa-solid fa-palette me-1"></i> স্টুডিও
+                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})" title="স্টুডিওতে কাস্টমাইজ করুন">
+                                <i class="fa-solid fa-palette me-0.5"></i> স্টুডিও
                             </button>
                             <div class="d-flex align-items-center gap-1">
+                                <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success border-0 p-1" title="কম্পিউটারে ডাউনলোড">
+                                    <i class="fa-solid fa-download"></i>
+                                </a>
+                                {{-- Quick Snippet Copy Dropdown --}}
+                                <div class="dropdown d-inline-block">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" data-bs-toggle="dropdown" title="কোড ও লিংক কপি">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end snippet-dropdown-menu">
+                                        <div class="snippet-dropdown-item" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
+                                            <i class="fa-solid fa-link text-primary"></i> Direct Image URL
+                                        </div>
+                                        <div class="snippet-dropdown-item" onclick="copySnippet('html', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
+                                            <i class="fa-brands fa-html5 text-danger"></i> HTML &lt;img&gt; Tag
+                                        </div>
+                                        <div class="snippet-dropdown-item" onclick="copySnippet('markdown', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
+                                            <i class="fa-brands fa-markdown text-info"></i> Markdown Snippet
+                                        </div>
+                                        <div class="snippet-dropdown-item" onclick="copySnippet('blade', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
+                                            <i class="fa-brands fa-laravel text-warning"></i> Laravel Blade Snippet
+                                        </div>
+                                    </div>
+                                </div>
                                 <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="ফাইলের নাম পরিবর্তন">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
@@ -350,7 +378,7 @@
                                 <input type="checkbox" class="form-check-input" onchange="toggleSelectAll(this)">
                             </th>
                             <th style="width: 60px;">প্রিভিউ</th>
-                            <th>ফাইলের নাম ও পাথ</th>
+                            <th>ফাইলের নাম ও বিবরণ</th>
                             <th>ফোল্ডার</th>
                             <th>রেজোলিউশন</th>
                             <th>ফরম্যাট</th>
@@ -360,7 +388,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($mediaItems as $item)
+                        @forelse($paginatedItems as $item)
                             <tr class="media-item-row" 
                                 data-filename="{{ strtolower($item['filename']) }}" 
                                 data-ext="{{ strtolower($item['ext']) }}" 
@@ -373,11 +401,16 @@
                                 </td>
                                 <td>
                                     <img src="{{ $item['url'] }}" alt="{{ $item['filename'] }}" class="media-table-thumb" 
-                                         onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')" loading="lazy">
+                                         onclick="openLightbox('{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', '{{ $item['size'] }}', '{{ $item['updated_at']->format('d M, Y h:i A') }}', '{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}', '{{ $item['folder_label'] }}')" loading="lazy">
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ $item['filename'] }}">{{ $item['filename'] }}</div>
-                                    <small class="text-muted font-monospace fs-xs">{{ $item['mime'] }}</small>
+                                    @if(!empty($item['item_title']))
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ $item['item_title'] }}">{{ $item['item_title'] }}</div>
+                                        <small class="text-muted font-monospace fs-xs">{{ $item['item_subtitle'] ?? $item['filename'] }}</small>
+                                    @else
+                                        <div class="fw-bold text-dark text-truncate" style="max-width: 280px;" title="{{ $item['filename'] }}">{{ $item['filename'] }}</div>
+                                        <small class="text-muted font-monospace fs-xs">{{ $item['mime'] }}</small>
+                                    @endif
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border rounded-pill font-monospace px-2.5 py-1">
@@ -406,10 +439,13 @@
                                 </td>
                                 <td class="text-end">
                                     <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
+                                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
                                             <i class="fa-solid fa-palette me-1"></i> কাস্টমাইজ
                                         </button>
-                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" onclick="copyUrl('{{ $item['url'] }}')" title="URL কপি করুন">
+                                        <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success rounded-pill px-2 py-1" title="ডাউনলোড">
+                                            <i class="fa-solid fa-download"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-1" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')" title="URL কপি করুন">
                                             <i class="fa-regular fa-copy"></i>
                                         </button>
                                         <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="নাম পরিবর্তন">
@@ -441,6 +477,62 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+    @endif
+
+    {{-- Pagination & Per-Page Controls Bar --}}
+    @if($filteredCount > 0)
+        <div class="card bg-white rounded-4 shadow-sm border-0 p-3 mt-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="small text-muted font-monospace">
+                    মোট <strong>{{ number_format($filteredCount) }}</strong> টি ফাইলের মধ্যে 
+                    <strong>{{ count($paginatedItems) }}</strong> টি প্রদর্শিত (পৃষ্ঠা {{ $currentPage }} / {{ $totalPages }})
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    {{-- Per-Page Selector --}}
+                    <div class="d-flex align-items-center gap-1.5">
+                        <span class="small text-muted fw-semibold">প্রতি পৃষ্ঠায়:</span>
+                        <select class="form-select form-select-sm rounded-pill font-monospace" style="width: 80px;" onchange="const u = new URL(window.location.href); u.searchParams.set('per_page', this.value); u.searchParams.set('page', '1'); window.location.href = u.toString();">
+                            <option value="24" {{ $perPage == '24' ? 'selected' : '' }}>24</option>
+                            <option value="48" {{ $perPage == '48' ? 'selected' : '' }}>48</option>
+                            <option value="96" {{ $perPage == '96' ? 'selected' : '' }}>96</option>
+                            <option value="all" {{ $perPage == 'all' ? 'selected' : '' }}>All</option>
+                        </select>
+                    </div>
+
+                    {{-- Page Navigation Links --}}
+                    @if($totalPages > 1 && $perPage !== 'all')
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                @if($currentPage > 1)
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill me-1 px-2.5" href="{{ route('admin.media.index', array_merge(request()->query(), ['page' => $currentPage - 1])) }}">
+                                            <i class="fa-solid fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                @for($p = max(1, $currentPage - 2); $p <= min($totalPages, $currentPage + 2); $p++)
+                                    <li class="page-item {{ $p === $currentPage ? 'active' : '' }}">
+                                        <a class="page-link rounded-circle mx-0.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" href="{{ route('admin.media.index', array_merge(request()->query(), ['page' => $p])) }}">
+                                            {{ $p }}
+                                        </a>
+                                    </li>
+                                @endfor
+
+                                @if($currentPage < $totalPages)
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill ms-1 px-2.5" href="{{ route('admin.media.index', array_merge(request()->query(), ['page' => $currentPage + 1])) }}">
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+                            </ul>
+                        </nav>
+                    @endif
+                </div>
             </div>
         </div>
     @endif
@@ -522,6 +614,8 @@
                             </div>
                             <div class="d-flex flex-wrap gap-1.5 mb-2.5">
                                 <span class="studio-preset-chip active" data-preset="original" onclick="setStudioPreset('original')">আসল সাইজ</span>
+                                <span class="studio-preset-chip" data-preset="book-cover-std" onclick="setStudioPreset('book-cover-std')">📚 বই কাভার (800×1200)</span>
+                                <span class="studio-preset-chip" data-preset="book-cover-compact" onclick="setStudioPreset('book-cover-compact')">📖 কমপ্যাক্ট (600×900)</span>
                                 <span class="studio-preset-chip" data-preset="1:1" onclick="setStudioPreset('1:1')">1:1 বর্গাকার</span>
                                 <span class="studio-preset-chip" data-preset="16:9" onclick="setStudioPreset('16:9')">16:9 ব্যানার</span>
                                 <span class="studio-preset-chip" data-preset="4:3" onclick="setStudioPreset('4:3')">4:3 স্ট্যান্ডার্ড</span>
@@ -650,7 +744,7 @@
                                     <label class="form-label fs-xs text-muted mb-0.5">টার্গেট ফোল্ডার</label>
                                     <select id="studioFolderSelect" class="form-select form-select-sm">
                                         @foreach($folderDefs as $fk => $finfo)
-                                            <option value="{{ $fk }}" {{ $fk === 'uploads' ? 'selected' : '' }}>{{ $finfo['label'] }}</option>
+                                            <option value="{{ $fk }}" {{ ($folderFilter !== 'all' && $folderFilter === $fk) || ($folderFilter === 'all' && $fk === 'uploads') ? 'selected' : '' }}>{{ $finfo['label'] }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -720,7 +814,7 @@
                         <label class="form-label small fw-bold text-dark">টার্গেট ফোল্ডার</label>
                         <select id="uploadTargetFolder" class="form-select form-select-sm rounded-3 fw-semibold">
                             @foreach($folderDefs as $fk => $finfo)
-                                <option value="{{ $fk }}" {{ $fk === 'uploads' ? 'selected' : '' }}>
+                                <option value="{{ $fk }}" {{ ($folderFilter !== 'all' && $folderFilter === $fk) || ($folderFilter === 'all' && $fk === 'uploads') ? 'selected' : '' }}>
                                     {{ $finfo['label'] }}
                                 </option>
                             @endforeach

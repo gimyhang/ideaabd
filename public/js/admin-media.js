@@ -369,14 +369,41 @@ function setStudioPreset(preset) {
         studioState.currWidth = 800;
         studioState.currHeight = 800;
         if (lockCb) lockCb.checked = false;
-    } else if (preset === '1920x1080') {
-        studioState.currWidth = 1920;
-        studioState.currHeight = 1080;
+    } else if (preset === 'book-cover-std') {
+        studioState.currWidth = 800;
+        studioState.currHeight = 1200;
+        if (lockCb) lockCb.checked = false;
+    } else if (preset === 'book-cover-compact') {
+        studioState.currWidth = 600;
+        studioState.currHeight = 900;
         if (lockCb) lockCb.checked = false;
     }
 
     updateStudioInputs();
     renderStudioCanvas();
+}
+
+/**
+ * Smart Snippet Copy Hub (URL, HTML, Markdown, Blade)
+ */
+function copySnippet(type, url, title) {
+    let snippet = url;
+    const safeTitle = (title || 'Image').replace(/"/g, '&quot;');
+
+    if (type === 'html') {
+        snippet = `<img src="${url}" alt="${safeTitle}" class="img-fluid rounded" loading="lazy">`;
+    } else if (type === 'markdown') {
+        snippet = `![${safeTitle}](${url})`;
+    } else if (type === 'blade') {
+        const cleanPath = url.replace(/https?:\/\/[^\/]+\//, '');
+        snippet = `<img src="{{ asset('${cleanPath}') }}" alt="${safeTitle}" class="img-fluid" loading="lazy">`;
+    }
+
+    navigator.clipboard.writeText(snippet).then(() => {
+        showMediaAlert('success', `${type.toUpperCase()} কোড সফলভাবে ক্লিপবোর্ডে কপি হয়েছে!`);
+    }).catch(() => {
+        prompt('কোড কপি করুন:', snippet);
+    });
 }
 
 function studioRotate(deg) {

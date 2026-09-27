@@ -145,6 +145,49 @@ class AdminMediaController extends Controller
         $storagePublic = storage_path('app/public');
         $publicImages = public_path('images');
 
+        // Title & Model association lookup (Cached for fast retrieval)
+        $titleLookup = \Illuminate\Support\Facades\Cache::remember('media_asset_title_lookup_v2', 300, function () {
+            $map = [];
+
+            // Books
+            if (\Illuminate\Support\Facades\Schema::hasTable('books')) {
+                $books = \Illuminate\Support\Facades\DB::table('books')->whereNotNull('cover_image')->get(['title', 'author_name', 'cover_image', 'slug']);
+                foreach ($books as $b) {
+                    $base = basename((string) $b->cover_image);
+                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                    $info = ['title' => $b->title, 'subtitle' => $b->author_name ?: 'আইডিয়া প্রকাশন', 'type' => 'বই', 'link' => url('/books/' . ($b->slug ?: $b->title))];
+                    $map[$base] = $info;
+                    $map[$baseNoExt] = $info;
+                }
+            }
+
+            // Authors
+            if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
+                $authors = \Illuminate\Support\Facades\DB::table('authors')->whereNotNull('avatar')->get(['name', 'name_bn', 'avatar', 'slug']);
+                foreach ($authors as $a) {
+                    $base = basename((string) $a->avatar);
+                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                    $info = ['title' => $a->name_bn ?: $a->name, 'subtitle' => 'লেখক / গবেষক', 'type' => 'লেখক', 'link' => url('/authors/' . ($a->slug ?: $a->name))];
+                    $map[$base] = $info;
+                    $map[$baseNoExt] = $info;
+                }
+            }
+
+            // Blog Posts
+            if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts')) {
+                $posts = \Illuminate\Support\Facades\DB::table('blog_posts')->whereNotNull('featured_image')->get(['title', 'featured_image', 'slug']);
+                foreach ($posts as $p) {
+                    $base = basename((string) $p->featured_image);
+                    $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
+                    $info = ['title' => $p->title, 'subtitle' => 'ব্লগ ও প্রবন্ধ', 'type' => 'ব্লগ', 'link' => url('/blog/' . ($p->slug ?: $p->title))];
+                    $map[$base] = $info;
+                    $map[$baseNoExt] = $info;
+                }
+            }
+
+            return $map;
+        });
+
         $folderDefs = $this->getFolderDefinitions();
 
         $mediaItems = [];
@@ -172,7 +215,6 @@ class AdminMediaController extends Controller
                     continue;
                 }
 
-                // If scanning root publicImages, avoid recursively grabbing subdirectories already listed
                 $files = ($dir === $publicImages) ? File::files($dir) : File::allFiles($dir);
 
                 foreach ($files as $file) {
@@ -214,8 +256,21 @@ class AdminMediaController extends Controller
                     }
 
                     // Apply Search Filter
-                    if ($search && !str_contains(strtolower($filename), strtolower($search)) && !str_contains(strtolower($folderKey), strtolower($search))) {
-                        continue;
+                    $filenameBase = pathinfo($filename, PATHINFO_FILENAME);
+                    $itemInfo = $titleLookup[$filename] ?? ($titleLookup[$filenameBase] ?? null);
+                    $itemTitle = $itemInfo['title'] ?? null;
+                    $itemSubtitle = $itemInfo['subtitle'] ?? null;
+                    $itemLink = $itemInfo['link'] ?? null;
+
+                    if ($search) {
+                        $searchLower = strtolower($search);
+                        $matched = str_contains(strtolower($filename), $searchLower)
+                            || str_contains(strtolower($folderKey), $searchLower)
+                            || ($itemTitle && str_contains(strtolower($itemTitle), $searchLower))
+                            || ($itemSubtitle && str_contains(strtolower($itemSubtitle), $searchLower));
+                        if (!$matched) {
+                            continue;
+                        }
                     }
 
                     // Generate Web URL
@@ -282,21 +337,24 @@ class AdminMediaController extends Controller
                     };
 
                     $mediaItems[] = [
-                        'filename'     => $filename,
-                        'folder'       => $folderKey,
-                        'folder_label' => $folderDefs[$folderKey]['label'],
-                        'folder_icon'  => $folderDefs[$folderKey]['icon'],
-                        'path'         => $pathname,
-                        'url'          => $url,
-                        'size'         => $this->formatBytes($size),
-                        'size_bytes'   => $size,
-                        'ext'          => $ext,
-                        'width'        => $width,
-                        'height'       => $height,
-                        'aspect_ratio' => $aspectRatio,
-                        'mime'         => $mime,
-                        'updated_at'   => Carbon::createFromTimestamp($mtime),
-                        'is_webp'      => ($ext === 'webp'),
+                        'filename'      => $filename,
+                        'folder'        => $folderKey,
+                        'folder_label'  => $folderDefs[$folderKey]['label'],
+                        'folder_icon'   => $folderDefs[$folderKey]['icon'],
+                        'path'          => $pathname,
+                        'url'           => $url,
+                        'size'          => $this->formatBytes($size),
+                        'size_bytes'    => $size,
+                        'ext'           => $ext,
+                        'width'         => $width,
+                        'height'        => $height,
+                        'aspect_ratio'  => $aspectRatio,
+                        'mime'          => $mime,
+                        'item_title'    => $itemTitle,
+                        'item_subtitle' => $itemSubtitle,
+                        'item_link'     => $itemLink,
+                        'updated_at'    => Carbon::createFromTimestamp($mtime),
+                        'is_webp'       => ($ext === 'webp'),
                     ];
                 }
             }
@@ -324,8 +382,25 @@ class AdminMediaController extends Controller
         $webpPercent = $totalCount > 0 ? round(($webpCount / $totalCount) * 100, 1) : 0;
         $gdLoaded = extension_loaded('gd');
 
+        // Pagination controls
+        $perPage = $request->input('per_page', '48');
+        $currentPage = max(1, (int) $request->input('page', 1));
+
+        if ($perPage !== 'all') {
+            $perPageInt = max(12, (int) $perPage);
+            $totalPages = max(1, (int) ceil($filteredCount / $perPageInt));
+            $currentPage = min($currentPage, $totalPages);
+            $offset = ($currentPage - 1) * $perPageInt;
+            $paginatedItems = array_slice($mediaItems, $offset, $perPageInt);
+        } else {
+            $paginatedItems = $mediaItems;
+            $totalPages = 1;
+            $currentPage = 1;
+        }
+
         return view('admin.media', compact(
             'mediaItems',
+            'paginatedItems',
             'totalCount',
             'filteredCount',
             'totalFormatted',
@@ -337,6 +412,9 @@ class AdminMediaController extends Controller
             'sort',
             'viewMode',
             'search',
+            'perPage',
+            'currentPage',
+            'totalPages',
             'folderDefs',
             'folderStats',
             'gdLoaded'
