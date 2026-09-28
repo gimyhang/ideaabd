@@ -13,7 +13,8 @@
 @endpush
 
 @section('actions')
-    <div class="d-flex align-items-center gap-2 flex-wrap">
+    {{-- Desktop Action Bar --}}
+    <div class="d-none d-md-flex align-items-center gap-2 flex-wrap">
         {{-- 1-Click Purge Unused / Replaced Images & Cache --}}
         <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="btnPurgeUnusedMedia" onclick="triggerPurgeUnusedMedia(this)" title="Purge unused, replaced, or orphaned cache images not in database">
             <i class="fa-solid fa-broom text-danger"></i>
@@ -44,10 +45,48 @@
             <span>Upload Media</span>
         </button>
     </div>
+
+    {{-- Mobile Header Action Bar --}}
+    <div class="d-flex d-md-none align-items-center gap-1.5 w-100 justify-content-between">
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold d-inline-flex align-items-center gap-1.5 flex-grow-1 justify-content-center" data-bs-toggle="modal" data-bs-target="#uploadMediaModal">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span>Upload Media</span>
+        </button>
+
+        <div class="dropdown">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 fw-semibold d-inline-flex align-items-center gap-1" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+                <span>Tools</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2" style="min-width: 220px;">
+                <li>
+                    <button class="dropdown-item rounded-3 py-2 fw-semibold small text-success d-flex align-items-center gap-2" onclick="openConvertWebpEngineModal()">
+                        <i class="fa-solid fa-bolt-lightning text-success"></i> Convert All to WebP
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item rounded-3 py-2 fw-semibold small text-primary d-flex align-items-center gap-2" onclick="runMediaOptimization(this)">
+                        <i class="fa-solid fa-bolt text-primary"></i> Auto Optimize All
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item rounded-3 py-2 fw-semibold small text-dark d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createFolderModal">
+                        <i class="fa-solid fa-folder-plus text-warning"></i> Create New Folder
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                    <button class="dropdown-item rounded-3 py-2 fw-semibold small text-danger d-flex align-items-center gap-2" onclick="triggerPurgeUnusedMedia(this)">
+                        <i class="fa-solid fa-broom text-danger"></i> Purge Unused / Cache
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
 @endsection
 
 @section('content')
-<div class="d-flex flex-column gap-3.5 pb-5">
+<div class="d-flex flex-column gap-3.5 pb-5 mb-4" style="padding-bottom: 90px !important;">
 
     <!-- Flash Messages -->
     @if(session('success'))
@@ -69,79 +108,67 @@
     <!-- Dynamic Live Alert Container -->
     <div id="mediaLiveAlert"></div>
 
-    <!-- Storage Statistics 4-Card Grid -->
-    <div class="row g-3">
-        {{-- Card 1: Total Assets --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="media-kpi-card border-start border-4 border-primary">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">Total Assets</span>
-                    <div class="media-kpi-icon bg-primary-subtle text-primary">
-                        <i class="fa-solid fa-images"></i>
+    <!-- Dynamic Classic WebP & Storage Intelligence Hero Bar -->
+    <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden media-hero-kpi-bar">
+        <div class="p-3 p-md-3.5">
+            <div class="row g-3 align-items-center justify-content-between">
+                {{-- Left: WebP Speed Adoption & Dynamic Filter Meter --}}
+                <div class="col-12 col-lg-7">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success text-white rounded-pill px-2.5 py-1 fw-bold font-monospace d-flex align-items-center gap-1.5 shadow-xs">
+                                <span class="spinner-grow spinner-grow-sm text-white" style="width: 7px; height: 7px;" role="status"></span>
+                                WebP Speed Engine
+                            </span>
+                            <h5 class="fw-bold text-dark mb-0 font-monospace fs-6">
+                                <span class="text-success">{{ $webpPercent }}%</span> Next-Gen Adoption
+                            </h5>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ route('admin.media.index', array_merge(request()->query(), ['format' => 'webp'])) }}" 
+                               class="badge {{ $formatFilter === 'webp' ? 'bg-success text-white' : 'bg-success-subtle text-success' }} text-decoration-none rounded-pill px-2.5 py-1 font-monospace border border-success-subtle transition-all" title="Filter WebP Files">
+                                <i class="fa-solid fa-bolt me-1"></i> {{ $webpCount }} WebP
+                            </a>
+                            <a href="{{ route('admin.media.index', array_merge(request()->query(), ['format' => 'jpg'])) }}" 
+                               class="badge {{ ($formatFilter !== 'all' && $formatFilter !== 'webp') ? 'bg-warning text-dark' : 'bg-light text-muted' }} text-decoration-none rounded-pill px-2.5 py-1 font-monospace border transition-all" title="Filter Non-WebP Legacy Files">
+                                {{ max(0, $totalCount - $webpCount) }} Legacy (JPG/PNG)
+                            </a>
+                        </div>
                     </div>
-                </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1 font-monospace">{{ number_format($totalCount) }} <span class="fs-6 fw-normal text-muted">files</span></h3>
-                <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>Filtered: <strong class="text-primary font-monospace">{{ number_format($filteredCount) }}</strong></span>
-                    <span>Disk Storage</span>
-                </div>
-            </div>
-        </div>
 
-        {{-- Card 2: Total Storage --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="media-kpi-card border-start border-4 border-info">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">Total Storage</span>
-                    <div class="media-kpi-icon bg-info-subtle text-info">
-                        <i class="fa-solid fa-hard-drive"></i>
+                    {{-- Dynamic Animated Progress Bar --}}
+                    <div class="progress rounded-pill bg-light border overflow-hidden" style="height: 8px;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: {{ $webpPercent }}%;" 
+                             aria-valuenow="{{ $webpPercent }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-muted fs-xs font-monospace mt-1.5">
+                        <span><i class="fa-solid fa-gauge-high text-success me-1"></i> Ultra-Fast Loading & 50% Reduced Payload</span>
+                        <span>{{ $webpPercent >= 80 ? '🌟 Excellent Optimization' : '⚡ 1-Click Conversion Ready' }}</span>
                     </div>
                 </div>
-                <h3 class="text-dark fs-4 fw-bold font-monospace mb-1">{{ $totalFormatted }}</h3>
-                <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>Public & Storage</span>
-                    <span class="badge bg-light text-dark border font-monospace">SSD Cloud</span>
-                </div>
-            </div>
-        </div>
 
-        {{-- Card 3: Modern WebP Adoption --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="media-kpi-card border-start border-4 border-success">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">Next-Gen Format</span>
-                    <div class="media-kpi-icon bg-success-subtle text-success">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    </div>
-                </div>
-                <div class="d-flex align-items-baseline gap-2 mb-1">
-                    <h3 class="text-success fs-4 fw-bold font-monospace mb-0">{{ $webpPercent }}%</h3>
-                    <span class="badge bg-success-subtle text-success font-monospace">{{ $webpCount }} WebP</span>
-                </div>
-                <div class="d-flex align-items-center justify-content-between text-muted small">
-                    <span>Speed Compression</span>
-                    <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5 fw-bold" onclick="openConvertWebpEngineModal()">
-                        <i class="fa-solid fa-bolt me-1"></i> Convert
-                    </button>
-                </div>
-            </div>
-        </div>
+                {{-- Right: Quick Stats & 1-Click Convert Engine Button --}}
+                <div class="col-12 col-lg-5">
+                    <div class="d-flex flex-wrap align-items-center justify-content-lg-end gap-2.5">
+                        <div class="d-flex align-items-center gap-2.5 bg-light border rounded-pill px-3 py-1.5">
+                            <div class="text-end">
+                                <div class="fw-bold text-dark font-monospace" style="font-size: 0.85rem;">{{ number_format($totalCount) }} Assets</div>
+                                <div class="text-muted fs-xs font-monospace">{{ $totalFormatted }} Disk</div>
+                            </div>
+                            <i class="fa-solid fa-hard-drive text-primary ms-1 fs-5"></i>
+                        </div>
 
-        {{-- Card 4: Engine Status --}}
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="media-kpi-card border-start border-4 border-warning">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-bold text-uppercase font-monospace">Studio Engine</span>
-                    <div class="media-kpi-icon bg-warning-subtle text-warning-emphasis">
-                        <i class="fa-solid fa-palette"></i>
+                        <button type="button" class="btn btn-webp-gradient rounded-pill px-3.5 py-2 fw-bold d-flex align-items-center gap-2" onclick="openConvertWebpEngineModal()">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>1-Click WebP Booster</span>
+                        </button>
                     </div>
                 </div>
-                <h3 class="text-dark fs-5 fw-bold mb-1 d-flex align-items-center gap-1.5">
-                    <span class="badge bg-success text-white rounded-pill px-2.5 py-1" style="font-size: 0.75rem;">
-                        <i class="fa-solid fa-circle-check me-1"></i> HTML5 Canvas + GD
-                    </span>
-                </h3>
-                <div class="text-muted small">Resize, Rotate, Watermark & Filters Active</div>
             </div>
         </div>
     </div>
@@ -154,13 +181,13 @@
                     <i class="fa-solid fa-folder-tree"></i>
                 </div>
                 <div>
-                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.94rem;">ফোল্ডার ডিরেক্টরি লাইব্রেরি (Folder Directories)</h6>
-                    <small class="text-muted font-monospace" style="font-size: 11px;">ক্যাটাগরি অনুযায়ী অটোমেটিক ফোল্ডার অর্গানাইজার</small>
+                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.94rem;">Folder Directories Library</h6>
+                    <small class="text-muted font-monospace" style="font-size: 11px;">Categorized & organized storage directories</small>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 font-monospace small">
-                    <i class="fa-solid fa-folder-open text-primary me-1"></i> মোট {{ count($folderDefs) }} টি ফোল্ডার ডিরেক্টরি
+                    <i class="fa-solid fa-folder-open text-primary me-1"></i> {{ count($folderDefs) }} Folder Directories
                 </span>
             </div>
         </div>
@@ -175,9 +202,9 @@
                     <i class="fa-solid fa-layer-group"></i>
                 </div>
                 <div class="folder-btn-content">
-                    <span class="folder-btn-title">All Media (সকল ফাইল)</span>
+                    <span class="folder-btn-title">All Media Files</span>
                     <span class="folder-btn-meta">
-                        <span class="folder-btn-count">{{ $totalCount }} টি</span>
+                        <span class="folder-btn-count">{{ $totalCount }} files</span>
                         <span class="folder-btn-size">{{ $totalFormatted }}</span>
                     </span>
                 </div>
@@ -202,7 +229,7 @@
                     <div class="folder-btn-content">
                         <span class="folder-btn-title">{{ $fInfo['label'] }}</span>
                         <span class="folder-btn-meta">
-                            <span class="folder-btn-count">{{ $fStat['count'] }} টি</span>
+                            <span class="folder-btn-count">{{ $fStat['count'] }} files</span>
                             <span class="folder-btn-size">{{ $fStat['formatted'] }}</span>
                         </span>
                     </div>
@@ -219,6 +246,7 @@
         <form action="{{ route('admin.media.index') }}" method="GET" id="mediaFilterForm">
             <input type="hidden" name="folder" value="{{ $folderFilter }}">
             <input type="hidden" name="view" id="mediaViewModeInput" value="{{ $viewMode }}">
+            <input type="hidden" name="per_page" id="mediaPerPageInput" value="{{ $perPage }}">
 
             <div class="row g-2 align-items-center">
                 {{-- Live Search Input --}}
@@ -293,9 +321,9 @@
         {{-- ================================================================= --}}
         {{-- GRID VIEW                                                         --}}
         {{-- ================================================================= --}}
-        <div class="row g-3 {{ $folderFilter === 'books' ? 'is-book-folder' : '' }}" id="mediaGridContainer">
+        <div class="row g-2.5 g-md-3 {{ $folderFilter === 'covers' || $folderFilter === 'books' ? 'is-book-folder' : '' }}" id="mediaGridContainer">
             @forelse($paginatedItems as $index => $item)
-                <div class="col-6 col-sm-4 col-md-3 col-xl-2 media-item-card" 
+                <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2 media-item-card" 
                      data-filename="{{ strtolower($item['filename']) }}" 
                      data-ext="{{ strtolower($item['ext']) }}" 
                      data-folder="{{ strtolower($item['folder']) }}"
@@ -307,107 +335,39 @@
                      data-date="{{ $item['updated_at']->format('d M, Y h:i A') }}"
                      data-res="{{ $item['width'] ? $item['width'].'x'.$item['height'] : 'N/A' }}"
                      data-folderlabel="{{ $item['folder_label'] }}">
-                    <div class="card media-card position-relative">
+                    <div class="card media-card position-relative shadow-xs" onclick="openLightboxByIndex({{ $index }})" style="cursor: pointer;">
                         {{-- Selection Checkbox --}}
-                        <div class="media-select-cb-wrapper">
+                        <div class="media-select-cb-wrapper" onclick="event.stopPropagation();">
                             <input type="checkbox" class="form-check-input media-select-cb" 
                                    data-path="{{ $item['path'] }}" 
                                    data-url="{{ $item['url'] }}" 
                                    data-filename="{{ $item['filename'] }}">
                         </div>
 
-                        {{-- Action Buttons on Hover Overlay --}}
-                        <div class="media-thumb-overlay">
-                            <button type="button" class="btn-thumb-action" title="Fullscreen Preview" onclick="openLightboxByIndex({{ $index }})">
-                                <i class="fa-solid fa-expand"></i>
-                            </button>
-                            <button type="button" class="btn-thumb-action" title="Customizer Studio" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})">
-                                <i class="fa-solid fa-palette"></i>
-                            </button>
-                            <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn-thumb-action" title="Download">
-                                <i class="fa-solid fa-download"></i>
-                            </a>
-                        </div>
-
                         {{-- Thumbnail Container --}}
-                        <div class="media-thumb-container" onclick="openLightboxByIndex({{ $index }})">
+                        <div class="media-thumb-container">
                             <img src="{{ $item['url'] }}" alt="{{ $item['filename'] }}" class="media-thumb-img" loading="lazy">
                             
-                            {{-- Dimension & Format Meta Badges on Thumb --}}
+                            {{-- Dimension & Format Badges --}}
                             <div class="media-badge-meta">
                                 <span class="media-badge-tag {{ $item['is_webp'] ? 'badge-webp-glow' : '' }}">{{ strtoupper($item['ext']) }}</span>
                                 @if($item['width'] && $item['height'])
-                                    <span class="media-badge-tag">{{ $item['aspect_ratio'] }} ({{ $item['width'] }}×{{ $item['height'] }})</span>
+                                    <span class="media-badge-tag">{{ $item['width'] }}×{{ $item['height'] }}</span>
                                 @endif
                             </div>
                         </div>
 
-                        {{-- Details --}}
+                        {{-- Card Details (Clean & Minimal) --}}
                         <div class="media-details">
-                            <div>
-                                @if(!empty($item['item_title']))
-                                    <div class="media-item-title" title="{{ $item['item_title'] }}">{{ $item['item_title'] }}</div>
-                                    <div class="media-item-subtitle">{{ $item['item_subtitle'] ?? $item['filename'] }}</div>
-                                @else
-                                    <div class="media-filename" title="{{ $item['filename'] }}">{{ $item['filename'] }}</div>
-                                @endif
-                                <div class="media-meta-row mt-1">
-                                    <span class="badge bg-light text-dark border px-1.5 py-0.5 rounded-pill font-monospace" style="font-size: 10px;">
-                                        <i class="{{ $item['folder_icon'] }} me-0.5"></i> {{ $item['folder_label'] }}
-                                    </span>
-                                    <span class="fw-bold text-dark">{{ $item['size'] }}</span>
-                                </div>
+                            <div class="media-item-title" title="{{ $item['item_title'] ?? $item['filename'] }}">
+                                {{ $item['item_title'] ?? $item['filename'] }}
                             </div>
-                        </div>
-
-                        {{-- Footer Action Buttons --}}
-                        <div class="media-card-footer">
-                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="openStudioModal('{{ $item['url'] }}', '{{ addslashes($item['path']) }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}', {{ $item['width'] ?? 0 }}, {{ $item['height'] ?? 0 }})" title="Open Studio">
-                                <i class="fa-solid fa-palette me-0.5"></i> Studio
-                            </button>
-                            <div class="d-flex align-items-center gap-1">
-                                <a href="{{ $item['url'] }}" download="{{ $item['filename'] }}" class="btn btn-xs btn-outline-success border-0 p-1" title="Download">
-                                    <i class="fa-solid fa-download"></i>
-                                </a>
-                                {{-- Quick Snippet Copy Dropdown --}}
-                                <div class="dropdown d-inline-block">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" data-bs-toggle="dropdown" title="Copy Code & Links">
-                                        <i class="fa-regular fa-copy"></i>
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-end snippet-dropdown-menu">
-                                        <div class="snippet-dropdown-item" onclick="copySnippet('url', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
-                                            <i class="fa-solid fa-link text-primary"></i> Direct Image URL
-                                        </div>
-                                        <div class="snippet-dropdown-item" onclick="copySnippet('html', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
-                                            <i class="fa-brands fa-html5 text-danger"></i> HTML &lt;img&gt; Tag
-                                        </div>
-                                        <div class="snippet-dropdown-item" onclick="copySnippet('markdown', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
-                                            <i class="fa-brands fa-markdown text-info"></i> Markdown Snippet
-                                        </div>
-                                        <div class="snippet-dropdown-item" onclick="copySnippet('blade', '{{ $item['url'] }}', '{{ addslashes($item['item_title'] ?? $item['filename']) }}')">
-                                            <i class="fa-brands fa-laravel text-warning"></i> Laravel Blade Snippet
-                                        </div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openReplaceModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Replace Image">
-                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                </button>
-                                <button type="button" class="btn btn-xs btn-outline-secondary border-0 p-1" onclick="openRenameModal('{{ addslashes($item['path']) }}', '{{ addslashes($item['filename']) }}')" title="Rename File">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                                <form action="{{ route('admin.media.destroy') }}" method="POST"
-                                      data-confirm="Are you sure you want to delete this media file?"
-                                      data-confirm-title="Delete Media File"
-                                      data-confirm-icon="warning"
-                                      data-confirm-btn="<i class='fa-solid fa-trash-can me-1'></i> Delete"
-                                      class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <input type="hidden" name="path" value="{{ $item['path'] }}">
-                                    <button type="submit" class="btn btn-xs btn-outline-danger border-0 p-1" title="Delete">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
+                            
+                            <div class="d-flex align-items-center justify-content-between mt-1 text-muted fs-xs font-monospace">
+                                <span class="badge bg-light text-dark border px-1.5 py-0.5 rounded-pill text-truncate" style="max-width: 100px;" title="{{ $item['folder_label'] }}">
+                                    <i class="{{ $item['folder_icon'] }} me-0.5 text-primary"></i> {{ $item['folder_label'] }}
+                                </span>
+                                <span class="fw-bold text-dark">{{ $item['size'] }}</span>
                             </div>
                         </div>
                     </div>
@@ -561,7 +521,7 @@
                     {{-- Per-Page Selector --}}
                     <div class="d-flex align-items-center gap-1.5">
                         <span class="small text-muted fw-semibold">Per Page:</span>
-                        <select class="form-select form-select-sm rounded-pill font-monospace" style="width: 80px;" onchange="const u = new URL(window.location.href); u.searchParams.set('per_page', this.value); u.searchParams.set('page', '1'); window.location.href = u.toString();">
+                        <select class="form-select form-select-sm rounded-pill font-monospace" style="width: 80px;" onchange="changePerPage(this.value)">
                             <option value="24" {{ $perPage == '24' ? 'selected' : '' }}>24</option>
                             <option value="48" {{ $perPage == '48' ? 'selected' : '' }}>48</option>
                             <option value="96" {{ $perPage == '96' ? 'selected' : '' }}>96</option>
@@ -616,32 +576,32 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- FLOATING BATCH ACTIONS TOOLBAR                                             --}}
+{{-- FLOATING BATCH ACTIONS TOOLBAR (NON-CONFLICTING & ULTRA-RESPONSIVE)        --}}
 {{-- ========================================================================= --}}
-<div id="mediaFloatingBar" class="media-floating-bar">
-    <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-primary text-white font-monospace px-3 py-1.5 rounded-pill" id="selectedMediaCountBadge">0 Selected</span>
+<div id="mediaFloatingBar" class="media-floating-bar" role="toolbar" aria-label="Selected Media Actions">
+    <div class="d-flex align-items-center">
+        <span class="badge bg-primary text-white font-monospace px-2.5 py-1.5 rounded-pill shadow-xs" id="selectedMediaCountBadge">0 Selected</span>
     </div>
-    <div class="d-flex align-items-center gap-2 flex-wrap">
+    <div class="media-floating-actions-scroll">
         <button type="button" class="btn-floating-action btn-floating-warning" onclick="executeBulkConvertToWebp()" title="Convert selected files to WebP">
-            <i class="fa-solid fa-bolt-lightning text-warning"></i> Convert to WebP
+            <i class="fa-solid fa-bolt-lightning text-warning"></i> <span>WebP</span>
         </button>
-        <button type="button" class="btn-floating-action" onclick="copySelectedUrls()">
-            <i class="fa-solid fa-copy"></i> Copy URLs
+        <button type="button" class="btn-floating-action" onclick="copySelectedUrls()" title="Copy URL of selected files">
+            <i class="fa-solid fa-copy"></i> <span>Copy URLs</span>
         </button>
-        <button type="button" class="btn-floating-action" onclick="openBulkMoveModal()">
-            <i class="fa-solid fa-folder-tree"></i> Move Folder
+        <button type="button" class="btn-floating-action" onclick="openBulkMoveModal()" title="Move selected files to another folder">
+            <i class="fa-solid fa-folder-tree"></i> <span>Move</span>
         </button>
-        <button type="button" class="btn-floating-action" onclick="executeBulkDownloadZip()">
-            <i class="fa-solid fa-file-zipper"></i> Download ZIP
+        <button type="button" class="btn-floating-action" onclick="executeBulkDownloadZip()" title="Download selected files as ZIP">
+            <i class="fa-solid fa-file-zipper"></i> <span>ZIP</span>
         </button>
-        <button type="button" class="btn-floating-action btn-floating-danger" onclick="executeBulkDelete()">
-            <i class="fa-solid fa-trash-can"></i> Delete
-        </button>
-        <button type="button" class="btn-floating-action" onclick="clearAllSelections()" title="Clear Selection">
-            <i class="fa-solid fa-xmark"></i>
+        <button type="button" class="btn-floating-action btn-floating-danger" onclick="executeBulkDelete()" title="Delete selected files">
+            <i class="fa-solid fa-trash-can"></i> <span>Delete</span>
         </button>
     </div>
+    <button type="button" class="btn-floating-close ms-auto" onclick="clearAllSelections()" title="Deselect All (Esc)">
+        <i class="fa-solid fa-xmark"></i>
+    </button>
 </div>
 
 {{-- ========================================================================= --}}
@@ -894,9 +854,10 @@
                     <div class="col-12 col-md-6">
                         <label class="form-label small fw-bold text-dark">Max Resolution Limit</label>
                         <select id="uploadMaxDim" class="form-select form-select-sm rounded-3 fw-semibold">
-                            <option value="1920" selected>1920px (Full HD Auto Scale)</option>
+                            <option value="600" selected>600px (Ultra-Compact ≤ 20KB — Optimal & Crisp)</option>
+                            <option value="800">800px (Compact Web)</option>
                             <option value="1200">1200px (Standard Web)</option>
-                            <option value="800">800px (Compact)</option>
+                            <option value="1920">1920px (Full HD)</option>
                             <option value="0">Keep Original Size (No Resize)</option>
                         </select>
                     </div>
@@ -1112,18 +1073,56 @@
             <div class="modal-footer border-top border-secondary py-2.5 px-4 bg-dark d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="small text-light font-monospace" id="lightboxMeta"></div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-3 fw-semibold" id="lightboxStudioBtn" onclick="openStudioFromLightbox()">
-                        <i class="fa-solid fa-palette me-1"></i> Open in Studio
+                    {{-- 1. Studio Editor --}}
+                    <button type="button" class="btn btn-xs btn-warning text-dark fw-bold rounded-pill px-3 shadow-xs" id="lightboxStudioBtn" onclick="openStudioFromLightbox()">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Open in Studio
                     </button>
+
+                    {{-- 2. Replace Image --}}
+                    <button type="button" class="btn btn-xs btn-outline-warning rounded-pill px-3" onclick="openReplaceFromLightbox()" title="Replace Image">
+                        <i class="fa-solid fa-arrow-right-arrow-left me-1"></i> Replace
+                    </button>
+
+                    {{-- 3. Rename File --}}
+                    <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-3" onclick="openRenameFromLightbox()" title="Rename File">
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Rename
+                    </button>
+
+                    {{-- 4. Copy Snippets Dropdown --}}
+                    <div class="dropdown d-inline-block">
+                        <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-3" data-bs-toggle="dropdown">
+                            <i class="fa-regular fa-copy me-1"></i> Copy Code
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end snippet-dropdown-menu shadow-lg border-0 rounded-3">
+                            <div class="snippet-dropdown-item" onclick="copySnippet('url', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
+                                <i class="fa-solid fa-link text-primary"></i> Copy Direct URL
+                            </div>
+                            <div class="snippet-dropdown-item" onclick="copySnippet('html', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
+                                <i class="fa-brands fa-html5 text-danger"></i> Copy HTML &lt;img&gt;
+                            </div>
+                            <div class="snippet-dropdown-item" onclick="copySnippet('markdown', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
+                                <i class="fa-brands fa-markdown text-info"></i> Copy Markdown
+                            </div>
+                            <div class="snippet-dropdown-item" onclick="copySnippet('blade', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
+                                <i class="fa-brands fa-laravel text-warning"></i> Copy Blade Snippet
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 5. Download --}}
                     <a href="" id="lightboxDownloadBtn" download class="btn btn-xs btn-outline-success rounded-pill px-3" title="Download">
                         <i class="fa-solid fa-download me-1"></i> Download
                     </a>
-                    <button type="button" class="btn btn-xs btn-outline-light rounded-pill px-3" id="lightboxCopyBtn" onclick="copySnippet('url', document.getElementById('lightboxImage').src, document.getElementById('lightboxTitle').textContent)">
-                        <i class="fa-regular fa-copy me-1"></i> Copy URL
-                    </button>
-                    <a href="" target="_blank" class="btn btn-xs btn-primary rounded-pill px-3.5 fw-bold" id="lightboxOpenBtn">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open in Browser
+
+                    {{-- 6. Open in Browser --}}
+                    <a href="" target="_blank" class="btn btn-xs btn-outline-light rounded-pill px-3" id="lightboxOpenBtn" title="Open Original File">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Open
                     </a>
+
+                    {{-- 7. Delete File --}}
+                    <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-3" onclick="deleteFromLightbox()" title="Delete File">
+                        <i class="fa-solid fa-trash-can me-1"></i> Delete
+                    </button>
                 </div>
             </div>
         </div>
@@ -1257,6 +1256,15 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+{{-- Global Drag & Drop Overlay --}}
+<div id="globalDragOverlay" class="global-drag-overlay d-none">
+    <div class="global-drag-box">
+        <i class="fa-solid fa-cloud-arrow-up global-drag-icon mb-3"></i>
+        <h3 class="fw-bold text-dark mb-1">Drop Image Files Anywhere</h3>
+        <p class="text-muted small mb-0">Release to auto-upload and optimize with Next-Gen WebP</p>
     </div>
 </div>
 

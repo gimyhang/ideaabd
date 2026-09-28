@@ -403,12 +403,17 @@
                                         <i class="fa-solid fa-signature"></i>
                                     </button>
 
-                                    {{-- 3. Print Slip --}}
-                                    <a href="{{ route('admin.libraries.print', $lib->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary btn-action-icon" title="Print Slip & Token">
-                                        <i class="fa-solid fa-print"></i>
+                                    {{-- 3. Print / Preview Application Form (PDF View) --}}
+                                    <a href="{{ route('admin.libraries.print', $lib->id) }}" target="_blank" class="btn btn-sm btn-outline-success btn-action-icon" title="Preview Official Form / Print">
+                                        <i class="fa-solid fa-file-invoice"></i>
                                     </a>
 
-                                    {{-- 4. Details Modal --}}
+                                    {{-- 4. Direct Download PDF --}}
+                                    <a href="{{ route('admin.libraries.pdf', $lib->id) }}" class="btn btn-sm btn-outline-danger btn-action-icon" title="Download Official PDF">
+                                        <i class="fa-solid fa-file-pdf"></i>
+                                    </a>
+
+                                    {{-- 5. Details Modal --}}
                                     <button type="button" class="btn btn-sm btn-light border btn-action-icon" title="View Full Profile & Book List"
                                             onclick="openDetailsModal({{ json_encode($lib) }})">
                                         <i class="fa-solid fa-eye"></i>
@@ -615,7 +620,10 @@
             <div class="modal-body p-4" id="detailsModalBody">
                 {{-- Dynamically populated by JS --}}
             </div>
-            <div class="modal-footer border-top p-3 bg-light">
+            <div class="modal-footer border-top p-3 bg-light d-flex align-items-center justify-content-between">
+                <div class="d-flex gap-2" id="detailsModalActions">
+                    {{-- Dynamically linked by JS --}}
+                </div>
                 <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -827,9 +835,11 @@ function openDetailsModal(lib) {
             </div>
             <div class="col-md-6">
                 <div class="card bg-light border-0 p-3 rounded-3 h-100">
-                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-shield me-1"></i> Representative & Contact</h6>
-                    <div class="small mb-1"><strong>Representative:</strong> ${lib.name || '—'}</div>
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-shield me-1"></i> Representative & Leadership</h6>
+                    <div class="small mb-1"><strong>Representative:</strong> ${lib.name || '—'} (${lib.designation_or_class || fd.designation_or_class || '—'})</div>
                     <div class="small mb-1"><strong>Phone:</strong> <a href="tel:${lib.phone}" class="fw-semibold text-dark">${lib.phone || '—'}</a></div>
+                    <div class="small mb-1"><strong>President (সভাপতি):</strong> ${fd.president_name || '—'} ${fd.president_phone ? '(<a href="tel:'+fd.president_phone+'">'+fd.president_phone+'</a>)' : ''}</div>
+                    <div class="small mb-1"><strong>Secretary (সম্পাদক):</strong> ${fd.secretary_name || '—'} ${fd.secretary_phone ? '(<a href="tel:'+fd.secretary_phone+'">'+fd.secretary_phone+'</a>)' : ''}</div>
                     <div class="small mb-1"><strong>Alt Phone:</strong> ${fd.guardian_phone || '—'}</div>
                     <div class="small mb-1"><strong>Email:</strong> ${lib.email || '—'}</div>
                     <div class="small"><strong>Address:</strong> ${lib.address || '—'}, ${lib.thana || ''}, ${lib.district || ''}</div>
@@ -859,6 +869,19 @@ function openDetailsModal(lib) {
     `;
 
     document.getElementById('detailsModalBody').innerHTML = html;
+    
+    // Set Action Buttons
+    const printUrl = "{{ url('/admin/libraries') }}/" + lib.id + "/print";
+    const pdfUrl = "{{ url('/admin/libraries') }}/" + lib.id + "/pdf";
+    document.getElementById('detailsModalActions').innerHTML = `
+        <a href="${printUrl}" target="_blank" class="btn btn-outline-success rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5">
+            <i class="fa-solid fa-print"></i> Print Official Form (PDF View)
+        </a>
+        <a href="${pdfUrl}" class="btn btn-danger rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+        </a>
+    `;
+
     new bootstrap.Modal(document.getElementById('detailsModal')).show();
 }
 </script>

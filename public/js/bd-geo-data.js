@@ -1,313 +1,140 @@
 /**
- * Bangladesh Complete Administrative Divisions, Districts, Upazilas & Post Offices
- * Used for Dynamic Chained Address Selectors in IDEA Publication Forms
+ * বাংলাদেশ প্রশাসনিক ভূগোল ডাটাবেজ (৮টি বিভাগ, ৬৪টি জেলা, ৫০০+ উপজেলা/থানা ও প্রধান পোস্ট অফিস)
+ * সম্পূর্ণ বাংলায় (Bengali) এবং দ্বিভাষিক (Bilingual Compatibility)
+ * আইডিয়া প্রকাশন ও পাঠাগার বই অনুদান ফরম
  */
 
-window.BD_GEO = {
+window.BD_GEO_BN = {
     divisions: {
-        "Dhaka": ["Dhaka", "Gazipur", "Narayanganj", "Narsingdi", "Tangail", "Manikganj", "Munshiganj", "Faridpur", "Gopalganj", "Madaripur", "Rajbari", "Shariatpur", "Kishoreganj"],
-        "Chattogram": ["Chattogram", "Cox's Bazar", "Cumilla", "Feni", "Brahmanbaria", "Chandpur", "Noakhali", "Lakshmipur", "Rangamati", "Khagrachhari", "Bandarban"],
-        "Rajshahi": ["Rajshahi", "Bogura", "Pabna", "Sirajganj", "Naogaon", "Natore", "Joypurhat", "Chapainawabganj"],
-        "Rangpur": ["Rangpur", "Dinajpur", "Gaibandha", "Kurigram", "Lalmonirhat", "Nilphamari", "Panchagarh", "Thakurgaon"],
-        "Khulna": ["Khulna", "Jashore", "Satkhira", "Bagerhat", "Jhenaidah", "Kushtia", "Magura", "Meherpur", "Narail", "Chuadanga"],
-        "Barishal": ["Barishal", "Bhola", "Patuakhali", "Pirojpur", "Barguna", "Jhalokathi"],
-        "Sylhet": ["Sylhet", "Moulvibazar", "Habiganj", "Sunamganj"],
-        "Mymensingh": ["Mymensingh", "Jamalpur", "Netrokona", "Sherpur"]
+        "ঢাকা": ["ঢাকা", "গাজীপুর", "নারায়ণগঞ্জ", "নরসিংদী", "টাঙ্গাইল", "মানিকগঞ্জ", "মুন্সীগঞ্জ", "ফরিদপুর", "গোপালগঞ্জ", "মাদারীপুর", "রাজবাড়ী", "শরীয়তপুর", "কিশোরগঞ্জ"],
+        "চট্টগ্রাম": ["চট্টগ্রাম", "কক্সবাজার", "কুমিল্লা", "ফেনী", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "নোয়াখালী", "লক্ষ্মীপুর", "রাঙ্গামাটি", "খাগড়াছড়ি", "বান্দরবান"],
+        "রাজশাহী": ["রাজশাহী", "বগুড়া", "পাবনা", "সিরাজগঞ্জ", "নওগাঁ", "নাটোর", "জয়পুরহাট", "চাঁপাইনবাবগঞ্জ"],
+        "রংপুর": ["রংপুর", "দিনাজপুর", "গাইবান্ধা", "কুড়িগ্রাম", "লালমনিরহাট", "নীলফামারী", "পঞ্চগড়", "ঠাকুরগাঁও"],
+        "খুলনা": ["খুলনা", "যশোর", "সাতক্ষীরা", "বাগেরহাট", "ঝিনাইদহ", "কুষ্টিয়া", "মাগুরা", "মেহেরপুর", "নড়াইল", "চুয়াডাঙ্গা"],
+        "বরিশাল": ["বরিশাল", "ভোলা", "পটুয়াখালী", "পিরোজপুর", "বরগুনা", "ঝালকাঠি"],
+        "সিলেট": ["সিলেট", "মৌলভীবাজার", "হবিগঞ্জ", "সুনামগঞ্জ"],
+        "ময়মনসিংহ": ["ময়মনসিংহ", "জামালপুর", "নেত্রকোণা", "শেরপুর"]
     },
     
     upazilas: {
-        // Dhaka Division
-        "Dhaka": ["Dhanmondi", "Gulshan", "Banani", "Mirpur", "Uttara", "Mohammadpur", "Motijheel", "Tejgaon", "Badda", "Khilgaon", "Lalbagh", "Shahbagh", "Ramna", "Paltan", "Hazaribagh", "Keraniganj", "Savar", "Dhamrai", "Ashulia", "Cantonment", "Demra", "Jatrabari", "Kadamtali", "Kafrul", "Kamrangirchar", "Khilkhet", "Kotwali", "New Market", "Pallabi", "Rampura", "Sabujbagh", "Shyampur", "Sutrapur", "Turag", "Vatara", "Wari", "Dohar", "Nawabganj"],
-        "Gazipur": ["Gazipur City / Sadar", "Kaliakair", "Kapasia", "Sreepur", "Kaliganj", "Tongi"],
-        "Narayanganj": ["Narayanganj City / Sadar", "Bandar", "Araihazar", "Rupganj", "Sonargaon", "Fatullah", "Siddhirganj"],
-        "Narsingdi": ["Narsingdi Sadar", "Belabo", "Monohardi", "Palash", "Raipura", "Shibpur"],
-        "Tangail": ["Tangail Sadar", "Mirzapur", "Dhanbari", "Madhupur", "Gopalpur", "Ghatail", "Kalihati", "Sakhipur", "Basail", "Delduar", "Nagarpur", "Bhuapur"],
-        "Manikganj": ["Manikganj Sadar", "Singair", "Shibalaya", "Saturia", "Harirampur", "Ghior", "Daulatpur"],
-        "Munshiganj": ["Munshiganj Sadar", "Sreenagar", "Sirajdikhan", "Tongibari", "Lohajang", "Gazaria"],
-        "Faridpur": ["Faridpur Sadar", "Boalmari", "Alfadanga", "Madhukhali", "Bhanga", "Nagarkanda", "Charbhadrasan", "Sadarpur", "Saltha"],
-        "Gopalganj": ["Gopalganj Sadar", "Kashiani", "Kotalipara", "Muksudpur", "Tungipara"],
-        "Madaripur": ["Madaripur Sadar", "Shibchar", "Kalkini", "Rajoir", "Dasar"],
-        "Rajbari": ["Rajbari Sadar", "Pangsha", "Baliakandi", "Goalandaghat", "Kalukhali"],
-        "Shariatpur": ["Shariatpur Sadar", "Naria", "Damudya", "Bhedarganj", "Gosairhat", "Zanjira"],
-        "Kishoreganj": ["Kishoreganj Sadar", "Bhairab", "Bajitpur", "Katiadi", "Karimganj", "Hossainpur", "Pakundia", "Kuliarchar", "Tarail", "Itna", "Mithamain", "Austagram", "Nikli"],
+        // ঢাকা বিভাগ
+        "ঢাকা": ["ধানমন্ডি", "গুলশান", "বনানী", "মিরপুর", "উত্তরা", "মোহাম্মদপুর", "মতিঝিল", "তেজগাঁও", "বাড্ডা", "খিলগাঁও", "লালবাগ", "শাহবাগ", "রমনা", "পল্টন", "হাজারীবাগ", "কেরানীগঞ্জ", "সাভার", "ধামরাই", "আশুলিয়া", "ক্যান্টনমেন্ট", "ডেমরা", "যাত্রাবাড়ী", "কদমতলী", "কাফরুল", "কামরাঙ্গীরচর", "খিলক্ষেত", "কোতোয়ালী", "নিউ মার্কেট", "পল্লবী", "রামপুরা", "সবুজবাগ", "শ্যামপুর", "সূত্রাপুর", "তুরাগ", "ভাটারা", "ওয়ারী", "দোহার", "নবাবগঞ্জ"],
+        "গাজীপুর": ["গাজীপুর সদর / সিটি", "কালিয়াকৈর", "কাপাসিয়া", "শ্রীপুর", "কালীগঞ্জ", "টঙ্গী"],
+        "নারায়ণগঞ্জ": ["নারায়ণগঞ্জ সদর / সিটি", "বন্দর", "আড়াইহাজার", "রূপগঞ্জ", "সোনারগাঁও", "ফতুল্লা", "সিদ্ধিরগঞ্জ"],
+        "নরসিংদী": ["নরসিংদী সদর", "বেলাব", "মনোহরদী", "পলাশ", "রায়পুরা", "শিবপুর"],
+        "টাঙ্গাইল": ["টাঙ্গাইল সদর", "মির্জাপুর", "ধনবাড়ী", "মধুপুর", "গোপালপুর", "ঘাটাইল", "কালিহাতী", "সখিপুর", "বাসাইল", "দেলদুয়ার", "নাগরপুর", "ভূঞাপুর"],
+        "মানিকগঞ্জ": ["মানিকগঞ্জ সদর", "সিংগাইর", "শিবালয়", "সাটুরিয়া", "হরিরামপুর", "ঘিওরে", "দৌলতপুর"],
+        "মুন্সীগঞ্জ": ["মুন্সীগঞ্জ সদর", "শ্রীনগর", "সিরাজদিখান", "টংগিবাড়ী", "লৌহজং", "গজারিয়া"],
+        "ফরিদপুর": ["ফরিদপুর সদর", "বোয়ালমারী", "আলফাডাঙ্গা", "মধুখালী", "ভাঙ্গা", "নগরকান্দা", "চরভদ্রাসন", "সদরপুর", "সালথা"],
+        "গোপালগঞ্জ": ["গোপালগঞ্জ সদর", "কাশিয়ানী", "কোটালীপাড়া", "মুকসুদপুর", "টুঙ্গিপাড়া"],
+        "মাদারীপুর": ["মাদারীপুর সদর", "শিবচর", "কালকিনি", "রাজৈর", "ডাসার"],
+        "রাজবাড়ী": ["রাজবাড়ী সদর", "পাংশা", "বালিয়াকান্দি", "গোয়ালন্দ", "কালুখালী"],
+        "শরীয়তপুর": ["শরীয়তপুর সদর", "নড়িয়া", "ডামুড্যা", "ভেদরগঞ্জ", "গোসাইরহাট", "জাজিরা"],
+        "কিশোরগঞ্জ": ["কিশোরগঞ্জ সদর", "ভৈরব", "বাজিতপুর", "কটিয়াদী", "করিমগঞ্জ", "হোসেনপুর", "পাকুন্দিয়া", "কুলিয়ারচর", "তাড়াইল", "ইটনা", "মিঠামইন", "অষ্টগ্রাম", "নিকলী"],
 
-        // Chattogram Division
-        "Chattogram": ["Chattogram City / Sadar", "Kotwali", "Panchlaish", "Pahartali", "Double Mooring", "Halishahar", "Khulshi", "Bakalia", "Bayezid", "Chandgaon", "Patenga", "Hathazari", "Raozan", "Rangunia", "Fatikchhari", "Sitakunda", "Mirsharai", "Patiya", "Boalkhali", "Anwara", "Chandanaish", "Lohagara", "Satkania", "Banshkhali", "Sandwip", "Karnaphuli"],
-        "Cox's Bazar": ["Cox's Bazar Sadar", "Chakaria", "Maheshkhali", "Teknaf", "Ukhia", "Ramu", "Pekua", "Kutubdia", "Eidgaon"],
-        "Cumilla": ["Cumilla City / Adarsha Sadar", "Cumilla Sadar Dakshin", "Barura", "Brahmanpara", "Burichang", "Chandina", "Chauddagram", "Daudkandi", "Debidwar", "Homna", "Laksam", "Muradnagar", "Meghna", "Monohargonj", "Nangalkot", "Titas", "Lalmai"],
-        "Feni": ["Feni Sadar", "Chhagalnaiya", "Daganbhuiyan", "Parshuram", "Fulgazi", "Sonagazi"],
-        "Brahmanbaria": ["Brahmanbaria Sadar", "Ashuganj", "Nasirnagar", "Nabinagar", "Sarail", "Kasba", "Akhaura", "Bancharampur", "Bijoynagar"],
-        "Chandpur": ["Chandpur Sadar", "Faridganj", "Haimchar", "Haziganj", "Kachua", "Matlab Dakshin", "Matlab Uttar", "Shahrasti"],
-        "Noakhali": ["Noakhali Sadar", "Begumganj", "Chatkhil", "Companiganj", "Hatiya", "Senbagh", "Sonaimuri", "Subarnachar", "Kabirhat"],
-        "Lakshmipur": ["Lakshmipur Sadar", "Raipur", "Ramganj", "Ramgati", "Kamalnagar"],
-        "Rangamati": ["Rangamati Sadar", "Kaptai", "Kawkhali", "Baghaichhari", "Barkal", "Belaichhari", "Juraichhari", "Langadu", "Naniarchar", "Rajasthali"],
-        "Khagrachhari": ["Khagrachhari Sadar", "Dighinala", "Lakshmichhari", "Mahalchhari", "Manikchhari", "Matiranga", "Panchhari", "Ramgarh", "Guimara"],
-        "Bandarban": ["Bandarban Sadar", "Ali Kadam", "Lama", "Naikhongchhari", "Rowangchhari", "Ruma", "Thanchi"],
+        // চট্টগ্রাম বিভাগ
+        "চট্টগ্রাম": ["চট্টগ্রাম সিটি / সদর", "কোতোয়ালী", "পাঁচলাইশ", "পাহাড়তলী", "ডবলমুরিং", "হালিশহর", "খুলশী", "বাকলিয়া", "বায়েজিদ", "চান্দগাঁও", "পতেঙ্গা", "হাটহাজারী", "রাউজান", "রাঙ্গুনিয়া", "ফটিকছড়ি", "সীতাকুণ্ড", "মীরসরাই", "পটিয়া", "বোয়ালখালী", "আনোয়ারা", "চন্দনাইশ", "লোহাগাড়া", "সাতকানিয়া", "বাঁশখালী", "সন্দ্বীপ", "কর্ণফুলী"],
+        "কক্সবাজার": ["কক্সবাজার সদর", "চকরিয়া", "মহেশখালী", "টেকনাফ", "উখিয়া", "রামু", "পেকুয়া", "কুতুবদিয়া", "ঈদগাঁও"],
+        "কুমিল্লা": ["কুমিল্লা আদর্শ সদর", "কুমিল্লা সদর দক্ষিণ", "বরুড়া", "ব্রাহ্মণপাড়া", "বুড়িচং", "চান্দিনা", "চৌদ্দগ্রাম", "দাউদকান্দি", "দেবীদ্বার", "হোমনা", "লাকসাম", "মুরাদনগর", "মেঘনা", "মনোহরগঞ্জ", "নাঙ্গলকোট", "তিতাস", "লালমাই"],
+        "ফেনী": ["ফেনী সদর", "ছাগলনাইয়া", "দাগনভূঞা", "পরশুরাম", "ফুলগাজী", "সোনাগাজী"],
+        "ব্রাহ্মণবাড়িয়া": ["ব্রাহ্মণবাড়িয়া সদর", "আশুগঞ্জ", "নাসিরনগর", "নবীনগর", "সরাইল", "কসবা", "আখাউড়া", "বাঞ্ছারামপুর", "বিজয় নগর"],
+        "চাঁদপুর": ["চাঁদপুর সদর", "ফরিদগঞ্জ", "হাইমচর", "হাজীগঞ্জ", "কচুয়া", "মতলব দক্ষিণ", "মতলব উত্তর", "শাহরাস্তি"],
+        "নোয়াখালী": ["নোয়াখালী সদর", "বেগমগঞ্জ", "চাটখিল", "কোম্পানীগঞ্জ", "হাতিয়া", "সেনবাগ", "সোনাইমুড়ী", "সুবর্ণচর", "কবিরহাট"],
+        "লক্ষ্মীপুর": ["লক্ষ্মীপুর সদর", "রায়পুর", "রামগঞ্জ", "রামগতি", "কমলনগর"],
+        "রাঙ্গামাটি": ["রাঙ্গামাটি সদর", "কাপ্তাই", "কাউখালী", "বাঘাইছড়ি", "বরকল", "বিলাইছড়ি", "জুরাইছড়ি", "লংগদু", "নানিয়ারচর", "রাজস্থলী"],
+        "খাগড়াছড়ি": ["খাগড়াছড়ি সদর", "দীঘিনালা", "লক্ষ্মীছড়ি", "মহালছড়ি", "মানিকছড়ি", "মাটিরাঙ্গা", "পানছড়ি", "রামগড়", "গুইমারা"],
+        "বান্দরবান": ["বান্দরবান সদর", "আলীকদম", "লামা", "নাইক্ষ্যংছড়ি", "রোয়াংছড়ি", "রুমা", "থানচি"],
 
-        // Rajshahi Division
-        "Rajshahi": ["Rajshahi City / Boalia", "Rajpara", "Motihar", "Shah Makhdum", "Paba", "Godagari", "Tanore", "Bagmara", "Durgapur", "Puthia", "Charghat", "Bagha", "Mohonpur"],
-        "Bogura": ["Bogura City / Sadar", "Shajahanpur", "Sherpur", "Shibganj", "Kahaloo", "Nandigram", "Dupchanchia", "Adamdighi", "Gabtali", "Sonatala", "Sariakandi", "Dhunat"],
-        "Pabna": ["Pabna Sadar", "Ishwardi", "Atgharia", "Bera", "Bhangura", "Chatmohar", "Faridpur", "Santhia", "Sujanagar"],
-        "Sirajganj": ["Sirajganj Sadar", "Belkuchi", "Chauhali", "Kamarkhanda", "Kazipur", "Raiganj", "Shahjadpur", "Tarash", "Ullahpara"],
-        "Naogaon": ["Naogaon Sadar", "Mohadevpur", "Manda", "Patnitala", "Dhamoirhat", "Badalgachhi", "Raninagar", "Atrai", "Porsha", "Sapahar", "Niamatpur"],
-        "Natore": ["Natore Sadar", "Singra", "Baraigram", "Gurudaspur", "Lalpur", "Bagatipara", "Naldanga"],
-        "Joypurhat": ["Joypurhat Sadar", "Panchbibi", "Kalai", "Khetlal", "Akkelpur"],
-        "Chapainawabganj": ["Chapainawabganj Sadar", "Shibganj", "Gomastapur", "Nachole", "Bholahat"],
+        // রাজশাহী বিভাগ
+        "রাজশাহী": ["রাজশাহী সিটি / বোয়ালিয়া", "রাজপাড়া", "মতিহার", "শাহ মখদুম", "পবা", "গোদাগাড়ী", "তানোর", "বাগমারা", "দুর্গাপুর", "পুঠিয়া", "চারঘাট", "বাঘা", "মোহনপুর"],
+        "বগুড়া": ["বগুড়া সদর / সিটি", "শাহজাহানপুর", "শেরপুর", "শিবগঞ্জ", "কাহালু", "নন্দীগ্রাম", "দুপচাঁচিয়া", "আদমদীঘি", "গাবতলী", "সোনাতলা", "সারিয়াকান্দি", "ধুনট"],
+        "পাবনা": ["পাবনা সদর", "ঈশ্বরদী", "আটঘরিয়া", "বেড়া", "ভাঙ্গুড়া", "চাটমোহর", "ফরিদপুর", "সাঁথিয়া", "সুজানগর"],
+        "সিরাজগঞ্জ": ["সিরাজগঞ্জ সদর", "বেলকুচি", "চৌহালী", "কামারখন্দ", "কাজীপুর", "রায়গঞ্জ", "শাহজাদপুর", "তাড়াশ", "উল্লাপাড়া"],
+        "নওগাঁ": ["নওগাঁ সদর", "মহাদেবপুর", "মান্দা", "পত্নীতলা", "ধামইরহাট", "বদলগাছী", "রাণীনগর", "আত্রাই", "পোরশা", "সাপাহার", "নিয়ামতপুর"],
+        "নাটোর": ["নাটোর সদর", "সিংড়া", "বড়াইগ্রাম", "গুরুদাসপুর", "লালপুর", "বাগাতিপাড়া", "নলডাঙ্গা"],
+        "জয়পুরহাট": ["জয়পুরহাট সদর", "পাঁচবিবি", "কালাই", "ক্ষেতলাল", "আক্কেলপুর"],
+        "চাঁপাইনবাবগঞ্জ": ["চাঁপাইনবাবগঞ্জ সদর", "শিবগঞ্জ", "গোমস্তাপুর", "নাচোল", "ভোলাহাট"],
 
-        // Rangpur Division
-        "Rangpur": ["Rangpur City / Sadar", "Kotwali", "Badarganj", "Gangachara", "Kaunia", "Mithapukur", "Pirgachha", "Pirganj", "Taraganj"],
-        "Dinajpur": ["Dinajpur Sadar", "Birganj", "Biral", "Bochaganj", "Chirirbandar", "Fulbari", "Ghoraghat", "Hakimpur", "Kaharole", "Khansama", "Nawabganj", "Parbatipur", "Setabganj"],
-        "Gaibandha": ["Gaibandha Sadar", "Gobindaganj", "Palashbari", "Sadullapur", "Saghata", "Sundarganj", "Fulchhari"],
-        "Kurigram": ["Kurigram Sadar", "Nageshwari", "Bhurungamari", "Phulbari", "Rajarhat", "Ulipur", "Chilmari", "Roumari", "Char Rajibpur"],
-        "Lalmonirhat": ["Lalmonirhat Sadar", "Aditmari", "Kaliganj", "Hatibandha", "Patgram"],
-        "Nilphamari": ["Nilphamari Sadar", "Saidpur", "Jaldhaka", "Kishoreganj", "Domar", "Dimla"],
-        "Panchagarh": ["Panchagarh Sadar", "Boda", "Debiganj", "Atwari", "Tetulia"],
-        "Thakurgaon": ["Thakurgaon Sadar", "Pirganj", "Ranisankail", "Baliadangi", "Haripur"],
+        // রংপুর বিভাগ
+        "রংপুর": ["রংপুর সদর / সিটি", "কোতোয়ালী", "বদরগঞ্জ", "গঙ্গাচড়া", "কাউনিয়া", "মিঠাপুকুর", "পীরগাছা", "পীরগঞ্জ", "তারাগঞ্জ"],
+        "দিনাজপুর": ["দিনাজপুর সদর", "বীরগঞ্জ", "বিরল", "বোচাগঞ্জ", "চিরিরবন্দর", "ফুলবাড়ী", "ঘোড়াঘাট", "হাকিমপুর", "কাহারোল", "খানসামা", "নবাবগঞ্জ", "পার্বতীপুর", "সেতাবগঞ্জ"],
+        "গাইবান্ধা": ["গাইবান্ধা সদর", "গোবিন্দগঞ্জ", "পলাশবাড়ী", "সাদুল্লাপুর", "সাঘাটা", "সুন্দরগঞ্জ", "ফুলছড়ি"],
+        "কুড়িগ্রাম": ["কুড়িগ্রাম সদর", "নাগেশ্বরী", "ভুরুঙ্গামারী", "ফুলবাড়ী", "রাজারহাট", "উলিপুর", "চিলমারী", "রৌমারী", "চর রাজিবপুর"],
+        "লালমনিরহাট": ["লালমনিরহাট সদর", "আদিতমারী", "কালীগঞ্জ", "হাতীবান্ধা", "পাটগ্রাম"],
+        "নীলফামারী": ["নীলফামারী সদর", "সৈয়দপুর", "জলঢাকা", "কিশোরগঞ্জ", "ডোমার", "ডিমলা"],
+        "পঞ্চগড়": ["পঞ্চগড় সদর", "বোদা", "দেবীগঞ্জ", "আটোয়ারী", "তেঁতুলিয়া"],
+        "ঠাকুরগাঁও": ["ঠাকুরগাঁও সদর", "পীরগঞ্জ", "রাণীশংকৈল", "বালিয়াডাঙ্গী", "হরিপুর"],
 
-        // Khulna Division
-        "Khulna": ["Khulna City / Sadar", "Sonadanga", "Khalishpur", "Daulatpur", "Khan Jahan Ali", "Batiaghata", "Dacope", "Dumuria", "Dighalia", "Koyra", "Paikgachha", "Phultala", "Rupsha", "Terokhada"],
-        "Jashore": ["Jashore Sadar", "Jhikargachha", "Sharsha", "Manirampur", "Keshabpur", "Abhaynagar", "Bagherpara", "Chaugachha", "Benapole"],
-        "Satkhira": ["Satkhira Sadar", "Kalaroa", "Tala", "Kaliganj", "Shyamnagar", "Assasuni", "Debhata"],
-        "Bagerhat": ["Bagerhat Sadar", "Mongla", "Morrelganj", "Rampal", "Sarankhola", "Kachua", "Fakirhat", "Chitalmari", "Mollahat"],
-        "Jhenaidah": ["Jhenaidah Sadar", "Kaliganj", "Kotchandpur", "Maheshpur", "Shailkupa", "Harinakunda"],
-        "Kushtia": ["Kushtia Sadar", "Kumarkhali", "Khoksa", "Mirpur", "Bheramara", "Daulatpur"],
-        "Magura": ["Magura Sadar", "Sreepur", "Mohammadpur", "Shalikha"],
-        "Meherpur": ["Meherpur Sadar", "Gangni", "Mujibnagar"],
-        "Narail": ["Narail Sadar", "Lohagara", "Kalia"],
-        "Chuadanga": ["Chuadanga Sadar", "Alamdanga", "Damurhuda", "Jibannagar"],
+        // খুলনা বিভাগ
+        "খুলনা": ["খুলনা সিটি / সদর", "সোনাডাঙ্গা", "খালিশপুর", "দৌলতপুর", "খান জাহান আলী", "বটিয়াঘাটা", "দাকোপ", "ডুমুরিয়া", "দিঘলিয়া", "কয়রা", "পাইকগাছা", "ফুলতলা", "রূপসা", "তেরখাদা"],
+        "যশোর": ["যশোর সদর", "ঝিকরগাছা", "শার্শা", "মণিরামপুর", "কেশবপুর", "অভয়নগর", "বাঘারপাড়া", "চৌগাছা", "বেনাপোল"],
+        "সাতক্ষীরা": ["সাতক্ষীরা সদর", "কলারোয়া", "তালা", "কালীগঞ্জ", "শ্যামনগর", "আশাশুনি", "দেবহাটা"],
+        "বাগেরহাট": ["বাগেরহাট সদর", "মোংলা", "মোড়েলগঞ্জ", "রামপাল", "শরণখোলা", "কচুয়া", "ফকিরহাট", "চিতলমারী", "মোল্লাহাট"],
+        "ঝিনাইদহ": ["ঝিনাইদহ সদর", "কালীগঞ্জ", "কোটচাঁদপুর", "মহেশপুর", "শৈলকুপা", "হরিণাকুণ্ডু"],
+        "কুষ্টিয়া": ["কুষ্টিয়া সদর", "কুমারখালী", "খোকসা", "মিরপুর", "ভেড়ামারা", "দৌলতপুর"],
+        "মাগুরা": ["মাগুরা সদর", "শ্রীপুর", "মহম্মদপুর", "শালিখা"],
+        "মেহেরপুর": ["মেহেরপুর সদর", "গাংনী", "মুজিবনগর"],
+        "নড়াইল": ["নড়াইল সদর", "লোহাগড়া", "কালিয়া"],
+        "চুয়াডাঙ্গা": ["চুয়াডাঙ্গা সদর", "আলমডাঙ্গা", "দামুড়হুদা", "জীবননগর"],
 
-        // Barishal Division
-        "Barishal": ["Barishal City / Kotwali", "Barishal Sadar", "Bakerganj", "Babuganj", "Wazirpur", "Banaripara", "Gournadi", "Agailjhara", "Mehendiganj", "Muladi", "Hizla"],
-        "Bhola": ["Bhola Sadar", "Burhanuddin", "Char Fasson", "Daulatkhan", "Lalmohan", "Manpura", "Tazumuddin"],
-        "Patuakhali": ["Patuakhali Sadar", "Galachipa", "Kalapara", "Bauphal", "Dashmina", "Mirzaganj", "Dumki", "Rangabali"],
-        "Pirojpur": ["Pirojpur Sadar", "Mathbaria", "Bhandaria", "Nesarabad (Swarupkati)", "Nazirpur", "Kawkhali", "Zianagar (Indurkani)"],
-        "Barguna": ["Barguna Sadar", "Amtali", "Patharghata", "Betagi", "Bamna", "Taltali"],
-        "Jhalokathi": ["Jhalokathi Sadar", "Nalchity", "Rajapur", "Kathalia"],
+        // বরিশাল বিভাগ
+        "বরিশাল": ["বরিশাল সিটি / সদর", "বাকেরগঞ্জ", "বাবুগঞ্জ", "উজিরপুর", "বানারীপাড়া", "গৌরনদী", "আগৈলঝাড়া", "মেহেন্দীগঞ্জ", "মুলাদী", "হিজলা"],
+        "ভোলা": ["ভোলা সদর", "বোরহানউদ্দিন", "চরফ্যাশন", "দৌলতখান", "লালমোহন", "মনপুরা", "তজুমদ্দিন"],
+        "পটুয়াখালী": ["পটুয়াখালী সদর", "গলাচিপা", "কলাপাড়া", "বাউফল", "দশমিনা", "মির্জাগঞ্জ", "দুমকি", "রাঙ্গাবালী"],
+        "পিরোজপুর": ["পিরোজপুর সদর", "মঠবাড়িয়া", "ভাণ্ডারিয়া", "নেছারাবাদ (স্বরূপকাঠি)", "নাজিরপুর", "কাউখালী", "জিয়ানগর (ইন্দুরকানী)"],
+        "বরগুনা": ["বরগুনা সদর", "আমতলী", "পাথরঘাটা", "বেতাগী", "বামনা", "তালতলী"],
+        "ঝালকাঠি": ["ঝালকাঠি সদর", "নলছিটি", "রাজাপুর", "কাঠালিয়া"],
 
-        // Sylhet Division
-        "Sylhet": ["Sylhet City / Kotwali", "Sylhet Sadar", "Beanibazar", "Golapganj", "Companiganj", "Fenchuganj", "Bishwanath", "Gowainghat", "Jaintiapur", "Kanaighat", "Zakiganj", "Dakshin Surma", "Osmani Nagar"],
-        "Moulvibazar": ["Moulvibazar Sadar", "Sreemangal", "Kamalganj", "Kulaura", "Barlekha", "Juri", "Rajnagar"],
-        "Habiganj": ["Habiganj Sadar", "Bahubal", "Madhabpur", "Chunarughat", "Lakhai", "Nabiganj", "Ajmiriganj", "Baniachang", "Shayestaganj"],
-        "Sunamganj": ["Sunamganj Sadar", "Chhatak", "Jagannathpur", "Dowarabazar", "Tahirpur", "Dharampasha", "Jamalganj", "Shantiganj", "Derai", "Sullah", "Bishwamvarpur"],
+        // সিলেট বিভাগ
+        "সিলেট": ["সিলেট সিটি / সদর", "বিয়ানীবাজার", "গোলাপগঞ্জ", "কোম্পানীগঞ্জ", "ফেঞ্চুগঞ্জ", "বিশ্বনাথ", "গোয়াইনঘাট", "জৈন্তাপুর", "কানাইঘাট", "জকিগঞ্জ", "দক্ষিণ সুরমা", "ওসমানী নগর"],
+        "মৌলভীবাজার": ["মৌলভীবাজার সদর", "শ্রীমঙ্গল", "কমলগঞ্জ", "কুলাউড়া", "বড়লেখা", "জুড়ী", "রাজনগর"],
+        "হবিগঞ্জ": ["হবিগঞ্জ সদর", "বাহুবল", "মাধবপুর", "চুনারুঘাট", "লাখাই", "নবীগঞ্জ", "আজমিরীগঞ্জ", "বানিয়াচং", "শায়েস্তাগঞ্জ"],
+        "সুনামগঞ্জ": ["সুনামগঞ্জ সদর", "ছাতক", "জগন্নাথপুর", "দোয়ারাবাজার", "তাহিরপুর", "ধর্মপাশা", "জামালগঞ্জ", "শান্তিগঞ্জ", "দিরাই", "শাল্লা", "বিশ্বম্ভরপুর"],
 
-        // Mymensingh Division
-        "Mymensingh": ["Mymensingh City / Kotwali", "Mymensingh Sadar", "Muktagachha", "Trishal", "Bhaluka", "Fulbaria", "Gafargaon", "Haluaghat", "Ishwarganj", "Dhobaura", "Nandail", "Phulpur", "Tara Khanda"],
-        "Jamalpur": ["Jamalpur Sadar", "Melandaha", "Islampur", "Dewanganj", "Sarishabari", "Madarganj", "Baksiganj"],
-        "Netrokona": ["Netrokona Sadar", "Mohanganj", "Kendua", "Purbadhala", "Durgapur", "Barhatta", "Kalmakanda", "Atpara", "Madan", "Khaliajuri"],
-        "Sherpur": ["Sherpur Sadar", "Nakla", "Nalitabari", "Jhenaigati", "Sreebardi"]
+        // ময়মনসিংহ বিভাগ
+        "ময়মনসিংহ": ["ময়মনসিংহ সিটি / সদর", "মুক্তাগাছা", "ত্রিশাল", "ভালুকা", "ফুলবাড়িয়া", "গফরগাঁও", "হালুয়াঘাট", "ঈশ্বরগঞ্জ", "ধোবাউড়া", "নান্দাইল", "ফুলপুর", "তারাকান্দা"],
+        "জামালপুর": ["জামালপুর সদর", "মেলান্দহ", "ইসলামপুর", "দেওয়ানগঞ্জ", "সরিষাবাড়ী", "মাদারগঞ্জ", "বকশীগঞ্জ"],
+        "নেত্রকোণা": ["নেত্রকোণা সদর", "মোহনগঞ্জ", "কেন্দুয়া", "পূর্বধলা", "দুর্গাপুর", "বারহাট্টা", "কলমাকান্দা", "আটপাড়া", "মদন", "খালিয়াজুড়ী"],
+        "শেরপুর": ["শেরপুর সদর", "নকলা", "নালিতাবাড়ী", "ঝিনাইগাতী", "শ্রীবরদী"]
     },
 
     postOffices: {
-        "Dinajpur": ["Dinajpur Head Post Office (5200)", "Setabganj (5216)", "Birol (5210)", "Birganj (5220)", "Bochaganj (5215)", "Chirirbandar (5240)", "Fulbari (5260)", "Parbatipur (5250)", "Ghoraghat (5290)", "Hakimpur (5270)", "Kaharole (5230)", "Khansama (5233)", "Nawabganj (5280)"],
-        "Dhaka": ["Dhaka GPO (1000)", "Dhanmondi (1209)", "Gulshan (1212)", "Banani (1213)", "Mirpur (1216)", "Uttara (1230)", "Mohammadpur (1207)", "Motijheel (1000)", "Tejgaon (1215)", "Savar (1340)", "Dhamrai (1350)", "Keraniganj (1310)"],
-        "Chattogram": ["Chattogram GPO (4000)", "Agrabad (4100)", "Panchlaish (4203)", "Hathazari (4330)", "Patiya (4370)", "Sitakunda (4310)", "Mirsharai (4320)", "Raozan (4340)"],
-        "Rajshahi": ["Rajshahi GPO (6000)", "Rajshahi University (6205)", "Godagari (6290)", "Paba (6210)", "Puthia (6260)", "Bagmara (6250)", "Charghat (6270)"],
-        "Khulna": ["Khulna GPO (9000)", "Daulatpur (9202)", "Khalishpur (9000)", "Phultala (9210)", "Rupsha (9240)", "Batiaghata (9260)"],
-        "Barishal": ["Barishal Head Post Office (8200)", "Gournadi (8230)", "Bakerganj (8280)", "Babuganj (8210)", "Wazirpur (8220)", "Banaripara (8250)"],
-        "Sylhet": ["Sylhet Head Post Office (3100)", "Shahjalal University (3114)", "Beanibazar (3170)", "Golapganj (3160)", "Bishwanath (3130)", "Sreemangal (3210)"],
-        "Rangpur": ["Rangpur Head Post Office (5400)", "Badarganj (5420)", "Mithapukur (5460)", "Pirgachha (5450)", "Pirganj (5470)", "Kaunia (5440)"],
-        "Mymensingh": ["Mymensingh Head Post Office (2200)", "Agriculture University (2202)", "Trishal (2220)", "Muktagachha (2210)", "Bhaluka (2240)"],
-        "Bogura": ["Bogura Head Post Office (5800)", "Sherpur (5840)", "Shibganj (5810)", "Dupchanchia (5880)", "Kahaloo (5870)"],
-        "Cumilla": ["Cumilla Head Post Office (3500)", "Cumilla Cantonment (3501)", "Laksam (3570)", "Daudkandi (3516)", "Chandina (3510)"],
-        "Jashore": ["Jashore Head Post Office (7400)", "Benapole (7432)", "Jhikargachha (7420)", "Sharsha (7430)", "Manirampur (7440)"]
+        "ঢাকা": ["ঢাকা প্রধান জিপিও (১০০০)", "ধানমন্ডি (১২০৯)", "গুলশান (১২১২)", "বনানী (১২১৩)", "মিরপুর (১২১৬)", "উত্তরা (১২৩০)", "মোহাম্মদপুর (১২০৭)", "মতিঝিল (১০০০)", "তেজগাঁও (১২১৫)", "সাভার (১৩৪০)", "ধামরাই (১৩৫০)", "কেরানীগঞ্জ (১৩১০)"],
+        "দিনাজপুর": ["দিনাজপুর প্রধান ডাকঘর (৫২০০)", "সেতাবগঞ্জ (৫২১৬)", "বিরল (৫২১০)", "বীরগঞ্জ (৫২২০)", "বোচাগঞ্জ (৫২১৫)", "চিরিরবন্দর (৫২৪০)", "ফুলবাড়ী (৫২৬০)", "পার্বতীপুর (৫২৫০)", "ঘোড়াঘাট (৫২৯০)", "হাকিমপুর (৫২৭০)", "কাহারোল (৫২৩০)", "খানসামা (৫২৩৩)", "নবাবগঞ্জ (৫২৮০)"],
+        "চট্টগ্রাম": ["চট্টগ্রাম প্রধান জিপিও (৪০০০)", "আগ্রাবাদ (৪১০০)", "পাঁচলাইশ (৪২০৩)", "হাটহাজারী (৪৩৩০)", "পটিয়া (৪৩৭০)", "সীতাকুণ্ড (৪৩১০)", "মীরসরাই (৪৩২০)", "রাউজান (৪৩৪০)"],
+        "রাজশাহী": ["রাজশাহী প্রধান জিপিও (৬০০০)", "রাজশাহী বিশ্ববিদ্যালয় (৬২০৫)", "গোদাগাড়ী (৬২৯০)", "পবা (৬২১০)", "পুঠিয়া (৬২৬০)", "বাগমারা (৬২৫০)", "চারঘাট (৬২৭০)"],
+        "খুলনা": ["খুলনা প্রধান জিপিও (৯০০০)", "দৌলতপুর (৯২০২)", "খালিশপুর (৯০০০)", "ফুলতলা (৯২১০)", "রূপসা (৯২৪০)", "বটিয়াঘাটা (৯২৬০)"],
+        "বরিশাল": ["বরিশাল প্রধান ডাকঘর (৮২০০)", "গৌরনদী (৮২৩০)", "বাকেরগঞ্জ (৮২৮০)", "বাবুগঞ্জ (৮২১০)", "উজিরপুর (৮২২০)", "বানারীপাড়া (৮২৫০)"],
+        "সিলেট": ["সিলেট প্রধান ডাকঘর (৩১০০)", "শাহজালাল বিশ্ববিদ্যালয় (৩১১৪)", "বিয়ানীবাজার (৩১৭০)", "গোলাপগঞ্জ (৩১৬০)", "বিশ্বনাথ (৩১৩০)", "শ্রীমঙ্গল (৩২১০)"],
+        "রংপুর": ["রংপুর প্রধান ডাকঘর (৫৪০০)", "বদরগঞ্জ (৫৪২০)", "মিঠাপুকুর (৫৪৬০)", "পীরগাছা (৫৪৫০)", "পীরগঞ্জ (৫৪৭০)", "কাউনিয়া (৫৪৪০)"],
+        "ময়মনসিংহ": ["ময়মনসিংহ প্রধান ডাকঘর (২২০০)", "কৃষি বিশ্ববিদ্যালয় (২২০২)", "ত্রিশাল (২২২০)", "মুক্তাগাছা (২২১০)", "ভালুকা (২২৪০)"],
+        "বগুড়া": ["বগুড়া প্রধান ডাকঘর (৫৮০০)", "শেরপুর (৫৮৪০)", "শিবগঞ্জ (৫৮১০)", "দুপচাঁচিয়া (৫৮৮০)", "কাহালু (৫৮৭০)"],
+        "কুমিল্লা": ["কুমিল্লা প্রধান ডাকঘর (৩৫০০)", "কুমিল্লা সেনানিবাস (৩৫০১)", "লাকসাম (৩৫৭০)", "দাউদকান্দি (৩৫১৬)", "চান্দিনা (৩৫১০)"],
+        "যশোর": ["যশোর প্রধান ডাকঘর (৭৪০০)", "বেনাপোল (৭৪৩২)", "ঝিকরগাছা (৭৪২০)", "শার্শা (৭৪৩০)", "মণিরামপুর (৭৪৪০)"]
     }
 };
 
-window.BD_GEO_DATA = window.BD_GEO;
-
-const DIVISION_BN_NAMES = {
-    "Dhaka": "ঢাকা (Dhaka)",
-    "Chattogram": "চট্টগ্রাম (Chattogram)",
-    "Rajshahi": "রাজশাহী (Rajshahi)",
-    "Rangpur": "রংপুর (Rangpur)",
-    "Khulna": "খুলনা (Khulna)",
-    "Barishal": "বরিশাল (Barishal)",
-    "Sylhet": "সিলেট (Sylhet)",
-    "Mymensingh": "ময়মনসিংহ (Mymensingh)"
+// ইংরেজি নাম থেকে বাংলা ম্যাপিং (Bilingual Fallback Map)
+window.EN_TO_BN_GEO = {
+    "Dhaka": "ঢাকা", "Chattogram": "চট্টগ্রাম", "Rajshahi": "রাজশাহী", "Rangpur": "রংপুর", 
+    "Khulna": "খুলনা", "Barishal": "বরিশাল", "Sylhet": "সিলেট", "Mymensingh": "ময়মনসিংহ",
+    "Gazipur": "গাজীপুর", "Narayanganj": "নারায়ণগঞ্জ", "Narsingdi": "নরসিংদী", "Tangail": "টাঙ্গাইল", 
+    "Manikganj": "মানিকগঞ্জ", "Munshiganj": "মুন্সীগঞ্জ", "Faridpur": "ফরিদপুর", "Gopalganj": "গোপালগঞ্জ", 
+    "Madaripur": "মাদারীপুর", "Rajbari": "রাজবাড়ী", "Shariatpur": "শরীয়তপুর", "Kishoreganj": "কিশোরগঞ্জ",
+    "Cox's Bazar": "কক্সবাজার", "Cumilla": "কুমিল্লা", "Feni": "ফেনী", "Brahmanbaria": "ব্রাহ্মণবাড়িয়া", 
+    "Chandpur": "চাঁদপুর", "Noakhali": "নোয়াখালী", "Lakshmipur": "লক্ষ্মীপুর", "Rangamati": "রাঙ্গামাটি", 
+    "Khagrachhari": "খাগড়াছড়ি", "Bandarban": "বান্দরবান", "Bogura": "বগুড়া", "Pabna": "পাবনা", 
+    "Sirajganj": "সিরাজগঞ্জ", "Naogaon": "নওগাঁ", "Natore": "নাটোর", "Joypurhat": "জয়পুরহাট", 
+    "Chapainawabganj": "চাঁপাইনবাবগঞ্জ", "Dinajpur": "দিনাজপুর", "Gaibandha": "গাইবান্ধা", 
+    "Kurigram": "কুড়িগ্রাম", "Lalmonirhat": "লালমনিরহাট", "Nilphamari": "নীলফামারী", 
+    "Panchagarh": "পঞ্চগড়", "Thakurgaon": "ঠাকুরগাঁও", "Jashore": "যশোর", "Satkhira": "সাতক্ষীরা", 
+    "Bagerhat": "বাগেরহাট", "Jhenaidah": "ঝিনাইদহ", "Kushtia": "কুষ্টিয়া", "Magura": "মাগুরা", 
+    "Meherpur": "মেহেরপুর", "Narail": "নড়াইল", "Chuadanga": "চুয়াডাঙ্গা", "Bhola": "ভোলা", 
+    "Patuakhali": "পটুয়াখালী", "Pirojpur": "পিরোজপুর", "Barguna": "বরগুনা", "Jhalokathi": "ঝালকাঠি", 
+    "Moulvibazar": "মৌলভীবাজার", "Habiganj": "হবিগঞ্জ", "Sunamganj": "সুনামগঞ্জ", 
+    "Jamalpur": "জামালপুর", "Netrokona": "নেত্রকোণা", "Sherpur": "শেরপুর"
 };
 
-/**
- * Initialize 4-tier Address Chaining:
- * Division -> District -> Upazila/Thana -> Post Office
- * Supports both initAddressChaining('perm') and initAddressChaining('writerDivision', 'writerDistrict', ...)
- */
-function initAddressChaining(divArg, distArg, upazilaArg, poArg, defaultDiv, defaultDist) {
-    let divSelect, distSelect, upazilaSelect, poSelect, prefix = '';
-
-    if (divArg instanceof HTMLElement) {
-        divSelect = divArg;
-        distSelect = distArg instanceof HTMLElement ? distArg : document.getElementById(distArg);
-        upazilaSelect = upazilaArg instanceof HTMLElement ? upazilaArg : document.getElementById(upazilaArg);
-        poSelect = poArg instanceof HTMLElement ? poArg : document.getElementById(poArg);
-    } else if (typeof divArg === 'string') {
-        // Check if divArg is an exact element ID (e.g. 'writerDivision')
-        const directDiv = document.getElementById(divArg);
-        if (directDiv) {
-            divSelect = directDiv;
-            distSelect = document.getElementById(distArg);
-            upazilaSelect = document.getElementById(upazilaArg);
-            poSelect = document.getElementById(poArg);
-            prefix = divArg;
-        } else {
-            // Check if divArg is a prefix like 'perm' or 'pres'
-            prefix = divArg;
-            divSelect = document.getElementById(prefix + 'Division');
-            distSelect = document.getElementById(prefix + 'District');
-            upazilaSelect = document.getElementById(prefix + 'Upazila');
-            poSelect = document.getElementById(prefix + 'PostOffice');
-        }
-    }
-
-    if (!divSelect) return;
-
-    // Populate Divisions
-    divSelect.innerHTML = '<option value="">-- বিভাগ নির্বাচন করুন (Select Division) --</option>';
-    if (window.BD_GEO && window.BD_GEO.divisions) {
-        Object.keys(window.BD_GEO.divisions).forEach(div => {
-            const opt = document.createElement('option');
-            opt.value = div;
-            opt.textContent = DIVISION_BN_NAMES[div] || div;
-            divSelect.appendChild(opt);
-        });
-    }
-
-    // Division -> Districts
-    divSelect.addEventListener('change', function() {
-        const selectedDiv = this.value;
-        if (distSelect) distSelect.innerHTML = '<option value="">-- জেলা নির্বাচন করুন (Select District) --</option>';
-        if (upazilaSelect) upazilaSelect.innerHTML = '<option value="">-- মহানগর / উপজেলা নির্বাচন করুন --</option>';
-        if (poSelect) poSelect.innerHTML = '<option value="">-- পোস্ট অফিস নির্বাচন করুন --</option>';
-
-        if (selectedDiv && window.BD_GEO && window.BD_GEO.divisions[selectedDiv] && distSelect) {
-            window.BD_GEO.divisions[selectedDiv].forEach(dist => {
-                const opt = document.createElement('option');
-                opt.value = dist;
-                opt.textContent = dist;
-                distSelect.appendChild(opt);
-            });
-        }
-        assembleFormattedAddress(prefix);
-    });
-
-    // District -> Upazilas & Post Offices
-    if (distSelect) {
-        distSelect.addEventListener('change', function() {
-            const selectedDist = this.value;
-            if (upazilaSelect) upazilaSelect.innerHTML = '<option value="">-- মহানগর / উপজেলা নির্বাচন করুন --</option>';
-            if (poSelect) poSelect.innerHTML = '<option value="">-- পোস্ট অফিস নির্বাচন করুন --</option>';
-
-            if (selectedDist && window.BD_GEO && window.BD_GEO.upazilas[selectedDist] && upazilaSelect) {
-                window.BD_GEO.upazilas[selectedDist].forEach(upa => {
-                    const opt = document.createElement('option');
-                    opt.value = upa;
-                    opt.textContent = upa;
-                    upazilaSelect.appendChild(opt);
-                });
-            }
-
-            if (poSelect && selectedDist && window.BD_GEO && window.BD_GEO.postOffices[selectedDist]) {
-                window.BD_GEO.postOffices[selectedDist].forEach(po => {
-                    const opt = document.createElement('option');
-                    opt.value = po;
-                    opt.textContent = po;
-                    poSelect.appendChild(opt);
-                });
-            }
-            assembleFormattedAddress(prefix);
-        });
-    }
-
-    // Upazila Change
-    if (upazilaSelect) {
-        upazilaSelect.addEventListener('change', function() {
-            assembleFormattedAddress(prefix);
-        });
-    }
-
-    if (poSelect) {
-        poSelect.addEventListener('change', function() {
-            assembleFormattedAddress(prefix);
-        });
-    }
-
-    const villageInput = document.getElementById(prefix + 'Village') || document.getElementById('writerVillage');
-    if (villageInput) {
-        villageInput.addEventListener('input', function() {
-            assembleFormattedAddress(prefix);
-        });
-    }
-
-    // Handle default pre-selection
-    if (defaultDiv && window.BD_GEO && window.BD_GEO.divisions[defaultDiv]) {
-        divSelect.value = defaultDiv;
-        divSelect.dispatchEvent(new Event('change'));
-        if (defaultDist && distSelect) {
-            setTimeout(() => {
-                distSelect.value = defaultDist;
-                distSelect.dispatchEvent(new Event('change'));
-            }, 10);
-        }
-    }
-}
-
-/**
- * Assembles full address text string for backend and printable form:
- * VILL- ..., POST- ..., THANA- ..., DIST- ..., DIV- ...
- */
-function assembleFormattedAddress(prefix = '') {
-    const div = document.getElementById(prefix + 'Division')?.value || '';
-    const dist = document.getElementById(prefix + 'District')?.value || '';
-    const upazila = document.getElementById(prefix + 'Upazila')?.value || '';
-    const po = document.getElementById(prefix + 'PostOffice')?.value || '';
-    const village = document.getElementById(prefix + 'Village')?.value || '';
-
-    let parts = [];
-    if (village) parts.push('VILL/ROAD- ' + village);
-    if (po) parts.push('POST- ' + po);
-    if (upazila) parts.push('THANA/UPAZILA- ' + upazila);
-    if (dist) parts.push('DIST- ' + dist);
-    if (div) parts.push('DIV- ' + div);
-
-    const fullAddrHidden = document.getElementById(prefix + 'FullAddress');
-    if (fullAddrHidden) {
-        fullAddrHidden.value = parts.join(', ');
-    }
-}
-
-/**
- * Copy Permanent Address to Present Address
- */
-function syncPermanentToPresent() {
-    const isChecked = document.getElementById('syncAddressCheck')?.checked;
-    if (!isChecked) return;
-
-    const permDiv = document.getElementById('permDivision')?.value || '';
-    const permDist = document.getElementById('permDistrict')?.value || '';
-    const permUpazila = document.getElementById('permUpazila')?.value || '';
-    const permPo = document.getElementById('permPostOffice')?.value || '';
-    const permVillage = document.getElementById('permVillage')?.value || '';
-
-    const presDiv = document.getElementById('presDivision');
-    const presDist = document.getElementById('presDistrict');
-    const presUpazila = document.getElementById('presUpazila');
-    const presPo = document.getElementById('presPostOffice');
-    const presVillage = document.getElementById('presVillage');
-
-    if (presDiv) {
-        presDiv.value = permDiv;
-        presDiv.dispatchEvent(new Event('change'));
-    }
-
-    setTimeout(() => {
-        if (presDist) {
-            presDist.value = permDist;
-            presDist.dispatchEvent(new Event('change'));
-        }
-        setTimeout(() => {
-            if (presUpazila) presUpazila.value = permUpazila;
-            if (presPo) presPo.value = permPo;
-            if (presVillage) presVillage.value = permVillage;
-            assembleFormattedAddress('pres');
-        }, 50);
-    }, 50);
-}
+// ডিফল্ট হিসেবে বাংলা অবজেক্ট অ্যাসাইন
+window.BD_GEO = window.BD_GEO_BN;
+window.BD_GEO_DATA = window.BD_GEO_BN;

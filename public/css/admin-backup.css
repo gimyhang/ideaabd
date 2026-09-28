@@ -693,22 +693,180 @@
     background-color: #f8fafc !important;
 }
 
-/* ── Responsive adjustments ── */
-@media (max-width: 768px) {
+/* ── Mobile & Multi-Device Responsive System ── */
+@media (max-width: 1199.98px) {
+    .chart-container-wrap {
+        height: 150px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .health-score-card {
+        padding: 1.25rem;
+    }
+    .storage-chart-card {
+        padding: 1.25rem;
+    }
+    .chart-container-wrap {
+        height: 140px;
+    }
+    .backup-kpi-card {
+        padding: 1rem 1.15rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    /* Action Buttons in Header */
     .btn-backup-gradient {
-        padding: 0.45rem 0.95rem;
-        font-size: 0.8rem;
+        padding: 0.45rem 0.85rem;
+        font-size: 0.78rem;
+        gap: 0.35rem;
+        flex: 1 1 auto;
+        justify-content: center;
+        min-height: 38px;
     }
+
+    .health-score-card {
+        padding: 1.15rem;
+        border-radius: 16px;
+    }
+
+    .health-score-dial {
+        width: 64px;
+        height: 64px;
+    }
+
+    .health-score-dial::before {
+        width: 50px;
+        height: 50px;
+    }
+
+    .health-score-num {
+        font-size: 1.05rem;
+    }
+
+    .health-score-pct {
+        font-size: 0.58rem;
+    }
+
+    .storage-chart-card {
+        padding: 1.15rem;
+        border-radius: 16px;
+    }
+
+    .chart-container-wrap {
+        height: 130px;
+    }
+
+    /* KPI Cards */
+    .backup-kpi-card {
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+    }
+
     .kpi-avatar-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 1rem;
     }
+
+    /* Dropzone */
+    .enterprise-dropzone {
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .dropzone-icon-circle {
+        width: 50px;
+        height: 50px;
+        font-size: 1.35rem;
+    }
+
+    /* Quick Filter Navigation */
+    .quick-filter-nav {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
+    }
+
+    .btn-filter-tab {
+        padding: 0.38rem 0.75rem;
+        font-size: 0.75rem;
+    }
+
+    /* Action pills */
+    .btn-action-pill {
+        padding: 0.28rem 0.55rem;
+        font-size: 0.72rem;
+        min-height: 32px;
+    }
+
     .backup-grid-view {
         grid-template-columns: 1fr;
     }
+
+    .backup-file-card {
+        padding: 1rem;
+        border-radius: 14px;
+    }
+
+    /* Bulk Action Bar Mobile */
+    .bulk-action-bar {
+        position: fixed;
+        bottom: 20px;
+        top: auto;
+        left: 15px;
+        right: 15px;
+        border-radius: 50rem;
+        box-shadow: 0 12px 35px rgba(15, 23, 42, 0.4);
+        padding: 0.65rem 1.15rem;
+        z-index: 1050;
+    }
+
+    /* Modals on Mobile */
+    .modal-dialog {
+        margin: 0.75rem;
+    }
+
+    .modal-content {
+        border-radius: 18px !important;
+    }
+
+    .modal-header {
+        padding: 0.85rem 1.15rem !important;
+    }
+
+    .modal-body {
+        padding: 1.15rem !important;
+    }
+
+    .modal-footer {
+        padding: 0.75rem 1.15rem !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    /* Top Action Buttons 2-column grid on small mobile */
+    .header-actions-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .header-actions-wrapper .btn-backup-gradient {
+        width: 100%;
+    }
+
+    /* KPI 2x2 Grid Typography */
+    .backup-kpi-card h4, .backup-kpi-card h5 {
+        font-size: 0.98rem !important;
+    }
+
     .btn-action-pill {
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem 0.45rem;
         font-size: 0.70rem;
     }
 }

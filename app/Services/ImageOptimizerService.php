@@ -10,18 +10,18 @@ use Illuminate\Support\Str;
 class ImageOptimizerService
 {
     /**
-     * Convert an UploadedFile or file path into modern .avif (or fallback to .webp / .jpg)
-     * and store it in the specified public disk folder.
+     * Convert an UploadedFile or file path into modern .webp (or fallback to .avif / .jpg)
+     * with adaptive compression targeting <= 20 KB while maintaining crisp visual quality.
      *
      * @param UploadedFile|string $source
      * @param string $folder e.g. 'avatars', 'books/covers', 'blog', 'publishers/logos'
      * @param string $disk
-     * @param int $quality (1-100, default 82)
-     * @param int|null $maxWidth
-     * @param int|null $maxHeight
-     * @return string Relative storage path (e.g. 'avatars/author_xxx.avif')
+     * @param int $quality (1-100, default 75)
+     * @param int|null $maxWidth (default 600px — optimized for sharp retina & <= 20KB)
+     * @param int|null $maxHeight (default 800px)
+     * @return string Relative storage path (e.g. 'books/covers/cover_xxx.webp')
      */
-    public static function convertAndStore($source, string $folder = 'uploads', string $disk = 'public', int $quality = 82, ?int $maxWidth = 1600, ?int $maxHeight = 1600): string
+    public static function convertAndStore($source, string $folder = 'uploads', string $disk = 'public', int $quality = 75, ?int $maxWidth = 600, ?int $maxHeight = 800): string
     {
         try {
             // Read raw binary from file or path
@@ -70,7 +70,7 @@ class ImageOptimizerService
                 imagepalettetotruecolor($gdImage);
             }
 
-            // Optimize dimensions if oversized
+            // Optimize dimensions to optimal sharp resolution (maxWidth / maxHeight)
             $origW = imagesx($gdImage);
             $origH = imagesy($gdImage);
 
@@ -91,20 +91,78 @@ class ImageOptimizerService
                 }
             }
 
-            // Output to WebP as primary high-performance web standard
             $folder = trim($folder, '/');
-            $randomName = Str::random(24) . '_' . time();
+            $maxTargetBytes = 20 * 1024; // 20 KB limit
 
+            // Precise Deduplication: compute SHA256 checksum of raw image content
+            $contentHash = hash('sha256', $binary);
+            $hashSuffix = substr($contentHash, 0, 12);
+
+            $origFilename = 'img';
+            if ($source instanceof UploadedFile) {
+                $origFilename = pathinfo($source->getClientOriginalName(), PATHINFO_FILENAME);
+            } elseif (is_string($source) && !str_starts_with($source, 'data:image')) {
+                $origFilename = pathinfo($source, PATHINFO_FILENAME);
+            }
+            $slug = Str::slug($origFilename) ?: 'img';
+
+            $deterministicName = "{$slug}_{$hashSuffix}.webp";
+            $deterministicPath = "{$folder}/{$deterministicName}";
+
+            // Check if identical file already exists on disk
+            if (Storage::disk($disk)->exists($deterministicPath) && Storage::disk($disk)->size($deterministicPath) > 0) {
+                if (isset($gdImage)) imagedestroy($gdImage);
+                return $deterministicPath;
+            }
+
+            // Adaptive WebP Compression Engine targeting <= 20 KB
             if (function_exists('imagewebp')) {
-                ob_start();
-                $success = @imagewebp($gdImage, null, $quality);
-                $webpData = ob_get_clean();
+                $currentImg = $gdImage;
+                $currentQ = min(80, max(50, $quality));
+                $bestData = null;
 
-                if ($success && !empty($webpData)) {
-                    imagedestroy($gdImage);
-                    $path = "{$folder}/{$randomName}.webp";
-                    Storage::disk($disk)->put($path, $webpData);
-                    return $path;
+                for ($pass = 0; $pass < 4; $pass++) {
+                    ob_start();
+                    imagewebp($currentImg, null, $currentQ);
+                    $data = ob_get_clean();
+
+                    if (!empty($data)) {
+                        $bestData = $data;
+                        if (strlen($data) <= $maxTargetBytes) {
+                            break;
+                        }
+                    }
+
+                    // Progressively lower quality or scale down by 15% if still over 20KB
+                    $currentQ -= 10;
+                    if ($pass >= 1 && $currentImg) {
+                        $curW = imagesx($currentImg);
+                        $curH = imagesy($currentImg);
+                        if ($curW > 320 && $curH > 320) {
+                            $scaledW = (int) round($curW * 0.85);
+                            $scaledH = (int) round($curH * 0.85);
+                            $scaled = imagecreatetruecolor($scaledW, $scaledH);
+                            if ($scaled) {
+                                imagealphablending($scaled, false);
+                                imagesavealpha($scaled, true);
+                                imagecopyresampled($scaled, $currentImg, 0, 0, 0, 0, $scaledW, $scaledH, $curW, $curH);
+                                if ($currentImg !== $gdImage) {
+                                    imagedestroy($currentImg);
+                                }
+                                $currentImg = $scaled;
+                            }
+                        }
+                    }
+                }
+
+                if ($currentImg && $currentImg !== $gdImage) {
+                    imagedestroy($currentImg);
+                }
+                imagedestroy($gdImage);
+
+                if (!empty($bestData)) {
+                    Storage::disk($disk)->put($deterministicPath, $bestData);
+                    return $deterministicPath;
                 }
             }
 
@@ -151,7 +209,7 @@ class ImageOptimizerService
     /**
      * Convert a Base64 data URL (e.g. from canvas cropper) into modern .avif / .webp
      */
-    public static function convertBase64AndStore(string $base64Data, string $folder = 'avatars', string $disk = 'public', int $quality = 85, ?int $maxWidth = 1600, ?int $maxHeight = 1600): ?string
+    public static function convertBase64AndStore(string $base64Data, string $folder = 'avatars', string $disk = 'public', int $quality = 80, ?int $maxWidth = 800, ?int $maxHeight = 1000): ?string
     {
         try {
             if (!str_starts_with($base64Data, 'data:image')) {
@@ -205,33 +263,66 @@ class ImageOptimizerService
             }
 
             $folder = trim($folder, '/');
-            $randomName = Str::random(24) . '_' . time();
+            $maxTargetBytes = 20 * 1024; // 20 KB limit
 
-            // AVIF format
-            if (function_exists('imageavif')) {
-                ob_start();
-                $success = @imageavif($gdImage, null, $quality);
-                $avifData = ob_get_clean();
+            $contentHash = hash('sha256', $decoded);
+            $hashSuffix = substr($contentHash, 0, 12);
+            $deterministicName = "canvas_{$hashSuffix}.webp";
+            $deterministicPath = "{$folder}/{$deterministicName}";
 
-                if ($success && !empty($avifData)) {
-                    imagedestroy($gdImage);
-                    $path = "{$folder}/{$randomName}.avif";
-                    Storage::disk($disk)->put($path, $avifData);
-                    return $path;
-                }
+            // Check if identical canvas image already exists on disk
+            if (Storage::disk($disk)->exists($deterministicPath) && Storage::disk($disk)->size($deterministicPath) > 0) {
+                if (isset($gdImage)) imagedestroy($gdImage);
+                return $deterministicPath;
             }
 
-            // WebP format
+            // Adaptive WebP format targeting <= 20 KB
             if (function_exists('imagewebp')) {
-                ob_start();
-                $success = @imagewebp($gdImage, null, $quality);
-                $webpData = ob_get_clean();
+                $currentImg = $gdImage;
+                $currentQ = min(80, max(50, $quality));
+                $bestData = null;
 
-                if ($success && !empty($webpData)) {
-                    imagedestroy($gdImage);
-                    $path = "{$folder}/{$randomName}.webp";
-                    Storage::disk($disk)->put($path, $webpData);
-                    return $path;
+                for ($pass = 0; $pass < 4; $pass++) {
+                    ob_start();
+                    imagewebp($currentImg, null, $currentQ);
+                    $webpData = ob_get_clean();
+
+                    if (!empty($webpData)) {
+                        $bestData = $webpData;
+                        if (strlen($webpData) <= $maxTargetBytes) {
+                            break;
+                        }
+                    }
+
+                    $currentQ -= 10;
+                    if ($pass >= 1 && $currentImg) {
+                        $curW = imagesx($currentImg);
+                        $curH = imagesy($currentImg);
+                        if ($curW > 320 && $curH > 320) {
+                            $scaledW = (int) round($curW * 0.85);
+                            $scaledH = (int) round($curH * 0.85);
+                            $scaled = imagecreatetruecolor($scaledW, $scaledH);
+                            if ($scaled) {
+                                imagealphablending($scaled, false);
+                                imagesavealpha($scaled, true);
+                                imagecopyresampled($scaled, $currentImg, 0, 0, 0, 0, $scaledW, $scaledH, $curW, $curH);
+                                if ($currentImg !== $gdImage) {
+                                    imagedestroy($currentImg);
+                                }
+                                $currentImg = $scaled;
+                            }
+                        }
+                    }
+                }
+
+                if ($currentImg && $currentImg !== $gdImage) {
+                    imagedestroy($currentImg);
+                }
+                imagedestroy($gdImage);
+
+                if (!empty($bestData)) {
+                    Storage::disk($disk)->put($deterministicPath, $bestData);
+                    return $deterministicPath;
                 }
             }
 

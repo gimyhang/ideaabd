@@ -9,7 +9,7 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex flex-wrap align-items-center gap-2">
+    <div class="d-flex flex-wrap align-items-center gap-2 header-actions-wrapper">
         {{-- 1. Upload Backup Button (Rose Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-rose" onclick="document.getElementById('backupFileInput').click()" title="Upload external backup archive">
             <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -23,7 +23,7 @@
         </button>
 
         {{-- 3. 1-Click Integrity Health Check (Purple Gradient) --}}
-        <form action="{{ route('admin.backup.integrity') }}" method="POST" class="m-0">
+        <form action="{{ route('admin.backup.integrity') }}" method="POST" class="m-0 d-inline-block">
             @csrf
             <button type="submit" class="btn-backup-gradient btn-gradient-purple" title="Run database integrity & consistency diagnostics">
                 <i class="fa-solid fa-stethoscope"></i>
@@ -32,7 +32,7 @@
         </form>
 
         {{-- 4. 1-Click Database Table Optimizer (Sky Gradient) --}}
-        <form action="{{ route('admin.backup.optimize') }}" method="POST" class="m-0"
+        <form action="{{ route('admin.backup.optimize') }}" method="POST" class="m-0 d-inline-block"
               data-confirm="Are you sure you want to optimize and vacuum all database tables and indexes?"
               data-confirm-title="Database Optimization"
               data-confirm-icon="info"
@@ -47,7 +47,7 @@
         {{-- 5. 1-Click Complete Data & Media Images Backup (.ZIP) (Emerald Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-emerald" onclick="triggerLiveBackup('data_media', 'Data & Media Master Backup (.ZIP)')" title="Complete database + all uploaded book covers, author avatars, and digital media">
             <i class="fa-solid fa-box-archive"></i>
-            <span>Data & Media Backup (.ZIP)</span>
+            <span>Data & Media Backup</span>
         </button>
 
         {{-- 6. 1-Click Full System Backup (.ZIP) (Indigo Gradient) --}}
@@ -190,7 +190,7 @@
     </div>
 
     <!-- 1. Symmetrical & Vibrant 4-Card Diagnostic Grid -->
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3">
+    <div class="row row-cols-2 row-cols-md-2 row-cols-xl-4 g-2 g-md-3">
         
         {{-- Card 1: Connected Database Engine --}}
         <div class="col">

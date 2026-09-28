@@ -9,19 +9,35 @@ document.addEventListener('DOMContentLoaded', () => {
     initMultiSelectListeners();
     initStudioEvents();
     initGlobalDragAndPaste();
+    initLightboxTouchSwipe();
 });
 
 /* ========================================================================= */
-/* 1. SELECTION & BATCH ACTIONS                                              */
+/* 1. SELECTION & BATCH ACTIONS (DELEGATED & IDEMPOTENT)                     */
 /* ========================================================================= */
 let selectedMediaPaths = [];
 let selectedMediaUrls = [];
+let _isMultiSelectInitialized = false;
 
 function initMultiSelectListeners() {
-    document.querySelectorAll('.media-select-cb').forEach(cb => {
-        cb.addEventListener('change', () => {
+    if (_isMultiSelectInitialized) return;
+    _isMultiSelectInitialized = true;
+
+    // Delegated change listener for selection checkboxes
+    document.addEventListener('change', (e) => {
+        if (e.target && e.target.classList.contains('media-select-cb')) {
             updateSelectionState();
-        });
+        }
+    });
+
+    // Keyboard ESC to dismiss selection
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            const bar = document.getElementById('mediaFloatingBar');
+            if (bar && bar.classList.contains('show')) {
+                clearAllSelections();
+            }
+        }
     });
 }
 
@@ -1174,6 +1190,81 @@ function openStudioFromLightbox() {
     }
 }
 
+function openReplaceFromLightbox() {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
+        const el = items[currentLightboxIndex];
+        const path = el.getAttribute('data-path');
+        const filename = el.getAttribute('data-filename') || el.getAttribute('data-title');
+
+        const modalEl = document.getElementById('lightboxModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const m = bootstrap.Modal.getInstance(modalEl);
+            if (m) m.hide();
+        }
+
+        setTimeout(() => {
+            openReplaceModal(path, filename);
+        }, 300);
+    }
+}
+
+function openRenameFromLightbox() {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (currentLightboxIndex >= 0 && currentLightboxIndex < items.length) {
+        const el = items[currentLightboxIndex];
+        const path = el.getAttribute('data-path');
+        const filename = el.getAttribute('data-filename') || el.getAttribute('data-title');
+
+        const modalEl = document.getElementById('lightboxModal');
+        if (modalEl && typeof bootstrap !== 'undefined') {
+            const m = bootstrap.Modal.getInstance(modalEl);
+            if (m) m.hide();
+        }
+
+        setTimeout(() => {
+            openRenameModal(path, filename);
+        }, 300);
+    }
+}
+
+function deleteFromLightbox() {
+    const items = document.querySelectorAll('.media-item-card, .media-item-row');
+    if (currentLightboxIndex < 0 || currentLightboxIndex >= items.length) return;
+    const el = items[currentLightboxIndex];
+    const path = el.getAttribute('data-path');
+    const filename = el.getAttribute('data-title') || el.getAttribute('data-filename');
+
+    if (!confirm(`Are you sure you want to permanently delete "${filename}"?`)) return;
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch('/admin/media', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ _method: 'DELETE', path: path })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const modalEl = document.getElementById('lightboxModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const m = bootstrap.Modal.getInstance(modalEl);
+                if (m) m.hide();
+            }
+            showMediaAlert('success', data.message || 'File deleted successfully!');
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            showMediaAlert('danger', data.message || 'Failed to delete file.');
+        }
+    })
+    .catch(() => showMediaAlert('danger', 'Server request failed.'));
+}
+
 /* ========================================================================= */
 /* 7. REPLACE MEDIA ASSET (KEEP EXACT URL & AUTO-OPTIMIZE)                   */
 /* ========================================================================= */
@@ -1317,7 +1408,45 @@ function handleDroppedFilesDirectly(files) {
     }
 
     pendingUploadFiles = Array.from(files);
-    renderUploadPreviews();
+    handleFilesSelected(files);
+}
+
+function initLightboxTouchSwipe() {
+    const wrapper = document.getElementById('lightboxImgWrapper') || document.getElementById('lightboxModal');
+    if (!wrapper) return;
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length === 1) {
+            touchStartX = e.touches[0].screenX;
+            touchStartY = e.touches[0].screenY;
+        }
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', (e) => {
+        if (e.changedTouches && e.changedTouches.length === 1) {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Trigger swipe only when horizontal gesture dominates
+            if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+                if (diffX < 0) {
+                    // Swiped Left -> Go Next
+                    lightboxNavigate(1);
+                } else {
+                    // Swiped Right -> Go Previous
+                    lightboxNavigate(-1);
+                }
+            }
+        }
+    }, { passive: true });
 }
 
 /* ========================================================================= */
@@ -1469,6 +1598,59 @@ function triggerPurgeUnusedMedia(btn) {
         showMediaAlert('danger', 'Could not communicate with server.');
     });
 }
+
+/* ========================================================================= */
+/* 14. GLOBAL WINDOW EXPORTS (ZERO CONFLICTS & RUNTIME SAFEGUARD)            */
+/* ========================================================================= */
+function changePerPage(val) {
+    const input = document.getElementById('mediaPerPageInput');
+    const form = document.getElementById('mediaFilterForm');
+    if (input && form) {
+        input.value = val;
+        // Reset page to 1 when changing per_page
+        const pageParam = form.querySelector('input[name="page"]');
+        if (pageParam) pageParam.value = '1';
+        form.submit();
+    } else {
+        const u = new URL(window.location.href);
+        u.searchParams.set('per_page', val);
+        u.searchParams.set('page', '1');
+        window.location.href = u.toString();
+    }
+}
+
+window.openStudioFromLightbox = openStudioFromLightbox;
+window.openReplaceFromLightbox = openReplaceFromLightbox;
+window.openRenameFromLightbox = openRenameFromLightbox;
+window.deleteFromLightbox = deleteFromLightbox;
+window.changePerPage = changePerPage;
+window.toggleSelectAll = toggleSelectAll;
+window.clearAllSelections = clearAllSelections;
+window.updateSelectionState = updateSelectionState;
+window.copySelectedUrls = copySelectedUrls;
+window.executeBulkConvertToWebp = executeBulkConvertToWebp;
+window.openBulkMoveModal = openBulkMoveModal;
+window.executeBulkMove = executeBulkMove;
+window.executeBulkDelete = executeBulkDelete;
+window.executeBulkDownloadZip = executeBulkDownloadZip;
+window.openStudioModal = openStudioModal;
+window.openConvertWebpEngineModal = openConvertWebpEngineModal;
+window.runMediaOptimization = runMediaOptimization;
+window.triggerPurgeUnusedMedia = triggerPurgeUnusedMedia;
+window.openLightboxByIndex = openLightboxByIndex;
+window.copySnippet = copySnippet;
+window.openReplaceModal = openReplaceModal;
+window.openRenameModal = openRenameModal;
+window.submitRenameFile = submitRenameFile;
+window.submitReplaceFile = submitReplaceFile;
+window.submitCreateFolder = submitCreateFolder;
+window.submitMultiUploadAjax = submitMultiUploadAjax;
+window.saveCustomizedImage = saveCustomizedImage;
+window.setStudioPreset = setStudioPreset;
+window.setStudioQuickFilter = setStudioQuickFilter;
+window.studioRotate = studioRotate;
+window.studioFlip = studioFlip;
+window.filterMediaLive = filterMediaLive;
 
 
 

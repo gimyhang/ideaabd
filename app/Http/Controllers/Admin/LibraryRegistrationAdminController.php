@@ -309,12 +309,44 @@ class LibraryRegistrationAdminController extends Controller
     }
 
     /**
-     * Printable Official Library Book Grant Pass / Allocation Certificate.
+     * Printable Official Library Book Grant Application Form & PDF Preview.
      */
     public function printSlip(EventRegistration $registration)
     {
         $registration->load('campaign', 'user');
-        return view('frontend.events.library_token_print', compact('registration'));
+        return view('frontend.events.library_form_print', [
+            'registration' => $registration,
+            'campaign'     => $registration->campaign,
+            'isPdf'        => false,
+        ]);
+    }
+
+    /**
+     * Download Official Library Book Grant Form as PDF.
+     */
+    public function downloadPdf(EventRegistration $registration)
+    {
+        $registration->load('campaign', 'user');
+        $campaign = $registration->campaign;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('frontend.events.library_form_print', [
+            'registration' => $registration,
+            'campaign'     => $campaign,
+            'isPdf'        => true,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->setOptions([
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled'      => true,
+            'defaultFont'          => 'sans-serif',
+        ]);
+
+        $libName = $registration->institution_or_org ?: 'Library';
+        $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $libName);
+        $filename = "Library_Grant_Form_{$registration->registration_number}_{$safeName}.pdf";
+
+        return $pdf->download($filename);
     }
 
     /**
@@ -340,7 +372,8 @@ class LibraryRegistrationAdminController extends Controller
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
             fputcsv($handle, [
-                'Reg No', 'Library Name', 'Type', 'Govt Reg No', 'Est Year', 'Representative Name', 'Phone', 'Email',
+                'Reg No', 'Library Name', 'Type', 'Govt Reg No', 'Est Year', 'Representative Name', 'Designation', 'Phone', 'Email',
+                'President Name', 'President Phone', 'Secretary Name', 'Secretary Phone',
                 'Division', 'District', 'Thana', 'Address', 'Readers Count', 'Current Books',
                 'Books Allocated', 'Dispatched Date', 'Tracking No',
                 'Received Books', 'Received Date', 'Acknowledgment Status', 'Approval Status', 'Registered Date'
@@ -355,8 +388,13 @@ class LibraryRegistrationAdminController extends Controller
                     $fd['reg_no'] ?? '',
                     $fd['established_year'] ?? '',
                     $lib->name,
+                    $lib->designation_or_class ?: ($fd['designation_or_class'] ?? ''),
                     $lib->phone,
                     $lib->email,
+                    $fd['president_name'] ?? '',
+                    $fd['president_phone'] ?? '',
+                    $fd['secretary_name'] ?? '',
+                    $fd['secretary_phone'] ?? '',
                     $fd['division'] ?? '',
                     $lib->district,
                     $lib->thana,

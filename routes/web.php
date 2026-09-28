@@ -631,6 +631,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/{registration}/acknowledgment', 'updateAcknowledgment')->name('acknowledgment');
         Route::match(['post', 'patch'], '/{registration}/toggle-approval', 'toggleApproval')->name('toggle-approval');
         Route::get('/{registration}/print', 'printSlip')->name('print');
+        Route::get('/{registration}/pdf', 'downloadPdf')->name('pdf');
     });
 
     // Registration approval (admin only)

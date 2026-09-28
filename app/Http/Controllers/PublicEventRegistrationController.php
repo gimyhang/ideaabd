@@ -186,6 +186,17 @@ class PublicEventRegistrationController extends Controller
             'scholarship_reason'   => 'nullable|string|max:2000',
         ];
 
+        $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
+
+        if ($isLibrary) {
+            $rules['institution_or_org'] = 'required|string|max:255';
+            $rules['president_name'] = 'required|string|max:255';
+            $rules['president_phone'] = 'required|string|max:20';
+            $rules['secretary_name'] = 'required|string|max:255';
+            $rules['secretary_phone'] = 'required|string|max:20';
+            $rules['delivery_method'] = 'required|string|max:255';
+        }
+
         $validated = $request->validate($rules);
 
         // Max 50 words check
@@ -314,7 +325,8 @@ class PublicEventRegistrationController extends Controller
             // Writer Specific Fields
             'author_category', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
             // Library & Book Grant Specific Fields
-            'library_name', 'library_type', 'established_year', 'reg_no', 'president_name', 'secretary_name',
+            'library_name', 'library_type', 'established_year', 'reg_no', 
+            'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
             'reader_count', 'current_book_count', 'preferred_genres', 'delivery_method', 'division', 'remarks', 'library_address'
         ];
 
@@ -543,7 +555,15 @@ class PublicEventRegistrationController extends Controller
 
         $campaign = $registration->campaign;
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
-        $viewName = $isScholarship ? 'frontend.events.scholarship_form_print' : 'frontend.events.ticket_print';
+        $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
+
+        if ($isLibrary) {
+            $viewName = 'frontend.events.library_form_print';
+        } elseif ($isScholarship) {
+            $viewName = 'frontend.events.scholarship_form_print';
+        } else {
+            $viewName = 'frontend.events.ticket_print';
+        }
 
         return view($viewName, [
             'registration' => $registration,
@@ -561,19 +581,21 @@ class PublicEventRegistrationController extends Controller
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
-        $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
+        $campaign = $registration->campaign;
+        $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
         
-        if (!$isScholarship) {
+        if (!$isScholarship && !$isLibrary) {
             return redirect()->route('event.registration.print', [
                 'registrationNumber' => $registration->registration_number,
                 'download'           => 1,
             ]);
         }
 
-        $viewName = 'frontend.events.scholarship_form_print';
+        $viewName = $isLibrary ? 'frontend.events.library_form_print' : 'frontend.events.scholarship_form_print';
         $pdf = Pdf::loadView($viewName, [
             'registration' => $registration,
-            'campaign'     => $registration->campaign,
+            'campaign'     => $campaign,
             'isPdf'        => true,
         ]);
 
@@ -584,8 +606,10 @@ class PublicEventRegistrationController extends Controller
             'defaultFont'          => 'sans-serif',
         ]);
 
-        $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $registration->name);
-        $filename = "Scholarship_Form_{$registration->registration_number}_{$safeName}.pdf";
+        $libOrAppName = $isLibrary ? ($registration->institution_or_org ?: 'Library') : $registration->name;
+        $safeName = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $libOrAppName);
+        $prefix = $isLibrary ? 'Library_Grant_Form' : 'Scholarship_Form';
+        $filename = "{$prefix}_{$registration->registration_number}_{$safeName}.pdf";
 
         return $pdf->download($filename);
     }

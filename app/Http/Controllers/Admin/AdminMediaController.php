@@ -32,7 +32,7 @@ class AdminMediaController extends Controller
 
         return [
             'covers' => [
-                'label'          => 'Book Covers (প্রচ্ছদ)',
+                'label'          => 'Book Covers',
                 'badge'          => 'Book Cover',
                 'icon'           => 'fa-solid fa-book',
                 'color'          => 'emerald',
@@ -44,7 +44,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/books/covers',
             ],
             'look_inside' => [
-                'label'          => 'Look Inside (একটু পড়ুন)',
+                'label'          => 'Look Inside Pages',
                 'badge'          => 'Look Inside',
                 'icon'           => 'fa-solid fa-book-open-reader',
                 'color'          => 'amber',
@@ -56,7 +56,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/books/look_inside',
             ],
             'authors' => [
-                'label'          => 'Authors (লেখক ছবি)',
+                'label'          => 'Author Photos',
                 'badge'          => 'Author Photo',
                 'icon'           => 'fa-solid fa-user-pen',
                 'color'          => 'purple',
@@ -68,7 +68,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/authors',
             ],
             'publishers' => [
-                'label'          => 'Publishers (প্রকাশক লোগো)',
+                'label'          => 'Publisher Logos',
                 'badge'          => 'Publisher Logo',
                 'icon'           => 'fa-solid fa-building',
                 'color'          => 'sky',
@@ -81,7 +81,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/publishers/logos',
             ],
             'ebooks' => [
-                'label'          => 'E-Books (ই-বুক কভার)',
+                'label'          => 'E-Books & Covers',
                 'badge'          => 'E-Book Asset',
                 'icon'           => 'fa-solid fa-tablet-screen-button',
                 'color'          => 'rose',
@@ -93,7 +93,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/ebooks/covers',
             ],
             'banners' => [
-                'label'          => 'Banners & Sliders (ব্যানার)',
+                'label'          => 'Banners & Campaigns',
                 'badge'          => 'Banner',
                 'icon'           => 'fa-solid fa-images',
                 'color'          => 'teal',
@@ -106,7 +106,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $publicImages . '/banners',
             ],
             'blog' => [
-                'label'          => 'Blog & Articles (ব্লগ)',
+                'label'          => 'Blog & Articles',
                 'badge'          => 'Blog Asset',
                 'icon'           => 'fa-solid fa-newspaper',
                 'color'          => 'pink',
@@ -118,7 +118,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/blog',
             ],
             'avatars' => [
-                'label'          => 'User Avatars (প্রোফাইল)',
+                'label'          => 'User Avatars',
                 'badge'          => 'User Avatar',
                 'icon'           => 'fa-solid fa-circle-user',
                 'color'          => 'cyan',
@@ -129,7 +129,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/avatars',
             ],
             'payments' => [
-                'label'          => 'Payments & QR (পেমেন্ট QR)',
+                'label'          => 'Payment & QR Codes',
                 'badge'          => 'Payment QR',
                 'icon'           => 'fa-solid fa-qrcode',
                 'color'          => 'orange',
@@ -141,7 +141,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/settings/qrcodes',
             ],
             'settings' => [
-                'label'          => 'Branding & Logos (লোগো)',
+                'label'          => 'Branding & Site Logos',
                 'badge'          => 'Brand Logo',
                 'icon'           => 'fa-solid fa-gear',
                 'color'          => 'slate',
@@ -153,7 +153,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $publicImages . '/settings',
             ],
             'signatures' => [
-                'label'          => 'Signatures (স্বাক্ষর ও সনদ)',
+                'label'          => 'Signatures & Seals',
                 'badge'          => 'Signature / Seal',
                 'icon'           => 'fa-solid fa-signature',
                 'color'          => 'violet',
@@ -164,7 +164,7 @@ class AdminMediaController extends Controller
                 'default_upload' => $storagePublic . '/signatures',
             ],
             'uploads' => [
-                'label'          => 'General Uploads (অন্যান্য)',
+                'label'          => 'General Uploads',
                 'badge'          => 'Upload Asset',
                 'icon'           => 'fa-solid fa-cloud-arrow-up',
                 'color'          => 'blue',
@@ -210,8 +210,8 @@ class AdminMediaController extends Controller
                         $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
                         $info = [
                             'title'    => $b->title,
-                            'subtitle' => 'বইয়ের প্রচ্ছদ • ' . ($b->author_name ?: 'আইডিয়া প্রকাশন'),
-                            'type'     => 'বইয়ের কভার',
+                            'subtitle' => 'Book Cover • ' . ($b->author_name ?: 'Idea Publication'),
+                            'type'     => 'Book Cover',
                             'link'     => url('/books/' . ($b->slug ?: $b->title)),
                         ];
                         $map[$base] = $info;
@@ -229,9 +229,9 @@ class AdminMediaController extends Controller
                                     $inBase = basename(trim((string)$pageImg));
                                     $inBaseNoExt = pathinfo($inBase, PATHINFO_FILENAME);
                                     $inInfo = [
-                                        'title'    => $b->title . ' (একটু পড়ুন)',
-                                        'subtitle' => 'ইনার পেজ প্রিভিউ',
-                                        'type'     => 'একটু পড়ুন',
+                                        'title'    => $b->title . ' (Look Inside)',
+                                        'subtitle' => 'Inner Page Preview',
+                                        'type'     => 'Look Inside',
                                         'link'     => url('/books/' . ($b->slug ?: $b->title)),
                                     ];
                                     $map[$inBase] = $inInfo;
@@ -250,9 +250,9 @@ class AdminMediaController extends Controller
                     $base = basename((string) $a->avatar);
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
                     $info = [
-                        'title'    => $a->name_bn ?: $a->name,
-                        'subtitle' => 'লেখক ছবি • প্রোফাইল',
-                        'type'     => 'লেখক',
+                        'title'    => $a->name,
+                        'subtitle' => 'Author Avatar • Profile',
+                        'type'     => 'Author',
                         'link'     => url('/authors/' . ($a->slug ?: $a->name)),
                     ];
                     $map[$base] = $info;
@@ -268,8 +268,8 @@ class AdminMediaController extends Controller
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
                     $info = [
                         'title'    => $pub->name,
-                        'subtitle' => 'প্রকাশক অফিসিয়াল লোগো',
-                        'type'     => 'প্রকাশক',
+                        'subtitle' => 'Publisher Official Logo',
+                        'type'     => 'Publisher',
                         'link'     => url('/publishers/' . ($pub->slug ?: $pub->name)),
                     ];
                     $map[$base] = $info;
@@ -285,8 +285,8 @@ class AdminMediaController extends Controller
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
                     $info = [
                         'title'    => $eb->title,
-                        'subtitle' => 'ই-বুক প্রচ্ছদ • ' . ($eb->author_name ?: 'আইডিয়া প্রকাশন'),
-                        'type'     => 'ই-বুক',
+                        'subtitle' => 'E-Book Cover • ' . ($eb->author_name ?: 'Idea Publication'),
+                        'type'     => 'E-Book',
                         'link'     => url('/ebooks/' . ($eb->slug ?: $eb->title)),
                     ];
                     $map[$base] = $info;
@@ -302,8 +302,8 @@ class AdminMediaController extends Controller
                     $baseNoExt = pathinfo($base, PATHINFO_FILENAME);
                     $info = [
                         'title'    => $p->title,
-                        'subtitle' => 'ব্লগ ও প্রবন্ধ ফিচারড ইমেজ',
-                        'type'     => 'ব্লগ',
+                        'subtitle' => 'Blog Featured Image',
+                        'type'     => 'Blog',
                         'link'     => url('/blog/' . ($p->slug ?: $p->title)),
                     ];
                     $map[$base] = $info;
@@ -596,7 +596,7 @@ class AdminMediaController extends Controller
             'file'      => 'nullable|image|mimes:jpeg,png,jpg,webp,svg,gif,ico,bmp,avif|max:10240',
             'folder'    => 'nullable|string',
             'auto_webp' => 'nullable|boolean',
-            'max_dim'   => 'nullable|integer|in:800,1200,1920,0',
+            'max_dim'   => 'nullable|integer|in:400,600,800,1000,1200,1920,0',
         ]);
 
         $folder = $request->input('folder', 'uploads');
@@ -612,43 +612,91 @@ class AdminMediaController extends Controller
 
         if (empty($uploadedFiles)) {
             if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'কোনো ফাইল পাওয়া যায়নি।'], 422);
+                return response()->json(['success' => false, 'message' => 'No files provided for upload.'], 422);
             }
-            return back()->with('error', 'কোনো ফাইল নির্বাচন করা হয়নি।');
+            return back()->with('error', 'No files selected for upload.');
         }
 
         $uploadedResults = [];
-        $autoWebp = $request->boolean('auto_webp', false);
-        $maxDim = (int) $request->input('max_dim', 1920);
+        $autoWebp = $request->boolean('auto_webp', true);
+        $maxDim = (int) $request->input('max_dim', 600);
 
+        $reusedCount = 0;
         foreach ($uploadedFiles as $file) {
             if (!$file->isValid()) {
                 continue;
             }
 
+            $rawContent = @file_get_contents($file->getRealPath());
+            if (empty($rawContent)) {
+                continue;
+            }
+
+            $contentHash = hash('sha256', $rawContent);
+            $hashSuffix = substr($contentHash, 0, 10);
             $origName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $slugName = Str::slug($origName) ?: 'media';
             $ext = strtolower($file->getClientOriginalExtension());
-            $finalName = $slugName . '_' . substr(uniqid(), -6) . '.' . $ext;
-
-            $file->move($targetDir, $finalName);
+            $targetExt = $autoWebp ? 'webp' : $ext;
+            $finalName = $slugName . '_' . $hashSuffix . '.' . $targetExt;
             $destinationPath = $targetDir . '/' . $finalName;
 
-            // Auto-optimize uploaded image
-            $this->optimizeImageFile($destinationPath, $maxDim, $autoWebp);
+            // 1. Precise Match Check: Check if exact file with this checksum already exists in target directory
+            if (File::exists($destinationPath) && File::size($destinationPath) > 0) {
+                $reusedCount++;
+                $uploadedResults[] = [
+                    'filename' => $finalName,
+                    'path'     => $destinationPath,
+                    'reused'   => true,
+                ];
+                continue;
+            }
+
+            // 2. Scan target directory for any existing file having identical SHA256 checksum
+            $foundMatch = null;
+            if (File::isDirectory($targetDir)) {
+                $existingFiles = File::files($targetDir);
+                foreach ($existingFiles as $ef) {
+                    $efPath = $ef->getPathname();
+                    if (str_contains($ef->getFilename(), $hashSuffix) || (@hash_file('sha256', $efPath) === $contentHash)) {
+                        $foundMatch = $efPath;
+                        break;
+                    }
+                }
+            }
+
+            if ($foundMatch) {
+                $reusedCount++;
+                $uploadedResults[] = [
+                    'filename' => basename($foundMatch),
+                    'path'     => $foundMatch,
+                    'reused'   => true,
+                ];
+                continue;
+            }
+
+            // Move and optimize
+            $tempName = $slugName . '_' . $hashSuffix . '.' . $ext;
+            $tempDest = $targetDir . '/' . $tempName;
+            $file->move($targetDir, $tempName);
+
+            // Auto-optimize and auto-downscale to <= 20 KB
+            $this->optimizeImageFile($tempDest, $maxDim, (int) round($maxDim * 1.25), $autoWebp);
+
+            $finalDest = File::exists($destinationPath) ? $destinationPath : $tempDest;
 
             $uploadedResults[] = [
-                'filename' => basename($destinationPath),
-                'path'     => $destinationPath,
+                'filename' => basename($finalDest),
+                'path'     => $finalDest,
             ];
         }
 
         if ($this->accessService) {
             $count = count($uploadedResults);
-            $this->accessService->log('upload_media', "মিডিয়া লাইব্রেরিতে {$count}টি ফাইল আপলোড ও অপ্টিমাইজ করা হয়েছে");
+            $this->accessService->log('upload_media', "Media Studio: Uploaded and optimized {$count} files");
         }
 
-        $msg = count($uploadedResults) . 'টি ফাইল সফলভাবে আপলোড ও অপ্টিমাইজ সম্পন্ন হয়েছে!';
+        $msg = count($uploadedResults) . ' file(s) successfully uploaded and optimized!';
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -683,14 +731,14 @@ class AdminMediaController extends Controller
 
         // Extract base64 image data
         if (!preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
-            return response()->json(['success' => false, 'message' => 'অবৈধ ইমেজ ডাটা ফরম্যাট!'], 422);
+            return response()->json(['success' => false, 'message' => 'Invalid image data format!'], 422);
         }
 
         $imageData = substr($dataUrl, strpos($dataUrl, ',') + 1);
         $imageData = base64_decode($imageData);
 
         if ($imageData === false) {
-            return response()->json(['success' => false, 'message' => 'ইমেজ ডাটা ডিকোড ব্যর্থ হয়েছে।'], 422);
+            return response()->json(['success' => false, 'message' => 'Failed to decode image data.'], 422);
         }
 
         $folderDefs = $this->getFolderDefinitions();
@@ -711,13 +759,13 @@ class AdminMediaController extends Controller
 
         // Security check
         if (!$this->isSafePath($savePath)) {
-            return response()->json(['success' => false, 'message' => 'অননুমোদিত ফাইল পাথ এক্সেস!'], 403);
+            return response()->json(['success' => false, 'message' => 'Unauthorized file path access!'], 403);
         }
 
         File::put($savePath, $imageData);
 
         if ($this->accessService) {
-            $this->accessService->log('customize_media', "মিডিয়া স্টুডিওতে ছবি কাস্টমাইজ ও সংরক্ষণ করা হয়েছে: " . basename($savePath));
+            $this->accessService->log('customize_media', "Media Studio: Customized and saved image: " . basename($savePath));
         }
 
         // Generate web URL
@@ -732,7 +780,7 @@ class AdminMediaController extends Controller
 
         return response()->json([
             'success'  => true,
-            'message'  => 'কাস্টমাইজড ছবি সফলভাবে সংরক্ষণ করা হয়েছে!',
+            'message'  => 'Customized image saved successfully!',
             'url'      => $url,
             'filename' => basename($savePath),
             'size'     => $this->formatBytes(File::size($savePath)),
@@ -753,7 +801,7 @@ class AdminMediaController extends Controller
         $newName = $request->input('new_name');
 
         if (!File::exists($path) || !$this->isSafePath($path)) {
-            return response()->json(['success' => false, 'message' => 'ফাইলটি খুঁজে পাওয়া যায়নি বা পাথ অবৈধ।'], 404);
+            return response()->json(['success' => false, 'message' => 'File not found or unauthorized path.'], 404);
         }
 
         $dir = dirname($path);
@@ -761,7 +809,7 @@ class AdminMediaController extends Controller
         $cleanBase = Str::slug(pathinfo($newName, PATHINFO_FILENAME));
 
         if (!$cleanBase) {
-            return response()->json(['success' => false, 'message' => 'অবৈধ ফাইলের নাম।'], 422);
+            return response()->json(['success' => false, 'message' => 'Invalid file name.'], 422);
         }
 
         $newPath = $dir . '/' . $cleanBase . '.' . $origExt;
@@ -773,12 +821,12 @@ class AdminMediaController extends Controller
         File::move($path, $newPath);
 
         if ($this->accessService) {
-            $this->accessService->log('rename_media', "ফাইলের নাম পরিবর্তন: " . basename($path) . " -> " . basename($newPath));
+            $this->accessService->log('rename_media', "Media Studio: Renamed file " . basename($path) . " -> " . basename($newPath));
         }
 
         return response()->json([
             'success'  => true,
-            'message'  => 'ফাইলের নাম সফলভাবে পরিবর্তন করা হয়েছে!',
+            'message'  => 'File renamed successfully!',
             'new_name' => basename($newPath),
             'new_path' => $newPath,
         ]);
@@ -911,18 +959,18 @@ class AdminMediaController extends Controller
             \Illuminate\Support\Facades\Cache::forget('media_dim_' . md5($targetPath) . '_' . $mtime);
 
             if ($this->accessService) {
-                $this->accessService->log('replace_media', "মিডিয়া অ্যাসেট '{$filename}' সফলভাবে রিপ্লেস করা হয়েছে");
+                $this->accessService->log('replace_media', "Media Studio: Media asset '{$filename}' successfully replaced");
             }
 
             return response()->json([
                 'success' => true,
-                'message' => "অ্যাসেট '{$filename}' সফলভাবে নতুন ছবি দিয়ে রিপ্লেস ও অপ্টিমাইজ করা হয়েছে!",
+                'message' => "Media asset '{$filename}' successfully replaced and optimized!",
             ]);
         } catch (\Throwable $e) {
             if (File::exists($tempBackup)) {
                 @File::move($tempBackup, $targetPath);
             }
-            return response()->json(['success' => false, 'message' => 'ফাইল রিপ্লেস ব্যর্থ হয়েছে: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to replace file: ' . $e->getMessage()], 500);
         }
     }
 
@@ -942,18 +990,18 @@ class AdminMediaController extends Controller
         $baseDir = ($loc === 'public') ? public_path('images/' . $name) : storage_path('app/public/' . $name);
 
         if (File::isDirectory($baseDir)) {
-            return response()->json(['success' => false, 'message' => 'এই নামের ফোল্ডার ইতোমধ্যে বিদ্যমান রয়েছে।'], 422);
+            return response()->json(['success' => false, 'message' => 'A folder with this name already exists.'], 422);
         }
 
         File::makeDirectory($baseDir, 0755, true, true);
 
         if ($this->accessService) {
-            $this->accessService->log('create_media_folder', "নতুন ফোল্ডার তৈরি করা হয়েছে: {$name}");
+            $this->accessService->log('create_media_folder', "Media Studio: Created new folder: {$name}");
         }
 
         return response()->json([
             'success' => true,
-            'message' => "নতুন ফোল্ডার '{$name}' সফলভাবে তৈরি হয়েছে!",
+            'message' => "Folder '{$name}' created successfully!",
         ]);
     }
 
@@ -1167,10 +1215,10 @@ class AdminMediaController extends Controller
     }
 
     /**
-     * Optimize a single image file in place.
+     * Optimize a single image file in place with adaptive compression targeting <= 20 KB.
      * Returns the number of bytes saved, or 0 if unchanged.
      */
-    private function optimizeImageFile(string $filePath, int $maxWidth = 1920, bool $convertToWebp = false): int
+    private function optimizeImageFile(string $filePath, int $maxWidth = 600, int $maxHeight = 800, bool $convertToWebp = false): int
     {
         if (!File::exists($filePath)) {
             return 0;
@@ -1232,17 +1280,54 @@ class AdminMediaController extends Controller
             imagecopyresampled($targetImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
 
             $tempPath = $filePath . '.tmp';
-            $saved = match ($ext) {
-                'jpg', 'jpeg' => imagejpeg($targetImage, $tempPath, 84),
-                'png'         => imagepng($targetImage, $tempPath, 8),
-                'webp'        => imagewebp($targetImage, $tempPath, 82),
-                default       => false,
-            };
+            $maxTargetBytes = 20 * 1024; // 20 KB limit
 
+            // Adaptive multi-pass compression targeting <= 20 KB
+            $currentImg = $targetImage;
+            $quality = ($ext === 'webp' || $convertToWebp) ? 78 : ($ext === 'png' ? 7 : 78);
+
+            for ($pass = 0; $pass < 4; $pass++) {
+                if ($ext === 'webp' || $convertToWebp) {
+                    imagewebp($currentImg, $tempPath, $quality);
+                } elseif ($ext === 'jpg' || $ext === 'jpeg') {
+                    imagejpeg($currentImg, $tempPath, $quality);
+                } elseif ($ext === 'png') {
+                    imagepng($currentImg, $tempPath, $quality);
+                }
+
+                if (File::exists($tempPath) && File::size($tempPath) <= $maxTargetBytes) {
+                    break;
+                }
+
+                // Lower quality or scale down slightly for next pass
+                $quality = max(50, $quality - 10);
+                if ($pass >= 1 && $currentImg) {
+                    $curW = imagesx($currentImg);
+                    $curH = imagesy($currentImg);
+                    if ($curW > 320 && $curH > 320) {
+                        $scaledW = (int) round($curW * 0.85);
+                        $scaledH = (int) round($curH * 0.85);
+                        $scaled = imagecreatetruecolor($scaledW, $scaledH);
+                        if ($scaled) {
+                            imagealphablending($scaled, false);
+                            imagesavealpha($scaled, true);
+                            imagecopyresampled($scaled, $currentImg, 0, 0, 0, 0, $scaledW, $scaledH, $curW, $curH);
+                            if ($currentImg !== $targetImage) {
+                                imagedestroy($currentImg);
+                            }
+                            $currentImg = $scaled;
+                        }
+                    }
+                }
+            }
+
+            if ($currentImg && $currentImg !== $targetImage) {
+                imagedestroy($currentImg);
+            }
             imagedestroy($srcImage);
             imagedestroy($targetImage);
 
-            if ($saved && File::exists($tempPath)) {
+            if (File::exists($tempPath)) {
                 $newSize = File::size($tempPath);
                 if ($newSize < $origSize || $newWidth < $origWidth) {
                     File::move($tempPath, $filePath);

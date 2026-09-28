@@ -2767,6 +2767,7 @@ function previewAdminFileInput(input, containerId) {
     const fname = document.getElementById('preview-filename-' + name);
     const fsize = document.getElementById('preview-filesize-' + name);
     const mockupImg = document.getElementById('mockupCoverImg');
+    const mockupPlaceholder = document.getElementById('mockupCoverPlaceholder');
 
     const formattedSize = file.size >= 1048576 
         ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
@@ -2778,9 +2779,21 @@ function previewAdminFileInput(input, containerId) {
             if (img) img.src = e.target.result;
             if (mockupImg && (name === 'cover_image' || name === 'image')) {
                 mockupImg.src = e.target.result;
+                mockupImg.classList.remove('d-none');
+                if (mockupPlaceholder) mockupPlaceholder.classList.add('d-none');
             }
             if (fname) fname.textContent = file.name;
-            if (fsize) fsize.textContent = formattedSize + ' • ' + (file.type.split('/')[1] || 'IMAGE').toUpperCase();
+
+            // Measure dimensions
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                const dimText = tempImg.naturalWidth + '×' + tempImg.naturalHeight + 'px';
+                if (fsize) {
+                    fsize.textContent = formattedSize + ' • ' + dimText + ' • ' + (file.type.split('/')[1] || 'IMG').toUpperCase();
+                }
+            };
+            tempImg.src = e.target.result;
+
             if (container) container.classList.remove('d-none');
         };
         reader.readAsDataURL(file);
