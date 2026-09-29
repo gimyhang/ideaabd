@@ -75,15 +75,15 @@ class PublicEventRegistrationController extends Controller
             ]);
         }
 
-        // Auto-initialize pathagar / library grant campaign if not present at all
+        // Auto-initialize pathagar / Library campaign if not present at all
         if (!$campaign && in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])) {
             $campaign = EventCampaign::create([
-                'title'               => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬',
+                'title'               => 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬',
                 'slug'                => $slug === 'pathagar' ? 'pathagar' : $slug,
                 'type'                => 'library',
                 'badge_text'          => 'পাঠাগার বই অনুদান ২০২৬',
-                'short_description'   => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
-                'description'         => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় বাংলাদেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
+                'short_description'   => 'বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
+                'description'         => 'আইডিয়া পাঠাগারের বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় বাংলাদেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
                 'theme_color'         => '#047857',
                 'has_fee_or_donation' => false,
                 'fee_amount'          => 0.00,
