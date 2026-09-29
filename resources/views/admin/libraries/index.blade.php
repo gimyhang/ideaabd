@@ -1,13 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Libraries & Book Grants — ideaabd')
+@section('title', 'পাঠাগার ড্যাশবোর্ড ও বই অনুদান — ideaabd')
 
 @push('styles')
 <style>
+    :root {
+        --lib-theme: {{ $formSettings['theme_color'] ?? '#047857' }};
+        --lib-theme-hover: #065f46;
+    }
     .kpi-card-custom {
         background: #ffffff;
         border-radius: 16px;
-        padding: 20px 22px;
+        padding: 18px 20px;
         box-shadow: 0 4px 18px rgba(0,0,0,0.04);
         border: 1px solid #f1f5f9;
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -18,13 +22,13 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     }
     .kpi-icon-box {
-        width: 48px;
-        height: 48px;
+        width: 46px;
+        height: 46px;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.35rem;
+        font-size: 1.3rem;
     }
     .badge-ack-received {
         background-color: #dcfce7;
@@ -57,7 +61,7 @@
         background-color: #f8fafc;
         color: #475569;
         font-weight: 700;
-        font-size: 12.5px;
+        font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.4px;
         padding: 12px 14px;
@@ -77,18 +81,67 @@
         font-size: 13px;
         transition: all 0.15s ease;
     }
-    .book-item-row {
+    .div-stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        transition: all 0.2s ease;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #334155;
+        transition: all 0.2s;
     }
-    .book-item-row:hover {
+    .div-stat-pill:hover {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #047857;
+    }
+
+    /* Live Print Mockup inside Modal */
+    .live-preview-box {
+        border: 1.5px solid #334155;
         background: #ffffff;
-        border-color: #cbd5e1;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+        padding: 14px 16px;
+        border-radius: 8px;
+        font-family: 'Hind Siliguri', Arial, sans-serif;
+        font-size: 11.5px;
+        color: #000;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    }
+    .live-header-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6px;
+    }
+    .live-header-table td {
+        vertical-align: top;
+        border: 1.2px solid #000;
+        padding: 6px;
+    }
+    .live-banner-strip {
+        background: {{ $formSettings['theme_color'] ?? '#047857' }};
+        color: #fff;
+        padding: 4px 8px;
+        font-size: 12px;
+        font-weight: bold;
+        text-align: center;
+        margin: 6px 0;
+        border-radius: 2px;
+        transition: background-color 0.2s ease;
+    }
+    .code-editor-box {
+        font-family: 'Fira Code', 'Courier New', monospace;
+        font-size: 12px;
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        line-height: 1.5;
+        max-height: 320px;
+        overflow-y: auto;
     }
 </style>
 @endpush
@@ -103,20 +156,28 @@
                 <ol class="breadcrumb mb-1 small">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.event-campaigns.index') }}" class="text-decoration-none text-muted">Campaigns</a></li>
-                    <li class="breadcrumb-item active fw-semibold text-success" aria-current="page">Libraries & Book Grants</li>
+                    <li class="breadcrumb-item active fw-semibold text-success" aria-current="page">পাঠাগার ড্যাশবোর্ড ও বই অনুদান</li>
                 </ol>
             </nav>
             <h1 class="h3 fw-bold mb-0 text-gray-900 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-book-open-reader text-success"></i> Libraries & Book Grants Dashboard
+                <i class="fa-solid fa-book-open-reader text-success"></i> পাঠাগার ড্যাশবোর্ড ও বই অনুদান ব্যবস্থাপনা
             </h1>
-            <p class="text-muted small mb-0 mt-1">Manage library registrations, itemized book allocations, delivery dispatch, and receipt verification.</p>
+            <p class="text-muted small mb-0 mt-1">কেন্দ্রীয় পাঠাগার ডাটাবেজ, ফরম ও প্রিন্ট সেটিংস কাস্টমাইজেশন, কোড জেনারেটর এবং বই বিতরণ ট্র্যাকিং।</p>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            {{-- 1. Customizer & Code Generator Modal Trigger --}}
+            <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#formCustomizerModal">
+                <i class="fa-solid fa-palette"></i> ফরম ও কোড কাস্টমাইজার <span class="badge bg-white text-primary rounded-pill px-2 py-0.5 small">CSS/JS/PHP</span>
+            </button>
+
+            {{-- 2. CSV Export --}}
             <a href="{{ route('admin.libraries.export') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs">
                 <i class="fa-solid fa-file-csv text-success"></i> CSV Export
             </a>
+
+            {{-- 3. Public Apply Form Link --}}
             <a href="{{ url('/pathagar') }}" target="_blank" class="btn btn-success rounded-pill px-3.5 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                <i class="fa-solid fa-plus"></i> New Application Form <i class="fa-solid fa-arrow-up-right-from-square small opacity-75"></i>
+                <i class="fa-solid fa-plus"></i> আবেদন ফরম দেখুন <i class="fa-solid fa-arrow-up-right-from-square small opacity-75"></i>
             </a>
         </div>
     </div>
@@ -130,76 +191,109 @@
         </div>
     @endif
 
-    {{-- 5 KPI STATS CARDS --}}
+    {{-- 6 HIGH-IMPACT KPI STATS CARDS --}}
     <div class="row g-3 mb-4">
-        {{-- Total Libraries --}}
-        <div class="col-6 col-lg">
+        {{-- 1. Total Libraries --}}
+        <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi-card-custom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase">Total Libraries</span>
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">মোট পাঠাগার</span>
                     <div class="kpi-icon-box bg-primary-subtle text-primary">
                         <i class="fa-solid fa-landmark"></i>
                     </div>
                 </div>
                 <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalLibraries) }}</h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11.5px;">Registered Institutions</small>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">নিবন্ধিত প্রতিষ্ঠান</small>
             </div>
         </div>
 
-        {{-- Approved Libraries --}}
-        <div class="col-6 col-lg">
+        {{-- 2. Approved Libraries --}}
+        <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi-card-custom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase">Approved Libraries</span>
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">অনুমোদিত</span>
                     <div class="kpi-icon-box bg-success-subtle text-success">
                         <i class="fa-solid fa-circle-check"></i>
                     </div>
                 </div>
                 <h3 class="fw-bold mb-0 text-success">{{ number_format($approvedLibraries) }}</h3>
-                <small class="text-success d-block mt-1" style="font-size: 11.5px;">Selected for Grant</small>
+                <small class="text-success d-block mt-1" style="font-size: 11px;">অনুদানের জন্য নির্বাচিত</small>
             </div>
         </div>
 
-        {{-- Total Books Allocated --}}
-        <div class="col-6 col-lg">
+        {{-- 3. Total Books Allocated --}}
+        <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi-card-custom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase">Total Books Allocated</span>
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">মোট বই বরাদ্দ</span>
                     <div class="kpi-icon-box bg-info-subtle text-info">
                         <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalBooksAllocated) }} <span class="fs-6 fw-normal text-muted">Books</span></h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11.5px;">Dispatched / Assigned</small>
+                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalBooksAllocated) }} <span class="fs-6 fw-normal text-muted">টি</span></h3>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">প্রেরিত / বরাদ্দকৃত বই</small>
             </div>
         </div>
 
-        {{-- Acknowledged Count --}}
-        <div class="col-6 col-lg">
+        {{-- 4. Acknowledged / Received --}}
+        <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi-card-custom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase">Acknowledged</span>
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">প্রাপ্তিস্বীকার</span>
                     <div class="kpi-icon-box bg-emerald-subtle text-success" style="background-color: #ecfdf5; color: #047857;">
                         <i class="fa-solid fa-signature"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold mb-0 text-success">{{ number_format($acknowledgedCount) }} <span class="fs-6 fw-normal text-muted">Libraries</span></h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11.5px;">{{ number_format($totalBooksReceived) }} Books Received</small>
+                <h3 class="fw-bold mb-0 text-success">{{ number_format($acknowledgedCount) }} <span class="fs-6 fw-normal text-muted">পাঠাগার</span></h3>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ number_format($totalBooksReceived) }} টি বই পৌঁছানো সম্পন্ন</small>
             </div>
         </div>
 
-        {{-- Pending Review --}}
-        <div class="col-12 col-lg">
+        {{-- 5. Pending Review --}}
+        <div class="col-6 col-md-4 col-xl-2">
             <div class="kpi-card-custom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase">Pending Review</span>
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">যাচাই অপেক্ষায়</span>
                     <div class="kpi-icon-box bg-warning-subtle text-warning">
                         <i class="fa-solid fa-hourglass-half"></i>
                     </div>
                 </div>
                 <h3 class="fw-bold mb-0 text-warning">{{ number_format($pendingReview) }}</h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11.5px;">Awaiting Verification</small>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">পেন্ডিং আবেদন</small>
             </div>
+        </div>
+
+        {{-- 6. Readers & District Coverage --}}
+        <div class="col-6 col-md-4 col-xl-2">
+            <div class="kpi-card-custom">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">পাঠক ও জেলা</span>
+                    <div class="kpi-icon-box bg-purple-subtle text-purple" style="background: #f3e8ff; color: #7e22ce;">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalReadersCount) }} <span class="fs-6 fw-normal text-muted">পাঠক</span></h3>
+                <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ $uniqueDistricts }} টি জেলায় বিস্তৃত</small>
+            </div>
+        </div>
+    </div>
+
+    {{-- DIVISION ANALYTICS & QUICK FILTER PILLS --}}
+    <div class="card border-0 shadow-2xs rounded-4 mb-4 bg-white p-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                <i class="fa-solid fa-chart-pie text-success"></i> বিভাগভিত্তিক আবেদন বিন্যাস (Division Distribution):
+            </span>
+            <span class="text-muted small">মোট বিদ্যমান বই ভাণ্ডার: <strong>{{ number_format($totalExistingBooks) }}</strong> টি</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach($divisionStats as $divName => $divCount)
+                <a href="{{ route('admin.libraries.index', array_merge(request()->query(), ['division' => $divName])) }}" 
+                   class="div-stat-pill text-decoration-none {{ request('division') == $divName ? 'bg-success text-white border-success' : '' }}">
+                    <span>{{ $divName }}</span>
+                    <span class="badge {{ request('division') == $divName ? 'bg-white text-success' : 'bg-light text-dark' }} rounded-pill">{{ $divCount }}</span>
+                </a>
+            @endforeach
         </div>
     </div>
 
@@ -210,7 +304,7 @@
                 <div class="col-12 col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Search by library name, phone, rep, or Reg No..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Search by library name, phone, rep, or Reg ID..." value="{{ request('search') }}">
                     </div>
                 </div>
 
@@ -218,7 +312,7 @@
                     <select name="division" class="form-select bg-light">
                         <option value="">All Divisions</option>
                         @foreach(['Rangpur' => 'রংপুর', 'Dhaka' => 'ঢাকা', 'Chattogram' => 'চট্টগ্রাম', 'Rajshahi' => 'রাজশাহী', 'Khulna' => 'খুলনা', 'Barishal' => 'বরিশাল', 'Sylhet' => 'সিলেট', 'Mymensingh' => 'ময়মনসিংহ'] as $engDiv => $bngDiv)
-                            <option value="{{ $bngDiv }}" {{ request('division') == $bngDiv ? 'selected' : '' }}>{{ $engDiv }}</option>
+                            <option value="{{ $bngDiv }}" {{ request('division') == $bngDiv ? 'selected' : '' }}>{{ $engDiv }} ({{ $bngDiv }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -399,7 +493,7 @@
 
                                     {{-- 2. Acknowledgment Button --}}
                                     <button type="button" class="btn btn-sm btn-outline-primary btn-action-icon" title="Receipt Acknowledgment & Verify"
-                                            onclick='openAckModal("{{ $lib->id }}", "{{ addslashes($libName) }}", "{{ $allocated }}", "{{ $receivedCount ?: $allocated }}", "{{ $receivedDate }}", "{{ addslashes($fd['acknowledgment_notes'] ?? '') }}", {{ json_encode($bookItems) }})'>
+                                            onclick='openAckModal("{{ $lib->id }}", "{{ addslashes($libName) }}", "{{ $allocated }}", "{{ $receivedCount ?: $allocated }}", "{{ $receivedDate }}", "{{ addslashes($fd['acknowledgment_notes'] ?? '') }}")'>
                                         <i class="fa-solid fa-signature"></i>
                                     </button>
 
@@ -445,6 +539,256 @@
     </div>
 </div>
 
+{{-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL: Form & Print Slip Customizer + CSS / JS / PHP Code Generator
+═══════════════════════════════════════════════════════════════════════════ --}}
+<div class="modal fade" id="formCustomizerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form id="formCustomizerForm" method="POST" action="{{ route('admin.libraries.settings') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-header border-bottom p-3.5 bg-success text-white rounded-top-4 d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-palette fs-5"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold fs-6 mb-0">পাঠাগার ফরম ও প্রিন্ট কাস্টমাইজার (Form Settings & Code Generator)</h5>
+                            <small class="opacity-75">লোগো, শিরোনাম, স্বাক্ষর ও কোড জেনারেট করে ফরম কাস্টমাইজ করুন</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-4">
+                        {{-- LEFT COLUMN: Settings Controls & Code Tabs --}}
+                        <div class="col-lg-7">
+                            <div class="card border-0 shadow-xs rounded-3 bg-white p-3 mb-3">
+                                <ul class="nav nav-pills nav-fill mb-3 gap-1 bg-light p-1 rounded-pill" id="customizerTabs" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-brand-btn" data-bs-toggle="pill" data-bs-target="#tab-brand" type="button">
+                                            <i class="fa-solid fa-image me-1"></i> ১. লোগো ও ব্র্যান্ডিং
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-signature-btn" data-bs-toggle="pill" data-bs-target="#tab-signature" type="button">
+                                            <i class="fa-solid fa-file-signature me-1"></i> ২. শিরোনাম ও স্বাক্ষর
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-code-btn" data-bs-toggle="pill" data-bs-target="#tab-code" type="button">
+                                            <i class="fa-solid fa-code me-1"></i> ৩. CSS / JS / PHP কোড
+                                        </button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content">
+                                    {{-- TAB 1: Logo & Branding --}}
+                                    <div class="tab-pane fade show active" id="tab-brand">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">লোগো ইমেজ ফাইল (Upload New)</label>
+                                                <input type="file" name="logo_file" id="custLogoFile" class="form-control form-control-sm" accept="image/*" onchange="previewUploadedLogo(this)">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">অথবা লোগো URL</label>
+                                                <input type="text" name="logo_url" id="custLogoUrl" class="form-control form-control-sm" value="{{ $formSettings['logo_url'] ?? asset('images/logo.png') }}" placeholder="/images/logo.png" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">লোগো হাইট (উচ্চতা px): <span id="logoSizeVal" class="text-success fw-bold">{{ $formSettings['logo_size'] ?? 24 }}px</span></label>
+                                                <input type="range" name="logo_size" id="custLogoSize" class="form-range" min="14" max="64" value="{{ $formSettings['logo_size'] ?? 24 }}" oninput="document.getElementById('logoSizeVal').innerText = this.value + 'px'; updateLivePreview();">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">থিম কালার (Primary Brand Color)</label>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <input type="color" name="theme_color" id="custThemeColor" class="form-control form-control-color border-0 p-0" style="width: 42px; height: 32px;" value="{{ $formSettings['theme_color'] ?? '#047857' }}" oninput="updateLivePreview()">
+                                                    <input type="text" id="custThemeColorHex" class="form-control form-control-sm font-monospace text-uppercase" value="{{ $formSettings['theme_color'] ?? '#047857' }}" oninput="document.getElementById('custThemeColor').value = this.value; updateLivePreview();">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">পাঠাগার / ব্র্যান্ড নাম (Header Title)</label>
+                                                <input type="text" name="brand_name" id="custBrandName" class="form-control form-control-sm" value="{{ $formSettings['brand_name'] ?? 'আইডিয়া পাঠাগার' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">সাব-টাইটেল (Sub Title)</label>
+                                                <input type="text" name="sub_title" id="custSubTitle" class="form-control form-control-sm" value="{{ $formSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম' }}" oninput="updateLivePreview()">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">প্রকাশন লাইন (Session/Org Text)</label>
+                                                <input type="text" name="session_text" id="custSessionText" class="form-control form-control-sm" value="{{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">প্রধান কার্যালয় ও ওয়েবসাইট (Brand Tag)</label>
+                                                <textarea name="brand_tag" id="custBrandTag" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $formSettings['brand_tag'] ?? "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com" }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- TAB 2: Titles & Signatures --}}
+                                    <div class="tab-pane fade" id="tab-signature">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">ব্যানার শিরোনাম (Banner Headline)</label>
+                                                <input type="text" name="banner_title" id="custBannerTitle" class="form-control form-control-sm" value="{{ $formSettings['banner_title'] ?? 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">কর্মসূচি সেশন (Session Field)</label>
+                                                <input type="text" name="grant_session" id="custGrantSession" class="form-control form-control-sm" value="{{ $formSettings['grant_session'] ?? '২০২৬ অনুদান কর্মসূচি' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">অনুমোদনকারী কর্মকর্তার নাম (Officer Name)</label>
+                                                <input type="text" name="officer_name" id="custOfficerName" class="form-control form-control-sm fw-bold" value="{{ $formSettings['officer_name'] ?? 'সাকিল মাসুদ' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">কর্মকর্তার পদবি (Designation/Title)</label>
+                                                <input type="text" name="officer_designation" id="custOfficerDesignation" class="form-control form-control-sm" value="{{ $formSettings['officer_designation'] ?? 'তত্বাবধায়ক ও প্রতিষ্ঠাতা' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-bold text-dark mb-1">কর্মকর্তার প্রতিষ্ঠান / সাব-লাইন (Optional)</label>
+                                                <input type="text" name="officer_org" id="custOfficerOrg" class="form-control form-control-sm" value="{{ $formSettings['officer_org'] ?? 'আইডিয়া পাঠাগার ও প্রকাশন' }}" oninput="updateLivePreview()">
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">নীতিমালা ও ঘোষণা টেক্সট (Declaration Statement)</label>
+                                                <textarea name="declaration_text" id="custDeclaration" rows="2" class="form-control form-control-sm" oninput="updateLivePreview()">{{ $formSettings['declaration_text'] ?? 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- TAB 3: Generated Code (CSS, JS, PHP) --}}
+                                    <div class="tab-pane fade" id="tab-code">
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                <label class="form-label small fw-bold text-dark mb-0"><i class="fa-brands fa-css3-alt text-primary me-1"></i> Generated Custom CSS (কাস্টম সিএসএস কোড)</label>
+                                                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0.5 fw-semibold" onclick="copyCode('generatedCssCode')">
+                                                    <i class="fa-regular fa-copy me-1"></i> Copy CSS
+                                                </button>
+                                            </div>
+                                            <textarea name="custom_css" id="generatedCssCode" rows="4" class="code-editor-box w-100">{{ $formSettings['custom_css'] ?? '' }}</textarea>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                <label class="form-label small fw-bold text-dark mb-0"><i class="fa-brands fa-js text-warning me-1"></i> Generated Custom JS (জাভাস্ক্রিপ্ট কোড)</label>
+                                                <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0.5 fw-semibold" onclick="copyCode('generatedJsCode')">
+                                                    <i class="fa-regular fa-copy me-1"></i> Copy JS
+                                                </button>
+                                            </div>
+                                            <textarea name="custom_js" id="generatedJsCode" rows="4" class="code-editor-box w-100">{{ $formSettings['custom_js'] ?? '' }}</textarea>
+                                        </div>
+
+                                        <div>
+                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                <label class="form-label small fw-bold text-dark mb-0"><i class="fa-brands fa-php text-info me-1"></i> Generated PHP Array Config (পিএইচপি কনফিগারেশন)</label>
+                                                <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-2 py-0.5 fw-semibold" onclick="copyCode('generatedPhpCode')">
+                                                    <i class="fa-regular fa-copy me-1"></i> Copy PHP
+                                                </button>
+                                            </div>
+                                            <pre id="generatedPhpCode" class="code-editor-box mb-0"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- RIGHT COLUMN: Real-Time Live Preview Mockup --}}
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow-xs rounded-3 bg-white p-3 h-100">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+                                    <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                                        <i class="fa-solid fa-eye text-success"></i> লাইভ প্রিভিউ (Live Real-Time Mockup)
+                                    </span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style="font-size: 10.5px;">Auto Sync</span>
+                                </div>
+
+                                <div class="live-preview-box" id="livePreviewContainer">
+                                    {{-- Header Top Table --}}
+                                    <table class="live-header-table">
+                                        <tr>
+                                            <td style="width: 48%; text-align: center;" id="prevHeaderBoxLeft">
+                                                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 2px;">
+                                                    <img id="prevLogoImg" src="{{ $formSettings['logo_url'] ?? asset('images/logo.png') }}" alt="Logo" style="height: {{ $formSettings['logo_size'] ?? 24 }}px; max-width: 38px; object-fit: contain;">
+                                                    <span id="prevBrandName" style="font-size: 13.5px; font-weight: bold; color: {{ $formSettings['theme_color'] ?? '#047857' }};">{{ $formSettings['brand_name'] ?? 'আইডিয়া পাঠাগার' }}</span>
+                                                </div>
+                                                <div id="prevSubTitle" style="font-size: 10px; font-weight: bold; color: #000;">{{ $formSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম' }}</div>
+                                                <div id="prevSessionText" style="font-size: 9.5px; font-weight: bold; color: #334155;">{{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}</div>
+                                                <div id="prevBrandTag" style="font-size: 8.5px; color: #64748b; margin-top: 2px; line-height: 1.2;">{{ $formSettings['brand_tag'] ?? "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com" }}</div>
+                                            </td>
+
+                                            <td style="width: 52%; font-size: 9.5px; background: #fafafa;">
+                                                <div style="font-weight: bold; text-align: center; background: {{ $formSettings['theme_color'] ?? '#047857' }}; color: #fff; padding: 2px; font-size: 9px; margin-bottom: 3px;" id="prevOfficialHeader">
+                                                    অফিসিয়াল আবেদন রেকর্ড
+                                                </div>
+                                                <div><strong>Reg ID:</strong> <span style="font-family: monospace; color: #047857;">#PATH-260929-78348</span></div>
+                                                <div><strong>তারিখ:</strong> {{ date('d M, Y') }}</div>
+                                                <div><strong>স্ট্যাটাস:</strong> <span style="color: #047857; font-weight: bold;">✔ অনুমোদিত</span></div>
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    {{-- Banner Strip --}}
+                                    <div class="live-banner-strip" id="prevBannerTitle">
+                                        {{ $formSettings['banner_title'] ?? 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম' }}
+                                    </div>
+
+                                    {{-- Sample Info Block --}}
+                                    <div style="border: 1px solid #000; padding: 4px; font-size: 9.5px; margin-bottom: 6px; background: #fff;">
+                                        <div><strong>পাঠাগারের নাম:</strong> <span style="font-weight: bold; color: {{ $formSettings['theme_color'] ?? '#047857' }};" id="prevSampleLib">সেতুবন্ধন পাঠাগার</span></div>
+                                        <div><strong>কর্মসূচি সেশন:</strong> <span id="prevGrantSession">{{ $formSettings['grant_session'] ?? '২০২৬ অনুদান কর্মসূচি' }}</span></div>
+                                    </div>
+
+                                    {{-- Declaration --}}
+                                    <div style="font-size: 8.5px; color: #334155; padding: 3px 5px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; margin-bottom: 10px;" id="prevDeclaration">
+                                        <strong>ঘোষণা:</strong> {{ $formSettings['declaration_text'] ?? 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।' }}
+                                    </div>
+
+                                    {{-- Signatures Table --}}
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 6px;">
+                                        <tr>
+                                            <td style="width: 50%; text-align: center; vertical-align: bottom; padding: 0 5px;">
+                                                <div style="border-top: 1px dashed #000; padding-top: 2px;">
+                                                    <strong>আবেদনকারী প্রতিনিধির স্বাক্ষর</strong><br>
+                                                    <span style="font-size: 7.5px; color: #64748b;">পাঠাগার পরিচালনা কমিটি</span>
+                                                </div>
+                                            </td>
+                                            <td style="width: 50%; text-align: center; vertical-align: bottom; padding: 0 5px;">
+                                                <div style="border-top: 1px dashed #000; padding-top: 2px;">
+                                                    <strong id="prevOfficerName">{{ $formSettings['officer_name'] ?? 'সাকিল মাসুদ' }}</strong><br>
+                                                    <span style="font-size: 7.5px; color: #475569;" id="prevOfficerRole">{{ $formSettings['officer_designation'] ?? 'তত্বাবধায়ক ও প্রতিষ্ঠাতা' }} • {{ $formSettings['officer_org'] ?? 'আইডিয়া পাঠাগার ও প্রকাশন' }}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top p-3 bg-white d-flex align-items-center justify-content-between">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-success rounded-pill px-3.5 fw-semibold" onclick="generateAllSnippets()">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> কোড রি-জেনারেট করুন
+                        </button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" id="btnSaveCustomizer">
+                            <i class="fa-solid fa-check me-1"></i> সেটিংস সংরক্ষণ করুন
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- ══════════════════════════════════════════════════════════════════
      MODAL 1: Book Allocation & Itemized Books Dispatch Entry Form
 ══════════════════════════════════════════════════════════════════ --}}
@@ -486,7 +830,7 @@
                         </div>
                     </div>
 
-                    {{-- Dynamic Itemized Books Breakdown Table (বইয়ের তথ্য টেবিল) --}}
+                    {{-- Dynamic Itemized Books Breakdown Table --}}
                     <div class="card border rounded-3 mb-3 overflow-hidden shadow-sm">
                         <div class="card-header bg-light py-2.5 px-3 d-flex align-items-center justify-content-between border-bottom">
                             <div>
@@ -884,6 +1228,210 @@ function openDetailsModal(lib) {
 
     new bootstrap.Modal(document.getElementById('detailsModal')).show();
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIVE CUSTOMIZER & CODE GENERATOR FUNCTIONS (CSS / JS / PHP)
+═══════════════════════════════════════════════════════════════════════════ */
+function previewUploadedLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('prevLogoImg').src = e.target.result;
+            document.getElementById('custLogoUrl').value = '';
+            generateAllSnippets();
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function updateLivePreview() {
+    const brandName = document.getElementById('custBrandName').value || 'আইডিয়া পাঠাগার';
+    const subTitle = document.getElementById('custSubTitle').value || 'বই অনুদান আবেদন ফরম';
+    const sessionText = document.getElementById('custSessionText').value || 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    const brandTag = document.getElementById('custBrandTag').value || '';
+    const bannerTitle = document.getElementById('custBannerTitle').value || 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
+    const grantSession = document.getElementById('custGrantSession').value || '২০২৬ অনুদান কর্মসূচি';
+    const officerName = document.getElementById('custOfficerName').value || 'সাকিল মাসুদ';
+    const officerDesignation = document.getElementById('custOfficerDesignation').value || 'তত্বাবধায়ক ও প্রতিষ্ঠাতা';
+    const officerOrg = document.getElementById('custOfficerOrg').value || '';
+    const declaration = document.getElementById('custDeclaration').value || '';
+    const themeColor = document.getElementById('custThemeColor').value || '#047857';
+    const logoSize = document.getElementById('custLogoSize').value || 24;
+    const logoUrl = document.getElementById('custLogoUrl').value;
+
+    if (logoUrl) {
+        document.getElementById('prevLogoImg').src = logoUrl;
+    }
+    document.getElementById('prevLogoImg').style.height = logoSize + 'px';
+    document.getElementById('prevBrandName').innerText = brandName;
+    document.getElementById('prevBrandName').style.color = themeColor;
+    document.getElementById('prevSubTitle').innerText = subTitle;
+    document.getElementById('prevSessionText').innerText = sessionText;
+    document.getElementById('prevBrandTag').innerText = brandTag;
+    document.getElementById('prevBannerTitle').innerText = bannerTitle;
+    document.getElementById('prevBannerTitle').style.background = themeColor;
+    document.getElementById('prevOfficialHeader').style.background = themeColor;
+    document.getElementById('prevGrantSession').innerText = grantSession;
+    document.getElementById('prevDeclaration').innerHTML = '<strong>ঘোষণা:</strong> ' + declaration;
+    document.getElementById('prevOfficerName').innerText = officerName;
+    document.getElementById('prevOfficerRole').innerText = officerDesignation + (officerOrg ? ' • ' + officerOrg : '');
+    document.getElementById('custThemeColorHex').value = themeColor.toUpperCase();
+
+    generateAllSnippets();
+}
+
+function generateAllSnippets() {
+    const brandName = document.getElementById('custBrandName').value || 'আইডিয়া পাঠাগার';
+    const subTitle = document.getElementById('custSubTitle').value || 'বই অনুদান আবেদন ফরম';
+    const sessionText = document.getElementById('custSessionText').value || 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    const bannerTitle = document.getElementById('custBannerTitle').value || 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
+    const officerName = document.getElementById('custOfficerName').value || 'সাকিল মাসুদ';
+    const officerDesignation = document.getElementById('custOfficerDesignation').value || 'তত্বাবধায়ক ও প্রতিষ্ঠাতা';
+    const officerOrg = document.getElementById('custOfficerOrg').value || '';
+    const themeColor = document.getElementById('custThemeColor').value || '#047857';
+    const logoSize = document.getElementById('custLogoSize').value || 24;
+    const logoUrl = document.getElementById('custLogoUrl').value || '/images/logo.png';
+
+    // 1. Generate CSS Snippet
+    const cssCode = `/* ═════════════════════════════════════════════════════════
+   IDEA Library & Book Grant Custom Stylesheet
+   Theme Color: ${themeColor} | Generated: ${new Date().toISOString().slice(0,10)}
+═════════════════════════════════════════════════════════ */
+:root {
+    --lib-primary: ${themeColor};
+    --lib-logo-height: ${logoSize}px;
+}
+.header-box-left .inst-brand-row {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.header-box-left .brand-logo-img {
+    height: var(--lib-logo-height);
+    max-width: 42px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+.header-box-left .inst-title {
+    color: var(--lib-primary);
+    font-size: 15px;
+    font-weight: 700;
+}
+.form-banner-strip {
+    background-color: var(--lib-primary) !important;
+    color: #ffffff !important;
+    padding: 5px 10px;
+    font-weight: 700;
+    text-align: center;
+}`;
+    
+    // Only update if user hasn't manually customized or on initial load
+    const currentCssArea = document.getElementById('generatedCssCode');
+    if (!currentCssArea.value || currentCssArea.value.includes('IDEA Library & Book Grant Custom Stylesheet')) {
+        currentCssArea.value = cssCode;
+    }
+
+    // 2. Generate JS Snippet
+    const jsCode = `/**
+ * IDEA Library Registration & Print Utility Handler
+ * Configured Signatory: ${officerName} (${officerDesignation})
+ */
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("Library System Initialized for ${brandName}");
+    
+    // Dynamic copy calculations & verification hooks
+    const bookInputs = document.querySelectorAll('.book-copies-input');
+    if (bookInputs.length > 0) {
+        bookInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                let sum = 0;
+                bookInputs.forEach(i => sum += (parseInt(i.value) || 0));
+                const badge = document.getElementById('calcTotalBadge');
+                if (badge) badge.textContent = sum + ' Books';
+            });
+        });
+    }
+});`;
+    
+    const currentJsArea = document.getElementById('generatedJsCode');
+    if (!currentJsArea.value || currentJsArea.value.includes('IDEA Library Registration & Print Utility Handler')) {
+        currentJsArea.value = jsCode;
+    }
+
+    // 3. Generate PHP Array Configuration
+    const phpCode = '<\x3Fphp\n' +
+'// config/library_grant.php or EventCampaign $form_settings\n' +
+'return [\n' +
+"    'brand_name'          => '" + brandName.replace(/'/g, "\\'") + "',\n" +
+"    'sub_title'           => '" + subTitle.replace(/'/g, "\\'") + "',\n" +
+"    'session_text'        => '" + sessionText.replace(/'/g, "\\'") + "',\n" +
+"    'banner_title'        => '" + bannerTitle.replace(/'/g, "\\'") + "',\n" +
+"    'officer_name'        => '" + officerName.replace(/'/g, "\\'") + "',\n" +
+"    'officer_designation' => '" + officerDesignation.replace(/'/g, "\\'") + "',\n" +
+"    'officer_org'         => '" + officerOrg.replace(/'/g, "\\'") + "',\n" +
+"    'logo_url'            => '" + logoUrl + "',\n" +
+"    'logo_size'           => " + logoSize + ",\n" +
+"    'theme_color'         => '" + themeColor + "',\n" +
+"    'requires_approval'   => true,\n" +
+"    'is_library_form'     => true,\n" +
+'];';
+    document.getElementById('generatedPhpCode').textContent = phpCode;
+}
+
+function copyCode(elementId) {
+    const el = document.getElementById(elementId);
+    const text = el.value || el.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert('কোড সফলভাবে ক্লিপবোর্ডে কপি করা হয়েছে!');
+    }).catch(() => {
+        alert('কপি করতে ব্যর্থ হয়েছে। অনুগ্রহ করে নিজে সিলেক্ট করে কপি করুন।');
+    });
+}
+
+// Initialize live preview on modal show
+document.getElementById('formCustomizerModal').addEventListener('shown.bs.modal', function () {
+    updateLivePreview();
+});
+
+// Handle customizer AJAX save form submit
+document.getElementById('formCustomizerForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveCustomizer');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> সেভ হচ্ছে...';
+
+    const formData = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        if (data.success) {
+            alert('✔ ' + data.message);
+            location.reload();
+        } else {
+            alert('সেভ করতে সমস্যা হয়েছে: ' + (data.message || 'Error occurred'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        console.error(err);
+        // Fallback standard submit
+        document.getElementById('formCustomizerForm').submit();
+    });
+});
 </script>
 @endpush
 @endsection

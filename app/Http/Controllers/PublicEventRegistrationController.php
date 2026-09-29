@@ -416,7 +416,11 @@ class PublicEventRegistrationController extends Controller
         ]]);
 
         if ($isLibrary) {
-            $successNotice = 'ধন্যবাদ! বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে আপনার পাঠাগারের নিবন্ধন সফলভাবে জমা হয়েছে। আমাদের টিম যাচাই শেষে বই অনুদানের দিনক্ষণ জানিয়ে দেবে।';
+            $successNotice = 'ধন্যবাদ! বিনামূল্যে বই বিতরণ কর্মসূচিতে আপনার পাঠাগারের নিবন্ধন সফলভাবে জমা হয়েছে। আপনার একাউন্ট ড্যাশবোর্ড থেকে আবেদনের অগ্রগতি ও রসিদ দেখতে পারবেন।';
+            if (auth()->check()) {
+                return redirect()->route('my-account', ['tab' => 'libraryGrant'])
+                    ->with('success', $successNotice);
+            }
         } elseif ($requiresApproval) {
             $successNotice = 'ধন্যবাদ! আপনার লেখক নিবন্ধন ও তথ্য সফলভাবে জমা হয়েছে। ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।';
         } else {

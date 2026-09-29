@@ -237,13 +237,13 @@
                                 
                                 <div class="rounded-circle overflow-hidden shadow-xs flex-shrink-0 position-relative border" style="width: 40px; height: 40px; background: {{ $top->avatar_bg_color ?? '#e2e8f0' }};">
                                     @if($top->avatar_url)
-                                        <img src="{{ $top->avatar_url }}" class="w-100 h-100 object-fit-cover"
-                                             onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                                        <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fw-bold small" style="background: {{ $top->avatar_bg_color ?? '#4f46e5' }};">
+                                        <img src="{{ $top->avatar_url }}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-1"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-100 h-100 align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0" style="display: none; background: {{ $top->avatar_bg_color ?? '#4f46e5' }};">
                                             {{ $top->initials ?? mb_substr($top->name, 0, 1) }}
                                         </div>
                                     @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small">
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold small position-absolute top-0 start-0" style="background: {{ $top->avatar_bg_color ?? '#4f46e5' }};">
                                             {{ $top->initials ?? mb_substr($top->name, 0, 1) }}
                                         </div>
                                     @endif

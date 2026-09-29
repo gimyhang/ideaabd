@@ -961,4 +961,91 @@ class RegistrationController extends Controller
     {
         return $this->registrationSuccess($request);
     }
+
+    /**
+     * Quick Customer Registration & Auto-login (ideal for event / library registration)
+     */
+    public function quickCustomerRegister(Request $request)
+    {
+        $request->validate([
+            'name'     => ['required', 'string', 'max:150'],
+            'phone'    => ['required', 'string', 'max:25'],
+            'email'    => ['nullable', 'email', 'max:150'],
+            'password' => ['required', 'string', 'min:6', 'max:100'],
+        ]);
+
+        $rawPhone = trim($request->input('phone'));
+        $cleanDigits = preg_replace('/[^0-9]/', '', $this->normalizeBnToEn($rawPhone));
+        if (str_starts_with($cleanDigits, '880')) {
+            $cleanDigits = substr($cleanDigits, 3);
+        }
+        if (!str_starts_with($cleanDigits, '0') && strlen($cleanDigits) === 10) {
+            $cleanDigits = '0' . $cleanDigits;
+        }
+        $localPhone = $cleanDigits;
+        $email = $request->filled('email') ? strtolower(trim($request->input('email'))) : null;
+
+        // Check for existing phone or email
+        $existing = User::where(function ($q) use ($localPhone, $cleanDigits, $email) {
+            $q->where('phone', $localPhone)
+              ->orWhere('phone', '+880' . ltrim($cleanDigits, '0'))
+              ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10));
+            if ($email) {
+                $q->orWhere('email', $email);
+            }
+        })->first();
+
+        if ($existing) {
+            if (Hash::check($request->input('password'), $existing->password)) {
+                \Illuminate\Support\Facades\Auth::login($existing, true);
+                $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success'  => true,
+                        'message'  => 'ইতিমধ্যে আপনার একাউন্ট রয়েছে, সফলভাবে লগইন সম্পন্ন হয়েছে!',
+                        'redirect' => $targetUrl,
+                    ]);
+                }
+                return redirect()->to($targetUrl)->with('success', 'স্বাগতম! আপনি সফলভাবে লগইন করেছেন।');
+            }
+
+            $errMsg = 'এই মোবাইল নম্বর বা ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট রয়েছে। দয়া করে সঠিক পাসওয়ার্ড দিয়ে লগইন করুন।';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errMsg, 'exists' => true], 422);
+            }
+            return back()->withInput()->with('error', $errMsg);
+        }
+
+        $fallbackEmail = $email ?: ('user_' . $cleanDigits . '@user.ideaabd.com');
+
+        $user = User::create([
+            'name'       => trim($request->input('name')),
+            'phone'      => $localPhone,
+            'email'      => $fallbackEmail,
+            'password'   => Hash::make($request->input('password')),
+            'role'       => User::ROLE_BUYER ?? 'buyer',
+            'reg_type'   => 'buyer',
+            'reg_status' => 'approved',
+            'is_active'  => true,
+        ]);
+
+        \Illuminate\Support\Facades\Auth::login($user, true);
+
+        $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => 'কাস্টমার অ্যাকাউন্ট সফলভাবে তৈরি ও লগইন হয়েছে!',
+                'redirect' => $targetUrl,
+                'user'     => [
+                    'name'  => $user->name,
+                    'phone' => $user->phone,
+                    'email' => $user->email,
+                ],
+            ]);
+        }
+
+        return redirect()->to($targetUrl)->with('success', 'আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!');
+    }
 }

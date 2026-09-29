@@ -488,6 +488,32 @@
             background: #cbd5e1;
             border-radius: 4px;
         }
+        /* Dark Mode Table Enhancements */
+        body.dark-mode .adm-books-table thead th {
+            background: #1e293b !important;
+            color: #cbd5e1 !important;
+            border-bottom-color: #334155 !important;
+        }
+        body.dark-mode .adm-books-table tbody td {
+            border-bottom-color: #1e293b !important;
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .adm-books-table tbody tr:hover td {
+            background-color: #1e293b !important;
+        }
+        body.dark-mode .adm-sticky-action-col,
+        body.dark-mode thead th.adm-sticky-action-col {
+            background: #111827 !important;
+            box-shadow: -5px 0 12px -3px rgba(0, 0, 0, 0.45);
+        }
+        body.dark-mode .adm-books-table tbody tr:hover td.adm-sticky-action-col {
+            background-color: #1e293b !important;
+        }
+        body.dark-mode .adm-icon-action-btn {
+            background: #1e293b;
+            border-color: #374151;
+            color: #94a3b8;
+        }
     </style>
 
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">

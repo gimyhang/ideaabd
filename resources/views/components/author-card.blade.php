@@ -26,13 +26,13 @@
             <div class="rounded-circle overflow-hidden shadow-xs position-relative border border-2 border-white" 
                  style="width: 52px; height: 52px; min-width: 52px; aspect-ratio: 1 / 1; background: {{ $bgColor }};">
                 @if($photoUrl)
-                    <img src="{{ $photoUrl }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0"
-                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
-                    <div class="w-100 h-100 d-none d-flex align-items-center justify-content-center text-white fs-5 fw-bold position-absolute top-0 start-0" style="background: {{ $bgColor }};">
+                    <img src="{{ $photoUrl }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover position-absolute top-0 start-0 z-1"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="w-100 h-100 align-items-center justify-content-center text-white fs-5 fw-bold position-absolute top-0 start-0" style="display: none; background: {{ $bgColor }};">
                         {{ $initials }}
                     </div>
                 @else
-                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fs-5 fw-bold position-absolute top-0 start-0">
+                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fs-5 fw-bold position-absolute top-0 start-0" style="background: {{ $bgColor }};">
                         {{ $initials }}
                     </div>
                 @endif

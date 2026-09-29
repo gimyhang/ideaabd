@@ -38,14 +38,14 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         @if ($spec['key'] === 'blog')
             <button type="submit" form="contentMainForm" name="save_and_approve" value="1" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ ও পাবলিশ
+                <i class="fa-solid fa-circle-check me-1"></i> Approve & Publish
             </button>
             <button type="submit" form="contentMainForm" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-save me-1"></i> সেভ করুন
+                <i class="fa-solid fa-save me-1"></i> Save Draft
             </button>
-        @elseif (!in_array($spec['key'], ['books', 'ebooks'], true))
+        @else
             <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : 'Publish & Save' }}
+                <i class="fa-solid fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : ($spec['key'] === 'books' ? 'Publish Book' : 'Publish & Save') }}
             </button>
         @endif
         @if ($editing)
@@ -2187,69 +2187,113 @@ function calculateLiveHardcoverDiscount() {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// DYNAMIC MULTI-CONTRIBUTOR REPEATER MANAGERS (AUTHOR, TRANSLATOR, EDITOR, REWRITER)
+// DYNAMIC MULTI-CONTRIBUTOR MATRIX & REPEATER MANAGERS (AUTHOR, TRANSLATOR, EDITOR, REWRITER, COVER ARTIST)
 // ══════════════════════════════════════════════════════════════════════════════
-function addAuthorField() {
-    const container = document.getElementById('authorsRepeaterContainer');
-    if (!container) return;
+function getAuthorDirectoryOptionsHtml() {
     const authorDetails = @json($lookups['authors_details'] ?? []);
     let optionsHtml = '<option value="">— Directory —</option>';
     for (const [aId, aDet] of Object.entries(authorDetails)) {
         optionsHtml += `<option value="${aId}" data-name-bn="${aDet.name_bn || aDet.name}" data-name-en="${aDet.name_en || ''}">${aDet.name}</option>`;
     }
+    return optionsHtml;
+}
+
+function addAuthorField() {
+    const tbody = document.getElementById('authorshipCreditsTableBody');
+    const optionsHtml = getAuthorDirectoryOptionsHtml();
+
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.className = 'author-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="ps-3 align-middle">
+                <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-pen-nib me-1"></i>লেখক
+                </span>
+            </td>
+            <td class="align-middle">
+                <select name="author_ids[]" class="form-select form-select-sm author-directory-select" onchange="onAuthorSelectRowChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="align-middle">
+                <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input" 
+                       placeholder="লেখকের নাম (বাংলা)..." oninput="onAuthorNameTyped(this)">
+            </td>
+            <td class="align-middle">
+                <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
+                       placeholder="Name in English..." oninput="onAuthorNameTyped(this)">
+            </td>
+            <td class="text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0 rounded-circle" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="মুছে ফেলুন">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (typeof updateContributorSummary === 'function') updateContributorSummary();
+        tr.querySelector('.author-name-input')?.focus();
+        return;
+    }
+
+    const container = document.getElementById('authorsRepeaterContainer');
+    if (!container) return;
     const div = document.createElement('div');
     div.className = 'input-group input-group-sm author-field-row mb-1';
     div.innerHTML = `
-        <select name="author_ids[]" class="form-select form-select-sm author-directory-select" style="max-width: 125px;" onchange="onAuthorSelectRowChange(this)">
+        <select name="author_ids[]" class="form-select form-select-sm author-directory-select" style="max-width: 130px;" onchange="onAuthorSelectRowChange(this)">
             ${optionsHtml}
         </select>
         <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input" 
                placeholder="লেখক নাম (বাংলা)..." oninput="onAuthorNameTyped(this)">
         <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
                placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
-        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
             <i class="fa-solid fa-times"></i>
         </button>
     `;
     container.appendChild(div);
-}
-
-function onAuthorSelectRowChange(select) {
-    const row = select.closest('.author-field-row');
-    if (!row) return;
-    const nameInp = row.querySelector('.author-name-input');
-    const nameEnInp = row.querySelector('.author-name-en-input');
-    if (select.selectedIndex > 0) {
-        const opt = select.options[select.selectedIndex];
-        if (nameInp) {
-            nameInp.value = opt.dataset.nameBn || opt.text.trim();
-        }
-        if (nameEnInp) {
-            nameEnInp.value = opt.dataset.nameEn || '';
-        }
-    }
-    updateLiveMockupCard();
-}
-
-function onAuthorNameTyped(input) {
-    const row = input.closest('.author-field-row');
-    if (row) {
-        const select = row.querySelector('.author-directory-select');
-        if (select && select.selectedIndex > 0) {
-            const opt = select.options[select.selectedIndex];
-            const typedBn = (row.querySelector('.author-name-input')?.value || '').trim();
-            const typedEn = (row.querySelector('.author-name-en-input')?.value || '').trim();
-            const optBn = (opt.dataset.nameBn || opt.text || '').trim();
-            const optEn = (opt.dataset.nameEn || '').trim();
-            if (typedBn !== optBn && typedEn !== optEn) {
-                select.value = '';
-            }
-        }
-    }
-    updateLiveMockupCard();
+    if (typeof updateContributorSummary === 'function') updateContributorSummary();
 }
 
 function addTranslatorField() {
+    const tbody = document.getElementById('authorshipCreditsTableBody');
+    const optionsHtml = getAuthorDirectoryOptionsHtml();
+
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.className = 'translator-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="ps-3 align-middle">
+                <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-language me-1"></i>অনুবাদ
+                </span>
+            </td>
+            <td class="align-middle">
+                <select class="form-select form-select-sm author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="align-middle">
+                <input type="text" name="translator_names[]" class="form-control form-control-sm contributor-name-input" 
+                       placeholder="অনুবাদকের নাম..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="align-middle">
+                <input type="text" class="form-control form-control-sm contributor-name-en-input" 
+                       placeholder="Translator Name (EN)..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0 rounded-circle" onclick="removeRepeaterRow(this)" title="মুছে ফেলুন">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (typeof updateContributorSummary === 'function') updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+        return;
+    }
+
     const container = document.getElementById('translatorsRepeaterContainer');
     if (!container) return;
     const div = document.createElement('div');
@@ -2264,6 +2308,43 @@ function addTranslatorField() {
 }
 
 function addEditorField() {
+    const tbody = document.getElementById('authorshipCreditsTableBody');
+    const optionsHtml = getAuthorDirectoryOptionsHtml();
+
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.className = 'editor-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="ps-3 align-middle">
+                <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-user-pen me-1"></i>সম্পাদনা
+                </span>
+            </td>
+            <td class="align-middle">
+                <select class="form-select form-select-sm author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="align-middle">
+                <input type="text" name="editor_names[]" class="form-control form-control-sm contributor-name-input" 
+                       placeholder="সম্পাদকের নাম..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="align-middle">
+                <input type="text" class="form-control form-control-sm contributor-name-en-input" 
+                       placeholder="Editor Name (EN)..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0 rounded-circle" onclick="removeRepeaterRow(this)" title="মুছে ফেলুন">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (typeof updateContributorSummary === 'function') updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+        return;
+    }
+
     const container = document.getElementById('editorsRepeaterContainer');
     if (!container) return;
     const div = document.createElement('div');
@@ -2278,6 +2359,43 @@ function addEditorField() {
 }
 
 function addRewriterField() {
+    const tbody = document.getElementById('authorshipCreditsTableBody');
+    const optionsHtml = getAuthorDirectoryOptionsHtml();
+
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.className = 'rewriter-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="ps-3 align-middle">
+                <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-pen-fancy me-1"></i>রূপান্তর
+                </span>
+            </td>
+            <td class="align-middle">
+                <select class="form-select form-select-sm author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="align-middle">
+                <input type="text" name="rewriter_names[]" class="form-control form-control-sm contributor-name-input" 
+                       placeholder="পুনর্লিখনকারী / রূপান্তরকারীর নাম..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="align-middle">
+                <input type="text" class="form-control form-control-sm contributor-name-en-input" 
+                       placeholder="Adapter Name (EN)..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0 rounded-circle" onclick="removeRepeaterRow(this)" title="মুছে ফেলুন">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (typeof updateContributorSummary === 'function') updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+        return;
+    }
+
     const container = document.getElementById('rewritersRepeaterContainer');
     if (!container) return;
     const div = document.createElement('div');
@@ -2291,11 +2409,121 @@ function addRewriterField() {
     container.appendChild(div);
 }
 
+function addCoverArtistField() {
+    const tbody = document.getElementById('authorshipCreditsTableBody');
+    const optionsHtml = getAuthorDirectoryOptionsHtml();
+
+    if (tbody) {
+        const tr = document.createElement('tr');
+        tr.className = 'cover-artist-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="ps-3 align-middle">
+                <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-palette me-1"></i>প্রচ্ছদ
+                </span>
+            </td>
+            <td class="align-middle">
+                <select class="form-select form-select-sm author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="align-middle">
+                <input type="text" name="cover_artists[]" class="form-control form-control-sm contributor-name-input" 
+                       placeholder="প্রচ্ছদ শিল্পীর নাম..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="align-middle">
+                <input type="text" class="form-control form-control-sm contributor-name-en-input" 
+                       placeholder="Cover Artist (EN)..." oninput="if (typeof updateContributorSummary === 'function') updateContributorSummary();">
+            </td>
+            <td class="text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-1 border-0 rounded-circle" onclick="removeRepeaterRow(this)" title="মুছে ফেলুন">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        if (typeof updateContributorSummary === 'function') updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+        return;
+    }
+
+    const container = document.getElementById('coverArtistsRepeaterContainer');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm cover-artist-field-row mb-1';
+    div.innerHTML = `
+        <input type="text" name="cover_artists[]" class="form-control form-control-sm" placeholder="প্রচ্ছদ শিল্পীর নাম...">
+        <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)">
+            <i class="fa-solid fa-times"></i>
+        </button>
+    `;
+    container.appendChild(div);
+}
+
+function onGenericContributorSelectChange(select) {
+    const row = select.closest('tr') || select.closest('.contributor-matrix-row');
+    if (!row) return;
+    const nameInp = row.querySelector('.contributor-name-input') || row.querySelector('input[type="text"]');
+    const nameEnInp = row.querySelector('.contributor-name-en-input');
+    if (select.selectedIndex > 0) {
+        const opt = select.options[select.selectedIndex];
+        if (nameInp) {
+            nameInp.value = opt.dataset.nameBn || opt.text.trim();
+        }
+        if (nameEnInp) {
+            nameEnInp.value = opt.dataset.nameEn || '';
+        }
+    }
+    if (typeof updateContributorSummary === 'function') updateContributorSummary();
+}
+
+function onAuthorSelectRowChange(select) {
+    const row = select.closest('.author-field-row') || select.closest('tr');
+    if (!row) return;
+    const nameInp = row.querySelector('.author-name-input');
+    const nameEnInp = row.querySelector('.author-name-en-input');
+    if (select.selectedIndex > 0) {
+        const opt = select.options[select.selectedIndex];
+        if (nameInp) {
+            nameInp.value = opt.dataset.nameBn || opt.text.trim();
+        }
+        if (nameEnInp) {
+            nameEnInp.value = opt.dataset.nameEn || '';
+        }
+    }
+    if (typeof updateContributorSummary === 'function') updateContributorSummary();
+    updateLiveMockupCard();
+    if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+}
+
+function onAuthorNameTyped(input) {
+    const row = input.closest('.author-field-row') || input.closest('tr');
+    if (row) {
+        const select = row.querySelector('.author-directory-select');
+        if (select && select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            const typedBn = (row.querySelector('.author-name-input')?.value || '').trim();
+            const typedEn = (row.querySelector('.author-name-en-input')?.value || '').trim();
+            const optBn = (opt.dataset.nameBn || opt.text || '').trim();
+            const optEn = (opt.dataset.nameEn || '').trim();
+            if (typedBn !== optBn && typedEn !== optEn) {
+                select.value = '';
+            }
+        }
+    }
+    if (typeof updateContributorSummary === 'function') updateContributorSummary();
+    updateLiveMockupCard();
+    if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+}
+
 function removeRepeaterRow(btn) {
-    const row = btn.closest('.input-group');
+    const row = btn.closest('tr') || btn.closest('.input-group') || btn.closest('.author-field-row');
     if (row) {
         row.remove();
     }
+    if (typeof updateContributorSummary === 'function') updateContributorSummary();
+    updateLiveMockupCard();
+    if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
 }
 
 // Sync Book Height & Width cm to combined size
@@ -2426,6 +2654,87 @@ function onPurchaseDiscountPercentChange() { onPaperbackPurchaseDiscountChange()
 function onCostPriceChange() { onPaperbackCostChange(); }
 function onSoldPercentChange() { onPaperbackSoldPercentChange(); }
 function updateStandardCalculations() { updatePaperbackCalculations(); }
+
+// 2. HARDCOVER PRICING HANDLERS
+function onHardcoverPriceChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price');
+
+    if (price > 0 && pDiscPct > 0 && pDiscPct <= 100) {
+        const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    updateHardcoverCalculations();
+    updateLiveMockupCard();
+}
+
+function onHardcoverPurchaseDiscountChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+    const costInput = document.getElementById('f-hardcover_cost_price');
+
+    if (price > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
+        const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+        if (costInput) costInput.value = costVal;
+    }
+    updateHardcoverCalculations();
+}
+
+function onHardcoverCostChange() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+    const pDiscInput = document.getElementById('f-hardcover_purchase_discount_percent');
+
+    if (price > 0 && cost > 0 && cost < price) {
+        const pct = Math.round(((price - cost) / price) * 100);
+        if (pDiscInput) pDiscInput.value = pct;
+    }
+    updateHardcoverCalculations();
+}
+
+function onHardcoverSoldPercentChange() {
+    updateHardcoverCalculations();
+    updateLiveMockupCard();
+}
+
+function updateHardcoverCalculations() {
+    const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+    const soldPct = parseFloat(document.getElementById('f-hardcover_sold_percent')?.value) || 0;
+    const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+
+    const offerEl = document.getElementById('liveHardcoverOfferPrice');
+    const profitEl = document.getElementById('liveHardcoverProfit');
+    const discHidden = document.getElementById('f-hardcover_discount_price');
+
+    let offerPrice = price;
+    if (price > 0 && soldPct > 0 && soldPct <= 100) {
+        offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
+    }
+    if (discHidden) {
+        discHidden.value = (offerPrice < price) ? offerPrice : '';
+    }
+
+    if (offerEl) {
+        offerEl.textContent = '৳' + offerPrice.toFixed(2);
+    }
+
+    if (profitEl) {
+        if (offerPrice > 0 && cost > 0) {
+            const profit = offerPrice - cost;
+            const margin = Math.round((profit / offerPrice) * 1000) / 10;
+            if (profit >= 0) {
+                profitEl.className = 'text-success fw-bold';
+                profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
+            } else {
+                profitEl.className = 'text-danger fw-bold';
+                profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
+            }
+        } else {
+            profitEl.textContent = '৳0.00 (0%)';
+        }
+    }
+}
 
 // Toggle format for look inside
 function toggleLookInsideFormat(type) {
@@ -3413,18 +3722,49 @@ function handleQuickAuthorSubmit(e) {
     .then(data => {
         if (data.success && data.item) {
             const displayName = data.item.display_name || data.item.name;
+            const nameBn = data.item.name || '';
+            const nameEn = data.item.name_en || '';
 
-            // Update all author dropdowns in books form
-            document.querySelectorAll('select[name="author_ids[]"]').forEach(sel => {
-                const opt = new Option(displayName, data.item.id, true, true);
+            // Update all author dropdowns in books form without overwriting existing selections
+            const allAuthorSelects = document.querySelectorAll('select[name="author_ids[]"]');
+            allAuthorSelects.forEach(sel => {
+                const opt = new Option(displayName, data.item.id, false, false);
+                opt.dataset.nameBn = nameBn;
+                opt.dataset.nameEn = nameEn;
                 sel.add(opt);
-                sel.value = data.item.id;
-                sel.dispatchEvent(new Event('change'));
             });
+
+            // Target the first empty author row, or create a new row if all are filled
+            let targetRow = null;
+            for (const sel of allAuthorSelects) {
+                const row = sel.closest('.author-field-row') || sel.closest('tr');
+                const bnInp = row ? row.querySelector('.author-name-input') : null;
+                if (!sel.value && (!bnInp || !bnInp.value.trim())) {
+                    targetRow = row;
+                    break;
+                }
+            }
+
+            if (!targetRow && typeof addAuthorField === 'function') {
+                addAuthorField();
+                const updatedSelects = document.querySelectorAll('select[name="author_ids[]"]');
+                targetRow = updatedSelects[updatedSelects.length - 1]?.closest('.author-field-row') || updatedSelects[updatedSelects.length - 1]?.closest('tr');
+            }
+
+            if (targetRow) {
+                const targetSelect = targetRow.querySelector('.author-directory-select');
+                const targetBn = targetRow.querySelector('.author-name-input');
+                const targetEn = targetRow.querySelector('.author-name-en-input');
+                if (targetSelect) targetSelect.value = data.item.id;
+                if (targetBn) targetBn.value = nameBn;
+                if (targetEn) targetEn.value = nameEn;
+            }
 
             const blogAuthSelect = document.getElementById('f-author_id');
             if (blogAuthSelect) {
                 const opt = new Option(displayName, data.item.id, true, true);
+                opt.dataset.nameBn = nameBn;
+                opt.dataset.nameEn = nameEn;
                 blogAuthSelect.add(opt);
                 blogAuthSelect.value = data.item.id;
             }
@@ -3432,6 +3772,8 @@ function handleQuickAuthorSubmit(e) {
             const mainAuthSelect = document.getElementById('f-author_link_id');
             if (mainAuthSelect) {
                 const opt = new Option(displayName, data.item.id, true, true);
+                opt.dataset.nameBn = nameBn;
+                opt.dataset.nameEn = nameEn;
                 mainAuthSelect.add(opt);
                 mainAuthSelect.value = data.item.id;
             }
@@ -3444,6 +3786,7 @@ function handleQuickAuthorSubmit(e) {
             bioInput.value = '';
 
             updateLiveMockupCard();
+            if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
             alert("লেখক '" + data.item.name + "' সফলভাবে যুক্ত ও সিলেক্ট করা হয়েছে!");
         } else {
             alertBox.innerHTML = `<div class="alert alert-danger p-2 small mb-2">${data.message || 'An error occurred'}</div>`;

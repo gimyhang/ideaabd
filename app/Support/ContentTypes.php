@@ -64,8 +64,8 @@ final class ContentTypes
                                                   'options' => ['Bangladesh' => 'Bangladesh (বাংলাদেশ)', 'India' => 'India (ভারত)', 'Saudi Arabia' => 'Saudi Arabia (সৌদি আরব)', 'Egypt' => 'Egypt (মিশর)', 'United Kingdom' => 'United Kingdom (যুক্তরাজ্য)', 'United States' => 'United States (যুক্তরাষ্ট্র)', 'Other' => 'Other (অন্যান্য)']],
 
                     // --- 2. Binding, Pricing & Discounts ---
-                    'cover_type'              => ['label' => 'Binding Format',    'type' => 'select',           'default' => 'paperback',  'rules' => 'nullable|in:paperback,hardcover,board_book,spiral,both', 'col' => 12,
-                                                  'options' => ['paperback' => 'Paperback (পেপারব্যাক)', 'hardcover' => 'Hardcover (হার্ডকভার)', 'board_book' => 'Board Book (বোর্ড বুক)', 'spiral' => 'Spiral Bound (স্পাইরাল বাঁধাই)', 'both' => 'Both (Hardcover & Paperback)']],
+                    'cover_type'              => ['label' => 'Binding Format',    'type' => 'select',           'default' => 'hardcover',  'rules' => 'nullable|in:paperback,hardcover,board_book,spiral,both', 'col' => 12,
+                                                  'options' => ['hardcover' => 'Hardcover (হার্ডকভার)', 'paperback' => 'Paperback (পেপারব্যাক)', 'board_book' => 'Board Book (বোর্ড বুক)', 'spiral' => 'Spiral Bound (স্পাইরাল বাঁধাই)', 'both' => 'Both (Hardcover & Paperback)']],
                     'hardcover_price'         => ['label' => 'Hardcover Regular Price (৳)',   'type' => 'number', 'step' => '0.01',          'rules' => 'nullable|numeric|min:0|max:9999999', 'col' => 4],
                     'hardcover_discount_price'=> ['label' => 'Hardcover Sale Price (৳)', 'type' => 'number', 'step' => '0.01',       'rules' => 'nullable|numeric|min:0|max:9999999', 'col' => 4],
                     'price'                   => ['label' => 'Paperback Regular Price (৳)', 'type' => 'number', 'default' => 0, 'step' => '0.01', 'rules' => 'nullable|numeric|min:0|max:9999999', 'col' => 4],
@@ -76,7 +76,7 @@ final class ContentTypes
                     'published_at'            => ['label' => 'Publication Date / Year', 'type' => 'date',            'rules' => 'nullable|date',                                              'col' => 4],
                     'edition'                 => ['label' => 'Edition / Print',    'type' => 'text',             'placeholder' => 'e.g. 1st Edition 2026 / Revised', 'rules' => 'nullable|string|max:100', 'col' => 4],
                     'stock_status'            => ['label' => 'Order & Stock Type','type' => 'select',           'default' => 'in_stock',   'rules' => 'nullable|in:in_stock,pre_order,out_of_stock,upcoming,backorder', 'col' => 4,
-                                                  'options' => ['in_stock' => 'Buy Now / In Stock (সরাসরি ক্রয়)', 'pre_order' => 'Pre-Order (প্রি-অর্ডার)', 'out_of_stock' => 'Out of Stock (স্টক শেষ)', 'upcoming' => 'Upcoming (শীঘ্রই আসছে)', 'backorder' => 'Backorder']],
+                                                  'options' => ['in_stock' => 'Buy Now', 'pre_order' => 'Pre-Order', 'out_of_stock' => 'Out of Stock', 'upcoming' => 'Upcoming', 'backorder' => 'Backorder']],
                     'pre_order_release_date'  => ['label' => 'Pre-Order Estimated Delivery Date', 'type' => 'date', 'rules' => 'nullable|date', 'col' => 6],
                     'pre_order_note'          => ['label' => 'Pre-Order Special Note / Gift Offer', 'type' => 'textarea', 'placeholder' => 'e.g. Includes author signature and exclusive bookmark...', 'rules' => 'nullable|string|max:1000', 'col' => 6],
                     'stock_quantity'          => ['label' => 'Stock Quantity (Units)', 'type' => 'number',         'default' => 10,           'rules' => 'nullable|integer|min:0|max:1000000',    'col' => 4],

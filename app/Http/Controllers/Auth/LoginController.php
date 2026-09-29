@@ -533,12 +533,16 @@ class LoginController extends Controller
                 Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                $redirectUrl = route('home');
+                $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: session()->pull('url.intended'));
+                if (!$targetUrl) {
+                    $targetUrl = $matchedUser->isAdmin() ? route('admin.dashboard') : route('home');
+                }
+                $redirectUrl = $targetUrl;
 
                 if ($isAjax) {
                     return response()->json([
                         'success'  => true,
-                        'message'  => 'লগইন সফল হয়েছে! হোমপেজে প্রবেশ করানো হচ্ছে...',
+                        'message'  => 'লগইন সফল হয়েছে!',
                         'redirect' => $redirectUrl,
                     ]);
                 }
@@ -547,7 +551,7 @@ class LoginController extends Controller
                     return redirect()->route('my-account')->with('warning', 'আপনি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। অনুগ্রহ করে প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
                 }
 
-                return redirect()->route('home');
+                return redirect()->to($redirectUrl);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;

@@ -29,6 +29,47 @@
             $photoUrl = asset($photoPath);
         }
     }
+
+    $fSettings = $campaign->form_settings ?? [];
+    $brandName = $fSettings['brand_name'] ?? 'আইডিয়া পাঠাগার';
+    $subTitle = $fSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম';
+    $sessionText = $fSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    $brandTag = $fSettings['brand_tag'] ?? "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com";
+    $bannerTitle = $fSettings['banner_title'] ?? 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
+    $grantSession = $fSettings['grant_session'] ?? '২০২৬ অনুদান কর্মসূচি';
+    $officerName = $fSettings['officer_name'] ?? 'সাকিল মাসুদ';
+    $officerDesignation = $fSettings['officer_designation'] ?? 'তত্বাবধায়ক ও প্রতিষ্ঠাতা';
+    $officerOrg = $fSettings['officer_org'] ?? '';
+    $declarationText = $fSettings['declaration_text'] ?? 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।';
+    $themeColor = $fSettings['theme_color'] ?? '#047857';
+    $logoSize = intval($fSettings['logo_size'] ?? 24);
+    $customCss = $fSettings['custom_css'] ?? '';
+
+    $logoUrl = null;
+    if (!empty($fSettings['logo_url'])) {
+        $customLogo = $fSettings['logo_url'];
+        if (str_starts_with($customLogo, 'http') || str_starts_with($customLogo, 'data:image')) {
+            $logoUrl = $customLogo;
+        } elseif (file_exists(public_path($customLogo))) {
+            $logoUrl = $isPdf ? public_path($customLogo) : asset($customLogo);
+        } else {
+            $logoUrl = $customLogo;
+        }
+    } else {
+        $logoDiskPath = public_path('images/logo.png');
+        if (file_exists($logoDiskPath)) {
+            if ($isPdf) {
+                $logoData = @file_get_contents($logoDiskPath);
+                $logoUrl = $logoData ? 'data:image/png;base64,' . base64_encode($logoData) : asset('images/logo.png');
+            } else {
+                $logoUrl = asset('images/logo.png');
+            }
+        } elseif (file_exists(public_path('images/logo.svg'))) {
+            $logoUrl = asset('images/logo.svg');
+        } else {
+            $logoUrl = \App\Support\SiteSetting::logoUrl();
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="bn">
@@ -150,14 +191,31 @@
             width: 32%;
             border: 1.5px solid #000;
             text-align: center;
-            padding: 8px 6px;
+            padding: 6px 6px;
             height: 140px;
+        }
+        .header-box-left .inst-brand-row {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .header-box-left .brand-logo-img {
+            height: 22px;
+            width: auto;
+            max-width: 32px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
         }
         .header-box-left .inst-title {
             font-size: 15px;
             font-weight: bold;
             line-height: 1.2;
             color: #047857;
+            display: inline-block;
+            vertical-align: middle;
         }
         .header-box-left .sub-title {
             font-size: 11px;
@@ -332,6 +390,9 @@
             font-size: 9.5px;
             color: #475569;
         }
+        @if(!empty($customCss))
+            {!! $customCss !!}
+        @endif
     </style>
 </head>
 <body>
@@ -363,10 +424,15 @@
     <table class="top-header-table">
         <tr>
             <td class="header-box-left">
-                <div class="inst-title">আইডিয়া পাঠাগার</div>
-                <div class="sub-title">বই অনুদান আবেদন ফরম</div>
-                <div class="session-text">আইডিয়া প্রকাশন ও বুকস অব আইডিয়া</div>
-                <div class="brand-tag">প্রধান কার্যালয়: ঢাকা, বাংলাদেশ<br>www.ideaabd.com</div>
+                <div class="inst-brand-row">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="Logo" class="brand-logo-img" style="height: {{ $logoSize }}px;">
+                    @endif
+                    <span class="inst-title" style="color: {{ $themeColor }};">{{ $brandName }}</span>
+                </div>
+                <div class="sub-title">{{ $subTitle }}</div>
+                <div class="session-text">{{ $sessionText }}</div>
+                <div class="brand-tag">{!! nl2br(e($brandTag)) !!}</div>
             </td>
 
             <td class="header-box-mid">
@@ -421,8 +487,8 @@
     </table>
 
     {{-- ব্যানার শিরোনাম --}}
-    <div class="form-banner-strip">
-        বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম
+    <div class="form-banner-strip" style="background: {{ $themeColor }};">
+        {{ $bannerTitle }}
     </div>
 
     {{-- ১. পাঠাগার ও প্রতিষ্ঠানের বিবরণ --}}
@@ -430,7 +496,7 @@
     <table class="form-grid-table">
         <tr>
             <td class="th-label">পাঠাগারের নাম:</td>
-            <td class="td-val" colspan="3" style="font-weight: bold; font-size: 12px; color: #047857;">
+            <td class="td-val" colspan="3" style="font-weight: bold; font-size: 12px; color: {{ $themeColor }};">
                 {{ $libName }}
             </td>
         </tr>
@@ -450,7 +516,7 @@
             <td class="th-label">বর্তমানে মোট বই সংখ্যা:</td>
             <td class="td-val">{{ $formData['current_book_count'] ?? '০' }} টি</td>
             <td class="th-label">কর্মসূচি সেশন:</td>
-            <td class="td-val">২০২৬ বাৎসরিক অনুদান</td>
+            <td class="td-val">{{ $grantSession }}</td>
         </tr>
     </table>
 
@@ -589,7 +655,7 @@
 
     {{-- নীতিমালা ও ঘোষণা --}}
     <div style="font-size: 10px; color: #334155; margin-top: 10px; padding: 5px 8px; background: #f8fafc; border: 1px solid #cbd5e1; text-align: center; border-radius: 4px;">
-        <strong>ঘোষণা:</strong> আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।
+        <strong>ঘোষণা:</strong> {{ $declarationText }}
     </div>
 
     {{-- স্বাক্ষর অংশ --}}
@@ -603,8 +669,8 @@
             </td>
             <td>
                 <div class="sign-line">
-                    যাচাই ও অনুমোদনকারী কর্মকর্তা<br>
-                    <span class="sign-sub">আইডিয়া প্রকাশন ও বুকস অব আইডিয়া</span>
+                    {{ $officerName }}<br>
+                    <span class="sign-sub">{{ $officerDesignation }}{{ $officerOrg ? ' • ' . $officerOrg : '' }}</span>
                 </div>
             </td>
         </tr>

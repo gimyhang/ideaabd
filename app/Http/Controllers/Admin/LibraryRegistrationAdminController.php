@@ -116,23 +116,67 @@ class LibraryRegistrationAdminController extends Controller
         $totalLibraries = (clone $allLibrariesQuery)->count();
         $approvedLibraries = (clone $allLibrariesQuery)->whereIn('status', ['confirmed', 'selected', 'approved'])->count();
         $pendingReview = (clone $allLibrariesQuery)->where('status', 'pending')->count();
+        $rejectedCount = (clone $allLibrariesQuery)->where('status', 'rejected')->count();
 
-        // Calculate total books allocated & acknowledged
-        $allData = (clone $allLibrariesQuery)->select('form_data')->get();
+        // Calculate total books allocated & acknowledged, readers, and existing books
+        $allRecords = (clone $allLibrariesQuery)->select('id', 'district', 'thana', 'status', 'form_data')->get();
         $totalBooksAllocated = 0;
         $totalBooksReceived = 0;
         $acknowledgedCount = 0;
+        $totalReadersCount = 0;
+        $totalExistingBooks = 0;
+        $divisionStats = [
+            'ঢাকা' => 0, 'রংপুর' => 0, 'রাজশাহী' => 0, 'চট্টগ্রাম' => 0,
+            'খুলনা' => 0, 'বরিশাল' => 0, 'সিলেট' => 0, 'ময়মনসিংহ' => 0
+        ];
+        $districtSet = [];
 
-        foreach ($allData as $row) {
+        foreach ($allRecords as $row) {
             $fd = $row->form_data ?? [];
             $alloc = intval($fd['books_allocated'] ?? 0);
             $recv = intval($fd['received_books_count'] ?? 0);
+            $readers = intval($fd['reader_count'] ?? 0);
+            $curBooks = intval($fd['current_book_count'] ?? 0);
+
             $totalBooksAllocated += $alloc;
             $totalBooksReceived += $recv;
+            $totalReadersCount += $readers;
+            $totalExistingBooks += $curBooks;
+
             if (!empty($fd['received_date']) || !empty($fd['is_acknowledged']) || ($fd['acknowledgment_status'] ?? '') === 'acknowledged') {
                 $acknowledgedCount++;
             }
+
+            if (!empty($row->district)) {
+                $districtSet[trim($row->district)] = true;
+            }
+
+            $div = $fd['division'] ?? '';
+            if ($div && isset($divisionStats[$div])) {
+                $divisionStats[$div]++;
+            }
         }
+
+        $uniqueDistricts = count($districtSet);
+
+        // Form & Print Customizer Settings
+        $formSettings = array_merge([
+            'logo_url'            => asset('images/logo.png'),
+            'logo_size'           => 24,
+            'brand_name'          => 'আইডিয়া পাঠাগার',
+            'sub_title'           => 'বই অনুদান আবেদন ফরম',
+            'session_text'        => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া',
+            'brand_tag'           => "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com",
+            'banner_title'        => 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম',
+            'grant_session'       => '২০২৬ অনুদান কর্মসূচি',
+            'officer_name'        => 'সাকিল মাসুদ',
+            'officer_designation' => 'তত্বাবধায়ক ও প্রতিষ্ঠাতা',
+            'officer_org'         => 'আইডিয়া পাঠাগার ও প্রকাশন',
+            'declaration_text'    => 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।',
+            'theme_color'         => '#047857',
+            'custom_css'          => '',
+            'custom_js'           => '',
+        ], $campaign->form_settings ?? []);
 
         return view('admin.libraries.index', compact(
             'libraries',
@@ -140,11 +184,74 @@ class LibraryRegistrationAdminController extends Controller
             'totalLibraries',
             'approvedLibraries',
             'pendingReview',
+            'rejectedCount',
             'totalBooksAllocated',
             'totalBooksReceived',
             'acknowledgedCount',
+            'totalReadersCount',
+            'totalExistingBooks',
+            'uniqueDistricts',
+            'divisionStats',
+            'formSettings',
             'perPage'
         ));
+    }
+
+    /**
+     * Update Form & Print Slip Customizer Settings (Logo, Texts, Signatures, CSS, JS, PHP).
+     */
+    public function updateSettings(Request $request)
+    {
+        $campaign = EventCampaign::where('slug', 'pathagar')
+            ->orWhere('type', 'library')
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'logo_url'            => 'nullable|string|max:500',
+            'logo_size'           => 'nullable|integer|min:10|max:120',
+            'brand_name'          => 'nullable|string|max:200',
+            'sub_title'           => 'nullable|string|max:200',
+            'session_text'        => 'nullable|string|max:200',
+            'brand_tag'           => 'nullable|string|max:500',
+            'banner_title'        => 'nullable|string|max:300',
+            'grant_session'       => 'nullable|string|max:200',
+            'officer_name'        => 'nullable|string|max:200',
+            'officer_designation' => 'nullable|string|max:200',
+            'officer_org'         => 'nullable|string|max:200',
+            'declaration_text'    => 'nullable|string|max:1000',
+            'theme_color'         => 'nullable|string|max:30',
+            'custom_css'          => 'nullable|string',
+            'custom_js'           => 'nullable|string',
+            'logo_file'           => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:4096',
+        ]);
+
+        if ($request->hasFile('logo_file')) {
+            $file = $request->file('logo_file');
+            $path = $file->store('campaigns/logos', 'public');
+            $validated['logo_url'] = asset('storage/' . $path);
+        }
+
+        unset($validated['logo_file']);
+
+        $currentSettings = $campaign->form_settings ?? [];
+        $updatedSettings = array_merge($currentSettings, array_filter($validated, fn($v) => !is_null($v)));
+
+        $campaign->update([
+            'form_settings' => $updatedSettings,
+            'theme_color'   => $validated['theme_color'] ?? $campaign->theme_color,
+        ]);
+
+        $msg = 'পাঠাগার ফরম ও প্রিন্ট সেটিংস সফলভাবে সেভ করা হয়েছে।';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => $msg,
+                'settings' => $updatedSettings,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**

@@ -1440,8 +1440,8 @@
                                         @endif
                                     </div>
                                     <div class="col-6 col-md-3 text-md-end">
-                                        <a href="{{ route('admin.libraries.print', $reg->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                                            <i class="fa-solid fa-print me-1"></i> স্লিপ প্রিন্ট
+                                        <a href="{{ route('event.registration.print', $reg->registration_number) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                                            <i class="fa-solid fa-print me-1"></i> স্লিপ ডাউনলোড / প্রিন্ট
                                         </a>
                                     </div>
                                 </div>

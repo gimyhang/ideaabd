@@ -54,7 +54,9 @@
                                         <div class="rounded-circle overflow-hidden flex-shrink-0 d-flex align-items-center justify-content-center text-white fw-bold shadow-2xs" 
                                              style="width: 26px; height: 26px; font-size: 10px; background: {{ $sa->avatar_bg_color ?? 'linear-gradient(135deg, #0284c7, #0369a1)' }};">
                                             @if(!empty($sa->avatar_url) || !empty($sa->photo))
-                                                <img src="{{ $sa->avatar_url ?? $sa->photo }}" alt="{{ $sa->name }}" class="w-100 h-100 object-fit-cover">
+                                                <img src="{{ $sa->avatar_url ?? $sa->photo }}" alt="{{ $sa->name }}" class="w-100 h-100 object-fit-cover"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                <span class="w-100 h-100 align-items-center justify-content-center text-white fw-bold" style="display: none;">{{ mb_substr($sa->name, 0, 1) }}</span>
                                             @else
                                                 {{ mb_substr($sa->name, 0, 1) }}
                                             @endif
@@ -689,7 +691,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="rounded-circle overflow-hidden shadow-xs mb-2 position-relative border" 
                                  style="width: 72px; height: 72px; aspect-ratio: 1/1; background: {{ $author->avatar_bg_color ?? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }};">
                                 @if($aImg)
-                                    <img src="{{ $aImg }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover">
+                                    <img src="{{ $aImg }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-100 h-100 align-items-center justify-content-center text-white fw-bold fs-4" style="display: none; background: {{ $author->avatar_bg_color ?? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' }};">
+                                        {{ $author->initials ?? mb_substr($author->name, 0, 1) }}
+                                    </div>
                                 @else
                                     <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white fw-bold fs-4">
                                         {{ $author->initials ?? mb_substr($author->name, 0, 1) }}

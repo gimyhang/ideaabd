@@ -285,6 +285,7 @@ Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEma
 Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->middleware('throttle:10,1')->name('register.verify-email-otp');
 Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->middleware('throttle:5,1')->name('register.send-otp');
 Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.verify-otp');
+Route::post('/register/quick-customer', [RegistrationController::class, 'quickCustomerRegister'])->name('register.quick-customer');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
 
 // --- User Account & Portal (Buyer / Customer) --------------------------------
@@ -626,6 +627,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Library & Book Grant Management (Admin Dedicated Dashboard)
     Route::prefix('libraries')->name('libraries.')->controller(\App\Http\Controllers\Admin\LibraryRegistrationAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::post('/settings', 'updateSettings')->name('settings');
         Route::get('/export', 'exportCsv')->name('export');
         Route::post('/{registration}/dispatch', 'updateDispatch')->name('dispatch');
         Route::post('/{registration}/acknowledgment', 'updateAcknowledgment')->name('acknowledgment');

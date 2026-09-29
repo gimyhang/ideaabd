@@ -1,723 +1,1466 @@
 {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
-{{-- STRUCTURED BOOK ENTRY & EDIT FORM (CLEAN, CONCISE ENGLISH)                --}}
+{{-- ULTRA-MODERN DYNAMIC BOOK SPECIFICATION & CATALOG FORM                     --}}
 {{-- ═══════════════════════════════════════════════════════════════════════════ --}}
 
-{{-- LEFT COLUMN: MAIN FORM GRID & SPECIFICATIONS --}}
+{{-- STYLES: DEDICATED MODERN AESTHETICS & RESPONSIVE BEHAVIOR --}}
+<style>
+/* Modern Document Sheet */
+.a4-doc-sheet {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+.a4-doc-sheet:hover {
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.07);
+}
+.a4-doc-header {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.a4-doc-section {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 20px;
+    scroll-margin-top: 75px;
+}
+.a4-doc-section:last-child {
+    border-bottom: none;
+}
+.a4-doc-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #1e293b;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.a4-field-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    letter-spacing: 0.2px;
+}
+
+/* Quick Jump Horizontal Navigation Bar */
+.a4-section-nav {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.a4-section-nav::-webkit-scrollbar {
+    height: 4px;
+}
+.a4-section-nav::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.a4-nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    border-radius: 20px;
+    text-decoration: none;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+.a4-nav-tab:hover, .a4-nav-tab.active {
+    background: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Contributor Studio */
+.contributor-toolbar {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+/* Sharp, Modern Contributor Matrix Table */
+.contributor-matrix-table {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+}
+.contributor-matrix-table table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+.contributor-matrix-table thead th {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.5px;
+    padding: 11px 14px;
+    border-bottom: 2px solid #cbd5e1;
+    border-right: 1px solid #e2e8f0;
+}
+.contributor-matrix-table thead th:last-child {
+    border-right: none;
+}
+.contributor-matrix-row {
+    transition: background-color 0.15s ease;
+}
+.contributor-matrix-row:hover {
+    background-color: #f8fafc;
+}
+.contributor-matrix-row td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.contributor-matrix-row td:last-child {
+    border-right: none;
+}
+.contributor-matrix-row:last-child td {
+    border-bottom: none;
+}
+
+/* Spacious, High-Comfort Inputs */
+.contributor-input {
+    height: 40px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 12px !important;
+    background-color: #ffffff;
+    transition: all 0.15s ease;
+}
+.contributor-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    outline: none;
+}
+.contributor-select {
+    height: 40px !important;
+    border-radius: 8px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    padding: 8px 12px !important;
+    background-color: #f8fafc;
+    transition: all 0.15s ease;
+}
+.contributor-select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    background-color: #ffffff;
+    outline: none;
+}
+
+.role-badge-author { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; font-weight: 700; }
+.role-badge-translator { background: #ecfeff; color: #0e7490; border: 1.5px solid #a5f3fc; font-weight: 700; }
+.role-badge-editor { background: #f5f3ff; color: #6d28d9; border: 1.5px solid #ddd6fe; font-weight: 700; }
+.role-badge-rewriter { background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a; font-weight: 700; }
+.role-badge-cover { background: #fdf2f8; color: #be185d; border: 1.5px solid #fbcfe8; font-weight: 700; }
+
+.contributor-byline-strip {
+    background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+/* Pricing Matrix Engine */
+.a4-pricing-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+}
+.pricing-metric-pill {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+.quick-disc-btn {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* 3D Realistic Book Mockup */
+.book-mockup-3d-wrap {
+    perspective: 800px;
+}
+.book-mockup-3d {
+    width: 142px;
+    height: 213px;
+    background: #e2e8f0;
+    border-radius: 3px 6px 6px 3px;
+    box-shadow: -4px 6px 16px rgba(0, 0, 0, 0.22), -1px 2px 4px rgba(0,0,0,0.12);
+    position: relative;
+    border-left: 6px solid #1e293b;
+    transform: rotateY(-7deg) rotateX(3deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+.book-mockup-3d:hover {
+    transform: rotateY(0deg) rotateX(0deg) scale(1.03);
+    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.25);
+}
+.book-mockup-3d::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 12%, rgba(0,0,0,0.06) 90%, rgba(0,0,0,0.18) 100%);
+    pointer-events: none;
+}
+
+/* Word Counter */
+.word-counter-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+}
+.word-counter-badge.safe { background: #dcfce7; color: #15803d; border-color: #86efac; }
+.word-counter-badge.warning { background: #fef9c3; color: #a16207; border-color: #fde047; }
+.word-counter-badge.danger { background: #fee2e2; color: #b91c1c; border-color: #fca5a5; }
+.word-counter-progress {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.word-counter-progress__bar {
+    height: 100%;
+    width: 0%;
+    background: #22c55e;
+    transition: width 0.2s ease, background-color 0.2s ease;
+}
+
+/* Dropzone */
+.adm-dropzone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.adm-dropzone:hover, .adm-dropzone.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+/* Mobile Sticky Action Bar */
+.adm-mobile-sticky-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    z-index: 1040;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive Multi-Device & Mobile Cards */
+@media (max-width: 767.98px) {
+    .a4-doc-sheet {
+        border-radius: 12px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+    .a4-doc-header {
+        padding: 12px 14px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .a4-doc-section {
+        padding: 14px;
+    }
+    .a4-section-nav {
+        padding: 6px 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .a4-nav-tab {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+    .contributor-matrix-table {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+    .contributor-matrix-table .table-responsive {
+        overflow: visible !important;
+    }
+    #authorshipCreditsTable thead {
+        display: none !important;
+    }
+    #authorshipCreditsTable, 
+    #authorshipCreditsTable tbody, 
+    #authorshipCreditsTable tr.contributor-matrix-row {
+        display: block !important;
+        width: 100% !important;
+    }
+    #authorshipCreditsTable tr.contributor-matrix-row {
+        background: #ffffff !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 12px !important;
+        padding: 14px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+        position: relative !important;
+    }
+    #authorshipCreditsTable tr.contributor-matrix-row td {
+        display: block !important;
+        width: 100% !important;
+        padding: 5px 0 !important;
+        border: none !important;
+    }
+    #authorshipCreditsTable tr.contributor-matrix-row td.contributor-col-role {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        margin-bottom: 6px !important;
+        padding-right: 44px !important;
+    }
+    #authorshipCreditsTable tr.contributor-matrix-row td.contributor-col-action {
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        padding: 0 !important;
+    }
+    .contributor-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .contributor-toolbar .contributor-role-btns {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .contributor-toolbar .contributor-role-btns button {
+        flex: 1 1 calc(50% - 6px);
+        text-align: center;
+        justify-content: center;
+    }
+    .contributor-input, .contributor-select {
+        height: 42px !important;
+        font-size: 13.5px !important;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+    .a4-doc-section {
+        padding: 18px;
+    }
+    .contributor-matrix-table thead th {
+        font-size: 11px;
+        padding: 9px 10px;
+    }
+    .contributor-matrix-row td {
+        padding: 8px 10px;
+    }
+}
+
+/* Dark Mode Support */
+body.dark-mode .a4-doc-sheet {
+    background: #111827;
+    border-color: #1f2937;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+body.dark-mode .a4-doc-header {
+    background: #1a2234;
+    border-bottom-color: #1f2937;
+}
+body.dark-mode .a4-section-nav {
+    background: #111827;
+    border-bottom-color: #1f2937;
+}
+body.dark-mode .a4-nav-tab {
+    background: #1f2937;
+    border-color: #374151;
+    color: #94a3b8;
+}
+body.dark-mode .a4-nav-tab:hover, body.dark-mode .a4-nav-tab.active {
+    background: #1e3a8a;
+    color: #93c5fd;
+    border-color: #3b82f6;
+}
+body.dark-mode .a4-doc-section {
+    border-bottom-color: #1f2937;
+}
+body.dark-mode .a4-doc-section-title {
+    color: #cbd5e1;
+}
+body.dark-mode .a4-field-label {
+    color: #cbd5e1;
+}
+body.dark-mode .contributor-toolbar {
+    background: #1a2234;
+    border-color: #1f2937;
+}
+body.dark-mode .contributor-matrix-table {
+    background: #111827;
+    border-color: #374151;
+}
+body.dark-mode .contributor-matrix-table thead th {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-bottom-color: #374151;
+    border-right-color: #374151;
+}
+body.dark-mode .contributor-matrix-row td {
+    border-bottom-color: #1f2937;
+    border-right-color: #1f2937;
+}
+body.dark-mode .contributor-matrix-row:hover {
+    background-color: #1a2234;
+}
+body.dark-mode .contributor-input {
+    background-color: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f8fafc !important;
+}
+body.dark-mode .contributor-input:focus {
+    border-color: #3b82f6 !important;
+    background-color: #111827 !important;
+}
+body.dark-mode .contributor-select {
+    background-color: #1e293b !important;
+    border-color: #374151 !important;
+    color: #f8fafc !important;
+}
+body.dark-mode .contributor-select:focus {
+    border-color: #3b82f6 !important;
+    background-color: #111827 !important;
+}
+body.dark-mode .contributor-byline-strip {
+    background: #1a2234;
+    border-color: #374151;
+}
+body.dark-mode .a4-pricing-card {
+    background: #1a2234;
+    border-color: #1f2937;
+}
+body.dark-mode .pricing-metric-pill {
+    background: #111827;
+    border-color: #1f2937;
+}
+body.dark-mode .adm-dropzone {
+    background: #1a2234;
+    border-color: #374151;
+}
+body.dark-mode .adm-mobile-sticky-bar {
+    background: rgba(17, 24, 39, 0.94);
+    border-top-color: #1f2937;
+}
+</style>
+
+{{-- LEFT COLUMN: A4 SHEET FORM GRID & SPECIFICATIONS --}}
 <div class="col-12 col-lg-8">
-    <div class="adm-card p-3 p-md-4 mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h2 class="h6 fw-bold mb-0 text-dark">
-                <i class="fa-solid fa-book me-1.5 text-primary"></i> Book Specifications
-            </h2>
-            <span class="badge bg-light text-muted border small">* Required fields</span>
+    <div class="a4-doc-sheet mb-4">
+        {{-- A4 Sheet Header --}}
+        <div class="a4-doc-header">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6">
+                    <i class="fa-solid fa-file-invoice"></i>
+                </span>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Book Specification</h6>
+                </div>
+            </div>
         </div>
 
-        <div class="row g-3">
-            {{-- ROW 1: Product Type * & Order Type * --}}
-            <div class="col-12 col-md-6">
-                <label for="f-product_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span>
-                </label>
-                <select id="f-product_type" name="product_type" class="form-select form-select-sm fw-semibold @error('product_type') is-invalid @enderror">
-                    <option value="book" @selected($val('product_type', 'book') === 'book')>Book</option>
-                    <option value="stationery" @selected($val('product_type') === 'stationery')>Stationery</option>
-                    <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Gift / Art Item</option>
-                    <option value="other" @selected($val('product_type') === 'other')>Other Item</option>
-                </select>
-                @error('product_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        {{-- QUICK JUMP SECTION NAVIGATION TABS --}}
+        <div class="a4-section-nav" id="a4FormNav">
+            <a href="#sec-general" class="a4-nav-tab active"><i class="fa-solid fa-book-bookmark text-primary"></i> 1. General Specs</a>
+            <a href="#sec-authorship" class="a4-nav-tab"><i class="fa-solid fa-users text-primary"></i> 2. Authors & Credits</a>
+            <a href="#sec-format" class="a4-nav-tab"><i class="fa-solid fa-sliders text-info"></i> 3. Format & Edition</a>
+            <a href="#sec-pricing" class="a4-nav-tab"><i class="fa-solid fa-calculator text-success"></i> 4. Pricing & Margins</a>
+            <a href="#sec-classification" class="a4-nav-tab"><i class="fa-solid fa-shapes text-warning"></i> 5. Classification & IDs</a>
+            <a href="#sec-barcode" class="a4-nav-tab"><i class="fa-solid fa-qrcode text-secondary"></i> 6. Barcode & QR</a>
+            <a href="#sec-summary" class="a4-nav-tab"><i class="fa-solid fa-align-left text-danger"></i> 7. Summary & Flap</a>
+        </div>
+
+        {{-- SECTION 1: GENERAL SPECIFICATIONS --}}
+        <div class="a4-doc-section" id="sec-general">
+            <div class="a4-doc-section-title">
+                <i class="fa-solid fa-book-bookmark text-primary"></i> 1. General Specifications
             </div>
 
-            <div class="col-12 col-md-6">
-                <label for="f-stock_status" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-dolly text-success me-1"></i> Order Type <span class="text-danger">*</span>
-                </label>
-                <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
-                    <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>In Stock (Buy Now)</option>
-                    <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order</option>
-                    <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock</option>
-                    <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming</option>
-                </select>
-                @error('stock_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- Dynamic Pre-Order Fields --}}
-            <div id="adminPreOrderContainer" class="col-12 {{ $val('stock_status') === 'pre_order' ? '' : 'd-none' }}">
-                <div class="p-2.5 bg-warning-subtle rounded-3 border border-warning-subtle">
-                    <div class="row g-2">
-                        <div class="col-12 col-md-6">
-                            <label for="f-pre_order_release_date" class="form-label small fw-bold text-dark mb-1">
-                                <i class="fa-solid fa-calendar-day text-warning me-1"></i> Pre-Order Estimated Delivery Date
-                            </label>
-                            <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" 
-                                   value="{{ $val('pre_order_release_date') }}" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label for="f-pre_order_note" class="form-label small fw-bold text-dark mb-1">
-                                <i class="fa-solid fa-gift text-warning me-1"></i> Pre-Order Note / Offer
-                            </label>
-                            <input type="text" id="f-pre_order_note" name="pre_order_note" 
-                                   value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. Includes author autograph & bookmark">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- ROW 2: Title (BN) * & Title (EN) --}}
-            <div class="col-12 col-md-6">
-                <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-book text-primary me-1"></i> Title (Bengali / Primary) <span class="text-danger">*</span>
-                </label>
-                <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
-                       class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
-                       placeholder="Book Title (বাংলা বা ইংরেজি)"
-                       oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
-                @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-6">
-                <label for="f-title_en" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-language text-secondary me-1"></i> Title (English / Secondary)
-                </label>
-                <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? $val('subtitle')) }}"
-                       class="form-control form-control-sm @error('title_en') is-invalid @enderror"
-                       placeholder="Book Title in English (optional)"
-                       oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
-                @error('title_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- ROW 3: Authors & Translators --}}
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-pen-nib text-primary me-1"></i> Author <span class="text-danger">*</span>
+            <div class="row g-2.5">
+                {{-- Product Type * & Order Status * --}}
+                <div class="col-12 col-md-6">
+                    <label for="f-product_type" class="a4-field-label">
+                        <span><i class="fa-solid fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span></span>
                     </label>
-                    <div class="d-flex align-items-center gap-1.5">
-                        <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
-                                onclick="addAuthorField()" style="font-size: 11px;">
-                            <i class="fa-solid fa-plus me-0.5"></i>Add
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
-                                data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11px;">
-                            <i class="fa-solid fa-user-plus me-0.5"></i>New
-                        </button>
-                    </div>
+                    <select id="f-product_type" name="product_type" class="form-select form-select-sm fw-semibold @error('product_type') is-invalid @enderror">
+                        <option value="book" @selected($val('product_type', 'book') === 'book')>Book (Printed Edition)</option>
+                        <option value="stationery" @selected($val('product_type') === 'stationery')>Stationery</option>
+                        <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Gift & Art Item</option>
+                        <option value="other" @selected($val('product_type') === 'other')>Other Item</option>
+                    </select>
+                    @error('product_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
-                <div id="authorsRepeaterContainer" class="vstack gap-1.5">
-                    @php
-                        $existingAuthors = old('author_names');
-                        $existingAuthorsEn = old('author_names_en', []);
-                        $existingAuthorIds = old('author_ids', []);
-                        if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
-                            $existingAuthors = [];
-                            $existingAuthorsEn = [];
-                            $existingAuthorIds = [];
-                            if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
-                                foreach ($record->authors as $ra) {
-                                    $existingAuthors[] = $ra->name_bn ?: $ra->name;
-                                    $existingAuthorsEn[] = $ra->name_en ?: '';
-                                    $existingAuthorIds[] = $ra->id;
-                                }
-                            } elseif ($val('author_name')) {
-                                $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
-                                $existingAuthorIds = [(string)($record->author_link_id ?? '')];
-                                if (!empty($record->author_link_id)) {
-                                    $aRec = DB::table('authors')->where('id', $record->author_link_id)->first();
-                                    $existingAuthorsEn = [$aRec->name_en ?? ''];
-                                } else {
-                                    $existingAuthorsEn = [''];
-                                }
-                            }
-                        }
-                        if (empty($existingAuthors)) {
-                            $existingAuthors = [''];
-                            $existingAuthorsEn = [''];
-                            $existingAuthorIds = [''];
-                        }
-                    @endphp
-                    @foreach($existingAuthors as $aIdx => $aName)
-                        @php 
-                            $aIdVal = $existingAuthorIds[$aIdx] ?? ''; 
-                            $aNameEn = $existingAuthorsEn[$aIdx] ?? '';
-                        @endphp
-                        <div class="input-group input-group-sm author-field-row mb-1">
-                            <select name="author_ids[]" class="form-select form-select-sm author-directory-select" style="max-width: 125px;" onchange="onAuthorSelectRowChange(this)">
-                                <option value="">— Directory —</option>
-                                @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
-                                    <option value="{{ $aId }}" 
-                                            data-name-bn="{{ $aDet['name_bn'] }}" 
-                                            data-name-en="{{ $aDet['name_en'] }}"
-                                            @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0))>
-                                        {{ $aDet['name'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <input type="text" name="author_names[]" class="form-control form-control-sm author-name-input @error('author_names') is-invalid @enderror" 
-                                   value="{{ $aName }}" placeholder="লেখক নাম (বাংলা)..." oninput="onAuthorNameTyped(this)">
-                            <input type="text" name="author_names_en[]" class="form-control form-control-sm author-name-en-input" 
-                                   value="{{ $aNameEn }}" placeholder="Author name (English)..." oninput="onAuthorNameTyped(this)">
-                            @if($aIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addAuthorField()"><i class="fa-solid fa-plus text-success"></i></button>
-                            @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this); updateLiveMockupCard();"><i class="fa-solid fa-times"></i></button>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                @error('author_names_en')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                @error('author_link_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-language text-info me-1"></i> Translator
+                <div class="col-12 col-md-6">
+                    <label for="f-stock_status" class="a4-field-label">
+                        <span><i class="fa-solid fa-dolly text-success me-1"></i> Stock & Order Status <span class="text-danger">*</span></span>
                     </label>
-                    <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
-                            onclick="addTranslatorField()" style="font-size: 11px;">
-                        <i class="fa-solid fa-plus me-0.5"></i>Add
-                    </button>
+                    <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
+                        <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>Buy Now</option>
+                        <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order</option>
+                        <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock</option>
+                        <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming / Coming Soon</option>
+                    </select>
+                    @error('stock_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
-                <div id="translatorsRepeaterContainer" class="vstack gap-1.5">
-                    @php
-                        $existingTranslators = old('translator_names');
-                        if (!is_array($existingTranslators) || empty(array_filter($existingTranslators))) {
-                            $existingTranslators = [];
-                            if ($val('translator_name')) {
-                                $existingTranslators = array_map('trim', explode(',', (string)$val('translator_name')));
-                            }
-                        }
-                        if (empty($existingTranslators)) {
-                            $existingTranslators = [''];
-                        }
-                    @endphp
-                    @foreach($existingTranslators as $tIdx => $tName)
-                        <div class="input-group input-group-sm translator-field-row">
-                            <input type="text" name="translator_names[]" class="form-control form-control-sm" 
-                                   value="{{ $tName }}" placeholder="Translator name...">
-                            @if($tIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addTranslatorField()"><i class="fa-solid fa-plus text-success"></i></button>
-                            @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                @error('translator_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                @error('translator_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- ROW 4: Editor & Rewriter --}}
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-user-pen text-secondary me-1"></i> Editor
-                    </label>
-                    <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
-                            onclick="addEditorField()" style="font-size: 11px;">
-                        <i class="fa-solid fa-plus me-0.5"></i>Add
-                    </button>
-                </div>
-
-                <div id="editorsRepeaterContainer" class="vstack gap-1.5">
-                    @php
-                        $existingEditors = old('editor_names');
-                        if (!is_array($existingEditors) || empty(array_filter($existingEditors))) {
-                            $existingEditors = [];
-                            if ($val('editor_name')) {
-                                $existingEditors = array_map('trim', explode(',', (string)$val('editor_name')));
-                            }
-                        }
-                        if (empty($existingEditors)) {
-                            $existingEditors = [''];
-                        }
-                    @endphp
-                    @foreach($existingEditors as $eIdx => $eName)
-                        <div class="input-group input-group-sm editor-field-row">
-                            <input type="text" name="editor_names[]" class="form-control form-control-sm" 
-                                   value="{{ $eName }}" placeholder="Editor name...">
-                            @if($eIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addEditorField()"><i class="fa-solid fa-plus text-success"></i></button>
-                            @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                @error('editor_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                @error('editor_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-pen-fancy text-secondary me-1"></i> Rewriter / Adapter
-                    </label>
-                    <button type="button" class="btn btn-sm btn-outline-success py-0 px-2 rounded-pill fw-semibold" 
-                            onclick="addRewriterField()" style="font-size: 11px;">
-                        <i class="fa-solid fa-plus me-0.5"></i>Add
-                    </button>
-                </div>
-
-                <div id="rewritersRepeaterContainer" class="vstack gap-1.5">
-                    @php
-                        $existingRewriters = old('rewriter_names');
-                        if (!is_array($existingRewriters) || empty(array_filter($existingRewriters))) {
-                            $existingRewriters = [];
-                            if ($val('rewriter_name')) {
-                                $existingRewriters = array_map('trim', explode(',', (string)$val('rewriter_name')));
-                            }
-                        }
-                        if (empty($existingRewriters)) {
-                            $existingRewriters = [''];
-                        }
-                    @endphp
-                    @foreach($existingRewriters as $rIdx => $rName)
-                        <div class="input-group input-group-sm rewriter-field-row">
-                            <input type="text" name="rewriter_names[]" class="form-control form-control-sm" 
-                                   value="{{ $rName }}" placeholder="Rewriter name...">
-                            @if($rIdx === 0)
-                                <button type="button" class="btn btn-outline-secondary" onclick="addRewriterField()"><i class="fa-solid fa-plus text-success"></i></button>
-                            @else
-                                <button type="button" class="btn btn-outline-danger" onclick="removeRepeaterRow(this)"><i class="fa-solid fa-times"></i></button>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                @error('rewriter_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-                @error('rewriter_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- ROW 5: Language * & Country --}}
-            <div class="col-12 col-md-6">
-                <label for="f-language" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span>
-                </label>
-                <select id="f-language" name="language" class="form-select form-select-sm @error('language') is-invalid @enderror">
-                    @foreach (['Bengali', 'English', 'Arabic', 'Urdu', 'Hindi', 'Persian', 'Other'] as $langKey)
-                        <option value="{{ $langKey }}" @selected($val('language', 'Bengali') === $langKey)>{{ $langKey }}</option>
-                    @endforeach
-                </select>
-                @error('language')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-6">
-                <label for="f-country" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-flag text-danger me-1"></i> Country
-                </label>
-                <select id="f-country" name="country" class="form-select form-select-sm @error('country') is-invalid @enderror">
-                    @foreach (['Bangladesh', 'India', 'Saudi Arabia', 'Egypt', 'United Kingdom', 'United States', 'Other'] as $cKey)
-                        <option value="{{ $cKey }}" @selected($val('country', 'Bangladesh') === $cKey)>{{ $cKey }}</option>
-                    @endforeach
-                </select>
-                @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- ROW 6: Binding * / Paper Quality / Edition * --}}
-            <div class="col-12 col-md-4">
-                <label for="f-cover_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Binding <span class="text-danger">*</span>
-                </label>
-                <select id="f-cover_type" name="cover_type" class="form-select form-select-sm @error('cover_type') is-invalid @enderror" onchange="onCoverTypeDropdownChange(this.value)">
-                    <option value="paperback" @selected($val('cover_type', 'paperback') === 'paperback')>Paperback</option>
-                    <option value="hardcover" @selected($val('cover_type') === 'hardcover')>Hardcover</option>
-                    <option value="board_book" @selected($val('cover_type') === 'board_book')>Board Book</option>
-                    <option value="spiral" @selected($val('cover_type') === 'spiral')>Spiral Bound</option>
-                    <option value="both" @selected($val('cover_type') === 'both')>Both (Paperback & Hardcover)</option>
-                </select>
-                @error('cover_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-4">
-                <label for="f-paper_type" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-scroll text-secondary me-1"></i> Paper Quality (GSM)
-                </label>
-                <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
-                    <optgroup label="── Off-white Paper ──">
-                        <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>50 GSM Off-white</option>
-                        <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>55 GSM Off-white</option>
-                        <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>60 GSM Off-white</option>
-                        <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>65 GSM Off-white</option>
-                        <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>70 GSM Off-white</option>
-                        <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>80 GSM Off-white</option>
-                        <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>100 GSM Off-white</option>
-                        <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>120 GSM Off-white</option>
-                    </optgroup>
-                    <optgroup label="── Newsprint Paper ──">
-                        <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>50 GSM Newsprint</option>
-                        <option value="55 GSM Newsprint" @selected($val('paper_type') === '55 GSM Newsprint')>55 GSM Newsprint</option>
-                        <option value="60 GSM Newsprint" @selected($val('paper_type') === '60 GSM Newsprint')>60 GSM Newsprint</option>
-                        <option value="70 GSM Newsprint" @selected($val('paper_type') === '70 GSM Newsprint')>70 GSM Newsprint</option>
-                    </optgroup>
-                    <optgroup label="── Glossy / Art Paper ──">
-                        <option value="100 GSM Glossy Paper" @selected($val('paper_type') === '100 GSM Glossy Paper')>100 GSM Glossy</option>
-                        <option value="120 GSM Glossy Paper" @selected($val('paper_type') === '120 GSM Glossy Paper')>120 GSM Glossy</option>
-                        <option value="130 GSM Glossy Paper" @selected($val('paper_type') === '130 GSM Glossy Paper')>130 GSM Glossy</option>
-                        <option value="150 GSM Glossy Paper" @selected($val('paper_type') === '150 GSM Glossy Paper')>150 GSM Glossy</option>
-                        <option value="170 GSM Glossy Paper" @selected($val('paper_type') === '170 GSM Glossy Paper')>170 GSM Glossy</option>
-                        <option value="200 GSM Glossy Paper" @selected($val('paper_type') === '200 GSM Glossy Paper')>200 GSM Glossy</option>
-                        <option value="250 GSM Glossy Paper" @selected($val('paper_type') === '250 GSM Glossy Paper')>250 GSM Glossy</option>
-                        <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>300 GSM Glossy / Board</option>
-                    </optgroup>
-                    <optgroup label="── Other Paper Types ──">
-                        <option value="100 GSM Cream Paper" @selected($val('paper_type') === '100 GSM Cream Paper')>100 GSM Cream Paper</option>
-                        <option value="Other" @selected($val('paper_type') === 'Other')>Other Custom Paper</option>
-                    </optgroup>
-                </select>
-                @error('paper_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-12 col-md-4">
-                <label for="f-edition" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-tag text-info me-1"></i> Edition
-                </label>
-                <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}"
-                       class="form-control form-control-sm @error('edition') is-invalid @enderror"
-                       placeholder="e.g. 1st Edition 2026">
-                @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- ROW 7: PRICING ENGINE --}}
-            <div class="col-12">
-                <div class="p-3 bg-white rounded-3 border shadow-xs" id="pricingEngineContainer">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-1.5 border-bottom">
-                        <span class="small fw-bold text-dark"><i class="fa-solid fa-calculator text-primary me-1.5"></i> Pricing & Margin Calculator</span>
-                        <span class="badge bg-light text-secondary border small" id="pricingBindingBadge">Paperback Mode</span>
-                    </div>
-
-                    {{-- 1. PAPERBACK PRICING PANEL --}}
-                    <div id="paperbackPricingPanel" class="mb-3 {{ $val('cover_type') === 'hardcover' ? 'd-none' : '' }}">
-                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                            <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fa-solid fa-book text-muted me-1"></i> Paperback Pricing
-                            </span>
-                        </div>
+                {{-- Dynamic Pre-Order Fields --}}
+                <div id="adminPreOrderContainer" class="col-12 {{ $val('stock_status') === 'pre_order' ? '' : 'd-none' }}">
+                    <div class="p-3 bg-warning-subtle rounded-3 border border-warning-subtle">
                         <div class="row g-2">
-                            <div class="col-12 col-md-3">
-                                <label for="f-price" class="form-label small fw-semibold text-dark mb-1">
-                                    List Price (MRP ৳) <span class="text-danger">*</span>
+                            <div class="col-12 col-md-6">
+                                <label for="f-pre_order_release_date" class="a4-field-label">
+                                    <span><i class="fa-solid fa-calendar-day text-warning me-1"></i> Estimated Delivery Start Date</span>
                                 </label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                    <input type="number" step="0.01" min="0" id="f-price" name="price" 
-                                           value="{{ $val('price') }}"
-                                           class="form-control form-control-sm @error('price') is-invalid @enderror" 
-                                           placeholder="0.00" oninput="onPaperbackPriceChange()">
-                                </div>
+                                <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" 
+                                       value="{{ $val('pre_order_release_date') }}" class="form-control form-control-sm">
                             </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-purchase_discount_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Purchase Discount (%)
+                            <div class="col-12 col-md-6">
+                                <label for="f-pre_order_note" class="a4-field-label">
+                                    <span><i class="fa-solid fa-gift text-warning me-1"></i> Pre-Order Special Offer or Gift</span>
                                 </label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" 
-                                           class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPaperbackPurchaseDiscountChange()">
-                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-cost_price" class="form-label small fw-semibold text-dark mb-1">
-                                    Cost Price (৳)
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                    <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
-                                           value="{{ $val('cost_price') }}" class="form-control form-control-sm" 
-                                           placeholder="0.00" oninput="onPaperbackCostChange()">
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-sold_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Sale Discount (%)
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" 
-                                           class="form-control form-control-sm" placeholder="e.g. 25" oninput="onPaperbackSoldPercentChange()">
-                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                                </div>
+                                <input type="text" id="f-pre_order_note" name="pre_order_note" 
+                                       value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. Free author autograph & limited bookmark">
                             </div>
                         </div>
-
-                        <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
-                            <span class="text-muted">Customer Sale Price: <strong class="text-dark fw-bold" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong></span>
-                            <span class="text-muted">Estimated Margin: <strong class="text-success fw-bold" id="liveCalculatedProfit">৳0.00 (0%)</strong></span>
-                        </div>
-                        <input type="hidden" id="f-discount_price" name="discount_price" value="{{ $val('discount_price') }}">
-                    </div>
-
-                    {{-- 2. HARDCOVER PRICING PANEL (INDEPENDENT) --}}
-                    <div id="hardcoverPricingPanel" class="{{ in_array($val('cover_type'), ['hardcover', 'both']) ? '' : 'd-none' }}">
-                        <div class="d-flex align-items-center justify-content-between mb-1.5 pt-2 border-top">
-                            <span class="small fw-bold text-dark" style="font-size: 12px;">
-                                <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Hardcover Pricing
-                            </span>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-12 col-md-3">
-                                <label for="f-hardcover_price" class="form-label small fw-semibold text-dark mb-1">
-                                    Hardcover MRP (৳) <span class="text-danger">*</span>
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                    <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
-                                           value="{{ $val('hardcover_price') }}"
-                                           class="form-control form-control-sm @error('hardcover_price') is-invalid @enderror" 
-                                           placeholder="0.00" oninput="onHardcoverPriceChange()">
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-hardcover_purchase_discount_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Purchase Discount (%)
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_purchase_discount_percent" 
-                                           class="form-control form-control-sm" placeholder="e.g. 40" oninput="onHardcoverPurchaseDiscountChange()">
-                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-hardcover_cost_price" class="form-label small fw-semibold text-dark mb-1">
-                                    Cost Price (৳)
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                    <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" 
-                                           class="form-control form-control-sm" placeholder="0.00" oninput="onHardcoverCostChange()">
-                                </div>
-                            </div>
-
-                            <div class="col-12 col-md-3">
-                                <label for="f-hardcover_sold_percent" class="form-label small fw-semibold text-dark mb-1">
-                                    Sale Discount (%)
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
-                                           class="form-control form-control-sm" placeholder="e.g. 20" oninput="onHardcoverSoldPercentChange()">
-                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex align-items-center justify-content-between mt-2 pt-1.5 border-top bg-light p-2 rounded-2" style="font-size: 11.5px;">
-                            <span class="text-muted">Hardcover Sale Price: <strong class="text-dark fw-bold" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong></span>
-                            <span class="text-muted">Estimated Margin: <strong class="text-success fw-bold" id="liveHardcoverProfit">৳0.00 (0%)</strong></span>
-                        </div>
-                        <input type="hidden" id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $val('hardcover_discount_price') }}">
                     </div>
                 </div>
-            </div>
 
-            {{-- ROW 8: Category * & Publisher * --}}
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-shapes text-primary me-1"></i> Category <span class="text-danger">*</span>
+                {{-- Title (BN) * & Title (EN) --}}
+                <div class="col-12 col-md-6">
+                    <label for="f-title" class="a4-field-label">
+                        <span><i class="fa-solid fa-book text-primary me-1"></i> Book Title (Bengali) <span class="text-danger">*</span></span>
                     </label>
-                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
-                            data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                        <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
-                    </button>
+                    <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
+                           class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
+                           placeholder="বইয়ের নাম (বাংলায়)..."
+                           oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
+                    @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <select id="f-category_id" name="category_id" required 
-                        class="form-select form-select-sm fw-semibold @error('category_id') is-invalid @enderror" 
-                        onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
-                    <option value="">— Select Category —</option>
-                    @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
-                        <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
-                    @endforeach
-                </select>
-                @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
 
-            <div class="col-12 col-md-6">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span>
+                <div class="col-12 col-md-6">
+                    <label for="f-title_en" class="a4-field-label">
+                        <span><i class="fa-solid fa-language text-secondary me-1"></i> Book Title (English)</span>
                     </label>
-                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold" 
-                            data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
-                    </button>
+                    <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? '') }}"
+                           class="form-control form-control-sm @error('title_en') is-invalid @enderror"
+                           placeholder="Book Title in English (optional)"
+                           oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
+                    @error('title_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-                <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror" onchange="handlePublisherChange(this.value)">
-                    <option value="">— Select Publisher —</option>
-                    @foreach (($lookups['publishers'] ?? []) as $pId => $pName)
-                        <option value="{{ $pId }}" @selected((string)$val('publisher_id') === (string)$pId)>{{ $pName }}</option>
-                    @endforeach
-                </select>
-                @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
 
-            {{-- ROW 9: Number of Pages, Book Size, Publication Date & ISBN --}}
-            <div class="col-6 col-md-3">
-                <label for="f-page_count" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-file-lines text-secondary me-1"></i> Pages
-                </label>
-                <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
-                       class="form-control form-control-sm @error('page_count') is-invalid @enderror"
-                       placeholder="e.g. 240">
-                @error('page_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                {{-- Subtitle / Tagline --}}
+                <div class="col-12">
+                    <label for="f-subtitle" class="a4-field-label">
+                        <span><i class="fa-solid fa-feather text-secondary me-1"></i> Subtitle / Tagline (Optional)</span>
+                    </label>
+                    <input type="text" id="f-subtitle" name="subtitle" value="{{ $val('subtitle') }}"
+                           class="form-control form-control-sm @error('subtitle') is-invalid @enderror"
+                           placeholder="e.g. An authentic historical adventure novel..."
+                           oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
+                    @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
             </div>
+        </div>
 
-            <div class="col-6 col-md-3">
-                <label class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-ruler-combined text-secondary me-1"></i> Size (H × W cm)
-                </label>
-                <div class="row g-1">
-                    <div class="col-6">
-                        <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
-                               value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" placeholder="H cm" oninput="syncBookSizeCombined()">
+        {{-- SECTION 2: AUTHORSHIP & CREDITS --}}
+        <div class="a4-doc-section" id="sec-authorship">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="a4-doc-section-title mb-0">
+                        <i class="fa-solid fa-users text-primary"></i> 2. Authorship & Contributor Credits
                     </div>
-                    <div class="col-6">
-                        <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
-                               value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" placeholder="W cm" oninput="syncBookSizeCombined()">
-                    </div>
-                </div>
-                <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
-            </div>
-
-            {{-- IDEA PUBLICATION SERIAL (আইডিয়া প্রকাশন নিজস্ব ক্রমিক) --}}
-            <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-idea_serial_no" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-star text-warning me-1"></i> Idea Serial (আইডিয়া সিরিয়াল)
-                    </label>
-                    <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea Prokashon serial number">
-                        <i class="fa-solid fa-magic me-0.5"></i> Auto IP
-                    </button>
-                </div>
-                <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
-                       class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
-                       placeholder="e.g. IP001" oninput="updateLiveBarcodePreview(this.value)">
-                <div class="form-text text-muted" style="font-size: 9.5px;">আইডিয়া প্রকাশন নিজস্ব ক্রমিক (IP001, IP002...) — এন্ট্রির সময় কাস্টমাইজ বা এডিট করতে পারবেন</div>
-                @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- GENERAL CATALOG SKU (গণ সিরিয়াল) --}}
-            <div class="col-12 col-md-3">
-                <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-sku" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-fingerprint text-primary me-1"></i> General SKU (গণ সিরিয়াল)
-                    </label>
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate global catalog SKU">
-                        <i class="fa-solid fa-wand-magic-sparkles me-0.5"></i> Auto SKU
-                    </button>
-                </div>
-                <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
-                       class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror"
-                       placeholder="e.g. BK-00042">
-                <div class="form-text text-muted" style="font-size: 9.5px;">সকল বইয়ের কেন্দ্রীয় গণ সিরিয়াল</div>
-                @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-6 col-md-3">
-                <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / EAN-13
-                </label>
-                <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
-                       class="form-control form-control-sm @error('isbn') is-invalid @enderror"
-                       placeholder="e.g. 978-984-XXXX-XX-X">
-                @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            <div class="col-6 col-md-3">
-                <label for="f-published_at" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-calendar-check text-warning me-1"></i> Published Date
-                </label>
-                <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
-                       class="form-control form-control-sm @error('published_at') is-invalid @enderror">
-                @error('published_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-
-            {{-- LIVE BARCODE & QR CODE PREVIEW STRIP --}}
-            <div class="col-12">
-                <div class="p-3 bg-light rounded-3 border">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                        <div>
-                            <span class="small fw-bold text-dark"><i class="fa-solid fa-qrcode text-primary me-1"></i> Live Barcode & QR Code Engine</span>
-                            <small class="text-muted d-block" style="font-size: 11px;">মোবাইল ক্যামেরা বা বারকোড রিডার গান দিয়ে সরাসরি রিড করা যাবে।</small>
-                        </div>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 10px;">
-                            <i class="fa-solid fa-circle-check me-0.5"></i> Auto-Generated
+                    <span id="contributorLiveCountBadge">
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold">
+                            <i class="fa-solid fa-pen-nib me-1"></i>Primary Author Needed
                         </span>
+                    </span>
+                </div>
+            </div>
+
+            {{-- Contributor Action Toolbar --}}
+            <div class="contributor-toolbar">
+                <div class="d-flex flex-wrap align-items-center gap-1.5 contributor-role-btns">
+                    <span class="small fw-bold text-dark me-1 d-none d-sm-inline" style="font-size: 11.5px;">+ Add Role:</span>
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addAuthorField()" title="Add author">
+                        <i class="fa-solid fa-pen-nib me-1"></i>+ Author
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addTranslatorField()" title="Add translator">
+                        <i class="fa-solid fa-language me-1"></i>+ Translator
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addEditorField()" title="Add editor">
+                        <i class="fa-solid fa-user-pen me-1"></i>+ Editor
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addRewriterField()" title="Add adapter">
+                        <i class="fa-solid fa-pen-fancy me-1"></i>+ Adapter
+                    </button>
+                    <button type="button" class="btn btn-xs btn-outline-purple rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addCoverArtistField()" title="Add cover artist" style="color: #7e22ce; border-color: #d8b4fe;">
+                        <i class="fa-solid fa-palette me-1"></i>+ Cover Artist
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs w-100" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add new author into directory">
+                        <i class="fa-solid fa-user-plus me-1"></i>+ New Directory Author
+                    </button>
+                </div>
+            </div>
+
+            {{-- Responsive Contributor Table with Sharp Borders & Spacious Inputs --}}
+            <div class="table-responsive contributor-matrix-table shadow-xs mb-2">
+                <table class="table align-middle mb-0" id="authorshipCreditsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 14%; min-width: 110px;" class="ps-3">Role</th>
+                            <th style="width: 28%; min-width: 160px;">Directory</th>
+                            <th style="width: 28%; min-width: 180px;">Name (বাংলা) <span class="text-danger">*</span></th>
+                            <th style="width: 25%; min-width: 160px;">Name (EN)</th>
+                            <th style="width: 5%; min-width: 44px;" class="text-center pe-3"><i class="fa-solid fa-trash-can opacity-50" title="Action"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="authorshipCreditsTableBody">
+                        {{-- 1. AUTHORS --}}
+                        @php
+                            $existingAuthors = old('author_names');
+                            $existingAuthorsEn = old('author_names_en', []);
+                            $existingAuthorIds = old('author_ids', []);
+                            if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
+                                $existingAuthors = [];
+                                $existingAuthorsEn = [];
+                                $existingAuthorIds = [];
+                                if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
+                                    foreach ($record->authors as $ra) {
+                                        $existingAuthors[] = $ra->name_bn ?: $ra->name;
+                                        $existingAuthorsEn[] = $ra->name_en ?: '';
+                                        $existingAuthorIds[] = $ra->id;
+                                    }
+                                } elseif ($val('author_name')) {
+                                    $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
+                                    $existingAuthorIds = [(string)($record->author_link_id ?? '')];
+                                    if (!empty($record->author_link_id)) {
+                                        $aRec = DB::table('authors')->where('id', $record->author_link_id)->first();
+                                        $existingAuthorsEn = [$aRec->name_en ?? ''];
+                                    } else {
+                                        $existingAuthorsEn = [''];
+                                    }
+                                }
+                            }
+                            if (empty($existingAuthors)) {
+                                $existingAuthors = [''];
+                                $existingAuthorsEn = [''];
+                                $existingAuthorIds = [''];
+                            }
+                        @endphp
+                        @foreach($existingAuthors as $aIdx => $aName)
+                            @php 
+                                $aIdVal = $existingAuthorIds[$aIdx] ?? ''; 
+                                $aNameEn = $existingAuthorsEn[$aIdx] ?? '';
+                            @endphp
+                            <tr class="author-field-row contributor-matrix-row">
+                                <td class="contributor-col-role ps-3 align-middle">
+                                    <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fa-solid fa-pen-nib me-1"></i>Author @if($aIdx === 0)<span class="text-danger" title="Primary Author Required">*</span>@endif
+                                    </span>
+                                </td>
+                                <td class="contributor-col-dir align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                    <select name="author_ids[]" class="form-select form-select-sm contributor-select author-directory-select" onchange="onAuthorSelectRowChange(this)">
+                                        <option value="">— Directory —</option>
+                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                            <option value="{{ $aId }}" 
+                                                    data-name-bn="{{ $aDet['name_bn'] }}" 
+                                                    data-name-en="{{ $aDet['name_en'] }}"
+                                                    @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0))>
+                                                {{ $aDet['name'] }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="contributor-col-bn align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input @error('author_names') is-invalid @enderror" 
+                                           value="{{ $aName }}" placeholder="" oninput="onAuthorNameTyped(this)">
+                                </td>
+                                <td class="contributor-col-en align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
+                                           value="{{ $aNameEn }}" placeholder="" oninput="onAuthorNameTyped(this)">
+                                </td>
+                                <td class="contributor-col-action text-center align-middle pe-3">
+                                    @if($aIdx === 0 && count($existingAuthors) === 1)
+                                        <button type="button" class="btn btn-sm btn-light p-0 d-inline-flex align-items-center justify-content-center border rounded-3 text-muted opacity-50" style="width: 32px; height: 32px;" title="At least one primary author is required" disabled>
+                                            <i class="fa-solid fa-lock"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove contributor">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        {{-- 2. TRANSLATORS --}}
+                        @php
+                            $existingTranslators = old('translator_names');
+                            if (!is_array($existingTranslators) || empty(array_filter($existingTranslators))) {
+                                $existingTranslators = [];
+                                if ($val('translator_name')) {
+                                    $existingTranslators = array_map('trim', explode(',', (string)$val('translator_name')));
+                                }
+                            }
+                        @endphp
+                        @foreach($existingTranslators as $tIdx => $tName)
+                            @if(filled($tName))
+                            <tr class="translator-field-row contributor-matrix-row">
+                                <td class="contributor-col-role ps-3 align-middle">
+                                    <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fa-solid fa-language me-1"></i>Translator
+                                    </span>
+                                </td>
+                                <td class="contributor-col-dir align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                    <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                                        <option value="">— Directory —</option>
+                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                            <option value="{{ $aId }}" data-name-bn="{{ $aDet['name_bn'] }}" data-name-en="{{ $aDet['name_en'] }}">{{ $aDet['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="contributor-col-bn align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <input type="text" name="translator_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                                           value="{{ $tName }}" placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-en align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                                           placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-action text-center align-middle pe-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove translator">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endif
+                        @endforeach
+
+                        {{-- 3. EDITORS --}}
+                        @php
+                            $existingEditors = old('editor_names');
+                            if (!is_array($existingEditors) || empty(array_filter($existingEditors))) {
+                                $existingEditors = [];
+                                if ($val('editor_name')) {
+                                    $existingEditors = array_map('trim', explode(',', (string)$val('editor_name')));
+                                }
+                            }
+                        @endphp
+                        @foreach($existingEditors as $eIdx => $eName)
+                            @if(filled($eName))
+                            <tr class="editor-field-row contributor-matrix-row">
+                                <td class="contributor-col-role ps-3 align-middle">
+                                    <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fa-solid fa-user-pen me-1"></i>Editor
+                                    </span>
+                                </td>
+                                <td class="contributor-col-dir align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                    <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                                        <option value="">— Directory —</option>
+                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                            <option value="{{ $aId }}" data-name-bn="{{ $aDet['name_bn'] }}" data-name-en="{{ $aDet['name_en'] }}">{{ $aDet['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="contributor-col-bn align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <input type="text" name="editor_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                                           value="{{ $eName }}" placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-en align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                                           placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-action text-center align-middle pe-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove editor">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endif
+                        @endforeach
+
+                        {{-- 4. ADAPTERS / REWRITERS --}}
+                        @php
+                            $existingRewriters = old('rewriter_names');
+                            if (!is_array($existingRewriters) || empty(array_filter($existingRewriters))) {
+                                $existingRewriters = [];
+                                if ($val('rewriter_name')) {
+                                    $existingRewriters = array_map('trim', explode(',', (string)$val('rewriter_name')));
+                                }
+                            }
+                        @endphp
+                        @foreach($existingRewriters as $rIdx => $rName)
+                            @if(filled($rName))
+                            <tr class="rewriter-field-row contributor-matrix-row">
+                                <td class="contributor-col-role ps-3 align-middle">
+                                    <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fa-solid fa-pen-fancy me-1"></i>Adapter
+                                    </span>
+                                </td>
+                                <td class="contributor-col-dir align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                    <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                                        <option value="">— Directory —</option>
+                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                            <option value="{{ $aId }}" data-name-bn="{{ $aDet['name_bn'] }}" data-name-en="{{ $aDet['name_en'] }}">{{ $aDet['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="contributor-col-bn align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <input type="text" name="rewriter_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                                           value="{{ $rName }}" placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-en align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                                           placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-action text-center align-middle pe-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove adapter">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endif
+                        @endforeach
+
+                        {{-- 5. COVER ARTISTS --}}
+                        @php
+                            $existingCoverArtists = old('cover_artists');
+                            if (!is_array($existingCoverArtists) || empty(array_filter($existingCoverArtists))) {
+                                $existingCoverArtists = [];
+                                if ($val('cover_artist')) {
+                                    $existingCoverArtists = array_map('trim', explode(',', (string)$val('cover_artist')));
+                                }
+                            }
+                        @endphp
+                        @foreach($existingCoverArtists as $cIdx => $cName)
+                            @if(filled($cName))
+                            <tr class="cover-artist-field-row contributor-matrix-row">
+                                <td class="contributor-col-role ps-3 align-middle">
+                                    <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
+                                        <i class="fa-solid fa-palette me-1"></i>Cover Artist
+                                    </span>
+                                </td>
+                                <td class="contributor-col-dir align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                    <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                                        <option value="">— Directory —</option>
+                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                            <option value="{{ $aId }}" data-name-bn="{{ $aDet['name_bn'] }}" data-name-en="{{ $aDet['name_en'] }}">{{ $aDet['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="contributor-col-bn align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <input type="text" name="cover_artists[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                                           value="{{ $cName }}" placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-en align-middle">
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                                           placeholder="" oninput="updateContributorSummary()">
+                                </td>
+                                <td class="contributor-col-action text-center align-middle pe-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove cover artist">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Live Byline Preview Strip --}}
+            <div class="contributor-byline-strip d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="small">
+                    <span class="text-primary fw-bold"><i class="fa-solid fa-bullhorn me-1"></i>Live Contributor Byline:</span>
+                    <span id="liveContributorBylineText" class="text-dark fw-semibold ms-1">আইডিয়া প্রকাশন</span>
+                </div>
+            </div>
+
+            @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('author_names.*')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('author_ids')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('translator_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('editor_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('rewriter_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            @error('cover_artists')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+        </div>
+
+        {{-- SECTION 3: FORMAT, BINDING & EDITION --}}
+        <div class="a4-doc-section" id="sec-format">
+            <div class="a4-doc-section-title">
+                <i class="fa-solid fa-sliders text-primary"></i> 3. Format, Binding & Edition
+            </div>
+
+            <div class="row g-2.5">
+                {{-- Language * & Country --}}
+                <div class="col-12 col-md-6">
+                    <label for="f-language" class="a4-field-label">
+                        <span><i class="fa-solid fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span></span>
+                    </label>
+                    <select id="f-language" name="language" class="form-select form-select-sm @error('language') is-invalid @enderror">
+                        @foreach (['Bengali' => 'বাংলা (Bengali)', 'English' => 'English', 'Arabic' => 'العربية (Arabic)', 'Urdu' => 'اردو (Urdu)', 'Hindi' => 'हिन्दी (Hindi)', 'Persian' => 'فارسی (Persian)', 'Other' => 'Other Language'] as $langKey => $langLabel)
+                            <option value="{{ $langKey }}" @selected($val('language', 'Bengali') === $langKey)>{{ $langLabel }}</option>
+                        @endforeach
+                    </select>
+                    @error('language')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <label for="f-country" class="a4-field-label">
+                        <span><i class="fa-solid fa-flag text-danger me-1"></i> Country of Publication</span>
+                    </label>
+                    <select id="f-country" name="country" class="form-select form-select-sm @error('country') is-invalid @enderror">
+                        @foreach (['Bangladesh' => 'Bangladesh', 'India' => 'India', 'Saudi Arabia' => 'Saudi Arabia', 'Egypt' => 'Egypt', 'United Kingdom' => 'United Kingdom (UK)', 'United States' => 'United States (USA)', 'Other' => 'Other Country'] as $cKey => $cLabel)
+                            <option value="{{ $cKey }}" @selected($val('country', 'Bangladesh') === $cKey)>{{ $cLabel }}</option>
+                        @endforeach
+                    </select>
+                    @error('country')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                {{-- Binding * / Paper Quality / Edition * --}}
+                <div class="col-12 col-md-4">
+                    <label for="f-cover_type" class="a4-field-label">
+                        <span><i class="fa-solid fa-book-bookmark text-primary me-1"></i> Binding / Cover Type <span class="text-danger">*</span></span>
+                    </label>
+                    <select id="f-cover_type" name="cover_type" class="form-select form-select-sm @error('cover_type') is-invalid @enderror" onchange="onCoverTypeDropdownChange(this.value)">
+                        <option value="hardcover" @selected($val('cover_type', 'hardcover') === 'hardcover')>Hardcover Edition</option>
+                        <option value="paperback" @selected($val('cover_type', 'hardcover') === 'paperback')>Paperback Edition</option>
+                        <option value="board_book" @selected($val('cover_type', 'hardcover') === 'board_book')>Board Book</option>
+                        <option value="spiral" @selected($val('cover_type', 'hardcover') === 'spiral')>Spiral Bound</option>
+                        <option value="both" @selected($val('cover_type', 'hardcover') === 'both')>Both Editions (Paperback & Hardcover)</option>
+                    </select>
+                    @error('cover_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="f-paper_type" class="a4-field-label">
+                        <span><i class="fa-solid fa-scroll text-secondary me-1"></i> Paper Quality (GSM)</span>
+                    </label>
+                    <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
+                        <optgroup label="── Off-white Paper ──">
+                            <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>50 GSM Off-white</option>
+                            <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>55 GSM Off-white</option>
+                            <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>60 GSM Off-white</option>
+                            <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>65 GSM Off-white</option>
+                            <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>70 GSM Off-white</option>
+                            <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>80 GSM Off-white (Popular)</option>
+                            <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>100 GSM Off-white</option>
+                            <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>120 GSM Off-white</option>
+                        </optgroup>
+                        <optgroup label="── Newsprint Paper ──">
+                            <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>50 GSM Newsprint</option>
+                            <option value="55 GSM Newsprint" @selected($val('paper_type') === '55 GSM Newsprint')>55 GSM Newsprint</option>
+                            <option value="60 GSM Newsprint" @selected($val('paper_type') === '60 GSM Newsprint')>60 GSM Newsprint</option>
+                            <option value="70 GSM Newsprint" @selected($val('paper_type') === '70 GSM Newsprint')>70 GSM Newsprint</option>
+                        </optgroup>
+                        <optgroup label="── Art & Glossy Paper ──">
+                            <option value="100 GSM Glossy Paper" @selected($val('paper_type') === '100 GSM Glossy Paper')>100 GSM Glossy</option>
+                            <option value="120 GSM Glossy Paper" @selected($val('paper_type') === '120 GSM Glossy Paper')>120 GSM Glossy</option>
+                            <option value="130 GSM Glossy Paper" @selected($val('paper_type') === '130 GSM Glossy Paper')>130 GSM Glossy</option>
+                            <option value="150 GSM Glossy Paper" @selected($val('paper_type') === '150 GSM Glossy Paper')>150 GSM Glossy</option>
+                            <option value="170 GSM Glossy Paper" @selected($val('paper_type') === '170 GSM Glossy Paper')>170 GSM Glossy</option>
+                            <option value="200 GSM Glossy Paper" @selected($val('paper_type') === '200 GSM Glossy Paper')>200 GSM Glossy</option>
+                            <option value="250 GSM Glossy Paper" @selected($val('paper_type') === '250 GSM Glossy Paper')>250 GSM Glossy</option>
+                            <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>300 GSM Glossy / Board</option>
+                        </optgroup>
+                        <optgroup label="── Other Paper Types ──">
+                            <option value="100 GSM Cream Paper" @selected($val('paper_type') === '100 GSM Cream Paper')>100 GSM Cream Paper</option>
+                            <option value="Other" @selected($val('paper_type') === 'Other')>Other Custom Paper</option>
+                        </optgroup>
+                    </select>
+                    @error('paper_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="f-edition" class="a4-field-label">
+                        <span><i class="fa-solid fa-tag text-info me-1"></i> Edition</span>
+                    </label>
+                    <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}"
+                           class="form-control form-control-sm @error('edition') is-invalid @enderror"
+                           placeholder="e.g. 1st Edition {{ date('Y') }}">
+                    <div class="d-flex gap-1 mt-1">
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = '1st Edition {{ date('Y') }}'">1st Edition</button>
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = '2nd Edition {{ date('Y') }}'">2nd Edition</button>
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = 'Revised Edition {{ date('Y') }}'">Revised</button>
+                    </div>
+                    @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 4: PRICING MATRIX & MARGIN CALCULATOR --}}
+        <div class="a4-doc-section" id="sec-pricing">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="a4-doc-section-title mb-0">
+                    <i class="fa-solid fa-calculator text-primary"></i> 4. Pricing Matrix & Profit Margins
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold px-2.5 py-1 rounded-pill" id="pricingBindingBadge">
+                    {{ $val('cover_type', 'hardcover') === 'both' ? 'Dual Mode (Hard & Paperback)' : ($val('cover_type', 'hardcover') === 'paperback' ? 'Paperback Mode' : 'Hardcover Mode') }}
+                </span>
+            </div>
+
+            <div class="vstack gap-3" id="pricingEngineContainer">
+                {{-- 1. PAPERBACK PRICING PANEL --}}
+                <div id="paperbackPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['paperback', 'both']) ? '' : 'd-none' }}">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
+                        <span class="fw-bold text-dark small">
+                            <i class="fa-solid fa-book-open text-primary me-1"></i> Paperback Edition Pricing
+                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            @foreach([15, 20, 25, 30, 35, 40] as $pct)
+                                <button type="button" class="btn btn-xs btn-outline-secondary quick-disc-btn" onclick="applyPaperbackQuickDiscount({{ $pct }})">{{ $pct }}%</button>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <div class="row g-2 align-items-center">
-                        <div class="col-12 col-md-7">
-                            <div class="bg-white p-2.5 rounded-2 border text-center" id="barcodePreviewBox" style="min-height: 70px;">
-                                <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center">
-                                    {{-- Rendered dynamically or via initial PHP --}}
-                                    @php
-                                        $initialCode = $val('sku') ?: ($val('isbn') ?: 'IDEA-' . ($record->id ?? 'NEW'));
-                                    @endphp
-                                    {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
-                                </div>
+                    <div class="row g-2">
+                        <div class="col-12 col-md-3">
+                            <label for="f-price" class="a4-field-label">
+                                <span>Printed Price / MRP (৳) <span class="text-danger">*</span></span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                <input type="number" step="0.01" min="0" id="f-price" name="price" 
+                                       value="{{ $val('price') }}"
+                                       class="form-control form-control-sm @error('price') is-invalid @enderror" 
+                                       placeholder="0.00" oninput="onPaperbackPriceChange()">
                             </div>
                         </div>
-                        <div class="col-12 col-md-5">
-                            <div class="bg-white p-2 rounded-2 border d-flex align-items-center gap-2.5">
-                                <div id="qrSvgContainer" class="flex-shrink-0">
-                                    {!! \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($record->slug ?? ($record->id ?? 'preview'))), 56) !!}
-                                </div>
-                                <div class="small">
-                                    <div class="fw-bold text-dark font-monospace" style="font-size: 11.5px;" id="qrCodeLabel">{{ $val('idea_serial_no') ?: ($val('sku') ?: 'IP001') }}</div>
-                                    <div class="text-muted" style="font-size: 10px;">Scan to open storefront or POS checkout</div>
-                                </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-purchase_discount_percent" class="a4-field-label">
+                                <span>Buy Discount (%)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" name="purchase_discount_percent" 
+                                       value="{{ $val('purchase_discount_percent') }}"
+                                       class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPaperbackPurchaseDiscountChange()">
+                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-cost_price" class="a4-field-label">
+                                <span>Purchase Cost (৳)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
+                                       value="{{ $val('cost_price') }}" class="form-control form-control-sm" 
+                                       placeholder="0.00" oninput="onPaperbackCostChange()">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-sold_percent" class="a4-field-label">
+                                <span>Customer Sale Disc (%)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" name="sold_percent" 
+                                       value="{{ $val('sold_percent') }}"
+                                       class="form-control form-control-sm" placeholder="e.g. 25" oninput="onPaperbackSoldPercentChange()">
+                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Live Calculation Summary Ribbon --}}
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="small">
+                                <span class="text-muted">Customer Selling Price:</span>
+                                <strong class="text-dark fw-bold ms-1 fs-6" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong>
+                            </div>
+                            <div class="small text-muted border-start ps-3 d-none d-sm-block">
+                                Customer Savings: <span class="text-success fw-bold" id="livePaperbackSavings">৳0.00</span>
+                            </div>
+                        </div>
+                        <div class="small">
+                            <span class="text-muted">Estimated Profit (Margin):</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveCalculatedProfit">৳0.00 (0%)</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="f-discount_price" name="discount_price" value="{{ $val('discount_price') }}">
+                </div>
+
+                {{-- 2. HARDCOVER PRICING PANEL --}}
+                <div id="hardcoverPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['hardcover', 'both']) ? '' : 'd-none' }}">
+                    <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
+                        <span class="fw-bold text-dark small">
+                            <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Hardcover Edition Pricing
+                        </span>
+                        <div class="d-flex align-items-center gap-1">
+                            @foreach([15, 20, 25, 30, 35, 40] as $pct)
+                                <button type="button" class="btn btn-xs btn-outline-secondary quick-disc-btn" onclick="applyHardcoverQuickDiscount({{ $pct }})">{{ $pct }}%</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-12 col-md-3">
+                            <label for="f-hardcover_price" class="a4-field-label">
+                                <span>Hardcover MRP (৳) <span class="text-danger">*</span></span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
+                                       value="{{ $val('hardcover_price') }}"
+                                       class="form-control form-control-sm @error('hardcover_price') is-invalid @enderror" 
+                                       placeholder="0.00" oninput="onHardcoverPriceChange()">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-hardcover_purchase_discount_percent" class="a4-field-label">
+                                <span>Hardcover Buy (%)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.5" min="0" max="100" id="f-hardcover_purchase_discount_percent" name="hardcover_purchase_discount_percent" 
+                                       value="{{ $val('hardcover_purchase_discount_percent') }}"
+                                       class="form-control form-control-sm" placeholder="e.g. 40" oninput="onHardcoverPurchaseDiscountChange()">
+                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-hardcover_cost_price" class="a4-field-label">
+                                <span>Hardcover Cost (৳)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-dark fw-bold">৳</span>
+                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="hardcover_cost_price" 
+                                       value="{{ $val('hardcover_cost_price') }}"
+                                       class="form-control form-control-sm" placeholder="0.00" oninput="onHardcoverCostChange()">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="f-hardcover_sold_percent" class="a4-field-label">
+                                <span>Hardcover Sale (%)</span>
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
+                                       value="{{ $val('hardcover_sold_percent') }}"
+                                       class="form-control form-control-sm" placeholder="e.g. 20" oninput="onHardcoverSoldPercentChange()">
+                                <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Hardcover Summary Ribbon --}}
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
+                        <div class="small">
+                            <span class="text-muted">Hardcover Customer Price:</span>
+                            <strong class="text-dark fw-bold ms-1 fs-6" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong>
+                        </div>
+                        <div class="small">
+                            <span class="text-muted">Hardcover Profit (Margin):</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveHardcoverProfit">৳0.00 (0%)</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="f-hardcover_discount_price" name="hardcover_discount_price" value="{{ $val('hardcover_discount_price') }}">
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 5: CLASSIFICATION & IDENTIFIERS --}}
+        <div class="a4-doc-section" id="sec-classification">
+            <div class="a4-doc-section-title">
+                <i class="fa-solid fa-shapes text-primary"></i> 5. Classification, Publishing & Identifiers
+            </div>
+
+            <div class="row g-2.5">
+                {{-- Category * & Publisher * --}}
+                <div class="col-12 col-md-6">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-category_id" class="a4-field-label mb-0">
+                            <span><i class="fa-solid fa-shapes text-primary me-1"></i> Primary Category <span class="text-danger">*</span></span>
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold shadow-2xs" 
+                                data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
+                            <i class="fa-solid fa-circle-plus me-0.5"></i>+ New Category
+                        </button>
+                    </div>
+                    <select id="f-category_id" name="category_id" required 
+                            class="form-select form-select-sm fw-semibold @error('category_id') is-invalid @enderror" 
+                            onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
+                        <option value="">— Select Category —</option>
+                        @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
+                            <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
+                        @endforeach
+                    </select>
+                    @error('category_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-6">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-publisher_id" class="a4-field-label mb-0">
+                            <span><i class="fa-solid fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span></span>
+                        </label>
+                        <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold shadow-2xs" 
+                                data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
+                            <i class="fa-solid fa-circle-plus me-0.5"></i>+ New Publisher
+                        </button>
+                    </div>
+                    <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror" onchange="handlePublisherChange(this.value)">
+                        <option value="">— Select Publisher —</option>
+                        @foreach (($lookups['publishers'] ?? []) as $pId => $pName)
+                            <option value="{{ $pId }}" @selected((string)$val('publisher_id') === (string)$pId)>{{ $pName }}</option>
+                        @endforeach
+                    </select>
+                    @error('publisher_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                {{-- Pages, Weight, Size, Idea Serial --}}
+                <div class="col-6 col-md-3">
+                    <label for="f-page_count" class="a4-field-label">
+                        <span><i class="fa-solid fa-file-lines text-secondary me-1"></i> Page Count</span>
+                    </label>
+                    <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
+                           class="form-control form-control-sm @error('page_count') is-invalid @enderror"
+                           placeholder="e.g. 240">
+                    @error('page_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label for="f-weight" class="a4-field-label">
+                        <span><i class="fa-solid fa-weight-scale text-secondary me-1"></i> Weight (Grams)</span>
+                    </label>
+                    <input type="number" id="f-weight" name="weight" value="{{ $val('weight') }}" min="0"
+                           class="form-control form-control-sm @error('weight') is-invalid @enderror"
+                           placeholder="e.g. 350">
+                    @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label class="a4-field-label">
+                        <span><i class="fa-solid fa-ruler-combined text-secondary me-1"></i> Dimensions (H × W cm)</span>
+                    </label>
+                    <div class="row g-1">
+                        <div class="col-6">
+                            <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
+                                   value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" placeholder="Height H" oninput="syncBookSizeCombined()">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
+                                   value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" placeholder="Width W" oninput="syncBookSizeCombined()">
+                        </div>
+                    </div>
+                    <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-idea_serial_no" class="a4-field-label mb-0">
+                            <span><i class="fa-solid fa-star text-warning me-1"></i> Idea Serial No</span>
+                        </label>
+                        <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-bold shadow-2xs" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea Publication serial number">
+                            <i class="fa-solid fa-magic me-0.5"></i> Auto IP
+                        </button>
+                    </div>
+                    <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
+                           class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
+                           placeholder="e.g. IP001" oninput="updateLiveBarcodePreview(this.value)">
+                    @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <label for="f-sku" class="a4-field-label mb-0">
+                            <span><i class="fa-solid fa-fingerprint text-primary me-1"></i> Catalog SKU</span>
+                        </label>
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold shadow-2xs" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate unique Catalog SKU">
+                            <i class="fa-solid fa-wand-magic-sparkles me-0.5"></i> Auto SKU
+                        </button>
+                    </div>
+                    <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
+                           class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror"
+                           placeholder="e.g. BK-00042">
+                    @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <label for="f-isbn" class="a4-field-label">
+                        <span><i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / EAN-13</span>
+                    </label>
+                    <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
+                           class="form-control form-control-sm @error('isbn') is-invalid @enderror"
+                           placeholder="e.g. 978-984-XXXX-XX-X">
+                    @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-6 col-md-4">
+                    <label for="f-published_at" class="a4-field-label">
+                        <span><i class="fa-solid fa-calendar-check text-warning me-1"></i> Publication Date</span>
+                    </label>
+                    <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
+                           class="form-control form-control-sm @error('published_at') is-invalid @enderror">
+                    @error('published_at')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+            </div>
+        </div>
+
+        {{-- SECTION 6: BARCODE & QR CODE ENGINE --}}
+        <div class="a4-doc-section" id="sec-barcode">
+            <div class="a4-doc-section-title">
+                <i class="fa-solid fa-qrcode text-primary"></i> 6. Barcode & QR Code Engine
+            </div>
+
+            <div class="p-3 bg-light rounded-3 border">
+                <div class="row g-2.5 align-items-center">
+                    <div class="col-12 col-md-7">
+                        <div class="bg-white p-2.5 rounded-3 border text-center shadow-2xs" id="barcodePreviewBox" style="min-height: 70px;">
+                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center">
+                                @php
+                                    $initialCode = $val('sku') ?: ($val('isbn') ?: ($val('idea_serial_no') ?: 'IP-' . ($record->id ?? 'NEW')));
+                                @endphp
+                                {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-5">
+                        <div class="bg-white p-2 rounded-3 border d-flex align-items-center gap-2.5 shadow-2xs">
+                            <div id="qrSvgContainer" class="flex-shrink-0">
+                                {!! \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($record->slug ?? ($record->id ?? 'preview'))), 56) !!}
+                            </div>
+                            <div class="small">
+                                <div class="fw-bold text-dark font-monospace" style="font-size: 12px;" id="qrCodeLabel">{{ $val('idea_serial_no') ?: ($val('sku') ?: 'IP001') }}</div>
+                                <div class="text-muted" style="font-size: 11px;">Storefront & POS Quick Scan Ready</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            {{-- ROW 10: Summary --}}
-            <div class="col-12">
+        {{-- SECTION 7: SUMMARY & FLAP DESCRIPTION --}}
+        <div class="a4-doc-section" id="sec-summary">
+            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                <div class="a4-doc-section-title mb-0">
+                    <i class="fa-solid fa-align-left text-primary"></i> 7. Book Summary, Flap & Overview
+                </div>
+                <div class="word-counter-badge safe" id="summaryWordBadge">
+                    <i class="fa-solid fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
+                </div>
+            </div>
+            <textarea id="f-summary" name="summary" rows="4"
+                      class="form-control @error('summary') is-invalid @enderror"
+                      placeholder="Enter brief book summary, synopsis or cover flap copy (up to 1,000 words)..."
+                      oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $val('summary') }}</textarea>
+            <div class="word-counter-progress mt-1.5">
+                <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-1">
+                <div class="form-text text-muted mb-0" style="font-size: 11px;">Write concise book overview or cover flap introduction.</div>
+                <div id="summaryWarning" class="text-danger small fw-bold d-none"></div>
+            </div>
+            @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+
+            {{-- Optional Detailed Description --}}
+            <div class="mt-3 pt-2.5 border-top">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-summary" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-align-left text-primary me-1"></i> Product Summary
+                    <label for="f-description" class="a4-field-label mb-0">
+                        <span><i class="fa-solid fa-file-lines text-secondary me-1"></i> Full Description / Table of Contents <span class="text-muted fw-normal">(Optional)</span></span>
                     </label>
-                    <div class="word-counter-badge safe" id="summaryWordBadge">
-                        <i class="fa-solid fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
-                    </div>
                 </div>
-                <textarea id="f-summary" name="summary" rows="5"
-                          class="form-control @error('summary') is-invalid @enderror"
-                          placeholder="Brief summary, synopsis or flap description (Max. 1000 words)..."
-                          oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $val('summary') }}</textarea>
-                <div class="word-counter-progress mt-1">
-                    <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-1">
-                    <div class="form-text text-muted mb-0" style="font-size: 11px;">Book synopsis, plot or flap text (Max 1000 words).</div>
-                    <div id="summaryWarning" class="text-danger small fw-bold d-none"></div>
-                </div>
-                @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                <textarea id="f-description" name="description" rows="5"
+                          class="form-control form-control-sm @error('description') is-invalid @enderror"
+                          placeholder="Detailed introduction, preface, chapter index, table of contents or index notes...">{{ $val('description') }}</textarea>
+                @error('description')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
         </div>
     </div>
 
-    {{-- PUBLISHING COMPLIANCE CONFIRMATION --}}
-    <div class="adm-card p-3 mb-4 border-start border-3 border-success shadow-xs">
+    {{-- PUBLISHING RIGHTS CONFIRMATION --}}
+    <div class="a4-doc-sheet p-3 mb-4 border-start border-4 border-success shadow-xs">
         <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked>
             <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck">
-                <i class="fa-solid fa-shield-halved text-success me-1"></i> Publishing Rights & Content Quality Confirmed
+                <i class="fa-solid fa-shield-halved text-success me-1"></i> Publishing Rights, Translation Approvals & Print Standards Confirmed
             </label>
         </div>
     </div>
 
-    {{-- SAVE & PUBLISH ACTION BAR --}}
-    <div class="adm-card p-3 p-md-4 mb-4 bg-white border shadow-sm">
+    {{-- SAVE & PUBLISH ACTION BAR (DESKTOP) --}}
+    <div class="a4-doc-sheet p-3 mb-4 shadow-xs">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <h6 class="fw-bold mb-0 text-dark">Save Changes</h6>
-                <small class="text-muted">Update catalog listing and live storefront.</small>
+                <h6 class="fw-bold mb-0 text-dark">Save & Publish Catalog Entry</h6>
+                <small class="text-muted">Saved changes will instantly reflect on website storefront and inventory system.</small>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
                 <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
@@ -736,20 +1479,20 @@
 <div class="col-12 col-lg-4">
     <div style="position: sticky; top: 20px; z-index: 1020;">
 
-        {{-- 1. CLASSIFICATIONS & CATEGORY --}}
-        <div class="adm-card p-3 mb-3 border-start border-4 border-primary shadow-xs">
-            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fa-solid fa-shapes text-primary me-1.5"></i> Categories & Tags</span>
+        {{-- 1. CLASSIFICATIONS & TAXONOMY --}}
+        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
+            <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-shapes text-primary me-1.5"></i> 1. Classifications & Taxonomy</span>
                 <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                    <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add New
+                    <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
                 </button>
             </div>
 
             <div class="vstack gap-2">
                 {{-- Primary Category --}}
                 <div>
-                    <label for="f-category_id_sidebar" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        1. Primary Category
+                    <label for="f-category_id_sidebar" class="a4-field-label mb-1">
+                        <span>1. Primary Category <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-category_id_sidebar" class="form-select form-select-sm" onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
                         <option value="">— Select Category —</option>
@@ -761,15 +1504,15 @@
 
                 {{-- Sub-Category --}}
                 <div>
-                    <label for="f-sub_category_name" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        2. Sub-Category
+                    <label for="f-sub_category_name" class="a4-field-label mb-1">
+                        <span>2. Sub-Category / Specific Topic</span>
                     </label>
                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
                            value="{{ old('sub_category_name', $record->sub_category_name ?? '') }}"
                            class="form-control form-control-sm" placeholder="e.g. Contemporary Fiction">
                 </div>
 
-                {{-- Boimela / Event Category (Dynamic Years 2026, 2027, 2028... + Custom Event) --}}
+                {{-- Boimela / Event Category --}}
                 @php
                     $currentBoimelaVal = (string)old('ekushey_category', $record->ekushey_category ?? '');
                     $curYear = (int)date('Y');
@@ -781,8 +1524,8 @@
                 @endphp
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label for="f-ekushey_category_select" class="form-label text-dark fw-bold mb-0" style="font-size: 11.5px;">
-                            <i class="fa-solid fa-monument text-danger me-1"></i> 3. Boimela / Event
+                        <label for="f-ekushey_category_select" class="a4-field-label mb-0">
+                            <span>3. Book Fair / Event (Ekushey Boimela)</span>
                         </label>
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="toggleAdminCustomBoimela()">
                             <i class="fa-solid fa-pen-to-square me-0.5"></i>Custom
@@ -791,14 +1534,14 @@
 
                     <select id="f-ekushey_category_select" class="form-select form-select-sm {{ $isCustomBoimela ? 'd-none' : '' }}" onchange="handleAdminBoimelaSelect(this.value)">
                         <option value="">— Select Event / Year —</option>
-                        <optgroup label="── Ekushey Boimela by Year ──">
+                        <optgroup label="── Amar Ekushey Boimela by Year ──">
                             @foreach($boimelaYears as $bYear)
-                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Ekushey Boimela {{ $bYear }}</option>
+                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Amar Ekushey Boimela {{ $bYear }}</option>
                             @endforeach
                         </optgroup>
-                        <optgroup label="── Special & Previous ──">
-                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion & Special Exhibition</option>
-                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous Boimela</option>
+                        <optgroup label="── Pavilion & Past Fairs ──">
+                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion & Special Exhibitions</option>
+                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous Book Fairs</option>
                         </optgroup>
                         <option value="__custom__" @selected($isCustomBoimela)>+ Custom Event / Other Year...</option>
                     </select>
@@ -808,95 +1551,95 @@
                             <input type="text" id="f-ekushey_category_custom" 
                                    value="{{ $isCustomBoimela ? $currentBoimelaVal : '' }}" 
                                    class="form-control form-control-sm" 
-                                   placeholder="e.g. Boimela 2027 / Dhaka Lit Fest 2028"
+                                   placeholder="e.g. Boimela 2027 / Dhaka Lit Fest"
                                    oninput="document.getElementById('f-ekushey_category').value = this.value.trim()">
-                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="Switch back to list">
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="Return to dropdown list">
                                 <i class="fa-solid fa-list"></i>
                             </button>
                         </div>
                     </div>
-
                     <input type="hidden" id="f-ekushey_category" name="ekushey_category" value="{{ $currentBoimelaVal }}">
                 </div>
 
                 {{-- Genre / Theme --}}
                 <div>
-                    <label for="f-genre_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-layer-group text-info me-1"></i> 4. Genre / Subject
+                    <label for="f-genre_category" class="a4-field-label mb-1">
+                        <span>4. Genre & Theme</span>
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm">
                         <option value="">— Select Genre —</option>
-                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
-                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Short Stories</option>
-                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
-                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays & Research</option>
-                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation War</option>
-                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic & Religious</option>
-                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics</option>
-                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller</option>
-                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Self-Help & Motivation</option>
-                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translated Literature</option>
+                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel (উপন্যাস)</option>
+                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Short Stories (ছোটগল্প)</option>
+                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry (কবিতা)</option>
+                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays & Research (প্রবন্ধ ও গবেষণা)</option>
+                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation War (ইতিহাস)</option>
+                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic & Religious (ইসলামিক)</option>
+                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics (কিশোর সাহিত্য)</option>
+                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller (থ্রিলার)</option>
+                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Self-Help & Motivation (আত্মউন্নয়ন)</option>
+                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translated Literature (অনুবাদ)</option>
                     </select>
                 </div>
 
                 {{-- Target Audience --}}
                 <div>
-                    <label for="f-audience_category" class="form-label text-dark fw-bold mb-1" style="font-size: 11.5px;">
-                        <i class="fa-solid fa-users text-success me-1"></i> 5. Target Audience
+                    <label for="f-audience_category" class="a4-field-label mb-1">
+                        <span>5. Target Audience</span>
                     </label>
                     <select id="f-audience_category" name="audience_category" class="form-select form-select-sm">
-                        <option value="">— Select Audience —</option>
-                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General Readers</option>
-                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5-12 yrs)</option>
-                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Teens (13-18 yrs)</option>
-                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adults / Universal</option>
+                        <option value="">— Select Target Readers —</option>
+                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General Readers (সর্বসাধারণ)</option>
+                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5–12 Years)</option>
+                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Young Adults (13–18 Years)</option>
+                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult Readers (প্রাপ্তবয়স্ক)</option>
                         <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic & Researchers</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        {{-- 2. COVER IMAGE --}}
-        <div class="adm-card p-3 mb-3 border-0 shadow-sm rounded-4">
-            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
+        {{-- 2. COVER IMAGE & 3D MOCKUP --}}
+        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
+            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-light-subtle">
                 <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-image text-primary"></i> Cover Image <span class="text-danger">*</span>
+                    <i class="fa-solid fa-image text-primary"></i> 2. Book Cover & 3D Mockup <span class="text-danger">*</span>
                 </span>
-                <div class="d-flex align-items-center gap-1.5">
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3 Portrait</span>
+                <div class="d-flex align-items-center gap-1">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3 Ratio</span>
                     <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">
                         <i class="fa-solid fa-bolt me-0.5"></i>Auto .AVIF
                     </span>
                 </div>
             </div>
             
-            {{-- Realistic Mockup Preview --}}
-            <div class="p-3 bg-light bg-opacity-75 rounded-3 border text-center mb-3">
-                <div class="position-relative mx-auto mb-2 shadow rounded-2 overflow-hidden" 
-                     style="width: 130px; height: 195px; background: #e2e8f0; border-left: 5px solid #1e293b; box-shadow: 0 8px 20px rgba(0,0,0,0.12);">
-                    @php
-                        $currCoverUrl = ($editing && !empty($record->cover_image))
-                            ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/')))
-                            : '';
-                    @endphp
-                    <img id="mockupCoverImg" src="{{ $currCoverUrl }}" 
-                         alt="Cover Mockup" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
-                    <div id="mockupCoverPlaceholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 text-muted {{ !empty($currCoverUrl) ? 'd-none' : '' }}" style="background: #f1f5f9;">
-                        <i class="fa-solid fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
-                        <span class="small fw-semibold" style="font-size: 11px;">কভার প্রিভিউ</span>
+            {{-- Realistic 3D Mockup Preview --}}
+            <div class="p-3 bg-light bg-opacity-75 rounded-3 border border-light-subtle text-center mb-3">
+                <div class="book-mockup-3d-wrap mb-2">
+                    <div class="book-mockup-3d position-relative mx-auto">
+                        @php
+                            $currCoverUrl = ($editing && !empty($record->cover_image))
+                                ? (str_starts_with($record->cover_image, 'http') ? $record->cover_image : asset('storage/' . ltrim($record->cover_image, '/')))
+                                : '';
+                        @endphp
+                        <img id="mockupCoverImg" src="{{ $currCoverUrl }}" 
+                             alt="Cover Mockup" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
+                        <div id="mockupCoverPlaceholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 text-muted {{ !empty($currCoverUrl) ? 'd-none' : '' }}" style="background: #f1f5f9;">
+                            <i class="fa-solid fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
+                            <span class="small fw-semibold" style="font-size: 11px;">Cover Preview</span>
+                        </div>
+                        <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 10px;">
+                            -0%
+                        </span>
                     </div>
-                    <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 10px;">
-                        -0%
-                    </span>
                 </div>
-                <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.9rem;">
+                <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
                     {{ $editing ? ($record->title ?? 'Book Title') : 'Book Title' }}
                 </div>
-                <div id="mockupAuthor" class="small text-muted mb-1 text-truncate" style="font-size: 0.78rem;">
+                <div id="mockupAuthor" class="small text-muted mb-1 text-truncate" style="font-size: 0.8rem;">
                     {{ $editing ? ($record->author_name ?? 'Author Name') : 'Author Name' }}
                 </div>
                 <div class="d-flex align-items-center justify-content-center gap-1.5">
-                    <span id="mockupFinalPrice" class="fw-bold text-primary small">৳0</span>
+                    <span id="mockupFinalPrice" class="fw-bold text-primary small">৳0.00</span>
                 </div>
             </div>
 
@@ -904,10 +1647,10 @@
             <div class="p-2.5 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 mb-2.5">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-dark d-flex align-items-center gap-1" style="font-size: 12px;">
-                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> অটোজেনারেট প্রচ্ছদ
+                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Instant Auto Cover Studio
                     </span>
                     <span class="badge bg-white text-primary border border-primary-subtle py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 10px;">
-                        ১-ক্লিকে তৈরি
+                        1-Click Generator
                     </span>
                 </div>
 
@@ -915,32 +1658,32 @@
                     <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1.5 shadow-xs" 
                             onclick="magicAutoGenerateCover()" style="font-size: 12px;">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>✦ অটোজেনারেট প্রচ্ছদ</span>
+                        <span>✦ Generate Auto Cover</span>
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-2.5 d-flex align-items-center justify-content-center shadow-xs" 
-                            onclick="generateAutoBookCoverLive()" title="রিফ্রেশ করুন" style="font-size: 12px;">
+                            onclick="generateAutoBookCoverLive(true)" title="Regenerate Cover" style="font-size: 12px;">
                         <i class="fa-solid fa-rotate"></i>
                     </button>
                 </div>
 
-                {{-- Quick Theme Swatches (1-click color palette pickers) --}}
+                {{-- Quick Theme Swatches --}}
                 <div class="d-flex align-items-center justify-content-between px-1">
-                    <span class="text-muted fw-semibold" style="font-size: 10.5px;">থিম কালার:</span>
+                    <span class="text-muted fw-semibold" style="font-size: 10.5px;">Theme:</span>
                     <div class="d-flex align-items-center gap-1.5" id="autoCoverThemeSwatches">
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn active" 
-                                style="width: 22px; height: 22px; background: #0f172a;" title="রয়্যাল নেভি" onclick="applyAutoCoverTheme('royal_blue')"></button>
+                                style="width: 22px; height: 22px; background: #0f172a;" title="Royal Navy" onclick="applyAutoCoverTheme('royal_blue')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #064e3b;" title="ডিপ এমারেল্ড" onclick="applyAutoCoverTheme('deep_emerald')"></button>
+                                style="width: 22px; height: 22px; background: #064e3b;" title="Deep Emerald" onclick="applyAutoCoverTheme('deep_emerald')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #450a0a;" title="ডিপ মেরুন" onclick="applyAutoCoverTheme('crimson_ruby')"></button>
+                                style="width: 22px; height: 22px; background: #450a0a;" title="Deep Maroon" onclick="applyAutoCoverTheme('crimson_ruby')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #2e1065;" title="রয়্যাল প্লাম" onclick="applyAutoCoverTheme('regal_purple')"></button>
+                                style="width: 22px; height: 22px; background: #2e1065;" title="Regal Plum" onclick="applyAutoCoverTheme('regal_purple')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #18181b;" title="মিডনাইট চারকোল" onclick="applyAutoCoverTheme('midnight_slate')"></button>
+                                style="width: 22px; height: 22px; background: #18181b;" title="Midnight Charcoal" onclick="applyAutoCoverTheme('midnight_slate')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #3b1d11;" title="চকলেট ব্রাউন" onclick="applyAutoCoverTheme('warm_brown')"></button>
+                                style="width: 22px; height: 22px; background: #3b1d11;" title="Warm Brown" onclick="applyAutoCoverTheme('warm_brown')"></button>
                         <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #042f2e;" title="ডার্ক টিল" onclick="applyAutoCoverTheme('dark_teal')"></button>
+                                style="width: 22px; height: 22px; background: #042f2e;" title="Dark Teal" onclick="applyAutoCoverTheme('dark_teal')"></button>
                     </div>
                 </div>
                 <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
@@ -949,7 +1692,7 @@
 
             <div class="text-center my-1.5 position-relative">
                 <hr class="my-0 text-muted opacity-25">
-                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">অথবা ফাইল আপলোড করুন</span>
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">OR UPLOAD CUSTOM FILE</span>
             </div>
 
             {{-- Upload Dropzone --}}
@@ -960,9 +1703,9 @@
                 <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
-                <div class="adm-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up text-primary fs-4"></i></div>
-                <div class="fw-bold text-dark small">কভার ফাইল আপলোড করুন</div>
-                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP, AVIF (Max. 10MB)</div>
+                <div class="adm-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up text-primary fs-3"></i></div>
+                <div class="fw-bold text-dark small mt-1">Upload Book Cover Image</div>
+                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP, AVIF (Max 10MB)</div>
             </div>
 
             {{-- Cover Upload Status --}}
@@ -972,13 +1715,13 @@
                     <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                         <div class="d-flex align-items-center gap-1 mb-0.5">
                             <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: 9.5px;">
-                                <i class="fa-solid fa-check me-0.5"></i> প্রস্তুত (.avif এ কনভার্ট হবে)
+                                <i class="fa-solid fa-check me-0.5"></i> Ready (.AVIF)
                             </span>
                             <span id="preview-filesize-cover_image" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                         </div>
                         <div id="preview-filename-cover_image" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove Cover">
+                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove cover">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
@@ -987,16 +1730,16 @@
         </div>
 
         {{-- 3. LOOK INSIDE PREVIEW --}}
-        <div class="adm-card p-3 mb-3 border-start border-4 border-info">
-            <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                <span class="fw-bold text-dark small"><i class="fa-solid fa-book-open text-info me-1.5"></i> Look Inside Preview</span>
-                <span class="badge bg-info-subtle text-info small">Sample</span>
+        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-info shadow-xs">
+            <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-book-open text-info me-1.5"></i> 3. Look Inside & Sample Reading</span>
+                <span class="badge bg-info-subtle text-info small">Sample Pages</span>
             </div>
 
             {{-- Format Selector --}}
             <div class="mb-2.5">
-                <label for="f-look_inside_type" class="form-label small fw-bold text-dark mb-1">
-                    Preview Format
+                <label for="f-look_inside_type" class="a4-field-label mb-1">
+                    <span>Sample Format</span>
                 </label>
                 <select id="f-look_inside_type" name="look_inside_type" class="form-select form-select-sm" onchange="toggleLookInsideFormat(this.value)">
                     <option value="pdf" @selected(old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'pdf')>PDF Document</option>
@@ -1013,9 +1756,9 @@
                     <input type="file" id="f-sample_pdf_path" name="sample_pdf_path" accept="application/pdf"
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
-                    <div class="adm-dropzone__icon"><i class="fa-solid fa-file-pdf text-danger fs-4"></i></div>
-                    <div class="fw-bold text-dark small">Upload Sample PDF</div>
-                    <div class="text-muted small" style="font-size: 11px;">PDF Format (Max. 10MB)</div>
+                    <div class="adm-dropzone__icon"><i class="fa-solid fa-file-pdf text-danger fs-3"></i></div>
+                    <div class="fw-bold text-dark small mt-1">Upload Sample PDF</div>
+                    <div class="text-muted small" style="font-size: 11px;">PDF Format (Max 10MB)</div>
                 </div>
 
                 {{-- PDF Upload Report --}}
@@ -1047,14 +1790,14 @@
                     <input type="file" id="f-look_inside_images" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
-                    <div class="adm-dropzone__icon"><i class="fa-solid fa-images text-info fs-4"></i></div>
-                    <div class="fw-bold text-dark small">Upload Page Images</div>
-                    <div class="text-muted small" style="font-size: 11px;">Select multiple images in order</div>
+                    <div class="adm-dropzone__icon"><i class="fa-solid fa-images text-info fs-3"></i></div>
+                    <div class="fw-bold text-dark small mt-1">Upload Sample Page Images</div>
+                    <div class="text-muted small" style="font-size: 11px;">Select multiple page images in reading order</div>
                 </div>
 
                 <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold text-dark"><i class="fa-solid fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> pages ready</span>
+                        <span class="small fw-bold text-dark"><i class="fa-solid fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> Pages Ready</span>
                         <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
                             <i class="fa-solid fa-trash-can me-1"></i> Clear All
                         </button>
@@ -1064,37 +1807,61 @@
             </div>
         </div>
 
-        {{-- 4. MODERATION & URL --}}
-        <div class="adm-card p-3 mb-3">
-            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fa-solid fa-circle-check me-1 text-muted"></i> Visibility & Status</h2>
+        {{-- 4. MODERATION & VISIBILITY --}}
+        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-secondary shadow-xs">
+            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fa-solid fa-circle-check me-1 text-muted"></i> 4. Visibility & Publishing Status</h2>
             <div class="mb-2.5 p-2 bg-success-subtle rounded-3 border border-success-subtle">
                 <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="f-is_active" name="is_active" value="1" 
                            @checked(old('is_active', $record->is_active ?? true))>
                     <label class="form-check-label small fw-bold text-success" for="f-is_active">
-                        <i class="fa-solid fa-signal me-1"></i> Live on Website
+                        <i class="fa-solid fa-signal me-1"></i> Live on Website (Publicly Visible)
                     </label>
                 </div>
             </div>
             <div class="mb-2.5">
-                <label for="f-mod_status" class="form-label small fw-semibold mb-1">Moderation Status</label>
+                <label for="f-mod_status" class="a4-field-label mb-1">
+                    <span>Moderation Status</span>
+                </label>
                 <select id="f-mod_status" name="mod_status" class="form-select form-select-sm">
-                    @foreach (['approved' => 'Approved (Live)', 'pending' => 'Pending (Under Review)', 'rejected' => 'Rejected'] as $value => $text)
+                    @foreach (['approved' => 'Approved / Live', 'pending' => 'Pending Review', 'rejected' => 'Rejected'] as $value => $text)
                         <option value="{{ $value }}" @selected($val('mod_status', 'approved') === $value)>{{ $text }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
-                <label for="f-slug" class="form-label small fw-semibold mb-1">Custom Slug (URL)</label>
-                <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}" placeholder="Auto-generated if empty" class="form-control form-control-sm">
+                <label for="f-slug" class="a4-field-label mb-1">
+                    <span>Custom URL Slug</span>
+                </label>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}" placeholder="Leave blank to auto-generate" class="form-control form-control-sm">
+                    <button type="button" class="btn btn-outline-secondary" onclick="autoGenerateSlugFromTitle()" title="Generate slug from title">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 
+{{-- MOBILE STICKY ACTION BAR (< 992px) --}}
+<div class="adm-mobile-sticky-bar d-lg-none">
+    <div class="d-flex align-items-center justify-content-between gap-2">
+        <a href="{{ route($spec['listRoute']) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            Cancel
+        </a>
+        <button type="submit" form="contentMainForm" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-1.5 flex-grow-1 justify-content-center">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>{{ $editing ? 'Save Changes' : 'Publish Book' }}</span>
+        </button>
+    </div>
+</div>
+
+{{-- ROBUST JAVASCRIPT LOGIC & DEDICATED FORM HANDLERS --}}
 <script>
 (function() {
+    'use strict';
+
     let currentThemeKey = 'royal_blue';
     const isEditingBook = {{ $editing ? 'true' : 'false' }};
     const hasInitialCover = {{ ($editing && !empty($record->cover_image)) ? 'true' : 'false' }};
@@ -1108,9 +1875,916 @@
         midnight_slate: { bg: '#18181b', title: '#ffffff', author: '#e2e8f0', accent: '#cbd5e1', font: 'Hind Siliguri' },
         warm_brown: { bg: '#3b1d11', title: '#ffffff', author: '#fde047', accent: '#f59e0b', font: 'Tiro Bangla' },
         dark_teal: { bg: '#042f2e', title: '#ffffff', author: '#a7f3d0', accent: '#2dd4bf', font: 'SolaimanLipi' }
+    };    // ══════════════════════════════════════════════════════════════════════════
+    // 1. CONTRIBUTOR STUDIO (AUTHOR, TRANSLATOR, EDITOR, ADAPTER, COVER ARTIST)
+    // ══════════════════════════════════════════════════════════════════════════
+    function getAuthorDirectoryOptionsHtml() {
+        const authorDetails = @json($lookups['authors_details'] ?? []);
+        let optionsHtml = '<option value="">— Directory —</option>';
+        for (const [aId, aDet] of Object.entries(authorDetails)) {
+            optionsHtml += `<option value="${aId}" data-name-bn="${aDet.name_bn || aDet.name}" data-name-en="${aDet.name_en || ''}">${aDet.name}</option>`;
+        }
+        return optionsHtml;
+    }
+
+    window.addAuthorField = function() {
+        const tbody = document.getElementById('authorshipCreditsTableBody');
+        if (!tbody) return;
+        const optionsHtml = getAuthorDirectoryOptionsHtml();
+        const tr = document.createElement('tr');
+        tr.className = 'author-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="contributor-col-role ps-3 align-middle">
+                <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-pen-nib me-1"></i>Author
+                </span>
+            </td>
+            <td class="contributor-col-dir align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                <select name="author_ids[]" class="form-select form-select-sm contributor-select author-directory-select" onchange="onAuthorSelectRowChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="contributor-col-bn align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input" 
+                       placeholder="" oninput="onAuthorNameTyped(this)">
+            </td>
+            <td class="contributor-col-en align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
+                       placeholder="" oninput="onAuthorNameTyped(this)">
+            </td>
+            <td class="contributor-col-action text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove contributor">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateContributorSummary();
+        tr.querySelector('.author-name-input')?.focus();
     };
 
-    function applyAutoCoverTheme(key) {
+    window.addTranslatorField = function() {
+        const tbody = document.getElementById('authorshipCreditsTableBody');
+        if (!tbody) return;
+        const optionsHtml = getAuthorDirectoryOptionsHtml();
+        const tr = document.createElement('tr');
+        tr.className = 'translator-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="contributor-col-role ps-3 align-middle">
+                <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-language me-1"></i>Translator
+                </span>
+            </td>
+            <td class="contributor-col-dir align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="contributor-col-bn align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <input type="text" name="translator_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-en align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-action text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+    };
+
+    window.addEditorField = function() {
+        const tbody = document.getElementById('authorshipCreditsTableBody');
+        if (!tbody) return;
+        const optionsHtml = getAuthorDirectoryOptionsHtml();
+        const tr = document.createElement('tr');
+        tr.className = 'editor-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="contributor-col-role ps-3 align-middle">
+                <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-user-pen me-1"></i>Editor
+                </span>
+            </td>
+            <td class="contributor-col-dir align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="contributor-col-bn align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <input type="text" name="editor_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-en align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-action text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+    };
+
+    window.addRewriterField = function() {
+        const tbody = document.getElementById('authorshipCreditsTableBody');
+        if (!tbody) return;
+        const optionsHtml = getAuthorDirectoryOptionsHtml();
+        const tr = document.createElement('tr');
+        tr.className = 'rewriter-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="contributor-col-role ps-3 align-middle">
+                <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-pen-fancy me-1"></i>Adapter
+                </span>
+            </td>
+            <td class="contributor-col-dir align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="contributor-col-bn align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <input type="text" name="rewriter_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-en align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-action text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+    };
+
+    window.addCoverArtistField = function() {
+        const tbody = document.getElementById('authorshipCreditsTableBody');
+        if (!tbody) return;
+        const optionsHtml = getAuthorDirectoryOptionsHtml();
+        const tr = document.createElement('tr');
+        tr.className = 'cover-artist-field-row contributor-matrix-row';
+        tr.innerHTML = `
+            <td class="contributor-col-role ps-3 align-middle">
+                <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
+                    <i class="fa-solid fa-palette me-1"></i>Cover Artist
+                </span>
+            </td>
+            <td class="contributor-col-dir align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                <select class="form-select form-select-sm contributor-select author-directory-select" onchange="onGenericContributorSelectChange(this)">
+                    ${optionsHtml}
+                </select>
+            </td>
+            <td class="contributor-col-bn align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <input type="text" name="cover_artists[]" class="form-control form-control-sm contributor-input contributor-name-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-en align-middle">
+                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
+                       placeholder="" oninput="updateContributorSummary()">
+            </td>
+            <td class="contributor-col-action text-center align-middle pe-3">
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        updateContributorSummary();
+        tr.querySelector('.contributor-name-input')?.focus();
+    };
+
+    window.removeRepeaterRow = function(btn) {
+        const row = btn.closest('tr') || btn.closest('.contributor-matrix-row') || btn.closest('.author-field-row');
+        if (row) {
+            row.remove();
+        }
+        updateContributorSummary();
+        updateLiveMockupCard();
+        if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+    };
+
+    window.onAuthorSelectRowChange = function(select) {
+        const row = select.closest('.author-field-row') || select.closest('tr');
+        if (!row) return;
+        const nameInp = row.querySelector('.author-name-input');
+        const nameEnInp = row.querySelector('.author-name-en-input');
+        if (select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            if (nameInp) nameInp.value = opt.dataset.nameBn || opt.text.trim();
+            if (nameEnInp) nameEnInp.value = opt.dataset.nameEn || '';
+        }
+        updateContributorSummary();
+        updateLiveMockupCard();
+        if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+    };
+
+    window.onGenericContributorSelectChange = function(select) {
+        const row = select.closest('tr') || select.closest('.contributor-matrix-row');
+        if (!row) return;
+        const nameInp = row.querySelector('.contributor-name-input') || row.querySelector('input[type="text"]');
+        const nameEnInp = row.querySelector('.contributor-name-en-input');
+        if (select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            if (nameInp) nameInp.value = opt.dataset.nameBn || opt.text.trim();
+            if (nameEnInp) nameEnInp.value = opt.dataset.nameEn || '';
+        }
+        updateContributorSummary();
+    };
+
+    window.onAuthorNameTyped = function(input) {
+        const row = input.closest('.author-field-row') || input.closest('tr');
+        if (row) {
+            const select = row.querySelector('.author-directory-select');
+            if (select && select.selectedIndex > 0) {
+                const opt = select.options[select.selectedIndex];
+                const typedBn = (row.querySelector('.author-name-input')?.value || '').trim();
+                const typedEn = (row.querySelector('.author-name-en-input')?.value || '').trim();
+                const optBn = (opt.dataset.nameBn || opt.text || '').trim();
+                const optEn = (opt.dataset.nameEn || '').trim();
+                if (typedBn !== optBn && typedEn !== optEn) {
+                    select.value = '';
+                }
+            }
+        }
+        updateContributorSummary();
+        updateLiveMockupCard();
+        if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+    };
+
+    function updateContributorSummary() {
+        const authorInputs = document.querySelectorAll('input[name="author_names[]"]');
+        const translatorInputs = document.querySelectorAll('input[name="translator_names[]"]');
+        const editorInputs = document.querySelectorAll('input[name="editor_names[]"]');
+        const rewriterInputs = document.querySelectorAll('input[name="rewriter_names[]"]');
+        const coverInputs = document.querySelectorAll('input[name="cover_artists[]"]');
+
+        const authors = Array.from(authorInputs).map(i => i.value.trim()).filter(Boolean);
+        const translators = Array.from(translatorInputs).map(i => i.value.trim()).filter(Boolean);
+        const editors = Array.from(editorInputs).map(i => i.value.trim()).filter(Boolean);
+        const rewriters = Array.from(rewriterInputs).map(i => i.value.trim()).filter(Boolean);
+        const covers = Array.from(coverInputs).map(i => i.value.trim()).filter(Boolean);
+
+        const totalCount = authors.length + translators.length + editors.length + rewriters.length + covers.length;
+        const countBadge = document.getElementById('contributorLiveCountBadge');
+        if (countBadge) {
+            if (totalCount === 0) {
+                countBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-pen-nib me-1"></i>Primary Author Needed</span>';
+            } else if (totalCount === 1) {
+                countBadge.innerHTML = '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-circle-check me-1"></i>1 Contributor</span>';
+            } else {
+                countBadge.innerHTML = `<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-users me-1"></i>${totalCount} Contributors</span>`;
+            }
+        }
+
+        const bylineParts = [];
+        if (authors.length) bylineParts.push('Author: ' + authors.join(', '));
+        if (translators.length) bylineParts.push('Translator: ' + translators.join(', '));
+        if (editors.length) bylineParts.push('Editor: ' + editors.join(', '));
+        if (rewriters.length) bylineParts.push('Adapter: ' + rewriters.join(', '));
+        if (covers.length) bylineParts.push('Cover: ' + covers.join(', '));
+
+        const bylineText = bylineParts.length ? bylineParts.join(' • ') : 'আইডিয়া প্রকাশন';
+        const bylineEl = document.getElementById('liveContributorBylineText');
+        if (bylineEl) {
+            bylineEl.textContent = bylineText;
+        }
+
+        const mockupAuthor = document.getElementById('mockupAuthor');
+        if (mockupAuthor) {
+            mockupAuthor.textContent = authors.length ? authors.join(', ') : 'Author Name';
+        }
+    }
+    window.updateContributorSummary = updateContributorSummary;
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 2. DUAL PRICING MATRIX HANDLERS & REAL-TIME MARGINS
+    // ══════════════════════════════════════════════════════════════════════════
+    window.onCoverTypeDropdownChange = function(binding) {
+        const pbPanel = document.getElementById('paperbackPricingPanel');
+        const hcPanel = document.getElementById('hardcoverPricingPanel');
+        const badge = document.getElementById('pricingBindingBadge');
+
+        if (binding === 'hardcover') {
+            if (pbPanel) pbPanel.classList.add('d-none');
+            if (hcPanel) hcPanel.classList.remove('d-none');
+            if (badge) badge.textContent = 'Hardcover Mode';
+        } else if (binding === 'both') {
+            if (pbPanel) pbPanel.classList.remove('d-none');
+            if (hcPanel) hcPanel.classList.remove('d-none');
+            if (badge) badge.textContent = 'Dual Mode (Hard & Paperback)';
+        } else {
+            if (pbPanel) pbPanel.classList.remove('d-none');
+            if (hcPanel) hcPanel.classList.add('d-none');
+            if (badge) badge.textContent = 'Paperback Mode';
+        }
+        updateLiveMockupCard();
+    };
+
+    window.applyPaperbackQuickDiscount = function(pct) {
+        const soldInput = document.getElementById('f-sold_percent');
+        if (soldInput) {
+            soldInput.value = pct;
+            onPaperbackSoldPercentChange();
+        }
+    };
+
+    window.applyHardcoverQuickDiscount = function(pct) {
+        const soldInput = document.getElementById('f-hardcover_sold_percent');
+        if (soldInput) {
+            soldInput.value = pct;
+            onHardcoverSoldPercentChange();
+        }
+    };
+
+    window.onPaperbackPriceChange = function() {
+        const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+        const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+        const costInput = document.getElementById('f-cost_price');
+
+        if (price > 0 && pDiscPct > 0 && pDiscPct <= 100) {
+            const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+            if (costInput) costInput.value = costVal;
+        }
+        updatePaperbackCalculations();
+        updateLiveMockupCard();
+    };
+
+    window.onPaperbackPurchaseDiscountChange = function() {
+        const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+        const pDiscPct = parseFloat(document.getElementById('f-purchase_discount_percent')?.value) || 0;
+        const costInput = document.getElementById('f-cost_price');
+
+        if (price > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
+            const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+            if (costInput) costInput.value = costVal;
+        }
+        updatePaperbackCalculations();
+    };
+
+    window.onPaperbackCostChange = function() {
+        const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+        const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+        const pDiscInput = document.getElementById('f-purchase_discount_percent');
+
+        if (price > 0 && cost > 0 && cost < price) {
+            const pct = Math.round(((price - cost) / price) * 100);
+            if (pDiscInput) pDiscInput.value = pct;
+        }
+        updatePaperbackCalculations();
+    };
+
+    window.onPaperbackSoldPercentChange = function() {
+        updatePaperbackCalculations();
+        updateLiveMockupCard();
+    };
+
+    window.updatePaperbackCalculations = function() {
+        const price = parseFloat(document.getElementById('f-price')?.value) || 0;
+        const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
+        const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
+
+        const offerEl = document.getElementById('liveCalculatedOfferPrice');
+        const profitEl = document.getElementById('liveCalculatedProfit');
+        const savingsEl = document.getElementById('livePaperbackSavings');
+        const discHidden = document.getElementById('f-discount_price');
+
+        let offerPrice = price;
+        if (price > 0 && soldPct > 0 && soldPct <= 100) {
+            offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
+        }
+        if (discHidden) {
+            discHidden.value = (offerPrice < price) ? offerPrice : '';
+        }
+
+        if (offerEl) {
+            offerEl.textContent = '৳' + offerPrice.toFixed(2);
+        }
+
+        if (savingsEl) {
+            if (price > 0 && soldPct > 0) {
+                const savings = Math.round((price - offerPrice) * 100) / 100;
+                savingsEl.textContent = `৳${savings.toFixed(2)} (${soldPct}%)`;
+            } else {
+                savingsEl.textContent = '৳0.00';
+            }
+        }
+
+        if (profitEl) {
+            if (offerPrice > 0 && cost > 0) {
+                const profit = offerPrice - cost;
+                const margin = Math.round((profit / offerPrice) * 1000) / 10;
+                if (profit >= 0) {
+                    profitEl.className = 'badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1';
+                    profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
+                } else {
+                    profitEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle fw-bold ms-1';
+                    profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
+                }
+            } else {
+                profitEl.className = 'badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1';
+                profitEl.textContent = '৳0.00 (0%)';
+            }
+        }
+    };
+
+    window.onHardcoverPriceChange = function() {
+        const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+        const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+        const costInput = document.getElementById('f-hardcover_cost_price');
+
+        if (price > 0 && pDiscPct > 0 && pDiscPct <= 100) {
+            const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+            if (costInput) costInput.value = costVal;
+        }
+        updateHardcoverCalculations();
+        updateLiveMockupCard();
+    };
+
+    window.onHardcoverPurchaseDiscountChange = function() {
+        const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+        const pDiscPct = parseFloat(document.getElementById('f-hardcover_purchase_discount_percent')?.value) || 0;
+        const costInput = document.getElementById('f-hardcover_cost_price');
+
+        if (price > 0 && pDiscPct >= 0 && pDiscPct <= 100) {
+            const costVal = Math.round(price * (1 - pDiscPct / 100) * 100) / 100;
+            if (costInput) costInput.value = costVal;
+        }
+        updateHardcoverCalculations();
+    };
+
+    window.onHardcoverCostChange = function() {
+        const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+        const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+        const pDiscInput = document.getElementById('f-hardcover_purchase_discount_percent');
+
+        if (price > 0 && cost > 0 && cost < price) {
+            const pct = Math.round(((price - cost) / price) * 100);
+            if (pDiscInput) pDiscInput.value = pct;
+        }
+        updateHardcoverCalculations();
+    };
+
+    window.onHardcoverSoldPercentChange = function() {
+        updateHardcoverCalculations();
+        updateLiveMockupCard();
+    };
+
+    window.updateHardcoverCalculations = function() {
+        const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+        const soldPct = parseFloat(document.getElementById('f-hardcover_sold_percent')?.value) || 0;
+        const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
+
+        const offerEl = document.getElementById('liveHardcoverOfferPrice');
+        const profitEl = document.getElementById('liveHardcoverProfit');
+        const discHidden = document.getElementById('f-hardcover_discount_price');
+
+        let offerPrice = price;
+        if (price > 0 && soldPct > 0 && soldPct <= 100) {
+            offerPrice = Math.round(price * (1 - soldPct / 100) * 100) / 100;
+        }
+        if (discHidden) {
+            discHidden.value = (offerPrice < price) ? offerPrice : '';
+        }
+
+        if (offerEl) {
+            offerEl.textContent = '৳' + offerPrice.toFixed(2);
+        }
+
+        if (profitEl) {
+            if (offerPrice > 0 && cost > 0) {
+                const profit = offerPrice - cost;
+                const margin = Math.round((profit / offerPrice) * 1000) / 10;
+                if (profit >= 0) {
+                    profitEl.className = 'badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1';
+                    profitEl.textContent = `৳${profit.toFixed(2)} (${margin}%)`;
+                } else {
+                    profitEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle fw-bold ms-1';
+                    profitEl.textContent = `Loss ৳${Math.abs(profit).toFixed(2)} (${margin}%)`;
+                }
+            } else {
+                profitEl.className = 'badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1';
+                profitEl.textContent = '৳0.00 (0%)';
+            }
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 3. IDENTIFIERS, DIMENSIONS & BARCODE ENGINE
+    // ══════════════════════════════════════════════════════════════════════════
+    window.syncBookSizeCombined = function() {
+        const h = document.getElementById('f-book_height_cm')?.value || '';
+        const w = document.getElementById('f-book_width_cm')?.value || '';
+        const hidden = document.getElementById('f-book_size');
+        if (hidden) {
+            hidden.value = (h && w) ? `${h} x ${w} cm` : (h ? `${h} cm` : (w ? `${w} cm` : ''));
+        }
+    };
+
+    window.syncCategorySelects = function(val) {
+        const catMain = document.getElementById('f-category_id');
+        const catSide = document.getElementById('f-category_id_sidebar');
+        if (catMain && catMain.value !== val) catMain.value = val;
+        if (catSide && catSide.value !== val) catSide.value = val;
+    };
+
+    window.toggleAdminPreOrderFields = function(stockStatus) {
+        const container = document.getElementById('adminPreOrderContainer');
+        if (!container) return;
+        if (stockStatus === 'pre_order') {
+            container.classList.remove('d-none');
+        } else {
+            container.classList.add('d-none');
+        }
+    };
+
+    window.handlePublisherChange = function(pubId) {
+        const isIdea = !pubId || pubId == '2';
+        const ideaInput = document.getElementById('f-idea_serial_no');
+        if (isIdea && ideaInput && !ideaInput.value) {
+            generateAutoIdeaSerialForForm();
+        }
+    };
+
+    window.generateAutoIdeaSerialForForm = function() {
+        const input = document.getElementById('f-idea_serial_no');
+        const pubSelect = document.getElementById('f-publisher_id');
+        const pubId = pubSelect ? (pubSelect.value || 2) : 2;
+        fetch(`{{ route("admin.books.generate-serial") }}?publisher_id=${pubId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.serial) {
+                    if (input) {
+                        input.value = data.serial;
+                        updateLiveBarcodePreview(data.serial);
+                    }
+                }
+            })
+            .catch(() => {
+                if (input && !input.value) {
+                    input.value = 'IP001';
+                    updateLiveBarcodePreview('IP001');
+                }
+            });
+    };
+
+    window.generateAutoGeneralSkuForForm = function() {
+        const skuInput = document.getElementById('f-sku');
+        fetch('{{ route("admin.books.generate-serial") }}?type=general')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.serial) {
+                    if (skuInput) {
+                        skuInput.value = data.general_sku || data.serial;
+                    }
+                }
+            })
+            .catch(() => {
+                if (skuInput && !skuInput.value) {
+                    skuInput.value = 'BK-' + Date.now().toString().slice(-5);
+                }
+            });
+    };
+
+    window.updateLiveBarcodePreview = function(code) {
+        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
+        const sku = document.getElementById('f-sku')?.value;
+        const cleanCode = (code || ideaSerial || sku || 'IP001').trim();
+        const label = document.getElementById('qrCodeLabel');
+        if (label) {
+            label.textContent = cleanCode;
+        }
+
+        const container = document.getElementById('barcodeSvgContainer');
+        if (!container) return;
+
+        let bars = '';
+        let x = 20;
+        for (let i = 0; i < cleanCode.length; i++) {
+            const charCode = cleanCode.charCodeAt(i);
+            const w1 = ((charCode % 3) + 1.2) * 1.5;
+            const w2 = (((charCode >> 1) % 3) + 1) * 1.5;
+            bars += `<rect x="${x}" y="4" width="${w1.toFixed(1)}" height="42" fill="#0f172a" />`;
+            x += w1 + ((charCode % 2) + 1.2) * 1.5;
+            bars += `<rect x="${x}" y="4" width="${w2.toFixed(1)}" height="42" fill="#0f172a" />`;
+            x += w2 + 2;
+        }
+        
+        container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Math.max(x + 20, 180)} 62" width="100%" height="100%" style="background:#ffffff; border-radius:4px; max-width:240px; display:inline-block; vertical-align:middle;">
+            ${bars}
+            <text x="50%" y="58" text-anchor="middle" font-family="Consolas, Monaco, monospace" font-size="11" font-weight="700" fill="#0f172a" letter-spacing="1">${cleanCode}</text>
+        </svg>`;
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 4. SUMMARY WORD COUNTER & SLUG AUTO-GENERATION
+    // ══════════════════════════════════════════════════════════════════════════
+    window.updateGenericWordCount = function(textarea, maxWords, countId, badgeId, barId, warnId) {
+        if (!textarea) return;
+        const text = textarea.value.trim();
+        const wordCount = text ? text.split(/\s+/).length : 0;
+        const countEl = document.getElementById(countId);
+        const badgeEl = document.getElementById(badgeId);
+        const barEl = document.getElementById(barId);
+        const warnEl = document.getElementById(warnId);
+
+        if (countEl) countEl.textContent = wordCount;
+
+        const pct = Math.min(100, Math.round((wordCount / maxWords) * 100));
+        if (barEl) {
+            barEl.style.width = pct + '%';
+            barEl.style.backgroundColor = wordCount > maxWords ? '#ef4444' : (pct > 80 ? '#eab308' : '#22c55e');
+        }
+
+        if (badgeEl) {
+            badgeEl.className = 'word-counter-badge ' + (wordCount > maxWords ? 'danger' : (pct > 80 ? 'warning' : 'safe'));
+        }
+
+        if (warnEl) {
+            if (wordCount > maxWords) {
+                warnEl.textContent = `Limit exceeded by ${wordCount - maxWords} words!`;
+                warnEl.classList.remove('d-none');
+            } else {
+                warnEl.classList.add('d-none');
+            }
+        }
+    };
+
+    window.autoGenerateSlugFromTitle = function() {
+        const titleBn = document.getElementById('f-title')?.value || '';
+        const titleEn = document.getElementById('f-title_en')?.value || '';
+        const sourceText = titleEn.trim() || titleBn.trim();
+        const slugInp = document.getElementById('f-slug');
+        if (!sourceText || !slugInp) return;
+
+        let cleanSlug = sourceText
+            .toLowerCase()
+            .replace(/[^\w\s\u0980-\u09FF-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-');
+        slugInp.value = cleanSlug;
+    };
+
+    // Boimela toggle helpers
+    window.toggleAdminCustomBoimela = function() {
+        const select = document.getElementById('f-ekushey_category_select');
+        const customWrap = document.getElementById('adminCustomBoimelaWrapper');
+        const customInp = document.getElementById('f-ekushey_category_custom');
+        if (select && customWrap) {
+            select.classList.add('d-none');
+            customWrap.classList.remove('d-none');
+            if (customInp) customInp.focus();
+        }
+    };
+
+    window.resetAdminBoimelaToSelect = function() {
+        const select = document.getElementById('f-ekushey_category_select');
+        const customWrap = document.getElementById('adminCustomBoimelaWrapper');
+        const hiddenInp = document.getElementById('f-ekushey_category');
+        if (select && customWrap) {
+            select.classList.remove('d-none');
+            customWrap.classList.add('d-none');
+            select.value = '';
+            if (hiddenInp) hiddenInp.value = '';
+        }
+    };
+
+    window.handleAdminBoimelaSelect = function(val) {
+        if (val === '__custom__') {
+            toggleAdminCustomBoimela();
+            return;
+        }
+        const hiddenInp = document.getElementById('f-ekushey_category');
+        if (hiddenInp) hiddenInp.value = val;
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 5. LOOK INSIDE FORMAT TOGGLE & FILE UPLOADS
+    // ══════════════════════════════════════════════════════════════════════════
+    window.toggleLookInsideFormat = function(type) {
+        const pdfPanel = document.getElementById('lookInsidePdfPanel');
+        const imagesPanel = document.getElementById('lookInsideImagesPanel');
+        if (pdfPanel && imagesPanel) {
+            if (type === 'images') {
+                pdfPanel.classList.add('d-none');
+                imagesPanel.classList.remove('d-none');
+            } else {
+                pdfPanel.classList.remove('d-none');
+                imagesPanel.classList.add('d-none');
+            }
+        }
+    };
+
+    window.previewAdminCoverInput = function(input) {
+        const genInput = document.getElementById('f-generated_cover_data');
+        if (genInput) genInput.value = '';
+        const container = document.getElementById('preview-container-cover_image');
+        const img = document.getElementById('preview-img-cover_image');
+        const filename = document.getElementById('preview-filename-cover_image');
+        const filesize = document.getElementById('preview-filesize-cover_image');
+        const mockupImg = document.getElementById('mockupCoverImg');
+        const mockupPlaceholder = document.getElementById('mockupCoverPlaceholder');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (img) img.src = e.target.result;
+                if (filename) filename.textContent = file.name;
+                if (filesize) filesize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+                if (container) container.classList.remove('d-none');
+                if (mockupImg) {
+                    mockupImg.src = e.target.result;
+                    mockupImg.classList.remove('d-none');
+                }
+                if (mockupPlaceholder) mockupPlaceholder.classList.add('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    window.previewAdminPdfInput = function(input) {
+        const container = document.getElementById('preview-container-sample_pdf_path');
+        const filename = document.getElementById('preview-filename-sample_pdf_path');
+        const filesize = document.getElementById('preview-filesize-sample_pdf_path');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            if (filename) filename.textContent = file.name;
+            if (filesize) filesize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            if (container) container.classList.remove('d-none');
+        }
+    };
+
+    window.previewAdminMultiImages = function(input) {
+        const container = document.getElementById('multiImagesPreviewContainer');
+        const summary = document.getElementById('multiImagesSummaryReport');
+        const countText = document.getElementById('multiImagesCountText');
+        if (!container || !input.files) return;
+        container.innerHTML = '';
+
+        const count = input.files.length;
+        if (count > 0) {
+            if (summary) summary.classList.remove('d-none');
+            if (countText) countText.textContent = count;
+        } else {
+            if (summary) summary.classList.add('d-none');
+        }
+
+        Array.from(input.files).forEach((file, idx) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const badge = document.createElement('div');
+                    badge.className = 'position-relative border rounded-3 p-1 text-center bg-white shadow-xs';
+                    badge.style.width = '74px';
+                    badge.innerHTML = `
+                        <div class="position-relative rounded overflow-hidden" style="height: 64px;">
+                            <img src="${e.target.result}" class="w-100 h-100 object-fit-cover rounded">
+                            <span class="badge bg-dark position-absolute top-0 start-0 m-0.5" style="font-size: 8px;">#${idx + 1}</span>
+                        </div>
+                        <div class="text-dark fw-semibold text-truncate mt-1" style="font-size: 9.5px;" title="${file.name}">Page ${idx + 1}</div>
+                        <div class="text-muted" style="font-size: 8.5px;">${(file.size/1024).toFixed(0)} KB</div>
+                    `;
+                    container.appendChild(badge);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    };
+
+    window.clearAdminMultiImages = function() {
+        const input = document.getElementById('f-look_inside_images');
+        if (input) input.value = '';
+        const container = document.getElementById('multiImagesPreviewContainer');
+        if (container) container.innerHTML = '';
+        const summary = document.getElementById('multiImagesSummaryReport');
+        if (summary) summary.classList.add('d-none');
+    };
+
+    window.clearAdminFileInput = function(inputId, containerId, mockupImgId) {
+        const input = document.getElementById(inputId);
+        if (input) input.value = '';
+        const container = document.getElementById(containerId);
+        if (container) container.classList.add('d-none');
+        if (inputId === 'f-cover_image') {
+            const genInput = document.getElementById('f-generated_cover_data');
+            if (genInput) genInput.value = '';
+            generateAutoBookCoverLive(true);
+        }
+    };
+
+    window.handleDropzoneDragOver = function(e, dropzoneEl) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneEl.classList.add('dragover');
+    };
+
+    window.handleDropzoneDragLeave = function(e, dropzoneEl) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneEl.classList.remove('dragover');
+    };
+
+    window.handleDropzoneDrop = function(e, dropzoneEl, inputId) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzoneEl.classList.remove('dragover');
+        
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const fileInput = document.getElementById(inputId);
+            if (fileInput) {
+                fileInput.files = e.dataTransfer.files;
+                if (inputId === 'f-cover_image') {
+                    previewAdminCoverInput(fileInput);
+                } else if (inputId === 'f-sample_pdf_path') {
+                    previewAdminPdfInput(fileInput);
+                } else if (inputId === 'f-look_inside_images') {
+                    previewAdminMultiImages(fileInput);
+                }
+            }
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 6. LIVE 3D BOOK MOCKUP CARD & INSTANT AUTO COVER STUDIO
+    // ══════════════════════════════════════════════════════════════════════════
+    window.updateLiveMockupCard = function() {
+        const titleEl = document.getElementById('f-title');
+        const titleEnEl = document.getElementById('f-title_en');
+        const mockTitle = document.getElementById('mockupTitle');
+        const mockAuthor = document.getElementById('mockupAuthor');
+        const mockFinal = document.getElementById('mockupFinalPrice');
+        const mockBadge = document.getElementById('mockupDiscountBadge');
+
+        if (mockTitle) {
+            const tVal = (titleEl && titleEl.value.trim()) ? titleEl.value.trim() : (titleEnEl ? titleEnEl.value.trim() : '');
+            mockTitle.textContent = tVal || 'Book Title';
+        }
+
+        const authorInputs = document.querySelectorAll('input[name="author_names[]"]');
+        const authorNames = Array.from(authorInputs).map(i => i.value.trim()).filter(Boolean);
+        if (mockAuthor) {
+            mockAuthor.textContent = authorNames.length ? authorNames.join(', ') : 'Author Name';
+        }
+
+        if (mockFinal) {
+            const coverType = document.getElementById('f-cover_type')?.value || 'hardcover';
+            let price = 0;
+            let discPrice = 0;
+
+            if (coverType === 'hardcover') {
+                price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
+                discPrice = parseFloat(document.getElementById('f-hardcover_discount_price')?.value) || 0;
+            } else {
+                price = parseFloat(document.getElementById('f-price')?.value) || 0;
+                discPrice = parseFloat(document.getElementById('f-discount_price')?.value) || 0;
+            }
+
+            const finalPrice = (discPrice > 0 && discPrice < price) ? discPrice : price;
+            mockFinal.textContent = finalPrice > 0 ? '৳' + finalPrice.toFixed(2) : '৳0.00';
+
+            if (mockBadge) {
+                if (price > 0 && discPrice > 0 && discPrice < price) {
+                    const pct = Math.round(((price - discPrice) / price) * 100);
+                    mockBadge.textContent = `-${pct}%`;
+                    mockBadge.classList.remove('d-none');
+                } else {
+                    mockBadge.classList.add('d-none');
+                }
+            }
+        }
+    };
+
+    window.applyAutoCoverTheme = function(key) {
         if (!presets[key]) key = 'royal_blue';
         currentThemeKey = key;
         userRequestedNewCover = true;
@@ -1130,26 +2804,19 @@
         });
 
         generateAutoBookCoverLive(true);
-    }
+    };
 
-    function magicAutoGenerateCover() {
+    window.magicAutoGenerateCover = function() {
         const keys = Object.keys(presets);
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
         userRequestedNewCover = true;
         applyAutoCoverTheme(randomKey);
-    }
+    };
 
-    function generateAutoBookCoverLive(force = false) {
-        // If an uploaded file is active in dropzone, do not override
+    window.generateAutoBookCoverLive = function(force = false) {
         const fileInput = document.getElementById('f-cover_image');
-        if (fileInput && fileInput.files && fileInput.files.length > 0) {
-            return;
-        }
-
-        // In edit mode with an existing cover, do not overwrite unless user explicitly requested
-        if (hasInitialCover && !userRequestedNewCover && !force) {
-            return;
-        }
+        if (fileInput && fileInput.files && fileInput.files.length > 0) return;
+        if (hasInitialCover && !userRequestedNewCover && !force) return;
 
         const titleInput = document.getElementById('f-title');
         const titleEnInput = document.getElementById('f-title_en');
@@ -1187,7 +2854,7 @@
         canvas.height = 900;
         const ctx = canvas.getContext('2d');
 
-        // 1. Solid Background Gradient
+        // Background
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 600, 900);
 
@@ -1198,7 +2865,7 @@
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 600, 900);
 
-        // 2. Pattern Overlay
+        // Pattern
         ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
         for (let x = 20; x < 600; x += 30) {
             for (let y = 20; y < 900; y += 30) {
@@ -1208,7 +2875,7 @@
             }
         }
 
-        // 3. Ornate Framing
+        // Borders
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
         ctx.lineWidth = 2;
         ctx.strokeRect(25, 25, 550, 850);
@@ -1216,7 +2883,7 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(35, 35, 530, 830);
 
-        // 4. Header Brand Badge
+        // Brand badge
         ctx.fillStyle = accentColor;
         ctx.globalAlpha = 0.2;
         ctx.beginPath();
@@ -1229,7 +2896,7 @@
         ctx.font = 'bold 16px "Inter", sans-serif';
         ctx.fillText('IDEA PUBLICATION', 300, 88);
 
-        // 5. Stylized Central Letter Monogram
+        // Stylized letter monogram
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         ctx.beginPath();
         ctx.arc(300, 260, 80, 0, Math.PI * 2);
@@ -1249,7 +2916,7 @@
         ctx.fillText(firstLetter, 300, 265);
         ctx.textBaseline = 'alphabetic';
 
-        // 6. Title wrap
+        // Title wrapped
         const fontSize = title.length > 35 ? 36 : (title.length > 18 ? 44 : 50);
         ctx.font = 'bold ' + fontSize + 'px "' + selectedFont + '", "SolaimanLipi", "Kalpurush", serif';
         ctx.fillStyle = titleColor;
@@ -1282,7 +2949,7 @@
             ctx.fillText(line, 300, startY + (idx * lineHeight));
         });
 
-        // 7. Divider Accent Line
+        // Divider
         const dividerY = startY + titleBlockHeight + 20;
         ctx.strokeStyle = accentColor;
         ctx.lineWidth = 2;
@@ -1293,12 +2960,12 @@
         ctx.stroke();
         ctx.globalAlpha = 1.0;
 
-        // 8. Author
+        // Author
         ctx.fillStyle = authorColor;
         ctx.font = '600 26px "' + selectedFont + '", "SolaimanLipi", serif';
         ctx.fillText(authorName, 300, dividerY + 45);
 
-        // 9. Bottom Footer
+        // Footer
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
         ctx.font = '500 13px "' + selectedFont + '", sans-serif';
         ctx.fillText('আইডিয়া প্রকাশন • প্রিমিয়াম সংস্করণ', 300, 835);
@@ -1320,96 +2987,35 @@
             genInput.value = dataUrl;
         }
 
-        if (typeof updateLiveMockupCard === 'function') {
-            updateLiveMockupCard();
-        }
-    }
+        updateLiveMockupCard();
+    };
 
-    window.handlePublisherChange = function(pubId) {
-        const isIdea = !pubId || pubId == '2';
-        const ideaInput = document.getElementById('f-idea_serial_no');
-        if (isIdea) {
-            if (ideaInput && !ideaInput.value) {
-                generateAutoIdeaSerialForForm();
+    // Smooth navigation tabs
+    document.querySelectorAll('.a4-nav-tab').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetEl = document.querySelector(targetId);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                document.querySelectorAll('.a4-nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
             }
-        }
-    };
+        });
+    });
 
-    window.generateAutoIdeaSerialForForm = function() {
-        const input = document.getElementById('f-idea_serial_no');
-        const pubSelect = document.getElementById('f-publisher_id');
-        const pubId = pubSelect ? (pubSelect.value || 2) : 2;
-        fetch(`{{ route("admin.books.generate-serial") }}?publisher_id=${pubId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.serial) {
-                    if (input) {
-                        input.value = data.serial;
-                        updateLiveBarcodePreview(data.serial);
-                    }
-                }
-            })
-            .catch(err => {
-                console.error('Idea serial error:', err);
-                if (input && !input.value) {
-                    input.value = 'IP001';
-                    updateLiveBarcodePreview('IP001');
-                }
-            });
-    };
-
-    window.generateAutoGeneralSkuForForm = function() {
-        const skuInput = document.getElementById('f-sku');
-        fetch('{{ route("admin.books.generate-serial") }}?type=general')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.serial) {
-                    if (skuInput) {
-                        skuInput.value = data.general_sku || data.serial;
-                    }
-                }
-            })
-            .catch(err => {
-                if (skuInput && !skuInput.value) {
-                    skuInput.value = 'BK-' + Date.now().toString().slice(-5);
-                }
-            });
-    };
-
-    window.updateLiveBarcodePreview = function(code) {
-        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
-        const sku = document.getElementById('f-sku')?.value;
-        const cleanCode = (code || ideaSerial || sku || 'IP001').trim();
-        const label = document.getElementById('qrCodeLabel');
-        if (label) {
-            label.textContent = cleanCode;
-        }
-
-        // Generate quick vector Code128 pattern simulation
-        const container = document.getElementById('barcodeSvgContainer');
-        if (!container) return;
-
-        // Simple real-time SVG renderer for visual feedback
-        let bars = '';
-        let x = 20;
-        for (let i = 0; i < cleanCode.length; i++) {
-            const charCode = cleanCode.charCodeAt(i);
-            const w1 = ((charCode % 3) + 1.2) * 1.5;
-            const w2 = (((charCode >> 1) % 3) + 1) * 1.5;
-            bars += `<rect x="${x}" y="4" width="${w1.toFixed(1)}" height="42" fill="#0f172a" />`;
-            x += w1 + ((charCode % 2) + 1.2) * 1.5;
-            bars += `<rect x="${x}" y="4" width="${w2.toFixed(1)}" height="42" fill="#0f172a" />`;
-            x += w2 + 2;
-        }
-        
-        container.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${Math.max(x + 20, 180)} 62" width="100%" height="100%" style="background:#ffffff; border-radius:4px; max-width:240px; display:inline-block; vertical-align:middle;">
-            ${bars}
-            <text x="50%" y="58" text-anchor="middle" font-family="Consolas, Monaco, monospace" font-size="11" font-weight="700" fill="#0f172a" letter-spacing="1">${cleanCode}</text>
-        </svg>`;
-    };
-
-    // Auto generate defaults on new book creation
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
+        updateContributorSummary();
+        updatePaperbackCalculations();
+        updateHardcoverCalculations();
+        updateLiveMockupCard();
+
+        const summaryTextarea = document.getElementById('f-summary');
+        if (summaryTextarea) {
+            updateGenericWordCount(summaryTextarea, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning');
+        }
+
         const ideaInput = document.getElementById('f-idea_serial_no');
         const skuInput = document.getElementById('f-sku');
         @if(empty($record->id))
@@ -1420,14 +3026,7 @@
                 generateAutoGeneralSkuForForm();
             }
         @endif
-    });
 
-    window.applyAutoCoverTheme = applyAutoCoverTheme;
-    window.magicAutoGenerateCover = magicAutoGenerateCover;
-    window.generateAutoBookCoverLive = generateAutoBookCoverLive;
-
-    // Listen to changes in Title and Authors
-    document.addEventListener('DOMContentLoaded', function() {
         const titleInp = document.getElementById('f-title');
         if (titleInp) {
             titleInp.addEventListener('input', function() {
@@ -1436,23 +3035,7 @@
                 }
             });
         }
-        const authorInp = document.getElementById('f-author_name');
-        if (authorInp) {
-            authorInp.addEventListener('input', function() {
-                if (!hasInitialCover || userRequestedNewCover) {
-                    generateAutoBookCoverLive(false);
-                }
-            });
-        }
-        document.querySelectorAll('.author-name-input').forEach(inp => {
-            inp.addEventListener('input', function() {
-                if (!hasInitialCover || userRequestedNewCover) {
-                    generateAutoBookCoverLive(false);
-                }
-            });
-        });
 
-        // Run automatically after load if new book
         setTimeout(function() {
             if (!hasInitialCover) {
                 generateAutoBookCoverLive(false);

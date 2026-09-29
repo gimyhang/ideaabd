@@ -437,4 +437,58 @@ class User extends Authenticatable
             default     => 'Billing Officer / Creator',
         };
     }
+
+    /**
+     * Dynamic Avatar URL for User
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        $avatar = $this->avatar 
+            ?? ($this->reg_data['avatar'] ?? null)
+            ?? ($this->reg_data['photo'] ?? null)
+            ?? ($this->reg_data['profile_photo'] ?? null);
+
+        if (empty($avatar)) {
+            return null;
+        }
+
+        $avatar = trim((string) $avatar);
+        $avatar = str_replace('\\', '/', $avatar);
+
+        if (str_starts_with($avatar, 'data:image')) {
+            return $avatar;
+        }
+
+        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+            return $avatar;
+        }
+
+        $cleanPath = ltrim($avatar, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            return asset($cleanPath);
+        }
+        if (str_starts_with($cleanPath, 'public/')) {
+            return asset('storage/' . substr($cleanPath, 7));
+        }
+
+        return asset('storage/' . $cleanPath);
+    }
+
+    /**
+     * User Initials
+     */
+    public function getInitialsAttribute(): string
+    {
+        $name = trim($this->name ?? '');
+        if (empty($name)) {
+            return 'ইউ';
+        }
+
+        $words = preg_split('/\s+/u', $name);
+        if (count($words) >= 2) {
+            return mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1);
+        }
+
+        return mb_substr($name, 0, 1);
+    }
 }

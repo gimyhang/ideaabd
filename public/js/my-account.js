@@ -14,6 +14,7 @@ const SECTION_TITLES = {
     'giftcards': { title: 'Gift cards & Balance', icon: 'fa-gift' },
     'digitalServices': { title: 'Digital Library & E-Books', icon: 'fa-book-open-reader' },
     'kyc': { title: 'KYC & Verification', icon: 'fa-id-card' },
+    'libraryGrant': { title: 'পাঠাগার ও বই অনুদান', icon: 'fa-book-open-reader' },
     'royalties': { title: 'Royalties & Payouts', icon: 'fa-sack-dollar' },
     'authorHub': { title: 'Author Studio Hub', icon: 'fa-feather-pointed' },
     'blog': { title: 'Author Articles & Blog', icon: 'fa-pen-nib' },
@@ -49,14 +50,16 @@ function openSectionPanel(panelKey) {
     const hub = document.getElementById('mainAccountHubView');
     if (hub) hub.style.display = 'none';
 
-    document.querySelectorAll('.amz-subpage-panel').forEach(function(panel) {
+    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function(panel) {
         panel.classList.remove('active');
+        panel.classList.add('d-none');
         panel.style.setProperty('display', 'none', 'important');
     });
 
-    const target = document.getElementById('panel_' + panelKey);
+    const target = document.getElementById('panel_' + panelKey) || document.getElementById('panel-' + panelKey);
     if (target) {
         target.classList.add('active');
+        target.classList.remove('d-none');
         target.style.setProperty('display', 'block', 'important');
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -69,8 +72,9 @@ function openSectionPanel(panelKey) {
 }
 
 function closeAllPanels() {
-    document.querySelectorAll('.amz-subpage-panel').forEach(function(panel) {
+    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function(panel) {
         panel.classList.remove('active');
+        panel.classList.add('d-none');
         panel.style.setProperty('display', 'none', 'important');
     });
 

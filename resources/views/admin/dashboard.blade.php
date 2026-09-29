@@ -240,7 +240,7 @@
     {{-- ========================================================================= --}}
     {{-- 0. QUICK COMMAND & SHORTCUT LAUNCHER STRIP                                --}}
     {{-- ========================================================================= --}}
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 bg-white border-0 shadow-xs rounded-4">
+    <div class="adm-command-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-2 small fw-bold text-dark ps-1">
             <span class="badge bg-primary text-white rounded-circle p-1.5 shadow-2xs"><i class="fa-solid fa-bolt"></i></span>
             <span class="fs-6">Quick Actions:</span>

@@ -23,7 +23,7 @@ function initLibraryForm() {
 function initLocationCascade() {
     const divSelect = document.getElementById('libDivision');
     const distSelect = document.getElementById('libDistrict');
-    const upaSelect = document.getElementById('libUpazila');
+    const upaSelect = document.getElementById('libThana') || document.getElementById('libUpazila');
     const poSelect = document.getElementById('libPostOffice');
 
     if (!divSelect || !distSelect || !upaSelect) return;

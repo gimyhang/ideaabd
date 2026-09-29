@@ -299,12 +299,7 @@
                 {{-- User Account Authentication Dropdown / Hello Sign In Button --}}
                 @auth
                     @php
-                        $userAvatarUrl = null;
-                        if (!empty($me->avatar)) {
-                            $userAvatarUrl = \Illuminate\Support\Str::startsWith($me->avatar, ['http://', 'https://']) 
-                                ? $me->avatar 
-                                : asset('storage/' . ltrim($me->avatar, '/'));
-                        }
+                        $userAvatarUrl = $me->avatar_url;
                     @endphp
                     <div class="dropdown user-header-dropdown">
                         <button class="btn btn-outline-light text-dark border p-1 pe-2.5 rounded-pill d-flex align-items-center gap-2 shadow-2xs hover-primary transition-all" 
@@ -1200,12 +1195,7 @@
         {{-- 1. USER ACCOUNT PROFILE / GUEST BANNER CARD --}}
         @auth
             @php
-                $mAvatarUrl = null;
-                if (!empty($me->avatar)) {
-                    $mAvatarUrl = \Illuminate\Support\Str::startsWith($me->avatar, ['http://', 'https://']) 
-                        ? $me->avatar 
-                        : asset('storage/' . ltrim($me->avatar, '/'));
-                }
+                $mAvatarUrl = $me->avatar_url;
             @endphp
             <div class="card border-0 rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
                 <div class="d-flex align-items-center gap-2.5 mb-2.5">

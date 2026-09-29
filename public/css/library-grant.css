@@ -712,3 +712,139 @@ body.dark-mode {
         font-size: 15px;
     }
 }
+
+/* ==========================================================================
+   Customer Authentication Gate & Representative Banner Styles
+   ========================================================================== */
+.lib-auth-gate-card {
+    background: #ffffff;
+    border: 1.5px solid #047857;
+    border-radius: var(--lib-radius);
+    box-shadow: var(--lib-shadow-md);
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .lib-auth-gate-card,
+body.dark-mode .lib-auth-gate-card {
+    background: #0f172a;
+    border-color: #047857;
+}
+
+.lib-auth-gate-header {
+    background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+    color: #ffffff;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.lib-auth-gate-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lib-auth-gate-body {
+    padding: 24px;
+}
+
+.lib-auth-nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 5px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+[data-bs-theme="dark"] .lib-auth-nav-tabs,
+body.dark-mode .lib-auth-nav-tabs {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.lib-auth-tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lib-auth-tab-btn.active {
+    background: #047857;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25);
+}
+
+.lib-user-badge-bar {
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+[data-bs-theme="dark"] .lib-user-badge-bar,
+body.dark-mode .lib-user-badge-bar {
+    background: rgba(6, 78, 59, 0.25);
+    border-color: #065f46;
+}
+
+.lib-user-info-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #064e3b;
+}
+
+[data-bs-theme="dark"] .lib-user-info-text,
+body.dark-mode .lib-user-info-text {
+    color: #a7f3d0;
+}
+
+.lib-user-switch-link {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #dc2626;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.lib-user-switch-link:hover {
+    background: #fee2e2;
+    color: #991b1b;
+}
+

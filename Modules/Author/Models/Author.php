@@ -269,7 +269,7 @@ class Author extends Model
             ?? $this->author_image 
             ?? $this->photo 
             ?? $this->image 
-            ?? null;
+            ?? ($this->user?->avatar ?? ($this->user?->reg_data['avatar'] ?? null));
 
         if (empty($avatar)) {
             return null;

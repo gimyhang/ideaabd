@@ -620,6 +620,15 @@ class ContentController extends Controller
             $rules['rewriter_names'] = ['nullable', 'array'];
             $rules['rewriter_names.*'] = ['nullable', 'string', 'max:255'];
             $rules['rewriter_name'] = ['nullable', 'string', 'max:255'];
+            $rules['cover_artists'] = ['nullable', 'array'];
+            $rules['cover_artists.*'] = ['nullable', 'string', 'max:255'];
+            $rules['cover_artist'] = ['nullable', 'string', 'max:255'];
+            $rules['subtitle'] = ['nullable', 'string', 'max:500'];
+            $rules['weight'] = ['nullable', 'integer', 'min:0', 'max:50000'];
+            $rules['sold_percent'] = ['nullable', 'numeric', 'min:0', 'max:100'];
+            $rules['hardcover_sold_percent'] = ['nullable', 'numeric', 'min:0', 'max:100'];
+            $rules['hardcover_discount_price'] = ['nullable', 'numeric', 'min:0', 'max:9999999'];
+            $rules['description'] = ['nullable', 'string', 'max:50000'];
 
             // Require at least one price (List Price / MRP)
             if (!$request->filled('price') && !$request->filled('hardcover_price')) {
@@ -633,6 +642,8 @@ class ContentController extends Controller
             $attributes['translator_names'] = 'অনুবাদকের নাম';
             $attributes['editor_names'] = 'সম্পাদকের নাম';
             $attributes['rewriter_names'] = 'পুনর্লেখকের নাম';
+            $attributes['cover_artists'] = 'প্রচ্ছদশিল্পীর নাম';
+            $attributes['subtitle'] = 'উপশিরোনাম';
         }
 
         $attributes += [
@@ -948,6 +959,18 @@ class ContentController extends Controller
             if ($request->filled('title_en')) {
                 $attributes['title_en'] = $request->input('title_en');
             }
+            if ($request->has('subtitle')) {
+                $attributes['subtitle'] = trim((string)$request->input('subtitle')) ?: null;
+            }
+            if ($request->filled('weight')) {
+                $attributes['weight'] = (int)$request->input('weight');
+            }
+            if ($request->has('description')) {
+                $attributes['description'] = trim((string)$request->input('description')) ?: null;
+            }
+            if (empty($attributes['description']) && !empty($attributes['summary'])) {
+                $attributes['description'] = $attributes['summary'];
+            }
 
             // Sync price and hardcover_price
             $p = $request->input('price');
@@ -965,6 +988,17 @@ class ContentController extends Controller
                 if ($soldPct > 0 && $soldPct <= 100) {
                     $attributes['discount_price'] = round($basePrice * (1 - $soldPct / 100), 2);
                 }
+            }
+
+            // Auto calculate hardcover_discount_price if hardcover_sold_percent is given
+            if ($request->filled('hardcover_sold_percent') && ($hp || $p)) {
+                $baseHp = (float)($hp ?: $p);
+                $hcSoldPct = (float)$request->input('hardcover_sold_percent');
+                if ($hcSoldPct > 0 && $hcSoldPct <= 100) {
+                    $attributes['hardcover_discount_price'] = round($baseHp * (1 - $hcSoldPct / 100), 2);
+                }
+            } elseif ($request->filled('hardcover_discount_price')) {
+                $attributes['hardcover_discount_price'] = (float)$request->input('hardcover_discount_price');
             }
 
             // Handle Multiple Authors & Unified Author Directory Sync
@@ -1004,8 +1038,11 @@ class ContentController extends Controller
                 $attributes['rewriter_name'] = trim((string)$request->input('rewriter_name'));
             }
 
-            // Handle Cover Artist
-            if ($request->filled('cover_artist')) {
+            // Handle Multiple Cover Artists
+            if ($request->has('cover_artists')) {
+                $artists = array_values(array_unique(array_filter(array_map('trim', (array) $request->input('cover_artists')))));
+                $attributes['cover_artist'] = !empty($artists) ? implode(', ', $artists) : null;
+            } elseif ($request->filled('cover_artist')) {
                 $attributes['cover_artist'] = trim((string)$request->input('cover_artist'));
             }
 
