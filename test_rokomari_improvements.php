@@ -79,7 +79,7 @@ if ($book) {
     $showHtml = $showView->render();
     echo "   [PASSED] Frontend Show Rendered Length: " . strlen($showHtml) . " bytes\n";
 
-    echo "\n=== ALL ROKOMARI-STYLE UPGRADES & VALIDATION TESTS PASSED! ===\n";
+    echo "\n=== ALL ideaabd-STYLE UPGRADES & VALIDATION TESTS PASSED! ===\n";
 } else {
     echo "No book found!\n";
 }

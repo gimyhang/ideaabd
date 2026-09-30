@@ -63,7 +63,7 @@ class PublicEventRegistrationController extends Controller
                 'slug'                => $slug,
                 'type'                => 'event',
                 'badge_text'          => 'লেখক ও প্রতিনিধি নিবন্ধন',
-                'short_description'   => 'রংপুর বিভাগীয় সাহিত্য উৎসব ও লেখক সমাবেশ ২০২৬ এ লেখকবৃন্দের তথ্য নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
+                'short_description'   => 'রংপুর বিভাগীয় সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬ এ লেখক নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
                 'description'         => 'উত্তরবঙ্গের সর্ববৃহৎ সাহিত্য মিলনমেলায় অংশ নিতে লেখকবৃন্দকে এই ফরম পূরণ করার জন্য আমন্ত্রণ জানানো হচ্ছে।',
                 'theme_color'         => '#991b1b',
                 'has_fee_or_donation' => false,
@@ -83,12 +83,12 @@ class PublicEventRegistrationController extends Controller
                 'type'                => 'library',
                 'badge_text'          => 'পাঠাগার বই অনুদান ২০২৬',
                 'short_description'   => 'বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
-                'description'         => 'আইডিয়া পাঠাগারের বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় বাংলাদেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
+                'description'         => 'আইডিয়া পাঠাগারের বিনামূল্যে বই বিতরণ কর্মসূচি, নিবন্ধন সম্পন্ন করুন।',
                 'theme_color'         => '#047857',
                 'has_fee_or_donation' => false,
                 'fee_amount'          => 0.00,
                 'is_active'           => true,
-                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! আমাদের প্রতিনিধি আপনার সাথে দ্রুত যোগাযোগ করবে এবং যাচাই শেষে বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
+                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
                 'custom_fields'       => [],
                 'form_settings'       => ['is_library_form' => true, 'requires_approval' => true],
             ]);
@@ -137,6 +137,17 @@ class PublicEventRegistrationController extends Controller
     }
 
     /**
+     * Convert Bengali digits to English digits
+     */
+    protected function normalizeBnToEn(?string $str): string
+    {
+        if ($str === null || $str === '') return '';
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        return str_replace($bn, $en, $str);
+    }
+
+    /**
      * Handle form submission with auto-optimized image processing.
      */
     public function submit(Request $request, string $slug)
@@ -170,7 +181,8 @@ class PublicEventRegistrationController extends Controller
 
         $rules = [
             'name'                 => 'required|string|max:255',
-            'phone'                => 'required|string|max:20',
+            'country_code'         => 'nullable|string|max:10',
+            'phone'                => 'required|string|max:30',
             'email'                => 'nullable|email|max:255',
             'address'              => 'nullable|string|max:500',
             'district'             => 'nullable|string|max:100',
@@ -180,7 +192,7 @@ class PublicEventRegistrationController extends Controller
             'amount_paid'          => 'nullable|numeric|min:0',
             'payment_method'       => 'nullable|string|max:50',
             'transaction_id'       => 'nullable|string|max:100',
-            'password'             => 'nullable|string|min:8|max:64',
+            'password'             => 'nullable|string|min:6|max:64',
             'student_photo'        => 'nullable|file|mimes:jpeg,png,jpg,webp|max:8192',
             'optimized_photo_data' => 'nullable|string',
             'scholarship_reason'   => 'nullable|string|max:2000',
@@ -191,9 +203,9 @@ class PublicEventRegistrationController extends Controller
         if ($isLibrary) {
             $rules['institution_or_org'] = 'required|string|max:255';
             $rules['president_name'] = 'required|string|max:255';
-            $rules['president_phone'] = 'required|string|max:20';
+            $rules['president_phone'] = 'required|string|max:30';
             $rules['secretary_name'] = 'required|string|max:255';
-            $rules['secretary_phone'] = 'required|string|max:20';
+            $rules['secretary_phone'] = 'required|string|max:30';
             $rules['delivery_method'] = 'required|string|max:255';
         }
 
@@ -207,17 +219,26 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        // Normalize Phone
-        $rawPhone = trim($validated['phone']);
+        // Normalize Phone & Country Code (Supports Bengali & English numerals, and international country codes)
+        $countryCode = trim($request->input('country_code', '+880'));
+        $rawPhone = $this->normalizeBnToEn(trim($validated['phone']));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
-        if (str_starts_with($cleanDigits, '880')) {
-            $cleanDigits = substr($cleanDigits, 3);
+
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            if (str_starts_with($cleanDigits, '0')) {
+                $cleanDigits = substr($cleanDigits, 1);
+            }
+            $formattedPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $formattedPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $formattedPhone;
         }
-        if (str_starts_with($cleanDigits, '0')) {
-            $cleanDigits = substr($cleanDigits, 1);
-        }
-        $formattedPhone = '+880' . $cleanDigits;
-        $localPhone = '0' . $cleanDigits;
+
         $email = !empty($validated['email']) ? strtolower(trim($validated['email'])) : null;
 
         // Auto customer account sync
@@ -228,10 +249,22 @@ class PublicEventRegistrationController extends Controller
             try {
                 $user = User::where('phone', $formattedPhone)
                     ->orWhere('phone', $localPhone)
+                    ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
                     ->when($email, fn($q) => $q->orWhere('email', $email))
                     ->first();
 
-                if (!$user) {
+                if ($user) {
+                    $updateFields = [];
+                    if (empty($user->phone_verified_at)) {
+                        $updateFields['phone_verified_at'] = now();
+                    }
+                    if (!empty($validated['password']) && (empty($user->password) || $user->password === '')) {
+                        $updateFields['password'] = Hash::make($validated['password']);
+                    }
+                    if (!empty($updateFields)) {
+                        $user->update($updateFields);
+                    }
+                } else {
                     $userEmail = $email ?: ($cleanDigits . '@customer.ideaabd.com');
                     if (User::where('email', $userEmail)->exists()) {
                         $userEmail = $cleanDigits . '_' . time() . '@customer.ideaabd.com';
@@ -251,11 +284,16 @@ class PublicEventRegistrationController extends Controller
                         'email_verified_at' => $email ? now() : null,
                         'reg_data'          => [
                             'source'         => 'event_application',
+                            'country_code'   => $countryCode,
                             'campaign_slug'  => $campaign->slug,
                             'district'       => $validated['district'] ?? ($request->input('permanent_district') ?: $request->input('present_district')),
                             'institution'    => $validated['institution_or_org'] ?? $request->input('college_name'),
                         ],
                     ]);
+                }
+
+                if (!auth()->check() && $user) {
+                    \Illuminate\Support\Facades\Auth::login($user, true);
                 }
             } catch (\Throwable $e) {
                 Log::warning("User auto-sync notice in event registration: " . $e->getMessage());
@@ -290,7 +328,7 @@ class PublicEventRegistrationController extends Controller
             ]]);
 
             return redirect()->route('event.success', $campaign->slug)
-                ->with('info', "এই মোবাইল নম্বরে ইতিমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$existingRegistration->registration_number}");
+                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$existingRegistration->registration_number}");
         }
 
         // Custom field answers & auto-optimized photo processing
@@ -332,7 +370,11 @@ class PublicEventRegistrationController extends Controller
 
         foreach ($extendedInputKeys as $key) {
             if ($request->has($key)) {
-                $customFieldAnswers[$key] = $request->input($key);
+                $val = $request->input($key);
+                if (is_string($val) && (str_contains($key, 'phone') || str_contains($key, 'roll') || str_contains($key, 'year'))) {
+                    $val = $this->normalizeBnToEn($val);
+                }
+                $customFieldAnswers[$key] = $val;
             }
         }
 
@@ -388,7 +430,7 @@ class PublicEventRegistrationController extends Controller
         try {
             $downloadUrl = route('event.registration.print', $regNumber);
             if ($isLibrary) {
-                $smsText = "আইডিয়া প্রকাশন — বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে আপনার পাঠাগারের নিবন্ধন সফল হয়েছে! Reg No: #{$regNumber}। স্লিপ ডাউনলোড: {$downloadUrl} । www.ideaabd.com";
+                $smsText = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন সফল হয়েছে! Reg No: #{$regNumber}। স্লিপ ডাউনলোড: {$downloadUrl} । www.ideaabd.com";
             } elseif ($requiresApproval) {
                 $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার তথ্য জমা হয়েছে (Reg: #{$regNumber})। কার্ড দেখুন ও ডাউনলোড: {$downloadUrl} । ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগইন করে চূড়ান্ত কার্ড ডাউনলোড করুন। www.ideaabd.com";
             } else {
@@ -416,13 +458,13 @@ class PublicEventRegistrationController extends Controller
         ]]);
 
         if ($isLibrary) {
-            $successNotice = 'ধন্যবাদ! বিনামূল্যে বই বিতরণ কর্মসূচিতে আপনার পাঠাগারের নিবন্ধন সফলভাবে জমা হয়েছে। আপনার একাউন্ট ড্যাশবোর্ড থেকে আবেদনের অগ্রগতি ও রসিদ দেখতে পারবেন।';
+            $successNotice = 'ধন্যবাদ! বিনামূল্যে বই বিতরণ কর্মসূচি। আপনার নিবন্ধন সফল হয়েছে। একাউন্ট ড্যাশবোর্ড থেকে আবেদনের অগ্রগতি দেখতে পারবেন।';
             if (auth()->check()) {
                 return redirect()->route('my-account', ['tab' => 'libraryGrant'])
                     ->with('success', $successNotice);
             }
         } elseif ($requiresApproval) {
-            $successNotice = 'ধন্যবাদ! আপনার লেখক নিবন্ধন ও তথ্য সফলভাবে জমা হয়েছে। ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।';
+            $successNotice = 'ধন্যবাদ! আপনার নিবন্ধন সফল হয়েছে। ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।';
         } else {
             $successNotice = 'ধন্যবাদ! আপনার আবেদন সফলভাবে সম্পন্ন হয়েছে।';
         }

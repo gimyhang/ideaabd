@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth/captcha/*',
             'register/send-email-otp',
             'register/verify-email-otp',
+            'register/check-phone',
             'register/send-otp',
             'register/verify-otp',
             'register/complete',

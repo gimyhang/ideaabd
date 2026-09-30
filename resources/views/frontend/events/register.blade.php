@@ -168,11 +168,13 @@
                                 <label class="event-form-label">
                                     {{ $phoneLabel }} <span class="text-danger">*</span>
                                 </label>
-                                <div class="position-relative">
-                                    <input type="tel" name="phone" id="eventPhoneInput" class="event-input font-monospace" placeholder="01XXXXXXXXX" value="{{ old('phone', $user?->phone) }}" required oninput="formatBdPhone(this)">
-                                    <span class="phone-operator-badge"></span>
+                                <div class="d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                                    <select name="country_code" class="form-select border-0 bg-light text-dark fw-bold" style="max-width: 140px; border-radius: 0; font-size: 13px; cursor: pointer; border-right: 1px solid #cbd5e1 !important;" aria-label="Country Code">
+                                        @include('partials.country-code-options', ['selected' => old('country_code', '+880')])
+                                    </select>
+                                    <input type="tel" name="phone" id="eventPhoneInput" class="event-input font-monospace flex-grow-1 border-0" placeholder="01XXXXXXXXX" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="formatBdPhone(this)" style="border-radius: 0; box-shadow: none;">
                                 </div>
-                                <small class="text-muted" style="font-size: 11px;">নিশ্চিতকরণ এসএমএস এই নম্বরে যাবে।</small>
+                                <small class="text-muted" style="font-size: 11px;">দেশ নির্বাচন করুন ও নম্বর দিন। বাংলা বা ইংরেজি উভয় সংখ্যা সমর্থনযোগ্য।</small>
                             </div>
 
                             @if($emailEnabled)

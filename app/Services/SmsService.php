@@ -441,6 +441,7 @@ class SmsService
             1011 => 'Account Blocked (অ্যাকাউন্ট স্থগিত করা হয়েছে)',
             1012 => 'IP Not Whitelisted (আইপি অনুমোদিত নয়)',
             1013 => 'Rate Limit Exceeded (অনুরোধের গতিসীমা ছাড়িয়েছে)',
+            1032 => 'BulkSMSBD IP Whitelist Required: আপনার বর্তমান সার্ভার/ডিভাইস আইপি BulkSMSBD প্যানেলে হোয়াইটলিস্ট করা প্রয়োজন।',
         ];
 
         return $codes[$code] ?? ($fallback ?: "Response Code: {$code}");
@@ -659,8 +660,16 @@ BASH,
      */
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
-        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 2 minutes). Do not share this code.";
+        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 5 minutes). Do not share this code.";
         return self::send($phone, $message);
+    }
+
+    /**
+     * Alias for sendVerificationOtp().
+     */
+    public static function sendOtp(string $phone, string $otpCode): array
+    {
+        return self::sendVerificationOtp($phone, $otpCode);
     }
 
     /**

@@ -1,7 +1,7 @@
 @php
     /**
      * Public site header.
-     * Unified, Centered Navigation with Rokomari-grade Mega Menus on Hover.
+     * Unified, Centered Navigation with Ideaabd-grade Mega Menus on Hover.
      */
     $me = auth()->user();
 

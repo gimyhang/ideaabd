@@ -123,9 +123,15 @@ function updateThanaDatalist(selectedDistrict) {
     }
 }
 
-// 3. Bangladesh Phone Formatter & Operator Detector
+// 3. Bangladesh Phone Formatter & Operator Detector (with Bengali Digit Support)
 function formatBdPhone(input) {
-    let val = input.value.replace(/[^0-9]/g, '');
+    const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
+    let raw = (input.value || '').toString();
+    for (let i = 0; i < bn.length; i++) {
+        raw = raw.replaceAll(bn[i], en[i]);
+    }
+    let val = raw.replace(/[^0-9]/g, '');
     if (val.startsWith('880')) val = val.substring(3);
     if (val.length > 11) val = val.substring(0, 11);
     input.value = val;

@@ -168,10 +168,10 @@
             </div>
 
             {{-- 1. APPLICANT DETAILS --}}
-            <div class="form-section-head">1. Applicant Details</div>
+            <div class="form-section-head"><i class="fa-solid fa-user-graduate me-1.5 text-primary"></i> 1. Applicant Details</div>
             <table class="grid-table">
                 <tr>
-                    <td class="label-col">Student Name <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-user text-muted me-1"></i> Student Name <span class="text-danger">*</span></td>
                     <td class="val-col" style="width: 48%;">
                         <input type="text" name="name" class="grid-input text-uppercase" placeholder="FULL NAME IN CAPITAL" value="{{ old('name', $user?->name) }}" required>
                     </td>
@@ -189,7 +189,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Gender <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-venus-mars text-muted me-1"></i> Gender <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="gender" class="grid-input" required>
                             <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
@@ -199,19 +199,19 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Father's Name <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-user-tie text-muted me-1"></i> Father's Name <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <input type="text" name="father_name" class="grid-input text-uppercase" placeholder="FATHER'S FULL NAME" value="{{ old('father_name') }}" required>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Mother's Name <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-person-dress text-muted me-1"></i> Mother's Name <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <input type="text" name="mother_name" class="grid-input text-uppercase" placeholder="MOTHER'S FULL NAME" value="{{ old('mother_name') }}" required>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Religion <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-hands-praying text-muted me-1"></i> Religion <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="religion" class="grid-input" required>
                             <option value="Islam" {{ old('religion') === 'Islam' ? 'selected' : '' }}>Islam</option>
@@ -221,48 +221,58 @@
                             <option value="Others" {{ old('religion') === 'Others' ? 'selected' : '' }}>Others</option>
                         </select>
                     </td>
-                    <td class="label-col">Nationality <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-flag text-muted me-1"></i> Nationality <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <input type="text" name="nationality" class="grid-input text-uppercase" value="{{ old('nationality', 'BANGLADESHI') }}" required>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Birth Date <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-calendar-day text-muted me-1"></i> Birth Date <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <input type="date" name="birth_date" class="grid-input" value="{{ old('birth_date') }}" required>
                     </td>
-                    <td class="label-col">Mobile No <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-phone text-muted me-1"></i> Mobile No <span class="text-danger">*</span></td>
                     <td class="val-col">
-                        <input type="tel" name="phone" id="studentPhone" class="grid-input font-monospace" placeholder="017XXXXXXXX" value="{{ old('phone', $user?->phone) }}" required oninput="formatPhone(this)">
+                        <div class="d-flex align-items-stretch" style="width: 100%;">
+                            <select name="country_code" class="form-select p-1 bg-light fw-bold" style="width: 100px; font-size: 11px; border: 1px solid #94a3b8; border-right: 0;" aria-label="Country Code">
+                                @include('partials.country-code-options', ['selected' => old('country_code', '+880')])
+                            </select>
+                            <input type="tel" name="phone" id="studentPhone" class="grid-input font-monospace flex-grow-1" placeholder="017XXXXXXXX" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="formatPhone(this)">
+                        </div>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Marital Status <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-heart text-muted me-1"></i> Marital Status <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="marital_status" class="grid-input" required>
                             <option value="Unmarried" {{ old('marital_status') === 'Unmarried' ? 'selected' : '' }}>Unmarried</option>
                             <option value="Married" {{ old('marital_status') === 'Married' ? 'selected' : '' }}>Married</option>
                         </select>
                     </td>
-                    <td class="label-col">Family Annual Income (Tk) <span class="text-danger">*</span></td>
+                    <td class="label-col"><i class="fa-solid fa-money-bill-wave text-muted me-1"></i> Family Income (Tk) <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <input type="number" name="annual_income" class="grid-input font-monospace" placeholder="e.g. 50000" value="{{ old('annual_income') }}" required>
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Guardian Name</td>
+                    <td class="label-col"><i class="fa-solid fa-user-shield text-muted me-1"></i> Guardian Name</td>
                     <td class="val-col">
                         <input type="text" name="guardian_name" class="grid-input text-uppercase" placeholder="GUARDIAN'S NAME" value="{{ old('guardian_name') }}">
                     </td>
-                    <td class="label-col">Guardian Mobile</td>
+                    <td class="label-col"><i class="fa-solid fa-mobile-screen text-muted me-1"></i> Guardian Mobile</td>
                     <td class="val-col">
-                        <input type="tel" name="guardian_phone" class="grid-input font-monospace" placeholder="01XXXXXXXXX" value="{{ old('guardian_phone') }}" oninput="formatPhone(this)">
+                        <div class="d-flex align-items-stretch" style="width: 100%;">
+                            <select name="guardian_country_code" class="form-select p-1 bg-light fw-bold" style="width: 100px; font-size: 11px; border: 1px solid #94a3b8; border-right: 0;" aria-label="Guardian Country Code">
+                                @include('partials.country-code-options', ['selected' => old('guardian_country_code', '+880')])
+                            </select>
+                            <input type="tel" name="guardian_phone" class="grid-input font-monospace flex-grow-1" placeholder="01XXXXXXXXX" value="{{ old('guardian_phone') }}" maxlength="15" oninput="formatPhone(this)">
+                        </div>
                     </td>
                 </tr>
             </table>
 
             {{-- 2. ACADEMIC INFORMATION --}}
-            <div class="form-section-head">2. Academic Information</div>
+            <div class="form-section-head"><i class="fa-solid fa-graduation-cap me-1.5 text-primary"></i> 2. Academic Information</div>
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Group <span class="text-danger">*</span></td>
@@ -575,9 +585,15 @@
         }
     }
 
-    // Auto format phone
+    // Auto format phone (with Bengali digit normalization)
     function formatPhone(input) {
-        input.value = input.value.replace(/[^0-9]/g, '').slice(0, 11);
+        const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        const en = ['0','1','2','3','4','5','6','7','8','9'];
+        let val = (input.value || '').toString();
+        for (let i = 0; i < bn.length; i++) {
+            val = val.replaceAll(bn[i], en[i]);
+        }
+        input.value = val.replace(/[^0-9]/g, '').slice(0, 11);
     }
 
     // Prevent double submission

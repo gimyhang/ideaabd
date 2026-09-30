@@ -317,14 +317,26 @@ function initWordCounter() {
 }
 
 /**
- * ৪. ফোন নম্বর ফরম্যাটিং
+ * ৪. ফোন নম্বর ফরম্যাটিং (বাংলা সংখ্যা রূপান্তর সহ)
  */
 function initPhoneFormatter() {
     const phoneInputs = document.querySelectorAll('input[type="tel"]');
+    const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
+
+    function normalizeDigits(str) {
+        if (!str) return '';
+        let res = str.toString();
+        for (let i = 0; i < bn.length; i++) {
+            res = res.replaceAll(bn[i], en[i]);
+        }
+        return res.replace(/[^0-9]/g, '');
+    }
+
     phoneInputs.forEach(input => {
         input.addEventListener('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11);
-            if (this.value.length === 11) {
+            this.value = normalizeDigits(this.value).slice(0, 15);
+            if (this.value.length >= 6) {
                 this.classList.remove('is-invalid');
                 this.classList.add('is-valid');
             } else {

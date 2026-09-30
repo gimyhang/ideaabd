@@ -46,7 +46,7 @@
 | `app/Http/Controllers/Admin/AuthorPayoutAdminController.php` | ই-বুক ও ফিজিক্যাল বইয়ের রয়্যালটি পে-আউট রিকোয়েস্ট অনুমোদন কন্ট্রোলার |
 | `app/Http/Controllers/Admin/AuthorRoyaltyAdminController.php` | লেখকভিত্তিক বই বিক্রির রয়্যালটি ক্যালকুলেশন ও লেজার কন্ট্রোলার |
 | `app/Http/Controllers/Admin/BundleAdminController.php` | স্পেশাল কম্বো বান্ডেল অফার ও প্রি-অর্ডার ক্যাম্পেইন কন্ট্রোলার |
-| `app/Http/Controllers/Admin/CommunicationAdminController.php` | Amazon SES, SendGrid, WhatsApp Cloud API ও অ্যাব্যান্ডন্ড কার্ট রিকভারি হাব |
+| `app/Http/Controllers/Admin/CommunicationAdminController.php` | ideaabd SES, SendGrid, WhatsApp Cloud API ও অ্যাব্যান্ডন্ড কার্ট রিকভারি হাব |
 | `app/Http/Controllers/Admin/ContentController.php` | ওয়েবজিন, গবেষণা প্রবন্ধ ও ওয়েবসাইট কন্টেন্ট ম্যানেজার |
 | `app/Http/Controllers/Admin/GatewayReportController.php` | বিকাশ, নগদ, রকেট, ব্যাংক ও গেটওয়ে ট্রানজেকশন অডিট রিপোর্ট কন্ট্রোলার |
 | `app/Http/Controllers/Admin/IdeaAccountingController.php` | আয়-ব্যয়, ভাউচার, চালান, কাস্টমার লেজার ও পেরোল স্যালারি অ্যাকাউন্টিং কন্ট্রোলার |
@@ -434,7 +434,7 @@
 | `config/drm.php` | সিস্টেম ফাইল: drm.php |
 | `config/filesystems.php` | লোকাল স্টোরেজ, পাবলিক ডিস্ক ও এসথ্রি ক্লাউড ফাইল ড্রাইভার সেটিংস |
 | `config/logging.php` | সিস্টেম এরর ও অডিট লগ চ্যানেল কনফিগারেশন |
-| `config/mail.php` | Amazon SES, SMTP ও SendGrid ইমেইল গেটওয়ে সেটিংস |
+| `config/mail.php` | ideaabd SES, SMTP ও SendGrid ইমেইল গেটওয়ে সেটিংস |
 | `config/queue.php` | ব্যাকগ্রাউন্ড জব ও কিউ ওয়ার্কার কনফিগারেশন |
 | `config/services.php` | বিকাশ, নগদ, স্ট্রাইপ, পেপ্যাল ও থার্ড-পার্টি সার্ভিস ক্রেডেনশিয়াল |
 | `config/session.php` | কুকি ও সেশন লাইফটাইম সিকিউরিটি কনফিগারেশন |

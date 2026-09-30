@@ -645,7 +645,12 @@
                                     <span>মোবাইল নম্বর <span class="text-danger">*</span></span>
                                     <span id="operatorBadge" class="operator-pill">GP</span>
                                 </label>
-                                <input type="tel" name="phone" id="writerPhone" class="w-input font-monospace" placeholder="01XXXXXXXXX" value="{{ old('phone', $user?->phone) }}" required oninput="handlePhoneInput(this)">
+                                <div class="d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                                    <select name="country_code" id="writerCountryCode" class="form-select border-0 bg-light text-dark fw-bold" style="max-width: 120px; border-radius: 0; font-size: 13px; cursor: pointer; border-right: 1px solid #cbd5e1 !important;" aria-label="Country Code" onchange="handlePhoneInput(document.getElementById('writerPhone'))">
+                                        @include('partials.country-code-options', ['selected' => old('country_code', '+880')])
+                                    </select>
+                                    <input type="tel" name="phone" id="writerPhone" class="w-input font-monospace flex-grow-1 border-0" placeholder="01XXXXXXXXX" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="handlePhoneInput(this)" style="border-radius: 0; box-shadow: none;">
+                                </div>
                             </div>
 
                             {{-- ইমেইল --}}
@@ -1148,9 +1153,15 @@ function formatWriterAddress() {
     if (distPreview) distPreview.textContent = dist || 'রংপুর';
 }
 
-// Live Phone Formatting & Operator Detector
+// Live Phone Formatting & Operator Detector (with Bengali Digit Support)
 function handlePhoneInput(input) {
-    let val = input.value.replace(/[^0-9+]/g, '');
+    const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
+    let raw = (input.value || '').toString();
+    for (let i = 0; i < bn.length; i++) {
+        raw = raw.replaceAll(bn[i], en[i]);
+    }
+    let val = raw.replace(/[^0-9+]/g, '');
     if (val.startsWith('+880')) {
         val = '0' + val.substring(4);
     } else if (val.startsWith('880')) {

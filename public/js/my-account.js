@@ -1,6 +1,6 @@
 /**
  * ══════════════════════════════════════════════════════════════════════════
- * IDEA PROKASHON — AMAZON "YOUR ACCOUNT" DYNAMIC CONTROLLER
+ * IDEA PROKASHON — ideaabd "YOUR ACCOUNT" DYNAMIC CONTROLLER
  * ══════════════════════════════════════════════════════════════════════════
  */
 
@@ -26,13 +26,13 @@ const SECTION_TITLES = {
 function syncNavDropdown(panelKey) {
     const key = panelKey || 'hub';
     const info = SECTION_TITLES[key] || { title: 'Your Account Hub', icon: 'fa-house' };
-    
+
     const labelEl = document.getElementById('currentAccountNavLabel');
     const iconEl = document.getElementById('currentAccountNavIcon');
     if (labelEl) labelEl.textContent = info.title;
     if (iconEl) iconEl.className = 'fa-solid ' + info.icon + ' text-primary';
 
-    document.querySelectorAll('.amz-nav-menu .dropdown-item[data-panel]').forEach(function(item) {
+    document.querySelectorAll('.amz-nav-menu .dropdown-item[data-panel]').forEach(function (item) {
         if (item.getAttribute('data-panel') === key) {
             item.classList.add('active');
         } else {
@@ -50,7 +50,7 @@ function openSectionPanel(panelKey) {
     const hub = document.getElementById('mainAccountHubView');
     if (hub) hub.style.display = 'none';
 
-    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function(panel) {
+    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function (panel) {
         panel.classList.remove('active');
         panel.classList.add('d-none');
         panel.style.setProperty('display', 'none', 'important');
@@ -72,7 +72,7 @@ function openSectionPanel(panelKey) {
 }
 
 function closeAllPanels() {
-    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function(panel) {
+    document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function (panel) {
         panel.classList.remove('active');
         panel.classList.add('d-none');
         panel.style.setProperty('display', 'none', 'important');
@@ -115,7 +115,7 @@ function previewKycPhoto(input) {
             return;
         }
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const preview = document.getElementById('kycAvatarPreview');
             const placeholder = document.getElementById('kycAvatarPlaceholder');
             if (preview) {
@@ -142,7 +142,7 @@ function toggleKycRoleFields(role) {
 }
 
 // Browser Back/Forward navigation support
-window.addEventListener('popstate', function(e) {
+window.addEventListener('popstate', function (e) {
     if (e.state && e.state.panel && e.state.panel !== 'hub') {
         openSectionPanel(e.state.panel);
     } else {
@@ -156,10 +156,10 @@ window.addEventListener('popstate', function(e) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    
+
     const hash = window.location.hash.replace(/^#/, '');
     const hashTab = hash.startsWith('tab=') ? hash.replace('tab=', '') : (hash || null);
 

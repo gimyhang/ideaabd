@@ -211,11 +211,11 @@
         </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- VIEW 1: AUTHENTIC AMAZON "YOUR ACCOUNT" HOME HUB                      --}}
+        {{-- VIEW 1: AUTHENTIC ideaabd "YOUR ACCOUNT" HOME HUB                      --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
         <div id="mainAccountHubView" style="{{ $activeTab ? 'display: none !important;' : 'display: block !important;' }}">
             
-            {{-- Amazon Main Header --}}
+            {{-- ideaabd Main Header --}}
             <div class="amz-header-row border-0 mb-4 pb-0">
                 <div>
                     <h1 class="amz-main-title" style="font-size: 28px; font-weight: 500;">Your Account</h1>
@@ -318,7 +318,7 @@
             </div>
 
             {{-- ───────────────────────────────────────────────────────────────── --}}
-            {{-- THE SIGNATURE AMAZON 3-COLUMN SERVICE CARDS GRID (12 CARDS)        --}}
+            {{-- THE SIGNATURE ideaabd 3-COLUMN SERVICE CARDS GRID (12 CARDS)        --}}
             {{-- ───────────────────────────────────────────────────────────────── --}}
             <div class="amz-cards-grid">
                 
@@ -336,7 +336,7 @@
                     </div>
                 </div>
 
-                <!-- CARD: Library & Book Grants -->
+                <!-- CARD: Library -->
                 <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('libraryGrant')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('libraryGrant')">
                     <div class="amz-icon-holder" style="background: #ecfdf5; color: #047857;">
                         <i class="fa-solid fa-book-open-reader" style="font-size: 26px;"></i>
@@ -350,7 +350,7 @@
                                 <span class="badge bg-warning text-dark rounded-pill" style="font-size: 10px;">Apply Live</span>
                             @endif
                         </div>
-                        <p class="amz-card-summary">বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি, বরাদ্দ স্ট্যাটাস ও প্রাপ্তিস্বীকার এন্ট্রি</p>
+                        <p class="amz-card-summary">বিনামূল্যে বই বিতরণ কর্মসূচি, বরাদ্দ ও প্রাপ্তিস্বীকার এন্ট্রি</p>
                     </div>
                 </div>
 
@@ -431,13 +431,13 @@
                     </div>
                 </div>
 
-                <!-- CARD 8: Your Amazon Family -->
+                <!-- CARD 8: Your ideaabd Family -->
                 <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('family')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('family')">
                     <div class="amz-icon-holder ic-family">
                         <i class="fa-solid fa-users" style="font-size: 24px;"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Amazon Family</div>
+                        <div class="amz-card-headline">Your ideaabd Family</div>
                         <p class="amz-card-summary">Manage profiles, sharing, and permissions in one place</p>
                     </div>
                 </div>
@@ -482,82 +482,12 @@
                     </div>
                     <div class="amz-card-text">
                         <div class="amz-card-headline">Your Messages</div>
-                        <p class="amz-card-summary">View or respond to messages from Amazon, Sellers and Buyers</p>
+                        <p class="amz-card-summary">View or respond to messages from ideaabd, Sellers and Buyers</p>
                     </div>
                 </div>
 
             </div>
 
-            {{-- ───────────────────────────────────────────────────────────────── --}}
-            {{-- AMAZON 3-COLUMN DIRECTORY SECTION (MATCHING SCREENSHOT)            --}}
-            {{-- ───────────────────────────────────────────────────────────────── --}}
-            <div class="amz-directory-section">
-                <div class="amz-directory-grid">
-                    
-                    {{-- Column 1: Ordering and shopping preferences --}}
-                    <div class="amz-dir-col">
-                        <div class="amz-dir-title">Ordering and shopping preferences</div>
-                        <ul class="amz-dir-list">
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('loginSecurity')">About You</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('addresses')">Your Addresses</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('payments')">Amazon credit cards</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('payments')">Your Payments</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('orders')">Your Transactions</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">Your Shopping preferences</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Your Content</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">1-Click settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">Amazon Key settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">Whole Foods Market settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">Language preferences</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('kyc')">Manage saved IDs</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('giftcards')">Coupons</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('giftcards')">Product Vouchers</a></li>
-                        </ul>
-                    </div>
-
-                    {{-- Column 2: Digital content and devices --}}
-                    <div class="amz-dir-col">
-                        <div class="amz-dir-title">Digital content and devices</div>
-                        <ul class="amz-dir-list">
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">All things Alexa</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Content Library</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Devices</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Manage Digital Delivery</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Your apps</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Prime Video settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Amazon Music settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Manage Amazon Drive and photos</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Twitch settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Audible settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('giftcards')">Amazon Coins</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('giftcards')">Digital gifts you've received</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('customerService')">Digital and device forum</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Comixology settings</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('kyc')">Verify AI Generated Content</a></li>
-                        </ul>
-                    </div>
-
-                    {{-- Column 3: Memberships and subscriptions --}}
-                    <div class="amz-dir-col">
-                        <div class="amz-dir-title">Memberships and subscriptions</div>
-                        <ul class="amz-dir-list">
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('prime')">Kindle Unlimited</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('prime')">Prime Video Channels</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('prime')">Music Unlimited</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('memberships')">Subscribe & Save</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('memberships')">Amazon Kids+</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('digitalServices')">Audible membership</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('preferences')">Auto Buy</a></li>
-                            <li><a href="{{ route('webzine.index') }}">Magazine subscriptions</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('prime')">One Medical membership for Prime members</a></li>
-                            <li><a href="javascript:void(0)" onclick="openSectionPanel('memberships')">Other subscriptions</a></li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
 
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
@@ -944,10 +874,10 @@
             </div>
         </div>
 
-        <!-- PANEL 8: Your Amazon Family -->
+        <!-- PANEL 8: Your ideaabd Family -->
         <div class="amz-subpage-panel {{ $activeTab === 'family' ? 'active' : '' }}" id="panel_family" style="{{ $activeTab === 'family' ? 'display: block !important;' : 'display: none !important;' }}">
             <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your Amazon Family & Profiles</h2>
+            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your ideaabd Family & Profiles</h2>
             <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="rounded-circle bg-info-subtle text-info p-3 fs-3">

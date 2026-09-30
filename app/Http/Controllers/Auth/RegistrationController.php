@@ -160,12 +160,80 @@ class RegistrationController extends Controller
         ]);
     }
 
+    /**
+     * Check if a phone number already exists (Conflict Detection for real-time validation).
+     */
+    public function checkPhoneConflict(Request $request)
+    {
+        $request->validate([
+            'phone'        => ['required', 'string', 'max:25'],
+            'country_code' => ['nullable', 'string', 'max:10'],
+        ]);
+
+        $countryCode = trim($request->input('country_code', '+880'));
+        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
+        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            if (str_starts_with($cleanDigits, '0')) {
+                $cleanDigits = substr($cleanDigits, 1);
+            }
+            $fullPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $fullPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $fullPhone;
+        }
+
+        $existing = User::where('phone', $fullPhone)
+            ->orWhere('phone', $localPhone)
+            ->orWhere('phone', $rawPhone)
+            ->orWhere('phone', '+88' . $localPhone)
+            ->orWhere('phone', '88' . $localPhone)
+            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
+            ->first();
+
+        if ($existing) {
+            $hasPassword = !empty($existing->password);
+            $isVerified = !empty($existing->phone_verified_at);
+            
+            $msg = ($hasPassword && $isVerified)
+                ? 'এই মোবাইল নম্বর (' . $localPhone . ') দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।'
+                : 'আপনার এই মোবাইল নম্বরটি পূর্বে সংরক্ষিত হয়েছে কিন্তু ভেরিফিকেশন বা পাসওয়ার্ড সেট সম্পন্ন হয়নি। ওটিপি কোড পাঠিয়ে ভেরিফাই করুন এবং নতুন পাসওয়ার্ড দিন।';
+
+            return response()->json([
+                'exists'        => true,
+                'has_password'  => $hasPassword,
+                'is_verified'   => $isVerified,
+                'phone'         => $localPhone,
+                'name'          => $existing->name,
+                'message'       => $msg,
+                'login_url'     => route('login'),
+                'forgot_url'    => route('password.request'),
+            ]);
+        }
+
+        return response()->json([
+            'exists'       => false,
+            'has_password' => false,
+            'is_verified'  => false,
+            'phone'        => $localPhone,
+            'message'      => 'মোবাইল নম্বরটি নতুন রেজিস্ট্রেশনের জন্য উন্মুক্ত ও প্রস্তুত।',
+        ]);
+    }
+
     // Send SMS verification OTP for registration
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'phone'        => ['required', 'string', 'max:20'],
-            'country_code' => ['nullable', 'string', 'max:10'],
+            'phone'          => ['required', 'string', 'max:25'],
+            'country_code'   => ['nullable', 'string', 'max:10'],
+            'allow_existing' => ['nullable', 'boolean'],
+            'purpose'        => ['nullable', 'string', 'max:50'],
         ]);
 
         $countryCode = trim($request->input('country_code', '+880'));
@@ -194,9 +262,12 @@ class RegistrationController extends Controller
             ->orWhere('phone', $rawPhone)
             ->orWhere('phone', '+88' . $localPhone)
             ->orWhere('phone', '88' . $localPhone)
+            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
             ->first();
 
-        if ($existing) {
+        $allowExisting = $request->boolean('allow_existing') || in_array($request->input('purpose'), ['event_registration', 'library', 'otp_login', 'auth_gate']);
+
+        if ($existing && !$allowExisting) {
             RegistrationAuditLog::recordEvent('phone_otp_sent', false, [
                 'phone'         => $fullPhone,
                 'error_message' => 'Phone already registered',
@@ -205,38 +276,47 @@ class RegistrationController extends Controller
             return response()->json([
                 'success'        => false,
                 'already_exists' => true,
-                'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে লগইন করুন।',
-                'phone'          => $rawPhone,
+                'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। আপনি ওটিপি কোড দিয়ে সরাসরি লগইন করতে পারেন অথবা পাসওয়ার্ড দিন।',
+                'phone'          => $localPhone,
+                'user_name'      => $existing->name,
                 'login_url'      => route('login'),
                 'forgot_url'     => route('password.request'),
-            ], 422);
+            ], 200);
         }
 
         // Rate limiting cooldown per phone
         $cooldownKey = 'reg_phone_cooldown_' . md5($fullPhone);
         if (Cache::has($cooldownKey)) {
             $remaining = Cache::get($cooldownKey) - time();
-            return response()->json([
-                'success'  => false,
-                'message'  => 'দয়া করে কিছুক্ষণ অপেক্ষা করে পুনরায় কোড পাঠানোর চেষ্টা করুন।',
-                'cooldown' => max(1, $remaining),
-            ], 429);
+            if ($remaining > 0) {
+                return response()->json([
+                    'success'  => false,
+                    'message'  => "দয়া করে {$remaining} সেকেন্ড অপেক্ষা করে পুনরায় কোড পাঠানোর চেষ্টা করুন।",
+                    'cooldown' => max(1, $remaining),
+                ], 429);
+            }
         }
 
         // Generate 6-digit OTP using cryptographically secure random_int
         $otpCode = (string) random_int(100000, 999999);
 
-        // Cache OTP strictly for 2 minutes across all key formats
-        $ttl = now()->addMinutes(2);
+        // Cache OTP strictly for 5 minutes across all key formats
+        $ttl = now()->addMinutes(5);
         Cache::put('reg_otp_' . md5($fullPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . md5($localPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . $cleanDigits, $otpCode, $ttl);
         Cache::put($cooldownKey, time() + 60, now()->addSeconds(60));
 
-        // Dispatch SMS via static method
-        SmsService::sendVerificationOtp($fullPhone, $otpCode);
+        // Dispatch SMS via static method with exception safety
+        $smsSent = false;
+        try {
+            $smsResult = SmsService::sendVerificationOtp($fullPhone, $otpCode);
+            $smsSent = !empty($smsResult['success']);
+        } catch (\Throwable $e) {
+            Log::warning("OTP SMS send error: " . $e->getMessage());
+        }
 
-        // Official WhatsApp Helpline Link (WITHOUT leaking OTP!)
+        // Official WhatsApp Helpline Link
         $officialWhatsApp = '+8801558712810';
         $cleanOfficialWhatsApp = '8801558712810';
         $supportWhatsappUrl = 'https://api.whatsapp.com/send?phone=' . $cleanOfficialWhatsApp . '&text=' . urlencode("Hello IDEA Publication, I need help with registration verification for mobile: {$fullPhone}");
@@ -245,22 +325,33 @@ class RegistrationController extends Controller
             'phone' => $fullPhone,
         ]);
 
-        return response()->json([
+        $responseData = [
             'success'              => true,
-            'message'              => 'A 6-digit verification code has been sent via SMS (valid for 2 minutes).',
+            'is_existing'          => (bool) $existing,
+            'user_name'            => $existing ? $existing->name : null,
+            'message'              => 'আপনার মোবাইলে ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ৫ মিনিট)।',
             'cooldown'             => 60,
+            'phone'                => $localPhone,
             'support_whatsapp_url' => $supportWhatsappUrl,
             'official_whatsapp'    => $officialWhatsApp,
-        ]);
+        ];
+
+        // If local or debug environment, provide dev_otp for ease of testing
+        if (app()->environment('local', 'testing') || config('app.debug')) {
+            $responseData['dev_otp'] = $otpCode;
+        }
+
+        return response()->json($responseData);
     }
 
-    // Verify SMS OTP for registration
+    // Verify SMS OTP for registration & Quick OTP Login
     public function verifyOtp(Request $request)
     {
         $request->validate([
             'phone'        => ['required', 'string'],
             'country_code' => ['nullable', 'string'],
             'otp'          => ['required', 'string', 'min:4', 'max:10'],
+            'auto_login'   => ['nullable', 'boolean'],
         ]);
 
         $countryCode = trim($request->input('country_code', '+880'));
@@ -292,7 +383,7 @@ class RegistrationController extends Controller
             Cache::forget('reg_otp_' . $cleanDigits);
             return response()->json([
                 'success' => false,
-                'message' => 'Too many invalid attempts. The code has expired. Please request a new code.',
+                'message' => 'অতিরিক্ত ভুল চেষ্টার কারণে কোড বাতিল হয়েছে। অনুগ্রহ করে নতুন কোড নিন।',
             ], 422);
         }
 
@@ -304,7 +395,7 @@ class RegistrationController extends Controller
             Cache::put($failCountKey, $fails + 1, now()->addMinutes(10));
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid or expired verification code (2-minute limit). Please try again.',
+                'message' => 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড (৫ মিনিট সময়সীমা)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।',
             ], 422);
         }
 
@@ -318,21 +409,49 @@ class RegistrationController extends Controller
             'phone_verified_' . md5($fullPhone) => true,
             'phone_verified_' . md5($localPhone) => true,
             'phone_verified_' . $cleanDigits => true,
-            'otp_verified_phone' => $fullPhone,
+            'otp_verified_phone' => $localPhone,
+            'otp_verified_full_phone' => $fullPhone,
         ]);
 
         RegistrationAuditLog::recordEvent('phone_otp_verified', true, [
             'phone' => $fullPhone,
         ]);
 
+        // Check if existing user and auto-login if requested or available
+        $existing = User::where('phone', $fullPhone)
+            ->orWhere('phone', $localPhone)
+            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
+            ->first();
+
+        $isLoggedIn = false;
+        $userData = null;
+
+        if ($existing) {
+            $existing->update(['phone_verified_at' => now()]);
+            if (!auth()->check()) {
+                \Illuminate\Support\Facades\Auth::login($existing, true);
+                $isLoggedIn = true;
+            }
+            $userData = [
+                'id'    => $existing->id,
+                'name'  => $existing->name,
+                'phone' => $existing->phone,
+                'email' => $existing->email,
+            ];
+        }
+
         return response()->json([
-            'success' => true,
-            'message' => 'Mobile number verified successfully!',
+            'success'        => true,
+            'message'        => $existing ? 'মোবাইল ওটিপি যাচাই সফল এবং লগইন সম্পন্ন হয়েছে!' : 'মোবাইল নম্বর সফলভাবে ভেরিফাই সম্পন্ন হয়েছে!',
+            'verified_phone' => $localPhone,
+            'is_existing'    => (bool) $existing,
+            'is_logged_in'   => $isLoggedIn || auth()->check(),
+            'user'           => $userData,
         ]);
     }
 
     /**
-     * Complete Unified Onboarding Registration (Amazon-style Multi-step Onboarding)
+     * Complete Unified Onboarding Registration (ideaabd-style Multi-step Onboarding)
      * Handles Category selection (Buyer, Author, Publisher, Seller) + Primary Address
      * and auto-logs the buyer directly to /my-account.
      */
@@ -983,55 +1102,95 @@ class RegistrationController extends Controller
             $cleanDigits = '0' . $cleanDigits;
         }
         $localPhone = $cleanDigits;
+        $fullPhone = '+880' . ltrim($cleanDigits, '0');
         $email = $request->filled('email') ? strtolower(trim($request->input('email'))) : null;
 
+        $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
+            || session('phone_verified_' . md5($localPhone))
+            || session('phone_verified_' . $cleanDigits)
+            || session('otp_verified_phone') === $localPhone
+            || session('otp_verified_phone') === $fullPhone;
+
         // Check for existing phone or email
-        $existing = User::where(function ($q) use ($localPhone, $cleanDigits, $email) {
+        $existing = User::where(function ($q) use ($localPhone, $cleanDigits, $email, $fullPhone) {
             $q->where('phone', $localPhone)
-              ->orWhere('phone', '+880' . ltrim($cleanDigits, '0'))
+              ->orWhere('phone', $fullPhone)
               ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10));
             if ($email) {
                 $q->orWhere('email', $email);
             }
         })->first();
 
+        $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
+
         if ($existing) {
-            if (Hash::check($request->input('password'), $existing->password)) {
+            if (Hash::check($request->input('password'), $existing->password) || $phoneVerifiedSession) {
+                $updateData = [
+                    'phone_verified_at' => $existing->phone_verified_at ?: now(),
+                    'is_active'         => true,
+                ];
+
+                // If mobile was verified in this session, save the newly set password
+                if ($phoneVerifiedSession && $request->filled('password')) {
+                    $updateData['password'] = Hash::make($request->input('password'));
+                }
+
+                if ($request->filled('name') && (!$existing->name || in_array($existing->name, ['Guest User', 'Anonymous', 'কাস্টমার', 'ক্রেতা'], true))) {
+                    $updateData['name'] = trim($request->input('name'));
+                }
+
+                $existing->update($updateData);
+
                 \Illuminate\Support\Facades\Auth::login($existing, true);
-                $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
+
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success'  => true,
-                        'message'  => 'ইতিমধ্যে আপনার একাউন্ট রয়েছে, সফলভাবে লগইন সম্পন্ন হয়েছে!',
+                        'message'  => 'স্বাগতম! আপনার অ্যাকাউন্ট সফলভাবে সক্রিয়, ভেরিফাইড ও লগইন হয়েছে।',
                         'redirect' => $targetUrl,
+                        'user'     => [
+                            'id'    => $existing->id,
+                            'name'  => $existing->name,
+                            'phone' => $existing->phone,
+                            'email' => $existing->email,
+                        ],
                     ]);
                 }
                 return redirect()->to($targetUrl)->with('success', 'স্বাগতম! আপনি সফলভাবে লগইন করেছেন।');
             }
 
-            $errMsg = 'এই মোবাইল নম্বর বা ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট রয়েছে। দয়া করে সঠিক পাসওয়ার্ড দিয়ে লগইন করুন।';
+            $errMsg = 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট সংরক্ষিত রয়েছে। ওটিপি কোড দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন অথবা সঠিক পাসওয়ার্ড দিন।';
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $errMsg, 'exists' => true], 422);
+                return response()->json([
+                    'success'      => false,
+                    'message'      => $errMsg,
+                    'exists'       => true,
+                    'requires_otp' => true,
+                    'phone'        => $localPhone,
+                ], 422);
             }
             return back()->withInput()->with('error', $errMsg);
         }
 
         $fallbackEmail = $email ?: ('user_' . $cleanDigits . '@user.ideaabd.com');
+        if (User::where('email', $fallbackEmail)->exists()) {
+            $fallbackEmail = 'user_' . $cleanDigits . '_' . time() . '@user.ideaabd.com';
+        }
 
         $user = User::create([
-            'name'       => trim($request->input('name')),
-            'phone'      => $localPhone,
-            'email'      => $fallbackEmail,
-            'password'   => Hash::make($request->input('password')),
-            'role'       => User::ROLE_BUYER ?? 'buyer',
-            'reg_type'   => 'buyer',
-            'reg_status' => 'approved',
-            'is_active'  => true,
+            'name'              => trim($request->input('name')),
+            'phone'             => $localPhone,
+            'email'             => $fallbackEmail,
+            'password'          => Hash::make($request->input('password')),
+            'role'              => User::ROLE_BUYER ?? 'buyer',
+            'reg_type'          => 'buyer',
+            'reg_status'        => 'approved',
+            'is_active'         => true,
+            'phone_verified_at' => now(),
+            'email_verified_at' => $email ? now() : null,
         ]);
 
         \Illuminate\Support\Facades\Auth::login($user, true);
-
-        $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -1039,6 +1198,7 @@ class RegistrationController extends Controller
                 'message'  => 'কাস্টমার অ্যাকাউন্ট সফলভাবে তৈরি ও লগইন হয়েছে!',
                 'redirect' => $targetUrl,
                 'user'     => [
+                    'id'    => $user->id,
                     'name'  => $user->name,
                     'phone' => $user->phone,
                     'email' => $user->email,

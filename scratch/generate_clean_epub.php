@@ -334,7 +334,7 @@ file_put_contents($buildDir . '/OEBPS/imprint.xhtml', '<?xml version="1.0" encod
                     কাঁচাকঞ্চি, রংপুর, বাংলাদেশ<br/>
                     ফোন: +৮৮০১৫৫৮৭১২৮১০<br/>
                     ইমেইল: kanchakonchi@gmail.com<br/>
-                    অনলাইনে: rokomari.com
+                    অনলাইনে: ideaabd.com
                 </td>
             </tr>
             <tr>

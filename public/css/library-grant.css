@@ -229,32 +229,56 @@ body.dark-mode {
     flex-shrink: 0;
 }
 
-/* Section Header */
+/* Modern Upgraded Section Header */
 .lib-section-head {
-    background: var(--lib-bg-soft);
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     color: var(--lib-text-main);
-    font-size: 12.5px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-    padding: 10px 18px;
-    border-top: 1px solid var(--lib-border);
-    border-bottom: 1px solid var(--lib-border);
-    text-transform: uppercase;
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 750;
+    letter-spacing: 0.2px;
+    padding: 11px 20px;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+[data-bs-theme="dark"] .lib-section-head,
+[data-theme="dark"] .lib-section-head {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: #334155;
+    color: #f8fafc;
 }
 
 .lib-section-head .sec-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.lib-section-head .sec-left i {
+.lib-section-head .sec-icon-pill {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: #ecfdf5;
     color: var(--lib-primary);
+    border: 1px solid #a7f3d0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 13px;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="dark"] .lib-section-head .sec-icon-pill,
+[data-theme="dark"] .lib-section-head .sec-icon-pill {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
 }
 
 /* Modern Conflict-Free Grid System */
@@ -284,19 +308,41 @@ body.dark-mode {
 }
 
 .lib-field-label {
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
     color: var(--lib-text-main);
-    line-height: 1.3;
+    line-height: 1.35;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 3px;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.lib-field-label > span,
+.lib-field-label > div,
+.lib-field-label > a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.lib-field-label .badge {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-weight: 600;
 }
 
 .lib-field-label .sub-text {
     font-size: 11px;
     font-weight: 500;
     color: var(--lib-text-muted);
-    margin-top: 1px;
+    margin-left: auto;
+    white-space: nowrap;
 }
 
 /* Form Controls */
@@ -714,54 +760,64 @@ body.dark-mode {
 }
 
 /* ==========================================================================
-   Customer Authentication Gate & Representative Banner Styles
+   Customer Authentication Gate & Representative Banner Styles (Premium Modern Design)
    ========================================================================== */
 .lib-auth-gate-card {
     background: #ffffff;
-    border: 1.5px solid #047857;
-    border-radius: var(--lib-radius);
-    box-shadow: var(--lib-shadow-md);
+    border: 1.5px solid #059669;
+    border-radius: 14px;
+    box-shadow: 0 10px 25px -5px rgba(4, 120, 87, 0.1), 0 8px 10px -6px rgba(4, 120, 87, 0.05);
     overflow: hidden;
-    margin-bottom: 20px;
-    transition: all 0.3s ease;
+    margin-bottom: 22px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-bs-theme="dark"] .lib-auth-gate-card,
 body.dark-mode .lib-auth-gate-card {
     background: #0f172a;
-    border-color: #047857;
+    border-color: #059669;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .lib-auth-gate-header {
-    background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+    background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);
     color: #ffffff;
-    padding: 18px 22px;
+    padding: 16px 22px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .lib-auth-gate-title {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     margin: 0;
     display: flex;
     align-items: center;
     gap: 10px;
+    letter-spacing: -0.2px;
 }
 
 .lib-auth-gate-body {
     padding: 24px;
+    background: #ffffff;
 }
 
+[data-bs-theme="dark"] .lib-auth-gate-body,
+body.dark-mode .lib-auth-gate-body {
+    background: #0f172a;
+}
+
+/* Modern Pill Segmented Nav Tabs */
 .lib-auth-nav-tabs {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     background: #f1f5f9;
-    padding: 5px;
-    border-radius: 10px;
+    padding: 4px;
+    border-radius: 12px;
     margin-bottom: 20px;
     border: 1px solid #e2e8f0;
 }
@@ -775,50 +831,180 @@ body.dark-mode .lib-auth-nav-tabs {
 .lib-auth-tab-btn {
     flex: 1;
     text-align: center;
-    padding: 10px 16px;
-    font-weight: 600;
+    padding: 10px 18px;
+    font-weight: 700;
     font-size: 14px;
-    border-radius: 8px;
+    border-radius: 9px;
     border: none;
     background: transparent;
     color: #64748b;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
 }
 
+.lib-auth-tab-btn:hover:not(.active) {
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+[data-bs-theme="dark"] .lib-auth-tab-btn:hover:not(.active),
+body.dark-mode .lib-auth-tab-btn:hover:not(.active) {
+    color: #f8fafc;
+    background: rgba(255, 255, 255, 0.05);
+}
+
 .lib-auth-tab-btn.active {
     background: #047857;
     color: #ffffff;
-    box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25);
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
 }
 
+/* Password Eye Toggle Wrap */
+.lib-pwd-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.lib-pwd-wrap .lib-input {
+    padding-right: 42px;
+}
+
+.lib-pwd-eye {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.15s, background-color 0.15s;
+    font-size: 14px;
+}
+
+.lib-pwd-eye:hover {
+    color: #047857;
+    background: #f1f5f9;
+}
+
+[data-bs-theme="dark"] .lib-pwd-eye:hover,
+body.dark-mode .lib-pwd-eye:hover {
+    color: #34d399;
+    background: #334155;
+}
+
+/* OTP Dedicated Modern Verification Container */
+.lib-otp-box-card {
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 16px 18px;
+    transition: all 0.2s ease;
+}
+
+.lib-otp-box-card:focus-within {
+    border-color: #047857;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
+}
+
+[data-bs-theme="dark"] .lib-otp-box-card,
+body.dark-mode .lib-otp-box-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.lib-otp-code-input {
+    letter-spacing: 6px;
+    font-size: 18px !important;
+    font-weight: 700;
+    text-align: center;
+    background: #ffffff !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px 0 0 8px !important;
+    height: 44px;
+    transition: all 0.15s ease;
+}
+
+.lib-otp-code-input:focus {
+    border-color: #047857 !important;
+    box-shadow: 0 0 0 2px rgba(4, 120, 87, 0.2) !important;
+}
+
+[data-bs-theme="dark"] .lib-otp-code-input,
+body.dark-mode .lib-otp-code-input {
+    background: #0f172a !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+/* Action Button */
+.lib-btn-auth-action {
+    background: linear-gradient(135deg, #064e3b 0%, #047857 60%, #059669 100%);
+    border: none;
+    color: #ffffff;
+    font-size: 14.5px;
+    font-weight: 700;
+    padding: 11px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.lib-btn-auth-action:hover:not(:disabled) {
+    background: #064e3b;
+    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.35);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+.lib-btn-auth-action:disabled {
+    opacity: 0.75;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Representative Identity Bar */
 .lib-user-badge-bar {
     background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-radius: 10px;
-    padding: 12px 18px;
+    border: 1.5px solid #a7f3d0;
+    border-radius: 12px;
+    padding: 14px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 14px;
     flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(4, 120, 87, 0.06);
 }
 
 [data-bs-theme="dark"] .lib-user-badge-bar,
 body.dark-mode .lib-user-badge-bar {
-    background: rgba(6, 78, 59, 0.25);
+    background: rgba(6, 78, 59, 0.3);
     border-color: #065f46;
 }
 
 .lib-user-info-text {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-size: 14px;
     color: #064e3b;
 }
@@ -830,21 +1016,45 @@ body.dark-mode .lib-user-info-text {
 
 .lib-user-switch-link {
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 700;
     color: #dc2626;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 6px 12px;
     background: #ffffff;
     border: 1px solid #fecaca;
-    border-radius: 6px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.2s;
 }
 
 .lib-user-switch-link:hover {
     background: #fee2e2;
     color: #991b1b;
+    border-color: #fca5a5;
+}
+
+[data-bs-theme="dark"] .lib-user-switch-link,
+body.dark-mode .lib-user-switch-link {
+    background: #1e293b;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+}
+
+/* Locked Form Transition Overlay */
+.lib-form-locked-msg {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 

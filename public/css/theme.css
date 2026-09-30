@@ -106,18 +106,30 @@ body {
 }
 
 /* 1. Global Headings & Typography Protection */
-[data-bs-theme="dark"] h1, [data-theme="dark"] h1,
-[data-bs-theme="dark"] h2, [data-theme="dark"] h2,
-[data-bs-theme="dark"] h3, [data-theme="dark"] h3,
-[data-bs-theme="dark"] h4, [data-theme="dark"] h4,
-[data-bs-theme="dark"] h5, [data-theme="dark"] h5,
-[data-bs-theme="dark"] h6, [data-theme="dark"] h6,
-[data-bs-theme="dark"] .h1, [data-theme="dark"] .h1,
-[data-bs-theme="dark"] .h2, [data-theme="dark"] .h2,
-[data-bs-theme="dark"] .h3, [data-theme="dark"] .h3,
-[data-bs-theme="dark"] .h4, [data-theme="dark"] .h4,
-[data-bs-theme="dark"] .h5, [data-theme="dark"] .h5,
-[data-bs-theme="dark"] .h6, [data-theme="dark"] .h6,
+[data-bs-theme="dark"] h1,
+[data-theme="dark"] h1,
+[data-bs-theme="dark"] h2,
+[data-theme="dark"] h2,
+[data-bs-theme="dark"] h3,
+[data-theme="dark"] h3,
+[data-bs-theme="dark"] h4,
+[data-theme="dark"] h4,
+[data-bs-theme="dark"] h5,
+[data-theme="dark"] h5,
+[data-bs-theme="dark"] h6,
+[data-theme="dark"] h6,
+[data-bs-theme="dark"] .h1,
+[data-theme="dark"] .h1,
+[data-bs-theme="dark"] .h2,
+[data-theme="dark"] .h2,
+[data-bs-theme="dark"] .h3,
+[data-theme="dark"] .h3,
+[data-bs-theme="dark"] .h4,
+[data-theme="dark"] .h4,
+[data-bs-theme="dark"] .h5,
+[data-theme="dark"] .h5,
+[data-bs-theme="dark"] .h6,
+[data-theme="dark"] .h6,
 [data-bs-theme="dark"] strong:not(.text-warning):not(.text-danger):not(.text-success):not(.text-primary),
 [data-theme="dark"] strong:not(.text-warning):not(.text-danger):not(.text-success):not(.text-primary),
 [data-bs-theme="dark"] b:not(.text-warning):not(.text-danger):not(.text-success):not(.text-primary),
@@ -352,20 +364,20 @@ body {
     border-color: var(--app-border) !important;
 }
 
-[data-bs-theme="dark"] .table > :not(caption) > * > *,
-[data-theme="dark"] .table > :not(caption) > * > * {
+[data-bs-theme="dark"] .table> :not(caption)>*>*,
+[data-theme="dark"] .table> :not(caption)>*>* {
     background-color: transparent !important;
     color: inherit !important;
     border-bottom-color: var(--app-border) !important;
 }
 
-[data-bs-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > *,
-[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+[data-bs-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>*,
+[data-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>* {
     background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
-[data-bs-theme="dark"] .table-hover > tbody > tr:hover > *,
-[data-theme="dark"] .table-hover > tbody > tr:hover > * {
+[data-bs-theme="dark"] .table-hover>tbody>tr:hover>*,
+[data-theme="dark"] .table-hover>tbody>tr:hover>* {
     background-color: rgba(56, 189, 248, 0.07) !important;
 }
 
@@ -376,7 +388,7 @@ body {
     color: var(--app-text-primary) !important;
 }
 
-/* 8. My Account Amazon Suite in Dark Mode */
+/* 8. My Account ideaabd Suite in Dark Mode */
 [data-bs-theme="dark"] .amz-page-wrapper,
 [data-theme="dark"] .amz-page-wrapper {
     background-color: var(--app-canvas) !important;

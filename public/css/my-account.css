@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   IDEA PROKASHON — AMAZON "YOUR ACCOUNT" SUITE (BENGALI & MODERN UI)
+   IDEA PROKASHON — ideaabd "YOUR ACCOUNT" SUITE (BENGALI & MODERN UI)
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root {
@@ -45,6 +45,7 @@
     transform: none !important;
     background: #ffffff !important;
 }
+
 .amz-page-wrapper .card:hover {
     transform: none !important;
     box-shadow: none !important;
@@ -61,11 +62,13 @@
     gap: 6px;
     color: var(--amz-text-muted);
 }
+
 .amz-breadcrumb a {
     color: var(--amz-link);
     text-decoration: none;
     font-weight: 500;
 }
+
 .amz-breadcrumb a:hover {
     color: var(--amz-link-hover);
     text-decoration: underline;
@@ -94,12 +97,13 @@
     font-size: 14px;
     color: var(--amz-text-muted);
 }
+
 .amz-sub-greeting strong {
     color: var(--amz-text-dark);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   AMAZON 3-COLUMN SERVICE CARDS GRID (BUTTON-CARD SUITE)
+   ideaabd 3-COLUMN SERVICE CARDS GRID (BUTTON-CARD SUITE)
    ───────────────────────────────────────────────────────────── */
 .amz-cards-grid {
     display: grid;
@@ -146,7 +150,7 @@
     box-shadow: 0 0 0 3px rgba(228, 121, 17, 0.35);
 }
 
-/* Amazon Illustrated Icon Container */
+/* ideaabd Illustrated Icon Container */
 .amz-icon-holder {
     width: 62px;
     height: 62px;
@@ -168,19 +172,66 @@
     box-shadow: 0 4px 12px rgba(0, 113, 133, 0.15);
 }
 
-/* Amazon Palette for Specific Cards */
-.ic-orders      { background: linear-gradient(135deg, #fef6ee, #fbe8d5); color: #c45500; }
-.ic-security    { background: linear-gradient(135deg, #e7f4f6, #d2eff3); color: #007185; }
-.ic-prime       { background: linear-gradient(135deg, #ebf7ff, #d6effe); color: #00a8e1; }
-.ic-address     { background: linear-gradient(135deg, #eef9f8, #daf2ef); color: #008296; }
-.ic-business    { background: linear-gradient(135deg, #f0f4f8, #e2e8f0); color: #1a2332; }
-.ic-giftcard    { background: linear-gradient(135deg, #2a384c, #131921); color: #ff9900; }
-.ic-payment     { background: linear-gradient(135deg, #eef9f8, #daf2ef); color: #007185; }
-.ic-family      { background: linear-gradient(135deg, #f7f3ff, #ede4ff); color: #6b21a8; }
-.ic-digital     { background: linear-gradient(135deg, #f8fafc, #edf2f7); color: #334155; }
-.ic-lists       { background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #ea580c; }
-.ic-contact     { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #059669; }
-.ic-messages    { background: linear-gradient(135deg, #f0fdf4, #dcfce7); color: #16a34a; }
+/* ideaabd Palette for Specific Cards */
+.ic-orders {
+    background: linear-gradient(135deg, #fef6ee, #fbe8d5);
+    color: #c45500;
+}
+
+.ic-security {
+    background: linear-gradient(135deg, #e7f4f6, #d2eff3);
+    color: #007185;
+}
+
+.ic-prime {
+    background: linear-gradient(135deg, #ebf7ff, #d6effe);
+    color: #00a8e1;
+}
+
+.ic-address {
+    background: linear-gradient(135deg, #eef9f8, #daf2ef);
+    color: #008296;
+}
+
+.ic-business {
+    background: linear-gradient(135deg, #f0f4f8, #e2e8f0);
+    color: #1a2332;
+}
+
+.ic-giftcard {
+    background: linear-gradient(135deg, #2a384c, #131921);
+    color: #ff9900;
+}
+
+.ic-payment {
+    background: linear-gradient(135deg, #eef9f8, #daf2ef);
+    color: #007185;
+}
+
+.ic-family {
+    background: linear-gradient(135deg, #f7f3ff, #ede4ff);
+    color: #6b21a8;
+}
+
+.ic-digital {
+    background: linear-gradient(135deg, #f8fafc, #edf2f7);
+    color: #334155;
+}
+
+.ic-lists {
+    background: linear-gradient(135deg, #fff7ed, #ffedd5);
+    color: #ea580c;
+}
+
+.ic-contact {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    color: #059669;
+}
+
+.ic-messages {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #16a34a;
+}
 
 .amz-card-text {
     flex: 1;
@@ -208,7 +259,7 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   AMAZON BUTTONS
+   ideaabd BUTTONS
    ───────────────────────────────────────────────────────────── */
 .amz-btn-gold {
     background: var(--amz-btn-gold) !important;
@@ -227,6 +278,7 @@
     cursor: pointer !important;
     transition: background 0.15s ease !important;
 }
+
 .amz-btn-gold:hover {
     background: var(--amz-btn-gold-hover) !important;
 }
@@ -247,27 +299,31 @@
     cursor: pointer !important;
     transition: background 0.15s ease !important;
 }
+
 .amz-btn-silver:hover {
     background: var(--amz-btn-silver-hover) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────
-   AMAZON 3-COLUMN DIRECTORY SECTION (MATCHING SCREENSHOT)
+   ideaabd 3-COLUMN DIRECTORY SECTION (MATCHING SCREENSHOT)
    ───────────────────────────────────────────────────────────── */
 .amz-directory-section {
     border-top: 1px solid #e7e7e7;
     padding-top: 28px;
     margin-top: 36px;
 }
+
 .amz-directory-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
 }
+
 .amz-dir-col {
     display: flex;
     flex-direction: column;
 }
+
 .amz-dir-title {
     font-size: 16px;
     font-weight: 700;
@@ -275,6 +331,7 @@
     margin-bottom: 12px;
     line-height: 1.3;
 }
+
 .amz-dir-list {
     list-style: none;
     padding: 0;
@@ -283,6 +340,7 @@
     flex-direction: column;
     gap: 8px;
 }
+
 .amz-dir-list li a {
     font-size: 13px;
     color: #007185;
@@ -290,6 +348,7 @@
     transition: color 0.15s ease;
     line-height: 1.4;
 }
+
 .amz-dir-list li a:hover {
     color: #c7511f;
     text-decoration: underline;
@@ -302,13 +361,21 @@
     display: none !important;
     animation: amzFadeIn 0.18s ease-out;
 }
+
 .amz-subpage-panel.active {
     display: block !important;
 }
 
 @keyframes amzFadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .amz-back-link {
@@ -322,12 +389,13 @@
     margin-bottom: 16px;
     cursor: pointer;
 }
+
 .amz-back-link:hover {
     color: var(--amz-link-hover);
     text-decoration: underline;
 }
 
-/* Amazon Order Card Component */
+/* ideaabd Order Card Component */
 .amz-order-card {
     border: 1px solid var(--amz-border);
     border-radius: var(--amz-card-radius);
@@ -335,6 +403,7 @@
     margin-bottom: 18px;
     background: #ffffff;
 }
+
 .amz-order-header {
     background: #f6f6f6;
     border-bottom: 1px solid var(--amz-border);
@@ -347,11 +416,13 @@
     font-size: 12px;
     color: var(--amz-text-muted);
 }
+
 .amz-order-header strong {
     color: var(--amz-text-dark);
     display: block;
     font-size: 13px;
 }
+
 .amz-order-body {
     padding: 16px 18px;
     display: flex;
@@ -361,7 +432,7 @@
     gap: 16px;
 }
 
-/* Amazon Security Settings Table Rows */
+/* ideaabd Security Settings Table Rows */
 .amz-security-row {
     display: flex;
     align-items: center;
@@ -369,26 +440,30 @@
     padding: 16px 0;
     border-bottom: 1px solid #e7e7e7;
 }
+
 .amz-security-row:last-child {
     border-bottom: none;
 }
+
 .amz-security-label {
     font-weight: 700;
     font-size: 14px;
     color: var(--amz-text-dark);
     margin-bottom: 2px;
 }
+
 .amz-security-value {
     font-size: 13.5px;
     color: #333333;
 }
 
-/* Amazon Address Tile Grid */
+/* ideaabd Address Tile Grid */
 .amz-address-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
 }
+
 .amz-add-address-card {
     border: 2px dashed #a6a6a6;
     border-radius: var(--amz-card-radius);
@@ -403,11 +478,13 @@
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease;
 }
+
 .amz-add-address-card:hover {
     border-color: #007185;
     background: #fbfbfb;
     color: #007185;
 }
+
 .amz-address-card {
     border: 1px solid var(--amz-border);
     border-radius: var(--amz-card-radius);
@@ -426,10 +503,12 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 14px;
     }
+
     .amz-directory-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
     }
+
     .amz-address-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -440,12 +519,15 @@
         grid-template-columns: 1fr;
         gap: 10px;
     }
+
     .amz-directory-grid {
         grid-template-columns: 1fr;
     }
+
     .amz-address-grid {
         grid-template-columns: 1fr;
     }
+
     .amz-main-title {
         font-size: 24px;
     }
@@ -487,7 +569,7 @@
     color: #0284c7;
     font-size: 15px;
     border: 2px solid #ffffff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .amz-nav-dropdown-btn {
@@ -502,7 +584,7 @@
     align-items: center;
     gap: 8px;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .amz-nav-dropdown-btn:hover,
@@ -554,4 +636,3 @@
     color: #64748b;
     padding: 6px 12px 2px;
 }
-

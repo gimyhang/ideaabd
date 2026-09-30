@@ -556,7 +556,7 @@ $code = <<<'BLADE'
     <div class="site-categorybar border-bottom position-relative d-none d-lg-block" style="background: #f8fafc; font-size: 13px; min-height: 48px; padding: 6px 0; border-color: #e2e8f0 !important;">
         <div class="container d-flex align-items-center justify-content-center flex-wrap gap-2">
 
-            {{-- 1. [সকল বিষয় ▾] Clean Rokomari-style Mega Dropdown on Hover --}}
+            {{-- 1. [সকল বিষয় ▾] Clean ideaabd-style Mega Dropdown on Hover --}}
             <div class="dropdown site-categorybar__all flex-shrink-0 position-relative">
                 <button class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs hover-shadow" 
                         type="button" 

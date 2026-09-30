@@ -283,6 +283,7 @@ Route::post('/register/complete', [RegistrationController::class, 'completeUnifi
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
 Route::post('/register/send-email-otp', [RegistrationController::class, 'sendEmailOtp'])->middleware('throttle:5,1')->name('register.send-email-otp');
 Route::post('/register/verify-email-otp', [RegistrationController::class, 'verifyEmailOtp'])->middleware('throttle:10,1')->name('register.verify-email-otp');
+Route::post('/register/check-phone', [RegistrationController::class, 'checkPhoneConflict'])->name('register.check-phone');
 Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->middleware('throttle:5,1')->name('register.send-otp');
 Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.verify-otp');
 Route::post('/register/quick-customer', [RegistrationController::class, 'quickCustomerRegister'])->name('register.quick-customer');

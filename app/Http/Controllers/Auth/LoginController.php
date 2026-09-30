@@ -578,7 +578,21 @@ class LoginController extends Controller
             Session::flash('show_captcha', true);
         }
 
+        $firstCandidate = isset($candidates) ? $candidates->first() : null;
+        $isUnverifiedAccount = $firstCandidate && (empty($firstCandidate->password) || empty($firstCandidate->phone_verified_at));
+
         if ($isAjax) {
+            if ($isUnverifiedAccount) {
+                return response()->json([
+                    'success'          => false,
+                    'requires_otp'     => true,
+                    'is_unverified'    => true,
+                    'phone'            => $firstCandidate->phone,
+                    'name'             => $firstCandidate->name,
+                    'message'          => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। ওটিপি দিয়ে ভেরিফাই করে নতুন পাসওয়ার্ড সেট করুন।',
+                ], 422);
+            }
+
             return response()->json([
                 'success'          => false,
                 'show_captcha'     => $showCaptcha,
@@ -588,6 +602,12 @@ class LoginController extends Controller
                 'is_blocked'       => ($failResult['action'] ?? '') === 'auto_blocked',
                 'message'          => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
             ], 422);
+        }
+
+        if ($isUnverifiedAccount) {
+            throw ValidationException::withMessages([
+                'email' => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। অনুগ্রহ করে ওটিপি দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন।',
+            ]);
         }
 
         throw ValidationException::withMessages([
