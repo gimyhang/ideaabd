@@ -152,7 +152,7 @@ class SiteSetting
     public static function faviconUrl(): ?string
     {
         $favicon = self::get('site_favicon') ?: config('brand.favicon');
-        return self::resolveImageUrl($favicon, 'images/favicon.ico');
+        return self::resolveImageUrl($favicon, 'favicon.ico') ?: (file_exists(public_path('images/logo-mark.svg')) ? asset('images/logo-mark.svg') : asset('favicon.ico'));
     }
 
     public static function banner1Url(): ?string
@@ -338,7 +338,7 @@ class SiteSetting
     public static function resolveImageUrl(?string $path, ?string $fallbackAsset = null): ?string
     {
         if (empty($path)) {
-            return $fallbackAsset && file_exists(public_path($fallbackAsset)) ? asset($fallbackAsset) : null;
+            return $fallbackAsset && file_exists(public_path($fallbackAsset)) ? asset($fallbackAsset) : ($fallbackAsset ? asset($fallbackAsset) : null);
         }
 
         $clean = trim($path, '"\' ');
@@ -353,15 +353,36 @@ class SiteSetting
 
         $clean = ltrim($clean, '/');
 
-        if (str_starts_with($clean, 'storage/')) {
+        // 1. Check direct file in public/
+        if (file_exists(public_path($clean)) && is_file(public_path($clean))) {
             return asset($clean);
         }
 
-        if (file_exists(public_path($clean))) {
-            return asset($clean);
+        // 2. Check storage/ prefix or path
+        $storageRel = str_starts_with($clean, 'storage/') ? substr($clean, 8) : $clean;
+
+        if (file_exists(public_path('storage/' . $storageRel)) || file_exists(storage_path('app/public/' . $storageRel))) {
+            return asset('storage/' . $storageRel);
         }
 
-        return asset('storage/' . $clean);
+        // 3. Check alternate extensions (.webp, .png, .jpg, .jpeg, .svg)
+        $withoutExt = preg_replace('/\.[^.]+$/', '', $storageRel);
+        foreach (['.webp', '.png', '.jpg', '.jpeg', '.svg'] as $ext) {
+            if (file_exists(public_path('storage/' . $withoutExt . $ext)) || file_exists(storage_path('app/public/' . $withoutExt . $ext))) {
+                return asset('storage/' . $withoutExt . $ext);
+            }
+            if (file_exists(public_path($withoutExt . $ext))) {
+                return asset($withoutExt . $ext);
+            }
+        }
+
+        // 4. Fallback asset if provided
+        if ($fallbackAsset) {
+            return asset($fallbackAsset);
+        }
+
+        // 5. Default return
+        return asset(str_starts_with($clean, 'storage/') ? $clean : 'storage/' . $clean);
     }
 
     public static function publisherName(): string

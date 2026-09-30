@@ -138,20 +138,80 @@ Route::get('/webzines/archive', fn() => redirect(route('webzine.index')))->name(
 
 // --- Storage Fallback Route for Live Shared Hosts & CPanel without Symlink ---
 Route::get('/storage/{path}', function (string $path) {
-    $baseDir = realpath(storage_path('app/public'));
-    $filePath = storage_path('app/public/' . $path);
-    $realPath = realpath($filePath);
+    $cleanPath = ltrim($path, '/');
 
-    // Prevent directory traversal and ensure file is within public storage directory
-    if (!$baseDir || !$realPath || !str_starts_with($realPath, $baseDir) || !is_file($realPath)) {
-        abort(404);
+    // 1. Direct path check in storage/app/public/
+    $filePath = storage_path('app/public/' . $cleanPath);
+    if (file_exists($filePath) && is_file($filePath)) {
+        $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+        return response()->file($filePath, [
+            'Content-Type'           => $mime,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control'          => 'public, max-age=86400',
+        ]);
     }
 
-    $mime = mime_content_type($realPath) ?: 'application/octet-stream';
-    return response()->file($realPath, [
-        'Content-Type'        => $mime,
-        'X-Content-Type-Options' => 'nosniff',
-    ]);
+    // 2. Direct path check in public/storage/
+    $pubStoragePath = public_path('storage/' . $cleanPath);
+    if (file_exists($pubStoragePath) && is_file($pubStoragePath)) {
+        $mime = mime_content_type($pubStoragePath) ?: 'application/octet-stream';
+        return response()->file($pubStoragePath, [
+            'Content-Type'           => $mime,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control'          => 'public, max-age=86400',
+        ]);
+    }
+
+    // 3. Alternate extensions check (.webp, .png, .jpg, .jpeg, .svg, .avif)
+    $withoutExt = preg_replace('/\.[^.]+$/', '', $cleanPath);
+    foreach (['.webp', '.png', '.jpg', '.jpeg', '.svg', '.avif', '.gif'] as $ext) {
+        $altStorage = storage_path('app/public/' . $withoutExt . $ext);
+        if (file_exists($altStorage) && is_file($altStorage)) {
+            $mime = mime_content_type($altStorage) ?: 'application/octet-stream';
+            return response()->file($altStorage, [
+                'Content-Type'           => $mime,
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control'          => 'public, max-age=86400',
+            ]);
+        }
+        $altPubStorage = public_path('storage/' . $withoutExt . $ext);
+        if (file_exists($altPubStorage) && is_file($altPubStorage)) {
+            $mime = mime_content_type($altPubStorage) ?: 'application/octet-stream';
+            return response()->file($altPubStorage, [
+                'Content-Type'           => $mime,
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control'          => 'public, max-age=86400',
+            ]);
+        }
+    }
+
+    // 4. If requested path is in images/brand/ or is a logo/brand image, serve official site logo
+    if (str_contains($cleanPath, 'brand') || str_contains($cleanPath, 'logo')) {
+        foreach (['images/logo.png', 'images/logo.webp', 'images/logo.svg'] as $brandCandidate) {
+            $fullBrand = public_path($brandCandidate);
+            if (file_exists($fullBrand) && is_file($fullBrand)) {
+                $mime = mime_content_type($fullBrand) ?: 'image/png';
+                return response()->file($fullBrand, [
+                    'Content-Type'           => $mime,
+                    'X-Content-Type-Options' => 'nosniff',
+                    'Cache-Control'          => 'public, max-age=86400',
+                ]);
+            }
+        }
+    }
+
+    // 5. If requested path is in books/ or covers, serve placeholder if missing
+    if (str_contains($cleanPath, 'books') || str_contains($cleanPath, 'covers') || str_contains($cleanPath, 'ebooks')) {
+        $bookPlaceholder = public_path('images/book-placeholder.png');
+        if (file_exists($bookPlaceholder) && is_file($bookPlaceholder)) {
+            return response()->file($bookPlaceholder, [
+                'Content-Type'           => 'image/png',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
+    }
+
+    abort(404);
 })->where('path', '.*')->name('storage.file');
 
 // Public / Client Invoice & Delivery Challan Viewer (Link & QR access)

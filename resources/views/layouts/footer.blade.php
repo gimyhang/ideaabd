@@ -60,7 +60,7 @@
             <div class="col-lg-3 col-md-6">
                 <div class="d-flex align-items-center gap-2.5 mb-3">
                     @if($footerLogo)
-                        <img src="{{ $footerLogo }}" alt="{{ $footerName }}" style="max-height: 42px; width: auto; object-fit: contain; filter: brightness(1.1);">
+                        <img src="{{ $footerLogo }}" alt="{{ $footerName }}" style="max-height: 42px; width: auto; object-fit: contain; filter: brightness(1.1);" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                     @else
                         <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 40px; height: 40px; font-size: 20px;">
                             আই

@@ -197,7 +197,8 @@
                         <img src="{{ $logoUrl }}" 
                              alt="{{ $siteName }}" 
                              class="site-brand__img img-fluid"
-                             style="max-height: 48px; width: auto; object-fit: contain;">
+                             style="max-height: 48px; width: auto; object-fit: contain;"
+                             onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                     @else
                         <span class="site-brand__fallback" style="font-size: 1.25rem;">{{ config('brand.lettermark', 'আই') }}</span>
                         <div class="site-brand__text d-none d-sm-block ms-2 lh-1">
@@ -1177,7 +1178,7 @@
                 $mSiteTagline = \App\Support\SiteSetting::tagline();
             @endphp
             @if ($mLogoUrl)
-                <img src="{{ $mLogoUrl }}" alt="{{ $mSiteName }}" style="height: 38px; max-width: 130px; object-fit: contain;">
+                <img src="{{ $mLogoUrl }}" alt="{{ $mSiteName }}" style="height: 38px; max-width: 130px; object-fit: contain;" onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
             @else
                 <span class="site-brand__fallback" style="width: 38px; height: 38px; font-size: 1.1rem;">{{ config('brand.lettermark', 'আই') }}</span>
             @endif

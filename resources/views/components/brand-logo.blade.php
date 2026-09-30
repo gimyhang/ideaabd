@@ -17,7 +17,7 @@
          alt="{{ $brandName }}"
          style="height:{{ $h }}px;width:{{ $w }}px;max-width:{{ $w }}px;max-height:{{ $h }}px;object-fit:contain;border-radius:8px;flex:0 0 auto;"
          {{ $attributes->merge(['class' => 'adm-brand__logo']) }}
-         onerror="this.style.display='none'">
+         onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
 @else
     <span {{ $attributes->merge(['class' => 'adm-brand__mark']) }}
           style="width:{{ $w }}px;height:{{ $h }}px;font-size:{{ round($h * 0.45) }}px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;">
