@@ -274,7 +274,7 @@ class AuthorDashboardController extends Controller
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'avatar'         => ['nullable', 'max:25600'],
             'avatar_cropped' => ['nullable', 'string'],
         ]);
 

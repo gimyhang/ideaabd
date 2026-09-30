@@ -2408,7 +2408,7 @@ class AdminController extends Controller
             'bio'         => 'nullable|string|max:20000',
             'is_active'   => 'nullable|boolean',
             'is_verified' => 'nullable|boolean',
-            'avatar_file' => 'nullable|image|max:4096',
+            'avatar_file' => 'nullable|max:25600',
         ]);
 
         $avatarPath = null;
@@ -2450,7 +2450,7 @@ class AdminController extends Controller
             'bio'         => 'nullable|string|max:20000',
             'is_active'   => 'nullable|boolean',
             'is_verified' => 'nullable|boolean',
-            'avatar_file' => 'nullable|image|max:4096',
+            'avatar_file' => 'nullable|max:25600',
         ]);
 
         $updates = [

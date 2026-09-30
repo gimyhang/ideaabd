@@ -274,7 +274,7 @@ class UserController extends Controller
             'name'   => 'required|string|max:255',
             'phone'  => 'required|string|max:20|unique:users,phone,' . $user->id,
             'email'  => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'avatar' => 'nullable|max:25600',
         ], [
             'name.required'  => 'আপনার পুরো নাম লিখুন।',
             'phone.required' => 'মোবাইল নম্বর দেওয়া বাধ্যতামূলক।',
@@ -414,7 +414,7 @@ class UserController extends Controller
             'name_bn'                => 'nullable|string|max:255',
             'name_en'                => 'nullable|string|max:255',
             'pen_name'               => 'nullable|string|max:255',
-            'avatar'                 => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'avatar'                 => 'nullable|max:25600',
             'genres'                 => 'nullable|array',
             'genres.*'               => 'string|max:100',
             'bio'                    => 'nullable|string|max:5000',

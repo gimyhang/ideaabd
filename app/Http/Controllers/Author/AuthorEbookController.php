@@ -128,7 +128,7 @@ class AuthorEbookController extends Controller
             'discount_price'        => 'nullable|numeric|min:0|lt:price',
             'pages'                 => 'nullable|integer|min:1',
             'preview_page_limit'    => 'nullable|integer|min:1|max:100',
-            'cover_image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:15360',
+            'cover_image'           => 'nullable|max:25600',
             'file_path'             => [
                 'required',
                 'file',
@@ -304,7 +304,7 @@ class AuthorEbookController extends Controller
             'discount_price'        => 'nullable|numeric|min:0|lt:price',
             'pages'                 => 'nullable|integer|min:1',
             'preview_page_limit'    => 'nullable|integer|min:1|max:50',
-            'cover_image'           => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
+            'cover_image'           => 'nullable|max:25600',
             'file_path'             => [
                 'nullable',
                 'file',

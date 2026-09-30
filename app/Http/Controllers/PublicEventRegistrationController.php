@@ -203,7 +203,7 @@ class PublicEventRegistrationController extends Controller
             'payment_method'       => 'nullable|string|max:50',
             'transaction_id'       => 'nullable|string|max:100',
             'password'             => 'nullable|string|min:6|max:64',
-            'student_photo'        => 'nullable|file|mimes:jpeg,png,jpg,webp|max:8192',
+            'student_photo'        => 'nullable|max:25600',
             'optimized_photo_data' => 'nullable|string',
             'scholarship_reason'   => 'nullable|string|max:2000',
         ];
@@ -495,47 +495,67 @@ class PublicEventRegistrationController extends Controller
     }
 
     /**
-     * Auto-crop, resize and compress student photo to clean 300x360 passport JPEG.
+     * Auto-crop, resize and compress student/author photo to clean 300x360 passport JPEG.
      */
     protected function optimizeAndSavePhoto($file): ?string
     {
         try {
             $imgData = null;
+            $extension = 'jpg';
+
             if (is_string($file) && str_starts_with($file, 'data:image')) {
                 $parts = explode(',', $file);
                 $imgData = base64_decode($parts[1] ?? '');
+            } elseif (is_string($file) && strlen($file) > 100) {
+                $imgData = base64_decode($file);
             } elseif ($file instanceof \Illuminate\Http\UploadedFile) {
+                $extension = strtolower($file->getClientOriginalExtension()) ?: 'jpg';
                 $imgData = file_get_contents($file->getRealPath());
             }
 
-            if (!$imgData) {
+            if (!$imgData || strlen($imgData) < 10) {
                 return null;
+            }
+
+            $filename = 'scholarships/photos/' . Str::random(24) . '.jpg';
+            $fullPath = storage_path('app/public/' . $filename);
+            $pubPath  = public_path('storage/' . $filename);
+
+            $dir = dirname($fullPath);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+            $pubDir = dirname($pubPath);
+            if (!is_dir($pubDir)) {
+                @mkdir($pubDir, 0755, true);
             }
 
             $src = @imagecreatefromstring($imgData);
             if (!$src) {
-                if ($file instanceof \Illuminate\Http\UploadedFile) {
-                    return $file->store('scholarships/photos', 'public');
-                }
-                return null;
+                // Fallback: Save binary directly if GD cannot decode
+                @file_put_contents($fullPath, $imgData);
+                @file_put_contents($pubPath, $imgData);
+                return $filename;
             }
 
-            // Correct EXIF orientation
+            // Correct EXIF orientation if uploaded file
             if (function_exists('exif_read_data') && ($file instanceof \Illuminate\Http\UploadedFile)) {
-                $exif = @exif_read_data($file->getRealPath());
-                if (!empty($exif['Orientation'])) {
-                    switch ($exif['Orientation']) {
-                        case 3:
-                            $src = imagerotate($src, 180, 0);
-                            break;
-                        case 6:
-                            $src = imagerotate($src, -90, 0);
-                            break;
-                        case 8:
-                            $src = imagerotate($src, 90, 0);
-                            break;
+                try {
+                    $exif = @exif_read_data($file->getRealPath());
+                    if (!empty($exif['Orientation'])) {
+                        switch ($exif['Orientation']) {
+                            case 3:
+                                $src = imagerotate($src, 180, 0);
+                                break;
+                            case 6:
+                                $src = imagerotate($src, -90, 0);
+                                break;
+                            case 8:
+                                $src = imagerotate($src, 90, 0);
+                                break;
+                        }
                     }
-                }
+                } catch (\Throwable $e) {}
             }
 
             $w = imagesx($src);
@@ -562,15 +582,9 @@ class PublicEventRegistrationController extends Controller
             $dst = imagecreatetruecolor($targetW, $targetH);
             imagecopyresampled($dst, $src, 0, 0, $cropX, $cropY, $targetW, $targetH, $cropW, $cropH);
 
-            $filename = 'scholarships/photos/' . Str::random(24) . '.jpg';
-            $fullPath = storage_path('app/public/' . $filename);
+            imagejpeg($dst, $fullPath, 88);
+            @copy($fullPath, $pubPath);
 
-            $dir = dirname($fullPath);
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            imagejpeg($dst, $fullPath, 85);
             imagedestroy($src);
             imagedestroy($dst);
 

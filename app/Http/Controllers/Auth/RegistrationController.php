@@ -918,8 +918,8 @@ class RegistrationController extends Controller
                 'genres'         => ['nullable', 'array'],
                 'genres.*'       => ['nullable', 'string'],
                 'nid'            => ['nullable', 'string'],
-                'nid_file'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,webp,pdf', 'max:10240'],
-                'avatar'         => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+                'nid_file'       => ['nullable', 'file', 'max:25600'],
+                'avatar'         => ['nullable', 'max:25600'],
                 'avatar_cropped' => ['nullable', 'string'],
             ]),
             'buyer' => $request->validate([

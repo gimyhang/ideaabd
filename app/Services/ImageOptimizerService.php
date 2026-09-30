@@ -50,9 +50,14 @@ class ImageOptimizerService
                 }
             }
 
+            $folder = trim($folder, '/');
+            $randomName = Str::random(24) . '_' . time();
+
             if (empty($binary)) {
                 if ($source instanceof UploadedFile) {
-                    return $source->store($folder, $disk);
+                    $stored = $source->store($folder, $disk);
+                    self::mirrorToPublicIfApplicable($disk, $stored);
+                    return $stored;
                 }
                 return (string) $source;
             }
@@ -61,9 +66,15 @@ class ImageOptimizerService
             $gdImage = @imagecreatefromstring($binary);
             if (!$gdImage) {
                 if ($source instanceof UploadedFile) {
-                    return $source->store($folder, $disk);
+                    $stored = $source->store($folder, $disk);
+                    self::mirrorToPublicIfApplicable($disk, $stored);
+                    return $stored;
                 }
-                return (string) $source;
+                // Save raw binary directly
+                $ext = 'jpg';
+                $path = "{$folder}/{$randomName}.{$ext}";
+                self::writeToDiskAndPublic($disk, $path, $binary);
+                return $path;
             }
 
             if (function_exists('imageistruecolor') && !imageistruecolor($gdImage) && function_exists('imagepalettetotruecolor')) {
@@ -91,8 +102,7 @@ class ImageOptimizerService
                 }
             }
 
-            $folder = trim($folder, '/');
-            $maxTargetBytes = 20 * 1024; // 20 KB limit
+            $maxTargetBytes = 60 * 1024; // 60 KB limit for crisp retina & ultra fast loading
 
             // Precise Deduplication: compute SHA256 checksum of raw image content
             $contentHash = hash('sha256', $binary);
@@ -112,13 +122,14 @@ class ImageOptimizerService
             // Check if identical file already exists on disk
             if (Storage::disk($disk)->exists($deterministicPath) && Storage::disk($disk)->size($deterministicPath) > 0) {
                 if (isset($gdImage)) imagedestroy($gdImage);
+                self::mirrorToPublicIfApplicable($disk, $deterministicPath);
                 return $deterministicPath;
             }
 
-            // Adaptive WebP Compression Engine targeting <= 20 KB
+            // Adaptive WebP Compression Engine targeting high fidelity and fast loading
             if (function_exists('imagewebp')) {
                 $currentImg = $gdImage;
-                $currentQ = min(80, max(50, $quality));
+                $currentQ = min(85, max(60, $quality));
                 $bestData = null;
 
                 for ($pass = 0; $pass < 4; $pass++) {
@@ -133,14 +144,14 @@ class ImageOptimizerService
                         }
                     }
 
-                    // Progressively lower quality or scale down by 15% if still over 20KB
-                    $currentQ -= 10;
+                    // Progressively adjust quality or gently scale down if still large
+                    $currentQ -= 8;
                     if ($pass >= 1 && $currentImg) {
                         $curW = imagesx($currentImg);
                         $curH = imagesy($currentImg);
-                        if ($curW > 320 && $curH > 320) {
-                            $scaledW = (int) round($curW * 0.85);
-                            $scaledH = (int) round($curH * 0.85);
+                        if ($curW > 400 && $curH > 400) {
+                            $scaledW = (int) round($curW * 0.90);
+                            $scaledH = (int) round($curH * 0.90);
                             $scaled = imagecreatetruecolor($scaledW, $scaledH);
                             if ($scaled) {
                                 imagealphablending($scaled, false);
@@ -161,7 +172,7 @@ class ImageOptimizerService
                 imagedestroy($gdImage);
 
                 if (!empty($bestData)) {
-                    Storage::disk($disk)->put($deterministicPath, $bestData);
+                    self::writeToDiskAndPublic($disk, $deterministicPath, $bestData);
                     return $deterministicPath;
                 }
             }
@@ -175,7 +186,7 @@ class ImageOptimizerService
                 if ($success && !empty($avifData)) {
                     imagedestroy($gdImage);
                     $path = "{$folder}/{$randomName}.avif";
-                    Storage::disk($disk)->put($path, $avifData);
+                    self::writeToDiskAndPublic($disk, $path, $avifData);
                     return $path;
                 }
             }
@@ -188,22 +199,69 @@ class ImageOptimizerService
                 imagedestroy($gdImage);
 
                 $path = "{$folder}/{$randomName}.jpg";
-                Storage::disk($disk)->put($path, $jpgData);
+                self::writeToDiskAndPublic($disk, $path, $jpgData);
                 return $path;
             }
 
             if ($source instanceof UploadedFile) {
-                return $source->store($folder, $disk);
+                $stored = $source->store($folder, $disk);
+                self::mirrorToPublicIfApplicable($disk, $stored);
+                return $stored;
             }
             return (string) $source;
 
         } catch (\Throwable $e) {
             Log::warning("ImageOptimizerService failed to convert image: " . $e->getMessage());
             if ($source instanceof UploadedFile) {
-                return $source->store($folder, $disk);
+                $stored = $source->store($folder, $disk);
+                self::mirrorToPublicIfApplicable($disk, $stored);
+                return $stored;
             }
             return (string) $source;
         }
+    }
+
+    /**
+     * Write file to storage disk and mirror to public/storage if disk is public
+     */
+    public static function writeToDiskAndPublic(string $disk, string $relPath, string $data): void
+    {
+        Storage::disk($disk)->put($relPath, $data);
+        if ($disk === 'public') {
+            try {
+                $pubFile = public_path('storage/' . ltrim($relPath, '/'));
+                $pubDir = dirname($pubFile);
+                if (!file_exists($pubDir)) {
+                    @mkdir($pubDir, 0777, true);
+                }
+                @file_put_contents($pubFile, $data);
+            } catch (\Throwable $e) {}
+        }
+    }
+
+    /**
+     * Mirror a stored file from storage/app/public to public/storage if applicable
+     */
+    public static function mirrorToPublicIfApplicable(string $disk, ?string $relPath): void
+    {
+        if (empty($relPath) || $disk !== 'public') {
+            return;
+        }
+        try {
+            $clean = ltrim($relPath, '/');
+            $storageFull = storage_path('app/public/' . $clean);
+            $publicFull  = public_path('storage/' . $clean);
+
+            if (file_exists($storageFull) && is_file($storageFull)) {
+                $pubDir = dirname($publicFull);
+                if (!file_exists($pubDir)) {
+                    @mkdir($pubDir, 0777, true);
+                }
+                if (!file_exists($publicFull) || filesize($publicFull) !== filesize($storageFull)) {
+                    @copy($storageFull, $publicFull);
+                }
+            }
+        } catch (\Throwable $e) {}
     }
 
     /**
@@ -227,14 +285,14 @@ class ImageOptimizerService
 
             if (!function_exists('imagecreatefromstring')) {
                 $path = "{$folder}/{$randomName}.jpg";
-                Storage::disk($disk)->put($path, $decoded);
+                self::writeToDiskAndPublic($disk, $path, $decoded);
                 return $path;
             }
 
             $gdImage = @imagecreatefromstring($decoded);
             if (!$gdImage) {
                 $path = "{$folder}/{$randomName}.jpg";
-                Storage::disk($disk)->put($path, $decoded);
+                self::writeToDiskAndPublic($disk, $path, $decoded);
                 return $path;
             }
 
@@ -262,8 +320,7 @@ class ImageOptimizerService
                 }
             }
 
-            $folder = trim($folder, '/');
-            $maxTargetBytes = 20 * 1024; // 20 KB limit
+            $maxTargetBytes = 60 * 1024; // 60 KB limit
 
             $contentHash = hash('sha256', $decoded);
             $hashSuffix = substr($contentHash, 0, 12);
@@ -273,13 +330,14 @@ class ImageOptimizerService
             // Check if identical canvas image already exists on disk
             if (Storage::disk($disk)->exists($deterministicPath) && Storage::disk($disk)->size($deterministicPath) > 0) {
                 if (isset($gdImage)) imagedestroy($gdImage);
+                self::mirrorToPublicIfApplicable($disk, $deterministicPath);
                 return $deterministicPath;
             }
 
-            // Adaptive WebP format targeting <= 20 KB
+            // Adaptive WebP format targeting high visual quality & performance
             if (function_exists('imagewebp')) {
                 $currentImg = $gdImage;
-                $currentQ = min(80, max(50, $quality));
+                $currentQ = min(85, max(60, $quality));
                 $bestData = null;
 
                 for ($pass = 0; $pass < 4; $pass++) {
@@ -294,13 +352,13 @@ class ImageOptimizerService
                         }
                     }
 
-                    $currentQ -= 10;
+                    $currentQ -= 8;
                     if ($pass >= 1 && $currentImg) {
                         $curW = imagesx($currentImg);
                         $curH = imagesy($currentImg);
-                        if ($curW > 320 && $curH > 320) {
-                            $scaledW = (int) round($curW * 0.85);
-                            $scaledH = (int) round($curH * 0.85);
+                        if ($curW > 400 && $curH > 400) {
+                            $scaledW = (int) round($curW * 0.90);
+                            $scaledH = (int) round($curH * 0.90);
                             $scaled = imagecreatetruecolor($scaledW, $scaledH);
                             if ($scaled) {
                                 imagealphablending($scaled, false);
@@ -321,7 +379,7 @@ class ImageOptimizerService
                 imagedestroy($gdImage);
 
                 if (!empty($bestData)) {
-                    Storage::disk($disk)->put($deterministicPath, $bestData);
+                    self::writeToDiskAndPublic($disk, $deterministicPath, $bestData);
                     return $deterministicPath;
                 }
             }
@@ -333,7 +391,7 @@ class ImageOptimizerService
             imagedestroy($gdImage);
 
             $path = "{$folder}/{$randomName}.jpg";
-            Storage::disk($disk)->put($path, $jpgData);
+            self::writeToDiskAndPublic($disk, $path, $jpgData);
             return $path;
 
         } catch (\Throwable $e) {

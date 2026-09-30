@@ -1514,36 +1514,56 @@ function handlePhoneInput(input) {
     input.value = val;
 }
 
-// ছবি অটো-কম্প্রেশন ও প্রিভিউ
+// ছবি অটো-কম্প্রেশন ও প্রিভিউ (যেকোনো ফরম্যাট ও সাইজের জন্য অপ্টিমাইজড)
 function optimizeWriterPhoto(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
 
+    const thumb = document.getElementById('photoPreviewThumb');
+    const placeholder = document.getElementById('photoUploadPlaceholder');
+
     const reader = new FileReader();
     reader.onload = function (e) {
+        // তাত্ক্ষণিক প্রিভিউ প্রদর্শন
+        if (thumb) {
+            thumb.src = e.target.result;
+            thumb.style.display = 'block';
+        }
+        if (placeholder) {
+            placeholder.style.display = 'none';
+        }
+
         const img = new Image();
         img.onload = function () {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const size = 320;
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const size = 320;
 
-            canvas.width = size;
-            canvas.height = size;
+                canvas.width = size;
+                canvas.height = size;
 
-            const minDim = Math.min(img.width, img.height);
-            const startX = (img.width - minDim) / 2;
-            const startY = (img.height - minDim) / 2;
+                const minDim = Math.min(img.width, img.height);
+                const startX = (img.width - minDim) / 2;
+                const startY = (img.height - minDim) / 2;
 
-            ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
+                ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
 
-            const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.88);
 
-            document.getElementById('optimizedPhotoData').value = optimizedBase64;
-
-            const thumb = document.getElementById('photoPreviewThumb');
-            thumb.src = optimizedBase64;
-            thumb.style.display = 'block';
-            document.getElementById('photoUploadPlaceholder').style.display = 'none';
+                const optInput = document.getElementById('optimizedPhotoData');
+                if (optInput) {
+                    optInput.value = optimizedBase64;
+                }
+                if (thumb) {
+                    thumb.src = optimizedBase64;
+                }
+            } catch (err) {
+                console.warn('Canvas optimization notice, raw file upload will be used:', err);
+            }
+        };
+        img.onerror = function () {
+            console.warn('Image parse error on client, falling back to raw upload.');
         };
         img.src = e.target.result;
     };
