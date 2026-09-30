@@ -133,17 +133,17 @@
                     </div>
                     <h1 class="thankyou-title">ধন্যবাদ!</h1>
                     <p class="thankyou-subtitle">
-                        <strong>{{ $campaign->title }}</strong>-এ আপনার তথ্য ও আবেদন সফলভাবে জমা হয়েছে।
+                        <strong>{{ $campaign->title }}</strong>-এ আপনার নিবন্ধন সম্পন্ন হয়েছে।
                     </p>
                 </div>
 
                 <div class="p-4 p-md-5">
 
-                    {{-- Important Delegate / Writer Notice --}}
-                    <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-start gap-3" style="background: #fffbeb; border-color: #fde68a !important; color: #92400e;">
-                        <i class="fa-solid fa-clock-rotate-left fs-4 text-warning flex-shrink-0 mt-0.5"></i>
-                        <div style="font-size: 13.5px; line-height: 1.6;">
-                            <strong>বিশেষ বিজ্ঞপ্তি:</strong> আপনার আবেদনটি আয়োজক কমিটি কর্তৃক যাচাই করা হচ্ছে। <strong>২৪ ঘণ্টা পর</strong> আপনার মোবাইল নম্বর দিয়ে লগইন করে চূড়ান্ত আমন্ত্রণ কার্ড ও আসন নম্বর ডাউনলোড করতে পারবেন।
+                    {{-- Respectful Welcome Greeting Notice --}}
+                    <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-center gap-3" style="background: #f0fdf4; border-color: #bbf7d0 !important; color: #166534;">
+                        <i class="fa-solid fa-envelope-open-text fs-3 text-success flex-shrink-0"></i>
+                        <div style="font-size: 14px; line-height: 1.5; font-weight: 600;">
+                            সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার অংশগ্রহণ আমাদের সম্মানিত করবে। নিচে আপনার আমন্ত্রণ কার্ড প্রস্তুত রয়েছে।
                         </div>
                     </div>
 
@@ -155,11 +155,11 @@
                                 <span class="info-val font-monospace text-primary fs-6">#{{ $summary['registration_number'] }}</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-user-pen me-1 text-muted"></i> লেখক নাম:</span>
+                                <span class="info-label"><i class="fa-solid fa-user-pen me-1 text-muted"></i> নাম:</span>
                                 <span class="info-val">{{ $summary['name'] }}</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-phone me-1 text-muted"></i> মোবাইল নম্বর:</span>
+                                <span class="info-label"><i class="fa-solid fa-phone me-1 text-muted"></i> মোবাইল:</span>
                                 <span class="info-val font-monospace">{{ $summary['phone'] }}</span>
                             </div>
                             @if(!empty($summary['category']))
@@ -169,7 +169,7 @@
                                 </div>
                             @endif
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> আবেদনের সময়:</span>
+                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> সময়:</span>
                                 <span class="text-dark fw-semibold" style="font-size: 13px;">{{ $summary['created_at'] ?? now()->format('d M, Y - h:i A') }}</span>
                             </div>
                         </div>
@@ -179,10 +179,10 @@
                     @if(!empty($summary['registration_number']))
                         <div class="d-grid gap-2 d-sm-flex justify-content-center mb-4">
                             <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-warning btn-action-lg shadow-sm text-dark">
-                                <i class="fa-solid fa-id-card"></i> আমন্ত্রণ কার্ড দেখুন ও ডাউনলোড করুন
+                                <i class="fa-solid fa-id-card"></i> আমন্ত্রণ কার্ড ডাউনলোড
                             </a>
                             <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-outline-danger btn-action-lg">
-                                <i class="fa-solid fa-file-pdf"></i> কার্ড PDF ডাউনলোড
+                                <i class="fa-solid fa-file-pdf"></i> কার্ড PDF
                             </a>
                         </div>
                     @endif
@@ -193,9 +193,9 @@
                     <div class="text-center p-3 rounded-4 bg-light border">
                         <div class="d-flex align-items-center justify-content-center gap-2 mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">
                             <i class="fa-solid fa-arrows-rotate fa-spin text-success" id="countdownSpinner"></i>
-                            <span>স্বয়ংক্রিয়ভাবে মূল ওয়েবসাইট <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...</span>
+                            <span>স্বয়ংক্রিয়ভাবে হোমপেজ <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...</span>
                         </div>
-                        <div class="fw-bold text-dark font-monospace mb-2" style="font-size: 17px;">
+                        <div class="fw-bold text-dark font-monospace mb-2" style="font-size: 16px;">
                             <span id="countdownSecs">6</span> সেকেন্ড বাকি
                         </div>
 
@@ -208,7 +208,7 @@
                                 <i class="fa-solid fa-pause me-1"></i> রিডাইরেক্ট থামান
                             </button>
                             <a href="{{ url('/') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold" style="font-size: 12.5px;">
-                                <i class="fa-solid fa-house me-1"></i> এখনই হোমপেজে যান
+                                <i class="fa-solid fa-house me-1"></i> হোমপেজ
                             </a>
                         </div>
                     </div>

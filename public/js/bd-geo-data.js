@@ -138,3 +138,193 @@ window.EN_TO_BN_GEO = {
 // ডিফল্ট হিসেবে বাংলা অবজেক্ট অ্যাসাইন
 window.BD_GEO = window.BD_GEO_BN;
 window.BD_GEO_DATA = window.BD_GEO_BN;
+
+// বিশ্বব্যাপী জনপ্রিয় দেশসমূহের তালিকা (Foreign / International Participants Support)
+window.WORLD_COUNTRIES = [
+    { code: "BD", name_bn: "বাংলাদেশ", name_en: "Bangladesh", dial: "+880" },
+    { code: "IN", name_bn: "ভারত (পশ্চিমবঙ্গ / অন্যান্য)", name_en: "India (West Bengal / Other)", dial: "+91" },
+    { code: "GB", name_bn: "যুক্তরাজ্য (UK)", name_en: "United Kingdom", dial: "+44" },
+    { code: "US", name_bn: "যুক্তরাষ্ট্র (USA)", name_en: "United States", dial: "+1" },
+    { code: "CA", name_bn: "কানাডা (Canada)", name_en: "Canada", dial: "+1" },
+    { code: "SA", name_bn: "সৌদি আরব (Saudi Arabia)", name_en: "Saudi Arabia", dial: "+966" },
+    { code: "AE", name_bn: "সংযুক্ত আরব আমিরাত (UAE)", name_en: "United Arab Emirates", dial: "+971" },
+    { code: "QA", name_bn: "কাতার (Qatar)", name_en: "Qatar", dial: "+974" },
+    { code: "KW", name_bn: "কুয়েত (Kuwait)", name_en: "Kuwait", dial: "+965" },
+    { code: "OM", name_bn: "ওমান (Oman)", name_en: "Oman", dial: "+968" },
+    { code: "BH", name_bn: "বাহরাইন (Bahrain)", name_en: "Bahrain", dial: "+973" },
+    { code: "MY", name_bn: "মালয়েশিয়া (Malaysia)", name_en: "Malaysia", dial: "+60" },
+    { code: "SG", name_bn: "সিঙ্গাপুর (Singapore)", name_en: "Singapore", dial: "+65" },
+    { code: "AU", name_bn: "অস্ট্রেলিয়া (Australia)", name_en: "Australia", dial: "+61" },
+    { code: "DE", name_bn: "জার্মানি (Germany)", name_en: "Germany", dial: "+49" },
+    { code: "IT", name_bn: "ইতালি (Italy)", name_en: "Italy", dial: "+39" },
+    { code: "FR", name_bn: "ফ্রান্স (France)", name_en: "France", dial: "+33" },
+    { code: "JP", name_bn: "জাপান (Japan)", name_en: "Japan", dial: "+81" },
+    { code: "KR", name_bn: "দক্ষিণ কোরিয়া (South Korea)", name_en: "South Korea", dial: "+82" },
+    { code: "OTHER", name_bn: "অন্যান্য দেশ (Other Country)", name_en: "Other Country", dial: "" }
+];
+
+/**
+ * সার্বজনীন ৪-স্তরের ঠিকানা ক্যাসকেডিং ফাংশন (Universal Address Chaining)
+ * সাপোর্ট করে:
+ * ১. initAddressChaining('perm') বা initAddressChaining('pres')
+ * ২. initAddressChaining(divId, distId, upaId, poId, vilId, defDiv, defDist)
+ */
+function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
+    let divEl, distEl, upaEl, poEl, vilEl;
+    let defaultDivision = defDiv || '';
+    let defaultDistrict = defDist || '';
+
+    // ১. চেক যদি প্রিফিক্স হিসেবে কল করা হয় (যেমন: 'perm' বা 'pres')
+    if (typeof arg1 === 'string' && !arg2) {
+        const prefix = arg1;
+        divEl = document.getElementById(prefix + 'Division') || document.getElementById(prefix + '_division');
+        distEl = document.getElementById(prefix + 'District') || document.getElementById(prefix + '_district') || document.getElementById(prefix + 'PermanentDistrict') || document.getElementById(prefix + 'PresentDistrict');
+        upaEl = document.getElementById(prefix + 'Upazila') || document.getElementById(prefix + '_upazila') || document.getElementById(prefix + 'Thana');
+        poEl = document.getElementById(prefix + 'PostOffice') || document.getElementById(prefix + '_post_office');
+        vilEl = document.getElementById(prefix + 'Village') || document.getElementById(prefix + '_village');
+    } else {
+        // ২. সরাসরি আইডি দ্বারা কল
+        divEl = typeof arg1 === 'string' ? document.getElementById(arg1) : arg1;
+        distEl = typeof arg2 === 'string' ? document.getElementById(arg2) : arg2;
+        upaEl = typeof arg3 === 'string' ? document.getElementById(arg3) : arg3;
+        poEl = typeof arg4 === 'string' ? document.getElementById(arg4) : arg4;
+        vilEl = typeof arg5 === 'string' ? document.getElementById(arg5) : arg5;
+    }
+
+    if (!divEl || !distEl) return;
+
+    const enMap = window.EN_TO_BN_GEO || {};
+    const geo = window.BD_GEO_BN || window.BD_GEO || {};
+
+    function getNormalizedBn(val) {
+        if (!val) return '';
+        const trimmed = val.trim();
+        return enMap[trimmed] || trimmed;
+    }
+
+    const oldDiv = getNormalizedBn(divEl.getAttribute('data-old') || divEl.value || defaultDivision);
+    const oldDist = getNormalizedBn(distEl.getAttribute('data-old') || distEl.value || defaultDistrict);
+    const oldUpa = (upaEl ? (upaEl.getAttribute('data-old') || upaEl.value || '') : '').trim();
+    const oldPo = (poEl ? (poEl.getAttribute('data-old') || poEl.value || '') : '').trim();
+
+    // বিভাগ পপুলেট
+    divEl.innerHTML = '<option value="">-- বিভাগ নির্বাচন করুন --</option>';
+    if (geo.divisions) {
+        Object.keys(geo.divisions).forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (oldDiv && (oldDiv === d || oldDiv.toLowerCase() === d.toLowerCase())) {
+                opt.selected = true;
+            }
+            divEl.appendChild(opt);
+        });
+    }
+
+    // জেলা পপুলেট ফাংশন
+    function populateDistricts(selectedDiv, selectedDist = '') {
+        distEl.innerHTML = '<option value="">-- জেলা নির্বাচন করুন --</option>';
+        if (upaEl) upaEl.innerHTML = '<option value="">-- থানা / উপজেলা --</option>';
+        if (poEl) poEl.innerHTML = '<option value="">-- পোস্ট অফিস (ঐচ্ছিক) --</option>';
+
+        const bnDiv = getNormalizedBn(selectedDiv);
+        if (bnDiv && geo.divisions && geo.divisions[bnDiv]) {
+            geo.divisions[bnDiv].forEach(dst => {
+                const opt = document.createElement('option');
+                opt.value = dst;
+                opt.textContent = dst;
+                const matchDist = getNormalizedBn(selectedDist);
+                if (matchDist && (matchDist === dst || matchDist.toLowerCase() === dst.toLowerCase())) {
+                    opt.selected = true;
+                }
+                distEl.appendChild(opt);
+            });
+        }
+    }
+
+    // উপজেলা ও পোস্ট অফিস পপুলেট ফাংশন
+    function populateUpazilasAndPostOffices(selectedDist, selectedUpa = '', selectedPo = '') {
+        if (upaEl) upaEl.innerHTML = '<option value="">-- থানা / উপজেলা নির্বাচন করুন --</option>';
+        if (poEl) poEl.innerHTML = '<option value="">-- পোস্ট অফিস নির্বাচন করুন --</option>';
+
+        const bnDist = getNormalizedBn(selectedDist);
+        if (bnDist) {
+            // উপজেলা
+            if (upaEl && geo.upazilas && geo.upazilas[bnDist]) {
+                geo.upazilas[bnDist].forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u;
+                    opt.textContent = u;
+                    if (selectedUpa && (selectedUpa === u || selectedUpa.toLowerCase() === u.toLowerCase())) {
+                        opt.selected = true;
+                    }
+                    upaEl.appendChild(opt);
+                });
+            }
+
+            // পোস্ট অফিস
+            if (poEl) {
+                if (geo.postOffices && geo.postOffices[bnDist]) {
+                    geo.postOffices[bnDist].forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p;
+                        opt.textContent = p;
+                        if (selectedPo && (selectedPo === p || selectedPo.toLowerCase() === p.toLowerCase())) {
+                            opt.selected = true;
+                        }
+                        poEl.appendChild(opt);
+                    });
+                } else {
+                    const opt = document.createElement('option');
+                    opt.value = bnDist + ' সদর';
+                    opt.textContent = bnDist + ' সদর';
+                    poEl.appendChild(opt);
+                }
+            }
+        }
+    }
+
+    // ইভেন্ট লিসেনারস
+    divEl.addEventListener('change', function () {
+        populateDistricts(this.value, '');
+        if (distEl.value) {
+            populateUpazilasAndPostOffices(distEl.value, '', '');
+        }
+        if (typeof formatWriterAddress === 'function') formatWriterAddress();
+        if (typeof updateLivePreview === 'function') updateLivePreview();
+        if (typeof updateProgress === 'function') updateProgress();
+    });
+
+    distEl.addEventListener('change', function () {
+        populateUpazilasAndPostOffices(this.value, '', '');
+        if (typeof formatWriterAddress === 'function') formatWriterAddress();
+        if (typeof updateLivePreview === 'function') updateLivePreview();
+        if (typeof updateProgress === 'function') updateProgress();
+    });
+
+    if (upaEl) {
+        upaEl.addEventListener('change', function () {
+            if (typeof formatWriterAddress === 'function') formatWriterAddress();
+            if (typeof updateLivePreview === 'function') updateLivePreview();
+            if (typeof updateProgress === 'function') updateProgress();
+        });
+    }
+
+    if (poEl) {
+        poEl.addEventListener('change', function () {
+            if (typeof formatWriterAddress === 'function') formatWriterAddress();
+            if (typeof updateProgress === 'function') updateProgress();
+        });
+    }
+
+    // প্রাথমিক লোড
+    if (divEl.value) {
+        populateDistricts(divEl.value, oldDist);
+        if (distEl.value) {
+            populateUpazilasAndPostOffices(distEl.value, oldUpa, oldPo);
+        }
+    }
+}
+
+// গ্লোবাল ফাংশন হিসেবে এক্সপোর্ট
+window.initAddressChaining = initAddressChaining;

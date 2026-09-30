@@ -604,7 +604,9 @@
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Submitting...';
         btn.disabled = true;
     });
-
+</script>
+<script src="{{ asset('js/bd-geo-data.js') }}"></script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof initAddressChaining === 'function') {
             initAddressChaining('perm');
@@ -614,15 +616,6 @@
         const reason = document.getElementById('reasonText');
         if (reason && reason.value) {
             handleWordCount(reason);
-        }
-    });
-</script>
-<script src="{{ asset('js/bd-geo-data.js') }}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof initAddressChaining === 'function') {
-            initAddressChaining('perm');
-            initAddressChaining('pres');
         }
     });
 </script>

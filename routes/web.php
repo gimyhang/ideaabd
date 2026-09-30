@@ -612,6 +612,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
         Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');
         Route::post('/{campaign}/card-design', 'updateCardDesign')->name('card-design');
+        Route::post('/{campaign}/logo-settings', 'updateLogoSettings')->name('logo-settings');
         Route::post('/{campaign}/upload-object', 'uploadCardObject')->name('upload-object');
         Route::post('/{campaign}/registrations', 'storeRegistration')->name('registrations.store');
         Route::match(['put', 'patch'], '/registrations/{registration}', 'updateRegistration')->name('registrations.update');
@@ -889,8 +890,18 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
     Route::get('/pathagar/acknowledgment/{registrationNumber}', 'showAcknowledgment')->name('pathagar.acknowledgment.show');
     Route::post('/pathagar/acknowledgment/{registrationNumber}', 'submitAcknowledgment')->name('pathagar.acknowledgment.submit');
     Route::get('/pathagar/slip/{registrationNumber}', 'printLibrarySlip')->name('pathagar.slip.print');
+    
+    // Event Registration / Invitation Card Print & PDF Routes (with friendly aliases)
     Route::get('/event-registration/{registrationNumber}/print', 'print')->name('event.registration.print');
+    Route::get('/event/registration/print/{registrationNumber}', 'print');
+    Route::get('/event/card/{registrationNumber}', 'print');
+    Route::get('/rsu/card/{registrationNumber}', 'print');
+    Route::get('/card/{registrationNumber}', 'print');
+
     Route::get('/event-registration/{registrationNumber}/pdf', 'downloadPdf')->name('event.registration.pdf');
+    Route::get('/event/registration/pdf/{registrationNumber}', 'downloadPdf');
+    Route::get('/rsu/pdf/{registrationNumber}', 'downloadPdf');
+
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');

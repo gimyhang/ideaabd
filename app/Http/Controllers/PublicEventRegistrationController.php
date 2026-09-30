@@ -63,7 +63,7 @@ class PublicEventRegistrationController extends Controller
                 'slug'                => $slug,
                 'type'                => 'event',
                 'badge_text'          => 'লেখক ও প্রতিনিধি নিবন্ধন',
-                'short_description'   => 'রংপুর বিভাগীয় সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬ এ লেখক নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
+                'short_description'   => 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬ এ লেখক নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
                 'description'         => 'উত্তরবঙ্গের সর্ববৃহৎ সাহিত্য মিলনমেলায় অংশ নিতে লেখকবৃন্দকে এই ফরম পূরণ করার জন্য আমন্ত্রণ জানানো হচ্ছে।',
                 'theme_color'         => '#991b1b',
                 'has_fee_or_donation' => false,
@@ -130,7 +130,17 @@ class PublicEventRegistrationController extends Controller
         }
 
         if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form'])) {
-            return view('frontend.events.writer_register', compact('campaign', 'user'));
+            $existingRegistration = null;
+            if ($user) {
+                $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
+                    ->where(function($q) use ($user) {
+                        $q->where('user_id', $user->id)
+                          ->orWhere('phone', $user->phone);
+                    })
+                    ->first();
+            }
+            $previewRegNumber = $existingRegistration ? $existingRegistration->registration_number : EventRegistration::generateRegNumber($campaign->slug, $campaign->id);
+            return view('frontend.events.writer_register', compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
         }
 
         return view('frontend.events.register', compact('campaign', 'user'));
@@ -360,8 +370,10 @@ class PublicEventRegistrationController extends Controller
             'perm_division', 'permanent_district', 'perm_upazila', 'perm_post_office', 'perm_village', 'permanent_address',
             'pres_division', 'present_district', 'pres_upazila', 'pres_post_office', 'pres_village', 'present_address', 
             'scholarship_reason',
-            // Writer Specific Fields
-            'author_category', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
+            // International / Abroad Address Fields
+            'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
+            // Writer & Cultural Artist Specific Fields
+            'author_category', 'author_categories', 'art_medium', 'organization_name', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
             // Library & Book Grant Specific Fields
             'library_name', 'library_type', 'established_year', 'reg_no', 
             'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
@@ -378,6 +390,12 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
+        if ($request->has('author_categories') && is_array($request->input('author_categories'))) {
+            $catList = array_filter($request->input('author_categories'));
+            $customFieldAnswers['author_categories'] = $catList;
+            $customFieldAnswers['author_category'] = implode(', ', $catList);
+        }
+
         if (!empty($campaign->custom_fields) && is_array($campaign->custom_fields)) {
             foreach ($campaign->custom_fields as $field) {
                 $fName = $field['name'] ?? null;
@@ -389,10 +407,11 @@ class PublicEventRegistrationController extends Controller
 
         $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
 
-        $institution = $validated['institution_or_org'] ?? ($request->input('library_name') ?: ($request->input('college_name') ?: ($request->input('magazine_name') ?: null)));
-        $designation = $validated['designation_or_class'] ?? ($request->input('library_type') ?: ($request->input('author_category') ?: ($request->input('assigned_subject') ?: ($request->input('group') ?: null))));
-        $address = $validated['address'] ?? ($request->input('library_address') ?: ($request->input('present_address') ?: ($request->input('permanent_address') ?: null)));
-        $district = $validated['district'] ?? ($request->input('district') ?: ($request->input('present_district') ?: ($request->input('permanent_district') ?: null)));
+        $authorCatVal = is_array($request->input('author_categories')) ? implode(', ', $request->input('author_categories')) : $request->input('author_category');
+        $institution = $validated['institution_or_org'] ?? ($request->input('organization_name') ?: ($request->input('library_name') ?: ($request->input('college_name') ?: ($request->input('magazine_name') ?: null))));
+        $designation = $validated['designation_or_class'] ?? ($authorCatVal ?: ($request->input('art_medium') ?: ($request->input('library_type') ?: ($request->input('assigned_subject') ?: ($request->input('group') ?: null)))));
+        $address = $validated['address'] ?? ($request->input('foreign_address') ?: ($request->input('library_address') ?: ($request->input('present_address') ?: ($request->input('permanent_address') ?: null))));
+        $district = $validated['district'] ?? ($request->input('state_or_city') ?: ($request->input('district') ?: ($request->input('present_district') ?: ($request->input('permanent_district') ?: null))));
 
         $amountPaid = floatval($validated['amount_paid'] ?? 0);
         $paymentStatus = 'free';
@@ -441,6 +460,8 @@ class PublicEventRegistrationController extends Controller
             Log::warning("Event SMS error: " . $e->getMessage());
         }
 
+        $isWriter = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
+
         session(['recent_event_registration' => [
             'campaign_title'      => $campaign->title,
             'campaign_slug'       => $campaign->slug,
@@ -452,21 +473,21 @@ class PublicEventRegistrationController extends Controller
             'amount_paid'         => $registration->amount_paid,
             'payment_status'      => $registration->payment_status,
             'is_scholarship'      => $isScholarship,
-            'is_writer'           => in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']),
+            'is_writer'           => $isWriter,
             'is_library'          => $isLibrary,
             'status'              => $registration->status,
         ]]);
 
         if ($isLibrary) {
-            $successNotice = 'ধন্যবাদ! বিনামূল্যে বই বিতরণ কর্মসূচি। আপনার নিবন্ধন সফল হয়েছে। একাউন্ট ড্যাশবোর্ড থেকে আবেদনের অগ্রগতি দেখতে পারবেন।';
+            $successNotice = 'ধন্যবাদ! আপনার পাঠাগার নিবন্ধন সম্পন্ন হয়েছে।';
             if (auth()->check()) {
                 return redirect()->route('my-account', ['tab' => 'libraryGrant'])
                     ->with('success', $successNotice);
             }
-        } elseif ($requiresApproval) {
-            $successNotice = 'ধন্যবাদ! আপনার নিবন্ধন সফল হয়েছে। ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।';
+        } elseif ($isWriter) {
+            $successNotice = 'ধন্যবাদ! রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার অংশগ্রহণ নিশ্চিত হয়েছে।';
         } else {
-            $successNotice = 'ধন্যবাদ! আপনার আবেদন সফলভাবে সম্পন্ন হয়েছে।';
+            $successNotice = 'ধন্যবাদ! আপনার নিবন্ধন সফলভাবে সম্পন্ন হয়েছে।';
         }
 
         return redirect()->route('event.success', $campaign->slug)

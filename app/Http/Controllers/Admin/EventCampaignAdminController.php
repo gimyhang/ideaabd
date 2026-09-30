@@ -1078,5 +1078,46 @@ class EventCampaignAdminController extends Controller
 
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Update campaign logo and size settings (administered by Admin)
+     */
+    public function updateLogoSettings(Request $request, EventCampaign $campaign)
+    {
+        $formSettings = $campaign->form_settings ?: [];
+
+        if ($request->has('remove_logo') && $request->remove_logo) {
+            unset($formSettings['logo_image']);
+            $campaign->form_settings = $formSettings;
+            $campaign->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logo removed successfully.',
+                'logo_url' => null,
+            ]);
+        }
+
+        if ($request->hasFile('logo_image')) {
+            $path = $request->file('logo_image')->store('campaigns/logos', 'public');
+            $formSettings['logo_image'] = $path;
+        }
+
+        if ($request->filled('logo_size')) {
+            $formSettings['logo_size'] = intval($request->logo_size);
+        }
+
+        $campaign->form_settings = $formSettings;
+        $campaign->save();
+
+        $logoUrl = !empty($formSettings['logo_image']) ? asset('storage/' . $formSettings['logo_image']) : null;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo settings updated successfully.',
+            'logo_url' => $logoUrl,
+            'logo_size' => $formSettings['logo_size'] ?? 70,
+        ]);
+    }
 }
 

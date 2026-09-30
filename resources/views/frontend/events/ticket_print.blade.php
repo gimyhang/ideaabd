@@ -96,11 +96,13 @@
     }
 
     // Author Category / Designation
-    $genres = $formData['genres'] ?? [];
-    if (is_array($genres) && count($genres) > 0) {
-        $designation = implode(', ', array_slice($genres, 0, 3));
+    $catList = $formData['author_categories'] ?? ($formData['author_category'] ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
+    if (!empty($catList) && is_array($catList)) {
+        $designation = implode(' • ', array_slice($catList, 0, 2));
+    } elseif (!empty($registration->designation_or_class)) {
+        $designation = $registration->designation_or_class;
     } else {
-        $designation = $registration->designation_or_class ?: ($formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক');
+        $designation = $formData['author_category'] ?? 'কবি, লেখক ও সাহিত্যিক';
     }
 
     // Location
@@ -568,11 +570,9 @@
     {{-- Top Action Bar (Hidden on Print / PDF) --}}
     @if(!$isPdf)
         <div class="action-bar no-print">
-            @if($registration->status === 'pending')
-                <div class="status-badge-pill">
-                    <i class="fa-solid fa-hourglass-half"></i> আবেদনকারীর কপি / তথ্য যাচাইাধীন
-                </div>
-            @endif
+            <div class="status-badge-pill">
+                <i class="fa-solid fa-feather-pointed"></i> আমন্ত্রণ কার্ড • লেখক কপি
+            </div>
             <button type="button" id="btnDownloadImage" onclick="downloadCardImage()" class="btn-action btn-image">
                 <i class="fa-solid fa-image"></i> কার্ড ছবি ডাউনলোড (PNG)
             </button>

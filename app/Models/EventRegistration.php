@@ -51,10 +51,50 @@ class EventRegistration extends Model
     }
 
     /**
-     * Auto generate friendly registration number
+     * Auto generate friendly registration number (Supports RSU sequential format RSU-2026-001)
      */
-    public static function generateRegNumber(string $slug = ''): string
+    public static function generateRegNumber($slugOrCampaign = '', ?int $campaignId = null): string
     {
+        $slug = '';
+        $type = '';
+        if ($slugOrCampaign instanceof EventCampaign) {
+            $slug = $slugOrCampaign->slug;
+            $campaignId = $slugOrCampaign->id;
+            $type = $slugOrCampaign->type ?? '';
+        } else {
+            $slug = (string) $slugOrCampaign;
+        }
+
+        $cleanSlug = strtolower(trim($slug));
+        if (in_array($cleanSlug, ['rsu', 'rsutshab', 'rangpursutsab', 'writer']) || $type === 'writer') {
+            $year = '2026';
+            $prefix = 'RSU-' . $year . '-';
+
+            $latest = static::where('registration_number', 'LIKE', $prefix . '%')
+                ->orWhere(function($q) use ($campaignId) {
+                    if ($campaignId) {
+                        $q->where('event_campaign_id', $campaignId);
+                    }
+                })
+                ->orderBy('id', 'desc')
+                ->value('registration_number');
+
+            $nextNum = 1;
+            if ($latest && preg_match('/(?:RSU-\d+-|#RSU-\d+-)?(\d+)$/i', $latest, $matches)) {
+                $nextNum = intval($matches[1]) + 1;
+            } else {
+                $count = static::where(function($q) use ($prefix, $campaignId) {
+                    $q->where('registration_number', 'LIKE', $prefix . '%');
+                    if ($campaignId) {
+                        $q->orWhere('event_campaign_id', $campaignId);
+                    }
+                })->count();
+                $nextNum = $count + 1;
+            }
+
+            return $prefix . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+        }
+
         $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $slug), 0, 4));
         if (empty($prefix)) {
             $prefix = 'EVT';

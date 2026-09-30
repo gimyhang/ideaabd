@@ -1,606 +1,779 @@
 @extends('layouts.app')
 
 @php
-    $cardDesign = $campaign->card_design ?? [];
-
-    // Background & Canvas
-    $cBgImg            = $cardDesign['bg_image'] ?? null;
-    $cBgColor          = $cardDesign['bg_color'] ?? '#c98c21';
-    $cBgOverlayColor   = $cardDesign['bg_overlay_color'] ?? 'rgba(0,0,0,0.45)';
-    $cBgOverlayOpacity = isset($cardDesign['bg_overlay_opacity']) ? intval($cardDesign['bg_overlay_opacity']) : 0;
-    $cBgBlur           = isset($cardDesign['bg_blur']) ? intval($cardDesign['bg_blur']) : 0;
-    $cFontFamily       = $cardDesign['font_family'] ?? 'Hind Siliguri';
-
-    // Logos
-    $cLogoImg          = $cardDesign['logo_image'] ?? null;
-    $cLogoSize         = intval($cardDesign['logo_size'] ?? 48);
-    $cShowLogo         = isset($cardDesign['show_logo']) ? (bool)$cardDesign['show_logo'] : true;
-
-    $cEventLogoImg     = $cardDesign['event_logo_image'] ?? null;
-    $cEventLogoSize    = intval($cardDesign['event_logo_size'] ?? 60);
-    $cShowEventLogo    = isset($cardDesign['show_event_logo']) ? (bool)$cardDesign['show_event_logo'] : true;
-
-    // Visibility toggles
-    $cShowHeader       = isset($cardDesign['show_header']) ? (bool)$cardDesign['show_header'] : true;
-    $cShowBadge        = isset($cardDesign['show_badge']) ? (bool)$cardDesign['show_badge'] : true;
-    $cShowPhoto        = isset($cardDesign['show_photo']) ? (bool)$cardDesign['show_photo'] : true;
-    $cShowNamePlate    = isset($cardDesign['show_name_plate']) ? (bool)$cardDesign['show_name_plate'] : true;
-    $cShowQuote        = isset($cardDesign['show_quote']) ? (bool)$cardDesign['show_quote'] : true;
-    $cShowArtwork      = isset($cardDesign['show_artwork']) ? (bool)$cardDesign['show_artwork'] : true;
-    $cShowOrganizers   = isset($cardDesign['show_organizers']) ? (bool)$cardDesign['show_organizers'] : true;
-
-    // Text Headings
-    $cAnniv            = $cardDesign['anniversary_text'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
-    $cAnnivColor       = $cardDesign['anniversary_color'] ?? '#fef08a';
-    $cTitle            = $cardDesign['title_text'] ?? ($campaign->title ?: 'রংপুর সাহিত্য উৎসব');
-    $cTitleColor       = $cardDesign['title_color'] ?? '#ffffff';
-    $cSub              = $cardDesign['subtitle_text'] ?? 'ও ৩য় লিটিলম্যাগ মেলা';
-    $cSubtitleColor    = $cardDesign['subtitle_color'] ?? '#fef08a';
-    $cBadge            = $cardDesign['badge_text'] ?? ($campaign->badge_text ?: 'আমন্ত্রণ কার্ড');
-
-    // Photo & Name Plate
-    $cPhotoSize        = intval($cardDesign['photo_size'] ?? 68);
-    $cPlateBg          = $cardDesign['name_plate_bg'] ?? '#ecd8b4';
-    $cNameSize         = intval($cardDesign['name_size'] ?? 14);
-    $cNameColor        = $cardDesign['name_color'] ?? '#0f172a';
-    $cMetaColor        = $cardDesign['meta_color'] ?? '#334155';
-
-    // Message / Quote
-    $cQuote            = $cardDesign['quote_text'] ?? "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।";
-    $cQuoteColor       = $cardDesign['quote_color'] ?? '#ffffff';
-
-    // Organizers
-    $cOrgColor         = $cardDesign['org_color'] ?? '#ffffff';
-    $cOrg1Name         = $cardDesign['org_1_name'] ?? 'সাকিল মাসুদ';
-    $cOrg1Role         = $cardDesign['org_1_role'] ?? "সদস্যসচিব, আয়োজক কমিটি\nও সাধারণ সম্পাদক, ফিরেদেখা";
-    $cOrg1Phone        = $cardDesign['org_1_phone'] ?? '০১৭২৬৯৭৬৯৮২';
-
-    $cOrg2Name         = $cardDesign['org_2_name'] ?? 'বাবুল সরকার';
-    $cOrg2Role         = $cardDesign['org_2_role'] ?? "আহ্বায়ক, আয়োজক কমিটি\nও সাহিত্য সম্পাদক, ফিরেদেখা";
-    $cOrg2Phone        = $cardDesign['org_2_phone'] ?? '01763170342';
-
-    $cOrg3Name         = $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ';
-    $cOrg3Role         = $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা";
-    $cOrg3Phone        = $cardDesign['org_3_phone'] ?? '01820-547307';
-
-    $themeColor        = $campaign->theme_color ?: '#991b1b';
+    $cardDesign        = $campaign->card_design ?? [];
+    $themeColor        = $campaign->theme_color ?: '#0f172a';
     $customFields      = $campaign->custom_fields ?? [];
 @endphp
 
 @section('title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/event-campaign.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --writer-theme: {{ $themeColor }};
-            --writer-theme-dark: #7f1d1d;
-            --writer-theme-light: #fef2f2;
-            --writer-accent: #f59e0b;
+            --form-border: #0f172a;
+            --form-grid: #334155;
+            --form-bg-label: #f8fafc;
+            --form-accent: #991b1b;
         }
 
-        /* Hero Banner */
-        .writer-hero-banner {
-            @if($campaign->banner_image)
-                background: linear-gradient(135deg, rgba(69, 10, 10, 0.88) 0%, rgba(127, 29, 29, 0.82) 100%), url('{{ asset('storage/' . $campaign->banner_image) }}') no-repeat center center / cover;
-            @else
-                background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, {{ $themeColor }} 100%);
-            @endif
-            border-radius: 20px;
-            padding: 34px 28px;
-            color: #ffffff;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 12px 35px rgba(127, 29, 29, 0.25);
-            margin-bottom: 24px;
-        }
-        .writer-hero-banner::before {
-            content: '';
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
-            border-radius: 50%;
-        }
-        .writer-hero-banner::after {
-            content: '✒️';
-            position: absolute;
-            right: 20px;
-            bottom: -15px;
-            font-size: 110px;
-            opacity: 0.08;
-            pointer-events: none;
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Badges */
-        .badge-festival {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 14px;
-            border-radius: 30px;
-            backdrop-filter: blur(6px);
+        .letterhead-container {
+            max-width: 900px;
+            margin: 20px auto 50px auto;
+            padding: 0 12px;
         }
 
-        /* Progress Meter */
-        .form-progress-wrap {
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-top: 20px;
-            backdrop-filter: blur(4px);
-        }
-        .form-progress-bar-bg {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-        .form-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f59e0b, #10b981);
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-
-        /* Main Form Card */
-        .writer-form-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-        .writer-form-body {
-            padding: 28px 24px;
-        }
-
-        /* Section Headings */
-        .section-tag-head {
+        /* Top Action Bar */
+        .form-top-actions {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 15px;
-            font-weight: 700;
-            color: #7f1d1d;
-            background: #fef2f2;
-            padding: 10px 16px;
-            border-radius: 10px;
-            border-left: 4px solid #991b1b;
-            margin: 24px 0 16px 0;
-        }
-        .section-tag-head:first-child {
-            margin-top: 0;
-        }
-
-        /* Inputs */
-        .w-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 6px;
-            display: block;
-        }
-        .w-input, .w-select {
-            border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 14px;
-            color: #0f172a;
-            transition: all 0.2s ease;
-            background-color: #f8fafc;
-            width: 100%;
-        }
-        .w-input:focus, .w-select:focus {
-            background-color: #ffffff;
-            border-color: #991b1b;
-            box-shadow: 0 0 0 3.5px rgba(153, 27, 27, 0.12);
-            outline: none;
-        }
-
-        /* Interactive Category Chips */
-        .category-chips-wrap {
-            display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 6px;
+            gap: 10px;
+            margin-bottom: 12px;
         }
-        .cat-chip {
-            border: 1.5px solid #e2e8f0;
+
+        /* The Main Paper Form */
+        .official-letterhead-form {
             background: #ffffff;
-            color: #334155;
-            font-size: 12.5px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-            display: inline-flex;
+            border: 2px solid #0f172a;
+            border-radius: 4px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            padding: 24px 28px;
+            color: #0f172a;
+        }
+
+        /* =========================================================================
+           শীর্ষ পূর্ণাঙ্গ লেটার হেড প্যাড (Top Full-Width Letterhead Pad)
+           ========================================================================= */
+        .lh-pad-header {
+            border-bottom: none;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .lh-pad-inner {
+            display: flex;
             align-items: center;
-            gap: 5px;
-        }
-        .cat-chip:hover {
-            border-color: #991b1b;
-            background: #fef2f2;
-            color: #991b1b;
-            transform: translateY(-1px);
-        }
-        .cat-chip.active {
-            border-color: #991b1b;
-            background: #991b1b;
-            color: #ffffff;
-            box-shadow: 0 4px 10px rgba(153, 27, 27, 0.25);
-        }
-
-        /* Book Count Chips */
-        .book-chip {
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            color: #334155;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .book-chip:hover {
-            border-color: #991b1b;
-            background: #fef2f2;
-        }
-        .book-chip.active {
-            border-color: #991b1b;
-            background: #7f1d1d;
-            color: #ffffff;
-        }
-
-        /* Photo Upload Box */
-        .author-photo-uploader {
-            border: 2px dashed #cbd5e1;
-            border-radius: 14px;
-            padding: 14px;
-            text-align: center;
-            background: #f8fafc;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .author-photo-uploader:hover {
-            border-color: #991b1b;
-            background: #fef2f2;
-        }
-        .author-photo-preview {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #991b1b;
-            margin: 0 auto 8px auto;
-            display: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Live Invitation Card Preview (Exact Design Match) */
-        .delegate-card-preview {
-            @if($cBgImg)
-                background: url('{{ asset('storage/' . $cBgImg) }}') no-repeat center center / cover;
-            @else
-                background: {{ $cBgColor }} linear-gradient(145deg, #c4871e 0%, #db9e2a 45%, #b57a15 100%);
-            @endif
-            font-family: '{{ $cFontFamily }}', 'Hind Siliguri', 'SolaimanLipi', sans-serif;
-            border-radius: 14px;
-            padding: 14px 12px 10px 12px;
-            color: #1e1b4b;
-            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.2);
-            border: 2px solid #8d5c0b;
-            position: relative;
-            overflow: hidden;
-            max-width: 330px;
-            margin: 0 auto 16px auto;
-            display: flex;
-            flex-direction: column;
             justify-content: space-between;
+            gap: 14px;
         }
-        .preview-top-row {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 4px;
-            position: relative;
-            z-index: 2;
-        }
-        .preview-logo-emblem {
-            width: {{ $cLogoSize }}px;
-            height: {{ $cLogoSize }}px;
-            border-radius: 50%;
-            background: transparent;
-            border: none;
-            box-shadow: none;
+
+        .lh-pad-emblem-left {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
             flex-shrink: 0;
             padding: 0;
+            margin: 0;
+            margin-top: -8px;
         }
-        .preview-logo-emblem .logo-inner {
+
+        .logo-display-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.15s ease, height 0.15s ease;
+            position: relative;
+        }
+
+        .default-emblem-icon {
+            color: #991b1b;
+            font-size: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             width: 100%;
             height: 100%;
-            border-radius: 50%;
+        }
+
+        .logo-control-toolbar {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            border-radius: 20px;
+            padding: 2px 6px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease-in-out;
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        .lh-pad-emblem-left:hover .logo-control-toolbar,
+        .lh-pad-emblem-left:focus-within .logo-control-toolbar {
+            opacity: 1;
+            visibility: visible;
+            bottom: -22px;
+        }
+
+        .btn-logo-tool {
+            background: transparent;
+            border: none;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: #334155;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .btn-logo-tool:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .btn-logo-tool.text-danger:hover {
+            background: #fee2e2;
+            color: #dc2626 !important;
+        }
+
+        .lh-pad-center {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .lh-pad-title {
+            font-size: 22px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.25;
+            margin-bottom: 2px;
+            font-family: 'Noto Serif Bengali', serif;
+            letter-spacing: -0.3px;
+        }
+
+        .lh-pad-subhead {
+            font-size: 14px;
+            font-weight: 800;
+            color: #991b1b;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+        }
+
+        .lh-pad-meta {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 1px;
+        }
+
+        .lh-pad-org {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .lh-pad-badge-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .lh-pad-copy-tag {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Clean Structured Grid Tables */
+        .clean-grid-table {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            border: 1.5px solid #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .clean-grid-table td, .clean-grid-table th {
+            border: 1px solid #0f172a;
+            padding: 6px 8px;
+            font-size: 12.5px;
+            vertical-align: middle;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .clean-grid-table .c-label {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            width: 18%;
+        }
+
+        .clean-grid-table .c-val {
+            background: #ffffff;
+            padding: 4px 6px;
+        }
+
+        .c-input, .c-select {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            padding: 5px 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #0f172a;
+            background: #ffffff;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .c-input:focus, .c-select:focus {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12);
+        }
+
+        .c-input.font-monospace {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
+        /* কান্ট্রি কোড বোল্ড কালার বাটন */
+        .btn-country-code {
+            background: #0f172a;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 12.5px;
+            border: 1.5px solid #0f172a;
+            border-radius: 4px;
+            padding: 5px 8px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+            flex-shrink: 0;
+            width: 95px;
+        }
+
+        .btn-country-code:hover, .btn-country-code:focus {
+            background: #991b1b;
+            border-color: #991b1b;
+            color: #ffffff;
+        }
+
+        .btn-country-code option {
+            background: #ffffff;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        /* Section Category Header in Table */
+        .grid-section-header {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 5px 8px !important;
+        }
+
+        /* Photo Upload Box inside personal table */
+        .lh-photo-box {
+            width: 115px;
+            height: 135px;
+            border: 1.5px solid #0f172a;
+            background: #f8fafc;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: transparent;
-        }
-        .preview-festival-headings {
-            flex-grow: 1;
-            text-align: center;
-            padding: 0 2px;
-        }
-        .preview-fest-anniv {
-            color: {{ $cAnnivColor }};
-            font-size: 7.5px;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            margin-bottom: 1px;
-        }
-        .preview-fest-main {
-            color: {{ $cTitleColor }};
-            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
-            font-size: 13.5px;
-            font-weight: 900;
-            line-height: 1.15;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.35);
-        }
-        .preview-fest-sub {
-            color: {{ $cSubtitleColor }};
-            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
-            font-size: 11.5px;
-            font-weight: 800;
-            line-height: 1.15;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.35);
-        }
-        .preview-vert-ribbon {
-            background: linear-gradient(180deg, #facc15 0%, #eab308 100%);
-            color: #713f12;
-            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;
-            font-size: 9.5px;
-            font-weight: 900;
-            padding: 4px 3px;
-            border-radius: 4px;
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            letter-spacing: 1px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            border: 1px solid #ca8a04;
-            line-height: 1.1;
-            flex-shrink: 0;
-        }
-        .preview-card-pill {
-            background: #ecd8b4;
-            border: 1px solid #d4b886;
-            color: #0f172a;
-            font-size: 8.5px;
-            font-weight: 800;
-            padding: 1.5px 6px;
-            border-radius: 10px;
-            margin-top: 4px;
-            white-space: nowrap;
-        }
-        .preview-center-area {
+            cursor: pointer;
             position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 6px 0 4px 0;
-        }
-        .preview-photo-round {
-            width: {{ $cPhotoSize }}px;
-            height: {{ $cPhotoSize }}px;
-            border-radius: 50%;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            background: #f8fafc;
             overflow: hidden;
-            margin-bottom: -14px;
-            position: relative;
-            z-index: 4;
+            margin: 0 auto;
+            transition: all 0.2s;
         }
-        .preview-photo-round img {
+
+        .lh-photo-box:hover {
+            background: #fef2f2;
+            border-color: #991b1b;
+        }
+
+        .lh-photo-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
-        }
-        .preview-name-plate {
-            width: 95%;
-            background: {{ $cPlateBg }};
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            padding: {{ $cShowPhoto ? '18px' : '10px' }} 8px 8px 8px;
-            text-align: center;
-            border: 1px solid #d8be92;
-            position: relative;
-            z-index: 3;
-        }
-        .preview-name-plate .p-author-name {
-            font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
-            font-size: {{ $cNameSize }}px;
-            font-weight: 800;
-            color: {{ $cNameColor }};
-            line-height: 1.2;
-            margin-bottom: 2px;
-        }
-        .preview-name-plate .p-author-desc {
-            font-size: 9.5px;
-            font-weight: 700;
-            color: {{ $cMetaColor }};
-            line-height: 1.2;
-        }
-        .preview-name-plate .p-author-loc {
-            font-size: 8.5px;
-            font-weight: 600;
-            color: {{ $cMetaColor }};
-            opacity: 0.85;
-        }
-        .preview-quote-row {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding: 4px 4px 2px 4px;
-        }
-        .preview-quote-txt {
-            color: {{ $cQuoteColor }};
-            font-size: 9px;
-            font-weight: 700;
-            line-height: 1.35;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-            flex-grow: 1;
-            white-space: pre-line;
-        }
-        .preview-book-svg {
-            width: 58px;
-            height: 48px;
-            flex-shrink: 0;
-        }
-        .preview-organizers-row {
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            border-top: 1px solid rgba(255, 255, 255, 0.35);
-            padding-top: 4px;
-            gap: 3px;
-            color: {{ $cOrgColor }};
-        }
-        .p-org-col {
-            color: {{ $cOrgColor }};
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-        }
-        .p-org-col:not(:last-child) {
-            border-right: 1px solid rgba(255, 255, 255, 0.35);
-            padding-right: 2px;
-        }
-        .p-org-col .p-org-title {
-            font-size: 8px;
-            font-weight: 800;
-            line-height: 1.15;
-            color: {{ $cOrgColor }};
-        }
-        .p-org-col .p-org-sub {
-            font-size: 5.8px;
-            line-height: 1.2;
-            color: {{ $cOrgColor }};
-            opacity: 0.9;
-            white-space: pre-line;
-        }
-        .p-org-col .p-org-tel {
-            font-size: 6.2px;
-            font-weight: 700;
-            font-family: Arial, sans-serif;
-            color: {{ $cOrgColor }};
+            display: none;
         }
 
-        /* Submit Button */
-        .btn-submit-writer {
-            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
-            color: #ffffff;
-            font-size: 16px;
+        .lh-photo-placeholder {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            padding: 6px;
+            font-weight: 600;
+        }
+
+        .lh-photo-placeholder i {
+            font-size: 26px;
+            color: #94a3b8;
+            margin-bottom: 3px;
+            display: block;
+        }
+
+        /* Category Checkbox Grid & Pills */
+        .category-checkbox-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        .cat-pill {
+            display: inline-flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 11.5px;
             font-weight: 700;
-            padding: 13px 40px;
-            border-radius: 30px;
-            border: none;
-            box-shadow: 0 6px 20px rgba(153, 27, 27, 0.35);
-            transition: all 0.25s ease;
+            color: #1e293b;
             cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease-in-out;
+            margin: 0;
+            touch-action: manipulation;
+        }
+
+        .cat-pill:hover {
+            border-color: #0f172a;
+            background: #f1f5f9;
+        }
+
+        .cat-pill input[type="checkbox"] {
+            margin-right: 5px;
+            accent-color: #991b1b;
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+        }
+
+        .cat-pill:has(input:checked) {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
+        }
+
+        .cat-pill:has(input:checked) input[type="checkbox"] {
+            accent-color: #ef4444;
+        }
+
+        /* Address Toggle & Style */
+        .res-type-pill-group {
+            display: inline-flex;
+            border: 1px solid #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .res-type-pill-group label {
+            cursor: pointer;
+            padding: 3px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            background: #ffffff;
+            color: #0f172a;
+            margin: 0;
+            user-select: none;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+
+        .res-type-pill-group input[type="radio"]:checked + label {
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        /* Primary Submit Button */
+        .btn-submit-letterhead {
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 11px 36px;
+            border-radius: 4px;
+            border: 2px solid #0f172a;
+            cursor: pointer;
+            transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-        .btn-submit-writer:hover {
-            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(153, 27, 27, 0.45);
-            color: #ffffff;
+            touch-action: manipulation;
         }
 
-        /* Operator Badge */
-        .operator-pill {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 6px;
-            display: none;
+        .btn-submit-letterhead:hover {
+            background: #991b1b;
+            border-color: #991b1b;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+        /* Live Badge for Address */
+        #fullAddressBadgeWrap {
+            background: #f8fafc;
+            border: 1px dashed #334155;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            font-family: ui-monospace, monospace;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        /* =========================================================================
+           মোবাইল ও ট্যাবলেট আধুনিক রেসপন্সিভ ডিজাইন (Mobile & Tablet Device Friendly)
+           ========================================================================= */
+        @media (max-width: 768px) {
+            .letterhead-container {
+                padding: 0 8px;
+                margin: 10px auto 40px auto;
+            }
+
+            .official-letterhead-form {
+                padding: 16px 12px;
+                border-width: 1.5px;
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            }
+
+            .lh-pad-inner {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .lh-pad-emblem-left {
+                margin-bottom: 2px;
+            }
+
+            .lh-pad-badge-right {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                margin-top: 4px;
+            }
+
+            .lh-pad-title {
+                font-size: 19px;
+                line-height: 1.3;
+            }
+
+            .lh-pad-subhead {
+                font-size: 13.5px;
+            }
+
+            .lh-pad-meta, .lh-pad-org {
+                font-size: 12px;
+            }
+
+            /* মোবাইল টেবিল ফ্লেক্স ও টাচ ফ্রেন্ডলি কাঠামো */
+            .clean-grid-table {
+                display: block;
+                border: 1.5px solid #0f172a;
+                border-radius: 6px;
+                overflow: hidden;
+                margin-bottom: 14px;
+            }
+
+            .clean-grid-table tbody {
+                display: block;
+            }
+
+            .clean-grid-table tr {
+                display: flex;
+                flex-direction: column;
+                border-bottom: 1px solid #e2e8f0;
+                padding: 8px 10px;
+                background: #ffffff;
+            }
+
+            .clean-grid-table tr:last-child {
+                border-bottom: none;
+            }
+
+            .clean-grid-table td.grid-section-header {
+                display: block;
+                width: 100%;
+                border: none;
+                padding: 6px 10px;
+                font-size: 13px;
+                font-weight: 800;
+                background: #0f172a;
+                color: #ffffff;
+            }
+
+            .clean-grid-table td {
+                display: block;
+                width: 100% !important;
+                border: none !important;
+                padding: 3px 0 !important;
+            }
+
+            .clean-grid-table .c-label {
+                font-size: 12.5px;
+                font-weight: 700;
+                color: #334155;
+                background: transparent !important;
+                margin-bottom: 3px;
+            }
+
+            .clean-grid-table .c-val {
+                padding: 0 !important;
+                background: transparent !important;
+            }
+
+            /* ইনপুট ও ড্রপডাউনের টাচ ফ্রেন্ডলি উচ্চতা */
+            .c-input, .c-select {
+                min-height: 42px;
+                padding: 8px 12px;
+                font-size: 14.5px;
+                border-radius: 6px;
+                border: 1.5px solid #cbd5e1;
+                background: #f8fafc;
+                width: 100%;
+                box-sizing: border-box;
+                -webkit-appearance: none;
+                appearance: none;
+            }
+
+            .c-select {
+                background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right 10px center;
+                background-size: 14px;
+                padding-right: 32px;
+            }
+
+            .c-input:focus, .c-select:focus {
+                background: #ffffff;
+                border-color: #0f172a;
+                box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
+            }
+
+            /* ছবি আপলোড বক্স মোবাইলে দৃষ্টিনন্দন ও কেন্দ্রীয় */
+            .photo-cell-desktop {
+                order: -1;
+                width: 100% !important;
+                margin: 4px auto 10px auto;
+                background: transparent !important;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .lh-photo-box {
+                width: 110px;
+                height: 130px;
+                border-radius: 6px;
+                border: 2px dashed #0f172a;
+                background: #f1f5f9;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            }
+
+            .lh-photo-box:hover {
+                background: #fee2e2;
+                border-color: #991b1b;
+            }
+
+            /* ক্যাটাগরি চিপস মোবাইলে বড় ও সহজে ট্যাপযোগ্য */
+            .category-checkbox-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 6px;
+                margin-top: 4px;
+            }
+
+            .cat-pill {
+                font-size: 12px;
+                padding: 7px 10px;
+                min-height: 40px;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                justify-content: flex-start;
+                touch-action: manipulation;
+            }
+
+            .cat-pill input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+            }
+
+            /* দেশি / প্রবাসী টগল বাটন */
+            .res-type-pill-group {
+                width: 100%;
+                display: flex;
+                border-radius: 6px;
+            }
+
+            .res-type-pill-group label {
+                flex: 1;
+                text-align: center;
+                padding: 8px 10px;
+                font-size: 12.5px;
+            }
+
+            /* সাবমিট বাটন মোবাইলে সম্পূর্ণ প্রস্থ ও দৃশ্যমান */
+            .btn-submit-letterhead {
+                width: 100%;
+                min-height: 48px;
+                justify-content: center;
+                padding: 12px 20px;
+                font-size: 16px;
+                font-weight: 800;
+                border-radius: 8px;
+                box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+            }
+        }
+
+        /* =========================================================================
+           প্রিন্ট রেসপন্সিভ ডিজাইন (Print-Perfect Letterhead A4 Fit)
+           ========================================================================= */
+        @media print {
+            body { 
+                background: #fff !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 8mm 10mm;
+            }
+            .letterhead-container { 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                max-width: 100% !important; 
+            }
+            .official-letterhead-form { 
+                border: 1.5px solid #000 !important; 
+                box-shadow: none !important;
+                padding: 12px 16px !important;
+                page-break-inside: avoid;
+            }
+            .clean-grid-table {
+                display: table !important;
+                border: 1.5px solid #000 !important;
+                margin-bottom: 8px !important;
+            }
+            .clean-grid-table tbody {
+                display: table-row-group !important;
+            }
+            .clean-grid-table tr {
+                display: table-row !important;
+                border: none !important;
+                padding: 0 !important;
+                background: transparent !important;
+            }
+            .clean-grid-table td, .clean-grid-table th {
+                display: table-cell !important;
+                border: 1px solid #000 !important;
+                padding: 4px 6px !important;
+                font-size: 11.5px !important;
+            }
+            .clean-grid-table .c-label {
+                width: 18% !important;
+                background-color: #f8fafc !important;
+            }
+            .clean-grid-table .c-val {
+                background: #ffffff !important;
+            }
+            .photo-cell-desktop {
+                display: table-cell !important;
+                width: 22% !important;
+                margin: 0 !important;
+            }
+            .c-input, .c-select {
+                border: none !important;
+                background: transparent !important;
+                padding: 0 !important;
+                font-weight: 700 !important;
+                color: #000 !important;
+                min-height: auto !important;
+                font-size: 12px !important;
+            }
+            .form-top-actions, .btn-submit-letterhead, .no-print { 
+                display: none !important; 
+            }
         }
     </style>
 @endpush
 
 @section('content')
-<div class="container py-4 py-md-5">
+@php
+    $adminLogo = $campaign->form_settings['logo_image'] ?? null;
+    if ($adminLogo && !str_starts_with($adminLogo, 'http') && !str_starts_with($adminLogo, '/')) {
+        $adminLogo = asset('storage/' . $adminLogo);
+    }
+    $adminLogoSize = intval($campaign->form_settings['logo_size'] ?? 70);
+    $isAdmin = auth()->check() && (auth()->user()->is_admin || auth()->user()->role === 'admin' || auth()->user()->is_super_admin);
+@endphp
+<div class="letterhead-container">
 
-    {{-- HERO BANNER --}}
-    <div class="writer-hero-banner">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                    <span class="badge-festival">
-                        <i class="fa-solid fa-feather-pointed text-warning"></i> সাহিত্য উৎসব ও লিটিলম্যাগমেলা
-                    </span>
-                    <span class="badge bg-white text-dark fw-bold rounded-pill px-3 py-1" style="font-size: 11px;">
-                        নিবন্ধন উন্মুক্ত
-                    </span>
-                </div>
-
-                <h1 class="h2 fw-bold text-white mb-2" style="letter-spacing: -0.3px;">
-                    {{ $campaign->title }}
-                </h1>
-
-                <p class="text-white-50 mb-0" style="font-size: 14.5px; line-height: 1.6;">
-                    {{ $campaign->short_description ?: 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলা ২০২৬-এ লেখকদের অংশগ্রহণের জন্য সংক্ষিপ্ত তথ্য ও নিবন্ধন ফরম।' }}
-                </p>
-            </div>
-
-            <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
-                <div class="form-progress-wrap text-start">
-                    <div class="d-flex justify-content-between align-items-center text-white small" style="font-size: 12px;">
-                        <span><i class="fa-solid fa-list-check me-1 text-warning"></i> ফরম পূরণ অগ্রগতি</span>
-                        <strong id="progressPercentText">০%</strong>
-                    </div>
-                    <div class="form-progress-bar-bg">
-                        <div class="form-progress-fill" id="formProgressFill"></div>
-                    </div>
-                </div>
-            </div>
+    {{-- Top Action Bar --}}
+    <div class="form-top-actions">
+        <div>
+            <a href="{{ route('home') }}" class="btn btn-sm btn-outline-dark fw-semibold">
+                <i class="fa-solid fa-arrow-left me-1"></i> Home
+            </a>
+            <span class="badge bg-danger text-white ms-2 px-2.5 py-1.5 fw-bold">
+                <i class="fa-solid fa-feather-pointed me-1"></i> Author Entry
+            </span>
+            @if($isAdmin)
+                <span class="badge bg-dark text-white ms-1 px-2 py-1 small">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Admin Mode
+                </span>
+            @endif
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+                <i class="fa-solid fa-print me-1"></i> Print Form
+            </button>
         </div>
     </div>
 
-    {{-- ALERTS --}}
+    {{-- Alert Notifications --}}
     @if(session('error'))
-        <div class="alert alert-danger rounded-3 py-2.5 px-3 mb-3 small d-flex align-items-center gap-2">
+        <div class="alert alert-danger rounded-2 py-2 px-3 mb-3 small d-flex align-items-center gap-2">
             <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>
             <div>{{ session('error') }}</div>
         </div>
     @endif
 
     @if($errors->any())
-        <div class="alert alert-danger rounded-3 py-2.5 px-3 mb-3 small">
-            <div class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> অনুগ্রহ করে নিচের তথ্যগুলো পূরণ করুন:</div>
+        <div class="alert alert-danger rounded-2 py-2 px-3 mb-3 small">
             <ul class="mb-0 ps-3">
                 @foreach($errors->all() as $err)
                     <li>{{ $err }}</li>
@@ -609,422 +782,634 @@
         </div>
     @endif
 
-    {{-- MAIN 2-COLUMN GRID --}}
-    <div class="row g-4">
+    {{-- MAIN OFFICIAL LETTERHEAD FORM --}}
+    <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="writerRegisterForm" class="official-letterhead-form">
+        @csrf
 
-        {{-- LEFT COLUMN: THE INTERACTIVE FORM (8 Cols) --}}
-        <div class="col-lg-8">
-            <div class="writer-form-card">
-                <div class="writer-form-body">
-                    <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="writerRegisterForm">
-                        @csrf
+        {{-- Hidden input for Client-Side Auto-Optimized Photo Blob (Base64) --}}
+        <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">
 
-                        {{-- Hidden Auto-Optimized Base64 Photo --}}
-                        <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">
-
-                        {{-- ==========================================
-                             ১. সংক্ষিপ্ত তথ্য ও লেখক পরিচিতি
-                             ========================================== --}}
-                        <div class="section-tag-head">
-                            <span><i class="fa-solid fa-user-pen me-1"></i> ১. সংক্ষিপ্ত তথ্য ও লেখক পরিচিতি</span>
-                            <small class="text-muted fw-normal" style="font-size: 11px;">* চিহ্নিত ফিল্ড আবশ্যক</small>
+        {{-- =========================================================================
+             ১. শীর্ষ লেটার হেড প্যাড (Authentic Full-Width Letterhead Pad)
+             ========================================================================= --}}
+        <div class="lh-pad-header">
+            <div class="lh-pad-inner">
+                {{-- লোগো / এমব্লেম (বর্ডারলেস, এডমিন কর্তৃক নিয়ন্ত্রিত) --}}
+                <div class="lh-pad-emblem-left borderless-emblem-wrap" id="logoEmblemWrap" title="{{ $isAdmin ? 'লোগো পরিবর্তন ও সাইজ নির্ধারণ করতে হোভার করুন (অ্যাডমিন সেটিং)' : '' }}">
+                    <div class="logo-display-container" id="logoDisplayContainer" style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px;">
+                        <img id="customLogoImg" src="{{ $adminLogo ?: '' }}" alt="{{ $campaign->title }}" style="{{ $adminLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
+                        <div id="defaultEmblemIcon" class="default-emblem-icon" style="{{ $adminLogo ? 'display: none;' : 'display: flex;' }} font-size: {{ round($adminLogoSize * 0.55) }}px;">
+                            <i class="fa-solid fa-feather-pointed"></i>
                         </div>
+                    </div>
 
-                        <div class="row g-3">
-                            {{-- লেখক নাম --}}
-                            <div class="col-md-7">
-                                <label class="w-label" for="writerName">
-                                    লেখক নাম <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="name" id="writerName" class="w-input" placeholder="আপনার পূর্ণ নাম লিখুন" value="{{ old('name', $user?->name) }}" required oninput="updateLivePreview()">
-                            </div>
-
-                            {{-- মোবাইল নম্বর --}}
-                            <div class="col-md-5">
-                                <label class="w-label d-flex justify-content-between align-items-center" for="writerPhone">
-                                    <span>মোবাইল নম্বর <span class="text-danger">*</span></span>
-                                    <span id="operatorBadge" class="operator-pill">GP</span>
-                                </label>
-                                <div class="d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
-                                    <select name="country_code" id="writerCountryCode" class="form-select border-0 bg-light text-dark fw-bold" style="max-width: 120px; border-radius: 0; font-size: 13px; cursor: pointer; border-right: 1px solid #cbd5e1 !important;" aria-label="Country Code" onchange="handlePhoneInput(document.getElementById('writerPhone'))">
-                                        @include('partials.country-code-options', ['selected' => old('country_code', '+880')])
-                                    </select>
-                                    <input type="tel" name="phone" id="writerPhone" class="w-input font-monospace flex-grow-1 border-0" placeholder="01XXXXXXXXX" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="handlePhoneInput(this)" style="border-radius: 0; box-shadow: none;">
-                                </div>
-                            </div>
-
-                            {{-- ইমেইল --}}
-                            <div class="col-md-6">
-                                <label class="w-label" for="writerEmail">
-                                    ইমেইল ঠিকানা <small class="text-muted fw-normal">(ঐচ্ছিক)</small>
-                                </label>
-                                <input type="email" name="email" id="writerEmail" class="w-input" placeholder="example@gmail.com" value="{{ old('email', $user?->email) }}" oninput="updateLivePreview()">
-                            </div>
-
-                            {{-- ছবি আপলোড (Canvas Auto-Optimized) --}}
-                            <div class="col-md-6">
-                                <label class="w-label">
-                                    লেখকের ছবি / পোর্ট্রেট <small class="text-muted fw-normal">(কার্ডের জন্য • ঐচ্ছিক)</small>
-                                </label>
-                                <div class="author-photo-uploader" onclick="document.getElementById('writerPhotoInput').click()">
-                                    <img id="photoPreviewThumb" class="author-photo-preview" alt="Author Photo">
-                                    <div id="photoUploadPlaceholder">
-                                        <i class="fa-solid fa-camera text-secondary fs-4 mb-1"></i>
-                                        <div style="font-size: 11.5px; font-weight: 600; color: #7f1d1d;">ছবি যুক্ত করুন (অটো রিসাইজ হবে)</div>
-                                    </div>
-                                    <input type="file" id="writerPhotoInput" accept="image/*" class="d-none" onchange="optimizeWriterPhoto(this)">
-                                </div>
-                            </div>
-
-                            {{-- লেখক ক্যাটাগরি --}}
-                            <div class="col-12">
-                                <label class="w-label" for="authorCategorySelect">
-                                    লেখক ক্যাটাগরি (ক্লিক করে নির্বাচন করুন)
-                                </label>
-                                
-                                {{-- Hidden Native Input --}}
-                                <input type="hidden" name="author_category" id="authorCategoryInput" value="{{ old('author_category', 'কবিতা') }}">
-
-                                {{-- Visual Category Chips --}}
-                                <div class="category-chips-wrap" id="categoryChipsWrap">
-                                    <div class="cat-chip active" data-val="কবিতা">✍️ কবিতা</div>
-                                    <div class="cat-chip" data-val="কথাসাহিত্য / গল্প-উপন্যাস">📖 কথাসাহিত্য / উপন্যাস</div>
-                                    <div class="cat-chip" data-val="প্রবন্ধ ও গবেষণা">🧐 প্রবন্ধ ও গবেষণা</div>
-                                    <div class="cat-chip" data-val="শিশুসাহিত্য">🧒 শিশুসাহিত্য</div>
-                                    <div class="cat-chip" data-val="ছড়া ও রম্য">🎤 ছড়া ও রম্য</div>
-                                    <div class="cat-chip" data-val="নাটক ও চিত্রনাট্য">🎭 নাটক ও চিত্রনাট্য</div>
-                                    <div class="cat-chip" data-val="অনুবাদ">🌍 অনুবাদ সাহিত্য</div>
-                                    <div class="cat-chip" data-val="ছোটকাগজ সম্পাদনা">📰 লিটিলম্যাগাজিন সম্পাদনা</div>
-                                    <div class="cat-chip" data-val="সাহিত্য সাংবাদিকতা">🖋️ সাহিত্য সাংবাদিকতা</div>
-                                    <div class="cat-chip" data-val="অন্যান্য">✨ অন্যান্য</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ==========================================
-                             ২. গ্রন্থ ও প্রকাশনা সংক্রান্ত তথ্য
-                             ========================================== --}}
-                        <div class="section-tag-head">
-                            <span><i class="fa-solid fa-book-open me-1"></i> ২. গ্রন্থ ও প্রকাশনা সংক্রান্ত তথ্য</span>
-                        </div>
-
-                        <div class="row g-3">
-                            {{-- প্রকাশিত গ্রন্থ সংখ্যা --}}
-                            <div class="col-12">
-                                <label class="w-label">প্রকাশিত গ্রন্থ সংখ্যা</label>
-                                <input type="hidden" name="published_books_count" id="publishedBooksInput" value="{{ old('published_books_count', '০ (এখনও বই প্রকাশিত হয়নি)') }}">
-                                
-                                <div class="d-flex flex-wrap gap-2 mb-2" id="booksCountChips">
-                                    <div class="book-chip active" data-count="০ (এখনও বই প্রকাশিত হয়নি)">০ (এখনও বই বের হয়নি)</div>
-                                    <div class="book-chip" data-count="১টি গ্রন্থ">১টি</div>
-                                    <div class="book-chip" data-count="২টি গ্রন্থ">২টি</div>
-                                    <div class="book-chip" data-count="৩ থেকে ৫টি গ্রন্থ">৩-৫টি</div>
-                                    <div class="book-chip" data-count="৬ থেকে ১০টি গ্রন্থ">৬-১০টি</div>
-                                    <div class="book-chip" data-count="১০টির অধিক গ্রন্থ">১০+</div>
-                                </div>
-                            </div>
-
-                            {{-- উল্লেখযোগ্য বইয়ের নাম --}}
-                            <div class="col-12">
-                                <label class="w-label" for="notableBooks">
-                                    উল্লেখযোগ্য বইয়ের নাম ও প্রকাশনী
-                                </label>
-                                <textarea name="notable_books" id="notableBooks" rows="2" class="w-input" placeholder="যেমন: 'জলছাপ' (কাব্যগ্রন্থ), 'উত্তরের নদী' (গবেষণা)..." oninput="updateLivePreview()">{{ old('notable_books') }}</textarea>
-                            </div>
-                        </div>
-
-                        {{-- ==========================================
-                             ৩. ছোটকাগজ / লিটিলম্যাগাজিন সম্পাদনা
-                             ========================================== --}}
-                        <div class="section-tag-head" id="magazineSectionHead">
-                            <span><i class="fa-solid fa-newspaper me-1"></i> ৩. ছোটকাগজ / লিটিলম্যাগাজিন সম্পাদনা (যদি থাকে)</span>
-                        </div>
-
-                        <div class="row g-3">
-                            {{-- ছোটকাগজ সম্পাদক হলে পত্রিকার নাম --}}
-                            <div class="col-md-8">
-                                <label class="w-label" for="magazineName">
-                                    ছোটকাগজ সম্পাদক হলে পত্রিকার নাম
-                                </label>
-                                <input type="text" name="magazine_name" id="magazineName" class="w-input" placeholder="সম্পাদিত লিটিলম্যাগ / সাময়িকীর নাম" value="{{ old('magazine_name') }}" oninput="updateLivePreview()">
-                            </div>
-
-                            {{-- প্রকাশিত সংখ্যা --}}
-                            <div class="col-md-4">
-                                <label class="w-label" for="magazineIssueCount">
-                                    প্রকাশিত সংখ্যা
-                                </label>
-                                <input type="text" name="magazine_issue_count" id="magazineIssueCount" class="w-input" placeholder="যেমন: ৫টি সংখ্যা" value="{{ old('magazine_issue_count') }}">
-                            </div>
-                        </div>
-
-                        {{-- ==========================================
-                             ৪. ঠিকানা (Address Details)
-                             ========================================== --}}
-                        <div class="section-tag-head">
-                            <span><i class="fa-solid fa-location-dot me-1"></i> ৪. ঠিকানা (Address Details)</span>
-                        </div>
-
-                        {{-- Hidden Full Address --}}
-                        <input type="hidden" name="address" id="fullWriterAddress" value="{{ old('address') }}">
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="w-label" for="writerDivision">বিভাগ <span class="text-danger">*</span></label>
-                                <select name="perm_division" id="writerDivision" class="w-select" required></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="w-label" for="writerDistrict">জেলা <span class="text-danger">*</span></label>
-                                <select name="district" id="writerDistrict" class="w-select" required></select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="w-label" for="writerUpazila">মহানগর / উপজেলা <span class="text-danger">*</span></label>
-                                <select name="thana" id="writerUpazila" class="w-select" required></select>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="w-label" for="writerPostOffice">পোস্ট অফিস</label>
-                                <select name="perm_post_office" id="writerPostOffice" class="w-select"></select>
-                            </div>
-                            <div class="col-md-7">
-                                <label class="w-label" for="writerVillage">গ্রাম / এলাকা / বিস্তারিত ঠিকানা <span class="text-danger">*</span></label>
-                                <input type="text" name="perm_village" id="writerVillage" class="w-input" placeholder="মহল্লা, সড়ক বা এলাকার নাম" required oninput="formatWriterAddress()">
-                            </div>
-                            <div class="col-12" id="fullAddressBadgeWrap" style="display: none;">
-                                <div class="p-2 rounded bg-light border text-muted small font-monospace d-flex align-items-center gap-1.5">
-                                    <i class="fa-solid fa-map-pin text-danger"></i> <span id="fullAddressText"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- ==========================================
-                             ৫. পেমেন্ট ও ফি (যদি প্রযোজ্য হয়)
-                             ========================================== --}}
-                        @if($campaign->has_fee_or_donation)
-                            <div class="section-tag-head">
-                                <span><i class="fa-solid fa-wallet me-1"></i> ৫. নিবন্ধন ফি ও পেমেন্ট বিবরণী</span>
-                                <span class="badge bg-danger text-white">ফি: ৳{{ number_format($campaign->fee_amount ?: 0) }}</span>
-                            </div>
-
-                            <div class="p-3 bg-light rounded-3 border mb-3">
-                                @if($campaign->payment_instructions)
-                                    <div class="small text-dark mb-2" style="white-space: pre-line;">{!! nl2br(e($campaign->payment_instructions)) !!}</div>
-                                @endif
-                                @if($campaign->payment_methods)
-                                    <div class="small text-muted mb-2"><strong>পেমেন্ট মাধ্যম:</strong> {{ $campaign->payment_methods }}</div>
-                                @endif
-
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <label class="w-label" for="writerAmountPaid">পরিশোধিত টাকার পরিমাণ (৳)</label>
-                                        <input type="number" step="1" name="amount_paid" id="writerAmountPaid" class="w-input font-monospace" value="{{ old('amount_paid', $campaign->fee_amount ?: 0) }}" readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="w-label" for="writerTrxId">ট্রানজেকশন আইডি (TrxID) <span class="text-danger">*</span></label>
-                                        <input type="text" name="transaction_id" id="writerTrxId" class="w-input font-monospace" placeholder="বিকাশ/নগদ TrxID" value="{{ old('transaction_id') }}" required>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-
-                        {{-- ==========================================
-                             ৬. অতিরিক্ত ফিল্ডসমূহ (Custom Fields)
-                             ========================================== --}}
-                        @if(!empty($customFields) && count($customFields) > 0)
-                            <div class="section-tag-head">
-                                <span><i class="fa-solid fa-list-check me-1"></i> ৬. অতিরিক্ত তথ্যাবলী</span>
-                            </div>
-                            <div class="row g-3 mb-3">
-                                @foreach($customFields as $cf)
-                                    <div class="col-md-6">
-                                        <label class="w-label">{{ $cf['label'] ?? $cf['name'] }} @if(!empty($cf['required'])) <span class="text-danger">*</span> @endif</label>
-                                        @if(($cf['type'] ?? 'text') === 'select')
-                                            <select name="custom_fields[{{ $cf['name'] }}]" class="w-select" @if(!empty($cf['required'])) required @endif>
-                                                <option value="">-- নির্বাচন করুন --</option>
-                                                @foreach((array)($cf['options'] ?? []) as $opt)
-                                                    <option value="{{ $opt }}">{{ $opt }}</option>
-                                                @endforeach
-                                            </select>
-                                        @elseif(($cf['type'] ?? 'text') === 'textarea')
-                                            <textarea name="custom_fields[{{ $cf['name'] }}]" class="w-input" rows="2" @if(!empty($cf['required'])) required @endif></textarea>
-                                        @else
-                                            <input type="{{ $cf['type'] ?? 'text' }}" name="custom_fields[{{ $cf['name'] }}]" class="w-input" @if(!empty($cf['required'])) required @endif>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        {{-- SUBMIT BUTTON SECTION --}}
-                        <div class="mt-4 pt-3 border-top text-center">
-                            {{-- Event Organizer Collaboration Notice --}}
-                            <div class="p-3 rounded-3 mb-3 text-start d-flex align-items-center gap-3 border shadow-xs" style="background: #fffbeb; border-color: #fde68a !important; color: #92400e;">
-                                <i class="fa-solid fa-feather-pointed fs-4 text-warning flex-shrink-0"></i>
-                                <div style="font-size: 13px; line-height: 1.55;">
-                                    <strong>বিশেষ বিজ্ঞপ্তি:</strong> ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে
-                                </div>
-                            </div>
-                            <div class="text-dark small fw-semibold mb-3" style="font-size: 13.5px;">
-                                <i class="fa-solid fa-clock-rotate-left text-danger me-1"></i> ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগিন করে কার্ড নম্বর ও আমন্ত্রণ কার্ড ডাউনলোড করুন।
-                            </div>
-                            <button type="submit" id="submitWriterBtn" class="btn-submit-writer">
-                                <i class="fa-solid fa-paper-plane"></i> নিবন্ধন সম্পন্ন করুন
+                    @if($isAdmin)
+                        {{-- অ্যাডমিন লোগো কন্ট্রোল টুলবার (শুধুমাত্র অ্যাডমিন লগইন অবস্থায় দৃশ্যমান) --}}
+                        <div class="logo-control-toolbar no-print">
+                            <span class="badge bg-dark text-white me-1" style="font-size: 8.5px; padding: 2px 4px;">ADMIN</span>
+                            <button type="button" class="btn-logo-tool" title="লোগো আপলোড / পরিবর্তন" onclick="document.getElementById('customLogoFileInput').click()">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                            <button type="button" class="btn-logo-tool" title="লোগো বড় করুন (+)" onclick="adjustLogoSize(8)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <button type="button" class="btn-logo-tool" title="লোগো ছোট করুন (-)" onclick="adjustLogoSize(-8)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn-logo-tool text-danger" title="লোগো রিমুভ" onclick="removeCustomLogo()">
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </div>
+                        <input type="file" id="customLogoFileInput" accept="image/*" class="d-none" onchange="handleCustomLogoUpload(this)">
+                    @endif
+                </div>
 
-                    </form>
+                {{-- মূল লেটার হেড বিবরণী --}}
+                <div class="lh-pad-center">
+                    <div class="lh-pad-title">
+                        {{ $campaign->title }}
+                    </div>
+                    <div class="lh-pad-meta" style="font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">
+                        স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ
+                    </div>
+                    <div class="lh-pad-subhead" style="font-size: 13.5px; font-weight: 800; color: #991b1b; margin-bottom: 3px;">
+                        তারিখ: ১৩ নভেম্বর ২০২৬
+                    </div>
+                    <div class="lh-pad-org" style="font-size: 11.5px; font-weight: 700; color: #475569;">
+                        নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন &nbsp;|&nbsp; <span class="font-monospace">www.ideaabd.com</span>
+                    </div>
+                </div>
+
+                {{-- কপি স্ট্যাম্প --}}
+                <div class="lh-pad-badge-right">
+                    <div class="lh-pad-copy-tag">{{ !empty($existingRegistration) ? 'REGISTERED' : 'DELEGATE COPY' }}</div>
+                    <div class="mt-1 font-monospace" style="font-size: 11px; font-weight: 800; color: #0f172a;">
+                        #{{ $previewRegNumber ?? ($existingRegistration?->registration_number ?? 'RSU-2026-001') }}
+                    </div>
                 </div>
             </div>
         </div>
 
-        {{-- RIGHT COLUMN: LIVE DELEGATE PASS PREVIEW & EVENT HIGHLIGHTS (4 Cols) --}}
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 24px; z-index: 10;">
-                
-                {{-- Live Exact Invitation Card Preview (আমন্ত্রণ কার্ড) --}}
-                <div class="delegate-card-preview mb-3 position-relative" style="overflow: hidden;">
-                    
-                    {{-- Background Overlay Tint & Blur --}}
-                    @if($cBgOverlayOpacity > 0 || $cBgBlur > 0)
-                        <div style="position: absolute; inset: 0; background: {{ $cBgOverlayColor }}; opacity: {{ $cBgOverlayOpacity / 100 }}; @if($cBgBlur > 0) backdrop-filter: blur({{ $cBgBlur }}px); -webkit-backdrop-filter: blur({{ $cBgBlur }}px); @endif pointer-events: none; border-radius: 14px; z-index: 1;"></div>
-                    @endif
-
-                    {{-- 1. Top Section --}}
-                    @if($cShowHeader || $cShowBadge)
-                        <div class="preview-top-row" style="position: relative; z-index: 2;">
-                            {{-- Org Logo --}}
-                            @if($cShowLogo)
-                                <div class="preview-logo-emblem" style="width: {{ $cLogoSize }}px; height: {{ $cLogoSize }}px; border: none; background: transparent;">
-                                    @if($cLogoImg && file_exists(public_path('storage/' . $cLogoImg)))
-                                        <img src="{{ asset('storage/' . $cLogoImg) }}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
-                                    @else
-                                        <div class="logo-inner" style="border: none; background: transparent;">
-                                            <span style="font-size: 7px; font-weight: 800; color: {{ $cTitleColor }}; line-height: 1;">ফিরেদেখা</span>
-                                            <i class="fa-solid fa-feather-pointed" style="font-size: 13px; color: {{ $cTitleColor }}; line-height: 1;"></i>
-                                            <span style="font-size: 5px; font-weight: 700; color: {{ $cTitleColor }}; opacity: 0.85; line-height: 1;">প্রতিষ্ঠা: ২০১৬</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endif
-
-                            {{-- Festival Headings & Event Logo --}}
-                            @if($cShowHeader)
-                                <div class="preview-festival-headings">
-                                    @if($cShowEventLogo && $cEventLogoImg && file_exists(public_path('storage/' . $cEventLogoImg)))
-                                        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 2px;">
-                                            <img src="{{ asset('storage/' . $cEventLogoImg) }}" alt="Event Logo" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
-                                        </div>
-                                    @endif
-                                    <div class="preview-fest-anniv" style="color: {{ $cAnnivColor }};">{{ $cAnniv }}</div>
-                                    <div class="preview-fest-main" style="color: {{ $cTitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cTitle }}</div>
-                                    <div class="preview-fest-sub" style="color: {{ $cSubtitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cSub }}</div>
-                                </div>
-                            @endif
-
-                            {{-- Ribbon Badge --}}
-                            @if($cShowBadge)
-                                <div class="d-flex flex-column align-items-end flex-shrink-0">
-                                    <div class="preview-vert-ribbon" style="font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cBadge }}</div>
-                                    <div class="preview-card-pill">কার্ড নং- ১০১</div>
-                                </div>
-                            @endif
+        {{-- =========================================================================
+             ১. পরিচিতি ও বিবরণী (Author / Delegate Profile & Literary Details) + Photo
+             ========================================================================= --}}
+        <table class="clean-grid-table">
+            <colgroup>
+                <col style="width: 18%;">
+                <col style="width: 32%;">
+                <col style="width: 18%;">
+                <col style="width: 32%;">
+            </colgroup>
+            <tr>
+                <td class="grid-section-header" colspan="4">
+                    ১. পরিচিতি
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">নাম <span class="text-danger">*</span></td>
+                <td class="c-val" colspan="2">
+                    <input type="text" name="name" id="writerName" class="c-input text-uppercase fw-bold" placeholder="লেখকের পূর্ণ নাম" value="{{ old('name', $existingRegistration?->name ?? $user?->name) }}" required oninput="handleNameInput(this)">
+                </td>
+                <td rowspan="4" class="text-center photo-cell-desktop" style="width: 32%; vertical-align: middle; background: #fafafa;">
+                    <div class="lh-photo-box" onclick="document.getElementById('rawPhotoInput').click()" title="ছবি আপলোড করতে ক্লিক করুন">
+                        @php
+                            $existingPhoto = $existingRegistration?->form_data['student_photo'] ?? null;
+                            if ($existingPhoto && !str_starts_with($existingPhoto, 'http') && !str_starts_with($existingPhoto, '/')) {
+                                $existingPhoto = asset('storage/' . $existingPhoto);
+                            }
+                        @endphp
+                        <img id="photoPreviewThumb" class="lh-photo-img" src="{{ $existingPhoto ?: '' }}" style="{{ $existingPhoto ? 'display: block;' : 'display: none;' }}" alt="Author Photo">
+                        <div id="photoUploadPlaceholder" class="lh-photo-placeholder" style="{{ $existingPhoto ? 'display: none;' : '' }}">
+                            <i class="fa-regular fa-image"></i>
+                            <div style="font-weight: 700; color: #0f172a; font-size: 11.5px;">ছবি</div>
+                            <div style="font-size: 9px; color: #64748b;">(পাসপোর্ট সাইজ)</div>
                         </div>
-                    @endif
+                    </div>
+                    <input type="file" id="rawPhotoInput" name="student_photo" accept="image/*" class="d-none" onchange="optimizeWriterPhoto(this)">
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">ক্যাটাগরি <span class="text-danger">*</span></td>
+                <td class="c-val" colspan="2">
+                    @php
+                        $existingCats = $existingRegistration?->form_data['author_categories'] ?? ($existingRegistration?->form_data['author_category'] ? explode(', ', $existingRegistration->form_data['author_category']) : null);
+                        $oldCategories = old('author_categories', (array) (old('author_category') ? explode(', ', old('author_category')) : ($existingCats ?: ['কবি ও কথাসাহিত্যিক'])));
+                    @endphp
+                    <div class="category-checkbox-grid">
+                        @foreach([
+                            'কবি ও কথাসাহিত্যিক',
+                            'লিটিলম্যাগাজিন সম্পাদক',
+                            'শিল্পী / সংস্কৃতিকর্মী',
+                            'প্রাবন্ধিক ও গবেষক',
+                            'শিশুসাহিত্যিক ও ছড়াকার',
+                            'প্রকাশক',
+                            'বই প্রতিনিধি ও সংগঠক',
+                            'অন্যান্য / প্রতিনিধি'
+                        ] as $catOption)
+                            <label class="cat-pill">
+                                <input type="checkbox" name="author_categories[]" value="{{ $catOption }}" {{ in_array($catOption, $oldCategories) ? 'checked' : '' }} onchange="handleMultipleCategoryChange()">
+                                <span>{{ $catOption }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <input type="hidden" name="author_category" id="authorCategoryHidden" value="{{ old('author_category', implode(', ', $oldCategories)) }}">
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">মোবাইল <span class="text-danger">*</span></td>
+                <td class="c-val" colspan="2">
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="country_code" id="countryCodeSelect" class="btn-country-code">
+                            <option value="+880" selected>🇧🇩 +880</option>
+                            <option value="+91">🇮🇳 +91</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+966">🇸🇦 +966</option>
+                            <option value="+971">🇦🇪 +971</option>
+                            <option value="+60">🇲🇾 +60</option>
+                            <option value="+65">🇸🇬 +65</option>
+                        </select>
+                        <input type="tel" name="phone" id="writerPhone" class="c-input font-monospace fw-bold" placeholder="017XXXXXXXX" value="{{ old('phone', $existingRegistration?->phone ?? $user?->phone) }}" required oninput="handlePhoneInput(this)">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">ইমেইল</td>
+                <td class="c-val" colspan="2">
+                    <input type="email" name="email" id="writerEmail" class="c-input" placeholder="ইমেইল (ঐচ্ছিক)" value="{{ old('email', $existingRegistration?->email ?? $user?->email) }}">
+                </td>
+            </tr>
 
-                    {{-- 2. Center Section: Photo & Name Plate --}}
-                    @if($cShowPhoto || $cShowNamePlate)
-                        <div class="preview-center-area" style="position: relative; z-index: 2;">
-                            @if($cShowPhoto)
-                                <div class="preview-photo-round" id="cardAvatarBox" style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px;">
-                                    <img id="cardAvatarImg" style="width: 100%; height: 100%; object-fit: cover; display: none;" alt="Author Photo">
-                                    <div id="cardAvatarIcon" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8; font-size: 24px;">
-                                        <i class="fa-solid fa-user-pen"></i>
-                                    </div>
-                                </div>
-                            @endif
+            {{-- =========================================================================
+                 ক্যাটাগরি ভিত্তিক স্বয়ংক্রিয় তথ্য সারি (Dynamic Category-Specific Rows)
+                 ========================================================================= --}}
+            
+            {{-- ১. শিল্পী / সংস্কৃতিকর্মী --}}
+            <tr id="catRowArtist" style="display: none;">
+                <td class="c-label">শিল্পমাধ্যম <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="art_medium" id="writerArtMedium" class="c-input" placeholder="সংগীত, আবৃত্তি, নাটক, চিত্র ইত্যাদি" value="{{ old('art_medium', $existingRegistration?->form_data['art_medium'] ?? '') }}">
+                </td>
+                <td class="c-label" style="width: 18%;">সংগঠন</td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="institution_or_org" id="writerArtistOrg" class="c-input" placeholder="সংগঠন / দল / নাট্যদল" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
+                </td>
+            </tr>
 
-                            @if($cShowNamePlate)
-                                <div class="preview-name-plate" style="background: {{ $cPlateBg }}; padding: {{ $cShowPhoto ? '18px' : '10px' }} 8px 8px 8px;">
-                                    <div class="p-author-name" id="cardNamePreview" style="font-size: {{ $cNameSize }}px; color: {{ $cNameColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $user?->name ?: 'আপনার নাম' }}</div>
-                                    <div class="p-author-desc" id="cardCategoryPreview" style="color: {{ $cMetaColor }};">কবি, সম্পাদক ও প্রকাশক</div>
-                                    <div class="p-author-loc" id="cardLocationPreview" style="color: {{ $cMetaColor }}; opacity: 0.85;">রংপুর</div>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+            {{-- ২. বই প্রতিনিধি ও সংগঠক --}}
+            <tr id="catRowOrganizer" style="display: none;">
+                <td class="c-label">সংগঠন / প্রতিষ্ঠান <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="institution_or_org" id="writerOrgName" class="c-input" placeholder="প্রতিষ্ঠান / সংগঠনের নাম" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
+                </td>
+                <td class="c-label" style="width: 18%;">দায়িত্ব / পদবি</td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="designation_or_class" id="writerOrgDesignation" class="c-input" placeholder="যেমন: প্রতিনিধি / সমন্বয়ক" value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? '')) }}">
+                </td>
+            </tr>
 
-                    {{-- 3. Message & Book Artwork --}}
-                    @if($cShowQuote || $cShowArtwork)
-                        <div class="preview-quote-row" style="position: relative; z-index: 2;">
-                            @if($cShowQuote)
-                                <div class="preview-quote-txt" style="color: {{ $cQuoteColor }}; white-space: pre-line;">{!! nl2br(e($cQuote)) !!}</div>
-                            @endif
+            {{-- ৩. লিটিলম্যাগাজিন ও প্রকাশনা সারি --}}
+            <tr id="catRowMag">
+                <td class="c-label" id="labelMagName">ছোটকাগজ</td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="magazine_name" id="magazineName" class="c-input" placeholder="লিটিলম্যাগাজিন / পত্রিকার নাম" value="{{ old('magazine_name', $existingRegistration?->form_data['magazine_name'] ?? '') }}">
+                </td>
+                <td class="c-label" id="labelMagIssue" style="width: 18%;">সংখ্যা</td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="magazine_issue_count" id="magazineIssueCount" class="c-input" placeholder="যেমন: ৫টি সংখ্যা" value="{{ old('magazine_issue_count', $existingRegistration?->form_data['magazine_issue_count'] ?? '') }}">
+                </td>
+            </tr>
 
-                            @if($cShowArtwork)
-                                <div class="preview-book-svg">
-                                    <svg viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M50 20 C32 6 12 14 6 22 C6 50 10 65 50 72 C90 65 94 50 94 22 C88 14 68 6 50 20 Z" fill="#ffffff" fill-opacity="0.95" stroke="#713f12" stroke-width="2"/>
-                                        <path d="M50 22 C34 10 16 16 10 24 L10 60 C30 52 46 58 50 68 C54 58 70 52 90 60 L90 24 C84 16 66 10 50 22 Z" fill="#fef9c3"/>
-                                        <path d="M50 22 L50 68" stroke="#ca8a04" stroke-width="2.5"/>
-                                        <path d="M22 32 C30 30 38 32 44 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                        <path d="M22 40 C30 38 38 40 44 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                        <path d="M22 48 C30 46 38 48 44 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                        <path d="M78 32 C70 30 62 32 56 36" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                        <path d="M78 40 C70 38 62 40 56 44" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                        <path d="M78 48 C70 46 62 48 56 52" stroke="#ca8a04" stroke-width="1.5" stroke-linecap="round"/>
-                                    </svg>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+            {{-- ৪. সাহিত্যকর্ম ও বইসংখ্যা সারি --}}
+            <tr id="catRowLiterary">
+                <td class="c-label" id="labelGenreOrOrg">শাখা / মাধ্যম</td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="designation_or_class" id="writerDesignationInput" class="c-input" placeholder="কবিতা, কথাসাহিত্য, প্রবন্ধ..." value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? 'কবিতা ও কথাসাহিত্য')) }}">
+                </td>
+                <td class="c-label" id="labelBooksCount" style="width: 18%;">বইসংখ্যা</td>
+                <td class="c-val" style="width: 32%;">
+                    @php
+                        $savedBooksCount = old('published_books_count', $existingRegistration?->form_data['published_books_count'] ?? '২-৫টি গ্রন্থ');
+                    @endphp
+                    <select name="published_books_count" id="publishedBooksInput" class="c-select">
+                        <option value="১টি গ্রন্থ" {{ $savedBooksCount == '১টি গ্রন্থ' ? 'selected' : '' }}>১টি গ্রন্থ</option>
+                        <option value="২-৫টি গ্রন্থ" {{ $savedBooksCount == '২-৫টি গ্রন্থ' ? 'selected' : '' }}>২-৫টি গ্রন্থ</option>
+                        <option value="৬-১০টি গ্রন্থ" {{ $savedBooksCount == '৬-১০টি গ্রন্থ' ? 'selected' : '' }}>৬-১০টি গ্রন্থ</option>
+                        <option value="১০টির অধিক গ্রন্থ" {{ $savedBooksCount == '১০টির অধিক গ্রন্থ' ? 'selected' : '' }}>১০টির অধিক গ্রন্থ</option>
+                        <option value="গ্রন্থ প্রকাশের অপেক্ষায়" {{ $savedBooksCount == 'গ্রন্থ প্রকাশের অপেক্ষায়' ? 'selected' : '' }}>গ্রন্থ প্রকাশের অপেক্ষায়</option>
+                    </select>
+                </td>
+            </tr>
 
-                    {{-- 4. Bottom 3 Organizers Columns --}}
-                    @if($cShowOrganizers)
-                        <div class="preview-organizers-row" style="position: relative; z-index: 2; color: {{ $cOrgColor }}; border-top-color: {{ $cOrgColor }}55;">
-                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
-                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg1Name }}</div>
-                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg1Role)) !!}</div>
-                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg1Phone }}</div>
-                            </div>
-                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
-                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg2Name }}</div>
-                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg2Role)) !!}</div>
-                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg2Phone }}</div>
-                            </div>
-                            <div class="p-org-col" style="color: {{ $cOrgColor }};">
-                                <div class="p-org-title" style="color: {{ $cOrgColor }};">{{ $cOrg3Name }}</div>
-                                <div class="p-org-sub" style="color: {{ $cOrgColor }}; white-space: pre-line;">{!! nl2br(e($cOrg3Role)) !!}</div>
-                                <div class="p-org-tel" style="color: {{ $cOrgColor }};"><i class="fa-solid fa-phone"></i> {{ $cOrg3Phone }}</div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
+            {{-- ৫. উল্লেখযোগ্য প্রকাশিত গ্রন্থসমূহ --}}
+            <tr id="catRowBooks">
+                <td class="c-label" id="labelNotableBooks">গ্রন্থসমূহ</td>
+                <td colspan="3" class="c-val">
+                    <input type="text" name="notable_books" id="notableBooks" class="c-input text-uppercase" placeholder="উল্লেখযোগ্য প্রকাশিত বইয়ের নাম..." value="{{ old('notable_books', $existingRegistration?->form_data['notable_books'] ?? '') }}">
+                </td>
+            </tr>
+        </table>
 
-                {{-- Literary Festival Highlights Card --}}
-                <div class="card border-0 rounded-4 shadow-xs bg-white p-3.5">
-                    <h6 class="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-danger"></i> উৎসবের তথ্যাবলী
-                    </h6>
-                    <ul class="list-unstyled small text-secondary mb-0" style="line-height: 1.7; font-size: 12.5px;">
-                        <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> কবি, কথাসাহিত্যিক ও গবেষকদের সম্মিলন।</li>
-                        <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> লিটিলম্যাগাজিন ও ছোটকাগজ প্রদর্শনী।</li>
-                        <li class="mb-1.5"><i class="fa-solid fa-check-circle text-success me-1.5"></i> অংশগ্রহণকারীদের জন্য বিশেষ ডেলিগেট কার্ড।</li>
-                        <li><i class="fa-solid fa-check-circle text-success me-1.5"></i> @if($campaign->has_fee_or_donation && $campaign->fee_amount > 0) নিবন্ধন ফি: ৳{{ number_format($campaign->fee_amount) }} @else বিনামূল্যে অনলাইন নিবন্ধন। @endif</li>
-                    </ul>
-                </div>
+        {{-- =========================================================================
+             ২. ঠিকানা (Address Details) — এক ক্লিকে টগল ও স্বয়ংক্রিয় ড্রপডাউন
+             ========================================================================= --}}
+        <div class="d-flex align-items-center justify-content-between my-2">
+            <span class="fw-bold" style="font-size: 13px;"><i class="fa-solid fa-location-dot me-1 text-danger"></i> ২. ঠিকানা</span>
+            <div class="res-type-pill-group">
+                <input type="radio" name="resident_type" id="resTypeBd" value="domestic" checked onchange="toggleResidentAddress('domestic')">
+                <label for="resTypeBd"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</label>
 
+                <input type="radio" name="resident_type" id="resTypeIntl" value="international" onchange="toggleResidentAddress('international')">
+                <label for="resTypeIntl"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / বিদেশী</label>
             </div>
         </div>
 
-    </div>
+        {{-- Hidden Full Address --}}
+        <input type="hidden" name="address" id="fullWriterAddress" value="{{ old('address') }}">
 
+        {{-- ২.A বাংলাদেশ ঠিকানা গ্রিড --}}
+        <table class="clean-grid-table" id="bdAddressTable">
+            <tr>
+                <td class="c-label">বিভাগ <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <select name="perm_division" id="writerDivision" class="c-select" required></select>
+                </td>
+                <td class="c-label">জেলা <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <select name="district" id="writerDistrict" class="c-select" required></select>
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">উপজেলা <span class="text-danger">*</span></td>
+                <td class="c-val">
+                    <select name="thana" id="writerUpazila" class="c-select" required></select>
+                </td>
+                <td class="c-label">ডাকঘর</td>
+                <td class="c-val">
+                    <select name="perm_post_office" id="writerPostOffice" class="c-select"></select>
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
+                <td colspan="3" class="c-val">
+                    <input type="text" name="perm_village" id="writerVillage" class="c-input text-uppercase" placeholder="গ্রাম / মহল্লা / সড়ক নম্বর" required oninput="formatWriterAddress()">
+                </td>
+            </tr>
+        </table>
+
+        {{-- ২.B প্রবাসী / বিদেশি ঠিকানা গ্রিড --}}
+        <table class="clean-grid-table" id="intlAddressTable" style="display: none;">
+            <tr>
+                <td class="c-label">দেশ <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <select name="country_name" id="writerCountrySelect" class="c-select" onchange="handleCountryChange(this.value)">
+                        <option value="ভারত (West Bengal / India)">ভারত (পশ্চিমবঙ্গ / অন্যান্য)</option>
+                        <option value="United Kingdom">যুক্তরাজ্য (UK)</option>
+                        <option value="United States">যুক্তরাষ্ট্র (USA)</option>
+                        <option value="Canada">কানাডা (Canada)</option>
+                        <option value="Saudi Arabia">সৌদি আরব (Saudi Arabia)</option>
+                        <option value="United Arab Emirates">সংযুক্ত আরব আমিরাত (UAE)</option>
+                        <option value="Qatar">কাতার (Qatar)</option>
+                        <option value="Kuwait">কুয়েত (Kuwait)</option>
+                        <option value="Oman">ওমান (Oman)</option>
+                        <option value="Malaysia">মালয়েশিয়া (Malaysia)</option>
+                        <option value="Singapore">সিঙ্গাপুর (Singapore)</option>
+                        <option value="Australia">অস্ট্রেলিয়া (Australia)</option>
+                        <option value="Germany">জার্মানি (Germany)</option>
+                        <option value="Italy">ইতালি (Italy)</option>
+                        <option value="OTHER">-- অন্যান্য দেশ (কাস্টম নাম) --</option>
+                    </select>
+                </td>
+                <td class="c-label">শহর / রাজ্য <span class="text-danger">*</span></td>
+                <td class="c-val" style="width: 32%;">
+                    <input type="text" name="state_or_city" id="writerForeignCity" class="c-input text-uppercase" placeholder="Kolkata, London, New York..." oninput="formatWriterAddress()">
+                </td>
+            </tr>
+            <tr id="customCountryRow" style="display: none;">
+                <td class="c-label">দেশ <span class="text-danger">*</span></td>
+                <td colspan="3" class="c-val">
+                    <input type="text" name="custom_country" id="writerCustomCountry" class="c-input" placeholder="দেশের নাম লিখুন" oninput="formatWriterAddress()">
+                </td>
+            </tr>
+            <tr>
+                <td class="c-label">পোস্টকোড</td>
+                <td class="c-val">
+                    <input type="text" name="zip_code" id="writerForeignZip" class="c-input font-monospace" placeholder="700001, 10001, E1 6AN..." oninput="formatWriterAddress()">
+                </td>
+                <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
+                <td class="c-val">
+                    <input type="text" name="foreign_address" id="writerForeignStreet" class="c-input" placeholder="বাড়ি ও পূর্ণ আন্তর্জাতিক সড়ক ঠিকানা" oninput="formatWriterAddress()">
+                </td>
+            </tr>
+        </table>
+
+        {{-- ঠিকানা প্রিভিউ বার --}}
+        <div id="fullAddressBadgeWrap" style="display: none;">
+            <i class="fa-solid fa-location-arrow text-danger me-1"></i> <strong>পূর্ণ ঠিকানা:</strong> <span id="fullAddressText"></span>
+        </div>
+
+        {{-- =========================================================================
+             ৩. পেমেন্ট বিবরণী (যদি ফি প্রযোজ্য হয়)
+             ========================================================================= --}}
+        @if($campaign->has_fee_or_donation)
+            <table class="clean-grid-table mt-2">
+                <tr>
+                    <td class="grid-section-header" colspan="4">৩. পেমেন্ট বিবরণী</td>
+                </tr>
+                <tr>
+                    <td class="c-label">ফি</td>
+                    <td class="c-val font-monospace fw-bold text-danger">
+                        ৳{{ number_format($campaign->fee_amount ?: 0) }}
+                        <input type="hidden" name="amount_paid" value="{{ $campaign->fee_amount ?: 0 }}">
+                    </td>
+                    <td class="c-label">ট্রানজেকশন <span class="text-danger">*</span></td>
+                    <td class="c-val">
+                        <input type="text" name="transaction_id" class="c-input font-monospace" placeholder="বিকাশ/নগদ TrxID" value="{{ old('transaction_id') }}" required>
+                    </td>
+                </tr>
+            </table>
+        @endif
+
+        {{-- অফিসিয়াল লেখকের স্বাক্ষর ব্লক --}}
+        <div style="display: flex; justify-content: flex-end; margin-top: 35px; margin-bottom: 25px; padding-right: 15px;">
+            <div style="text-align: center; min-width: 200px;">
+                <div id="authorSigName" class="text-uppercase fw-bold font-monospace" style="font-size: 13px; color: #0f172a; min-height: 20px; letter-spacing: 0.5px; padding-bottom: 4px;">
+                    {{ old('name', $user?->name) }}
+                </div>
+                <div style="border-top: 1.5px solid #0f172a; padding-top: 4px; font-size: 12px; font-weight: 700; color: #0f172a;">
+                    লেখকের স্বাক্ষর
+                </div>
+            </div>
+        </div>
+
+        {{-- সাবমিট বাটন --}}
+        <div class="text-center mt-4 no-print">
+            <button type="submit" id="submitWriterBtn" class="btn-submit-letterhead">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>জমা দিন</span>
+            </button>
+        </div>
+
+    </form>
 </div>
 @endsection
 
 @push('scripts')
 <script src="{{ asset('js/bd-geo-data.js') }}"></script>
 <script>
+let currentResidentType = 'domestic';
+let currentLogoSize = {{ $adminLogoSize }};
+const isAdmin = {{ $isAdmin ? 'true' : 'false' }};
+const logoSettingsUrl = "{{ $isAdmin ? route('admin.event-campaigns.logo-settings', $campaign->id) : '' }}";
+const csrfToken = "{{ csrf_token() }}";
+
+// লোগো আপলোড ও সাইজ কন্ট্রোল ফাংশন (অ্যাডমিন নিয়ন্ত্রিত)
+function handleCustomLogoUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        setCustomLogo(e.target.result);
+    };
+    reader.readAsDataURL(file);
+
+    if (isAdmin && logoSettingsUrl) {
+        const formData = new FormData();
+        formData.append('logo_image', file);
+        formData.append('logo_size', currentLogoSize);
+        formData.append('_token', csrfToken);
+
+        fetch(logoSettingsUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.logo_url) {
+                setCustomLogo(data.logo_url);
+            }
+        })
+        .catch(err => console.error('Logo upload error:', err));
+    }
+}
+
+function setCustomLogo(src) {
+    const img = document.getElementById('customLogoImg');
+    const defaultIcon = document.getElementById('defaultEmblemIcon');
+    if (img && defaultIcon) {
+        img.src = src;
+        img.style.display = 'block';
+        defaultIcon.style.display = 'none';
+    }
+}
+
+function removeCustomLogo() {
+    if (!confirm('লোগোটি রিমুভ করতে চান?')) return;
+
+    const img = document.getElementById('customLogoImg');
+    const defaultIcon = document.getElementById('defaultEmblemIcon');
+    const fileInput = document.getElementById('customLogoFileInput');
+    if (img) {
+        img.src = '';
+        img.style.display = 'none';
+    }
+    if (defaultIcon) {
+        defaultIcon.style.display = 'flex';
+    }
+    if (fileInput) fileInput.value = '';
+
+    if (isAdmin && logoSettingsUrl) {
+        const formData = new FormData();
+        formData.append('remove_logo', '1');
+        formData.append('_token', csrfToken);
+
+        fetch(logoSettingsUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).catch(err => console.error(err));
+    }
+}
+
+let saveLogoSizeTimer = null;
+function adjustLogoSize(delta) {
+    currentLogoSize = Math.max(35, Math.min(150, currentLogoSize + delta));
+    applyLogoSize(currentLogoSize);
+
+    if (isAdmin && logoSettingsUrl) {
+        clearTimeout(saveLogoSizeTimer);
+        saveLogoSizeTimer = setTimeout(() => {
+            const formData = new FormData();
+            formData.append('logo_size', currentLogoSize);
+            formData.append('_token', csrfToken);
+
+            fetch(logoSettingsUrl, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).catch(err => console.error(err));
+        }, 500);
+    }
+}
+
+function applyLogoSize(size) {
+    const container = document.getElementById('logoDisplayContainer');
+    if (container) {
+        container.style.width = size + 'px';
+        container.style.height = size + 'px';
+    }
+    const icon = document.querySelector('.default-emblem-icon');
+    if (icon) {
+        icon.style.fontSize = Math.round(size * 0.55) + 'px';
+    }
+}
+
+function toggleResidentAddress(type) {
+    currentResidentType = type;
+    const bdTable = document.getElementById('bdAddressTable');
+    const intlTable = document.getElementById('intlAddressTable');
+    const divSelect = document.getElementById('writerDivision');
+    const distSelect = document.getElementById('writerDistrict');
+    const upaSelect = document.getElementById('writerUpazila');
+    const vilInput = document.getElementById('writerVillage');
+    const countrySelect = document.getElementById('writerCountrySelect');
+    const cityInput = document.getElementById('writerForeignCity');
+    const streetInput = document.getElementById('writerForeignStreet');
+
+    if (type === 'international') {
+        if (bdTable) bdTable.style.display = 'none';
+        if (intlTable) intlTable.style.display = 'table';
+
+        if (divSelect) divSelect.required = false;
+        if (distSelect) distSelect.required = false;
+        if (upaSelect) upaSelect.required = false;
+        if (vilInput) vilInput.required = false;
+
+        if (countrySelect) countrySelect.required = true;
+        if (cityInput) cityInput.required = true;
+        if (streetInput) streetInput.required = true;
+    } else {
+        if (bdTable) bdTable.style.display = 'table';
+        if (intlTable) intlTable.style.display = 'none';
+
+        if (divSelect) divSelect.required = true;
+        if (distSelect) distSelect.required = true;
+        if (upaSelect) upaSelect.required = true;
+        if (vilInput) vilInput.required = true;
+
+        if (countrySelect) countrySelect.required = false;
+        if (cityInput) cityInput.required = false;
+        if (streetInput) streetInput.required = false;
+    }
+
+    formatWriterAddress();
+}
+
+function handleCountryChange(val) {
+    const row = document.getElementById('customCountryRow');
+    const customInput = document.getElementById('writerCustomCountry');
+    if (val === 'OTHER') {
+        if (row) row.style.display = 'table-row';
+        if (customInput) {
+            customInput.required = true;
+            customInput.focus();
+        }
+    } else {
+        if (row) row.style.display = 'none';
+        if (customInput) customInput.required = false;
+    }
+    formatWriterAddress();
+}
+
+function handleNameInput(input) {
+    const val = input.value.trim();
+    const sigName = document.getElementById('authorSigName');
+    if (sigName) {
+        sigName.textContent = val ? val.toUpperCase() : '';
+    }
+}
+
+// ক্যাটাগরি অনুসারে তথ্য সারির স্বয়ংক্রিয় পরিবর্তন (মাল্টি-সিলেক্ট সাপোর্ট)
+function handleMultipleCategoryChange() {
+    const checkedBoxes = Array.from(document.querySelectorAll('input[name="author_categories[]"]:checked'));
+    const selectedVals = checkedBoxes.map(cb => cb.value);
+    
+    // Hidden author_category field sync
+    const hiddenCat = document.getElementById('authorCategoryHidden');
+    if (hiddenCat) {
+        hiddenCat.value = selectedVals.join(', ');
+    }
+
+    const rowArtist = document.getElementById('catRowArtist');
+    const rowOrganizer = document.getElementById('catRowOrganizer');
+    const rowMag = document.getElementById('catRowMag');
+    const rowLiterary = document.getElementById('catRowLiterary');
+    const rowBooks = document.getElementById('catRowBooks');
+
+    const artMedium = document.getElementById('writerArtMedium');
+    const orgName = document.getElementById('writerOrgName');
+    const publishedBooks = document.getElementById('publishedBooksInput');
+
+    if (rowArtist) rowArtist.style.display = 'none';
+    if (rowOrganizer) rowOrganizer.style.display = 'none';
+    if (rowMag) rowMag.style.display = 'none';
+    if (rowLiterary) rowLiterary.style.display = 'none';
+    if (rowBooks) rowBooks.style.display = 'none';
+
+    if (artMedium) artMedium.required = false;
+    if (orgName) orgName.required = false;
+    if (publishedBooks) publishedBooks.required = false;
+
+    const isArtist = selectedVals.includes('শিল্পী / সংস্কৃতিকর্মী');
+    const isOrganizer = selectedVals.includes('বই প্রতিনিধি ও সংগঠক');
+    const isMagEditor = selectedVals.includes('লিটিলম্যাগাজিন সম্পাদক');
+    const isPublisher = selectedVals.includes('প্রকাশক');
+    const isWriter = selectedVals.some(v => ['কবি ও কথাসাহিত্যিক', 'প্রাবন্ধিক ও গবেষক', 'শিশুসাহিত্যিক ও ছড়াকার', 'অন্যান্য / প্রতিনিধি'].includes(v));
+
+    if (isArtist) {
+        if (rowArtist) rowArtist.style.display = 'table-row';
+        if (artMedium) artMedium.required = true;
+    }
+
+    if (isOrganizer) {
+        if (rowOrganizer) rowOrganizer.style.display = 'table-row';
+        if (orgName) orgName.required = true;
+    }
+
+    if (isMagEditor || isPublisher) {
+        if (rowMag) {
+            rowMag.style.display = 'table-row';
+            const lMag = document.getElementById('labelMagName');
+            if (lMag) lMag.textContent = isPublisher ? 'ছোটকাগজ / প্রকাশনা' : 'ছোটকাগজ';
+            const lIssue = document.getElementById('labelMagIssue');
+            if (lIssue) lIssue.textContent = isPublisher ? 'সংখ্যা / বইসংখ্যা' : 'সংখ্যা';
+        }
+    }
+
+    if (isWriter || isPublisher) {
+        if (rowLiterary) {
+            rowLiterary.style.display = 'table-row';
+            const lGenre = document.getElementById('labelGenreOrOrg');
+            if (lGenre) lGenre.textContent = 'শাখা / মাধ্যম';
+            if (publishedBooks) publishedBooks.required = true;
+        }
+        if (rowBooks) rowBooks.style.display = 'table-row';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Initialize 4-Tier BD Geo Dropdown
+    // পুরনো টেস্ট ক্যাশ থাকলে তা ক্লিন করা
+    try {
+        localStorage.removeItem('rsu_custom_logo');
+        localStorage.removeItem('rsu_logo_size');
+    } catch (err) {}
+
+    // ০. ক্যাটাগরি ফিল্ড ইনিশিয়ালাইজেশন
+    handleMultipleCategoryChange();
+
+    // ১. ৪-স্তরের স্বয়ংক্রিয় ঠিকানা ইনিশিয়ালাইজেশন
     if (typeof initAddressChaining === 'function') {
         initAddressChaining(
             'writerDivision',
@@ -1032,128 +1417,87 @@ document.addEventListener('DOMContentLoaded', function () {
             'writerUpazila',
             'writerPostOffice',
             'writerVillage',
-            'Rangpur', // Default division
-            'Rangpur'  // Default district
+            'রংপুর',
+            'রংপুর'
         );
-    } else {
-        // Fallback immediate populator
-        const divEl = document.getElementById('writerDivision');
-        if (divEl && typeof window.BD_GEO !== 'undefined') {
-            divEl.innerHTML = '<option value="">-- বিভাগ নির্বাচন করুন --</option>';
-            Object.keys(window.BD_GEO.divisions).forEach(d => {
-                const opt = document.createElement('option');
-                opt.value = d;
-                opt.textContent = d;
-                if (d === 'Rangpur') opt.selected = true;
-                divEl.appendChild(opt);
-            });
-            divEl.dispatchEvent(new Event('change'));
-        }
     }
 
-    // 2. Setup Address Formatting Watchers
+    // ২. দেশি ঠিকানা লিসেনার
     ['writerDivision', 'writerDistrict', 'writerUpazila', 'writerPostOffice', 'writerVillage'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('change', () => { formatWriterAddress(); updateProgress(); });
-            el.addEventListener('input', () => { formatWriterAddress(); updateProgress(); });
+            el.addEventListener('change', formatWriterAddress);
+            el.addEventListener('input', formatWriterAddress);
         }
     });
 
-    // 3. Category Chips Interactive Selector
-    const chips = document.querySelectorAll('#categoryChipsWrap .cat-chip');
-    const catInput = document.getElementById('authorCategoryInput');
-    chips.forEach(chip => {
-        chip.addEventListener('click', function () {
-            chips.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            const val = this.getAttribute('data-val');
-            if (catInput) catInput.value = val;
-
-            // Highlight magazine section if selected
-            const magHead = document.getElementById('magazineSectionHead');
-            if (val.includes('লিটিলম্যাগাজিন') || val.includes('সম্পাদনা')) {
-                if (magHead) {
-                    magHead.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    magHead.style.background = '#fef3c7';
-                    magHead.style.borderLeftColor = '#f59e0b';
-                }
-            } else {
-                if (magHead) {
-                    magHead.style.background = '#fef2f2';
-                    magHead.style.borderLeftColor = '#991b1b';
-                }
-            }
-
-            updateLivePreview();
-            updateProgress();
-        });
-    });
-
-    // 4. Books Count Chips Interactive Selector
-    const bookChips = document.querySelectorAll('#booksCountChips .book-chip');
-    const bookInput = document.getElementById('publishedBooksInput');
-    bookChips.forEach(bChip => {
-        bChip.addEventListener('click', function () {
-            bookChips.forEach(c => c.classList.remove('active'));
-            this.classList.add('active');
-            const cnt = this.getAttribute('data-count');
-            if (bookInput) bookInput.value = cnt;
-            updateProgress();
-        });
-    });
-
-    // 5. Restore Draft from LocalStorage if available
-    restoreDraft();
-
-    // 6. Setup Live Auto-Save to LocalStorage
-    ['writerName', 'writerPhone', 'writerEmail', 'notableBooks', 'magazineName', 'magazineIssueCount', 'writerVillage'].forEach(id => {
+    // ৩. বিদেশি ঠিকানা লিসেনার
+    ['writerCountrySelect', 'writerCustomCountry', 'writerForeignCity', 'writerForeignZip', 'writerForeignStreet'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            el.addEventListener('input', () => {
-                saveDraft();
-                updateLivePreview();
-                updateProgress();
-            });
+            el.addEventListener('change', formatWriterAddress);
+            el.addEventListener('input', formatWriterAddress);
         }
     });
 
     formatWriterAddress();
-    updateLivePreview();
-    updateProgress();
 });
 
-// Format Full Bangla Address
+// পূর্ণ ঠিকানা ফরম্যাটিং
 function formatWriterAddress() {
-    const div = document.getElementById('writerDivision')?.value || '';
-    const dist = document.getElementById('writerDistrict')?.value || '';
-    const upz = document.getElementById('writerUpazila')?.value || '';
-    const po = document.getElementById('writerPostOffice')?.value || '';
-    const vil = document.getElementById('writerVillage')?.value || '';
-
-    const parts = [];
-    if (vil) parts.push(vil);
-    if (po) parts.push('ডাকঘর: ' + po);
-    if (upz) parts.push('উপজেলা/থানা: ' + upz);
-    if (dist) parts.push('জেলা: ' + dist);
-    if (div) parts.push('বিভাগ: ' + div);
-
-    const full = parts.join(', ');
+    let full = '';
     const hiddenAddr = document.getElementById('fullWriterAddress');
-    if (hiddenAddr) hiddenAddr.value = full;
-
     const badgeWrap = document.getElementById('fullAddressBadgeWrap');
     const badgeText = document.getElementById('fullAddressText');
-    if (badgeWrap && badgeText && full) {
-        badgeText.textContent = full;
-        badgeWrap.style.display = 'block';
+
+    if (currentResidentType === 'international') {
+        const cSelect = document.getElementById('writerCountrySelect')?.value || '';
+        const customC = document.getElementById('writerCustomCountry')?.value || '';
+        const country = (cSelect === 'OTHER' && customC) ? customC : (cSelect !== 'OTHER' ? cSelect : '');
+        const city = document.getElementById('writerForeignCity')?.value || '';
+        const zip = document.getElementById('writerForeignZip')?.value || '';
+        const street = document.getElementById('writerForeignStreet')?.value || '';
+
+        const parts = [];
+        if (street) parts.push(street);
+        if (city) {
+            let cityPart = city;
+            if (zip) cityPart += ' - ' + zip;
+            parts.push(cityPart);
+        }
+        if (country) parts.push(country);
+
+        full = parts.join(', ');
+    } else {
+        const div = document.getElementById('writerDivision')?.value || '';
+        const dist = document.getElementById('writerDistrict')?.value || '';
+        const upz = document.getElementById('writerUpazila')?.value || '';
+        const po = document.getElementById('writerPostOffice')?.value || '';
+        const vil = document.getElementById('writerVillage')?.value || '';
+
+        const parts = [];
+        if (vil) parts.push(vil);
+        if (po) parts.push('ডাকঘর: ' + po);
+        if (upz) parts.push('উপজেলা/থানা: ' + upz);
+        if (dist) parts.push('জেলা: ' + dist);
+        if (div) parts.push('বিভাগ: ' + div);
+
+        full = parts.join(', ');
     }
 
-    const distPreview = document.getElementById('cardDistrictPreview');
-    if (distPreview) distPreview.textContent = dist || 'রংপুর';
+    if (hiddenAddr) hiddenAddr.value = full;
+
+    if (badgeWrap && badgeText) {
+        if (full) {
+            badgeText.textContent = full;
+            badgeWrap.style.display = 'block';
+        } else {
+            badgeWrap.style.display = 'none';
+        }
+    }
 }
 
-// Live Phone Formatting & Operator Detector (with Bengali Digit Support)
+// বাংলা ও ইংরেজি মোবাইল নম্বর হ্যান্ডলার
 function handlePhoneInput(input) {
     const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
     const en = ['0','1','2','3','4','5','6','7','8','9'];
@@ -1168,43 +1512,9 @@ function handlePhoneInput(input) {
         val = '0' + val.substring(3);
     }
     input.value = val;
-
-    const opBadge = document.getElementById('operatorBadge');
-    if (opBadge) {
-        if (val.startsWith('017') || val.startsWith('013')) {
-            opBadge.textContent = 'GP / Skitto';
-            opBadge.style.display = 'inline-block';
-            opBadge.style.background = '#dcfce7';
-            opBadge.style.color = '#15803d';
-        } else if (val.startsWith('018')) {
-            opBadge.textContent = 'Robi';
-            opBadge.style.display = 'inline-block';
-            opBadge.style.background = '#fee2e2';
-            opBadge.style.color = '#b91c1c';
-        } else if (val.startsWith('019') || val.startsWith('014')) {
-            opBadge.textContent = 'Banglalink';
-            opBadge.style.display = 'inline-block';
-            opBadge.style.background = '#fef3c7';
-            opBadge.style.color = '#b45309';
-        } else if (val.startsWith('016')) {
-            opBadge.textContent = 'Airtel';
-            opBadge.style.display = 'inline-block';
-            opBadge.style.background = '#e0e7ff';
-            opBadge.style.color = '#4338ca';
-        } else if (val.startsWith('015')) {
-            opBadge.textContent = 'Teletalk';
-            opBadge.style.display = 'inline-block';
-            opBadge.style.background = '#cffafe';
-            opBadge.style.color = '#0e7490';
-        } else {
-            opBadge.style.display = 'none';
-        }
-    }
-
-    updateLivePreview();
 }
 
-// Client-Side Canvas Image Auto-Optimizer for Author Photo
+// ছবি অটো-কম্প্রেশন ও প্রিভিউ
 function optimizeWriterPhoto(input) {
     if (!input.files || !input.files[0]) return;
     const file = input.files[0];
@@ -1220,7 +1530,6 @@ function optimizeWriterPhoto(input) {
             canvas.width = size;
             canvas.height = size;
 
-            // Crop to square center
             const minDim = Math.min(img.width, img.height);
             const startX = (img.width - minDim) / 2;
             const startY = (img.height - minDim) / 2;
@@ -1229,114 +1538,35 @@ function optimizeWriterPhoto(input) {
 
             const optimizedBase64 = canvas.toDataURL('image/jpeg', 0.85);
 
-            // Set hidden field
             document.getElementById('optimizedPhotoData').value = optimizedBase64;
 
-            // Update previews
             const thumb = document.getElementById('photoPreviewThumb');
             thumb.src = optimizedBase64;
             thumb.style.display = 'block';
             document.getElementById('photoUploadPlaceholder').style.display = 'none';
-
-            const cardAvatarImg = document.getElementById('cardAvatarImg');
-            const cardAvatarIcon = document.getElementById('cardAvatarIcon');
-            if (cardAvatarImg && cardAvatarIcon) {
-                cardAvatarImg.src = optimizedBase64;
-                cardAvatarImg.style.display = 'block';
-                cardAvatarIcon.style.display = 'none';
-            }
-
-            updateProgress();
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 }
 
-// Update Live Delegate Card Preview
-function updateLivePreview() {
-    const name = document.getElementById('writerName')?.value.trim();
-    const cat = document.getElementById('authorCategoryInput')?.value || 'কবি, সম্পাদক ও প্রকাশক';
-    const district = document.getElementById('writerDistrict')?.value || 'রংপুর';
-    const thana = document.getElementById('writerUpazila')?.value || '';
-
-    const cardName = document.getElementById('cardNamePreview');
-    if (cardName) cardName.textContent = name || 'আপনার নাম';
-
-    const cardCat = document.getElementById('cardCategoryPreview');
-    if (cardCat) cardCat.textContent = cat;
-
-    const cardLoc = document.getElementById('cardLocationPreview');
-    if (cardLoc) {
-        const parts = [thana, district].filter(Boolean);
-        cardLoc.textContent = parts.length > 0 ? parts.join(', ') : 'রংপুর';
-    }
-}
-
-// Real-Time Form Progress Bar
-function updateProgress() {
-    let score = 0;
-    const total = 5;
-
-    if (document.getElementById('writerName')?.value.trim()) score++;
-    if (document.getElementById('writerPhone')?.value.trim().length >= 11) score++;
-    if (document.getElementById('authorCategoryInput')?.value) score++;
-    if (document.getElementById('writerDistrict')?.value) score++;
-    if (document.getElementById('writerVillage')?.value.trim()) score++;
-
-    const percent = Math.round((score / total) * 100);
-    const fill = document.getElementById('formProgressFill');
-    const text = document.getElementById('progressPercentText');
-
-    if (fill) fill.style.width = percent + '%';
-    if (text) text.textContent = percent + '%';
-}
-
-// Draft Auto-Save in LocalStorage
-function saveDraft() {
-    try {
-        const draft = {
-            name: document.getElementById('writerName')?.value || '',
-            phone: document.getElementById('writerPhone')?.value || '',
-            email: document.getElementById('writerEmail')?.value || '',
-            notable_books: document.getElementById('notableBooks')?.value || '',
-            magazine_name: document.getElementById('magazineName')?.value || '',
-            magazine_issue_count: document.getElementById('magazineIssueCount')?.value || '',
-            village: document.getElementById('writerVillage')?.value || '',
-        };
-        localStorage.setItem('rsutshab_writer_draft', JSON.stringify(draft));
-    } catch (e) {}
-}
-
-function restoreDraft() {
-    try {
-        const saved = localStorage.getItem('rsutshab_writer_draft');
-        if (!saved) return;
-        const data = JSON.parse(saved);
-
-        if (data.name && !document.getElementById('writerName').value) document.getElementById('writerName').value = data.name;
-        if (data.phone && !document.getElementById('writerPhone').value) document.getElementById('writerPhone').value = data.phone;
-        if (data.email && !document.getElementById('writerEmail').value) document.getElementById('writerEmail').value = data.email;
-        if (data.notable_books && !document.getElementById('notableBooks').value) document.getElementById('notableBooks').value = data.notable_books;
-        if (data.magazine_name && !document.getElementById('magazineName').value) document.getElementById('magazineName').value = data.magazine_name;
-        if (data.magazine_issue_count && !document.getElementById('magazineIssueCount').value) document.getElementById('magazineIssueCount').value = data.magazine_issue_count;
-        if (data.village && !document.getElementById('writerVillage').value) document.getElementById('writerVillage').value = data.village;
-    } catch (e) {}
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('writerRegisterForm');
     if (form) {
-        form.addEventListener('submit', function() {
+        form.addEventListener('submit', function(e) {
+            const checkedCategories = document.querySelectorAll('input[name="author_categories[]"]:checked');
+            if (checkedCategories.length === 0) {
+                e.preventDefault();
+                alert('অনুগ্রহ করে অন্তত একটি ক্যাটাগরি নির্বাচন করুন।');
+                return false;
+            }
+            formatWriterAddress();
             const btn = document.getElementById('submitWriterBtn');
             if (btn) {
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> তথ্য জমা হচ্ছে...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
                 btn.style.opacity = '0.8';
                 btn.style.pointerEvents = 'none';
             }
-            try {
-                localStorage.removeItem('rsutshab_writer_draft');
-            } catch (e) {}
         });
     }
 });

@@ -438,32 +438,29 @@ class LoginController extends Controller
             $cleanLower = strtolower($normalizedInput);
             $rawDigitsOnly = preg_replace('/[^\d]/', '', $normalizedInput);
 
-            // Find user candidates matching email, phone (flexible formats), name, or admin role
+            // Find user candidates matching email, phone (flexible formats), name, or admin role with index priority
             $candidates = \App\Models\User::where(function ($query) use ($loginInput, $normalizedInput, $cleanLower, $rawDigitsOnly) {
-                // 1. Email matching (exact, normalized, lowercase)
-                $query->where('email', $loginInput)
+                // 1. Exact Email matching (indexed)
+                $query->where('email', $cleanLower)
                     ->orWhere('email', $normalizedInput)
-                    ->orWhereRaw('LOWER(email) = ?', [$cleanLower])
-                    ->orWhereRaw('email LIKE ?', [$loginInput . '@%']);
+                    ->orWhere('email', $loginInput);
 
-                // 2. Full Name / Display Name matching
-                $query->orWhere('name', $loginInput)
-                    ->orWhere('name', $normalizedInput)
-                    ->orWhereRaw('LOWER(name) = ?', [strtolower($loginInput)]);
-
-                // 3. Mobile Phone matching (Bangla/English, with or without +88 / 880 / 0 prefix)
-                $query->orWhere('phone', $loginInput)
-                    ->orWhere('phone', $normalizedInput);
+                // 2. Mobile Phone matching (indexed)
+                $query->orWhere('phone', $normalizedInput)
+                    ->orWhere('phone', $loginInput);
 
                 if (!empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 8) {
                     $last10 = substr($rawDigitsOnly, -10);
-                    $query->orWhere('phone', 'LIKE', '%' . $last10)
-                        ->orWhere('phone', '0' . $last10)
+                    $query->orWhere('phone', '0' . $last10)
                         ->orWhere('phone', '+880' . $last10)
                         ->orWhere('phone', '880' . $last10);
                 }
 
-                // 4. Admin identifier fallback: allow logging in with 'admin', ADMIN_USERNAME, admin emails, or admin phones
+                // 3. Username / Full Name matching
+                $query->orWhere('name', $loginInput)
+                    ->orWhere('name', $normalizedInput);
+
+                // 4. Admin identifier fallback
                 $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
                 $adminEmails = ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com', strtolower(env('ADMIN_EMAIL', ''))];
                 $adminPhones = ['01726976982', '01728976982', '1726976982', '1728976982', preg_replace('/[^\d]/', '', env('ADMIN_PHONE', ''))];
@@ -479,7 +476,7 @@ class LoginController extends Controller
                 ELSE 4 
             END", [$cleanLower, $normalizedInput])
             ->orderByDesc('is_active')
-            ->orderByDesc('id')
+            ->limit(3)
             ->get();
 
             $matchedUser = null;
