@@ -944,10 +944,10 @@
             {{-- Method Switcher Tabs --}}
             <div class="d-flex align-items-center mb-3 border-bottom" style="gap: 4px;">
                 <button type="button" class="btn btn-sm login-method-tab active fw-bold" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:6px 12px; font-size:13px;">
-                    <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড দিয়ে
+                    <i class="fa-solid fa-key me-1"></i> Password
                 </button>
                 <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:6px 12px; font-size:13px;">
-                    <i class="fa-solid fa-mobile-screen-button me-1"></i> ওটিপি / পাসওয়ার্ড সেট
+                    <i class="fa-solid fa-mobile-screen-button me-1"></i> OTP / Set Password
                 </button>
             </div>
 
@@ -1020,7 +1020,7 @@
                         <span>Need help?</span>
                     </a>
                     <div class="help-expander-panel" id="helpExpanderPanel">
-                        <div style="margin-top: 4px;"><a href="javascript:void(0)" onclick="switchLoginMethod('otp')" class="custom-link fw-semibold">পাসওয়ার্ড নেই? ওটিপি দিয়ে সেট করুন</a></div>
+                        <div style="margin-top: 4px;"><a href="javascript:void(0)" onclick="switchLoginMethod('otp')" class="custom-link fw-semibold">No password? Set via OTP</a></div>
                         <div style="margin-top: 4px;"><a href="{{ route('password.request') }}" class="custom-link">Forgot your password?</a></div>
                         <div style="margin-top: 4px;"><a href="{{ route('contact') }}" class="custom-link">Other issues with Sign-In</a></div>
                     </div>
