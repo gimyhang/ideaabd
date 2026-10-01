@@ -79,7 +79,7 @@
     <title>পাঠাগার বই অনুদান ফরম — {{ $registration->registration_number }} — {{ $libName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 portrait;
@@ -177,125 +177,183 @@
             background-color: #e2e8f0;
         }
 
-        /* Top Header 3-box Grid */
-        .top-header-table {
+        /* RSU Style Authentic Full-Width Letterhead Pad */
+        .lh-pad-header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1.5px solid #0f172a;
         }
-        .top-header-table td {
-            vertical-align: top;
-            padding: 0;
+        .lh-pad-header-table td {
+            vertical-align: middle;
+            padding: 2px 2px;
         }
-        .header-box-left {
-            width: 32%;
-            border: 1.5px solid #000;
+        .lh-emblem-td {
+            width: 135px;
             text-align: center;
-            padding: 6px 6px;
-            height: 140px;
+            vertical-align: middle;
         }
-        .header-box-left .inst-brand-row {
+        .lh-emblem-circle {
+            width: 120px;
+            height: 60px;
+            aspect-ratio: 2 / 1;
+            border-radius: 8px;
+            border: 2px solid #047857;
+            background: #ffffff;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin: 0 auto;
+            padding: 4px 6px;
+        }
+        .lh-emblem-img {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+        .lh-emblem-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .lh-center-td {
+            text-align: center;
+            padding: 0 10px;
+        }
+        .lh-title-text {
+            font-size: 21px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.25;
+            margin-bottom: 2px;
+            font-family: 'Noto Serif Bengali', serif;
+            letter-spacing: -0.3px;
+        }
+        .lh-subhead-text {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #047857;
+            margin-bottom: 2px;
+            letter-spacing: 0.2px;
+        }
+        .lh-venue-text {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #334155;
             margin-bottom: 2px;
         }
-        .header-box-left .brand-logo-img {
-            height: 22px;
-            width: auto;
-            max-width: 32px;
-            object-fit: contain;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .header-box-left .inst-title {
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 1.2;
-            color: #047857;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .header-box-left .sub-title {
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 3px;
-            color: #000;
-        }
-        .header-box-left .session-text {
-            font-size: 10.5px;
-            font-weight: bold;
-            margin-top: 3px;
-            color: #334155;
-        }
-        .header-box-left .brand-tag {
-            font-size: 9.5px;
-            color: #64748b;
-            margin-top: 4px;
-        }
-
-        .header-box-mid {
-            width: 48%;
-            border: 1.5px solid #000;
-            border-left: none;
-            border-right: none;
-            height: 140px;
-        }
-        .mid-table {
-            width: 100%;
-            height: 100%;
-            border-collapse: collapse;
-        }
-        .mid-table td, .mid-table th {
-            border: 1px solid #000;
-            padding: 3px 6px;
-            font-size: 10.5px;
-        }
-        .mid-table .label-cell {
-            width: 40%;
-            font-size: 10px;
-            background: #f8fafc;
-            font-weight: bold;
-        }
-        .mid-table .value-cell {
-            font-weight: bold;
+        .lh-session-text {
             font-size: 11.5px;
-            color: #000;
+            font-weight: 800;
+            color: #047857;
+            margin-bottom: 2px;
         }
-        .mid-table .official-header {
-            text-align: center;
-            font-weight: bold;
-            font-size: 11px;
-            background: #047857;
-            color: #fff;
-            padding: 3px 5px;
+        .lh-org-text {
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
         }
 
-        .header-box-right {
-            width: 20%;
-            border: 1.5px solid #000;
-            text-align: center;
-            padding: 0;
-            height: 140px;
+        .lh-badge-td {
+            width: 125px;
+            text-align: right;
+            vertical-align: top;
+            padding-top: 2px;
+        }
+        .lh-copy-tag {
+            display: inline-block;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+            font-family: monospace;
+            text-transform: uppercase;
+        }
+        .lh-token-text {
+            font-family: monospace;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 3px;
+            margin-bottom: 3px;
+        }
+        .lh-photo-thumb-wrap {
+            width: 74px;
+            height: 60px;
+            border: 1px solid #000;
+            border-radius: 4px;
+            overflow: hidden;
+            display: inline-block;
             background: #fafafa;
         }
-        .lib-photo-img {
+        .lh-photo-thumb-img {
             width: 100%;
             height: 100%;
-            max-height: 140px;
             object-fit: cover;
             display: block;
         }
-        .photo-placeholder {
-            height: 100%;
-            display: flex;
+        .lh-photo-thumb-placeholder {
+            width: 74px;
+            height: 60px;
+            border: 1px dashed #94a3b8;
+            border-radius: 4px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #64748b;
-            font-size: 10px;
+            font-size: 9px;
+            color: #94a3b8;
+            background: #f8fafc;
             text-align: center;
-            padding: 6px;
+            padding: 2px;
+        }
+
+        /* Official Record Alert Banner (RSU Alert Strip Style) */
+        .official-record-banner-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f0fdf4;
+            border: 1.5px solid #86efac;
+            border-radius: 4px;
+            margin: 6px 0 8px 0;
+        }
+        .official-record-banner-table td {
+            padding: 5px 8px;
+            font-size: 10.5px;
+            vertical-align: middle;
+        }
+        .rec-label {
+            color: #166534;
+            font-weight: 700;
+            margin-right: 3px;
+        }
+        .rec-val {
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .status-approved {
+            background: #16a34a;
+            color: #ffffff;
+        }
+        .status-pending {
+            background: #d97706;
+            color: #ffffff;
         }
 
         /* Banner Title */
@@ -420,68 +478,74 @@
 
 <div class="page-container">
 
-    {{-- শীর্ষ ৩-বক্স হেডার --}}
-    <table class="top-header-table">
+    {{-- =========================================================================
+         ১. শীর্ষ লেটার হেড প্যাড (RSU Authentic Full-Width Letterhead Pad Structure)
+         ========================================================================= --}}
+    <table class="lh-pad-header-table">
         <tr>
-            <td class="header-box-left">
-                <div class="inst-brand-row">
+            {{-- বাম পাশের গোল লোগো এমব্লেম --}}
+            <td class="lh-emblem-td">
+                <div class="lh-emblem-circle" style="border-color: {{ $themeColor }};">
                     @if($logoUrl)
-                        <img src="{{ $logoUrl }}" alt="Logo" class="brand-logo-img" style="height: {{ $logoSize }}px;">
-                    @endif
-                    <span class="inst-title" style="color: {{ $themeColor }};">{{ $brandName }}</span>
-                </div>
-                <div class="sub-title">{{ $subTitle }}</div>
-                <div class="session-text">{{ $sessionText }}</div>
-                <div class="brand-tag">{!! nl2br(e($brandTag)) !!}</div>
-            </td>
-
-            <td class="header-box-mid">
-                <table class="mid-table">
-                    <tr>
-                        <th colspan="2" class="official-header">অফিসিয়াল আবেদন রেকর্ড</th>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">নিবন্ধন আইডি (Reg ID)</td>
-                        <td class="value-cell" style="font-family: monospace; font-size: 12px; color: #047857;">
-                            #{{ $registration->registration_number }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">আবেদনের তারিখ</td>
-                        <td class="value-cell">
-                            {{ $registration->created_at ? $registration->created_at->format('d M, Y - h:i A') : date('d M, Y') }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">অনুমোদন স্ট্যাটাস</td>
-                        <td class="value-cell">
-                            @if(in_array($registration->status, ['confirmed', 'approved', 'selected']))
-                                <span style="color: #047857;">✔ অনুমোদিত (Approved)</span>
-                            @else
-                                <span style="color: #d97706;">⏳ যাচাই প্রক্রিয়াধীন (Pending)</span>
-                            @endif
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label-cell">বই গ্রহণের মাধ্যম</td>
-                        <td class="value-cell" style="font-size: 10.5px;">
-                            {{ $formData['delivery_method'] ?? 'অফিস থেকে সরাসরি গ্রহণ' }}
-                        </td>
-                    </tr>
-                </table>
-            </td>
-
-            <td class="header-box-right">
-                @if($photoUrl)
-                    <img src="{{ $photoUrl }}" alt="পাঠাগারের ছবি" class="lib-photo-img">
-                @else
-                    <div class="photo-placeholder">
-                        <div>
-                            <div style="font-size: 20px; margin-bottom: 2px;">🏛️</div>
-                            <div>পাঠাগার / সাইনবোর্ডের<br>ছবি সংযুক্ত</div>
+                        <img src="{{ $logoUrl }}" alt="{{ $brandName }}" class="lh-emblem-img">
+                    @else
+                        <div class="lh-emblem-icon" style="color: {{ $themeColor }};">
+                            🏛️
                         </div>
+                    @endif
+                </div>
+            </td>
+
+            {{-- মাঝের মূল লেটারহেড বিবরণী --}}
+            <td class="lh-center-td">
+                <div class="lh-title-text">{{ $brandName }}</div>
+                <div class="lh-subhead-text" style="color: {{ $themeColor }};">{{ $subTitle }}</div>
+                <div class="lh-venue-text">{{ $sessionText }}</div>
+                <div class="lh-org-text">{!! nl2br(e($brandTag)) !!}</div>
+            </td>
+
+            {{-- ডান পাশের কপি ট্যাগ ও আইডি + ফটো --}}
+            <td class="lh-badge-td">
+                <div class="lh-copy-tag">OFFICIAL COPY</div>
+                <div class="lh-token-text" style="color: {{ $themeColor }};">
+                    #{{ $registration->registration_number }}
+                </div>
+                @if($photoUrl)
+                    <div class="lh-photo-thumb-wrap" title="পাঠাগারের সাইনবোর্ড / ছবি">
+                        <img src="{{ $photoUrl }}" alt="পাঠাগারের ছবি" class="lh-photo-thumb-img">
+                    </div>
+                @else
+                    <div class="lh-photo-thumb-placeholder">
+                        <span>🏛️ পাঠাগার ছবি</span>
                     </div>
                 @endif
+            </td>
+        </tr>
+    </table>
+
+    {{-- ব্যানার শিরোনাম (RSU Banner Strip) --}}
+    <div class="form-banner-strip" style="background: {{ $themeColor }};">
+        {{ $bannerTitle }}
+    </div>
+
+    {{-- অফিসিয়াল রেকর্ড ও স্ট্যাটাস ইনফো বার (RSU Alert Banner Structure) --}}
+    <table class="official-record-banner-table">
+        <tr>
+            <td style="width: 38%;">
+                <span class="rec-label">📅 আবেদনের তারিখ:</span>
+                <span class="rec-val">{{ $registration->created_at ? $registration->created_at->format('d M, Y - h:i A') : date('d M, Y') }}</span>
+            </td>
+            <td style="width: 32%; text-align: center;">
+                <span class="rec-label">স্ট্যাটাস:</span>
+                @if(in_array($registration->status, ['confirmed', 'approved', 'selected']))
+                    <span class="status-pill status-approved">✔ অনুমোদিত (Approved)</span>
+                @else
+                    <span class="status-pill status-pending">⏳ যাচাই প্রক্রিয়াধীন (Pending)</span>
+                @endif
+            </td>
+            <td style="width: 30%; text-align: right;">
+                <span class="rec-label">📦 গ্রহণ মাধ্যম:</span>
+                <span class="rec-val" style="font-size: 10px;">{{ $formData['delivery_method'] ?? 'অফিস থেকে সরাসরি গ্রহণ' }}</span>
             </td>
         </tr>
     </table>

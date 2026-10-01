@@ -137,6 +137,11 @@
                                             <input type="hidden" id="studioAspectLocked" value="1">
                                             <input type="hidden" name="logo_size" id="studioLogoSizeInput" value="{{ $studioLogoWidth }}">
                                         </div>
+                                    {{-- কুইক রেশিও প্রিসেট বাটন --}}
+                                    <div class="d-flex align-items-center gap-1 mb-2">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0.5 px-2 flex-grow-1" onclick="setStudioPresetRatio('1:1')"><i class="fa-regular fa-square me-1"></i>1:1 স্কয়ার</button>
+                                        <button type="button" class="btn btn-xs btn-outline-primary py-0.5 px-2 flex-grow-1 fw-bold" onclick="setStudioPresetRatio('2:1')"><i class="fa-solid fa-rectangle-wide me-1"></i>2:1 (W:2 H:1)</button>
+                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0.5 px-2 flex-grow-1" onclick="setStudioPresetRatio('3:1')">3:1 ওয়াইড</button>
                                     </div>
 
                                     {{-- ১. উইডথ (Width / প্রস্থ) --}}
@@ -1050,6 +1055,21 @@ function setStudioDimensions(w, h) {
         if (text) text.textContent = 'মুক্ত মাপ (Unlocked)';
     }
     syncStudioLivePreview();
+}
+
+function setStudioPresetRatio(ratio) {
+    let curW = parseInt(document.getElementById('studioLogoWidthInput')?.value) || 120;
+    if (ratio === '2:1') {
+        let h = Math.round(curW / 2);
+        if (h < 30) { h = 40; curW = 80; }
+        setStudioDimensions(curW, h);
+    } else if (ratio === '1:1') {
+        setStudioDimensions(curW, curW);
+    } else if (ratio === '3:1') {
+        let h = Math.round(curW / 3);
+        if (h < 30) { h = 30; curW = 90; }
+        setStudioDimensions(curW, h);
+    }
 }
 
 function setStudioLogoShape(shape, el) {

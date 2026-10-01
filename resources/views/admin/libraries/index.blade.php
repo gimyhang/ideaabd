@@ -595,8 +595,8 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label class="form-label small fw-bold text-dark mb-1">লোগো হাইট (উচ্চতা px): <span id="logoSizeVal" class="text-success fw-bold">{{ $formSettings['logo_size'] ?? 24 }}px</span></label>
-                                                <input type="range" name="logo_size" id="custLogoSize" class="form-range" min="14" max="64" value="{{ $formSettings['logo_size'] ?? 24 }}" oninput="document.getElementById('logoSizeVal').innerText = this.value + 'px'; updateLivePreview();">
+                                                <label class="form-label small fw-bold text-dark mb-1">লোগো সাইজ (W 2 : H 1 অনুপাত): <span id="logoSizeVal" class="text-success fw-bold">{{ ($formSettings['logo_size'] ?? 28) * 2 }}x{{ $formSettings['logo_size'] ?? 28 }}px</span></label>
+                                                <input type="range" name="logo_size" id="custLogoSize" class="form-range" min="16" max="64" value="{{ $formSettings['logo_size'] ?? 28 }}" oninput="document.getElementById('logoSizeVal').innerText = (this.value * 2) + 'x' + this.value + 'px'; updateLivePreview();">
                                             </div>
 
                                             <div class="col-md-6">
@@ -710,29 +710,34 @@
                                 </div>
 
                                 <div class="live-preview-box" id="livePreviewContainer">
-                                    {{-- Header Top Table --}}
-                                    <table class="live-header-table">
-                                        <tr>
-                                            <td style="width: 48%; text-align: center;" id="prevHeaderBoxLeft">
-                                                <div style="display: inline-flex; align-items: center; justify-content: center; gap: 5px; margin-bottom: 2px;">
-                                                    <img id="prevLogoImg" src="{{ $formSettings['logo_url'] ?? asset('images/logo.png') }}" alt="Logo" style="height: {{ $formSettings['logo_size'] ?? 24 }}px; max-width: 38px; object-fit: contain;">
-                                                    <span id="prevBrandName" style="font-size: 13.5px; font-weight: bold; color: {{ $formSettings['theme_color'] ?? '#047857' }};">{{ $formSettings['brand_name'] ?? 'আইডিয়া পাঠাগার' }}</span>
-                                                </div>
-                                                <div id="prevSubTitle" style="font-size: 10px; font-weight: bold; color: #000;">{{ $formSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম' }}</div>
-                                                <div id="prevSessionText" style="font-size: 9.5px; font-weight: bold; color: #334155;">{{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}</div>
-                                                <div id="prevBrandTag" style="font-size: 8.5px; color: #64748b; margin-top: 2px; line-height: 1.2;">{{ $formSettings['brand_tag'] ?? "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com" }}</div>
-                                            </td>
-
-                                            <td style="width: 52%; font-size: 9.5px; background: #fafafa;">
-                                                <div style="font-weight: bold; text-align: center; background: {{ $formSettings['theme_color'] ?? '#047857' }}; color: #fff; padding: 2px; font-size: 9px; margin-bottom: 3px;" id="prevOfficialHeader">
-                                                    অফিসিয়াল আবেদন রেকর্ড
-                                                </div>
-                                                <div><strong>Reg ID:</strong> <span style="font-family: monospace; color: #047857;">#PATH-260929-78348</span></div>
-                                                <div><strong>তারিখ:</strong> {{ date('d M, Y') }}</div>
-                                                <div><strong>স্ট্যাটাস:</strong> <span style="color: #047857; font-weight: bold;">✔ অনুমোদিত</span></div>
-                                            </td>
-                                        </tr>
-                                    </table>
+                                    {{-- RSU Style Letterhead Pad Mockup --}}
+                                    <div class="d-flex align-items-center justify-content-between gap-2 pb-2 mb-2 border-bottom" style="border-bottom: 1.5px solid #000 !important;">
+                                        <div style="width: 76px; height: 38px; aspect-ratio: 2 / 1; border-radius: 6px; border: 1.5px solid {{ $formSettings['theme_color'] ?? '#047857' }}; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px 4px; flex-shrink: 0;" id="prevLogoContainer">
+                                            <img id="prevLogoImg" src="{{ $formSettings['logo_url'] ?? asset('images/logo.png') }}" alt="Logo" style="max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain;">
+                                        </div>
+                                        <div class="text-center flex-grow-1 px-1">
+                                            <div id="prevBrandName" style="font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.2; font-family: 'Noto Serif Bengali', serif;">
+                                                {{ $formSettings['brand_name'] ?? 'আইডিয়া পাঠাগার' }}
+                                            </div>
+                                            <div id="prevSubTitle" style="font-size: 10px; font-weight: 800; color: {{ $formSettings['theme_color'] ?? '#047857' }};">
+                                                {{ $formSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম' }}
+                                            </div>
+                                            <div id="prevSessionText" style="font-size: 9px; font-weight: 700; color: #334155;">
+                                                {{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}
+                                            </div>
+                                            <div id="prevBrandTag" style="font-size: 8px; color: #64748b; line-height: 1.2;">
+                                                {{ $formSettings['brand_tag'] ?? "প্রধান কার্যালয়: রংপুর, বাংলাদেশ\nwww.ideaabd.com" }}
+                                            </div>
+                                        </div>
+                                        <div class="text-end flex-shrink-0">
+                                            <span class="badge bg-dark text-white px-2 py-0.5 font-monospace text-uppercase" id="prevOfficialHeader" style="font-size: 8px;">
+                                                OFFICIAL COPY
+                                            </span>
+                                            <div class="mt-0.5 font-monospace text-dark fw-bold" style="font-size: 9px;">
+                                                #PATH-260929
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     {{-- Banner Strip --}}
                                     <div class="live-banner-strip" id="prevBannerTitle">
@@ -1256,13 +1261,24 @@ function updateLivePreview() {
     const officerOrg = document.getElementById('custOfficerOrg').value || '';
     const declaration = document.getElementById('custDeclaration').value || '';
     const themeColor = document.getElementById('custThemeColor').value || '#047857';
-    const logoSize = document.getElementById('custLogoSize').value || 24;
+    const logoSize = document.getElementById('custLogoSize').value || 28;
     const logoUrl = document.getElementById('custLogoUrl').value;
 
     if (logoUrl) {
         document.getElementById('prevLogoImg').src = logoUrl;
     }
-    document.getElementById('prevLogoImg').style.height = logoSize + 'px';
+    const logoH = parseInt(logoSize) || 28;
+    const logoW = logoH * 2;
+    const pImg = document.getElementById('prevLogoImg');
+    if (pImg) {
+        pImg.style.height = logoH + 'px';
+        pImg.style.width = logoW + 'px';
+    }
+    const pCont = document.getElementById('prevLogoContainer');
+    if (pCont) {
+        pCont.style.height = (logoH + 8) + 'px';
+        pCont.style.width = (logoW + 16) + 'px';
+    }
     document.getElementById('prevBrandName').innerText = brandName;
     document.getElementById('prevBrandName').style.color = themeColor;
     document.getElementById('prevSubTitle').innerText = subTitle;
