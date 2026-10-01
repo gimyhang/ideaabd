@@ -21,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Enforce HTTPS across all URLs, assets, forms and redirects on live domain
+        if ($this->app->environment('production') || (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'ideaabd.com'))) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Register global security headers middleware for web routes
         if ($this->app->runningInConsole() === false) {
             $router = $this->app['router'] ?? null;

@@ -690,7 +690,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['patch', 'post'], '/{campaign}/update-title', 'updateTitle')->name('update-title');
         Route::post('/{campaign}/table-settings', 'updateTableSettings')->name('table-settings');
         Route::post('/{campaign}/card-design', 'updateCardDesign')->name('card-design');
-        Route::post('/{campaign}/logo-settings', 'updateLogoSettings')->name('logo-settings');
+        Route::match(['post', 'patch', 'put'], '/{campaign}/logo-settings', 'updateLogoSettings')->name('logo-settings');
+        Route::match(['post', 'patch', 'put'], '/{campaign}/form-customizer', 'updateFormCustomizer')->name('form-customizer');
         Route::post('/{campaign}/upload-object', 'uploadCardObject')->name('upload-object');
         Route::post('/{campaign}/registrations', 'storeRegistration')->name('registrations.store');
         Route::match(['put', 'patch'], '/registrations/{registration}', 'updateRegistration')->name('registrations.update');

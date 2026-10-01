@@ -126,6 +126,74 @@
                             <img id="bannerPreviewImg" src="" alt="Preview" class="rounded-3 img-fluid border" style="max-height: 160px; object-fit: cover;">
                         </div>
                     </div>
+
+                    {{-- Form Official Logo (প্যাড ও ফরমের লোগো আপলোড ও সাইজ) --}}
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-bold text-dark small mb-0">
+                                <i class="fa-solid fa-stamp text-primary me-1"></i> ফরম অফিশিয়াল লোগো (Form Letterhead Logo)
+                            </label>
+                            <span class="badge bg-secondary-subtle text-secondary small">রেজিস্ট্রেশন ফরম ও প্যাড</span>
+                        </div>
+                        @php
+                            $formLogo = $campaign->form_settings['logo_image'] ?? null;
+                            if ($formLogo && !str_starts_with($formLogo, 'http') && !str_starts_with($formLogo, '/')) {
+                                $formLogo = asset('storage/' . $formLogo);
+                            }
+                            $formLogoSize = intval($campaign->form_settings['logo_size'] ?? 70);
+                        @endphp
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <div id="formLogoPreviewBox" class="border rounded-2 p-1 bg-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 80px; height: 80px;">
+                                @if($formLogo)
+                                    <img id="editPageFormLogoImg" src="{{ $formLogo }}" alt="Form Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                @else
+                                    <div id="editPageFormLogoPlaceholder" class="text-muted text-center small">
+                                        <i class="fa-solid fa-feather-pointed fs-3 text-secondary"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="flex-grow-1">
+                                <input type="file" name="form_logo_image" class="form-control form-control-sm mb-1.5" accept="image/*" onchange="previewFormLogo(this)">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <label class="small text-muted mb-0" style="font-size: 11.5px;">সাইজ (px):</label>
+                                        <input type="number" name="form_logo_size" class="form-control form-control-sm" style="width: 80px;" value="{{ $formLogoSize }}" min="35" max="180">
+                                    </div>
+                                    @if($formLogo)
+                                        <div class="form-check m-0">
+                                            <input class="form-check-input" type="checkbox" name="remove_form_logo" value="1" id="removeFormLogoCheck">
+                                            <label class="form-check-label small text-danger fw-semibold" for="removeFormLogoCheck">লোগো মুছুন</label>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Letterhead Header Details (স্থান, তারিখ, সহযোগিতা, কপি স্ট্যাম্প) --}}
+                    <div class="mb-3 p-3 bg-light rounded-3 border">
+                        <label class="form-label fw-bold text-dark small mb-2">
+                            <i class="fa-solid fa-pen-nib text-success me-1"></i> ফরম হেডার প্যাড তথ্য (Venue, Date & Org)
+                        </label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">স্থান / ভেন্যু (Venue)</label>
+                                <input type="text" name="form_venue" class="form-control form-control-sm" value="{{ old('form_venue', $campaign->form_settings['form_venue'] ?? 'স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ') }}" placeholder="স্থান: সরকারি টিচার্স ট্রেনিং কলেজ...">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted mb-1">তারিখ / সময় (Date)</label>
+                                <input type="text" name="form_date" class="form-control form-control-sm" value="{{ old('form_date', $campaign->form_settings['form_date'] ?? 'তারিখ: ১৩ নভেম্বর ২০২৬') }}" placeholder="তারিখ: ১৩ নভেম্বর ২০২৬">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted mb-1">সহযোগিতা / আয়োজক লাইন (Organization)</label>
+                            <input type="text" name="form_org" class="form-control form-control-sm" value="{{ old('form_org', $campaign->form_settings['form_org'] ?? 'নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com') }}" placeholder="নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">কপি স্ট্যাম্প ট্যাগ (Copy Tag)</label>
+                            <input type="text" name="form_copy_tag" class="form-control form-control-sm font-monospace" value="{{ old('form_copy_tag', $campaign->form_settings['form_copy_tag'] ?? 'DELEGATE COPY') }}" placeholder="DELEGATE COPY">
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Standard Form Fields Customizer (Rename Titles & Show/Hide) --}}
@@ -560,6 +628,19 @@ function escapeHtml(text) {
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+function previewFormLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const box = document.getElementById('formLogoPreviewBox');
+            if (box) {
+                box.innerHTML = `<img src="${e.target.result}" alt="Preview" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 // Sync Standard Form Settings before submit
 function syncStandardFormSettings() {
     const fields = {};
@@ -571,7 +652,12 @@ function syncStandardFormSettings() {
             enabled: toggle ? toggle.checked : true
         };
     });
-    document.getElementById('form_settings_json').value = JSON.stringify({ fields });
+    let currentSettings = {};
+    try {
+        currentSettings = JSON.parse(document.getElementById('form_settings_json').value || '{}');
+    } catch(e) {}
+    currentSettings.fields = fields;
+    document.getElementById('form_settings_json').value = JSON.stringify(currentSettings);
 }
 
 document.getElementById('campaignForm').addEventListener('submit', function () {

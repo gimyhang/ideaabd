@@ -121,15 +121,9 @@ class PublicEventRegistrationController extends Controller
 
         $user = auth()->user();
 
-        if ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form'])) {
-            return view('frontend.events.scholarship_register', compact('campaign', 'user'));
-        }
-
-        if (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form'])) {
-            return view('frontend.events.library_register', compact('campaign', 'user'));
-        }
-
-        if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form'])) {
+        // 1. Writer / Literary Conference Forms (RSU) take priority
+        $isWriterCampaign = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
+        if ($isWriterCampaign) {
             $existingRegistration = null;
             if ($user) {
                 $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
@@ -141,6 +135,16 @@ class PublicEventRegistrationController extends Controller
             }
             $previewRegNumber = $existingRegistration ? $existingRegistration->registration_number : EventRegistration::generateRegNumber($campaign->slug, $campaign->id);
             return view('frontend.events.writer_register', compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
+        }
+
+        // 2. Scholarship Forms
+        if ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form'])) {
+            return view('frontend.events.scholarship_register', compact('campaign', 'user'));
+        }
+
+        // 3. Library & Book Grant Forms
+        if (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form'])) {
+            return view('frontend.events.library_register', compact('campaign', 'user'));
         }
 
         return view('frontend.events.register', compact('campaign', 'user'));
@@ -279,6 +283,12 @@ class PublicEventRegistrationController extends Controller
                     if (empty($user->phone_verified_at)) {
                         $updateFields['phone_verified_at'] = now();
                     }
+                    if (!$user->is_active) {
+                        $updateFields['is_active'] = true;
+                    }
+                    if ($user->reg_status !== User::STATUS_APPROVED) {
+                        $updateFields['reg_status'] = User::STATUS_APPROVED;
+                    }
                     if (!empty($validated['password']) && (empty($user->password) || $user->password === '')) {
                         $updateFields['password'] = Hash::make($validated['password']);
                     }
@@ -334,6 +344,12 @@ class PublicEventRegistrationController extends Controller
             ->first();
 
         if ($existingRegistration) {
+            $isWriter = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
+            $requiresApproval = !empty($campaign->form_settings['requires_approval']);
+            if ($isWriter && !$requiresApproval && $existingRegistration->status === 'pending') {
+                $existingRegistration->update(['status' => 'confirmed']);
+            }
+
             session(['recent_event_registration' => [
                 'campaign_title'      => $campaign->title,
                 'campaign_slug'       => $campaign->slug,
@@ -345,7 +361,7 @@ class PublicEventRegistrationController extends Controller
                 'amount_paid'         => $existingRegistration->amount_paid,
                 'payment_status'      => $existingRegistration->payment_status,
                 'is_scholarship'      => $isScholarship,
-                'is_writer'           => in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']),
+                'is_writer'           => $isWriter,
                 'status'              => $existingRegistration->status,
             ]]);
 
@@ -402,8 +418,14 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        if ($request->has('author_categories') && is_array($request->input('author_categories'))) {
-            $catList = array_filter($request->input('author_categories'));
+        if ($request->has('author_category') && is_string($request->input('author_category'))) {
+            $catSingle = trim($request->input('author_category'));
+            if ($catSingle !== '') {
+                $customFieldAnswers['author_category'] = $catSingle;
+                $customFieldAnswers['author_categories'] = [$catSingle];
+            }
+        } elseif ($request->has('author_categories') && is_array($request->input('author_categories'))) {
+            $catList = array_values(array_filter($request->input('author_categories')));
             $customFieldAnswers['author_categories'] = $catList;
             $customFieldAnswers['author_category'] = implode(', ', $catList);
         }
@@ -673,6 +695,8 @@ class PublicEventRegistrationController extends Controller
         $campaign = $registration->campaign;
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
         $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
+        $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
+        $requiresApproval = !empty($campaign->form_settings['requires_approval']);
 
         // Check Admin Approval for Event Cards & Library passes
         $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);

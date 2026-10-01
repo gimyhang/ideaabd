@@ -236,10 +236,47 @@ class EventCampaignAdminController extends Controller
             $validated['custom_fields'] = is_array($fields) ? $fields : [];
         }
 
+        $fSettings = $campaign->form_settings ?: [];
         if ($request->has('form_settings_json')) {
-            $fSettings = json_decode($request->form_settings_json, true);
-            $validated['form_settings'] = is_array($fSettings) ? $fSettings : [];
+            $decoded = json_decode($request->form_settings_json, true);
+            if (is_array($decoded)) {
+                $fSettings = array_merge($fSettings, $decoded);
+            }
         }
+
+        // Form logo handling from edit page
+        if ($request->boolean('remove_form_logo')) {
+            if (!empty($fSettings['logo_image']) && Storage::disk('public')->exists($fSettings['logo_image'])) {
+                Storage::disk('public')->delete($fSettings['logo_image']);
+            }
+            unset($fSettings['logo_image']);
+        } elseif ($request->hasFile('form_logo_image')) {
+            $request->validate([
+                'form_logo_image' => 'nullable|file|mimes:jpeg,png,jpg,webp,svg,gif,bmp|max:8192',
+            ]);
+            if (!empty($fSettings['logo_image']) && Storage::disk('public')->exists($fSettings['logo_image'])) {
+                Storage::disk('public')->delete($fSettings['logo_image']);
+            }
+            $fSettings['logo_image'] = $request->file('form_logo_image')->store('campaigns/logos', 'public');
+        }
+
+        if ($request->filled('form_logo_size')) {
+            $fSettings['logo_size'] = max(30, min(200, intval($request->form_logo_size)));
+        }
+        if ($request->has('form_venue')) {
+            $fSettings['form_venue'] = trim($request->input('form_venue'));
+        }
+        if ($request->has('form_date')) {
+            $fSettings['form_date'] = trim($request->input('form_date'));
+        }
+        if ($request->has('form_org')) {
+            $fSettings['form_org'] = trim($request->input('form_org'));
+        }
+        if ($request->has('form_copy_tag')) {
+            $fSettings['form_copy_tag'] = trim($request->input('form_copy_tag'));
+        }
+
+        $validated['form_settings'] = $fSettings;
 
         $campaign->update($validated);
 
@@ -546,8 +583,14 @@ class EventCampaignAdminController extends Controller
             }
         }
 
-        if ($request->has('author_categories') && is_array($request->input('author_categories'))) {
-            $catList = array_filter($request->input('author_categories'));
+        if ($request->has('author_category') && is_string($request->input('author_category'))) {
+            $catSingle = trim($request->input('author_category'));
+            if ($catSingle !== '') {
+                $formData['author_category'] = $catSingle;
+                $formData['author_categories'] = [$catSingle];
+            }
+        } elseif ($request->has('author_categories') && is_array($request->input('author_categories'))) {
+            $catList = array_values(array_filter($request->input('author_categories')));
             $formData['author_categories'] = $catList;
             $formData['author_category'] = implode(', ', $catList);
         }
@@ -1160,31 +1203,163 @@ class EventCampaignAdminController extends Controller
     }
 
     /**
-     * Update campaign logo and size settings (administered by Admin)
+     * Comprehensive Form & Logo Customizer Studio update handler.
      */
-    public function updateLogoSettings(Request $request, EventCampaign $campaign)
+    public function updateFormCustomizer(Request $request, EventCampaign $campaign)
     {
         $formSettings = $campaign->form_settings ?: [];
 
-        if ($request->has('remove_logo') && $request->remove_logo) {
+        // 1. Remove Logo Handling
+        if ($request->boolean('remove_logo')) {
+            if (!empty($formSettings['logo_image']) && Storage::disk('public')->exists($formSettings['logo_image'])) {
+                Storage::disk('public')->delete($formSettings['logo_image']);
+            }
             unset($formSettings['logo_image']);
-            $campaign->form_settings = $formSettings;
-            $campaign->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Logo removed successfully.',
-                'logo_url' => null,
+        } elseif ($request->hasFile('logo_image')) {
+            $request->validate([
+                'logo_image' => 'nullable|file|mimes:jpeg,png,jpg,webp,svg,gif,bmp|max:8192',
             ]);
-        }
-
-        if ($request->hasFile('logo_image')) {
+            if (!empty($formSettings['logo_image']) && Storage::disk('public')->exists($formSettings['logo_image'])) {
+                Storage::disk('public')->delete($formSettings['logo_image']);
+            }
             $path = $request->file('logo_image')->store('campaigns/logos', 'public');
             $formSettings['logo_image'] = $path;
         }
 
+        // 2. Logo Size, Shape & Border
         if ($request->filled('logo_size')) {
-            $formSettings['logo_size'] = intval($request->logo_size);
+            $formSettings['logo_size'] = max(30, min(220, intval($request->logo_size)));
+        }
+        if ($request->has('logo_shape')) {
+            $formSettings['logo_shape'] = in_array($request->logo_shape, ['default', 'circle', 'rounded', 'square'], true) ? $request->logo_shape : 'default';
+        }
+        if ($request->has('logo_border_width')) {
+            $formSettings['logo_border_width'] = max(0, min(10, intval($request->logo_border_width)));
+        }
+        if ($request->filled('logo_border_color')) {
+            $formSettings['logo_border_color'] = trim($request->logo_border_color);
+        }
+        if ($request->filled('emblem_icon')) {
+            $formSettings['emblem_icon'] = trim($request->emblem_icon);
+        }
+
+        // 3. Form Header and Letterhead Text Fields
+        if ($request->has('form_venue')) {
+            $formSettings['form_venue'] = trim($request->input('form_venue'));
+        }
+        if ($request->has('form_date')) {
+            $formSettings['form_date'] = trim($request->input('form_date'));
+        }
+        if ($request->has('form_org')) {
+            $formSettings['form_org'] = trim($request->input('form_org'));
+        }
+        if ($request->has('form_copy_tag')) {
+            $formSettings['form_copy_tag'] = trim($request->input('form_copy_tag'));
+        }
+        if ($request->has('form_subhead')) {
+            $formSettings['form_subhead'] = trim($request->input('form_subhead'));
+        }
+
+        // 4. Color Palette & Typography
+        if ($request->filled('theme_color')) {
+            $formSettings['theme_color'] = trim($request->input('theme_color'));
+            $campaign->theme_color = $formSettings['theme_color'];
+        }
+        if ($request->filled('form_border_color')) {
+            $formSettings['form_border_color'] = trim($request->input('form_border_color'));
+        }
+        if ($request->filled('form_bg_label')) {
+            $formSettings['form_bg_label'] = trim($request->input('form_bg_label'));
+        }
+        if ($request->filled('font_family')) {
+            $formSettings['font_family'] = trim($request->input('font_family'));
+        }
+
+        // 5. Notice / Announcement Banner
+        $formSettings['form_notice_active'] = $request->boolean('form_notice_active');
+        if ($request->has('form_notice_text')) {
+            $formSettings['form_notice_text'] = trim($request->input('form_notice_text'));
+        }
+        if ($request->filled('form_notice_type')) {
+            $formSettings['form_notice_type'] = in_array($request->form_notice_type, ['info', 'warning', 'danger', 'success'], true) ? $request->form_notice_type : 'info';
+        }
+
+        // 6. Categories Management
+        if ($request->has('categories')) {
+            $cats = $request->input('categories');
+            if (is_string($cats)) {
+                $decoded = json_decode($cats, true);
+                $cats = is_array($decoded) ? $decoded : array_filter(array_map('trim', explode("\n", $cats)));
+            }
+            if (is_array($cats)) {
+                $cleanCats = [];
+                foreach ($cats as $cat) {
+                    $cat = trim(is_array($cat) ? ($cat['name'] ?? '') : $cat);
+                    if (!empty($cat) && !in_array($cat, $cleanCats, true)) {
+                        $cleanCats[] = $cat;
+                    }
+                }
+                $formSettings['categories'] = $cleanCats;
+            }
+        }
+
+        // 7. Field Toggles
+        if ($request->has('photo_required')) {
+            $formSettings['photo_required'] = in_array($request->photo_required, ['required', 'optional', 'hidden'], true) ? $request->photo_required : 'required';
+        }
+        if ($request->has('enable_intl_address')) {
+            $formSettings['enable_intl_address'] = $request->boolean('enable_intl_address');
+        }
+        if ($request->has('enable_notable_books')) {
+            $formSettings['enable_notable_books'] = $request->boolean('enable_notable_books');
+        }
+        if ($request->has('enable_magazine')) {
+            $formSettings['enable_magazine'] = $request->boolean('enable_magazine');
+        }
+        if ($request->has('enable_literary_info')) {
+            $formSettings['enable_literary_info'] = $request->boolean('enable_literary_info');
+        }
+        if ($request->has('enable_signature')) {
+            $formSettings['enable_signature'] = $request->boolean('enable_signature');
+        }
+        if ($request->has('requires_approval')) {
+            $formSettings['requires_approval'] = $request->boolean('requires_approval');
+        }
+
+        // 8. Direct Campaign Attributes Update
+        if ($request->filled('title')) {
+            $campaign->title = trim($request->input('title'));
+        }
+        if ($request->has('badge_text')) {
+            $campaign->badge_text = trim($request->input('badge_text'));
+        }
+        if ($request->has('short_description')) {
+            $campaign->short_description = trim($request->input('short_description'));
+        }
+        if ($request->has('success_message')) {
+            $campaign->success_message = trim($request->input('success_message'));
+        }
+        if ($request->has('is_active')) {
+            $campaign->is_active = $request->boolean('is_active');
+        }
+        if ($request->has('has_fee_or_donation')) {
+            $campaign->has_fee_or_donation = $request->boolean('has_fee_or_donation');
+        }
+        if ($request->has('fee_amount')) {
+            $campaign->fee_amount = floatval($request->input('fee_amount', 0));
+        }
+        if ($request->has('payment_instructions')) {
+            $campaign->payment_instructions = trim($request->input('payment_instructions'));
+        }
+        if ($request->filled('max_participants')) {
+            $campaign->max_participants = intval($request->input('max_participants')) > 0 ? intval($request->input('max_participants')) : null;
+        } elseif ($request->has('max_participants')) {
+            $campaign->max_participants = null;
+        }
+        if ($request->filled('ends_at')) {
+            $campaign->ends_at = $request->input('ends_at');
+        } elseif ($request->has('ends_at')) {
+            $campaign->ends_at = null;
         }
 
         $campaign->form_settings = $formSettings;
@@ -1192,12 +1367,32 @@ class EventCampaignAdminController extends Controller
 
         $logoUrl = !empty($formSettings['logo_image']) ? asset('storage/' . $formSettings['logo_image']) : null;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Logo settings updated successfully.',
-            'logo_url' => $logoUrl,
-            'logo_size' => $formSettings['logo_size'] ?? 70,
-        ]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'       => true,
+                'message'       => 'রেজিস্ট্রেশন ফরম ও লোগো কাস্টমাইজেশন সফলভাবে সংরক্ষিত হয়েছে।',
+                'logo_url'      => $logoUrl,
+                'logo_size'     => $formSettings['logo_size'] ?? 70,
+                'title'         => $campaign->title,
+                'badge_text'    => $campaign->badge_text,
+                'form_venue'    => $formSettings['form_venue'] ?? '',
+                'form_date'     => $formSettings['form_date'] ?? '',
+                'form_org'      => $formSettings['form_org'] ?? '',
+                'form_copy_tag' => $formSettings['form_copy_tag'] ?? '',
+                'theme_color'   => $campaign->theme_color,
+                'form_settings' => $campaign->form_settings,
+            ]);
+        }
+
+        return back()->with('success', 'রেজিস্ট্রেশন ফরম ও লোগো কাস্টমাইজেশন সফলভাবে সংরক্ষিত হয়েছে।');
+    }
+
+    /**
+     * Update campaign logo and size settings (alias for updateFormCustomizer)
+     */
+    public function updateLogoSettings(Request $request, EventCampaign $campaign)
+    {
+        return $this->updateFormCustomizer($request, $campaign);
     }
 }
 

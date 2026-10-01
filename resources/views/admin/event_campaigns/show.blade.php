@@ -67,9 +67,33 @@
                     @endif
                 </div>
 
-                <h1 class="hero-title d-flex align-items-center gap-2 mb-2" id="headerTitle">
-                    {{ $campaign->title }}
-                </h1>
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    @php
+                        $heroFormLogo = $campaign->form_settings['logo_image'] ?? null;
+                        if ($heroFormLogo && !str_starts_with($heroFormLogo, 'http') && !str_starts_with($heroFormLogo, '/')) {
+                            $heroFormLogo = asset('storage/' . $heroFormLogo);
+                        }
+                    @endphp
+                    <div id="heroFormLogoWrap" class="rounded-3 p-1.5 bg-white bg-opacity-10 border border-white border-opacity-25 d-flex align-items-center justify-content-center cursor-pointer shadow-xs" style="width: 52px; height: 52px;" onclick="switchToFormStudioTab()" title="ফরম লোগো পরিবর্তন ও স্টুডিও দেখতে ক্লিক করুন">
+                        <img id="heroFormLogoImg" src="{{ $heroFormLogo ?: '' }}" alt="Form Logo" style="{{ $heroFormLogo ? 'display: block;' : 'display: none;' }} max-width: 100%; max-height: 100%; object-fit: contain;">
+                        <i id="heroFormLogoIcon" class="fa-solid fa-stamp text-warning fs-3" style="{{ $heroFormLogo ? 'display: none;' : 'display: block;' }}"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-title d-flex align-items-center gap-2 mb-0" id="headerTitle">
+                            {{ $campaign->title }}
+                        </h1>
+                        @if(!empty($campaign->form_settings['form_venue']) || !empty($campaign->form_settings['form_date']))
+                            <div class="small text-white-50 mt-1 d-flex flex-wrap gap-3" style="font-size: 12px;">
+                                @if(!empty($campaign->form_settings['form_date']))
+                                    <span><i class="fa-regular fa-calendar me-1 text-warning"></i><span id="heroDateDisplay">{{ $campaign->form_settings['form_date'] }}</span></span>
+                                @endif
+                                @if(!empty($campaign->form_settings['form_venue']))
+                                    <span><i class="fa-solid fa-location-dot me-1 text-info"></i><span id="heroVenueDisplay">{{ $campaign->form_settings['form_venue'] }}</span></span>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
 
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <div class="aec-url-box">
@@ -83,6 +107,9 @@
                         </a>
                     </div>
 
+                    <button type="button" class="btn btn-sm btn-warning text-dark border-0 rounded-pill px-3 py-1.5 fw-bold shadow-sm" onclick="switchToFormStudioTab()">
+                        <i class="fa-solid fa-file-pen me-1"></i> ফরম লোগো ও এডিট
+                    </button>
                     <button type="button" class="btn btn-sm btn-light bg-opacity-25 text-white border-0 rounded-pill px-3 py-1.5 fw-medium" data-bs-toggle="modal" data-bs-target="#editTitleModal">
                         <i class="fa-solid fa-pen-to-square me-1"></i> Quick Edit Info
                     </button>
@@ -109,6 +136,9 @@
                 <a href="{{ route('admin.event-campaigns.export', $campaign->id) }}" class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm">
                     <i class="fa-solid fa-file-excel me-1"></i> Export Excel
                 </a>
+                <button type="button" class="btn btn-warning text-dark rounded-pill px-3 py-2 small fw-bold shadow-sm" onclick="switchToFormStudioTab()">
+                    <i class="fa-solid fa-sliders me-1"></i> ফরম ডিজাইন ও লোগো
+                </button>
                 <button type="button" class="btn btn-light rounded-pill px-3 py-2 small fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#cardDesignModal">
                     <i class="fa-solid fa-palette me-1"></i> Card Design
                 </button>
@@ -261,6 +291,26 @@
             </div>
         </div>
     </div>
+
+    {{-- NAVIGATION TABS --}}
+    <ul class="nav form-studio-nav-tabs mt-4" id="campaignMainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-participants-nav" data-bs-toggle="tab" data-bs-target="#tab-participants" type="button" role="tab" aria-controls="tab-participants" aria-selected="true">
+                <i class="fa-solid fa-users"></i> অংশগ্রহণকারী ও ডেটাবেজ
+                <span class="badge bg-primary rounded-pill ms-1">{{ $totalRegistrations }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-form-studio-nav" data-bs-toggle="tab" data-bs-target="#tab-form-studio" type="button" role="tab" aria-controls="tab-form-studio" aria-selected="false">
+                <i class="fa-solid fa-wand-magic-sparkles text-warning"></i> ফর্ম স্টুডিও ও লাইভ কাস্টমাইজার
+                <span class="badge bg-warning text-dark rounded-pill ms-1">Logo & Design</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="campaignMainTabContent">
+        {{-- TAB 1: PARTICIPANTS LIST & FILTER --}}
+        <div class="tab-pane fade show active" id="tab-participants" role="tabpanel" aria-labelledby="tab-participants-nav">
 
     {{-- FILTER TABS & INSTANT SEARCH BAR --}}
     <div class="aec-filter-card">
@@ -1077,21 +1127,22 @@
                                                                         <span class="small fw-bold text-dark d-block mb-2"><i class="fa-solid fa-feather-pointed text-warning me-1"></i> সাহিত্য, প্রকাশনা ও ক্যাটাগরি</span>
                                                                         <div class="row g-2">
                                                                             <div class="col-12">
-                                                                                <label class="form-label small text-muted mb-1">ক্যাটাগরি সমূহ</label>
+                                                                                <label class="form-label small text-muted mb-1">সাহিত্য ক্যাটাগরি <span class="text-danger">*</span></label>
                                                                                 @php
-                                                                                    $currentAuthorCats = is_array($reg->form_data['author_categories'] ?? null) ? $reg->form_data['author_categories'] : explode(',', $reg->form_data['author_category'] ?? '');
-                                                                                    $currentAuthorCats = array_map('trim', $currentAuthorCats);
-                                                                                    $availCats = [
-                                                                                        'কবি ও কথাসাহিত্যিক', 'প্রাবন্ধিক ও গবেষক', 'শিশুসাহিত্যিক ও ছড়াকার',
-                                                                                        'লিটিলম্যাগাজিন সম্পাদক', 'প্রকাশক', 'শিল্পী / সংস্কৃতিকর্মী',
-                                                                                        'বই প্রতিনিধি ও সংগঠক', 'অন্যান্য / প্রতিনিধি'
-                                                                                    ];
+                                                                                    $currentAuthorCat = $reg->form_data['author_category'] ?? ($reg->form_data['author_categories'][0] ?? '');
+                                                                                    $availCats = !empty($campaign->form_settings['categories']) && is_array($campaign->form_settings['categories']) && count($campaign->form_settings['categories']) > 0
+                                                                                        ? $campaign->form_settings['categories']
+                                                                                        : [
+                                                                                            'কবি', 'অনুবাদক', 'ছড়াকার', 'গল্পকার', 'কথাসাহিত্যিক',
+                                                                                            'প্রাবন্ধিক', 'গবেষক', 'লিটিলম্যাগাজিন সম্পাদক', 'প্রকাশক',
+                                                                                            'নাট্যকার', 'শিল্পী / সংস্কৃতিকর্মী', 'বই প্রতিনিধি ও সংগঠক', 'অন্যান্য / প্রতিনিধি'
+                                                                                        ];
                                                                                 @endphp
                                                                                 <div class="d-flex flex-wrap gap-2 pt-1">
                                                                                     @foreach($availCats as $availCat)
                                                                                         <div class="form-check form-check-inline mb-1">
-                                                                                            <input class="form-check-input" type="checkbox" name="author_categories[]" id="catChk{{ $reg->id }}_{{ $loop->index }}" value="{{ $availCat }}" {{ in_array($availCat, $currentAuthorCats) ? 'checked' : '' }}>
-                                                                                            <label class="form-check-label small" for="catChk{{ $reg->id }}_{{ $loop->index }}">{{ $availCat }}</label>
+                                                                                            <input class="form-check-input" type="radio" name="author_category" id="catRadio{{ $reg->id }}_{{ $loop->index }}" value="{{ $availCat }}" {{ $currentAuthorCat == $availCat ? 'checked' : '' }}>
+                                                                                            <label class="form-check-label small" for="catRadio{{ $reg->id }}_{{ $loop->index }}">{{ $availCat }}</label>
                                                                                         </div>
                                                                                     @endforeach
                                                                                 </div>
@@ -1462,6 +1513,13 @@
             </div>
         @endif
     </div>
+        </div> {{-- End of #tab-participants --}}
+
+        {{-- TAB 2: LIVE FORM STUDIO & CUSTOMIZER --}}
+        <div class="tab-pane fade" id="tab-form-studio" role="tabpanel" aria-labelledby="tab-form-studio-nav">
+            @include('admin.event_campaigns.partials.form_studio')
+        </div>
+    </div> {{-- End of #campaignMainTabContent --}}
 
 </div>
 
@@ -1512,6 +1570,219 @@
                     <i class="fa-regular fa-copy me-1"></i> Copy Link
                 </button>
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL: FORM LOGO UPLOAD & HEADER EDITOR (ফরম লোগো আপলোড ও এডিট স্টুডিও) --}}
+@php
+    $modalFormLogo = $campaign->form_settings['logo_image'] ?? null;
+    if ($modalFormLogo && !str_starts_with($modalFormLogo, 'http') && !str_starts_with($modalFormLogo, '/')) {
+        $modalFormLogo = asset('storage/' . $modalFormLogo);
+    }
+    $modalLogoSize = intval($campaign->form_settings['logo_size'] ?? 70);
+    $modalVenue = $campaign->form_settings['form_venue'] ?? 'স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ';
+    $modalDate = $campaign->form_settings['form_date'] ?? 'তারিখ: ১৩ নভেম্বর ২০২৬';
+    $modalOrg = $campaign->form_settings['form_org'] ?? 'নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com';
+    $modalCopyTag = $campaign->form_settings['form_copy_tag'] ?? 'DELEGATE COPY';
+@endphp
+<div class="modal fade" id="formHeaderLogoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl text-start">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <form id="formHeaderLogoForm" action="{{ route('admin.event-campaigns.logo-settings', $campaign->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="remove_logo" id="fhlInputRemoveLogo" value="0">
+                <div class="modal-header border-bottom py-3 bg-light d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2 mb-0">
+                            <i class="fa-solid fa-stamp text-warning"></i> ফরম লোগো আপলোড ও হেডার প্যাড এডিটর
+                        </h5>
+                        <small class="text-muted">পাবলিক রেজিস্ট্রেশন ফরমের (যেমন: /rsu) শীর্ষ লেটারহেড প্যাড, লোগো ও টেক্সট কাস্টমাইজেশন</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{ $campaign->public_url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> লাইভ ফরম দেখুন
+                        </a>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <div class="modal-body p-3 p-lg-4">
+                    <div class="row g-4">
+                        {{-- বাম পাশের কন্ট্রোল প্যানেল (লোগো আপলোড ও হেডার টেক্সট ইনপুট) --}}
+                        <div class="col-lg-6">
+                            
+                            {{-- ১. ফরম লোগো আপলোড ও সাইজ --}}
+                            <div class="card border rounded-3 p-3 mb-3 bg-white shadow-xs">
+                                <h6 class="fw-bold text-dark d-flex align-items-center justify-content-between mb-3">
+                                    <span><i class="fa-solid fa-image text-primary me-1"></i> ফরম লোগো আপলোড ও সাইজ</span>
+                                    <span class="badge bg-light text-secondary border font-monospace" id="fhlModalLogoSizeBadge">{{ $modalLogoSize }}px</span>
+                                </h6>
+
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    {{-- লোগো প্রিভিউ বক্স --}}
+                                    <div class="border rounded-3 p-2 bg-light d-flex align-items-center justify-content-center position-relative flex-shrink-0" style="width: 90px; height: 90px;">
+                                        <img id="fhlModalLogoPreviewThumb" src="{{ $modalFormLogo ?: '' }}" alt="Form Logo" style="{{ $modalFormLogo ? 'display: block;' : 'display: none;' }} max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <div id="fhlModalLogoPlaceholderThumb" class="text-center text-muted" style="{{ $modalFormLogo ? 'display: none;' : 'display: block;' }}">
+                                            <i class="fa-solid fa-feather-pointed fs-2 text-danger"></i>
+                                            <div style="font-size: 9px;" class="fw-bold text-secondary mt-1">ডিফল্ট এমব্লেম</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <label class="form-label small fw-semibold text-dark mb-1">নতুন লোগো নির্বাচন করুন</label>
+                                        <input type="file" name="logo_image" id="fhlModalLogoFileInput" class="form-control form-control-sm mb-2" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="fhlPreviewModalLogo(this)">
+                                        
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2.5 rounded-pill small" id="fhlBtnModalRemoveLogo" onclick="fhlTriggerRemoveLogo()">
+                                                <i class="fa-solid fa-trash-can me-1"></i> লোগো মুছুন
+                                            </button>
+                                            <span class="text-muted" style="font-size: 11px;">(PNG, SVG, JPG, WebP)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- সাইজ স্লাইডার ও বাটন --}}
+                                <div class="bg-light p-2.5 rounded-3 border">
+                                    <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                        <label class="form-label small fw-bold text-dark mb-0">লোগোর সাইজ কমানো / বাড়ানো:</label>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="fhlChangeModalLogoSize(-5)">-5</button>
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="fhlSetModalLogoSize(70)">রিসেট (70)</button>
+                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="fhlChangeModalLogoSize(5)">+5</button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="small text-muted font-monospace">35px</span>
+                                        <input type="range" name="logo_size" id="fhlModalLogoSizeSlider" class="form-range flex-grow-1" min="35" max="160" value="{{ $modalLogoSize }}" oninput="fhlUpdateModalLogoSize(this.value)">
+                                        <span class="small text-muted font-monospace">160px</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- ২. ফরম হেডার টেক্সট ও পরিচিতি এডিট --}}
+                            <div class="card border rounded-3 p-3 bg-white shadow-xs">
+                                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-pen-nib text-success"></i> ফরম হেডার ও লেটারহেড টেক্সট এডিট
+                                </h6>
+
+                                <div class="mb-2.5">
+                                    <label class="form-label small fw-semibold text-dark mb-1">ফরমের মূল শিরোনাম (Campaign Title) <span class="text-danger">*</span></label>
+                                    <input type="text" name="title" id="fhlModalInputTitle" class="form-control form-control-sm fw-bold" value="{{ $campaign->title }}" required oninput="fhlSyncPreviewText('fhlPreviewPadTitle', this.value)">
+                                </div>
+
+                                <div class="row g-2 mb-2.5">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">তারিখ / সময় (Form Date)</label>
+                                        <input type="text" name="form_date" id="fhlModalInputDate" class="form-control form-control-sm" value="{{ $modalDate }}" placeholder="তারিখ: ১৩ নভেম্বর ২০২৬" oninput="fhlSyncPreviewText('fhlPreviewPadDate', this.value)">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">স্থান / ভেন্যু (Form Venue)</label>
+                                        <input type="text" name="form_venue" id="fhlModalInputVenue" class="form-control form-control-sm" value="{{ $modalVenue }}" placeholder="স্থান: সরকারি টিচার্স ট্রেনিং কলেজ..." oninput="fhlSyncPreviewText('fhlPreviewPadVenue', this.value)">
+                                    </div>
+                                </div>
+
+                                <div class="mb-2.5">
+                                    <label class="form-label small fw-semibold text-dark mb-1">সহযোগিতা / আয়োজক লাইন (Organization Credit)</label>
+                                    <input type="text" name="form_org" id="fhlModalInputOrg" class="form-control form-control-sm" value="{{ $modalOrg }}" placeholder="নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com" oninput="fhlSyncPreviewText('fhlPreviewPadOrg', this.value)">
+                                </div>
+
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">কপি স্ট্যাম্প ট্যাগ (Copy Tag)</label>
+                                        <input type="text" name="form_copy_tag" id="fhlModalInputCopyTag" class="form-control form-control-sm font-monospace" value="{{ $modalCopyTag }}" placeholder="DELEGATE COPY" oninput="fhlSyncPreviewText('fhlPreviewPadCopyTag', this.value)">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold text-dark mb-1">ব্যাজ টেক্সট (Badge Text)</label>
+                                        <input type="text" name="badge_text" id="fhlModalInputBadge" class="form-control form-control-sm" value="{{ $campaign->badge_text }}" placeholder="লেখক ও প্রতিনিধি নিবন্ধন">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label small fw-semibold text-dark mb-1">সংক্ষিপ্ত নির্দেশনা / বর্ণনা (Description)</label>
+                                    <textarea name="short_description" id="fhlModalInputDesc" rows="2" class="form-control form-control-sm" placeholder="ফরমের বিবরণ">{{ $campaign->short_description }}</textarea>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {{-- ডান পাশের লাইভ প্রিভিউ প্যানেল --}}
+                        <div class="col-lg-6">
+                            <div class="sticky-top" style="top: 15px;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
+                                        <i class="fa-solid fa-eye text-primary"></i> লাইভ প্যাড প্রিভিউ (Live Header Pad)
+                                    </h6>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle small">
+                                        <i class="fa-solid fa-bolt me-1"></i> রিয়েল-টাইম আপডেট
+                                    </span>
+                                </div>
+
+                                {{-- অফিশিয়াল পেপার প্রিভিউ ফ্রেম --}}
+                                <div class="border rounded-3 p-3 bg-white shadow-sm" style="border: 2px solid #0f172a !important;">
+                                    <div class="d-flex align-items-center justify-content-between gap-2 pb-2 mb-2 border-bottom">
+                                        
+                                        {{-- প্রিভিউ লোগো --}}
+                                        <div class="d-flex flex-column align-items-center justify-content-center flex-shrink-0" id="fhlPreviewPadLogoWrap" style="width: {{ $modalLogoSize }}px; height: {{ $modalLogoSize }}px; transition: width 0.15s, height 0.15s;">
+                                            <img id="fhlPreviewPadLogoImg" src="{{ $modalFormLogo ?: '' }}" alt="Logo" style="{{ $modalFormLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
+                                            <div id="fhlPreviewPadLogoIcon" class="text-danger d-flex align-items-center justify-content-center" style="{{ $modalFormLogo ? 'display: none;' : 'display: flex;' }} width: 100%; height: 100%; font-size: {{ round($modalLogoSize * 0.55) }}px;">
+                                                <i class="fa-solid fa-feather-pointed"></i>
+                                            </div>
+                                        </div>
+
+                                        {{-- প্রিভিউ টাইটেল ও হেডার টেক্সট --}}
+                                        <div class="text-center flex-grow-1 px-2">
+                                            <div class="fw-bolder text-dark" id="fhlPreviewPadTitle" style="font-size: 16px; line-height: 1.25; font-family: 'Noto Serif Bengali', serif;">
+                                                {{ $campaign->title }}
+                                            </div>
+                                            <div class="fw-bold text-dark mt-0.5" id="fhlPreviewPadVenue" style="font-size: 11px; color: #0f172a;">
+                                                {{ $modalVenue }}
+                                            </div>
+                                            <div class="fw-bold text-danger mt-0.5" id="fhlPreviewPadDate" style="font-size: 11px; color: #991b1b;">
+                                                {{ $modalDate }}
+                                            </div>
+                                            <div class="text-muted mt-0.5" id="fhlPreviewPadOrg" style="font-size: 9.5px; color: #475569;">
+                                                {{ $modalOrg }}
+                                            </div>
+                                        </div>
+
+                                        {{-- প্রিভিউ স্ট্যাম্প --}}
+                                        <div class="text-end flex-shrink-0">
+                                            <span class="badge bg-dark text-white px-2 py-1 font-monospace" id="fhlPreviewPadCopyTag" style="font-size: 9px; letter-spacing: 0.5px;">
+                                                {{ $modalCopyTag }}
+                                            </span>
+                                            <div class="mt-1 font-monospace text-dark fw-bold" style="font-size: 9px;">
+                                                #RSU-PREVIEW
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    {{-- ডামি টেবিল সিমুলেশন --}}
+                                    <div class="bg-light rounded p-2 text-center text-muted small border border-dashed">
+                                        <i class="fa-solid fa-table me-1 text-secondary"></i> [রেজিস্ট্রেশন ফরম টেবিল ও অন্যান্য ফিল্ডস এখানে প্রদর্শিত হবে]
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info py-2 px-3 mt-3 mb-0 small rounded-3 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-circle-info fs-5 text-info"></i>
+                                    <div>এখানে পরিবর্তন করে সেভ করলে তা সরাসরি পাবলিক রেজিস্ট্রেশন ফরম (<strong>{{ $campaign->slug }}</strong>)-এ স্বয়ংক্রিয়ভাবে সক্রিয় হবে।</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top py-2.5 bg-light d-flex align-items-center justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill btn-sm px-3" data-bs-dismiss="modal">
+                        বাতিল
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold shadow-sm" id="fhlBtnSaveFormLogoSettings">
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> পরিবর্তনগুলো সংরক্ষণ করুন
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -3414,6 +3685,167 @@
                 if (intlWrap) intlWrap.style.display = 'none';
             }
         }
+
+        // =========================================================================
+        // FORM HEADER & LOGO STUDIO INTERACTIVE SCRIPTS
+        // =========================================================================
+        function fhlSyncPreviewText(elemId, value) {
+            const el = document.getElementById(elemId);
+            if (el) el.textContent = value;
+        }
+
+        function fhlPreviewModalLogo(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const src = e.target.result;
+                    const thumb = document.getElementById('fhlModalLogoPreviewThumb');
+                    const thumbHolder = document.getElementById('fhlModalLogoPlaceholderThumb');
+                    const padImg = document.getElementById('fhlPreviewPadLogoImg');
+                    const padIcon = document.getElementById('fhlPreviewPadLogoIcon');
+                    if (thumb) { thumb.src = src; thumb.style.display = 'block'; }
+                    if (thumbHolder) thumbHolder.style.display = 'none';
+                    if (padImg) { padImg.src = src; padImg.style.display = 'block'; }
+                    if (padIcon) padIcon.style.display = 'none';
+                    document.getElementById('fhlInputRemoveLogo').value = '0';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function fhlTriggerRemoveLogo() {
+            document.getElementById('fhlInputRemoveLogo').value = '1';
+            document.getElementById('fhlModalLogoFileInput').value = '';
+            const thumb = document.getElementById('fhlModalLogoPreviewThumb');
+            const thumbHolder = document.getElementById('fhlModalLogoPlaceholderThumb');
+            const padImg = document.getElementById('fhlPreviewPadLogoImg');
+            const padIcon = document.getElementById('fhlPreviewPadLogoIcon');
+            if (thumb) { thumb.src = ''; thumb.style.display = 'none'; }
+            if (thumbHolder) thumbHolder.style.display = 'block';
+            if (padImg) { padImg.src = ''; padImg.style.display = 'none'; }
+            if (padIcon) padIcon.style.display = 'flex';
+        }
+
+        function fhlUpdateModalLogoSize(size) {
+            size = Math.max(35, Math.min(160, parseInt(size)));
+            const badge = document.getElementById('fhlModalLogoSizeBadge');
+            if (badge) badge.textContent = size + 'px';
+            const slider = document.getElementById('fhlModalLogoSizeSlider');
+            if (slider) slider.value = size;
+            const wrap = document.getElementById('fhlPreviewPadLogoWrap');
+            const icon = document.getElementById('fhlPreviewPadLogoIcon');
+            if (wrap) {
+                wrap.style.width = size + 'px';
+                wrap.style.height = size + 'px';
+            }
+            if (icon) {
+                icon.style.fontSize = Math.round(size * 0.55) + 'px';
+            }
+        }
+
+        function fhlChangeModalLogoSize(delta) {
+            const slider = document.getElementById('fhlModalLogoSizeSlider');
+            if (slider) {
+                fhlUpdateModalLogoSize(parseInt(slider.value) + delta);
+            }
+        }
+
+        function fhlSetModalLogoSize(size) {
+            fhlUpdateModalLogoSize(size);
+        }
+
+        // AJAX Form Submission for Form Logo & Header
+        const fhlForm = document.getElementById('formHeaderLogoForm');
+        if (fhlForm) {
+            fhlForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const btn = document.getElementById('fhlBtnSaveFormLogoSettings');
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1.5"></i> সংরক্ষণ হচ্ছে...';
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                    if (data.success) {
+                        // Update on-page Title
+                        if (data.title) {
+                            const hTitle = document.getElementById('headerTitle');
+                            if (hTitle) hTitle.textContent = data.title;
+                            const bTitle = document.getElementById('breadcrumbTitle');
+                            if (bTitle) bTitle.textContent = data.title;
+                        }
+                        // Update Badge
+                        if (data.badge_text) {
+                            const hBadge = document.getElementById('headerBadge');
+                            if (hBadge) hBadge.innerHTML = '<i class="fa-solid fa-tag"></i> ' + data.badge_text;
+                        }
+                        // Update Hero Logo Indicator
+                        const heroImg = document.getElementById('heroFormLogoImg');
+                        const heroIcon = document.getElementById('heroFormLogoIcon');
+                        if (heroImg && heroIcon) {
+                            if (data.logo_url) {
+                                heroImg.src = data.logo_url;
+                                heroImg.style.display = 'block';
+                                heroIcon.style.display = 'none';
+                            } else {
+                                heroImg.src = '';
+                                heroImg.style.display = 'none';
+                                heroIcon.style.display = 'block';
+                            }
+                        }
+                        // Update Hero Venue & Date
+                        const hVenue = document.getElementById('heroVenueDisplay');
+                        if (hVenue && data.form_venue) hVenue.textContent = data.form_venue;
+                        const hDate = document.getElementById('heroDateDisplay');
+                        if (hDate && data.form_date) hDate.textContent = data.form_date;
+
+                        // Hide Modal
+                        const modalEl = document.getElementById('formHeaderLogoModal');
+                        if (modalEl) {
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) modalInstance.hide();
+                        }
+
+                        if (window.showToast) {
+                            window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'ফরম লোগো ও হেডার সংরক্ষিত হয়েছে!'));
+                        } else {
+                            alert(data.message || 'ফরম লোগো ও হেডার সংরক্ষিত হয়েছে!');
+                        }
+                    } else {
+                        alert(data.message || 'সংরক্ষণ ব্যর্থ হয়েছে।');
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                    console.error(err);
+                    form.submit();
+                });
+            });
+        }
+
+        // Switch to Form Studio Tab Helper
+        window.switchToFormStudioTab = function() {
+            const tabBtn = document.getElementById('tab-form-studio-nav');
+            if (tabBtn) {
+                const bsTab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                bsTab.show();
+                tabBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
     </script>
 @endpush
 @endsection
