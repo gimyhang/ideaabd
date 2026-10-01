@@ -1226,9 +1226,23 @@ class EventCampaignAdminController extends Controller
             $formSettings['logo_image'] = $path;
         }
 
-        // 2. Logo Size, Shape, Border, Position & Background
+        // 2. Logo Dimensions (Width & Height), Shape, Border, Position, Fit & Background
+        if ($request->filled('logo_width')) {
+            $formSettings['logo_width'] = max(30, min(350, intval($request->logo_width)));
+        }
+        if ($request->filled('logo_height')) {
+            $formSettings['logo_height'] = max(30, min(250, intval($request->logo_height)));
+        }
         if ($request->filled('logo_size')) {
-            $formSettings['logo_size'] = max(30, min(220, intval($request->logo_size)));
+            $formSettings['logo_size'] = max(30, min(350, intval($request->logo_size)));
+            if (empty($formSettings['logo_width'])) $formSettings['logo_width'] = $formSettings['logo_size'];
+            if (empty($formSettings['logo_height'])) $formSettings['logo_height'] = $formSettings['logo_size'];
+        }
+        if (!empty($formSettings['logo_width']) && empty($formSettings['logo_size'])) {
+            $formSettings['logo_size'] = $formSettings['logo_width'];
+        }
+        if ($request->has('logo_fit')) {
+            $formSettings['logo_fit'] = in_array($request->logo_fit, ['contain', 'cover', 'fill', 'scale-down'], true) ? $request->logo_fit : 'contain';
         }
         if ($request->has('logo_shape')) {
             $formSettings['logo_shape'] = in_array($request->logo_shape, ['default', 'circle', 'rounded', 'square'], true) ? $request->logo_shape : 'default';
@@ -1243,10 +1257,10 @@ class EventCampaignAdminController extends Controller
             $formSettings['emblem_icon'] = trim($request->emblem_icon);
         }
         if ($request->has('logo_offset_x')) {
-            $formSettings['logo_offset_x'] = max(-120, min(120, intval($request->logo_offset_x)));
+            $formSettings['logo_offset_x'] = max(-150, min(150, intval($request->logo_offset_x)));
         }
         if ($request->has('logo_offset_y')) {
-            $formSettings['logo_offset_y'] = max(-120, min(120, intval($request->logo_offset_y)));
+            $formSettings['logo_offset_y'] = max(-150, min(150, intval($request->logo_offset_y)));
         }
         if ($request->has('logo_bg')) {
             $formSettings['logo_bg'] = in_array($request->logo_bg, ['transparent', 'white', '#ffffff', '#000000'], true) ? $request->logo_bg : 'transparent';

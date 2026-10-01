@@ -3,7 +3,10 @@
     if ($studioFormLogo && !str_starts_with($studioFormLogo, 'http') && !str_starts_with($studioFormLogo, '/')) {
         $studioFormLogo = asset('storage/' . $studioFormLogo);
     }
-    $studioLogoSize = intval($campaign->form_settings['logo_size'] ?? 70);
+    $studioLogoSize = intval($campaign->form_settings['logo_size'] ?? 75);
+    $studioLogoWidth = intval($campaign->form_settings['logo_width'] ?? $studioLogoSize);
+    $studioLogoHeight = intval($campaign->form_settings['logo_height'] ?? $studioLogoSize);
+    $studioLogoFit = $campaign->form_settings['logo_fit'] ?? 'contain';
     $studioLogoShape = $campaign->form_settings['logo_shape'] ?? 'default';
     $studioLogoBorderWidth = intval($campaign->form_settings['logo_border_width'] ?? 0);
     $studioLogoBorderColor = $campaign->form_settings['logo_border_color'] ?? '#0f172a';
@@ -94,7 +97,7 @@
                             <button class="accordion-button fw-bold py-2.5 px-3 bg-white text-dark d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLogo" aria-expanded="true" aria-controls="collapseLogo">
                                 <i class="fa-solid fa-image text-primary"></i>
                                 <span>১. লোগো ও এমব্লেম সেটিংস</span>
-                                <span class="badge bg-primary-subtle text-primary border ms-auto font-monospace" id="studioBadgeLogoSize">{{ $studioLogoSize }}px</span>
+                                <span class="badge bg-primary-subtle text-primary border ms-auto font-monospace" id="studioBadgeLogoSize">{{ $studioLogoWidth }}x{{ $studioLogoHeight }}px</span>
                             </button>
                         </h2>
                         <div id="collapseLogo" class="accordion-collapse collapse show" aria-labelledby="headingLogo" data-bs-parent="#studioAccordion">
@@ -102,9 +105,9 @@
                                 
                                 {{-- লোগো আপলোড ও থাম্বনেল --}}
                                 <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded-3 border">
-                                    <div class="border rounded-2 p-1 bg-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 72px; height: 72px;">
-                                        <img id="studioLogoThumb" src="{{ $studioFormLogo ?: '' }}" alt="Form Logo" style="{{ $studioFormLogo ? 'display: block;' : 'display: none;' }} max-width: 100%; max-height: 100%; object-fit: contain;">
-                                        <div id="studioLogoPlaceholder" class="text-center text-muted" style="{{ $studioFormLogo ? 'display: none;' : 'display: block;' }}">
+                                    <div class="border rounded-2 p-1 bg-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 72px; height: 72px; overflow: hidden;">
+                                        <img id="studioLogoThumb" src="{{ $studioFormLogo ?: '' }}" alt="Form Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <div id="studioLogoPlaceholder" class="text-center text-muted {{ $studioFormLogo ? 'd-none' : '' }}" style="{{ $studioFormLogo ? 'display: none !important;' : 'display: block;' }}">
                                             <i class="fa-solid {{ $studioEmblemIcon }} fs-3 text-danger" id="studioPlaceholderIcon"></i>
                                         </div>
                                     </div>
@@ -120,52 +123,100 @@
                                     </div>
                                 </div>
 
-                                {{-- সহজ সাইজ কন্ট্রোলার ও প্রিসেট বাটন --}}
+                                {{-- সহজ সাইজ, উইডথ ও হাইট কন্ট্রোলার --}}
                                 <div class="mb-3 p-2.5 bg-light rounded-3 border">
-                                    <div class="d-flex align-items-center justify-content-between mb-1.5 flex-wrap gap-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-1">
                                         <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1">
-                                            <i class="fa-solid fa-up-right-and-down-left-from-center text-primary"></i> লোগোর সাইজ (Size)
+                                            <i class="fa-solid fa-up-right-and-down-left-from-center text-primary"></i> লোগো ডাইমেনশন (উইডথ ও হাইট)
                                         </label>
                                         <div class="d-flex align-items-center gap-1">
-                                            <div class="input-group input-group-sm" style="width: 105px;">
-                                                <input type="number" id="studioLogoSizeNumberInput" class="form-control form-control-sm text-center font-monospace fw-bold" min="30" max="220" value="{{ $studioLogoSize }}" oninput="updateStudioLogoSize(this.value)">
-                                                <span class="input-group-text px-1.5 font-monospace small">px</span>
-                                            </div>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="-1px সূক্ষ্ম ছোট" onclick="adjustStudioLogoSize(-1)">-1</button>
-                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="-5px দ্রুত ছোট" onclick="adjustStudioLogoSize(-5)">-5</button>
-                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="+5px দ্রুত বড়" onclick="adjustStudioLogoSize(5)">+5</button>
-                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="+1px সূক্ষ্ম বড়" onclick="adjustStudioLogoSize(1)">+1</button>
-                                            </div>
+                                            <button type="button" class="btn btn-xs btn-primary rounded-pill px-2 py-0.5 fw-semibold" id="btnAspectLock" onclick="toggleAspectRatioLock()" title="ক্লিক করে সমানুপাতিক বা স্বাধীন মাপ টগল করুন">
+                                                <i class="fa-solid fa-link me-1" id="iconAspectLock"></i> <span id="textAspectLock">সমানুপাতিক (Locked)</span>
+                                            </button>
+                                            <input type="hidden" id="studioAspectLocked" value="1">
+                                            <input type="hidden" name="logo_size" id="studioLogoSizeInput" value="{{ $studioLogoWidth }}">
                                         </div>
                                     </div>
 
-                                    {{-- রেঞ্জ স্লাইডার --}}
-                                    <div class="d-flex align-items-center gap-2 mb-2">
-                                        <span class="small text-muted font-monospace">30px</span>
-                                        <input type="range" name="logo_size" id="studioLogoSizeSlider" class="form-range flex-grow-1" min="30" max="220" value="{{ $studioLogoSize }}" oninput="updateStudioLogoSize(this.value)">
-                                        <span class="small text-muted font-monospace">220px</span>
+                                    {{-- ১. উইডথ (Width / প্রস্থ) --}}
+                                    <div class="mb-2 p-2 bg-white rounded-2 border">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="small fw-bold text-dark">লোগোর প্রস্থ (Width):</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <div class="input-group input-group-sm" style="width: 105px;">
+                                                    <input type="number" name="logo_width" id="studioLogoWidthInput" class="form-control form-control-sm text-center font-monospace fw-bold" min="30" max="350" value="{{ $studioLogoWidth }}" oninput="updateStudioLogoWidth(this.value, false)">
+                                                    <span class="input-group-text px-1 font-monospace small">px</span>
+                                                </div>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-secondary py-0 px-1.5" onclick="adjustStudioLogoWidth(-5)">-5</button>
+                                                    <button type="button" class="btn btn-outline-secondary py-0 px-1.5" onclick="adjustStudioLogoWidth(5)">+5</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="small text-muted font-monospace" style="font-size: 10px;">30px</span>
+                                            <input type="range" id="studioLogoWidthSlider" class="form-range flex-grow-1" min="30" max="350" value="{{ $studioLogoWidth }}" oninput="updateStudioLogoWidth(this.value, false)">
+                                            <span class="small text-muted font-monospace" style="font-size: 10px;">350px</span>
+                                        </div>
                                     </div>
 
-                                    {{-- এক-ক্লিক সাইজ প্রিসেট --}}
-                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
-                                        <span class="text-muted" style="font-size: 11px; font-weight: 600;">এক ক্লিকে সাইজ:</span>
-                                        <div class="logo-preset-bar m-0">
-                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 55 ? 'active' : '' }}" onclick="setStudioLogoPreset(55)">
-                                                ছোট <span class="badge-val">55</span>
-                                            </button>
-                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 75 ? 'active' : '' }}" onclick="setStudioLogoPreset(75)">
-                                                স্বাভাবিক <span class="badge-val">75</span>
-                                            </button>
-                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 95 ? 'active' : '' }}" onclick="setStudioLogoPreset(95)">
-                                                মাঝারি <span class="badge-val">95</span>
-                                            </button>
-                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 120 ? 'active' : '' }}" onclick="setStudioLogoPreset(120)">
-                                                বড় <span class="badge-val">120</span>
-                                            </button>
-                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 150 ? 'active' : '' }}" onclick="setStudioLogoPreset(150)">
-                                                জাম্বো <span class="badge-val">150</span>
-                                            </button>
+                                    {{-- ২. হাইট (Height / উচ্চতা) --}}
+                                    <div class="mb-2 p-2 bg-white rounded-2 border">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <span class="small fw-bold text-dark">লোগোর উচ্চতা (Height):</span>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <div class="input-group input-group-sm" style="width: 105px;">
+                                                    <input type="number" name="logo_height" id="studioLogoHeightInput" class="form-control form-control-sm text-center font-monospace fw-bold" min="30" max="250" value="{{ $studioLogoHeight }}" oninput="updateStudioLogoHeight(this.value, false)">
+                                                    <span class="input-group-text px-1 font-monospace small">px</span>
+                                                </div>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-secondary py-0 px-1.5" onclick="adjustStudioLogoHeight(-5)">-5</button>
+                                                    <button type="button" class="btn btn-outline-secondary py-0 px-1.5" onclick="adjustStudioLogoHeight(5)">+5</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="small text-muted font-monospace" style="font-size: 10px;">30px</span>
+                                            <input type="range" id="studioLogoHeightSlider" class="form-range flex-grow-1" min="30" max="250" value="{{ $studioLogoHeight }}" oninput="updateStudioLogoHeight(this.value, false)">
+                                            <span class="small text-muted font-monospace" style="font-size: 10px;">250px</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- ৩. লোগো ফিট মোড (Fit Mode) --}}
+                                    <div class="row g-2 align-items-center mb-2">
+                                        <div class="col-sm-5">
+                                            <span class="text-muted small fw-semibold">ইমেজ ফিটিং ধরণ:</span>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <select name="logo_fit" id="studioLogoFitSelect" class="form-select form-select-sm" onchange="syncStudioLivePreview()">
+                                                <option value="contain" {{ $studioLogoFit === 'contain' ? 'selected' : '' }}>কনটেইন (অনুপাত ঠিক থাকবে)</option>
+                                                <option value="cover" {{ $studioLogoFit === 'cover' ? 'selected' : '' }}>কভার (ফ্রেম পূর্ণ করবে)</option>
+                                                <option value="fill" {{ $studioLogoFit === 'fill' ? 'selected' : '' }}>ফিল (টান টান)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- ৪. এক-ক্লিক সাইজ প্রিসেট --}}
+                                    <div class="pt-1.5 border-top">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
+                                            <span class="text-muted" style="font-size: 11px; font-weight: 600;">এক ক্লিকে প্রিসেট:</span>
+                                            <div class="logo-preset-bar m-0">
+                                                <button type="button" class="logo-preset-btn" onclick="setStudioDimensions(55, 55)">
+                                                    বর্গাকার <span class="badge-val">55x55</span>
+                                                </button>
+                                                <button type="button" class="logo-preset-btn" onclick="setStudioDimensions(75, 75)">
+                                                    স্বাভাবিক <span class="badge-val">75x75</span>
+                                                </button>
+                                                <button type="button" class="logo-preset-btn" onclick="setStudioDimensions(95, 95)">
+                                                    মাঝারি <span class="badge-val">95x95</span>
+                                                </button>
+                                                <button type="button" class="logo-preset-btn" onclick="setStudioDimensions(140, 70)">
+                                                    চওড়া <span class="badge-val">140x70</span>
+                                                </button>
+                                                <button type="button" class="logo-preset-btn" onclick="setStudioDimensions(180, 85)">
+                                                    বড় চওড়া <span class="badge-val">180x85</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -639,15 +690,15 @@
                     
                     {{-- লোগো প্রিভিউ --}}
                     <div class="prev-logo-wrapper" id="prevLogoWrapper">
-                        <div id="prevLogoContainer" class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: {{ $studioLogoSize }}px; height: {{ $studioLogoSize }}px; border-radius: {{ $studioLogoShape === 'circle' ? '50%' : ($studioLogoShape === 'rounded' ? '12px' : '0px') }}; border: {{ $studioLogoBorderWidth > 0 ? $studioLogoBorderWidth . 'px solid ' . $studioLogoBorderColor : 'none' }}; background-color: {{ $studioLogoBg === 'white' ? '#ffffff' : 'transparent' }}; transform: translate({{ $studioLogoOffsetX }}px, {{ $studioLogoOffsetY }}px); overflow: hidden; transition: all 0.15s ease; cursor: pointer;" title="লোগো সাইজ ও পজিশন পরিবর্তন করতে ক্লিক/হোভার করুন">
-                            <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" style="{{ $studioFormLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
-                            <div id="prevEmblemIcon" class="text-danger d-flex align-items-center justify-content-center" style="{{ $studioFormLogo ? 'display: none;' : 'display: flex;' }} width: 100%; height: 100%; font-size: {{ round($studioLogoSize * 0.55) }}px;">
+                        <div id="prevLogoContainer" class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: {{ $studioLogoWidth }}px; height: {{ $studioLogoHeight }}px; border-radius: {{ $studioLogoShape === 'circle' ? '50%' : ($studioLogoShape === 'rounded' ? '12px' : '0px') }}; border: {{ $studioLogoBorderWidth > 0 ? $studioLogoBorderWidth . 'px solid ' . $studioLogoBorderColor : 'none' }}; background-color: {{ $studioLogoBg === 'white' ? '#ffffff' : 'transparent' }}; transform: translate({{ $studioLogoOffsetX }}px, {{ $studioLogoOffsetY }}px); overflow: hidden; transition: all 0.15s ease; cursor: pointer;" title="লোগো সাইজ ও পজিশন পরিবর্তন করতে ক্লিক/হোভার করুন">
+                            <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} width: 100%; height: 100%; object-fit: {{ $studioLogoFit }};">
+                            <div id="prevEmblemIcon" class="text-danger align-items-center justify-content-center {{ $studioFormLogo ? 'd-none' : 'd-flex' }}" style="{{ $studioFormLogo ? 'display: none !important;' : 'display: flex !important;' }} width: 100%; height: 100%; font-size: {{ round(min($studioLogoWidth, $studioLogoHeight) * 0.55) }}px;">
                                 <i class="fa-solid {{ $studioEmblemIcon }}" id="prevEmblemIconTag"></i>
                             </div>
                         </div>
                         <div class="prev-logo-floating-toolbar" id="prevLogoFloatingToolbar">
-                            <button type="button" class="btn-prev-tool" title="সাইজ বড় করুন (+5px)" onclick="adjustStudioLogoSize(5)"><i class="fa-solid fa-plus"></i></button>
-                            <button type="button" class="btn-prev-tool" title="সাইজ ছোট করুন (-5px)" onclick="adjustStudioLogoSize(-5)"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" class="btn-prev-tool" title="প্রস্থ বাড়ান (+8px)" onclick="adjustStudioLogoWidth(8)"><i class="fa-solid fa-arrows-left-right me-0.5"></i>+W</button>
+                            <button type="button" class="btn-prev-tool" title="উচ্চতা বাড়ান (+8px)" onclick="adjustStudioLogoHeight(8)"><i class="fa-solid fa-arrows-up-down me-0.5"></i>+H</button>
                             <button type="button" class="btn-prev-tool" title="উপরে তুলুন (-2px)" onclick="nudgeStudioLogo(0, -2)"><i class="fa-solid fa-arrow-up"></i></button>
                             <button type="button" class="btn-prev-tool" title="নিচে নামান (+2px)" onclick="nudgeStudioLogo(0, 2)"><i class="fa-solid fa-arrow-down"></i></button>
                             <button type="button" class="btn-prev-tool" title="বামে সরান (-2px)" onclick="nudgeStudioLogo(-2, 0)"><i class="fa-solid fa-arrow-left"></i></button>
@@ -904,22 +955,97 @@ function updateStudioLogoSize(val) {
         }
     });
 
+let isAspectLocked = true;
+
+function toggleAspectRatioLock() {
+    isAspectLocked = !isAspectLocked;
+    const btn = document.getElementById('btnAspectLock');
+    const icon = document.getElementById('iconAspectLock');
+    const text = document.getElementById('textAspectLock');
+    const hidden = document.getElementById('studioAspectLocked');
+
+    if (hidden) hidden.value = isAspectLocked ? '1' : '0';
+    if (isAspectLocked) {
+        if (btn) btn.className = 'btn btn-xs btn-primary rounded-pill px-2 py-0.5 fw-semibold';
+        if (icon) icon.className = 'fa-solid fa-link me-1';
+        if (text) text.textContent = 'সমানুপাতিক (Locked)';
+    } else {
+        if (btn) btn.className = 'btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 fw-semibold';
+        if (icon) icon.className = 'fa-solid fa-link-slash me-1';
+        if (text) text.textContent = 'মুক্ত মাপ (Unlocked)';
+    }
+}
+
+function updateStudioLogoWidth(val, fromSync) {
+    const num = Math.max(30, Math.min(350, parseInt(val) || 75));
+    const slider = document.getElementById('studioLogoWidthSlider');
+    if (slider && parseInt(slider.value) !== num) slider.value = num;
+    const input = document.getElementById('studioLogoWidthInput');
+    if (input && parseInt(input.value) !== num) input.value = num;
+
+    const sizeInput = document.getElementById('studioLogoSizeInput');
+    if (sizeInput) sizeInput.value = num;
+
+    const badge = document.getElementById('studioBadgeLogoSize');
+    const hVal = parseInt(document.getElementById('studioLogoHeightInput')?.value) || num;
+    if (badge) badge.textContent = num + 'x' + hVal + 'px';
+
+    if (isAspectLocked && !fromSync) {
+        updateStudioLogoHeight(num, true);
+    }
+
     syncStudioLivePreview();
 }
 
-function adjustStudioLogoSize(delta) {
-    const slider = document.getElementById('studioLogoSizeSlider');
-    if (!slider) return;
-    const cur = parseInt(slider.value) || 70;
-    updateStudioLogoSize(cur + delta);
+function adjustStudioLogoWidth(delta) {
+    const cur = parseInt(document.getElementById('studioLogoWidthInput')?.value) || 75;
+    updateStudioLogoWidth(cur + delta, false);
 }
 
-function setStudioLogoSize(val) {
-    updateStudioLogoSize(val);
+function updateStudioLogoHeight(val, fromSync) {
+    const num = Math.max(30, Math.min(250, parseInt(val) || 75));
+    const slider = document.getElementById('studioLogoHeightSlider');
+    if (slider && parseInt(slider.value) !== num) slider.value = num;
+    const input = document.getElementById('studioLogoHeightInput');
+    if (input && parseInt(input.value) !== num) input.value = num;
+
+    const badge = document.getElementById('studioBadgeLogoSize');
+    const wVal = parseInt(document.getElementById('studioLogoWidthInput')?.value) || num;
+    if (badge) badge.textContent = wVal + 'x' + num + 'px';
+
+    if (isAspectLocked && !fromSync) {
+        updateStudioLogoWidth(num, true);
+    }
+
+    syncStudioLivePreview();
 }
 
-function setStudioLogoPreset(val) {
-    updateStudioLogoSize(val);
+function adjustStudioLogoHeight(delta) {
+    const cur = parseInt(document.getElementById('studioLogoHeightInput')?.value) || 75;
+    updateStudioLogoHeight(cur + delta, false);
+}
+
+function setStudioDimensions(w, h) {
+    const prevLock = isAspectLocked;
+    isAspectLocked = false;
+    updateStudioLogoWidth(w, true);
+    updateStudioLogoHeight(h, true);
+    isAspectLocked = (w === h);
+    const hidden = document.getElementById('studioAspectLocked');
+    if (hidden) hidden.value = isAspectLocked ? '1' : '0';
+    const btn = document.getElementById('btnAspectLock');
+    const icon = document.getElementById('iconAspectLock');
+    const text = document.getElementById('textAspectLock');
+    if (isAspectLocked) {
+        if (btn) btn.className = 'btn btn-xs btn-primary rounded-pill px-2 py-0.5 fw-semibold';
+        if (icon) icon.className = 'fa-solid fa-link me-1';
+        if (text) text.textContent = 'সমানুপাতিক (Locked)';
+    } else {
+        if (btn) btn.className = 'btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5 fw-semibold';
+        if (icon) icon.className = 'fa-solid fa-link-slash me-1';
+        if (text) text.textContent = 'মুক্ত মাপ (Unlocked)';
+    }
+    syncStudioLivePreview();
 }
 
 function setStudioLogoShape(shape, el) {
@@ -960,7 +1086,7 @@ function setStudioBorderWidth(bw) {
 }
 
 function updateStudioLogoOffsetX(val) {
-    const num = Math.max(-100, Math.min(100, parseInt(val) || 0));
+    const num = Math.max(-150, Math.min(150, parseInt(val) || 0));
     const disp = document.getElementById('dispStudioOffsetX');
     if (disp) disp.textContent = (num > 0 ? '+' : '') + num + 'px';
     const input = document.getElementById('studioLogoOffsetXInput');
@@ -971,7 +1097,7 @@ function updateStudioLogoOffsetX(val) {
 }
 
 function updateStudioLogoOffsetY(val) {
-    const num = Math.max(-100, Math.min(100, parseInt(val) || 0));
+    const num = Math.max(-150, Math.min(150, parseInt(val) || 0));
     const disp = document.getElementById('dispStudioOffsetY');
     if (disp) disp.textContent = (num > 0 ? '+' : '') + num + 'px';
     const input = document.getElementById('studioLogoOffsetYInput');
@@ -1004,13 +1130,29 @@ function handleStudioLogoFile(input) {
         const prevImg = document.getElementById('prevLogoImg');
         const prevIcon = document.getElementById('prevEmblemIcon');
 
-        if (thumb) { thumb.src = e.target.result; thumb.style.display = 'block'; }
-        if (placeholder) placeholder.style.display = 'none';
-        if (prevImg) { prevImg.src = e.target.result; prevImg.style.display = 'block'; }
-        if (prevIcon) prevIcon.style.display = 'none';
+        if (thumb) { 
+            thumb.src = e.target.result; 
+            thumb.style.setProperty('display', 'block', 'important'); 
+            thumb.classList.remove('d-none');
+        }
+        if (placeholder) { 
+            placeholder.style.setProperty('display', 'none', 'important'); 
+            placeholder.classList.add('d-none');
+        }
+        if (prevImg) { 
+            prevImg.src = e.target.result; 
+            prevImg.style.setProperty('display', 'block', 'important'); 
+            prevImg.classList.remove('d-none');
+        }
+        if (prevIcon) { 
+            prevIcon.style.setProperty('display', 'none', 'important'); 
+            prevIcon.classList.add('d-none');
+            prevIcon.classList.remove('d-flex');
+        }
 
         const rmInput = document.getElementById('studioRemoveLogoInput');
         if (rmInput) rmInput.value = '0';
+        syncStudioLivePreview();
     };
     reader.readAsDataURL(file);
 }
@@ -1023,12 +1165,28 @@ function removeStudioLogo() {
     const fileInput = document.getElementById('studioLogoFileInput');
     const rmInput = document.getElementById('studioRemoveLogoInput');
 
-    if (thumb) { thumb.src = ''; thumb.style.display = 'none'; }
-    if (placeholder) placeholder.style.display = 'block';
-    if (prevImg) { prevImg.src = ''; prevImg.style.display = 'none'; }
-    if (prevIcon) prevIcon.style.display = 'flex';
+    if (thumb) { 
+        thumb.src = ''; 
+        thumb.style.setProperty('display', 'none', 'important'); 
+        thumb.classList.add('d-none');
+    }
+    if (placeholder) { 
+        placeholder.style.setProperty('display', 'block', 'important'); 
+        placeholder.classList.remove('d-none');
+    }
+    if (prevImg) { 
+        prevImg.src = ''; 
+        prevImg.style.setProperty('display', 'none', 'important'); 
+        prevImg.classList.add('d-none');
+    }
+    if (prevIcon) { 
+        prevIcon.style.setProperty('display', 'flex', 'important'); 
+        prevIcon.classList.remove('d-none');
+        prevIcon.classList.add('d-flex');
+    }
     if (fileInput) fileInput.value = '';
     if (rmInput) rmInput.value = '1';
+    syncStudioLivePreview();
 }
 
 function syncStudioColor(sourceId, targetId) {
@@ -1080,8 +1238,10 @@ function syncStudioLivePreview() {
     paper.style.setProperty('--preview-bg-label', bgLabelCol);
     paper.style.setProperty('--preview-font', fontFam);
 
-    // 3. Logo Container
-    const logoSize = parseInt(document.getElementById('studioLogoSizeSlider')?.value) || 70;
+    // 3. Logo Container & Dimensions
+    const logoW = parseInt(document.getElementById('studioLogoWidthInput')?.value) || 75;
+    const logoH = parseInt(document.getElementById('studioLogoHeightInput')?.value) || 75;
+    const logoFit = document.getElementById('studioLogoFitSelect')?.value || 'contain';
     const logoShape = document.getElementById('studioLogoShapeInput')?.value || 'default';
     const logoBw = parseInt(document.getElementById('studioLogoBorderWidthInput')?.value) || 0;
     const logoBc = document.getElementById('studioLogoBorderColorInput')?.value || '#0f172a';
@@ -1092,17 +1252,43 @@ function syncStudioLivePreview() {
 
     const pLogoCont = document.getElementById('prevLogoContainer');
     if (pLogoCont) {
-        pLogoCont.style.width = logoSize + 'px';
-        pLogoCont.style.height = logoSize + 'px';
+        pLogoCont.style.width = logoW + 'px';
+        pLogoCont.style.height = logoH + 'px';
         pLogoCont.style.borderRadius = logoShape === 'circle' ? '50%' : (logoShape === 'rounded' ? '12px' : '0px');
         pLogoCont.style.border = logoBw > 0 ? `${logoBw}px solid ${logoBc}` : 'none';
         pLogoCont.style.backgroundColor = (logoBg === 'white' || logoBg === '#ffffff') ? '#ffffff' : 'transparent';
         pLogoCont.style.transform = `translate(${logoOffsetX}px, ${logoOffsetY}px)`;
     }
 
+    const pLogoImg = document.getElementById('prevLogoImg');
     const pIcon = document.getElementById('prevEmblemIcon');
     const pIconTag = document.getElementById('prevEmblemIconTag');
-    if (pIcon) pIcon.style.fontSize = Math.round(logoSize * 0.55) + 'px';
+
+    const isRemoved = document.getElementById('studioRemoveLogoInput')?.value === '1';
+    const hasImage = pLogoImg && pLogoImg.getAttribute('src') && pLogoImg.getAttribute('src').trim() !== '' && !isRemoved;
+
+    if (hasImage) {
+        pLogoImg.style.setProperty('display', 'block', 'important');
+        pLogoImg.style.objectFit = logoFit;
+        pLogoImg.classList.remove('d-none');
+        if (pIcon) {
+            pIcon.style.setProperty('display', 'none', 'important');
+            pIcon.classList.add('d-none');
+            pIcon.classList.remove('d-flex');
+        }
+    } else {
+        if (pLogoImg) {
+            pLogoImg.style.setProperty('display', 'none', 'important');
+            pLogoImg.classList.add('d-none');
+        }
+        if (pIcon) {
+            pIcon.style.setProperty('display', 'flex', 'important');
+            pIcon.classList.remove('d-none');
+            pIcon.classList.add('d-flex');
+            pIcon.style.fontSize = Math.round(Math.min(logoW, logoH) * 0.55) + 'px';
+        }
+    }
+
     if (pIconTag) pIconTag.className = 'fa-solid ' + emblemIcon;
 
     // 4. Notice Banner
