@@ -3117,55 +3117,78 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header py-3 px-4 bg-dark text-white">
                 <div class="d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-crop-simple text-primary fs-5"></i>
-                    <h6 class="modal-title fw-bold mb-0 text-white">ছবি সাইজ, পজিশন ও ক্রপ এডজাস্ট (Photo Adjustment)</h6>
+                    <i class="fa-solid fa-sliders text-primary fs-5"></i>
+                    <h6 class="modal-title fw-bold mb-0 text-white">ছবি সাইজ, পজিশন ও এডজাস্ট বার (Photo Adjust Tool)</h6>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-light">
                 <div class="row g-3">
                     {{-- Cropper Canvas Column --}}
-                    <div class="col-12 col-md-8">
-                        <div class="img-adjust-wrap p-2 text-center" style="min-height: 340px; max-height: 380px; background: #0f172a; border-radius: 10px;">
-                            <img id="participantCropperImage" src="" alt="Adjust Photo" style="max-width: 100%; max-height: 360px; display: block; margin: 0 auto;">
+                    <div class="col-12 col-md-7">
+                        <div class="img-adjust-wrap p-2 text-center shadow-sm" style="min-height: 320px; max-height: 340px; background: #0f172a; border-radius: 10px;">
+                            <img id="participantCropperImage" src="" alt="Adjust Photo" style="max-width: 100%; max-height: 320px; display: block; margin: 0 auto;">
                         </div>
 
-                        {{-- Cropper Control Buttons --}}
-                        <div class="d-flex justify-content-center flex-wrap gap-1.5 mt-3">
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.zoom(0.1)" title="Zoom In">
-                                <i class="fa-solid fa-magnifying-glass-plus me-1"></i> জুম ইন
-                            </button>
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.zoom(-0.1)" title="Zoom Out">
-                                <i class="fa-solid fa-magnifying-glass-minus me-1"></i> জুম আউট
-                            </button>
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.rotate(-90)" title="Rotate Left">
-                                <i class="fa-solid fa-rotate-left me-1"></i> বাঁয়ে
-                            </button>
-                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.rotate(90)" title="Rotate Right">
-                                <i class="fa-solid fa-rotate-right me-1"></i> ডানে
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.reset()" title="Reset">
+                        {{-- Quick Nudge & Direction Controls --}}
+                        <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
+                            <span class="small text-muted fw-bold me-1">পজিশন:</span>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-circle p-0" style="width: 28px; height: 28px;" onclick="if(window.participantCropper) window.participantCropper.move(0, -10)" title="Move Up"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-circle p-0" style="width: 28px; height: 28px;" onclick="if(window.participantCropper) window.participantCropper.move(0, 10)" title="Move Down"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-circle p-0" style="width: 28px; height: 28px;" onclick="if(window.participantCropper) window.participantCropper.move(-10, 0)" title="Move Left"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-circle p-0" style="width: 28px; height: 28px;" onclick="if(window.participantCropper) window.participantCropper.move(10, 0)" title="Move Right"><i class="fa-solid fa-arrow-right"></i></button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 ms-2" style="font-size: 11px;" onclick="resetCropperAdjustments()" title="Reset All">
                                 <i class="fa-solid fa-arrows-rotate me-1"></i> রিসেট
                             </button>
                         </div>
                     </div>
 
-                    {{-- Live Thumbnail Previews Column --}}
-                    <div class="col-12 col-md-4 text-center d-flex flex-column justify-content-center align-items-center">
-                        <div class="p-3 bg-white rounded-3 border w-100 shadow-sm">
-                            <span class="small fw-bold text-dark d-block mb-3">লাইভ আউটপুট প্রিভিউ</span>
+                    {{-- Slider Bars & Preview Column --}}
+                    <div class="col-12 col-md-5">
+                        <div class="p-3 bg-white rounded-3 border h-100 shadow-sm d-flex flex-column justify-content-between">
                             
-                            {{-- Circular Preview --}}
+                            {{-- 1. Zoom Slider Bar --}}
                             <div class="mb-3">
-                                <div class="mx-auto rounded-circle overflow-hidden border border-3 border-primary shadow-sm" style="width: 100px; height: 100px; background: #f8fafc;">
-                                    <div class="cropper-preview-circle overflow-hidden w-100 h-100"></div>
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label class="form-label small fw-bold text-dark mb-0">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-primary me-1"></i> ১. জুম বার (Zoom)
+                                    </label>
+                                    <span class="badge bg-primary-subtle text-primary font-monospace" id="cropperZoomBadge">100%</span>
                                 </div>
-                                <small class="text-muted d-block mt-1">বৃত্তাকার প্রিভিউ</small>
+                                <input type="range" class="form-range" id="cropperZoomSlider" min="0.2" max="3" step="0.05" value="1" oninput="handleCropperZoomInput(this.value)">
+                                <div class="d-flex justify-content-between mt-1">
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperZoom(0.5)">50%</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperZoom(1.0)">100%</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperZoom(1.5)">150%</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperZoom(2.0)">200%</button>
+                                </div>
                             </div>
 
-                            <p class="small text-muted mb-0" style="font-size: 11px;">
-                                মাউস দিয়ে টেনে ছবি পজিশন করুন এবং জুম বা রোটেট করে এডজাস্ট করুন।
-                            </p>
+                            {{-- 2. Rotate Slider Bar --}}
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <label class="form-label small fw-bold text-dark mb-0">
+                                        <i class="fa-solid fa-arrows-rotate text-warning me-1"></i> ২. ঘোরানোর বার (Rotate)
+                                    </label>
+                                    <span class="badge bg-warning-subtle text-dark font-monospace" id="cropperRotateBadge">0°</span>
+                                </div>
+                                <input type="range" class="form-range" id="cropperRotateSlider" min="-180" max="180" step="1" value="0" oninput="handleCropperRotateInput(this.value)">
+                                <div class="d-flex justify-content-between mt-1">
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperRotate(-90)">-90°</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperRotate(0)">0°</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperRotate(90)">+90°</button>
+                                    <button type="button" class="btn btn-light btn-sm py-0 px-1.5 border" style="font-size: 10px;" onclick="setCropperRotate(180)">180°</button>
+                                </div>
+                            </div>
+
+                            {{-- Circular Preview Area --}}
+                            <div class="text-center pt-2 border-top">
+                                <span class="small fw-bold text-muted d-block mb-2">লাইভ সার্কুলার প্রিভিউ</span>
+                                <div class="mx-auto rounded-circle overflow-hidden border border-3 border-primary shadow-sm" style="width: 95px; height: 95px; background: #f8fafc;">
+                                    <div class="cropper-preview-circle overflow-hidden w-100 h-100"></div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -3197,6 +3220,7 @@
     <script>
         let currentCropperPreviewId = null;
         let currentCropperRegId = null;
+        let initialCropperRatio = 1;
 
         function initParticipantPhotoAdjust(input, regId, previewId) {
             if (!input.files || !input.files[0]) return;
@@ -3236,6 +3260,17 @@
             imgEl.src = imageSrc;
             modal.show();
 
+            // Reset Sliders
+            const zoomSlider = document.getElementById('cropperZoomSlider');
+            const zoomBadge = document.getElementById('cropperZoomBadge');
+            const rotateSlider = document.getElementById('cropperRotateSlider');
+            const rotateBadge = document.getElementById('cropperRotateBadge');
+
+            if (zoomSlider) zoomSlider.value = 1;
+            if (zoomBadge) zoomBadge.textContent = '100%';
+            if (rotateSlider) rotateSlider.value = 0;
+            if (rotateBadge) rotateBadge.textContent = '0°';
+
             const onModalShown = function () {
                 modalEl.removeEventListener('shown.bs.modal', onModalShown);
                 if (window.participantCropper) {
@@ -3254,9 +3289,59 @@
                     cropBoxResizable: true,
                     toggleDragModeOnDblclick: false,
                     preview: '.cropper-preview-circle',
+                    zoom: function (e) {
+                        if (zoomSlider && zoomBadge) {
+                            const ratio = Math.round(e.detail.ratio * 100);
+                            zoomBadge.textContent = ratio + '%';
+                            zoomSlider.value = e.detail.ratio;
+                        }
+                    }
                 });
             };
             modalEl.addEventListener('shown.bs.modal', onModalShown);
+        }
+
+        function handleCropperZoomInput(val) {
+            if (!window.participantCropper) return;
+            const ratio = parseFloat(val);
+            window.participantCropper.zoomTo(ratio);
+            const badge = document.getElementById('cropperZoomBadge');
+            if (badge) badge.textContent = Math.round(ratio * 100) + '%';
+        }
+
+        function setCropperZoom(val) {
+            const slider = document.getElementById('cropperZoomSlider');
+            if (slider) slider.value = val;
+            handleCropperZoomInput(val);
+        }
+
+        function handleCropperRotateInput(val) {
+            if (!window.participantCropper) return;
+            const deg = parseInt(val, 10);
+            window.participantCropper.rotateTo(deg);
+            const badge = document.getElementById('cropperRotateBadge');
+            if (badge) badge.textContent = deg + '°';
+        }
+
+        function setCropperRotate(val) {
+            const slider = document.getElementById('cropperRotateSlider');
+            if (slider) slider.value = val;
+            handleCropperRotateInput(val);
+        }
+
+        function resetCropperAdjustments() {
+            if (window.participantCropper) {
+                window.participantCropper.reset();
+                const zoomSlider = document.getElementById('cropperZoomSlider');
+                const zoomBadge = document.getElementById('cropperZoomBadge');
+                const rotateSlider = document.getElementById('cropperRotateSlider');
+                const rotateBadge = document.getElementById('cropperRotateBadge');
+
+                if (zoomSlider) zoomSlider.value = 1;
+                if (zoomBadge) zoomBadge.textContent = '100%';
+                if (rotateSlider) rotateSlider.value = 0;
+                if (rotateBadge) rotateBadge.textContent = '0°';
+            }
         }
 
         function applyParticipantPhotoCrop() {
@@ -3288,8 +3373,12 @@
                 ? 'editPhotoPreview' + currentCropperRegId 
                 : 'tabEditPhotoPrev' + currentCropperRegId;
             const altEl = document.getElementById(altPreviewId);
-            if (altEl && altEl.tagName === 'IMG') {
-                altEl.src = croppedBase64;
+            if (altEl) {
+                if (altEl.tagName === 'IMG') {
+                    altEl.src = croppedBase64;
+                } else {
+                    altEl.outerHTML = `<img src="${croppedBase64}" id="${altPreviewId}" alt="Profile Photo" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">`;
+                }
             }
 
             // Set hidden cropped_photo_data inputs
