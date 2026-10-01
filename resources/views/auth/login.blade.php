@@ -947,11 +947,11 @@
 
             {{-- Method Switcher Tabs --}}
             <div class="d-flex align-items-center mb-3 border-bottom" style="gap: 6px;">
-                <button type="button" class="btn btn-sm login-method-tab active fw-bold" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:8px 16px; font-size:14.5px;">
+                <button type="button" class="btn btn-sm login-method-tab active fw-bold flex-fill text-center" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:9px 10px; font-size:14px; white-space:nowrap;">
                     <i class="fa-solid fa-key me-1"></i> Password
                 </button>
-                <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:8px 16px; font-size:14.5px;">
-                    <i class="fa-solid fa-mobile-screen-button me-1"></i> OTP / Set Password
+                <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold flex-fill text-center" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:9px 10px; font-size:14px; white-space:nowrap;">
+                    <i class="fa-solid fa-mobile-screen-button me-1"></i> OTP Login
                 </button>
             </div>
 
@@ -1033,15 +1033,15 @@
 
             {{-- 2. OTP Login & Set Password Sub-Panel --}}
             <div id="subPanelOtpLogin" class="d-none">
-                <div class="alert alert-info border-0 rounded-3 py-2.5 px-3 mb-3" style="background: #f0f9ff; font-size: 12px; line-height: 1.55; color: #0369a1; border-left: 3.5px solid #0284c7 !important;">
+                <div class="alert alert-info border-0 rounded-3 py-2.5 px-3 mb-3" style="background: #f0f9ff; font-size: 12.5px; line-height: 1.55; color: #0369a1; border-left: 3.5px solid #0284c7 !important;">
                     <i class="fa-solid fa-shield-halved me-1 text-primary"></i>
-                    <strong>ইভেন্ট ও পাঠাগার ইউজার:</strong> রেজিস্ট্রেশন করার পর পাসওয়ার্ড না থাকলে এখানে মোবাইল নম্বরে ওটিপি কোড নিয়ে নতুন পাসওয়ার্ড সেট ও সরাসরি সাইন ইন করুন।
+                    <strong>Event & Library Registrants:</strong> If you registered without a password, enter your mobile number here to receive an OTP, set your password, and sign in directly.
                 </div>
 
                 {{-- Step A: Send OTP --}}
                 <div id="otpStepSend">
                     <div class="form-group-item">
-                        <label class="form-label-custom" for="otpPhoneInput">আপনার মোবাইল নম্বর (Mobile Number) <span style="color: #c40000;">*</span></label>
+                        <label class="form-label-custom" for="otpPhoneInput">Mobile Phone Number <span style="color: #c40000;">*</span></label>
                         <div class="country-input-row">
                             <select class="country-select-dropdown" id="otpCountryCodeSelect" aria-label="Country code">
                                 <option value="+880" selected>BD +880</option>
@@ -1057,27 +1057,27 @@
 
                     <button type="button" class="btn-action-primary mt-3" id="btnSendLoginOtp" onclick="sendLoginOtpAction()">
                         <i class="fa-solid fa-paper-plane me-1"></i>
-                        <span>ওটিপি কোড পাঠান (Send OTP)</span>
+                        <span>Send OTP Code</span>
                     </button>
                 </div>
 
                 {{-- Step B: Verify OTP & Set Password --}}
                 <div id="otpStepVerifySet" class="d-none">
-                    <div class="p-2 mb-3 bg-light rounded border text-center" style="font-size: 12px;">
-                        <span class="text-muted">ওটিপি পাঠানো হয়েছে:</span>
+                    <div class="p-2.5 mb-3 bg-light rounded border text-center" style="font-size: 13px;">
+                        <span class="text-muted">OTP code sent to:</span>
                         <strong class="font-monospace text-dark d-block fs-6" id="otpTargetPhoneDisplay">+880 01XXXXXXXXX</strong>
-                        <a href="javascript:void(0)" onclick="resetOtpLoginStep()" class="small text-primary text-decoration-underline" style="font-size: 11px;">নাম্বার পরিবর্তন করুন</a>
+                        <a href="javascript:void(0)" onclick="resetOtpLoginStep()" class="small text-primary text-decoration-underline" style="font-size: 12px;">Change mobile number</a>
                     </div>
 
                     <div class="form-group-item">
-                        <label class="form-label-custom" for="otpVerificationCodeInput">৬ ডিজিটের ওটিপি কোড (OTP Code) <span style="color: #c40000;">*</span></label>
+                        <label class="form-label-custom" for="otpVerificationCodeInput">6-Digit OTP Code <span style="color: #c40000;">*</span></label>
                         <input type="text" id="otpVerificationCodeInput" class="input-text-custom font-monospace text-center fs-5 fw-bold letter-spacing-2" placeholder="• • • • • •" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
                     </div>
 
                     <div class="form-group-item">
-                        <label class="form-label-custom" for="otpNewPasswordInput">নতুন পাসওয়ার্ড (New Password) <span style="color: #c40000;">*</span></label>
+                        <label class="form-label-custom" for="otpNewPasswordInput">New Password <span style="color: #c40000;">*</span></label>
                         <div class="pwd-field-wrap">
-                            <input type="password" id="otpNewPasswordInput" class="input-text-custom" placeholder="কমপক্ষে ৬ বা ৮ অক্ষরের পাসওয়ার্ড" minlength="6" required>
+                            <input type="password" id="otpNewPasswordInput" class="input-text-custom" placeholder="Minimum 6 characters" minlength="6" required>
                             <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('otpNewPasswordInput', this)" title="Show password">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
@@ -1085,9 +1085,9 @@
                     </div>
 
                     <div class="form-group-item">
-                        <label class="form-label-custom" for="otpConfirmPasswordInput">পাসওয়ার্ড নিশ্চিত করুন (Confirm Password) <span style="color: #c40000;">*</span></label>
+                        <label class="form-label-custom" for="otpConfirmPasswordInput">Confirm Password <span style="color: #c40000;">*</span></label>
                         <div class="pwd-field-wrap">
-                            <input type="password" id="otpConfirmPasswordInput" class="input-text-custom" placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন" minlength="6" required>
+                            <input type="password" id="otpConfirmPasswordInput" class="input-text-custom" placeholder="Re-enter new password" minlength="6" required>
                             <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('otpConfirmPasswordInput', this)" title="Show password">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
@@ -1096,13 +1096,13 @@
 
                     <button type="button" class="btn-action-primary mt-3" id="btnVerifySetPassword" onclick="verifyOtpAndSetPasswordAction()">
                         <i class="fa-solid fa-circle-check me-1"></i>
-                        <span>যাচাই ও পাসওয়ার্ড সেট করে লগইন করুন</span>
+                        <span>Verify & Sign In</span>
                     </button>
 
-                    <div class="text-center mt-3" style="font-size: 12px;">
-                        <span class="text-muted" id="otpCountdownText">পুনরায় কোড পাঠানোর সময়: <span id="otpCountdownTimer" class="fw-bold font-monospace">60</span>s</span>
-                        <button type="button" id="btnResendLoginOtp" class="btn btn-link btn-sm text-primary p-0 d-none text-decoration-underline" onclick="sendLoginOtpAction(true)">
-                            পুনরায় ওটিপি পাঠান (Resend OTP)
+                    <div class="text-center mt-3" style="font-size: 13px;">
+                        <span class="text-muted" id="otpCountdownText">Resend code in: <span id="otpCountdownTimer" class="fw-bold font-monospace">60</span>s</span>
+                        <button type="button" id="btnResendLoginOtp" class="btn btn-link btn-sm text-primary p-0 d-none text-decoration-underline fw-semibold" onclick="sendLoginOtpAction(true)">
+                            Didn't get code? Resend OTP
                         </button>
                     </div>
                 </div>
@@ -2923,7 +2923,7 @@ async function sendLoginOtpAction(isResend = false) {
     const rawPhone = (isResend && currentOtpPhone) ? currentOtpPhone : (phoneInput ? phoneInput.value.trim() : '');
 
     if (!rawPhone) {
-        showAlert('দয়া করে সঠিক মোবাইল নম্বর লিখুন।');
+        showAlert('Please enter a valid mobile phone number.');
         phoneInput?.focus();
         return;
     }
@@ -2932,7 +2932,7 @@ async function sendLoginOtpAction(isResend = false) {
     const originalText = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> কোড পাঠানো হচ্ছে...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Sending code...';
     }
 
     try {
@@ -2958,10 +2958,10 @@ async function sendLoginOtpAction(isResend = false) {
             return;
         }
 
-        showAlert(data.message || 'ওটিপি কোড পাঠাতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        showAlert(data.message || 'Failed to send OTP code. Please try again.');
     } catch (err) {
         console.error('Send OTP error:', err);
-        showAlert('সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। আবার চেষ্টা করুন।');
+        showAlert('Unable to connect to server. Please try again.');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -2981,19 +2981,19 @@ async function verifyOtpAndSetPasswordAction() {
     const confirmPassword = confirmPwdInput?.value;
 
     if (!otpCode || otpCode.length < 4) {
-        showAlert('আপনার ফোনে পাঠানো ওটিপি কোডটি লিখুন।');
+        showAlert('Please enter the 6-digit OTP code sent to your phone.');
         codeInput?.focus();
         return;
     }
 
     if (!password || password.length < 6) {
-        showAlert('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+        showAlert('Password must be at least 6 characters long.');
         pwdInput?.focus();
         return;
     }
 
     if (password !== confirmPassword) {
-        showAlert('পাসওয়ার্ড দুটি মিলছে না! পুনরায় চেক করুন।');
+        showAlert('Passwords do not match! Please check again.');
         confirmPwdInput?.focus();
         return;
     }
@@ -3002,7 +3002,7 @@ async function verifyOtpAndSetPasswordAction() {
     const originalText = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই ও সাইন ইন হচ্ছে...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Verifying & Signing in...';
     }
 
     try {
@@ -3020,15 +3020,15 @@ async function verifyOtpAndSetPasswordAction() {
         const data = await res.json();
 
         if (res.ok && data.success) {
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> সফল হয়েছে!';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Success!';
             window.location.href = data.redirect_url || '{{ route("my-account") }}';
             return;
         }
 
-        showAlert(data.message || 'ওটিপি ভেরিফিকেশন ব্যর্থ হয়েছে। কোড পুনরায় চেক করুন।');
+        showAlert(data.message || 'OTP verification failed. Please check the code.');
     } catch (err) {
         console.error('Verify OTP error:', err);
-        showAlert('সার্ভার ত্রুটি হয়েছে। আবার চেষ্টা করুন।');
+        showAlert('Server error occurred. Please try again.');
     } finally {
         if (btn) {
             btn.disabled = false;

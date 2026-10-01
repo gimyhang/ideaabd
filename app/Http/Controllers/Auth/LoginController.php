@@ -640,7 +640,7 @@ class LoginController extends Controller
 
         $last10 = substr($cleanDigits, -10);
 
-        // Find user by phone, email, or username
+        // 1. Find user by phone or email
         $user = \App\Models\User::where('phone', $rawPhone)
             ->orWhere('phone', $cleanDigits)
             ->orWhere('phone', '0' . $last10)
@@ -650,19 +650,37 @@ class LoginController extends Controller
             ->orWhere('email', strtolower($rawPhone))
             ->first();
 
+        // 2. If user not found, check event registrations or create new user
         if (!$user) {
-            $msg = 'প্রদত্ত মোবাইল নম্বরে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে ইভেন্ট/পাঠাগার নিবন্ধন করুন।';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 404);
+            $eventReg = null;
+            if (class_exists(\App\Models\EventRegistration::class)) {
+                $eventReg = \App\Models\EventRegistration::where('phone', 'LIKE', '%' . $last10)->first();
             }
-            return back()->withInput()->with('error', $msg);
+
+            $userName = $eventReg?->name ?: ('User ' . $last10);
+            $userEmail = $eventReg?->email ?: ($cleanDigits . '@ideaabd.com');
+
+            // Auto-create or link user account for OTP authentication
+            $user = \App\Models\User::create([
+                'name'              => $userName,
+                'email'             => $userEmail,
+                'phone'             => '0' . $last10,
+                'password'          => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(24)),
+                'role'              => 'buyer',
+                'is_active'         => true,
+                'phone_verified_at' => null,
+            ]);
+
+            if ($eventReg) {
+                $eventReg->update(['user_id' => $user->id]);
+            }
         }
 
         $targetPhone = $user->phone ?: ('0' . $last10);
         $otpCode = (string) random_int(100000, 999999);
-        $expireAt = now()->addMinutes(5);
+        $expireAt = now()->addMinutes(10);
 
-        // Store OTP in Cache for 5 minutes
+        // Store OTP in Cache for 10 minutes
         $cachePayload = [
             'user_id'    => $user->id,
             'phone'      => $targetPhone,
@@ -675,16 +693,18 @@ class LoginController extends Controller
         \Illuminate\Support\Facades\Cache::put('login_otp_' . preg_replace('/[^\d]/', '', $targetPhone), $cachePayload, $expireAt);
         \Illuminate\Support\Facades\Cache::put('pwd_reset_otp_' . $last10, $cachePayload, $expireAt);
 
-        // Send SMS
+        // Send SMS via SmsService
+        $smsResult = null;
         try {
-            $smsText = "আইডিয়া প্রকাশন — আপনার লগইন ও পাসওয়ার্ড সেট করার ভেরিফিকেশন কোড (OTP): {$otpCode} (মেয়াদ ৫ মিনিট)। www.ideaabd.com";
-            \App\Services\SmsService::send($targetPhone, $smsText);
+            $smsText = "Idea Prokashon: Your login & password setup OTP code is {$otpCode} (Valid 10 mins). www.ideaabd.com";
+            $smsResult = \App\Services\SmsService::send($targetPhone, $smsText);
+            \Illuminate\Support\Facades\Log::info("Login OTP SMS Result for {$targetPhone}: " . json_encode($smsResult));
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning("Login OTP SMS Send Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning("Login OTP SMS Send Exception: " . $e->getMessage());
         }
 
         $maskedPhone = substr($targetPhone, 0, 3) . '****' . substr($targetPhone, -4);
-        $msg = "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে। কোড ও নতুন পাসওয়ার্ড দিয়ে সাবমিট করুন।";
+        $msg = "A 6-digit OTP verification code has been sent to {$maskedPhone}. Please enter the code and set your password.";
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -693,6 +713,7 @@ class LoginController extends Controller
                 'user_name'    => $user->name,
                 'message'      => $msg,
                 'countdown'    => 60,
+                'sms_status'   => $smsResult['response_code'] ?? null,
             ]);
         }
 
@@ -711,13 +732,13 @@ class LoginController extends Controller
             'password_confirmation' => ['required', 'string'],
             'redirect_to'           => ['nullable', 'string', 'max:500'],
         ], [
-            'phone.required'                 => 'মোবাইল নম্বর প্রদান করুন।',
-            'otp.required'                   => '৬ ডিজিটের ভেরিফিকেশন কোড লিখুন।',
-            'otp.digits'                     => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে হবে।',
-            'password.required'              => 'নতুন পাসওয়ার্ড লিখুন।',
-            'password.min'                   => 'পাসওয়ার্ড সর্বনিম্ন ৬ অক্ষরের হতে হবে।',
-            'password.confirmed'            => 'পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মেলেনি।',
-            'password_confirmation.required' => 'কনফার্ম পাসওয়ার্ড লিখুন।',
+            'phone.required'                 => 'Please provide your mobile phone number.',
+            'otp.required'                   => 'Please enter the 6-digit OTP code.',
+            'otp.digits'                     => 'OTP code must be exactly 6 digits.',
+            'password.required'              => 'Please enter your new password.',
+            'password.min'                   => 'Password must be at least 6 characters.',
+            'password.confirmed'            => 'Passwords do not match.',
+            'password_confirmation.required' => 'Please confirm your password.',
         ]);
 
         $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
@@ -738,7 +759,7 @@ class LoginController extends Controller
             ->first();
 
         if (!$user) {
-            $msg = 'ব্যবহারকারী অ্যাকাউন্ট পাওয়া যায়নি।';
+            $msg = 'User account not found. Please check your phone number.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
