@@ -127,45 +127,45 @@
             width: 100%;
             background: #ffffff;
             border: 1px solid #d5d9d9;
-            border-radius: 8px;
-            padding: 22px 26px 26px 26px;
-            box-shadow: 0 1px 2px rgba(15, 17, 17, 0.05);
+            border-radius: 12px;
+            padding: 26px 28px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
             margin-bottom: 18px;
             position: relative;
         }
 
         .auth-heading {
             font-size: 28px;
-            font-weight: 500;
+            font-weight: 600;
             line-height: 1.2;
             color: #0f1111;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             letter-spacing: -0.3px;
         }
 
         /* Form Controls */
         .form-group-item {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .form-label-custom {
             display: block;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 14.5px;
+            font-weight: 600;
             color: #0f1111;
-            margin-bottom: 3px;
-            line-height: 1.3;
+            margin-bottom: 6px;
+            line-height: 1.35;
         }
 
         .input-text-custom {
             width: 100%;
-            height: 33px;
+            height: 44px;
             background-color: #ffffff;
-            border: 1px solid #888c8c;
-            border-radius: 4px;
-            box-shadow: 0 1px 2px rgba(15, 17, 17, 0.15) inset;
-            font-size: 13.5px;
-            padding: 3px 8px;
+            border: 1.5px solid #94a3b8;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(15, 17, 17, 0.08) inset;
+            font-size: 15px;
+            padding: 8px 14px;
             color: #0f1111;
             outline: 0;
             transition: all 0.15s ease;
@@ -173,7 +173,7 @@
 
         .input-text-custom:focus {
             border-color: #0284c7;
-            box-shadow: 0 0 3px 2px rgba(14, 165, 233, 0.45), 0 1px 2px rgba(15, 17, 17, 0.15) inset;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25), 0 1px 2px rgba(15, 17, 17, 0.08) inset;
         }
 
         .pwd-field-wrap {
@@ -183,23 +183,23 @@
         }
 
         .pwd-field-wrap .input-text-custom {
-            padding-right: 36px;
+            padding-right: 42px;
         }
 
         .pwd-eye-btn {
             position: absolute;
-            right: 1px;
-            top: 1px;
-            bottom: 1px;
-            width: 32px;
+            right: 2px;
+            top: 2px;
+            bottom: 2px;
+            width: 38px;
             background: transparent;
             border: none;
-            color: #565959;
+            color: #64748b;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 15px;
         }
 
         .pwd-eye-btn:hover {
@@ -207,35 +207,35 @@
         }
 
         .custom-link {
-            color: #007185;
+            color: #0284c7;
             text-decoration: none;
-            font-size: 13px;
+            font-size: 13.5px;
             transition: color 0.15s;
         }
 
         .custom-link:hover {
-            color: #c7511f;
+            color: #0369a1;
             text-decoration: underline;
         }
 
         /* 3. Primary Button (Sky-Blue Action) */
         .btn-action-primary {
             width: 100%;
-            height: 33px;
+            height: 44px;
             background: linear-gradient(180deg, #0ea5e9 0%, #0284c7 100%);
             border: 1px solid #0369a1;
             border-radius: 8px;
-            box-shadow: 0 2px 5px 0 rgba(2, 132, 199, 0.3);
+            box-shadow: 0 2px 6px 0 rgba(2, 132, 199, 0.35);
             color: #ffffff;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: 15.5px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
             transition: all 0.15s ease;
-            margin-top: 16px;
+            margin-top: 18px;
             text-decoration: none;
         }
 
@@ -243,11 +243,14 @@
             background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
             border-color: #0284c7;
             color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px 0 rgba(2, 132, 199, 0.4);
         }
 
         .btn-action-primary:active:not(:disabled) {
             background: #0369a1;
             box-shadow: none;
+            transform: translateY(0);
         }
 
         .btn-action-primary:disabled {
@@ -257,29 +260,29 @@
 
         /* Legal Notice */
         .legal-notice-text {
-            font-size: 12px;
-            color: #0f1111;
-            line-height: 1.5;
-            margin-top: 14px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.6;
+            margin-top: 16px;
+            margin-bottom: 14px;
         }
 
         /* Keep me signed in */
         .checkbox-row-custom {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12.5px;
+            gap: 8px;
+            font-size: 14px;
             color: #0f1111;
             cursor: pointer;
             user-select: none;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .checkbox-row-custom input {
             accent-color: #0284c7;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
 
@@ -287,26 +290,26 @@
         .help-expander-toggle {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 13px;
-            color: #007185;
+            gap: 6px;
+            font-size: 13.5px;
+            color: #0284c7;
             cursor: pointer;
             text-decoration: none;
-            margin-top: 14px;
-            padding-top: 10px;
-            border-top: 1px solid #e7e7e7;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
             width: 100%;
         }
 
         .help-expander-toggle:hover {
-            color: #c7511f;
+            color: #0369a1;
             text-decoration: underline;
         }
 
         .help-expander-panel {
             display: none;
-            padding-top: 6px;
-            font-size: 12.5px;
+            padding-top: 8px;
+            font-size: 13.5px;
         }
 
         .help-expander-panel.show {
@@ -616,15 +619,16 @@
 
         .country-select-dropdown {
             width: 148px;
-            height: 33px;
-            border: 1px solid #888c8c;
-            border-radius: 4px;
+            height: 44px;
+            border: 1.5px solid #94a3b8;
+            border-radius: 8px;
             background: #ffffff;
-            font-size: 12px;
-            font-weight: 500;
-            padding: 0 6px;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 0 10px;
             outline: none;
             cursor: pointer;
+            transition: all 0.15s ease;
         }
 
         .country-select-dropdown:focus {
@@ -942,11 +946,11 @@
             <h1 class="auth-heading mb-2">Sign in</h1>
 
             {{-- Method Switcher Tabs --}}
-            <div class="d-flex align-items-center mb-3 border-bottom" style="gap: 4px;">
-                <button type="button" class="btn btn-sm login-method-tab active fw-bold" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:6px 12px; font-size:13px;">
+            <div class="d-flex align-items-center mb-3 border-bottom" style="gap: 6px;">
+                <button type="button" class="btn btn-sm login-method-tab active fw-bold" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:8px 16px; font-size:14.5px;">
                     <i class="fa-solid fa-key me-1"></i> Password
                 </button>
-                <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:6px 12px; font-size:13px;">
+                <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:8px 16px; font-size:14.5px;">
                     <i class="fa-solid fa-mobile-screen-button me-1"></i> OTP / Set Password
                 </button>
             </div>
@@ -977,9 +981,9 @@
                     </div>
 
                     <div class="form-group-item">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                             <label class="form-label-custom" for="loginPasswordInput" style="margin-bottom: 0;">Password</label>
-                            <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">Forgot your password?</a>
+                            <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 13.5px;">Forgot your password?</a>
                         </div>
                         <div class="pwd-field-wrap">
                             <input type="password" 
