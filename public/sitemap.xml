@@ -2,245 +2,287 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
     <loc>https://www.ideaabd.com/</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>always</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ideapatra</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.98</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ideapatra"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.98</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/blog</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.96</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/blog"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ebooks</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ebooks"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/authors"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/publishers</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.88</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/publishers"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/webzines</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.88</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/webzines"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/research</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/research"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/hub</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/hub"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/about</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/about"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/contact</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/contact"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/register/author</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/register/author"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/register/publisher</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/register/publisher"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/my-account</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.60</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/my-account"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=bestselling</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?sort=bestselling"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=newest</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?sort=newest"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?sort=popular</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?sort=popular"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?filter=boimela-2026</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?filter=boimela-2026"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?filter=mega-discount</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.93</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?filter=mega-discount"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books?category=pshcimbnger-bi</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/books?category=pshcimbnger-bi"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ebooks?filter=free</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ebooks?filter=free"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ebooks?filter=premium</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ebooks?filter=premium"/>
   </url>
   <url>
     <loc>https://www.ideaabd.com/ideapatra/write</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/ideapatra/write"/>
   </url>
   <url>
+    <loc>https://www.ideaabd.com/pathagar</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/pathagar"/>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/scholarship</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.94</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/scholarship"/>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/rsu-writer-2026</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/rsu-writer-2026"/>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/events/rangpursutsab</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.92</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/events/rangpursutsab"/>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/events/jshikkhabritti</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.92</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/events/jshikkhabritti"/>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/events/pathagar</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.92</priority>
+    <xhtml:link rel="alternate" hreflang="bn" href="https://www.ideaabd.com/events/pathagar"/>
+  </url>
+  <url>
     <loc>http://127.0.0.1:8000</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/books</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/books"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/ebooks</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/ebooks"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/authors</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/authors"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/publishers</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/publishers"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/blog</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/blog"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/webzines</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/webzines"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/research</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/research"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/hub</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/hub"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/about</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/about"/>
   </url>
   <url>
     <loc>http://127.0.0.1:8000/contact</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-10-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
     <xhtml:link rel="alternate" hreflang="bn" href="http://127.0.0.1:8000/contact"/>
@@ -571,118 +613,212 @@
     <priority>0.88</priority>
   </url>
   <url>
+    <loc>https://www.ideaabd.com/books?category=bibidh</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
     <loc>https://www.ideaabd.com/books/memoirs-and-life-philosophy</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_iDP2w4jb.svg</image:loc>
+      <image:title>স্মৃতিকথা ও জীবনদর্শন — শামসুর রাহমান</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/sociology-and-contemporary-philosophy</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_2Cp87RDs.svg</image:loc>
+      <image:title>সমাজবিজ্ঞান ও সমকালীন দর্শন — আহমেদ ছফা</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/bengal-political-history-constitution</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_PVTwgDMg.svg</image:loc>
+      <image:title>বাংলার রাজনৈতিক ইতিহাস ও সংবিধান — বেনামিবাউল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/islamic-social-system-ethics</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_Kdl6eNMJ.svg</image:loc>
+      <image:title>ইসলামি সমাজব্যবস্থা ও নৈতিক দর্শন — বেনামিবাউল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/padma-nodir-majhi</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_N2KRfyA7.svg</image:loc>
+      <image:title>পদ্মা নদীর মাঝি — মানিক বন্দ্যোপাধ্যায়</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/bonolata-sen-shreshtho-kobita</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_Yi76GY3X.svg</image:loc>
+      <image:title>বনলতা সেন ও শ্রেষ্ঠ কবিতা — জীবনানন্দ দাশ</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/deshe-bideshe</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_RJiWcLdB.svg</image:loc>
+      <image:title>দেশে বিদেশে — সৈয়দ মুজতবা আলী</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/translated-classics-collection</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_gjsPN4p0.svg</image:loc>
+      <image:title>অনুবাদ সাহিত্য সমগ্র — বেনামিবাউল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/idea-special-publication-2026</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_Eee0Y5no.svg</image:loc>
+      <image:title>আইডিয়া বিশেষ প্রকাশনা ২০২৬ (প্রি-অর্ডার) — আইডিয়া সম্পাদনা পর্ষদ</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/universe-mystery-modern-physics</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_45IbwEvl.svg</image:loc>
+      <image:title>মহাবিশ্বের রহস্য ও আধুনিক পদার্থবিজ্ঞান — মুহম্মদ জাফর ইকবাল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/digital-age-self-development-ebook</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_cidSKwqE.svg</image:loc>
+      <image:title>ডিজিটাল যুগে আত্মউন্নয়ন — বেনামিবাউল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/gabhi-bittanto</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_TsorudkS.svg</image:loc>
+      <image:title>গাভী বিত্তান্ত — আহমেদ ছফা</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/modhyahno-part-1-2</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_xJBtW5A3.svg</image:loc>
+      <image:title>মধ্যাহ্ন (১ম ও ২য় খণ্ড) — হুমায়ূন আহমেদ</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/dipu-number-two</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_e5gEHWxv.svg</image:loc>
+      <image:title>দীপু নাম্বার টু — মুহম্মদ জাফর ইকবাল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/megher-chhaya</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_GOnZwhyP.svg</image:loc>
+      <image:title>মেঘের ছায়া — বেনামিবাউল</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/agnibeena-classic</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_AeBh6MGW.svg</image:loc>
+      <image:title>অগ্নিবীণা — কাজী নজরুল ইসলাম</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/gitanjali-special-edition</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_rtNDImVj.svg</image:loc>
+      <image:title>গীতাঞ্জলি (বিশেষ সংস্করণ) — রবীন্দ্রনাথ ঠাকুর</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/aynagharer-rahasya</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527617_e07zT8Tj.svg</image:loc>
+      <image:title>আয়নাঘরের রহস্য — অমরেশ দত্ত</image:title>
+    </image:image>
   </url>
   <url>
     <loc>https://www.ideaabd.com/books/nadir-opar-akash</loc>
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.92</priority>
+    <image:image>
+      <image:loc>https://www.ideaabd.com/storage/books/covers/cover_1790527616_KMWP6giC.svg</image:loc>
+      <image:title>নদীর ওপার আকাশ — Shakil Masud</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/ddtau</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://www.ideaabd.com/authors/aidiya-prkashn</loc>
+    <lastmod>2026-09-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.82</priority>
   </url>
   <url>
     <loc>https://www.ideaabd.com/authors/manik-bandyopadhyay</loc>
@@ -793,18 +929,6 @@
     <priority>0.82</priority>
   </url>
   <url>
-    <loc>https://www.ideaabd.com/authors/omres-mitr-amaresh-mitra</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-  </url>
-  <url>
-    <loc>https://www.ideaabd.com/authors/benamibaul</loc>
-    <lastmod>2026-09-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.82</priority>
-  </url>
-  <url>
     <loc>https://www.ideaabd.com/authors/amaresh-datta</loc>
     <lastmod>2026-09-15</lastmod>
     <changefreq>weekly</changefreq>
@@ -908,7 +1032,7 @@
   </url>
   <url>
     <loc>https://www.ideaabd.com/ebooks/briksh-zkhn-ktha-ble</loc>
-    <lastmod>2026-09-15</lastmod>
+    <lastmod>2026-09-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>

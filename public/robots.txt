@@ -12,13 +12,17 @@ Allow: /authors/
 Allow: /publishers/
 Allow: /webzines/
 Allow: /research/
+Allow: /events/
+Allow: /pathagar
+Allow: /scholarship
+Allow: /rsu-writer-2026
 Allow: /images/
 Allow: /storage/
 Allow: /feed
 Allow: /sitemap.xml
 Allow: /ads.txt
 
-# Disallow Private & Admin Areas
+# Disallow Private & Sensitive Areas
 Disallow: /admin/
 Disallow: /seller/
 Disallow: /publisher/
@@ -30,6 +34,19 @@ Disallow: /login
 Disallow: /register/
 Disallow: /password/
 Disallow: /api/
+
+# Block Malicious Exploits & Hacking URL Probes
+Disallow: /*.env$
+Disallow: /*.sql$
+Disallow: /*.bak$
+Disallow: /*.git
+Disallow: /*wp-admin
+Disallow: /*wp-login
+Disallow: /*phpmyadmin
+Disallow: /*xmlrpc.php
+Disallow: /*?*select*
+Disallow: /*?*union*
+Disallow: /*?*concat*
 
 # Explicit Rules for Googlebot (Web, News & Images)
 User-agent: Googlebot

@@ -17,10 +17,11 @@ use Modules\Review\Models\Review;
 use Modules\Tag\Models\Tag;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\Models\Vendor;
+use Modules\SEO\Traits\HasSeo;
 
 class Ebook extends Model
 {
-    use HasFactory, Moderatable, SoftDeletes;
+    use HasFactory, Moderatable, SoftDeletes, HasSeo;
 
     /**
      * The table associated with the model.

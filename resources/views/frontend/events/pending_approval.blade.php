@@ -28,14 +28,20 @@
                         </div>
                     </div>
 
-                    <h5 class="fw-bold text-dark mb-2">আপনার তথ্য সফলভাবে জমা হয়েছে!</h5>
+                    <h5 class="fw-bold text-dark mb-2">আপনার আবেদনটি পর্যালোচনায় রয়েছে</h5>
                     
-                    <p class="text-dark small mb-3 fw-semibold" style="line-height: 1.7; font-size: 14px;">
-                        <i class="fa-solid fa-clock-rotate-left text-danger me-1"></i> ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগিন করে কার্ড নম্বর ও আমন্ত্রণ কার্ড ডাউনলোড করুন।
-                    </p>
+                    <div class="alert alert-info border-0 rounded-3 py-3 px-3 mb-3 text-start" style="background-color: #f0f9ff; border-left: 4px solid #0284c7 !important;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-bell text-primary fs-5 mt-0.5"></i>
+                            <div class="small" style="line-height: 1.6;">
+                                <strong class="text-dark d-block">অ্যাডমিন অনুমোদন সংক্রান্ত তথ্য:</strong>
+                                অ্যাডমিন অনুমোদন করার সাথে সাথেই আপনার মোবাইল নম্বরে (<strong>{{ $registration->phone }}</strong>) সরাসরি ডেলিগেট কার্ড/পাস ডাউনলোড লিংক মেসেজ (SMS) আকারে পাঠানো হবে। অনুমোদন না হওয়া পর্যন্ত কার্ড ডাউনলোড ও দেখা স্থগিত থাকবে।
+                            </div>
+                        </div>
+                    </div>
 
                     <p class="text-muted small mb-4" style="font-size: 12px; line-height: 1.55;">
-                        বিশেষ বিজ্ঞপ্তি: ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে
+                        বিশেষ বিজ্ঞপ্তি: ইভেন্ট আয়োজক “ফিরেদেখা” আইডিয়া প্রকাশন ইউআরএল ব্যবহারের অনুমতি দিয়েছেন সংগঠনকে সহযোগিতা করা ও লেখকগণের সুবিধার্থে।
                     </p>
 
                     {{-- Applicant Info Box --}}

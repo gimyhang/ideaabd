@@ -936,81 +936,174 @@
         @endif
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- PANEL 1: SIGN IN MODE (Standard Password Login)                       --}}
+        {{-- PANEL 1: SIGN IN MODE (Standard Password & Mobile OTP / Set Password)  --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
         <div class="auth-flow-panel {{ request('mode') === 'register' ? '' : 'active' }}" id="panelSignIn">
-            <h1 class="auth-heading">Sign in</h1>
+            <h1 class="auth-heading mb-2">Sign in</h1>
 
-            <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="on">
-                @csrf
-                <div style="display:none !important;" aria-hidden="true">
-                    <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
-                    <input type="checkbox" name="b_check_field" tabindex="-1" autocomplete="off">
-                </div>
-                <input type="hidden" name="g-recaptcha-response" id="gRecaptchaResponseInput" value="">
+            {{-- Method Switcher Tabs --}}
+            <div class="d-flex align-items-center mb-3 border-bottom" style="gap: 4px;">
+                <button type="button" class="btn btn-sm login-method-tab active fw-bold" id="tabPasswordLogin" onclick="switchLoginMethod('password')" style="border:none; background:none; color:#0284c7; border-bottom: 2.5px solid #0284c7; border-radius:0; padding:6px 12px; font-size:13px;">
+                    <i class="fa-solid fa-key me-1"></i> পাসওয়ার্ড দিয়ে
+                </button>
+                <button type="button" class="btn btn-sm login-method-tab text-muted fw-bold" id="tabOtpLogin" onclick="switchLoginMethod('otp')" style="border:none; background:none; border-bottom: 2.5px solid transparent; border-radius:0; padding:6px 12px; font-size:13px;">
+                    <i class="fa-solid fa-mobile-screen-button me-1"></i> ওটিপি / পাসওয়ার্ড সেট
+                </button>
+            </div>
 
-                <div class="form-group-item">
-                    <label class="form-label-custom" for="loginEmailInput">Email or mobile phone number</label>
-                    <input type="text" 
-                           name="email" 
-                           id="loginEmailInput" 
-                           class="input-text-custom" 
-                           value="{{ old('email') }}" 
-                           required 
-                           autofocus 
-                           autocomplete="username"
-                           autocorrect="off" 
-                           autocapitalize="none">
-                </div>
-
-                <div class="form-group-item">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
-                        <label class="form-label-custom" for="loginPasswordInput" style="margin-bottom: 0;">Password</label>
-                        <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">Forgot your password?</a>
+            {{-- 1. Standard Password Sign In Form --}}
+            <div id="subPanelPasswordLogin">
+                <form method="POST" action="{{ route('login') }}" id="loginForm" autocomplete="on">
+                    @csrf
+                    <div style="display:none !important;" aria-hidden="true">
+                        <input type="text" name="website_url_hp" tabindex="-1" autocomplete="off">
+                        <input type="checkbox" name="b_check_field" tabindex="-1" autocomplete="off">
                     </div>
-                    <div class="pwd-field-wrap">
-                        <input type="password" 
-                               name="password" 
-                               id="loginPasswordInput" 
+                    <input type="hidden" name="g-recaptcha-response" id="gRecaptchaResponseInput" value="">
+
+                    <div class="form-group-item">
+                        <label class="form-label-custom" for="loginEmailInput">Email or mobile phone number</label>
+                        <input type="text" 
+                               name="email" 
+                               id="loginEmailInput" 
                                class="input-text-custom" 
+                               value="{{ old('email') }}" 
                                required 
-                               autocomplete="current-password">
-                        <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('loginPasswordInput', this)" title="Show password" aria-label="Toggle password">
-                            <i class="fa-regular fa-eye"></i>
+                               autofocus 
+                               autocomplete="username"
+                               autocorrect="off" 
+                               autocapitalize="none"
+                               placeholder="e.g. 01712345678 or name@example.com">
+                    </div>
+
+                    <div class="form-group-item">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
+                            <label class="form-label-custom" for="loginPasswordInput" style="margin-bottom: 0;">Password</label>
+                            <a href="{{ route('password.request') }}" class="custom-link" style="font-size: 12px;">Forgot your password?</a>
+                        </div>
+                        <div class="pwd-field-wrap">
+                            <input type="password" 
+                                   name="password" 
+                                   id="loginPasswordInput" 
+                                   class="input-text-custom" 
+                                   required 
+                                   autocomplete="current-password">
+                            <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('loginPasswordInput', this)" title="Show password" aria-label="Toggle password">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Google reCAPTCHA v2 (Inline when required) --}}
+                    <div id="captchaWrapper" class="{{ ($requiresCaptcha ?? false) ? '' : 'd-none' }}" style="margin-bottom: 14px;">
+                        <div style="padding: 8px; border: 1px solid #d5d9d9; border-radius: 4px; text-align: center; background: #fcfcfc;">
+                            <div id="googleRecaptchaInlineWidget" style="display: inline-block;"></div>
+                            <div style="font-size: 11px; color: #555; margin-top: 4px;">Verification required</div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-action-primary" id="loginSubmitBtn">
+                        <span>Sign in</span>
+                    </button>
+
+                    <div class="legal-notice-text">
+                        By continuing, you agree to Idea's <a href="{{ route('terms') }}" class="custom-link">Conditions of Use</a> and <a href="{{ route('privacy') }}" class="custom-link">Privacy Notice</a>.
+                    </div>
+
+                    <label class="checkbox-row-custom" for="remember">
+                        <input type="checkbox" name="remember" id="remember" value="1" @checked(old('remember'))>
+                        <span>Keep me signed in</span>
+                    </label>
+
+                    <a href="javascript:void(0)" class="help-expander-toggle" onclick="toggleHelpExpander()">
+                        <i class="fa-solid fa-caret-right" id="helpExpanderIcon"></i>
+                        <span>Need help?</span>
+                    </a>
+                    <div class="help-expander-panel" id="helpExpanderPanel">
+                        <div style="margin-top: 4px;"><a href="javascript:void(0)" onclick="switchLoginMethod('otp')" class="custom-link fw-semibold">পাসওয়ার্ড নেই? ওটিপি দিয়ে সেট করুন</a></div>
+                        <div style="margin-top: 4px;"><a href="{{ route('password.request') }}" class="custom-link">Forgot your password?</a></div>
+                        <div style="margin-top: 4px;"><a href="{{ route('contact') }}" class="custom-link">Other issues with Sign-In</a></div>
+                    </div>
+                </form>
+            </div>
+
+            {{-- 2. OTP Login & Set Password Sub-Panel --}}
+            <div id="subPanelOtpLogin" class="d-none">
+                <div class="alert alert-info border-0 rounded-3 py-2.5 px-3 mb-3" style="background: #f0f9ff; font-size: 12px; line-height: 1.55; color: #0369a1; border-left: 3.5px solid #0284c7 !important;">
+                    <i class="fa-solid fa-shield-halved me-1 text-primary"></i>
+                    <strong>ইভেন্ট ও পাঠাগার ইউজার:</strong> রেজিস্ট্রেশন করার পর পাসওয়ার্ড না থাকলে এখানে মোবাইল নম্বরে ওটিপি কোড নিয়ে নতুন পাসওয়ার্ড সেট ও সরাসরি সাইন ইন করুন।
+                </div>
+
+                {{-- Step A: Send OTP --}}
+                <div id="otpStepSend">
+                    <div class="form-group-item">
+                        <label class="form-label-custom" for="otpPhoneInput">আপনার মোবাইল নম্বর (Mobile Number) <span style="color: #c40000;">*</span></label>
+                        <div class="country-input-row">
+                            <select class="country-select-dropdown" id="otpCountryCodeSelect" aria-label="Country code">
+                                <option value="+880" selected>BD +880</option>
+                                <option value="+1">US +1</option>
+                                <option value="+44">UK +44</option>
+                                <option value="+91">IN +91</option>
+                                <option value="+971">AE +971</option>
+                                <option value="+966">SA +966</option>
+                            </select>
+                            <input type="tel" id="otpPhoneInput" class="input-text-custom flex-grow-1 font-monospace" placeholder="01712345678" required>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-action-primary mt-3" id="btnSendLoginOtp" onclick="sendLoginOtpAction()">
+                        <i class="fa-solid fa-paper-plane me-1"></i>
+                        <span>ওটিপি কোড পাঠান (Send OTP)</span>
+                    </button>
+                </div>
+
+                {{-- Step B: Verify OTP & Set Password --}}
+                <div id="otpStepVerifySet" class="d-none">
+                    <div class="p-2 mb-3 bg-light rounded border text-center" style="font-size: 12px;">
+                        <span class="text-muted">ওটিপি পাঠানো হয়েছে:</span>
+                        <strong class="font-monospace text-dark d-block fs-6" id="otpTargetPhoneDisplay">+880 01XXXXXXXXX</strong>
+                        <a href="javascript:void(0)" onclick="resetOtpLoginStep()" class="small text-primary text-decoration-underline" style="font-size: 11px;">নাম্বার পরিবর্তন করুন</a>
+                    </div>
+
+                    <div class="form-group-item">
+                        <label class="form-label-custom" for="otpVerificationCodeInput">৬ ডিজিটের ওটিপি কোড (OTP Code) <span style="color: #c40000;">*</span></label>
+                        <input type="text" id="otpVerificationCodeInput" class="input-text-custom font-monospace text-center fs-5 fw-bold letter-spacing-2" placeholder="• • • • • •" maxlength="6" inputmode="numeric" autocomplete="one-time-code" required>
+                    </div>
+
+                    <div class="form-group-item">
+                        <label class="form-label-custom" for="otpNewPasswordInput">নতুন পাসওয়ার্ড (New Password) <span style="color: #c40000;">*</span></label>
+                        <div class="pwd-field-wrap">
+                            <input type="password" id="otpNewPasswordInput" class="input-text-custom" placeholder="কমপক্ষে ৬ বা ৮ অক্ষরের পাসওয়ার্ড" minlength="6" required>
+                            <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('otpNewPasswordInput', this)" title="Show password">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group-item">
+                        <label class="form-label-custom" for="otpConfirmPasswordInput">পাসওয়ার্ড নিশ্চিত করুন (Confirm Password) <span style="color: #c40000;">*</span></label>
+                        <div class="pwd-field-wrap">
+                            <input type="password" id="otpConfirmPasswordInput" class="input-text-custom" placeholder="পুনরায় নতুন পাসওয়ার্ড লিখুন" minlength="6" required>
+                            <button type="button" class="pwd-eye-btn" onclick="togglePasswordVisibility('otpConfirmPasswordInput', this)" title="Show password">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-action-primary mt-3" id="btnVerifySetPassword" onclick="verifyOtpAndSetPasswordAction()">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        <span>যাচাই ও পাসওয়ার্ড সেট করে লগইন করুন</span>
+                    </button>
+
+                    <div class="text-center mt-3" style="font-size: 12px;">
+                        <span class="text-muted" id="otpCountdownText">পুনরায় কোড পাঠানোর সময়: <span id="otpCountdownTimer" class="fw-bold font-monospace">60</span>s</span>
+                        <button type="button" id="btnResendLoginOtp" class="btn btn-link btn-sm text-primary p-0 d-none text-decoration-underline" onclick="sendLoginOtpAction(true)">
+                            পুনরায় ওটিপি পাঠান (Resend OTP)
                         </button>
                     </div>
                 </div>
 
-                {{-- Google reCAPTCHA v2 (Inline when required) --}}
-                <div id="captchaWrapper" class="{{ ($requiresCaptcha ?? false) ? '' : 'd-none' }}" style="margin-bottom: 14px;">
-                    <div style="padding: 8px; border: 1px solid #d5d9d9; border-radius: 4px; text-align: center; background: #fcfcfc;">
-                        <div id="googleRecaptchaInlineWidget" style="display: inline-block;"></div>
-                        <div style="font-size: 11px; color: #555; margin-top: 4px;">Verification required</div>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-action-primary" id="loginSubmitBtn">
-                    <span>Sign in</span>
-                </button>
-
-                <div class="legal-notice-text">
-                    By continuing, you agree to Idea's <a href="{{ route('terms') }}" class="custom-link">Conditions of Use</a> and <a href="{{ route('privacy') }}" class="custom-link">Privacy Notice</a>.
-                </div>
-
-                <label class="checkbox-row-custom" for="remember">
-                    <input type="checkbox" name="remember" id="remember" value="1" @checked(old('remember'))>
-                    <span>Keep me signed in</span>
-                </label>
-
-                <a href="javascript:void(0)" class="help-expander-toggle" onclick="toggleHelpExpander()">
-                    <i class="fa-solid fa-caret-right" id="helpExpanderIcon"></i>
-                    <span>Need help?</span>
-                </a>
-                <div class="help-expander-panel" id="helpExpanderPanel">
-                    <div style="margin-top: 4px;"><a href="{{ route('password.request') }}" class="custom-link">Forgot your password?</a></div>
-                    <div style="margin-top: 4px;"><a href="{{ route('contact') }}" class="custom-link">Other issues with Sign-In</a></div>
-                </div>
-            </form>
+            </div>
         </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
@@ -2742,6 +2835,205 @@ async function submitCompleteUnifiedRegistration() {
 }
 
 /**
+ * Switch Login Method between Password and OTP/Set Password
+ */
+let otpCountdownInterval = null;
+let currentOtpPhone = '';
+
+function switchLoginMethod(method) {
+    hideAlert();
+    const tabPassword = document.getElementById('tabPasswordLogin');
+    const tabOtp = document.getElementById('tabOtpLogin');
+    const panelPassword = document.getElementById('subPanelPasswordLogin');
+    const panelOtp = document.getElementById('subPanelOtpLogin');
+
+    if (method === 'otp') {
+        if (tabPassword) {
+            tabPassword.classList.remove('active');
+            tabPassword.style.color = '#565959';
+            tabPassword.style.borderBottomColor = 'transparent';
+        }
+        if (tabOtp) {
+            tabOtp.classList.add('active');
+            tabOtp.style.color = '#0284c7';
+            tabOtp.style.borderBottomColor = '#0284c7';
+        }
+        if (panelPassword) panelPassword.classList.add('d-none');
+        if (panelOtp) panelOtp.classList.remove('d-none');
+
+        // Pre-fill phone if entered in standard login
+        const loginEmailVal = document.getElementById('loginEmailInput')?.value?.trim();
+        const otpPhoneInput = document.getElementById('otpPhoneInput');
+        if (loginEmailVal && otpPhoneInput && /^01[0-9]{9}$/.test(loginEmailVal) && !otpPhoneInput.value) {
+            otpPhoneInput.value = loginEmailVal;
+        }
+    } else {
+        if (tabOtp) {
+            tabOtp.classList.remove('active');
+            tabOtp.style.color = '#565959';
+            tabOtp.style.borderBottomColor = 'transparent';
+        }
+        if (tabPassword) {
+            tabPassword.classList.add('active');
+            tabPassword.style.color = '#0284c7';
+            tabPassword.style.borderBottomColor = '#0284c7';
+        }
+        if (panelOtp) panelOtp.classList.add('d-none');
+        if (panelPassword) panelPassword.classList.remove('d-none');
+    }
+}
+
+function resetOtpLoginStep() {
+    hideAlert();
+    document.getElementById('otpStepSend')?.classList.remove('d-none');
+    document.getElementById('otpStepVerifySet')?.classList.add('d-none');
+    clearInterval(otpCountdownInterval);
+}
+
+function startOtpCountdown(seconds = 60) {
+    clearInterval(otpCountdownInterval);
+    let remaining = seconds;
+    const timerSpan = document.getElementById('otpCountdownTimer');
+    const countdownText = document.getElementById('otpCountdownText');
+    const resendBtn = document.getElementById('btnResendLoginOtp');
+
+    if (countdownText) countdownText.classList.remove('d-none');
+    if (resendBtn) resendBtn.classList.add('d-none');
+    if (timerSpan) timerSpan.textContent = remaining;
+
+    otpCountdownInterval = setInterval(() => {
+        remaining--;
+        if (timerSpan) timerSpan.textContent = remaining;
+        if (remaining <= 0) {
+            clearInterval(otpCountdownInterval);
+            if (countdownText) countdownText.classList.add('d-none');
+            if (resendBtn) resendBtn.classList.remove('d-none');
+        }
+    }, 1000);
+}
+
+async function sendLoginOtpAction(isResend = false) {
+    hideAlert();
+    const phoneInput = document.getElementById('otpPhoneInput');
+    const countryCode = document.getElementById('otpCountryCodeSelect')?.value || '+880';
+    const rawPhone = (isResend && currentOtpPhone) ? currentOtpPhone : (phoneInput ? phoneInput.value.trim() : '');
+
+    if (!rawPhone) {
+        showAlert('দয়া করে সঠিক মোবাইল নম্বর লিখুন।');
+        phoneInput?.focus();
+        return;
+    }
+
+    const btn = isResend ? document.getElementById('btnResendLoginOtp') : document.getElementById('btnSendLoginOtp');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> কোড পাঠানো হচ্ছে...';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('phone', rawPhone);
+        formData.append('country_code', countryCode);
+
+        const res = await fetchWithCsrfRetry('{{ route("login.otp.send") }}', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            currentOtpPhone = data.phone || rawPhone;
+            document.getElementById('otpStepSend')?.classList.add('d-none');
+            document.getElementById('otpStepVerifySet')?.classList.remove('d-none');
+            const targetDisplay = document.getElementById('otpTargetPhoneDisplay');
+            if (targetDisplay) targetDisplay.textContent = currentOtpPhone;
+            startOtpCountdown(60);
+            setTimeout(() => document.getElementById('otpVerificationCodeInput')?.focus(), 200);
+            return;
+        }
+
+        showAlert(data.message || 'ওটিপি কোড পাঠাতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+    } catch (err) {
+        console.error('Send OTP error:', err);
+        showAlert('সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। আবার চেষ্টা করুন।');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+}
+
+async function verifyOtpAndSetPasswordAction() {
+    hideAlert();
+    const codeInput = document.getElementById('otpVerificationCodeInput');
+    const pwdInput = document.getElementById('otpNewPasswordInput');
+    const confirmPwdInput = document.getElementById('otpConfirmPasswordInput');
+
+    const otpCode = codeInput?.value?.trim();
+    const password = pwdInput?.value;
+    const confirmPassword = confirmPwdInput?.value;
+
+    if (!otpCode || otpCode.length < 4) {
+        showAlert('আপনার ফোনে পাঠানো ওটিপি কোডটি লিখুন।');
+        codeInput?.focus();
+        return;
+    }
+
+    if (!password || password.length < 6) {
+        showAlert('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+        pwdInput?.focus();
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('পাসওয়ার্ড দুটি মিলছে না! পুনরায় চেক করুন।');
+        confirmPwdInput?.focus();
+        return;
+    }
+
+    const btn = document.getElementById('btnVerifySetPassword');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই ও সাইন ইন হচ্ছে...';
+    }
+
+    try {
+        const formData = new FormData();
+        formData.append('phone', currentOtpPhone);
+        formData.append('otp', otpCode);
+        formData.append('password', password);
+        formData.append('password_confirmation', confirmPassword);
+
+        const res = await fetchWithCsrfRetry('{{ route("login.otp.verify-set-password") }}', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> সফল হয়েছে!';
+            window.location.href = data.redirect_url || '{{ route("my-account") }}';
+            return;
+        }
+
+        showAlert(data.message || 'ওটিপি ভেরিফিকেশন ব্যর্থ হয়েছে। কোড পুনরায় চেক করুন।');
+    } catch (err) {
+        console.error('Verify OTP error:', err);
+        showAlert('সার্ভার ত্রুটি হয়েছে। আবার চেষ্টা করুন।');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+}
+
+/**
  * Standard Sign-in AJAX Form Handling
  */
 document.addEventListener('DOMContentLoaded', function() {
@@ -2752,6 +3044,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const initialMode = urlParams.get('mode');
     const initialCategory = urlParams.get('category') || urlParams.get('role');
+    const initialTab = urlParams.get('tab');
+
+    if (initialTab === 'otp') {
+        switchLoginMethod('otp');
+    }
     if (initialCategory) {
         regData.category = initialCategory;
     }
@@ -2815,6 +3112,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Error response
                 const msg = data.message || 'We cannot find an account with that email/phone or password was incorrect.';
                 showAlert(msg);
+
+                // If user doesn't have custom password or requested OTP flow
+                if (data.requires_otp_password_setup) {
+                    setTimeout(() => {
+                        switchLoginMethod('otp');
+                    }, 1200);
+                }
 
                 if (data.show_captcha) {
                     const captchaWrapper = document.getElementById('captchaWrapper');

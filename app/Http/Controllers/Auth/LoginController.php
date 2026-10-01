@@ -576,17 +576,19 @@ class LoginController extends Controller
         }
 
         $firstCandidate = isset($candidates) ? $candidates->first() : null;
-        $isUnverifiedAccount = $firstCandidate && (empty($firstCandidate->password) || empty($firstCandidate->phone_verified_at));
+        $isUnverifiedAccount = $firstCandidate && (empty($firstCandidate->password) || empty($firstCandidate->phone_verified_at) || (isset($firstCandidate->reg_data['has_custom_password']) && !$firstCandidate->reg_data['has_custom_password']));
 
         if ($isAjax) {
-            if ($isUnverifiedAccount) {
+            if ($firstCandidate) {
                 return response()->json([
                     'success'          => false,
                     'requires_otp'     => true,
-                    'is_unverified'    => true,
+                    'is_unverified'    => (bool) $isUnverifiedAccount,
                     'phone'            => $firstCandidate->phone,
                     'name'             => $firstCandidate->name,
-                    'message'          => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। ওটিপি দিয়ে ভেরিফাই করে নতুন পাসওয়ার্ড সেট করুন।',
+                    'message'          => $isUnverifiedAccount
+                        ? 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। ওটিপি (OTP) দিয়ে ভেরিফাই করে নতুন পাসওয়ার্ড সেট করুন।'
+                        : ($failResult['message'] ?? 'পাসওয়ার্ড সঠিক নয়। পাসওয়ার্ড ভুলে গেলে ওটিপি দিয়ে নতুন পাসওয়ার্ড সেট করুন।'),
                 ], 422);
             }
 
@@ -603,13 +605,209 @@ class LoginController extends Controller
 
         if ($isUnverifiedAccount) {
             throw ValidationException::withMessages([
-                'email' => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। অনুগ্রহ করে ওটিপি দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন।',
+                'email' => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট করা হয়নি। অনুগ্রহ করে ওটিপি (OTP) দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন।',
             ]);
         }
 
         throw ValidationException::withMessages([
             'email' => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
         ]);
+    }
+
+    /**
+     * Send 6-digit OTP code to user's mobile for Password Setup / OTP Login.
+     */
+    public function sendLoginOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => ['required', 'string', 'max:50'],
+        ], [
+            'phone.required' => 'আপনার নিবন্ধিত মোবাইল নম্বর দিন।',
+        ]);
+
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        $rawPhone = trim(str_replace($bn, $en, (string) $request->input('phone')));
+        $cleanDigits = preg_replace('/[^\d]/', '', $rawPhone);
+
+        if (strlen($cleanDigits) < 8) {
+            $msg = 'সঠিক মোবাইল নম্বর প্রদান করুন।';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        $last10 = substr($cleanDigits, -10);
+
+        // Find user by phone, email, or username
+        $user = \App\Models\User::where('phone', $rawPhone)
+            ->orWhere('phone', $cleanDigits)
+            ->orWhere('phone', '0' . $last10)
+            ->orWhere('phone', '+880' . $last10)
+            ->orWhere('phone', '880' . $last10)
+            ->orWhere('phone', 'LIKE', '%' . $last10)
+            ->orWhere('email', strtolower($rawPhone))
+            ->first();
+
+        if (!$user) {
+            $msg = 'প্রদত্ত মোবাইল নম্বরে কোনো অ্যাকাউন্ট পাওয়া যায়নি। অনুগ্রহ করে ইভেন্ট/পাঠাগার নিবন্ধন করুন।';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 404);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        $targetPhone = $user->phone ?: ('0' . $last10);
+        $otpCode = (string) random_int(100000, 999999);
+        $expireAt = now()->addMinutes(5);
+
+        // Store OTP in Cache for 5 minutes
+        $cachePayload = [
+            'user_id'    => $user->id,
+            'phone'      => $targetPhone,
+            'otp'        => $otpCode,
+            'expires_at' => $expireAt->timestamp,
+        ];
+
+        \Illuminate\Support\Facades\Cache::put('login_otp_' . $user->id, $cachePayload, $expireAt);
+        \Illuminate\Support\Facades\Cache::put('login_otp_' . $last10, $cachePayload, $expireAt);
+        \Illuminate\Support\Facades\Cache::put('login_otp_' . preg_replace('/[^\d]/', '', $targetPhone), $cachePayload, $expireAt);
+        \Illuminate\Support\Facades\Cache::put('pwd_reset_otp_' . $last10, $cachePayload, $expireAt);
+
+        // Send SMS
+        try {
+            $smsText = "আইডিয়া প্রকাশন — আপনার লগইন ও পাসওয়ার্ড সেট করার ভেরিফিকেশন কোড (OTP): {$otpCode} (মেয়াদ ৫ মিনিট)। www.ideaabd.com";
+            \App\Services\SmsService::send($targetPhone, $smsText);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Login OTP SMS Send Error: " . $e->getMessage());
+        }
+
+        $maskedPhone = substr($targetPhone, 0, 3) . '****' . substr($targetPhone, -4);
+        $msg = "আপনার মোবাইল নম্বর ({$maskedPhone})-এ ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে। কোড ও নতুন পাসওয়ার্ড দিয়ে সাবমিট করুন।";
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'      => true,
+                'phone'        => $targetPhone,
+                'user_name'    => $user->name,
+                'message'      => $msg,
+                'countdown'    => 60,
+            ]);
+        }
+
+        return back()->with('status', $msg);
+    }
+
+    /**
+     * Verify OTP and Set Permanent Password with Immediate Auto-Login.
+     */
+    public function verifyOtpAndSetPassword(Request $request)
+    {
+        $request->validate([
+            'phone'                 => ['required', 'string'],
+            'otp'                   => ['required', 'string', 'digits:6'],
+            'password'              => ['required', 'string', 'min:6', 'max:64', 'confirmed'],
+            'password_confirmation' => ['required', 'string'],
+            'redirect_to'           => ['nullable', 'string', 'max:500'],
+        ], [
+            'phone.required'                 => 'মোবাইল নম্বর প্রদান করুন।',
+            'otp.required'                   => '৬ ডিজিটের ভেরিফিকেশন কোড লিখুন।',
+            'otp.digits'                     => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে হবে।',
+            'password.required'              => 'নতুন পাসওয়ার্ড লিখুন।',
+            'password.min'                   => 'পাসওয়ার্ড সর্বনিম্ন ৬ অক্ষরের হতে হবে।',
+            'password.confirmed'            => 'পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মেলেনি।',
+            'password_confirmation.required' => 'কনফার্ম পাসওয়ার্ড লিখুন।',
+        ]);
+
+        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+        $en = ['0','1','2','3','4','5','6','7','8','9'];
+        $rawPhone = trim(str_replace($bn, $en, (string) $request->input('phone')));
+        $cleanDigits = preg_replace('/[^\d]/', '', $rawPhone);
+        $last10 = substr($cleanDigits, -10);
+        $otp = trim(str_replace($bn, $en, (string) $request->input('otp')));
+
+        // Find candidate user
+        $user = \App\Models\User::where('phone', $rawPhone)
+            ->orWhere('phone', $cleanDigits)
+            ->orWhere('phone', '0' . $last10)
+            ->orWhere('phone', '+880' . $last10)
+            ->orWhere('phone', '880' . $last10)
+            ->orWhere('phone', 'LIKE', '%' . $last10)
+            ->orWhere('email', strtolower($rawPhone))
+            ->first();
+
+        if (!$user) {
+            $msg = 'ব্যবহারকারী অ্যাকাউন্ট পাওয়া যায়নি।';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        // Verify OTP against cache
+        $cached1 = \Illuminate\Support\Facades\Cache::get('login_otp_' . $user->id);
+        $cached2 = \Illuminate\Support\Facades\Cache::get('login_otp_' . $last10);
+        $cached3 = \Illuminate\Support\Facades\Cache::get('login_otp_' . preg_replace('/[^\d]/', '', (string)$user->phone));
+        $cached4 = \Illuminate\Support\Facades\Cache::get('pwd_reset_otp_' . $last10);
+
+        $matchedPayload = null;
+        foreach ([$cached1, $cached2, $cached3, $cached4] as $cand) {
+            if ($cand && is_array($cand) && isset($cand['otp']) && (string)$cand['otp'] === $otp) {
+                if (!isset($cand['expires_at']) || now()->timestamp <= $cand['expires_at']) {
+                    $matchedPayload = $cand;
+                    break;
+                }
+            }
+        }
+
+        if (!$matchedPayload) {
+            $msg = 'ভুল অথবা মেয়াদোত্তীর্ণ ওটিপি (OTP) কোড। অনুগ্রহ করে নতুন কোড নিন।';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return back()->withInput()->with('error', $msg);
+        }
+
+        // Update password and mark verified
+        $regData = is_array($user->reg_data) ? $user->reg_data : [];
+        $regData['has_custom_password'] = true;
+        $regData['password_set_at'] = now()->toDateTimeString();
+
+        $user->update([
+            'password'          => \Illuminate\Support\Facades\Hash::make($request->input('password')),
+            'phone_verified_at' => $user->phone_verified_at ?: now(),
+            'reg_data'          => $regData,
+            'is_active'         => true,
+        ]);
+
+        // Clear OTP caches
+        \Illuminate\Support\Facades\Cache::forget('login_otp_' . $user->id);
+        \Illuminate\Support\Facades\Cache::forget('login_otp_' . $last10);
+        \Illuminate\Support\Facades\Cache::forget('login_otp_' . preg_replace('/[^\d]/', '', (string)$user->phone));
+        \Illuminate\Support\Facades\Cache::forget('pwd_reset_otp_' . $last10);
+
+        // Auto Log In
+        \Illuminate\Support\Facades\Auth::login($user, true);
+        $request->session()->regenerate();
+
+        $targetUrl = $request->input('redirect_to') ?: ($user->isAdmin() ? route('admin.dashboard') : route('home'));
+        $msg = 'অভিনন্দন! আপনার পাসওয়ার্ড সফলভাবে সেট হয়েছে এবং সাইন ইন সম্পন্ন হয়েছে।';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => $msg,
+                'redirect' => $targetUrl,
+                'user'     => [
+                    'id'    => $user->id,
+                    'name'  => $user->name,
+                    'phone' => $user->phone,
+                ],
+            ]);
+        }
+
+        return redirect()->to($targetUrl)->with('success', $msg);
     }
 
     public function logout(Request $request)
@@ -629,14 +827,16 @@ class LoginController extends Controller
             // Ignore session invalidation exceptions
         }
 
+        $redirectTo = $request->input('redirect_to') ?: url('/');
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success'  => true,
                 'message'  => 'Logged out successfully.',
-                'redirect' => url('/'),
+                'redirect' => $redirectTo,
             ]);
         }
 
-        return redirect('/')->with('success', 'Logged out successfully.');
+        return redirect($redirectTo)->with('success', 'সফলভাবে লগআউট সম্পন্ন হয়েছে।');
     }
 }

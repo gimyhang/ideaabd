@@ -293,11 +293,12 @@ class PublicEventRegistrationController extends Controller
                         'phone_verified_at' => now(),
                         'email_verified_at' => $email ? now() : null,
                         'reg_data'          => [
-                            'source'         => 'event_application',
-                            'country_code'   => $countryCode,
-                            'campaign_slug'  => $campaign->slug,
-                            'district'       => $validated['district'] ?? ($request->input('permanent_district') ?: $request->input('present_district')),
-                            'institution'    => $validated['institution_or_org'] ?? $request->input('college_name'),
+                            'source'              => 'event_application',
+                            'country_code'        => $countryCode,
+                            'campaign_slug'       => $campaign->slug,
+                            'district'            => $validated['district'] ?? ($request->input('permanent_district') ?: $request->input('present_district')),
+                            'institution'         => $validated['institution_or_org'] ?? $request->input('college_name'),
+                            'has_custom_password' => !empty($validated['password']),
                         ],
                     ]);
                 }
@@ -445,15 +446,19 @@ class PublicEventRegistrationController extends Controller
             'ip_address'           => $request->ip(),
         ]);
 
-        // Confirmation SMS with Direct Card Link
+        // Confirmation SMS with Direct Card Link (Admin Approval required if applicable)
         try {
             $downloadUrl = route('event.registration.print', $regNumber);
             if ($isLibrary) {
-                $smsText = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন সফল হয়েছে! Reg No: #{$regNumber}। স্লিপ ডাউনলোড: {$downloadUrl} । www.ideaabd.com";
+                if ($requiresApproval) {
+                    $smsText = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন সফলভাবে জমা হয়েছে! Reg No: #{$regNumber}। এডমিন অনুমোদন দিলে আপনাকে মেসেজে চূড়ান্ত স্লিপের লিংক পাঠানো হবে। www.ideaabd.com";
+                } else {
+                    $smsText = "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন সফল হয়েছে! Reg No: #{$regNumber}। স্লিপ ডাউনলোড: {$downloadUrl} । www.ideaabd.com";
+                }
             } elseif ($requiresApproval) {
-                $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার তথ্য জমা হয়েছে (Reg: #{$regNumber})। কার্ড দেখুন ও ডাউনলোড: {$downloadUrl} । ২৪ ঘণ্টা পর মোবাইল নম্বর দিয়ে লগইন করে চূড়ান্ত কার্ড ডাউনলোড করুন। www.ideaabd.com";
+                $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার তথ্য সফলভাবে জমা হয়েছে (Reg: #{$regNumber})। এডমিন অনুমোদন দিলে আপনাকে মেসেজে কার্ডের লিংক পাঠানো হবে। www.ideaabd.com";
             } else {
-                $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার আবেদন সফল হয়েছে! Reg No: #{$regNumber}। ডাউনলোড লিংক: {$downloadUrl} । www.ideaabd.com";
+                $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার আবেদন সফল হয়েছে! Reg No: #{$regNumber}। কার্ড ডাউনলোড লিংক: {$downloadUrl} । www.ideaabd.com";
             }
             \App\Services\SmsService::send($localPhone, $smsText);
         } catch (\Throwable $e) {
@@ -485,9 +490,9 @@ class PublicEventRegistrationController extends Controller
                     ->with('success', $successNotice);
             }
         } elseif ($isWriter) {
-            $successNotice = 'ধন্যবাদ! রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার অংশগ্রহণ নিশ্চিত হয়েছে।';
+            $successNotice = 'ধন্যবাদ! রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার তথ্য জমা হয়েছে। এডমিন অনুমোদন দিলে কার্ড ডাউনলোড করতে পারবেন।';
         } else {
-            $successNotice = 'ধন্যবাদ! আপনার নিবন্ধন সফলভাবে সম্পন্ন হয়েছে।';
+            $successNotice = 'ধন্যবাদ! আপনার আবেদন সফলভাবে জমা হয়েছে।';
         }
 
         return redirect()->route('event.success', $campaign->slug)
@@ -638,6 +643,12 @@ class PublicEventRegistrationController extends Controller
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
         $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
 
+        // Check Admin Approval for Event Cards & Library passes
+        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        if (!$isApproved && !$isScholarship) {
+            return view('frontend.events.pending_approval', compact('registration', 'campaign'));
+        }
+
         if ($isLibrary) {
             $viewName = 'frontend.events.library_form_print';
         } elseif ($isScholarship) {
@@ -665,6 +676,13 @@ class PublicEventRegistrationController extends Controller
         $campaign = $registration->campaign;
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
         $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
+
+        // Check Admin Approval for Event Cards
+        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        if (!$isApproved && !$isScholarship) {
+            return redirect()->route('event.registration.print', $registration->registration_number)
+                ->with('error', 'এডমিন এপ্রুভাল ছাড়া ইভেন্ট কার্ড ডাউনলোড বা দেখা যাবে না। এডমিন অনুমোদন দিলে আপনাকে মেসেজে কার্ডের লিংক পাঠানো হবে।');
+        }
         
         if (!$isScholarship && !$isLibrary) {
             return redirect()->route('event.registration.print', [
@@ -761,6 +779,14 @@ class PublicEventRegistrationController extends Controller
         $registration = EventRegistration::with('campaign', 'user')
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
+
+        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        if (!$isApproved) {
+            return view('frontend.events.pending_approval', [
+                'registration' => $registration,
+                'campaign'     => $registration->campaign,
+            ]);
+        }
 
         return view('frontend.events.library_token_print', compact('registration'));
     }

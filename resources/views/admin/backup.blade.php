@@ -961,7 +961,7 @@
                                 <label class="form-label small fw-bold text-dark">Cloud Storage Driver:</label>
                                 <select name="offsite_cloud_driver" class="form-select form-select-sm fw-semibold">
                                     <option value="none" {{ ($settings['offsite_cloud_driver'] ?? 'none') === 'none' ? 'selected' : '' }}>Disabled (Local Disk Only)</option>
-                                    <option value="s3" {{ ($settings['offsite_cloud_driver'] ?? '') === 's3' ? 'selected' : '' }}>Amazon AWS S3 / Cloudflare R2</option>
+                                    <option value="s3" {{ ($settings['offsite_cloud_driver'] ?? '') === 's3' ? 'selected' : '' }}>Idea Cloud Storage (S3 / R2 Object Storage)</option>
                                     <option value="gdrive" {{ ($settings['offsite_cloud_driver'] ?? '') === 'gdrive' ? 'selected' : '' }}>Google Drive</option>
                                     <option value="ftp" {{ ($settings['offsite_cloud_driver'] ?? '') === 'ftp' ? 'selected' : '' }}>Remote FTP / SFTP Server</option>
                                 </select>

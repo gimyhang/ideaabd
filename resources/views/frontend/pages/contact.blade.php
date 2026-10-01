@@ -1,64 +1,113 @@
 @extends('layouts.app')
-@section('title', 'Contact')
-@section('meta_description', 'আইডিয়া প্রকাশন কাস্টমার কেয়ার, বই অর্ডার, লেখক প্রকাশনা, পাইকারি বুকশপ ও হেল্পলাইন। সরাসরি কথা বলুন বা বার্তা পাঠান।')
 
-@section('content')
 @php
+    $contact = \App\Support\SiteSetting::contactCustomizer();
     $siteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
-    $helplinePhone = \App\Support\SiteSetting::helplinePhone() ?: '01726976982';
-    $whatsappNum = \App\Support\SiteSetting::get('whatsapp_number') ?: '01726976982';
-    $helplineEmail = \App\Support\SiteSetting::get('helpline_email') ?: \App\Support\SiteSetting::get('contact_email') ?: 'ideapbd@gmail.com';
-    $officeAddress = \App\Support\SiteSetting::get('contact_address') ?: 'আইডিয়া প্রকাশন, ঢাকা, বাংলাদেশ';
+    $siteTagline = \App\Support\SiteSetting::tagline() ?: 'বই ও মুক্তচিন্তার ডিজিটাল প্রকাশনা';
+    $helplinePhone = $contact['helpline_phone'] ?? \App\Support\SiteSetting::helplinePhone();
+    $whatsappNum = $contact['whatsapp_number'] ?? \App\Support\SiteSetting::whatsappNumber();
+    $helplineEmail = $contact['helpline_email'] ?? \App\Support\SiteSetting::helplineEmail();
+    $officeAddress = $contact['contact_address'] ?? \App\Support\SiteSetting::contactAddress();
+    $cleanPhone = preg_replace('/[^0-9]/', '', $helplinePhone);
+    $cleanWhatsapp = preg_replace('/[^0-9]/', '', $whatsappNum);
+
+    $pageTitle = ($contact['hero_title'] ?? 'যোগাযোগ ও সহায়তা কেন্দ্র') . ' — ' . $siteName;
+    $pageDesc = $contact['hero_subtitle'] ?? 'আইডিয়া প্রকাশন কাস্টমার কেয়ার, বই অর্ডার, লেখক প্রকাশনা সেবা, পান্ডুলিপি জমা, পাইকারি বুকশপ ডিস্ট্রিবিউশন ও হেল্পলাইন। সরাসরি কথা বলুন বা বার্তা পাঠান।';
+    $ogBanner = \App\Support\SiteSetting::resolveImageUrl(\App\Support\SiteSetting::get('site_og_image')) ?: asset('images/og-banner.jpg');
 @endphp
 
-<div class="contact-ultra-wrapper bg-slate-50 min-vh-100">
+@section('title', $pageTitle)
+@section('meta_description', $pageDesc)
+@section('meta_keywords', 'যোগাযোগ, আইডিয়া প্রকাশন, হেল্পলাইন, কাস্টমার কেয়ার, বই অর্ডার, পান্ডুলিপি জমা, সাকিল মাসুদ, রংপুর প্রকাশনা, পাইকারি বই')
+@section('og_type', 'website')
+@section('og_title', $pageTitle)
+@section('og_description', $pageDesc)
+@section('og_image', $ogBanner)
+@section('og_url', url('/contact'))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "ContactPage",
+  "name": @json($pageTitle),
+  "description": @json($pageDesc),
+  "url": @json(url('/contact')),
+  "mainEntity": {
+    "@@type": "Organization",
+    "name": @json($siteName),
+    "url": "https://www.ideaabd.com",
+    "logo": @json(\App\Support\SiteSetting::logoUrl() ?: asset('images/logo.svg')),
+    "telephone": @json($helplinePhone),
+    "email": @json($helplineEmail),
+    "address": {
+      "@@type": "PostalAddress",
+      "streetAddress": @json($officeAddress),
+      "addressLocality": "Rangpur / Dhaka",
+      "addressCountry": "BD"
+    },
+    "contactPoint": [
+      {
+        "@@type": "ContactPoint",
+        "telephone": @json($helplinePhone),
+        "contactType": "customer service",
+        "availableLanguage": ["Bengali", "English"],
+        "areaServed": "BD"
+      }
+    ]
+  }
+}
+</script>
+@endsection
+
+@section('content')
+<div class="contact-ultra-wrapper bg-slate-50 min-vh-100 position-relative pb-5">
 
     {{-- ========================================================================= --}}
-    {{-- 1. HERO SECTION: Modern Mesh Gradient with Ambient Glow & Badges        --}}
+    {{-- 1. HERO SECTION: Dynamic Gradient, Live Status & Breadcrumb              --}}
     {{-- ========================================================================= --}}
     <section class="contact-hero position-relative overflow-hidden text-white">
-        <!-- Ambient Radial Glows -->
         <div class="hero-glow-1 position-absolute pe-none"></div>
         <div class="hero-glow-2 position-absolute pe-none"></div>
         <div class="hero-grid-pattern position-absolute pe-none"></div>
 
-        <div class="container position-relative z-2 py-5 py-lg-6">
+        <div class="container position-relative z-2 py-4 py-md-5">
             {{-- Breadcrumb --}}
-            <nav aria-label="breadcrumb" class="mb-3 mb-md-4">
+            <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb mb-0 align-items-center">
                     <li class="breadcrumb-item">
                         <a href="{{ route('home') }}" class="hero-breadcrumb-link">
                             <i class="fa-solid fa-house me-1"></i>হোম
                         </a>
                     </li>
-                    <li class="breadcrumb-item text-white-50 active" aria-current="page">যোগাযোগ ও সহায়তা</li>
+                    <li class="breadcrumb-item text-white-50 active" aria-current="page">যোগাযোগ ও হেল্পডেস্ক</li>
                 </ol>
             </nav>
 
-            <div class="row align-items-center g-4 g-lg-5">
+            <div class="row align-items-center g-3 g-lg-4">
                 <div class="col-lg-8">
-                    <div class="hero-pill-badge mb-3 d-inline-flex align-items-center gap-2">
+                    <div class="hero-pill-badge mb-2.5 d-inline-flex align-items-center gap-2">
                         <span class="pulse-dot">
                             <span class="pulse-ring"></span>
                             <span class="pulse-core"></span>
                         </span>
-                        <span>২৪/৭ ডেডিকেটেড সাপোর্ট ও কাস্টমার কেয়ার</span>
+                        <span>২৪/৭ কাস্টমার সাপোর্ট ও পাঠক সেবা</span>
                     </div>
 
-                    <h1 class="hero-title fw-black mb-3 lh-sm">
+                    <h1 class="hero-title fw-black mb-2.5">
                         যোগাযোগ ও সহায়তা কেন্দ্র
                     </h1>
 
                     <p class="hero-subtitle mb-0">
-                        বই অর্ডার, প্রকাশনা সেবা, লেখক পান্ডুলিপি জমা, পাইকারি বুকশপ ডিস্ট্রিবিউশন বা যেকোনো প্রয়োজনে আমাদের সাথে সরাসরি যোগাযোগ করুন।
+                        বই অর্ডার, প্রকাশনা সেবা, লেখক পান্ডুলিপি জমা, পাইকারি বুকশপ ডিস্ট্রিবিউশন বা যেকোনো তথ্যের জন্য আমাদের সাথে সরাসরি কথা বলুন বা বার্তা পাঠান।
                     </p>
                 </div>
 
                 <div class="col-lg-4 text-start text-lg-end">
                     <div class="hero-status-card d-inline-block text-start">
-                        <div class="d-flex align-items-center gap-2 mb-1.5">
+                        <div class="d-flex align-items-center gap-2 mb-1">
                             <span class="status-live-dot"></span>
-                            <span class="fw-bold text-white small">সাপোর্ট টিম এখন সক্রিয়</span>
+                            <span class="fw-bold text-white small" id="heroLiveStatusText">সাপোর্ট টিম এখন সক্রিয়</span>
                         </div>
                         <div class="small text-white-50">
                             গড় রেসপন্স সময়: <strong class="text-emerald-300">১৫–৩০ মিনিট</strong>
@@ -70,28 +119,28 @@
     </section>
 
     {{-- ========================================================================= --}}
-    {{-- 2. FOUR QUICK CONTACT CHANNELS (Floating Cards)                          --}}
+    {{-- 2. FOUR QUICK CONTACT CHANNELS (Device-Adaptive Floating Cards)          --}}
     {{-- ========================================================================= --}}
-    <section class="container position-relative z-3 quick-channels-container">
-        <div class="row g-3 g-md-4">
+    <section class="container position-relative z-3 quick-channels-container mb-4 mb-lg-5">
+        <div class="row g-3 g-md-3.5">
 
             {{-- Channel 1: Phone Hotline --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-4">
+            <div class="col-6 col-lg-3">
+                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-3 p-md-4">
                     <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3">
                             <div class="channel-icon-capsule bg-amber-gradient text-white">
                                 <i class="fa-solid fa-phone-volume"></i>
                             </div>
-                            <span class="channel-badge badge-amber">সরাসরি কল</span>
+                            <span class="channel-badge badge-amber d-none d-sm-inline-flex">সরাসরি কল</span>
                         </div>
                         <h3 class="channel-heading mb-1">হটলাইন হেল্পলাইন</h3>
-                        <p class="channel-text mb-3">শনি–বৃহস্পতি (সকাল ৯টা – রাত ১১টা)</p>
-                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-3">{{ $helplinePhone }}</div>
+                        <p class="channel-text mb-2 d-none d-sm-block">শনি–বৃহস্পতি (সকাল ৯টা – রাত ১১টা)</p>
+                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-2 mb-md-3">{{ $helplinePhone }}</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 pt-3 border-top border-slate-100">
-                        <a href="tel:{{ $helplinePhone }}" class="btn btn-action-primary flex-grow-1">
-                            <i class="fa-solid fa-phone me-1.5"></i>কল করুন
+                    <div class="d-flex align-items-center gap-1.5 pt-2.5 border-top border-slate-100">
+                        <a href="tel:{{ $cleanPhone }}" class="btn btn-action-primary flex-grow-1">
+                            <i class="fa-solid fa-phone me-1"></i><span class="d-none d-sm-inline">কল করুন</span><span class="d-sm-none">কল</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $helplinePhone }}', 'ফোন নম্বর')" title="নম্বর কপি করুন">
                             <i class="fa-regular fa-copy"></i>
@@ -101,24 +150,24 @@
             </div>
 
             {{-- Channel 2: WhatsApp Chat --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-4">
+            <div class="col-6 col-lg-3">
+                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-3 p-md-4">
                     <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3">
                             <div class="channel-icon-capsule bg-emerald-gradient text-white">
                                 <i class="fa-brands fa-whatsapp fs-5"></i>
                             </div>
-                            <span class="channel-badge badge-emerald">তাৎক্ষণিক চ্যাট</span>
+                            <span class="channel-badge badge-emerald d-none d-sm-inline-flex">তাৎক্ষণিক চ্যাট</span>
                         </div>
-                        <h3 class="channel-heading mb-1">অফিসিয়াল হোয়াটসঅ্যাপ</h3>
-                        <p class="channel-text mb-3">মেসেজ ড্রপ করুন যেকোনো সময়</p>
-                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-3">{{ $whatsappNum }}</div>
+                        <h3 class="channel-heading mb-1">হোয়াটসঅ্যাপ চ্যাট</h3>
+                        <p class="channel-text mb-2 d-none d-sm-block">মেসেজ ড্রপ করুন যেকোনো সময়</p>
+                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-2 mb-md-3">{{ $whatsappNum }}</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 pt-3 border-top border-slate-100">
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $whatsappNum) }}" target="_blank" class="btn btn-action-emerald flex-grow-1">
-                            <i class="fa-brands fa-whatsapp me-1.5"></i>চ্যাট করুন
+                    <div class="d-flex align-items-center gap-1.5 pt-2.5 border-top border-slate-100">
+                        <a href="https://wa.me/{{ $cleanWhatsapp }}" target="_blank" class="btn btn-action-emerald flex-grow-1">
+                            <i class="fa-brands fa-whatsapp me-1"></i><span class="d-none d-sm-inline">চ্যাট করুন</span><span class="d-sm-none">চ্যাট</span>
                         </a>
-                        <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $whatsappNum }}', 'হোয়াটসঅ্যাপ')" title="কপি করুন">
+                        <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $whatsappNum }}', 'হোয়াটসঅ্যাপ নম্বর')" title="কপি করুন">
                             <i class="fa-regular fa-copy"></i>
                         </button>
                     </div>
@@ -126,22 +175,22 @@
             </div>
 
             {{-- Channel 3: Email Support --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-4">
+            <div class="col-6 col-lg-3">
+                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-3 p-md-4">
                     <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3">
                             <div class="channel-icon-capsule bg-indigo-gradient text-white">
                                 <i class="fa-solid fa-paper-plane"></i>
                             </div>
-                            <span class="channel-badge badge-indigo">ইমেইল ডেস্ক</span>
+                            <span class="channel-badge badge-indigo d-none d-sm-inline-flex">ইমেইল ডেস্ক</span>
                         </div>
                         <h3 class="channel-heading mb-1">অফিসিয়াল ইমেইল</h3>
-                        <p class="channel-text mb-3">২৪ ঘণ্টার মধ্যে জবাব নিশ্চিত</p>
-                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-3 text-truncate" title="{{ $helplineEmail }}">{{ $helplineEmail }}</div>
+                        <p class="channel-text mb-2 d-none d-sm-block">২৪ ঘণ্টার মধ্যে জবাব নিশ্চিত</p>
+                        <div class="channel-value font-monospace text-slate-800 fw-bold mb-2 mb-md-3 text-truncate" title="{{ $helplineEmail }}">{{ $helplineEmail }}</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 pt-3 border-top border-slate-100">
+                    <div class="d-flex align-items-center gap-1.5 pt-2.5 border-top border-slate-100">
                         <a href="mailto:{{ $helplineEmail }}" class="btn btn-action-indigo flex-grow-1">
-                            <i class="fa-solid fa-envelope me-1.5"></i>মেইল লিখুন
+                            <i class="fa-solid fa-envelope me-1"></i><span class="d-none d-sm-inline">মেইল লিখুন</span><span class="d-sm-none">মেইল</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $helplineEmail }}', 'ইমেইল')" title="কপি করুন">
                             <i class="fa-regular fa-copy"></i>
@@ -151,22 +200,22 @@
             </div>
 
             {{-- Channel 4: Corporate Office --}}
-            <div class="col-12 col-sm-6 col-lg-3">
-                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-4">
+            <div class="col-6 col-lg-3">
+                <div class="quick-channel-card h-100 d-flex flex-column justify-content-between p-3 p-md-4">
                     <div>
-                        <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 mb-md-3">
                             <div class="channel-icon-capsule bg-rose-gradient text-white">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
-                            <span class="channel-badge badge-rose">হেড অফিস</span>
+                            <span class="channel-badge badge-rose d-none d-sm-inline-flex">হেড অফিস</span>
                         </div>
                         <h3 class="channel-heading mb-1">প্রধান কার্যালয়</h3>
-                        <p class="channel-text mb-3">সরাসরি দেখা ও পরামর্শ ডেস্ক</p>
-                        <div class="channel-value text-slate-800 fw-bold mb-3 text-truncate">{{ $officeAddress }}</div>
+                        <p class="channel-text mb-2 d-none d-sm-block">সরাসরি দেখা ও বই সংগ্রহ</p>
+                        <div class="channel-value text-slate-800 fw-bold mb-2 mb-md-3 text-truncate" title="{{ $officeAddress }}">{{ $officeAddress }}</div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 pt-3 border-top border-slate-100">
+                    <div class="d-flex align-items-center gap-1.5 pt-2.5 border-top border-slate-100">
                         <a href="#officeLocationMap" class="btn btn-action-outline flex-grow-1">
-                            <i class="fa-solid fa-map-pin me-1.5"></i>ম্যাপ ও ঠিকানা
+                            <i class="fa-solid fa-map-pin me-1"></i><span class="d-none d-sm-inline">ম্যাপ ও ঠিকানা</span><span class="d-sm-none">ম্যাপ</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $officeAddress }}', 'অফিসের ঠিকানা')" title="ঠিকানা কপি করুন">
                             <i class="fa-regular fa-copy"></i>
@@ -179,9 +228,9 @@
     </section>
 
     {{-- ========================================================================= --}}
-    {{-- 3. MAIN SECTION: Interactive Contact Form & Department Helpdesks        --}}
+    {{-- 3. MAIN SECTION: Interactive Form & Department Helpdesks                 --}}
     {{-- ========================================================================= --}}
-    <section class="container py-5">
+    <section class="container py-2 py-md-3">
         <div class="row g-4 g-lg-5 align-items-stretch">
 
             {{-- Left Column: Interactive Contact Form --}}
@@ -194,10 +243,25 @@
                                     <i class="fa-solid fa-pen-nib text-emerald-600"></i> সরাসরি বার্তা
                                 </span>
                                 <h2 class="h4 fw-bold text-slate-900 mb-1">আমাদের সরাসরি বার্তা পাঠান</h2>
-                                <p class="text-slate-500 small mb-0">আপনার জিজ্ঞাসা বা প্রয়োজনের বিবরণ লিখুন, আমরা দ্রুত সমাধান দেব।</p>
+                                <p class="text-slate-500 small mb-0">আপনার জিজ্ঞাসা বা প্রয়োজনের বিবরণ লিখুন, আমরা দ্রুত যোগাযোগ করব।</p>
                             </div>
                             <div class="form-header-badge d-none d-sm-flex align-items-center justify-content-center">
                                 <i class="fa-solid fa-paper-plane text-emerald-600"></i>
+                            </div>
+                        </div>
+
+                        {{-- Quick Subject Topic Pills for Mobile & Desktop --}}
+                        <div class="mb-4">
+                            <label class="form-label-modern mb-2">
+                                <i class="fa-solid fa-bolt text-amber-500 me-1"></i>দ্রুত বিষয় নির্বাচন করুন:
+                            </label>
+                            <div class="d-flex flex-wrap gap-1.5 quick-topic-chips">
+                                <button type="button" class="topic-chip" onclick="selectTopic('বই অর্ডার ও ডেলিভারি জিজ্ঞাসা')">📚 বই অর্ডার</button>
+                                <button type="button" class="topic-chip" onclick="selectTopic('লেখক প্রকাশনা ও পান্ডুলিপি জমা')">✍️ পান্ডুলিপি জমা</button>
+                                <button type="button" class="topic-chip" onclick="selectTopic('সেলার ও পাইকারি বুকশপ পার্টনারশিপ')">💼 পাইকারি বুকশপ</button>
+                                <button type="button" class="topic-chip" onclick="selectTopic('পেমেন্ট, ইনভয়েস ও রয়্যালটি')">💳 রয়্যালটি ও পেমেন্ট</button>
+                                <button type="button" class="topic-chip" onclick="selectTopic('ই-বুক ও ডিজিটাল লাইব্রেরি')">📱 ই-বুক</button>
+                                <button type="button" class="topic-chip" onclick="selectTopic('অন্যান্য পরামর্শ ও সাধারণ অনুসন্ধান')">💬 অন্যান্য</button>
                             </div>
                         </div>
 
@@ -206,7 +270,7 @@
 
                         @if(session('success'))
                             <div class="alert alert-success py-3 px-3.5 rounded-4 small mb-4 border-0 bg-emerald-50 text-emerald-800 d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-circle-check text-emerald-600 fs-5"></i>
+                                <i class="fa-solid fa-circle-check text-emerald-600 fs-5 flex-shrink-0"></i>
                                 <div>{{ session('success') }}</div>
                             </div>
                         @endif
@@ -223,7 +287,7 @@
                                     <div class="modern-input-group">
                                         <span class="input-icon"><i class="fa-regular fa-user"></i></span>
                                         <input type="text" name="name" id="contactName" class="form-control modern-input" 
-                                               placeholder="নাম লিখুন..." required value="{{ old('name', auth()->user()->name ?? '') }}">
+                                               placeholder="আপনার নাম..." required value="{{ old('name', auth()->user()->name ?? '') }}">
                                     </div>
                                 </div>
 
@@ -286,7 +350,7 @@
 
                                 {{-- Action Buttons --}}
                                 <div class="col-12 pt-2">
-                                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-3">
+                                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2.5">
                                         <button type="submit" class="btn btn-submit-modern" id="contactSubmitBtn">
                                             <i class="fa-solid fa-paper-plane"></i>
                                             <span>বার্তা পাঠান</span>
@@ -297,7 +361,7 @@
                                         </button>
                                     </div>
                                     <p class="text-slate-400 small mt-2.5 mb-0">
-                                        <i class="fa-solid fa-shield-halved text-emerald-600 me-1"></i>আপনার তথ্য সম্পূর্ণ নিরাপদ এবং গোপনীয় রাখা হয়।
+                                        <i class="fa-solid fa-shield-halved text-emerald-600 me-1"></i>আপনার তথ্য সম্পূর্ণ নিরাপদ ও সুরক্ষিত রাখা হয়।
                                     </p>
                                 </div>
                             </div>
@@ -306,12 +370,12 @@
                 </div>
             </div>
 
-            {{-- Right Column: Department Directory & Support Info --}}
+            {{-- Right Column: Department Directory & Live Schedule --}}
             <div class="col-12 col-lg-5">
-                <div class="d-flex flex-column gap-4 h-100">
+                <div class="d-flex flex-column gap-3.5 h-100">
 
                     {{-- 1. Department Direct Directory Card --}}
-                    <div class="modern-card p-4 p-md-4.5 flex-grow-1">
+                    <div class="modern-card p-4 flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom border-slate-100">
                             <div class="d-flex align-items-center gap-2.5">
                                 <div class="dept-main-icon">
@@ -319,20 +383,20 @@
                                 </div>
                                 <div>
                                     <h3 class="h6 fw-bold text-slate-900 mb-0">বিভাগভিত্তিক সরাসরি হেল্পডেস্ক</h3>
-                                    <span class="text-slate-500 small">নির্দিষ্ট প্রয়োজনে সরাসরি যোগাযোগ</span>
+                                    <span class="text-slate-500 small">সুনির্দিষ্ট বিষয়ে দ্রুত পরামর্শ</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-flex flex-column gap-3">
+                        <div class="d-flex flex-column gap-2.5">
                             {{-- Editorial Desk --}}
                             <div class="dept-item-box p-3 rounded-4">
-                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="dept-badge-icon bg-emerald-50 text-emerald-600"><i class="fa-solid fa-feather-pointed"></i></span>
                                         <strong class="text-slate-800 small">প্রকাশনা ও সম্পাদকীয় বিভাগ</strong>
                                     </div>
-                                    <span class="badge bg-emerald-100 text-emerald-800 small rounded-pill px-2.5">পান্ডুলিপি</span>
+                                    <span class="badge bg-emerald-100 text-emerald-800 small rounded-pill px-2">পান্ডুলিপি</span>
                                 </div>
                                 <p class="text-slate-500 small mb-2">নতুন বই প্রকাশনা ও পান্ডুলিপি মূল্যায়নের জন্য যোগাযোগ করুন।</p>
                                 <div class="d-flex align-items-center justify-content-between">
@@ -343,28 +407,28 @@
 
                             {{-- Wholesale Desk --}}
                             <div class="dept-item-box p-3 rounded-4">
-                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="dept-badge-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-store"></i></span>
                                         <strong class="text-slate-800 small">বিক্রয় ও পরিবেশনা বিভাগ</strong>
                                     </div>
-                                    <span class="badge bg-amber-100 text-amber-800 small rounded-pill px-2.5">বুকশপ ও এজেন্ট</span>
+                                    <span class="badge bg-amber-100 text-amber-800 small rounded-pill px-2">বুকশপ ও এজেন্ট</span>
                                 </div>
                                 <p class="text-slate-500 small mb-2">লাইব্রেরি ও বুকশপের পাইকারি বই সরবরাহ ও কমিশন সংক্রান্ত।</p>
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <a href="tel:{{ $helplinePhone }}" class="dept-contact-link font-monospace">{{ $helplinePhone }}</a>
+                                    <a href="tel:{{ $cleanPhone }}" class="dept-contact-link font-monospace">{{ $helplinePhone }}</a>
                                     <span class="text-slate-400 small"><i class="fa-solid fa-truck-fast me-1"></i>সারাদেশে ডেলিভারি</span>
                                 </div>
                             </div>
 
                             {{-- Accounts & Royalty --}}
                             <div class="dept-item-box p-3 rounded-4">
-                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="dept-badge-icon bg-indigo-50 text-indigo-600"><i class="fa-solid fa-wallet"></i></span>
                                         <strong class="text-slate-800 small">হিসাব ও লেখক রয়্যালটি বিভাগ</strong>
                                     </div>
-                                    <span class="badge bg-indigo-100 text-indigo-800 small rounded-pill px-2.5">রয়্যালটি ও পেমেন্ট</span>
+                                    <span class="badge bg-indigo-100 text-indigo-800 small rounded-pill px-2">রয়্যালটি ও পেমেন্ট</span>
                                 </div>
                                 <p class="text-slate-500 small mb-2">লেখক সম্মানী, ব্যাংক সেটেলমেন্ট ও ইনভয়েস স্টেটমেন্ট।</p>
                                 <div class="d-flex align-items-center justify-content-between">
@@ -384,7 +448,7 @@
                             <div>
                                 <h4 class="h6 fw-bold text-white mb-1.5">কোনো সাধারণ জিজ্ঞাসা রয়েছে?</h4>
                                 <p class="text-white-50 small mb-3 leading-relaxed">
-                                    বই অর্ডার, পেমেন্ট, ডেলিভারি ট্র্যাকিং ও রিটার্ন পলিসির সর্বাধিক জিজ্ঞাসিত প্রশ্নের তাৎক্ষণিক উত্তর পেতে আমাদের FAQ পেজ দেখুন।
+                                    বই অর্ডার, পেমেন্ট, ডেলিভারি ট্র্যাকিং ও রিটার্ন পলিসির সর্বাধিক জিজ্ঞাসিত প্রশ্নের উত্তর পেতে আমাদের FAQ পেজ দেখুন।
                                 </p>
                                 <a href="{{ route('faq') }}" class="btn btn-faq-link">
                                     <span>FAQ প্রশ্নোত্তর দেখুন</span>
@@ -403,28 +467,28 @@
     {{-- ========================================================================= --}}
     {{-- 4. LOCATION, WORKING SCHEDULE & INTERACTIVE MAP SHOWCASE                 --}}
     {{-- ========================================================================= --}}
-    <section class="container pb-5" id="officeLocationMap">
+    <section class="container py-3 py-md-4" id="officeLocationMap">
         <div class="modern-card p-4 p-md-5">
             <div class="row g-4 g-lg-5 align-items-center">
 
                 {{-- Left: Office Details & Operating Schedule --}}
                 <div class="col-lg-6">
                     <span class="badge bg-rose-50 text-rose-700 border border-rose-200 rounded-pill px-3 py-1 fw-bold small mb-2.5 d-inline-flex align-items-center gap-1.5">
-                        <i class="fa-solid fa-building-flag text-rose-600"></i> হেড অফিস ও পরামর্শ কেন্দ্র
+                        <i class="fa-solid fa-building-flag text-rose-600"></i> হেড অফিস ও পাঠাগার কেন্দ্র
                     </span>
-                    <h2 class="h3 fw-bold text-slate-900 mb-3">আমাদের কার্যালয়ে আপনাকে স্বাগতম</h2>
+                    <h2 class="h3 fw-bold text-slate-900 mb-2.5">আমাদের কার্যালয়ে আপনাকে স্বাগতম</h2>
                     <p class="text-slate-600 mb-4 leading-relaxed" style="font-size: 14.5px;">
-                        {{ $siteName }} বাংলাদেশের অগ্রণী সাহিত্য ও গবেষণা প্রকাশনা প্রতিষ্ঠান। লেখক ও পাঠকদের সুবিধার্থে আমাদের হেড অফিসে রয়েছে বই প্রদর্শনী, পান্ডুলিপি পরামর্শ ডেস্ক এবং সরাসরি বই সংগ্রহের সুবিধা।
+                        {{ $siteName }} উত্তরবঙ্গ ও সমগ্র বাংলাদেশের অগ্রণী সাহিত্য ও গবেষণা প্রকাশনা প্রতিষ্ঠান। লেখক ও পাঠকদের সুবিধার্থে আমাদের হেড অফিসে রয়েছে বই প্রদর্শনী, পান্ডুলিপি পরামর্শ ডেস্ক এবং সরাসরি বই সংগ্রহের সুবিধা।
                     </p>
 
-                    <div class="d-flex flex-column gap-3.5 mb-4">
+                    <div class="d-flex flex-column gap-3 mb-4">
                         {{-- Address --}}
                         <div class="d-flex align-items-start gap-3">
                             <div class="location-item-icon bg-emerald-50 text-emerald-600 flex-shrink-0">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
                             <div>
-                                <strong class="text-slate-800 small d-block mb-0.5">অফিসের ঠিকানা:</strong>
+                                <strong class="text-slate-800 small d-block mb-0.5">অফিসের পূর্ণ ঠিকানা:</strong>
                                 <span class="text-slate-600 small">{{ $officeAddress }}</span>
                             </div>
                         </div>
@@ -458,8 +522,8 @@
                         </div>
                     </div>
 
-                    <div class="d-flex flex-wrap align-items-center gap-2.5">
-                        <a href="https://maps.google.com/?q={{ urlencode($officeAddress) }}" target="_blank" class="btn btn-action-primary">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <a href="https://maps.google.com/?q={{ urlencode($officeAddress) }}" target="_blank" rel="noopener" class="btn btn-action-primary">
                             <i class="fa-solid fa-diamond-turn-right me-1.5"></i>গুগল ম্যাপে দিকনির্দেশনা
                         </a>
                         <button type="button" class="btn btn-action-outline" onclick="copyContactText('{{ $officeAddress }}', 'অফিসের ঠিকানা')">
@@ -480,10 +544,10 @@
                         <div class="map-action-card p-3 rounded-4 bg-white border border-slate-200 shadow-sm w-100 max-w-md">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="small fw-bold text-slate-700"><i class="fa-solid fa-route text-emerald-600 me-1"></i>নেভিগেশন ও অবস্থান</span>
-                                <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-pill px-2.5 py-0.5 small">ঢাকা হাব</span>
+                                <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-pill px-2.5 py-0.5 small">অফিস হাব</span>
                             </div>
                             <p class="text-slate-500 small mb-3 text-start">গুগল ম্যাপে সরাসরি লোকেশন দেখে সহজেই আমাদের কার্যালয়ে পৌঁছান।</p>
-                            <a href="https://maps.google.com/?q={{ urlencode($officeAddress) }}" target="_blank" class="btn btn-emerald-solid w-100 fw-bold rounded-pill">
+                            <a href="https://maps.google.com/?q={{ urlencode($officeAddress) }}" target="_blank" rel="noopener" class="btn btn-emerald-solid w-100 fw-bold rounded-pill">
                                 <i class="fa-solid fa-arrow-up-right-from-square me-1.5"></i>গুগল ম্যাপ চালু করুন
                             </a>
                         </div>
@@ -495,13 +559,13 @@
     </section>
 
     {{-- ========================================================================= --}}
-    {{-- 5. QUICK RESOLUTION ACCORDION (Self-Service)                             --}}
+    {{-- 5. QUICK RESOLUTION ACCORDION (Self-Service FAQ)                         --}}
     {{-- ========================================================================= --}}
-    <section class="container pb-5">
+    <section class="container py-3 py-md-4">
         <div class="text-center max-w-2xl mx-auto mb-4">
             <span class="badge bg-slate-200 text-slate-700 rounded-pill px-3 py-1 fw-bold small mb-2">দ্রুত সমাধান</span>
             <h2 class="h4 fw-bold text-slate-900 mb-2">সর্বাধিক জিজ্ঞাসিত কিছু সাধারণ প্রশ্ন</h2>
-            <p class="text-slate-500 small mb-0">মেসেজ পাঠানোর আগেই হয়তো আপনার উত্তরটি এখানে পেয়ে যেতে পারেন</p>
+            <p class="text-slate-500 small mb-0">মেসেজ পাঠানোর আগেই প্রয়োজনীয় উত্তরটি এখানে পেয়ে যেতে পারেন</p>
         </div>
 
         <div class="row justify-content-center">
@@ -518,7 +582,7 @@
                         </h2>
                         <div id="faqCollapse1" class="accordion-collapse collapse" aria-labelledby="faqHeading1" data-bs-parent="#contactFaqAccordion">
                             <div class="accordion-body modern-accordion-body">
-                                ঢাকা শহরের ভেতর সাধারণ ডেলিভারি <strong>২৪ থেকে ৪৮ ঘণ্টার</strong> মধ্যে সম্পন্ন হয়। ঢাকা সাব-অ্যারিয়া ও ঢাকার বাইরে জেলা-উপজেলায় কুরিয়ারের মাধ্যমে <strong>২ থেকে ৪ কার্যদিবসের</strong> মধ্যে বই নিরাপদে পৌঁছে দেওয়া হয়।
+                                ঢাকা ও রংপুর শহরের ভেতর সাধারণ ডেলিভারি <strong>২৪ থেকে ৪৮ ঘণ্টার</strong> মধ্যে সম্পন্ন হয়। অন্যান্য জেলা-উপজেলায় কুরিয়ারের মাধ্যমে <strong>২ থেকে ৪ কার্যদিবসের</strong> মধ্যে বই নিরাপদে পৌঁছে দেওয়া হয়।
                             </div>
                         </div>
                     </div>
@@ -533,7 +597,7 @@
                         </h2>
                         <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2" data-bs-parent="#contactFaqAccordion">
                             <div class="accordion-body modern-accordion-body">
-                                আপনার পান্ডুলিপির সারসংক্ষেপ, লেখক পরিচিতি ও নমুনা অধ্যায় ওয়ার্ড (DOCX) বা পিডিএফ ফরম্যাটে আমাদের ইমেইল (<span class="font-monospace text-emerald-700 fw-bold">{{ $helplineEmail }}</span>) ঠিকানায় পাঠাতে পারেন অথবা সম্পাদকীয় হেল্পডেস্কে যোগাযোগ করতে পারেন। আমাদের সম্পাদনা পর্ষদ ৭–১০ কার্যদিবসের মধ্যে যোগাযোগ করবে।
+                                আপনার পান্ডুলিপির সারসংক্ষেপ, লেখক পরিচিতি ও নমুনা অধ্যায় ওয়ার্ড (DOCX) বা পিডিএফ ফরম্যাটে আমাদের ইমেইল (<span class="font-monospace text-emerald-700 fw-bold">{{ $helplineEmail }}</span>) ঠিকানায় পাঠাতে পারেন অথবা সরাসরি সম্পাদকীয় হেল্পডেস্কে যোগাযোগ করতে পারেন। আমাদের সম্পাদনা পর্ষদ দ্রুত যোগাযোগ করবে।
                             </div>
                         </div>
                     </div>
@@ -563,7 +627,7 @@
                         </h2>
                         <div id="faqCollapse4" class="accordion-collapse collapse" aria-labelledby="faqHeading4" data-bs-parent="#contactFaqAccordion">
                             <div class="accordion-body modern-accordion-body">
-                                যেকোনো লাইব্রেরি, শিক্ষা প্রতিষ্ঠান বা পাইকারি বুকশপ পার্টনারশিপের জন্য সরাসরি আমাদের বিক্রয় ও পরিবেশনা বিভাগের নম্বরে (<span class="font-monospace text-emerald-700 fw-bold">{{ $helplinePhone }}</span>) কল করতে পারেন অথবা সেলার পার্টনারশিপ ফর্মের মাধ্যমে আবেদন করতে পারেন।
+                                যেকোনো পাঠাগার, শিক্ষা প্রতিষ্ঠান বা পাইকারি বুকশপ পার্টনারশিপের জন্য সরাসরি আমাদের বিক্রয় ও পরিবেশনা বিভাগের নম্বরে (<span class="font-monospace text-emerald-700 fw-bold">{{ $helplinePhone }}</span>) কল করতে পারেন।
                             </div>
                         </div>
                     </div>
@@ -573,6 +637,21 @@
         </div>
     </section>
 
+</div>
+
+{{-- ========================================================================= --}}
+{{-- 6. MOBILE FLOATING QUICK-ACTION DOCK (Only visible on small screens)      --}}
+{{-- ========================================================================= --}}
+<div class="mobile-contact-dock d-md-none position-fixed bottom-0 start-0 end-0 p-2.5 bg-white border-top border-slate-200 shadow-lg d-flex align-items-center justify-content-around gap-2" style="z-index: 1040;">
+    <a href="tel:{{ $cleanPhone }}" class="btn btn-dock btn-dock-call flex-fill text-center py-2 text-decoration-none">
+        <i class="fa-solid fa-phone me-1 text-amber-500"></i>কল করুন
+    </a>
+    <a href="https://wa.me/{{ $cleanWhatsapp }}" target="_blank" rel="noopener" class="btn btn-dock btn-dock-wa flex-fill text-center py-2 text-decoration-none">
+        <i class="fa-brands fa-whatsapp me-1 text-emerald-500"></i>হোয়াটসঅ্যাপ
+    </a>
+    <a href="#officeLocationMap" class="btn btn-dock btn-dock-map flex-fill text-center py-2 text-decoration-none">
+        <i class="fa-solid fa-location-dot me-1 text-rose-500"></i>লোকেশন
+    </a>
 </div>
 
 {{-- ========================================================================= --}}
@@ -593,33 +672,28 @@
 .contact-ultra-wrapper {
     font-family: 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: #1e293b;
-    background-color: #f8fafc;
 }
 
 /* 1. Hero Section */
 .contact-hero {
-    background: linear-gradient(135deg, #05192d 0%, #033a32 50%, #005a43 100%);
-    min-height: 280px;
+    background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #004d40 100%);
+    padding: 35px 0 65px 0;
 }
 
 .hero-glow-1 {
-    top: -10%;
-    right: 5%;
+    top: -100px;
+    left: -100px;
     width: 450px;
     height: 450px;
     background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
-    border-radius: 50%;
-    filter: blur(40px);
 }
 
 .hero-glow-2 {
-    bottom: -20%;
-    left: 10%;
-    width: 380px;
-    height: 380px;
+    bottom: -120px;
+    right: -80px;
+    width: 500px;
+    height: 500px;
     background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-    border-radius: 50%;
-    filter: blur(50px);
 }
 
 .hero-grid-pattern {
@@ -632,6 +706,7 @@
 .hero-breadcrumb-link {
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
+    font-size: 13.5px;
     transition: color 0.2s ease;
 }
 .hero-breadcrumb-link:hover {
@@ -639,16 +714,14 @@
 }
 
 .hero-pill-badge {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #a7f3d0;
+    padding: 5px 14px;
     border-radius: 9999px;
-    padding: 6px 16px;
     font-size: 12.5px;
-    font-weight: 700;
-    color: #f1f5f9;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
 }
 
 .pulse-dot {
@@ -659,8 +732,8 @@
 }
 .pulse-ring {
     position: absolute;
-    inset: 0;
-    border-radius: 9999px;
+    inset: -2px;
+    border-radius: 50%;
     background-color: #34d399;
     animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
     opacity: 0.75;
@@ -670,7 +743,7 @@
     display: inline-block;
     width: 8px;
     height: 8px;
-    border-radius: 9999px;
+    border-radius: 50%;
     background-color: #10b981;
 }
 
@@ -682,83 +755,71 @@
 }
 
 .hero-title {
-    font-size: clamp(1.85rem, 3.5vw, 2.75rem);
-    letter-spacing: -0.5px;
-    color: #ffffff;
+    font-size: 2.2rem;
+    letter-spacing: -0.02em;
+    font-family: 'Noto Serif Bengali', 'Hind Siliguri', serif;
 }
 
 .hero-subtitle {
-    font-size: 15px;
+    font-size: 14.5px;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.82);
     max-width: 680px;
 }
 
 .hero-status-card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px;
-    padding: 14px 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    padding: 12px 18px;
 }
 
 .status-live-dot {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background-color: #10b981;
+    background: #10b981;
     box-shadow: 0 0 10px #10b981;
 }
 
-/* 2. Quick Channels */
+/* 2. Quick Channel Cards */
 .quick-channels-container {
-    margin-top: -36px;
+    margin-top: -35px;
 }
 
 .quick-channel-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: var(--contact-border-radius);
+    border-radius: 18px;
     box-shadow: var(--contact-card-shadow);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 .quick-channel-card:hover {
-    transform: translateY(-6px);
-    border-color: #cbd5e1;
+    transform: translateY(-4px);
     box-shadow: var(--contact-hover-shadow);
+    border-color: #cbd5e1;
 }
 
 .channel-icon-capsule {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.bg-amber-gradient {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-.bg-emerald-gradient {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-.bg-indigo-gradient {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
-.bg-rose-gradient {
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-}
+.bg-amber-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+.bg-emerald-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+.bg-indigo-gradient { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); }
+.bg-rose-gradient { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
 
 .channel-badge {
-    padding: 4px 10px;
     font-size: 11px;
     font-weight: 700;
+    padding: 3px 8px;
     border-radius: 9999px;
 }
 .badge-amber { background: #fef3c7; color: #92400e; }
@@ -767,26 +828,28 @@
 .badge-rose { background: #ffe4e6; color: #9f1239; }
 
 .channel-heading {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: #0f172a;
 }
+
 .channel-text {
     font-size: 12px;
     color: #64748b;
-}
-.channel-value {
-    font-size: 14px;
+    line-height: 1.4;
 }
 
-/* Action Buttons */
+.channel-value {
+    font-size: 13.5px;
+}
+
 .btn-action-primary {
-    background: var(--contact-primary);
+    background: #006a4e;
     color: #ffffff;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12.5px;
     border-radius: 9999px;
-    padding: 8px 16px;
+    padding: 7px 12px;
     border: none;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -795,7 +858,7 @@
     justify-content: center;
 }
 .btn-action-primary:hover {
-    background: var(--contact-primary-dark);
+    background: #004d40;
     color: #ffffff;
     transform: translateY(-1px);
 }
@@ -804,9 +867,9 @@
     background: #10b981;
     color: #ffffff;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12.5px;
     border-radius: 9999px;
-    padding: 8px 16px;
+    padding: 7px 12px;
     border: none;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -824,9 +887,9 @@
     background: #4f46e5;
     color: #ffffff;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12.5px;
     border-radius: 9999px;
-    padding: 8px 16px;
+    padding: 7px 12px;
     border: none;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -844,9 +907,9 @@
     background: #f8fafc;
     color: #334155;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12.5px;
     border-radius: 9999px;
-    padding: 8px 16px;
+    padding: 7px 12px;
     border: 1px solid #cbd5e1;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -861,8 +924,8 @@
 }
 
 .btn-action-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: #f1f5f9;
     color: #64748b;
@@ -870,8 +933,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 .btn-action-icon:hover {
     background: #e2e8f0;
@@ -887,19 +951,37 @@
 }
 
 .form-header-badge {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: #ecfdf5;
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .form-label-modern {
     font-size: 13px;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: block;
+}
+
+.topic-chip {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.topic-chip:hover, .topic-chip.active {
+    background: #006a4e;
+    color: #ffffff;
+    border-color: #006a4e;
+    transform: translateY(-1px);
 }
 
 .modern-input-group {
@@ -921,11 +1003,11 @@
     background-color: #f8fafc;
     border: 1.5px solid #e2e8f0;
     border-radius: 12px !important;
-    padding: 10px 14px 10px 42px;
-    font-size: 14px;
+    padding: 9px 14px 9px 40px;
+    font-size: 13.5px;
     color: #1e293b;
     transition: all 0.2s ease;
-    height: 46px;
+    height: 44px;
 }
 .modern-input:focus {
     background-color: #ffffff;
@@ -945,7 +1027,7 @@
     font-weight: 800;
     font-size: 14px;
     border-radius: 9999px;
-    padding: 12px 28px;
+    padding: 11px 26px;
     border: none;
     box-shadow: 0 4px 14px rgba(0, 106, 78, 0.25);
     display: inline-flex;
@@ -967,7 +1049,7 @@
     font-weight: 800;
     font-size: 14px;
     border-radius: 9999px;
-    padding: 12px 24px;
+    padding: 11px 22px;
     border: none;
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
     display: inline-flex;
@@ -985,8 +1067,8 @@
 
 /* Department Directory */
 .dept-main-icon {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
     background: #ecfdf5;
     display: flex;
@@ -1007,17 +1089,17 @@
 }
 
 .dept-badge-icon {
-    width: 26px;
-    height: 26px;
-    border-radius: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .dept-contact-link {
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
     color: #006a4e;
     text-decoration: none;
@@ -1034,8 +1116,8 @@
 }
 
 .faq-callout-icon {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.15);
     display: flex;
@@ -1048,9 +1130,9 @@
     background: #ffffff;
     color: #0f172a;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12.5px;
     border-radius: 9999px;
-    padding: 8px 18px;
+    padding: 7px 16px;
     border: none;
     display: inline-flex;
     align-items: center;
@@ -1078,16 +1160,16 @@
 .map-visual-box {
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     border: 1px solid #cbd5e1;
-    min-height: 360px;
+    min-height: 340px;
 }
 
 .map-icon-halo {
-    width: 72px;
-    height: 72px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: #ecfdf5;
     color: #006a4e;
-    font-size: 32px;
+    font-size: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1097,8 +1179,8 @@
 .btn-emerald-solid {
     background: #006a4e;
     color: #ffffff;
-    padding: 10px 20px;
-    font-size: 13.5px;
+    padding: 9px 18px;
+    font-size: 13px;
     border: none;
     transition: all 0.2s ease;
     text-decoration: none;
@@ -1117,16 +1199,16 @@
     background: #ffffff;
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     overflow: hidden;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02);
 }
 
 .modern-accordion-btn {
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 700;
     color: #1e293b;
-    padding: 16px 20px;
+    padding: 14px 18px;
     background: #ffffff;
     box-shadow: none !important;
 }
@@ -1136,21 +1218,40 @@
 }
 
 .modern-accordion-body {
-    font-size: 14px;
+    font-size: 13.5px;
     line-height: 1.7;
     color: #475569;
-    padding: 16px 20px 20px;
+    padding: 14px 18px 18px;
     background-color: #ffffff;
     border-top: 1px solid #f1f5f9;
 }
 
-/* Responsive Tweaks */
+/* Mobile Dock */
+.btn-dock {
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-dock:active {
+    background: #e2e8f0;
+}
+
+/* Responsive */
 @media (max-width: 767.98px) {
     .quick-channels-container {
         margin-top: -24px;
     }
     .hero-title {
-        font-size: 1.75rem;
+        font-size: 1.65rem;
+    }
+    .contact-ultra-wrapper {
+        padding-bottom: 75px !important;
     }
 }
 </style>
@@ -1205,7 +1306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     alertBox.classList.remove('d-none');
                 }
             } catch (err) {
-                console.warn('Submitting via standard POST fallback due to network/cors:', err);
+                console.warn('Submitting via standard POST fallback:', err);
                 form.submit();
             } finally {
                 if (submitBtn) {
@@ -1216,6 +1317,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function selectTopic(topicName) {
+    const select = document.getElementById('contactSubject');
+    if (select) {
+        select.value = topicName;
+        // Highlight active topic chip
+        document.querySelectorAll('.topic-chip').forEach(btn => {
+            if (btn.textContent.includes(topicName.substring(0, 6))) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+}
 
 function updateCharCount(textarea) {
     const counter = document.getElementById('charCount');
@@ -1234,29 +1350,36 @@ function toBengaliDigits(num) {
 
 function updateOfficeStatus() {
     const badge = document.getElementById('liveOfficeStatusBadge');
-    if (!badge) return;
+    const heroStatus = document.getElementById('heroLiveStatusText');
 
     const now = new Date();
-    // Bangladesh is UTC+6
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const bdTime = new Date(utc + (3600000 * 6));
     
-    const day = bdTime.getDay(); // 0 is Sunday, 5 is Friday
+    const day = bdTime.getDay(); // 0: Sun, 5: Fri
     const hour = bdTime.getHours();
 
-    // Sat(6) to Thu(4): 9 AM to 11 PM (23:00)
     const isFriday = (day === 5);
     const isOpenHours = (hour >= 9 && hour < 23);
 
     if (isFriday) {
-        badge.className = 'badge bg-indigo-100 text-indigo-800 rounded-pill px-2.5 py-0.5 small fw-bold';
-        badge.textContent = 'অনলাইন সাপোর্ট সচল (শুক্রবার)';
+        if (badge) {
+            badge.className = 'badge bg-indigo-100 text-indigo-800 rounded-pill px-2.5 py-0.5 small fw-bold';
+            badge.textContent = 'অনলাইন সাপোর্ট সচল (শুক্রবার)';
+        }
+        if (heroStatus) heroStatus.textContent = 'অনলাইন সাপোর্ট সচল (শুক্রবার)';
     } else if (isOpenHours) {
-        badge.className = 'badge bg-emerald-100 text-emerald-800 rounded-pill px-2.5 py-0.5 small fw-bold';
-        badge.textContent = 'এখন খোলা রয়েছে';
+        if (badge) {
+            badge.className = 'badge bg-emerald-100 text-emerald-800 rounded-pill px-2.5 py-0.5 small fw-bold';
+            badge.textContent = 'এখন খোলা রয়েছে';
+        }
+        if (heroStatus) heroStatus.textContent = 'সাপোর্ট টিম এখন সক্রিয়';
     } else {
-        badge.className = 'badge bg-slate-200 text-slate-700 rounded-pill px-2.5 py-0.5 small fw-bold';
-        badge.textContent = 'অনলাইন হেল্পডেস্ক সচল';
+        if (badge) {
+            badge.className = 'badge bg-slate-200 text-slate-700 rounded-pill px-2.5 py-0.5 small fw-bold';
+            badge.textContent = 'অনলাইন হেল্পডেস্ক সচল';
+        }
+        if (heroStatus) heroStatus.textContent = 'অনলাইন হেল্পডেস্ক সচল';
     }
 }
 
@@ -1267,7 +1390,7 @@ function sendViaWhatsApp() {
     const message = document.getElementById('contactMessage')?.value.trim() || '';
 
     const text = `আইডিয়া প্রকাশন কাস্টমার সাপোর্ট:\n\n👤 নাম: ${name}\n📞 ফোন: ${phone}\n📌 বিষয়শ্রেণী: ${subject}\n💬 বার্তা: ${message}`;
-    const rawNumber = '{{ preg_replace('/[^0-9]/', '', $whatsappNum) }}';
+    const rawNumber = '{{ $cleanWhatsapp }}';
     const url = `https://wa.me/${rawNumber}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 }
@@ -1285,6 +1408,8 @@ function copyContactText(text, label) {
     }
 
     navigator.clipboard.writeText(text).then(() => {
+        showCopyToast(text, label);
+    }).catch(() => {
         showCopyToast(text, label);
     });
 }

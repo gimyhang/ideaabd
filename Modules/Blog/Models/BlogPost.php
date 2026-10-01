@@ -10,10 +10,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Blog\Models\BlogCategory;
 use App\Models\User;
 use Modules\Blog\Models\BlogTag;
+use Modules\SEO\Traits\HasSeo;
 
 class BlogPost extends Model
 {
-    use HasFactory, SoftDeletes, Moderatable;
+    use HasFactory, SoftDeletes, Moderatable, HasSeo;
 
     protected $fillable = [
         'title',

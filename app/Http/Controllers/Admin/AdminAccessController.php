@@ -549,6 +549,119 @@ class AdminAccessController extends Controller
                 ['value' => $request->filled('designer_url') ? $request->string('designer_url')->trim()->value() : null, 'updated_by' => auth()->id()]
             );
 
+            // 1.4 About Page Customization Settings
+            if ($request->has('about_page_title') || $request->has('about_hero_badge')) {
+                $aboutData = [
+                    'hero_badge'        => $request->input('about_hero_badge'),
+                    'page_title'        => $request->input('about_page_title'),
+                    'page_subtitle'     => $request->input('about_page_subtitle'),
+                    'quote_text'        => $request->input('about_quote_text'),
+                    'quote_author'      => $request->input('about_quote_author'),
+                    'stat_books_count'  => $request->input('about_stat_books_count'),
+                    'stat_books_label'  => $request->input('about_stat_books_label'),
+                    'stat_lib_count'    => $request->input('about_stat_lib_count'),
+                    'stat_lib_label'    => $request->input('about_stat_lib_label'),
+                    'stat_years_count'  => $request->input('about_stat_years_count'),
+                    'stat_years_label'  => $request->input('about_stat_years_label'),
+                    'stat_fair_count'   => $request->input('about_stat_fair_count'),
+                    'stat_fair_label'   => $request->input('about_stat_fair_label'),
+                    'publisher_name'    => $request->input('about_publisher_name'),
+                    'publisher_role'    => $request->input('about_publisher_role'),
+                    'publisher_note'    => $request->input('about_publisher_note'),
+                    'publisher_url'     => $request->input('about_publisher_url'),
+                    'statement_p1'      => $request->input('about_statement_p1'),
+                    'statement_p2'      => $request->input('about_statement_p2'),
+                    'statement_p3'      => $request->input('about_statement_p3'),
+                    'statement_p4'      => $request->input('about_statement_p4'),
+                    'statement_p5'      => $request->input('about_statement_p5'),
+                    'statement_p6'      => $request->input('about_statement_p6'),
+                    'statement_p7'      => $request->input('about_statement_p7'),
+                    'statement_p8'      => $request->input('about_statement_p8'),
+                    'statement_p9'      => $request->input('about_statement_p9'),
+                    'statement_p10'     => $request->input('about_statement_p10'),
+                    'statement_p11'     => $request->input('about_statement_p11'),
+                    'statement_p12'     => $request->input('about_statement_p12'),
+                ];
+                $existingAbout = \App\Support\SiteSetting::aboutCustomizer();
+                $finalAbout = array_merge($existingAbout, array_filter($aboutData, fn($v) => !is_null($v)));
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'about_page_settings'],
+                    ['value' => $finalAbout, 'updated_by' => auth()->id()]
+                );
+            }
+
+            // 1.5 Contact Page Customization Settings
+            if ($request->has('contact_hero_title') || $request->has('contact_address')) {
+                $contactData = [
+                    'hero_badge'        => $request->input('contact_hero_badge'),
+                    'hero_title'        => $request->input('contact_hero_title'),
+                    'hero_subtitle'     => $request->input('contact_hero_subtitle'),
+                    'helpline_phone'    => $request->input('contact_phone'),
+                    'whatsapp_number'   => $request->input('contact_whatsapp'),
+                    'helpline_email'    => $request->input('contact_email'),
+                    'contact_address'   => $request->input('contact_address'),
+                    'working_hours'     => $request->input('contact_working_hours'),
+                    'friday_note'       => $request->input('contact_friday_note'),
+                    'map_url'           => $request->input('contact_map_url'),
+                    'dept_editorial'    => $request->input('contact_dept_editorial'),
+                    'dept_wholesale'    => $request->input('contact_dept_wholesale'),
+                    'dept_accounts'     => $request->input('contact_dept_accounts'),
+                ];
+                $existingContact = \App\Support\SiteSetting::contactCustomizer();
+                $finalContact = array_merge($existingContact, array_filter($contactData, fn($v) => !is_null($v)));
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'contact_page_settings'],
+                    ['value' => $finalContact, 'updated_by' => auth()->id()]
+                );
+                if ($request->filled('contact_phone')) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'contact_phone'],
+                        ['value' => $request->input('contact_phone'), 'updated_by' => auth()->id()]
+                    );
+                }
+                if ($request->filled('contact_whatsapp')) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'whatsapp_number'],
+                        ['value' => $request->input('contact_whatsapp'), 'updated_by' => auth()->id()]
+                    );
+                }
+                if ($request->filled('contact_email')) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'contact_email'],
+                        ['value' => $request->input('contact_email'), 'updated_by' => auth()->id()]
+                    );
+                }
+                if ($request->filled('contact_address')) {
+                    AdminDashboardSetting::updateOrCreate(
+                        ['key' => 'contact_address'],
+                        ['value' => $request->input('contact_address'), 'updated_by' => auth()->id()]
+                    );
+                }
+            }
+
+            // 1.6 Webzine & Literary Magazine Customizer Settings
+            if ($request->has('webzine_hero_title') || $request->has('webzine_hero_badge')) {
+                $webzineData = [
+                    'hero_badge'        => $request->input('webzine_hero_badge'),
+                    'hero_title'        => $request->input('webzine_hero_title'),
+                    'hero_subtitle'     => $request->input('webzine_hero_subtitle'),
+                    'editor_name'       => $request->input('webzine_editor_name'),
+                    'editor_title'      => $request->input('webzine_editor_title'),
+                    'editorial_note'    => $request->input('webzine_editorial_note'),
+                    'archive_notice'    => $request->input('webzine_archive_notice'),
+                    'cta_title'         => $request->input('webzine_cta_title'),
+                    'cta_button_text'   => $request->input('webzine_cta_button_text'),
+                    'cta_button_url'    => $request->input('webzine_cta_button_url'),
+                ];
+                $existingWebzine = \App\Support\SiteSetting::webzineCustomizer();
+                $finalWebzine = array_merge($existingWebzine, array_filter($webzineData, fn($v) => !is_null($v)));
+                AdminDashboardSetting::updateOrCreate(
+                    ['key' => 'webzine_customizer_settings'],
+                    ['value' => $finalWebzine, 'updated_by' => auth()->id()]
+                );
+            }
+
+
             // 2. Handle logo (File or Cropped Base64) & Dimensions
             if ($request->has('site_logo_height')) {
                 AdminDashboardSetting::updateOrCreate(

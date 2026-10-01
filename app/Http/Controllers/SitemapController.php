@@ -789,7 +789,26 @@ class SitemapController extends Controller
 
             // Ideapatra Submenus
             ['url' => '/ideapatra/write', 'priority' => '0.85', 'freq' => 'weekly'],
+
+            // Event, Scholarship & Library Campaigns
+            ['url' => '/pathagar', 'priority' => '0.95', 'freq' => 'daily'],
+            ['url' => '/scholarship', 'priority' => '0.94', 'freq' => 'daily'],
+            ['url' => '/rsu-writer-2026', 'priority' => '0.95', 'freq' => 'daily'],
         ];
+
+        // Dynamic Active Event Campaigns & Programs
+        if (Schema::hasTable('event_campaigns')) {
+            try {
+                $campaigns = \App\Models\EventCampaign::where('is_active', true)->get();
+                foreach ($campaigns as $camp) {
+                    $pages[] = [
+                        'url' => '/events/' . $camp->slug,
+                        'priority' => '0.92',
+                        'freq' => 'daily',
+                    ];
+                }
+            } catch (\Throwable $e) {}
+        }
 
         // Include any custom nav items defined in SiteSetting::headerNav()
         try {

@@ -202,6 +202,20 @@ class RoleMiddleware
         'admin.currencies.index'                   => 'settings.manage',
         'admin.translations.index'                 => 'editorial.view',
         'admin.communication.index'                => 'support.broadcast',
+        'admin.seo.index'                          => 'settings.manage',
+        'admin.seo.scanner'                        => 'settings.manage',
+        'admin.seo.scan-ajax'                      => 'settings.manage',
+        'admin.seo.batch-scan'                     => 'settings.manage',
+        'admin.seo.pages'                          => 'settings.manage',
+        'admin.seo.pages.update'                   => 'settings.manage',
+        'admin.seo.sitemap'                        => 'settings.manage',
+        'admin.seo.ping'                           => 'settings.manage',
+        'admin.seo.redirects'                      => 'settings.manage',
+        'admin.seo.redirects.store'                => 'settings.manage',
+        'admin.seo.redirects.delete'               => 'settings.manage',
+        'admin.seo.broken-links'                   => 'settings.manage',
+        'admin.seo.broken-links.resolve'           => 'settings.manage',
+        'admin.seo.update'                         => 'settings.manage',
     ];
 
     public function handle(Request $request, Closure $next, string ...$roles): Response

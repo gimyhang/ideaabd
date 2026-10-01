@@ -33,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         
         $middleware->web(append: [
+            \Modules\SEO\Http\Middleware\SeoRedirectMiddleware::class,
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\AffiliateTracking::class,
@@ -56,5 +57,19 @@ return Application::configure(basePath: dirname(__DIR__))
             return redirect()->back()
                 ->withInput($request->except('password', 'password_confirmation', '_token'))
                 ->with('error', 'আপনার ব্রাউজার সেশনের মেয়াদ শেষ হয়েছিল। অনুগ্রহ করে পুনরায় লগইন বা সাবমিট করুন।');
+        });
+
+        // Track and log 404 broken links for SEO monitoring & 301 redirection
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) {
+            try {
+                if (!$request->is('admin*') && !$request->is('api*') && class_exists(\Modules\SEO\Models\SeoBrokenLink::class) && \Illuminate\Support\Facades\Schema::hasTable('seo_broken_links')) {
+                    \Modules\SEO\Models\SeoBrokenLink::logHit(
+                        $request->fullUrl(),
+                        $request->header('referer'),
+                        $request->userAgent(),
+                        $request->ip()
+                    );
+                }
+            } catch (\Throwable) {}
         });
     })->create();

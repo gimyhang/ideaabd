@@ -1,6 +1,48 @@
 @extends('layouts.app')
 
-@section('title', 'আইডিয়া পাঠাগার — বই অনুদান আবেদন ফরম')
+@php
+    $libTitle = 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬';
+    $libDesc  = 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় পাঠাগার ও শিক্ষা প্রতিষ্ঠানে বই অনুদান নিবন্ধন ফরম।';
+    $libCover = asset('images/og-banner.jpg');
+@endphp
+
+@section('title', 'আইডিয়া পাঠাগার — বই অনুদান আবেদন ফরম ২০২৬')
+@section('meta_description', Str::limit(strip_tags($libDesc), 180))
+@section('meta_keywords', 'পাঠাগার নিবন্ধন, বিনামূল্যে বই বিতরণ, বই অনুদান, পাঠাগার উন্নয়ন, লাইব্রেরি অনুদান, আইডিয়া প্রকাশন')
+@section('og_type', 'website')
+@section('og_title', $libTitle . ' | আইডিয়া প্রকাশন')
+@section('og_description', Str::limit(strip_tags($libDesc), 180))
+@section('og_image', $libCover)
+@section('og_url', url('/pathagar'))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Event",
+  "name": @json($libTitle),
+  "description": @json(Str::limit(strip_tags($libDesc), 300)),
+  "image": @json($libCover),
+  "url": @json(url('/pathagar')),
+  "startDate": "{{ date('c') }}",
+  "endDate": "{{ date('c', strtotime('+60 days')) }}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+  "organizer": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "offers": {
+    "@@type": "Offer",
+    "url": @json(url('/pathagar')),
+    "price": "0",
+    "priceCurrency": "BDT",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+@endsection
 
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">

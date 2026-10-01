@@ -4,9 +4,56 @@
     $cardDesign        = $campaign->card_design ?? [];
     $themeColor        = $campaign->theme_color ?: '#0f172a';
     $customFields      = $campaign->custom_fields ?? [];
+    $eventDesc         = $campaign->short_description ?: strip_tags($campaign->description ?: 'লেখকদের অংশগ্রহণ ও ডেলিগেট কার্ড নিবন্ধন ফরম — আইডিয়া প্রকাশন।');
+    $eventCover        = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
 @endphp
 
 @section('title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম')
+@section('meta_description', Str::limit(strip_tags($eventDesc), 180))
+@section('meta_keywords', e($campaign->title) . ', লেখক নিবন্ধন, ডেলিগেট কার্ড, সাহিত্য সম্মেলন, লেখক সম্মেলন, আইডিয়া প্রকাশন')
+@section('og_type', 'website')
+@section('og_title', $campaign->title . ' — লেখকদের অংশগ্রহণ ফরম | আইডিয়া প্রকাশন')
+@section('og_description', Str::limit(strip_tags($eventDesc), 180))
+@section('og_image', $eventCover)
+@section('og_url', url('/rsu-writer-2026'))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Event",
+  "name": @json($campaign->title),
+  "description": @json(Str::limit(strip_tags($eventDesc), 300)),
+  "image": @json($eventCover),
+  "url": @json(url('/rsu-writer-2026')),
+  "startDate": "{{ optional($campaign->starts_at)->toIso8601String() ?: date('c') }}",
+  "endDate": "{{ optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')) }}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "location": {
+    "@@type": "Place",
+    "name": "আইডিয়া প্রকাশন সম্মেলন কেন্দ্র",
+    "address": {
+      "@@type": "PostalAddress",
+      "addressLocality": "ঢাকা",
+      "addressCountry": "BD"
+    }
+  },
+  "organizer": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "offers": {
+    "@@type": "Offer",
+    "url": @json(url('/rsu-writer-2026')),
+    "price": "{{ $campaign->has_fee_or_donation ? ($campaign->fee_amount ?: 0) : 0 }}",
+    "priceCurrency": "BDT",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+@endsection
 
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -765,6 +812,37 @@
     </div>
 
     {{-- Alert Notifications --}}
+    @auth
+        <div class="card border-0 rounded-3 p-3 mb-3 shadow-xs d-flex flex-row align-items-center justify-content-between flex-wrap gap-2" style="background: #f0fdf4; border: 1px solid #86efac !important;">
+            <div class="d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 14px;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+                <div>
+                    <div class="fw-bold text-dark" style="font-size: 13px;">
+                        <span>আপনি <strong>{{ auth()->user()->name }}</strong> হিসেবে সাইন-ইন আছেন</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">লগইনকৃত</span>
+                    </div>
+                    <div class="small text-muted font-monospace" style="font-size: 11.5px;">
+                        <i class="fa-solid fa-phone me-1 text-success"></i> {{ auth()->user()->phone ?? '—' }}
+                        @if(auth()->user()->email)
+                            <span class="mx-1">|</span> <i class="fa-solid fa-envelope me-1 text-success"></i> {{ auth()->user()->email }}
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" onclick="if(window.siteLogout){window.siteLogout(event);}else{event.preventDefault();document.getElementById('writerLogoutForm').submit();}">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>লগআউট / অন্য একাউন্ট</span>
+                </a>
+                <form id="writerLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
+            </div>
+        </div>
+    @endauth
+
     @if(session('error'))
         <div class="alert alert-danger rounded-2 py-2 px-3 mb-3 small d-flex align-items-center gap-2">
             <i class="fa-solid fa-circle-exclamation text-danger fs-5"></i>

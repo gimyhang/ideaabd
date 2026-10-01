@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Publisher\Models\Publisher;
+use Modules\SEO\Traits\HasSeo;
 
 class Webzine extends Model
 {
-    use HasFactory, SoftDeletes, Moderatable;
+    use HasFactory, SoftDeletes, Moderatable, HasSeo;
 
     protected $fillable = [
         'title',

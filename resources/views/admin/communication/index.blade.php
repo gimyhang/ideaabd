@@ -26,7 +26,7 @@
                 <div class="kpi__icon bg-success-subtle text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <p class="kpi__label">Delivery Success Rate</p>
                 <h3 class="kpi__value text-dark">99.4%</h3>
-                <p class="kpi__foot text-muted">Amazon SES / Cloudflare / Meta</p>
+                <p class="kpi__foot text-muted">Idea Dispatch Engine / Cloud Delivery</p>
             </div>
         </div>
         <div class="col-12 col-sm-4">

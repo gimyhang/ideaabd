@@ -548,9 +548,20 @@ class EventCampaignAdminController extends Controller
             'payment_method', 'payment_status', 'transaction_id', 'status', 'admin_notes'
         ]), ARRAY_FILTER_USE_KEY);
 
+        $oldStatus = $registration->status;
         $updateData['form_data'] = $formData;
 
         $registration->update($updateData);
+
+        if (!in_array($oldStatus, ['confirmed', 'selected', 'approved'], true) && in_array($registration->status, ['confirmed', 'selected'], true)) {
+            try {
+                $downloadUrl = url('/event-registration/print/' . $registration->registration_number);
+                $smsText = "অভিনন্দন! '{$registration->campaign->title}'-এ আপনার নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                \App\Services\SmsService::send($registration->phone, $smsText);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Update Registration Approval SMS error: " . $e->getMessage());
+            }
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -691,19 +702,36 @@ class EventCampaignAdminController extends Controller
 
         switch ($action) {
             case 'approve':
-                $query->update(['status' => 'confirmed']);
-                $msg = "{$count} participant(s) approved successfully.";
+                $regs = $query->with('campaign')->get();
+                foreach ($regs as $r) {
+                    $r->update(['status' => 'confirmed']);
+                    try {
+                        $downloadUrl = url('/event-registration/print/' . $r->registration_number);
+                        $smsText = "অভিনন্দন! '{$r->campaign->title}'-এ আপনার ডেলিগেট নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                        \App\Services\SmsService::send($r->phone, $smsText);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Bulk Approval SMS error: " . $e->getMessage());
+                    }
+                }
+                $msg = "{$count} participant(s) approved and notified via SMS successfully.";
                 break;
 
             case 'select_scholarship':
-                $regs = $query->get();
+                $regs = $query->with('campaign')->get();
                 foreach ($regs as $r) {
                     $fd = $r->form_data ?? [];
                     $fd['is_scholarship_awarded'] = true;
                     $fd['scholarship_awarded_at'] = now()->toDateTimeString();
                     $r->update(['status' => 'selected', 'form_data' => $fd]);
+                    try {
+                        $downloadUrl = url('/event-registration/print/' . $r->registration_number);
+                        $smsText = "অভিনন্দন! '{$r->campaign->title}'-এ আপনি বৃত্তির জন্য প্রাথমিকভাবে নির্বাচিত হয়েছেন। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                        \App\Services\SmsService::send($r->phone, $smsText);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Scholarship Selection SMS Error: " . $e->getMessage());
+                    }
                 }
-                $msg = "{$count} applicant(s) marked as Selected for Scholarship.";
+                $msg = "{$count} applicant(s) marked as Selected for Scholarship & notified via SMS.";
                 break;
 
             case 'mark_pending':

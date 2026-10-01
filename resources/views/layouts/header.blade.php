@@ -1476,14 +1476,14 @@
         {{-- 9. LOGOUT ACTION FOR AUTH USERS --}}
         @auth
             <div class="mt-2">
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-outline-danger rounded-pill w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                        <span>লগ আউট করুন</span>
-                    </button>
-                </form>
+                <button type="button" onclick="window.siteLogout(event)" class="btn btn-outline-danger rounded-pill w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" id="mobileDrawerLogoutBtn">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>লগ আউট করুন</span>
+                </button>
             </div>
+            <form id="globalSiteLogoutForm" method="POST" action="{{ route('logout') }}" class="d-none">
+                @csrf
+            </form>
         @endauth
 
     </div>
@@ -1491,6 +1491,32 @@
 
 @once
     <script>
+        // Global Safe Logout Function (Mobile & Desktop Conflict Free)
+        window.siteLogout = function(e) {
+            if (e) {
+                if (typeof e.preventDefault === 'function') e.preventDefault();
+                if (typeof e.stopPropagation === 'function') e.stopPropagation();
+            }
+            const form = document.getElementById('globalSiteLogoutForm');
+            if (form) {
+                form.submit();
+                return false;
+            }
+            // Fallback dynamically created form
+            const f = document.createElement('form');
+            f.method = 'POST';
+            f.action = '{{ route("logout") }}';
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            const metaCsrf = document.querySelector('meta[name="csrf-token"]');
+            csrfInput.value = metaCsrf ? metaCsrf.getAttribute('content') : '{{ csrf_token() }}';
+            f.appendChild(csrfInput);
+            document.body.appendChild(f);
+            f.submit();
+            return false;
+        };
+
         // Multi-Language Switcher Implementation
         function switchSiteLanguage(langCode, langName) {
             try {

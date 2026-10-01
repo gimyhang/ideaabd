@@ -24,11 +24,49 @@
 @endphp
 
 @section('title', ($authorName ?? 'লেখক প্রোফাইল') . ' — আইডিয়া প্রকাশন')
+@section('meta_keywords', e($authorName) . ', ' . e($authorNameEn ?: '') . ', বাংলা লেখক, লেখক প্রোফাইল, বই, কবিতা, সাহিত্যিক, আইডিয়া প্রকাশন, ' . e($authorPenName ?: 'লেখক'))
+@section('meta_author', e($authorName))
 @section('og_type', 'profile')
 @section('og_title', $authorName . ($authorNameEn ? " ({$authorNameEn})" : '') . ' — লেখক প্রোফাইল | আইডিয়া প্রকাশন')
 @section('og_description', $authorBioOg)
 @section('og_image', $photoUrl ?: asset('images/logo.svg'))
 @section('og_url', route('authors.show', $author->slug ?: $author->id))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Person",
+  "name": @json($authorName),
+  @if($authorNameEn)
+  "alternateName": @json($authorNameEn),
+  @endif
+  "url": @json(route('authors.show', $author->slug ?: $author->id)),
+  "image": @json($photoUrl ?: asset('images/logo.png')),
+  "description": @json(Str::limit(strip_tags($authorBioOg), 300)),
+  @if($authorGenres)
+  "jobTitle": @json("লেখক (" . (is_array($authorGenres) ? implode(', ', $authorGenres) : $authorGenres) . ")"),
+  @else
+  "jobTitle": "লেখক (Author)",
+  @endif
+  @if(!empty($fbUrl) || !empty($twUrl) || !empty($ytUrl) || !empty($webUrl))
+  "sameAs": [
+    @php
+      $links = array_values(array_filter([$fbUrl, $twUrl, $ytUrl, $webUrl]));
+    @endphp
+    @foreach($links as $idx => $link)
+      @json($link){{ $loop->last ? '' : ',' }}
+    @endforeach
+  ],
+  @endif
+  "worksFor": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  }
+}
+</script>
+@endsection
 
 @section('content')
 <div class="container py-3 py-md-4 mb-5">

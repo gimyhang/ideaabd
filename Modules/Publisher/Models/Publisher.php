@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Book\Models\Book;
 use Illuminate\Support\Str;
+use Modules\SEO\Traits\HasSeo;
 
 class Publisher extends Model
 {
-    use HasFactory, SoftDeletes, Moderatable;
+    use HasFactory, SoftDeletes, Moderatable, HasSeo;
 
     protected $fillable = [
         'name',

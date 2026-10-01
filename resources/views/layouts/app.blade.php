@@ -42,10 +42,17 @@
             $defaultBanner = url($defaultBanner);
         }
 
-        $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : (View::hasSection('title') ? View::getSection('title') : $defaultSiteName);
-        $metaPageDescription = View::hasSection('og_description') ? View::getSection('og_description') : (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline);
+        $currentReqPath = '/' . ltrim(request()->path(), '/');
+        $dbSeo = null;
+        if (class_exists(\Modules\SEO\Models\SeoMeta::class)) {
+            $dbSeo = \Modules\SEO\Models\SeoMeta::where('url_path', $currentReqPath)->first();
+        }
+
+        $metaPageTitle = View::hasSection('og_title') ? View::getSection('og_title') : ($dbSeo?->meta_title ?: (View::hasSection('title') ? View::getSection('title') : $defaultSiteName));
+        $metaPageDescription = View::hasSection('og_description') ? View::getSection('og_description') : ($dbSeo?->meta_description ?: (View::hasSection('meta_description') ? View::getSection('meta_description') : $defaultSiteTagline));
+        $metaPageKeywords = View::hasSection('meta_keywords') ? View::getSection('meta_keywords') : ($dbSeo?->meta_keywords ?: 'আইডিয়া প্রকাশন, বাংলা বই, ইবুক, সাহিত্য, ব্লগ, কবিতা, প্রবন্ধ, প্রকাশনা, বই অর্ডার, অনলাইন বই মেলা, Idea Publication, Bangla Books, Ebooks, Publishers, Research, Webzine');
         
-        $candidateImage = View::hasSection('og_image') ? View::getSection('og_image') : null;
+        $candidateImage = View::hasSection('og_image') ? View::getSection('og_image') : ($dbSeo?->og_image ?: null);
         if (empty($candidateImage) || str_ends_with(strtolower($candidateImage), '.svg') || str_starts_with($candidateImage, 'data:')) {
             $metaPageImage = $defaultBanner;
         } else {
@@ -62,6 +69,8 @@
             $rawCanonical = trim(View::getSection('canonical'));
         } elseif (View::hasSection('og_url')) {
             $rawCanonical = trim(View::getSection('og_url'));
+        } elseif ($dbSeo?->canonical_url) {
+            $rawCanonical = trim($dbSeo->canonical_url);
         } else {
             $reqPath = request()->path();
             $rawCanonical = ($reqPath === '/' || $reqPath === '') ? $canonicalDomain . '/' : $canonicalDomain . '/' . ltrim($reqPath, '/');
@@ -84,14 +93,14 @@
         }
 
         $metaPageUrl = $rawCanonical;
-        $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : 'website';
+        $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : ($dbSeo?->og_type ?: 'website');
 
         $imageExt = strtolower(pathinfo(parse_url($metaPageImage, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
         $imageMime = ($imageExt === 'png') ? 'image/png' : (($imageExt === 'webp') ? 'image/webp' : 'image/jpeg');
     @endphp
 
     <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
-    <meta name="keywords" content="@yield('meta_keywords', 'আইডিয়া প্রকাশন, বাংলা বই, ইবুক, সাহিত্য, ব্লগ, কবিতা, প্রবন্ধ, প্রকাশনা, বই অর্ডার, অনলাইন বই মেলা, Idea Publication, Bangla Books, Ebooks, Publishers, Research, Webzine')">
+    <meta name="keywords" content="{{ $metaPageKeywords }}">
     <meta name="author" content="@yield('meta_author', $defaultSiteName)">
     <meta name="publisher" content="{{ $defaultSiteName }}">
     <meta name="copyright" content="© {{ date('Y') }} {{ $defaultSiteName }}. All Rights Reserved.">
@@ -188,9 +197,13 @@
             "query-input": "required name=search_term_string"
           }
         }
-      ]
     }
     </script>
+    @if(!View::hasSection('schema_json') && !empty($dbSeo?->schema_json))
+    <script type="application/ld+json">
+    {!! json_encode($dbSeo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    </script>
+    @endif
     @yield('schema_json')
     @stack('schema')
 

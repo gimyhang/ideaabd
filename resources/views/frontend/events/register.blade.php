@@ -126,6 +126,37 @@
             {{-- Registration Form Body --}}
             <div class="card-body p-4 p-md-5 pt-3">
 
+                @auth
+                    <div class="card border-0 rounded-3 p-3 mb-4 shadow-xs d-flex flex-row align-items-center justify-content-between flex-wrap gap-2" style="background: #f0fdf4; border: 1px solid #86efac !important;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 14px;">
+                                <i class="fa-solid fa-user-check"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 13px;">
+                                    <span>আপনি <strong>{{ auth()->user()->name }}</strong> হিসেবে সাইন-ইন আছেন</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">লগইনকৃত</span>
+                                </div>
+                                <div class="small text-muted font-monospace" style="font-size: 11.5px;">
+                                    <i class="fa-solid fa-phone me-1 text-success"></i> {{ auth()->user()->phone ?? '—' }}
+                                    @if(auth()->user()->email)
+                                        <span class="mx-1">|</span> <i class="fa-solid fa-envelope me-1 text-success"></i> {{ auth()->user()->email }}
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" onclick="if(window.siteLogout){window.siteLogout(event);}else{event.preventDefault();document.getElementById('eventLogoutForm').submit();}">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                <span>লগআউট / অন্য একাউন্ট</span>
+                            </a>
+                            <form id="eventLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </div>
+                    </div>
+                @endauth
+
                 @if(session('error'))
                     <div class="alert alert-danger rounded-3 p-3 mb-4 shadow-xs" role="alert">
                         <i class="fa-solid fa-circle-exclamation fs-5 me-2 align-middle"></i>

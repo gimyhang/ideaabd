@@ -17,10 +17,11 @@ use Modules\Review\Models\Review;
 use Modules\Tag\Models\Tag;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Vendor\Models\Vendor;
+use Modules\SEO\Traits\HasSeo;
 
 class Book extends Model
 {
-    use HasFactory, Moderatable, SoftDeletes;
+    use HasFactory, Moderatable, SoftDeletes, HasSeo;
 
     /**
      * Mass assignable attributes.

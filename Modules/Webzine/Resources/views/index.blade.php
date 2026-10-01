@@ -1,19 +1,57 @@
 @extends('layouts.app')
 
-@section('title', 'ওয়েবজিন ও সাহিত্য সাময়িকী — আইডিয়া প্রকাশন')
+@php
+    $siteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
+    $customizer = \App\Support\SiteSetting::webzineCustomizer();
+    $pageTitle = ($customizer['hero_title'] ?? 'ওয়েবজিন ও সাহিত্য সাময়িকী') . ' — ' . $siteName;
+    $pageDesc = $customizer['hero_subtitle'] ?? 'ম্যাগাজিন অনুসারে সকল সংখ্যা আলাদা আলাদা বিভাগে সাজানো। আপনার পছন্দের সাময়িকীর সকল প্রকাশনা অনলাইনে পড়ুন।';
+    $ogBanner = \App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
+@endphp
+
+@section('title', $pageTitle)
+@section('meta_description', $pageDesc)
+@section('meta_keywords', 'ওয়েবজিন, সাহিত্য সাময়িকী, গবেষণা পত্রিকা, আইডিয়া প্রকাশন, রংপুর প্রকাশনা, ম্যাগাজিন')
+@section('og_type', 'website')
+@section('og_title', $pageTitle)
+@section('og_description', $pageDesc)
+@section('og_image', $ogBanner)
+@section('og_url', url('/webzines'))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "CollectionPage",
+  "name": @json($pageTitle),
+  "description": @json($pageDesc),
+  "url": @json(url('/webzines')),
+  "publisher": {
+    "@@type": "Organization",
+    "name": @json($siteName),
+    "url": "https://www.ideaabd.com"
+  }
+}
+</script>
+@endsection
 
 @section('content')
 <div class="container py-4 mb-5">
     <!-- Hero Banner -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden text-white" 
-         style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #0369a1 100%);">
+         style="background: linear-gradient(135deg, #07192f 0%, #0d2847 50%, #0369a1 100%);">
         <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-md-block pe-4 pb-2" style="pointer-events: none;">
             <i class="fa-solid fa-newspaper" style="font-size: 14rem;"></i>
         </div>
-        <div class="position-relative z-1" style="max-width: 650px;">
-            <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">ম্যাগাজিন ও সাময়িকী কালেকশন</span>
-            <h1 class="fw-bold display-6 mb-2">ওয়েবজিন ও ডিজিটাল পত্রিকা</h1>
-            <p class="fs-6 opacity-90 mb-4">ম্যাগাজিন অনুসারে সকল সংখ্যা আলাদা আলাদা বিভাগে সাজানো। আপনার পছন্দের সাময়িকীর সকল প্রকাশনা অনলাইনে পড়ুন।</p>
+        <div class="position-relative z-1" style="max-width: 680px;">
+            <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">
+                <i class="fa-solid fa-feather-pointed me-1"></i>{{ $customizer['hero_badge'] ?? 'ম্যাগাজিন ও সাময়িকী কালেকশন' }}
+            </span>
+            <h1 class="fw-bold display-6 mb-2" style="font-family: 'Noto Serif Bengali', serif;">
+                {{ $customizer['hero_title'] ?? 'ওয়েবজিন ও ডিজিটাল পত্রিকা' }}
+            </h1>
+            <p class="fs-6 text-white-50 mb-4" style="line-height: 1.7;">
+                {{ $customizer['hero_subtitle'] ?? 'ম্যাগাজিন অনুসারে সকল সংখ্যা আলাদা আলাদা বিভাগে সাজানো। আপনার পছন্দের সাময়িকীর সকল প্রকাশনা অনলাইনে পড়ুন।' }}
+            </p>
             
             <!-- Search Box -->
             <form action="{{ route('webzine.index') }}" method="GET" class="d-flex flex-column flex-sm-row gap-2">
@@ -31,6 +69,28 @@
             </form>
         </div>
     </div>
+
+    {{-- Editorial Note & Callout Banner --}}
+    @if(!empty($customizer['editorial_note']))
+    <div class="card p-3 p-md-4 mb-4 border-0 rounded-4 shadow-xs" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-left: 4px solid #10b981 !important;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-emerald-100 text-emerald-700 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="fa-solid fa-feather-pointed fs-5"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold text-dark mb-0.5" style="font-family: 'Noto Serif Bengali', serif;">সম্পাদকীয় বার্তা</h6>
+                    <p class="small text-muted mb-0">{{ $customizer['editorial_note'] }}</p>
+                </div>
+            </div>
+            @if(!empty($customizer['cta_button_text']))
+                <a href="{{ url($customizer['cta_button_url'] ?? '/contact') }}" class="btn btn-emerald-solid btn-sm rounded-pill px-3.5 py-1.5 fw-bold text-white shadow-xs" style="background: #006a4e; text-decoration: none;">
+                    <i class="fa-solid fa-paper-plane me-1"></i>{{ $customizer['cta_button_text'] }}
+                </a>
+            @endif
+        </div>
+    </div>
+    @endif
 
     <!-- Magazine Categories & Issues Display -->
     @if(isset($magazineCategories) && $magazineCategories->isNotEmpty())

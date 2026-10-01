@@ -74,6 +74,9 @@
     $banner2Url = \App\Support\SiteSetting::banner2Url();
     $faviconUrl = \App\Support\SiteSetting::faviconUrl();
     $blogOgBannerUrl = \App\Support\SiteSetting::blogOgBannerUrl();
+    $aboutSettings = \App\Support\SiteSetting::aboutCustomizer();
+    $contactSettings = \App\Support\SiteSetting::contactCustomizer();
+    $webzineSettings = \App\Support\SiteSetting::webzineCustomizer();
 @endphp
 
 @section('content')
@@ -157,6 +160,27 @@
                                 id="tab-editorial-btn" data-bs-toggle="pill" data-bs-target="#tab-editorial" type="button" role="tab">
                             <i class="fa-solid fa-feather-pointed text-primary"></i>
                             <span>আইডিয়াপত্র ও সম্পাদনা পরিষদ</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-about-btn" data-bs-toggle="pill" data-bs-target="#tab-about" type="button" role="tab">
+                            <i class="fa-solid fa-circle-info text-info"></i>
+                            <span>আমাদের সম্পর্কে (About Us)</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-contact-btn" data-bs-toggle="pill" data-bs-target="#tab-contact" type="button" role="tab">
+                            <i class="fa-solid fa-headset text-success"></i>
+                            <span>যোগাযোগ ও হেল্পডেস্ক (Contact)</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-semibold py-2.5 px-3 d-flex align-items-center justify-content-center gap-2" 
+                                id="tab-webzine-btn" data-bs-toggle="pill" data-bs-target="#tab-webzine" type="button" role="tab">
+                            <i class="fa-solid fa-newspaper text-warning"></i>
+                            <span>ওয়েবজিন ও সাময়িকী (Webzine)</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -1800,8 +1824,358 @@
 
                     </div>
 
-                </div>
-            </div>
+                    <!-- Tab: আমাদের সম্পর্কে কাস্টমাইজার (#tab-about) -->
+                    <div class="tab-pane fade" id="tab-about" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-circle-info text-info"></i> আমাদের সম্পর্কে (About Us) পেজ কাস্টমাইজার
+                                </h5>
+                                <p class="text-muted small mb-0">আমাদের মূল দর্শন, অর্জন, পরিসংখ্যান ও প্রাতিষ্ঠানিক বক্তব্য সহজেই কাস্টমাইজ করুন।</p>
+                            </div>
+                            <a href="{{ route('about') }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 fw-semibold">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> লাইভ পেজ দেখুন
+                            </a>
+                        </div>
+
+                        <!-- 1. Hero Header & Overview -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-heading text-primary"></i> ১. হেডার ও পরিচিতি
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">হিরো ব্যাজ টেক্সট</label>
+                                    <input type="text" name="about_hero_badge" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['hero_badge'] ?? 'ঐতিহ্য, মনন ও সাংস্কৃতিক প্রত্যয়' }}">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-dark small mb-1">পেজ মূল শিরোনাম (Page Title)</label>
+                                    <input type="text" name="about_page_title" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['page_title'] ?? 'আইডিয়া প্রকাশন: উত্তরবঙ্গের জ্ঞান, সাহিত্য ও সংস্কৃতি চর্চার নিরন্তর অভিযাত্রা' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">পেজ সারসংক্ষেপ / সাবটাইটেল</label>
+                                    <textarea name="about_page_subtitle" class="form-control rounded-3" rows="2">{{ $aboutSettings['page_subtitle'] ?? 'উত্তরবঙ্গের জ্ঞানচর্চা, সৃজনশীল প্রকাশ ও সাংস্কৃতিক আত্মপরিচয় নির্মাণের দুই দশকের অভিযাত্রা। ৪৫০+ প্রকাশিত বই ও ২৭,০০০+ পাঠাগার বই অনুদান।' }}</textarea>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-dark small mb-1">বিশেষ উক্তি (Pull Quote)</label>
+                                    <textarea name="about_quote_text" class="form-control rounded-3" rows="2">{{ $aboutSettings['quote_text'] ?? 'একটি জনপদের ইতিহাস কেবল তার রাজা-রাজন্য বা রাজনৈতিক উত্থান-পতনের ইতিহাস নয়; তার প্রকৃত পরিচয় নিহিত থাকে মানুষের চিন্তা, মনন, সৃজনশীলতা, ভাষা ও সংস্কৃতির পরম্পরায়।' }}</textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">উক্তির বক্তা</label>
+                                    <input type="text" name="about_quote_author" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['quote_author'] ?? 'সাকিল মাসুদ, সিইও ও প্রকাশক' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. KPI Stat Cards -->
+                        <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-chart-simple text-success"></i> ২. মূল অর্জন ও পরিসংখ্যান (৪টি কার্ড)
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">কার্ড ১: প্রকাশিত বই</label>
+                                        <input type="text" name="about_stat_books_count" class="form-control form-control-sm rounded-3 mb-2 fw-bold text-primary" 
+                                               value="{{ $aboutSettings['stat_books_count'] ?? '৪৫০+' }}" placeholder="সংখ্যা">
+                                        <input type="text" name="about_stat_books_label" class="form-control form-control-sm rounded-3" 
+                                               value="{{ $aboutSettings['stat_books_label'] ?? 'প্রকাশিত বই' }}" placeholder="লেবেল">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">কার্ড ২: বই বিতরণ</label>
+                                        <input type="text" name="about_stat_lib_count" class="form-control form-control-sm rounded-3 mb-2 fw-bold text-success" 
+                                               value="{{ $aboutSettings['stat_lib_count'] ?? '২৭,০০০+' }}" placeholder="সংখ্যা">
+                                        <input type="text" name="about_stat_lib_label" class="form-control form-control-sm rounded-3" 
+                                               value="{{ $aboutSettings['stat_lib_label'] ?? 'বিনামূল্যে বই বিতরণ' }}" placeholder="লেবেল">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">কার্ড ৩: প্রকাশনা বয়স</label>
+                                        <input type="text" name="about_stat_years_count" class="form-control form-control-sm rounded-3 mb-2 fw-bold text-warning" 
+                                               value="{{ $aboutSettings['stat_years_count'] ?? '২ দশক' }}" placeholder="সংখ্যা">
+                                        <input type="text" name="about_stat_years_label" class="form-control form-control-sm rounded-3" 
+                                               value="{{ $aboutSettings['stat_years_label'] ?? 'নিরবচ্ছিন্ন প্রকাশনা' }}" placeholder="লেবেল">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">কার্ড ৪: বইমেলা</label>
+                                        <input type="text" name="about_stat_fair_count" class="form-control form-control-sm rounded-3 mb-2 fw-bold text-info" 
+                                               value="{{ $aboutSettings['stat_fair_count'] ?? '১ দশক' }}" placeholder="সংখ্যা">
+                                        <input type="text" name="about_stat_fair_label" class="form-control form-control-sm rounded-3" 
+                                               value="{{ $aboutSettings['stat_fair_label'] ?? 'অমর একুশে বইমেলা' }}" placeholder="লেবেল">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Publisher & Signature Info -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-signature text-primary"></i> ৩. প্রকাশক ও সিইও পরিচিতি কার্ড
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">নাম</label>
+                                    <input type="text" name="about_publisher_name" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['publisher_name'] ?? 'সাকিল মাসুদ' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">পদবি</label>
+                                    <input type="text" name="about_publisher_role" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['publisher_role'] ?? 'সিইও ও প্রকাশক' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">প্রতিষ্ঠান / সাব-ট্যাগ</label>
+                                    <input type="text" name="about_publisher_note" class="form-control rounded-3" 
+                                           value="{{ $aboutSettings['publisher_note'] ?? 'আইডিয়া প্রকাশন • বুকস অব আইডিয়া' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">লেখক প্রোফাইল URL</label>
+                                    <input type="text" name="about_publisher_url" class="form-control rounded-3 font-monospace small" 
+                                           value="{{ $aboutSettings['publisher_url'] ?? '/authors/sakil-masud' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Full Statement Paragraphs -->
+                        <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-newspaper text-teal" style="color: #0d9488;"></i> ৪. প্রাতিষ্ঠানিক পূর্ণাঙ্গ বক্তব্য ও অনুচ্ছেদসমূহ
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ১ (ভূমিকা ও বুদ্ধিবৃত্তিক সেতু)</label>
+                                    <textarea name="about_statement_p1" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p1'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ২ (রঙ্গপুর বার্তাবহ ও ঐতিহ্যের স্মারক)</label>
+                                    <textarea name="about_statement_p2" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p2'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৩ (দুই দশকের পথচলা ও বৈচিত্র্যময় বই)</label>
+                                    <textarea name="about_statement_p3" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p3'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৪ (শিশুসাহিত্য ও ভবিষ্যৎ প্রজন্ম)</label>
+                                    <textarea name="about_statement_p4" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p4'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৫ (গবেষণা ও সাময়িকপত্র)</label>
+                                    <textarea name="about_statement_p5" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p5'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৬ (পাঠাগার আন্দোলন ও বই বিতরণ)</label>
+                                    <textarea name="about_statement_p6" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p6'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৭ (অমর একুশে বইমেলা ও জাতীয় পরিসর)</label>
+                                    <textarea name="about_statement_p7" class="form-control rounded-3" rows="3">{{ $aboutSettings['statement_p7'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ৮ ও ৯ (উত্তরবঙ্গের নিজস্ব জ্ঞানভান্ডার ও ভবিষ্যৎ ভাবনা)</label>
+                                    <textarea name="about_statement_p8" class="form-control rounded-3 mb-2" rows="2">{{ $aboutSettings['statement_p8'] ?? '' }}</textarea>
+                                    <textarea name="about_statement_p9" class="form-control rounded-3" rows="2">{{ $aboutSettings['statement_p9'] ?? '' }}</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">অনুচ্ছেদ ১০, ১১ ও ১২ (উপসংহার, শিকড় ও অঙ্গীকার)</label>
+                                    <textarea name="about_statement_p10" class="form-control rounded-3 mb-2" rows="2">{{ $aboutSettings['statement_p10'] ?? '' }}</textarea>
+                                    <textarea name="about_statement_p11" class="form-control rounded-3 mb-2" rows="2">{{ $aboutSettings['statement_p11'] ?? '' }}</textarea>
+                                    <textarea name="about_statement_p12" class="form-control rounded-3" rows="2">{{ $aboutSettings['statement_p12'] ?? '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: যোগাযোগ ও হেল্পডেস্ক কাস্টমাইজার (#tab-contact) -->
+                    <div class="tab-pane fade" id="tab-contact" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-headset text-success"></i> যোগাযোগ ও হেল্পডেস্ক (Contact) পেজ কাস্টমাইজার
+                                </h5>
+                                <p class="text-muted small mb-0">যোগাযোগ পেজের হটলাইন, হোয়াটসঅ্যাপ, হেড অফিস ঠিকানা ও বিভাগভিত্তিক হেল্পডেস্ক নিয়ন্ত্রণ করুন।</p>
+                            </div>
+                            <a href="{{ route('contact') }}" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> লাইভ যোগাযোগ পেজ
+                            </a>
+                        </div>
+
+                        <!-- 1. Hero Header & Quick Channel Contacts -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-phone-volume text-primary"></i> ১. প্রধান হেল্পলাইন ও চ্যানেলসমূহ
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">হিরো ব্যাজ</label>
+                                    <input type="text" name="contact_hero_badge" class="form-control rounded-3" 
+                                           value="{{ $contactSettings['hero_badge'] ?? '২৪/৭ কাস্টমার সাপোর্ট ও পাঠক সেবা' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">পেজ শিরোনাম</label>
+                                    <input type="text" name="contact_hero_title" class="form-control rounded-3" 
+                                           value="{{ $contactSettings['hero_title'] ?? 'যোগাযোগ ও সহায়তা কেন্দ্র' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">হটলাইন হেল্পলাইন ফোন</label>
+                                    <input type="text" name="contact_phone" class="form-control rounded-3 font-monospace" 
+                                           value="{{ $contactSettings['helpline_phone'] ?? '01726976982' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">অফিসিয়াল হোয়াটসঅ্যাপ নম্বর</label>
+                                    <input type="text" name="contact_whatsapp" class="form-control rounded-3 font-monospace" 
+                                           value="{{ $contactSettings['whatsapp_number'] ?? '01726976982' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">অফিসিয়াল ইমেইল</label>
+                                    <input type="email" name="contact_email" class="form-control rounded-3 font-monospace" 
+                                           value="{{ $contactSettings['helpline_email'] ?? 'ideapbd@gmail.com' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">গুগল ম্যাপ ডিরেকশন লিংক</label>
+                                    <input type="text" name="contact_map_url" class="form-control rounded-3 font-monospace small" 
+                                           value="{{ $contactSettings['map_url'] ?? '' }}" placeholder="https://maps.google.com/...">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">প্রধান কার্যালয়ের পূর্ণ ঠিকানা</label>
+                                    <input type="text" name="contact_address" class="form-control rounded-3" 
+                                           value="{{ $contactSettings['contact_address'] ?? 'আইডিয়া প্রকাশন, প্রেসক্লাব গলি / সুপার মার্কেট, রংপুর ও ঢাকা, বাংলাদেশ' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">কার্যকাল ও সময়সূচী</label>
+                                    <input type="text" name="contact_working_hours" class="form-control rounded-3" 
+                                           value="{{ $contactSettings['working_hours'] ?? 'শনিবার – বৃহস্পতিবার: সকাল ৯:০০ টা – রাত ১১:০০ টা' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">শুক্রবার বিশেষ হেল্পলাইন নোট</label>
+                                    <input type="text" name="contact_friday_note" class="form-control rounded-3" 
+                                           value="{{ $contactSettings['friday_note'] ?? 'শুক্রবার অনলাইন ও হোয়াটসঅ্যাপ সাপোর্ট সার্বক্ষণিক সচল থাকে' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Department Direct Directory -->
+                        <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-sitemap text-info"></i> ২. বিভাগভিত্তিক সরাসরি হেল্পডেস্ক
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-feather-pointed text-success me-1"></i> প্রকাশনা ও সম্পাদকীয়
+                                        </label>
+                                        <input type="email" name="contact_dept_editorial" class="form-control form-control-sm rounded-3 font-monospace" 
+                                               value="{{ $contactSettings['dept_editorial'] ?? 'ideapbd@gmail.com' }}" placeholder="ইমেইল">
+                                        <div class="form-text small text-muted">পান্ডুলিপি ও লেখক প্রকাশনা বিষয়ক।</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-store text-warning me-1"></i> বিক্রয় ও পরিবেশনা
+                                        </label>
+                                        <input type="text" name="contact_dept_wholesale" class="form-control form-control-sm rounded-3 font-monospace" 
+                                               value="{{ $contactSettings['dept_wholesale'] ?? '01726976982' }}" placeholder="ফোন/হোয়াটসঅ্যাপ">
+                                        <div class="form-text small text-muted">বুকশপ ও লাইব্রেরি পাইকারি অর্ডার।</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border">
+                                        <label class="form-label fw-bold text-dark small mb-1">
+                                            <i class="fa-solid fa-wallet text-primary me-1"></i> হিসাব ও লেখক রয়্যালটি
+                                        </label>
+                                        <input type="email" name="contact_dept_accounts" class="form-control form-control-sm rounded-3 font-monospace" 
+                                               value="{{ $contactSettings['dept_accounts'] ?? 'ideapbd@gmail.com' }}" placeholder="ইমেইল">
+                                        <div class="form-text small text-muted">রয়্যালটি ও ব্যাংক সেটেলমেন্ট।</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: ওয়েবজিন ও সাহিত্য সাময়িকী কাস্টমাইজার (#tab-webzine) -->
+                    <div class="tab-pane fade" id="tab-webzine" role="tabpanel">
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+                            <div>
+                                <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                                    <i class="fa-solid fa-newspaper text-warning"></i> ওয়েবজিন ও সাহিত্য সাময়িকী (Webzine) কাস্টমাইজার
+                                </h5>
+                                <p class="text-muted small mb-0">ওয়েবজিন গ্যালারি, সম্পাদকীয় বার্তা ও ম্যাগাজিন কলআউট ব্যানার কাস্টমাইজ করুন।</p>
+                            </div>
+                            <a href="{{ route('webzine.index') }}" target="_blank" class="btn btn-outline-warning btn-sm rounded-pill px-3 fw-semibold text-dark">
+                                <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> লাইভ ওয়েবজিন পেজ
+                            </a>
+                        </div>
+
+                        <!-- 1. Header & Overview -->
+                        <div class="card border-0 rounded-4 bg-light p-3.5 mb-4 border">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-heading text-primary"></i> ১. হেডার ও পরিচিতি ব্যানার
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">হিরো ব্যাজ</label>
+                                    <input type="text" name="webzine_hero_badge" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['hero_badge'] ?? 'ম্যাগাজিন ও সাময়িকী কালেকশন' }}">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold text-dark small mb-1">পেজ শিরোনাম</label>
+                                    <input type="text" name="webzine_hero_title" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['hero_title'] ?? 'ওয়েবজিন ও সাহিত্য সাময়িকী' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">পেজ সাবটাইটেল / বিবরণ</label>
+                                    <textarea name="webzine_hero_subtitle" class="form-control rounded-3" rows="2">{{ $webzineSettings['hero_subtitle'] ?? 'সাহিত্য, শিল্প-সংস্কৃতি, প্রবন্ধ ও সমকালীন ভাবনার নিয়মিত ও বিশেষ সংখ্যাগুলোর ডিজিটাল সংকলন। অনলাইনে সরাসরি পড়ুন ও সংগ্রহ করুন।' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Editorial Note & CTA -->
+                        <div class="card border-0 rounded-4 bg-white p-3.5 mb-4 border shadow-2xs">
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-feather-pointed text-success"></i> ২. সম্পাদকীয় বার্তা ও লেখক আহ্বান (CTA)
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">সম্পাদকের নাম</label>
+                                    <input type="text" name="webzine_editor_name" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['editor_name'] ?? 'সাকিল মাসুদ' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-dark small mb-1">সম্পাদকের পদবি</label>
+                                    <input type="text" name="webzine_editor_title" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['editor_title'] ?? 'প্রধান সম্পাদক' }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark small mb-1">সম্পাদকীয় সারসংক্ষেপ / বার্তা</label>
+                                    <textarea name="webzine_editorial_note" class="form-control rounded-3" rows="2">{{ $webzineSettings['editorial_note'] ?? 'শিল্প, সাহিত্য ও মননের উন্মুক্ত পরিসর বিনির্মাণে আমাদের নিয়মিত প্রকাশনা। নতুন চিন্তা ও গবেষণার দ্বার উন্মোচন আমাদের লক্ষ্য।' }}</textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">লেখক আহ্বান শিরোনাম</label>
+                                    <input type="text" name="webzine_cta_title" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['cta_title'] ?? 'আপনিও কি সাময়িকীতে লিখতে চান?' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">কল-টু-অ্যাকশন বাটন টেক্সট</label>
+                                    <input type="text" name="webzine_cta_button_text" class="form-control rounded-3" 
+                                           value="{{ $webzineSettings['cta_button_text'] ?? 'পান্ডুলিপি বা লেখা পাঠান' }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold text-dark small mb-1">বাটন লিঙ্ক URL</label>
+                                    <input type="text" name="webzine_cta_button_url" class="form-control rounded-3 font-monospace small" 
+                                           value="{{ $webzineSettings['cta_button_url'] ?? '/contact' }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
             <!-- Footer Save Button Bar -->
             <div class="card-footer bg-light border-top p-3.5 d-flex justify-content-between align-items-center">

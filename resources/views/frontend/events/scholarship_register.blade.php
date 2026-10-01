@@ -1,6 +1,48 @@
 @extends('layouts.app')
 
-@section('title', 'Education Scholarship Application Form')
+@php
+    $eventTitle = $campaign->title ?: 'শিক্ষা অনুদান ও মেধা বৃত্তি আবেদন ফরম ২০২৬';
+    $eventDesc  = $campaign->short_description ?: 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া শিক্ষা অনুদান ও মেধা বৃত্তি নিবন্ধন আবেদন ফরম।';
+    $eventCover = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
+@endphp
+
+@section('title', $eventTitle . ' — আইডিয়া প্রকাশন')
+@section('meta_description', Str::limit(strip_tags($eventDesc), 180))
+@section('meta_keywords', 'শিক্ষা অনুদান, মেধা বৃত্তি, স্কলারশিপ আবেদন, শিক্ষার্থী বৃত্তি, আইডিয়া প্রকাশন, scholarship registration bangladesh')
+@section('og_type', 'website')
+@section('og_title', $eventTitle . ' | আইডিয়া প্রকাশন')
+@section('og_description', Str::limit(strip_tags($eventDesc), 180))
+@section('og_image', $eventCover)
+@section('og_url', url('/scholarship'))
+
+@section('schema_json')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Event",
+  "name": @json($eventTitle),
+  "description": @json(Str::limit(strip_tags($eventDesc), 300)),
+  "image": @json($eventCover),
+  "url": @json(url('/scholarship')),
+  "startDate": "{{ optional($campaign->starts_at)->toIso8601String() ?: date('c') }}",
+  "endDate": "{{ optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')) }}",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+  "organizer": {
+    "@@type": "Organization",
+    "name": "আইডিয়া প্রকাশন (Idea Publication)",
+    "url": "https://www.ideaabd.com"
+  },
+  "offers": {
+    "@@type": "Offer",
+    "url": @json(url('/scholarship')),
+    "price": "0",
+    "priceCurrency": "BDT",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+@endsection
 
 @section('content')
 <style>
@@ -133,6 +175,37 @@
 
 <div class="container py-4">
     <div class="scholarship-form-wrap">
+
+        @auth
+            <div class="card border-0 rounded-3 p-3 mb-3 shadow-xs d-flex flex-row align-items-center justify-content-between flex-wrap gap-2" style="background: #f0fdf4; border: 1px solid #86efac !important;">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 14px;">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark" style="font-size: 13px;">
+                            <span>আপনি <strong>{{ auth()->user()->name }}</strong> হিসেবে সাইন-ইন আছেন</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">লগইনকৃত শিক্ষার্থী</span>
+                        </div>
+                        <div class="small text-muted font-monospace" style="font-size: 11.5px;">
+                            <i class="fa-solid fa-phone me-1 text-success"></i> {{ auth()->user()->phone ?? '—' }}
+                            @if(auth()->user()->email)
+                                <span class="mx-1">|</span> <i class="fa-solid fa-envelope me-1 text-success"></i> {{ auth()->user()->email }}
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" onclick="if(window.siteLogout){window.siteLogout(event);}else{event.preventDefault();document.getElementById('schLogoutForm').submit();}">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <span>লগআউট / অন্য একাউন্ট</span>
+                    </a>
+                    <form id="schLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
+                </div>
+            </div>
+        @endauth
 
         @if(session('error'))
             <div class="alert alert-danger rounded-2 py-2.5 px-3 mb-3 small">

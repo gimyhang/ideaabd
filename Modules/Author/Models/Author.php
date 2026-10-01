@@ -10,10 +10,11 @@ use Modules\Blog\Models\BlogPost;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Modules\SEO\Traits\HasSeo;
 
 class Author extends Model
 {
-    use HasFactory, SoftDeletes, Moderatable;
+    use HasFactory, SoftDeletes, Moderatable, HasSeo;
 
     protected $fillable = [
         'name',

@@ -93,6 +93,7 @@
             ['route' => 'admin.tickets.index',           'icon' => 'ticket',          'label' => 'Tickets'],
         ],
         'Administration' => [
+            ['route' => 'admin.seo.index',           'icon' => 'magnifying-glass-chart', 'label' => 'SEO & Auto-Scanner'],
             ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Multi-Currency & FX'],
             ['route' => 'admin.translations.index',  'icon' => 'language',        'label' => 'Translations & i18n'],
             ['route' => 'admin.communication.index', 'icon' => 'paper-plane',      'label' => 'Communication Hub'],
@@ -161,6 +162,7 @@
         'admin.registrations.approvals' => 'users.view',
         'admin.sub-admins.index' => 'roles.manage',
         'admin.roles.index' => 'roles.manage',
+        'admin.seo.index' => 'settings.manage',
         'admin.currencies.index' => 'settings.manage',
         'admin.translations.index' => 'editorial.view',
         'admin.communication.index' => 'support.broadcast',

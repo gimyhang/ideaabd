@@ -73,9 +73,11 @@ Route::get('/ads.txt', function () {
     ]);
 })->name('ads.txt');
 
-// --- Auth routes (login / logout) --------------------------------------------
+// --- Auth routes (login / logout / OTP Password Setup) -----------------------
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+Route::post('/login/otp/send', [LoginController::class, 'sendLoginOtp'])->name('login.otp.send');
+Route::post('/login/otp/verify-set-password', [LoginController::class, 'verifyOtpAndSetPassword'])->name('login.otp.verify-set-password');
 Route::get('/login/refresh-bot-challenge', [LoginController::class, 'refreshBotChallenge'])->name('login.refresh-bot');
 Route::get('/login/visual-challenge', [LoginController::class, 'getVisualChallenge'])->name('login.visual-challenge');
 Route::match(['get', 'post'], '/logout', [LoginController::class, 'logout'])->name('logout');
@@ -314,7 +316,23 @@ Route::post('/contact/submit', function (\Illuminate\Http\Request $request) {
         'message' => 'required|string|max:3000',
     ]);
 
-    // Can optionally send notification, email or store inquiry
+    try {
+        if (\Illuminate\Support\Facades\Schema::hasTable('communication_logs')) {
+            \Illuminate\Support\Facades\DB::table('communication_logs')->insert([
+                'channel'       => 'inquiry',
+                'recipient'     => $data['phone'] . (!empty($data['email']) ? ' / ' . $data['email'] : ''),
+                'trigger_event' => 'contact_form_inquiry',
+                'subject'       => ($data['subject'] ?? 'সাধারণ বার্তা') . ' — ' . $data['name'],
+                'status'        => 'delivered',
+                'error_message' => $data['message'],
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+        }
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::info('Contact message received: ' . json_encode($data));
+    }
+
     if ($request->ajax() || $request->wantsJson()) {
         return response()->json([
             'success' => true,
