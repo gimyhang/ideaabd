@@ -3,7 +3,22 @@
 @section('title', $campaign->title . ' — Participants Dashboard')
 
 @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
     <link rel="stylesheet" href="{{ asset('css/admin-event-campaign.css') }}">
+    <style>
+        .cropper-view-box, .cropper-face {
+            border-radius: 50%;
+        }
+        .img-adjust-wrap {
+            max-height: 400px;
+            background-color: #0f172a;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -941,15 +956,25 @@
                                                                         <label class="form-label small fw-bold text-dark d-block mb-2">প্রোফাইল ছবি</label>
                                                                         <div class="mb-2 position-relative d-inline-block">
                                                                             @if($authorPhoto)
-                                                                                <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" id="tabEditPhotoPrev{{ $reg->id }}" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.12);">
+                                                                                <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" id="tabEditPhotoPrev{{ $reg->id }}" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">
                                                                             @else
-                                                                                <div id="tabEditPhotoPrev{{ $reg->id }}" class="aec-avatar-placeholder mx-auto" style="width: 85px; height: 85px; font-size: 30px; border-radius: 50%;">
+                                                                                <div id="tabEditPhotoPrev{{ $reg->id }}" class="aec-avatar-placeholder mx-auto" style="width: 90px; height: 90px; font-size: 32px; border-radius: 50%;">
                                                                                     {{ mb_substr($reg->name, 0, 1) }}
                                                                                 </div>
                                                                             @endif
                                                                         </div>
-                                                                        <input type="file" name="photo" class="form-control form-control-sm" accept="image/*" onchange="previewEditImage(this, 'tabEditPhotoPrev{{ $reg->id }}')">
-                                                                        <small class="text-muted d-block mt-1" style="font-size: 10px;">নতুন ছবি দিলে আগের ছবি পরিবর্তিত হবে</small>
+                                                                        <input type="file" name="photo" id="tabPhotoInput{{ $reg->id }}" class="d-none" accept="image/*" onchange="initParticipantPhotoAdjust(this, {{ $reg->id }}, 'tabEditPhotoPrev{{ $reg->id }}')">
+                                                                        <input type="hidden" name="cropped_photo_data" id="croppedPhotoData_tabEditPhotoPrev{{ $reg->id }}" value="">
+                                                                        
+                                                                        <div class="d-grid gap-1.5 mt-2">
+                                                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="document.getElementById('tabPhotoInput{{ $reg->id }}').click()">
+                                                                                <i class="fa-solid fa-camera me-1"></i> ছবি পরিবর্তন করুন
+                                                                            </button>
+                                                                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="adjustPhotoFromPreview('tabEditPhotoPrev{{ $reg->id }}', {{ $reg->id }})">
+                                                                                <i class="fa-solid fa-crop-simple me-1"></i> ছবি এডজাস্ট করুন
+                                                                            </button>
+                                                                        </div>
+                                                                        <small class="text-muted d-block mt-1.5" style="font-size: 10px;">নতুন ছবি দিলে আগের ছবি পরিবর্তিত হবে</small>
                                                                     </div>
                                                                 </div>
 
@@ -1280,8 +1305,18 @@
                                                                         </div>
                                                                     @endif
                                                                 </div>
-                                                                <input type="file" name="photo" class="form-control form-control-sm" accept="image/*" onchange="previewEditImage(this, 'editPhotoPreview{{ $reg->id }}')">
-                                                                <small class="text-muted d-block mt-1" style="font-size: 10.5px;">ছবি পরিবর্তন করতে ফাইল নির্বাচন করুন</small>
+                                                                <input type="file" name="photo" id="editPhotoInput{{ $reg->id }}" class="d-none" accept="image/*" onchange="initParticipantPhotoAdjust(this, {{ $reg->id }}, 'editPhotoPreview{{ $reg->id }}')">
+                                                                <input type="hidden" name="cropped_photo_data" id="croppedPhotoData_editPhotoPreview{{ $reg->id }}" value="">
+                                                                
+                                                                <div class="d-grid gap-1.5 mt-2">
+                                                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="document.getElementById('editPhotoInput{{ $reg->id }}').click()">
+                                                                        <i class="fa-solid fa-camera me-1"></i> ছবি নির্বাচন করুন
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-outline-dark btn-sm rounded-pill py-1 px-2 fw-semibold" style="font-size: 11.5px;" onclick="adjustPhotoFromPreview('editPhotoPreview{{ $reg->id }}', {{ $reg->id }})">
+                                                                        <i class="fa-solid fa-crop-simple me-1"></i> ছবি এডজাস্ট করুন
+                                                                    </button>
+                                                                </div>
+                                                                <small class="text-muted d-block mt-1.5" style="font-size: 10px;">নতুন ছবি দিলে আগের ছবি পরিবর্তিত হবে</small>
                                                             </div>
                                                         </div>
 
@@ -3076,6 +3111,75 @@
     </div>
 </div>
 
+{{-- GLOBAL PARTICIPANT PHOTO ADJUSTMENT / CROPPER MODAL --}}
+<div class="modal fade" id="participantPhotoAdjustModal" tabindex="-1" aria-hidden="true" style="z-index: 1095;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <div class="modal-header py-3 px-4 bg-dark text-white">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-crop-simple text-primary fs-5"></i>
+                    <h6 class="modal-title fw-bold mb-0 text-white">ছবি সাইজ, পজিশন ও ক্রপ এডজাস্ট (Photo Adjustment)</h6>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-3">
+                    {{-- Cropper Canvas Column --}}
+                    <div class="col-12 col-md-8">
+                        <div class="img-adjust-wrap p-2 text-center" style="min-height: 340px; max-height: 380px; background: #0f172a; border-radius: 10px;">
+                            <img id="participantCropperImage" src="" alt="Adjust Photo" style="max-width: 100%; max-height: 360px; display: block; margin: 0 auto;">
+                        </div>
+
+                        {{-- Cropper Control Buttons --}}
+                        <div class="d-flex justify-content-center flex-wrap gap-1.5 mt-3">
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.zoom(0.1)" title="Zoom In">
+                                <i class="fa-solid fa-magnifying-glass-plus me-1"></i> জুম ইন
+                            </button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.zoom(-0.1)" title="Zoom Out">
+                                <i class="fa-solid fa-magnifying-glass-minus me-1"></i> জুম আউট
+                            </button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.rotate(-90)" title="Rotate Left">
+                                <i class="fa-solid fa-rotate-left me-1"></i> বাঁয়ে
+                            </button>
+                            <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.rotate(90)" title="Rotate Right">
+                                <i class="fa-solid fa-rotate-right me-1"></i> ডানে
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" onclick="if(window.participantCropper) window.participantCropper.reset()" title="Reset">
+                                <i class="fa-solid fa-arrows-rotate me-1"></i> রিসেট
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Live Thumbnail Previews Column --}}
+                    <div class="col-12 col-md-4 text-center d-flex flex-column justify-content-center align-items-center">
+                        <div class="p-3 bg-white rounded-3 border w-100 shadow-sm">
+                            <span class="small fw-bold text-dark d-block mb-3">লাইভ আউটপুট প্রিভিউ</span>
+                            
+                            {{-- Circular Preview --}}
+                            <div class="mb-3">
+                                <div class="mx-auto rounded-circle overflow-hidden border border-3 border-primary shadow-sm" style="width: 100px; height: 100px; background: #f8fafc;">
+                                    <div class="cropper-preview-circle overflow-hidden w-100 h-100"></div>
+                                </div>
+                                <small class="text-muted d-block mt-1">বৃত্তাকার প্রিভিউ</small>
+                            </div>
+
+                            <p class="small text-muted mb-0" style="font-size: 11px;">
+                                মাউস দিয়ে টেনে ছবি পজিশন করুন এবং জুম বা রোটেট করে এডজাস্ট করুন।
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2.5 px-4 bg-light border-top d-flex justify-content-between">
+                <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="applyParticipantPhotoCrop()">
+                    <i class="fa-solid fa-check me-1"></i> এডজাস্ট ও ক্রপ সম্পন্ন করুন
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- TOAST CONTAINER --}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
     <div id="liveToast" class="toast align-items-center text-bg-dark border-0 rounded-4 shadow" role="alert" aria-live="assertive" aria-atomic="true">
@@ -3087,23 +3191,126 @@
 </div>
 
 @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="{{ asset('js/admin-event-campaign.js') }}"></script>
     <script>
-        function previewEditImage(input, previewId) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const preview = document.getElementById(previewId);
-                    if (preview) {
-                        if (preview.tagName === 'IMG') {
-                            preview.src = e.target.result;
-                        } else {
-                            preview.outerHTML = '<img src="' + e.target.result + '" id="' + previewId + '" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">';
-                        }
-                    }
-                };
-                reader.readAsDataURL(input.files[0]);
+        let currentCropperPreviewId = null;
+        let currentCropperRegId = null;
+
+        function initParticipantPhotoAdjust(input, regId, previewId) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            currentCropperPreviewId = previewId;
+            currentCropperRegId = regId;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                openCropperWithImage(e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function adjustPhotoFromPreview(previewId, regId) {
+            const previewEl = document.getElementById(previewId);
+            let imgSrc = null;
+            if (previewEl && previewEl.tagName === 'IMG') {
+                imgSrc = previewEl.src;
+            }
+            if (!imgSrc || imgSrc.includes('data:image/svg')) {
+                const fileInput = document.getElementById('tabPhotoInput' + regId) || document.getElementById('editPhotoInput' + regId);
+                if (fileInput) fileInput.click();
+                return;
+            }
+            currentCropperPreviewId = previewId;
+            currentCropperRegId = regId;
+            openCropperWithImage(imgSrc);
+        }
+
+        function openCropperWithImage(imageSrc) {
+            const modalEl = document.getElementById('participantPhotoAdjustModal');
+            if (!modalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const imgEl = document.getElementById('participantCropperImage');
+            
+            imgEl.src = imageSrc;
+            modal.show();
+
+            const onModalShown = function () {
+                modalEl.removeEventListener('shown.bs.modal', onModalShown);
+                if (window.participantCropper) {
+                    window.participantCropper.destroy();
+                }
+                window.participantCropper = new Cropper(imgEl, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                    preview: '.cropper-preview-circle',
+                });
+            };
+            modalEl.addEventListener('shown.bs.modal', onModalShown);
+        }
+
+        function applyParticipantPhotoCrop() {
+            if (!window.participantCropper || !currentCropperPreviewId) return;
+            
+            const croppedCanvas = window.participantCropper.getCroppedCanvas({
+                width: 360,
+                height: 360,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            if (!croppedCanvas) return;
+
+            const croppedBase64 = croppedCanvas.toDataURL('image/jpeg', 0.90);
+
+            // Update Preview Image
+            const previewEl = document.getElementById(currentCropperPreviewId);
+            if (previewEl) {
+                if (previewEl.tagName === 'IMG') {
+                    previewEl.src = croppedBase64;
+                } else {
+                    previewEl.outerHTML = `<img src="${croppedBase64}" id="${currentCropperPreviewId}" alt="Profile Photo" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">`;
+                }
+            }
+
+            // Also update sibling preview in other modal if exists
+            const altPreviewId = currentCropperPreviewId.startsWith('tabEditPhotoPrev') 
+                ? 'editPhotoPreview' + currentCropperRegId 
+                : 'tabEditPhotoPrev' + currentCropperRegId;
+            const altEl = document.getElementById(altPreviewId);
+            if (altEl && altEl.tagName === 'IMG') {
+                altEl.src = croppedBase64;
+            }
+
+            // Set hidden cropped_photo_data inputs
+            const hiddenDataInput1 = document.getElementById('croppedPhotoData_' + currentCropperPreviewId);
+            if (hiddenDataInput1) {
+                hiddenDataInput1.value = croppedBase64;
+            }
+            const hiddenDataInput2 = document.getElementById('croppedPhotoData_' + altPreviewId);
+            if (hiddenDataInput2) {
+                hiddenDataInput2.value = croppedBase64;
+            }
+
+            // Hide Modal
+            const modalEl = document.getElementById('participantPhotoAdjustModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+
+            if (window.showToast) {
+                window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ছবি ক্রপ ও এডজাস্ট করা হয়েছে! পরিবর্তন নিশ্চিত করতে "সংরক্ষণ করুন" বাটনে চাপুন।');
             }
         }
 

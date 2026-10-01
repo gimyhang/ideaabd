@@ -567,8 +567,24 @@ class EventCampaignAdminController extends Controller
             unset($formData['custom_country'], $formData['state_or_city'], $formData['zip_code'], $formData['foreign_address']);
         }
 
-        // Photo Replacement Handling
-        if ($request->hasFile('photo')) {
+        // Photo Replacement / Cropper Handling
+        if ($request->filled('cropped_photo_data')) {
+            $base64 = $request->input('cropped_photo_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64)) {
+                $data = substr($base64, strpos($base64, ',') + 1);
+                $data = base64_decode($data);
+                if ($data !== false) {
+                    $oldPhoto = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
+                    if ($oldPhoto && Storage::disk('public')->exists($oldPhoto)) {
+                        Storage::disk('public')->delete($oldPhoto);
+                    }
+                    $filename = 'campaigns/participants/' . Str::random(32) . '.jpg';
+                    Storage::disk('public')->put($filename, $data);
+                    $formData['author_photo'] = $filename;
+                    $formData['student_photo'] = $filename;
+                }
+            }
+        } elseif ($request->hasFile('photo')) {
             $oldPhoto = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
             if ($oldPhoto && Storage::disk('public')->exists($oldPhoto)) {
                 Storage::disk('public')->delete($oldPhoto);
