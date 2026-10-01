@@ -639,79 +639,517 @@
 
                                     {{-- Delete Participant Button --}}
                                     <button type="button" class="btn-action-icon text-danger btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="Delete Participant">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
-
-                                {{-- MODAL 1: VIEW FULL DETAILS MODAL --}}
+                                        <i class="fa                                {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
                                 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg text-start">
+                                    <div class="modal-dialog modal-dialog-centered modal-xl text-start" style="max-width: 980px;">
                                         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-                                            <div class="modal-header py-3" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: #ffffff;">
+                                            {{-- Header --}}
+                                            <div class="modal-header py-3 px-4" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: #ffffff;">
                                                 <div class="d-flex align-items-center gap-3">
                                                     @if($authorPhoto)
-                                                        <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff;">
+                                                        <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
                                                     @else
-                                                        <div class="aec-avatar-placeholder" style="width: 50px; height: 50px; font-size: 18px;">
+                                                        <div class="aec-avatar-placeholder" style="width: 52px; height: 52px; font-size: 20px;">
                                                             {{ mb_substr($reg->name, 0, 1) }}
                                                         </div>
                                                     @endif
                                                     <div>
-                                                        <h5 class="modal-title fw-bold mb-0 text-white">{{ $reg->name }}</h5>
-                                                        <small class="text-light opacity-75 font-monospace">Reg #: {{ $reg->registration_number }} | Submitted: {{ $reg->created_at->format('d M, Y h:i A') }}</small>
+                                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                            <h5 class="modal-title fw-bold mb-0 text-white">{{ $reg->name }}</h5>
+                                                            <span class="badge {{ in_array($reg->status, ['confirmed', 'selected']) ? 'bg-success' : ($reg->status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                                                {{ ucfirst($reg->status) }}
+                                                            </span>
+                                                            @if($reg->payment_status === 'verified')
+                                                                <span class="badge bg-info text-dark">Paid ৳{{ number_format($reg->amount_paid) }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <small class="text-light opacity-75 font-monospace">
+                                                            রেজি নং: <strong>{{ $reg->registration_number }}</strong> &bull; ক্যাম্পেইন: {{ $campaign->title }} &bull; সাবমিট: {{ $reg->created_at->format('d M, Y h:i A') }}
+                                                        </small>
                                                     </div>
                                                 </div>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <div class="modal-body p-4">
-                                                <div class="row g-3 mb-3">
-                                                    <div class="col-md-6">
-                                                        <div class="p-3 bg-light rounded-3 border">
-                                                            <span class="text-muted small fw-bold text-uppercase d-block mb-1">Contact Info</span>
-                                                            <div><strong>Phone:</strong> <a href="tel:{{ $reg->phone }}" class="font-monospace text-dark">{{ $reg->phone }}</a></div>
-                                                            <div><strong>Email:</strong> {{ $reg->email ?: 'N/A' }}</div>
-                                                            <div><strong>Location:</strong> {{ implode(', ', array_filter([$reg->thana, $reg->district])) ?: 'N/A' }}</div>
-                                                            <div><strong>Address:</strong> {{ $reg->address ?: 'N/A' }}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="p-3 bg-light rounded-3 border">
-                                                            <span class="text-muted small fw-bold text-uppercase d-block mb-1">Status & Payment</span>
-                                                            <div><strong>Registration Status:</strong> <span class="badge bg-primary-subtle text-primary">{{ ucfirst($reg->status) }}</span></div>
-                                                            <div><strong>Payment Status:</strong> {{ ucfirst($reg->payment_status) }}</div>
-                                                            <div><strong>Amount Paid:</strong> ৳{{ number_format($reg->amount_paid, 2) }}</div>
-                                                            <div><strong>Transaction ID:</strong> <code class="text-dark">{{ $reg->transaction_id ?: 'N/A' }}</code></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
 
-                                                {{-- Custom Form Submissions JSON --}}
-                                                @if(!empty($reg->form_data) && is_array($reg->form_data))
-                                                    <h6 class="fw-bold text-dark mt-4 mb-2"><i class="fa-solid fa-list-check text-primary me-1"></i> Application Details & Custom Fields</h6>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered table-sm">
-                                                            <tbody>
-                                                                @foreach($reg->form_data as $fKey => $fVal)
-                                                                    <tr>
-                                                                        <th class="bg-light text-muted w-35 text-capitalize" style="font-size: 12.5px;">{{ str_replace('_', ' ', $fKey) }}</th>
-                                                                        <td style="font-size: 13px;">{{ is_array($fVal) ? implode(', ', $fVal) : $fVal }}</td>
-                                                                    </tr>
-                                                                @endforeach
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                @endif
+                                            {{-- Navigation Tabs --}}
+                                            <div class="bg-light border-bottom px-4 py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                <ul class="nav nav-pills" id="detailTab{{ $reg->id }}" role="tablist">
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link active rounded-pill px-3 py-1.5 fw-bold btn-sm" id="view-tab-btn-{{ $reg->id }}" data-bs-toggle="pill" data-bs-target="#view-tab-content-{{ $reg->id }}" type="button" role="tab">
+                                                            <i class="fa-solid fa-file-lines me-1.5"></i> পূরণকৃত আবেদন ফরম (View Form)
+                                                        </button>
+                                                    </li>
+                                                    <li class="nav-item" role="presentation">
+                                                        <button class="nav-link rounded-pill px-3 py-1.5 fw-bold btn-sm text-primary" id="edit-tab-btn-{{ $reg->id }}" data-bs-toggle="pill" data-bs-target="#edit-tab-content-{{ $reg->id }}" type="button" role="tab">
+                                                            <i class="fa-solid fa-pen-to-square me-1.5"></i> এডমিন এডিট (Edit Information)
+                                                        </button>
+                                                    </li>
+                                                </ul>
+
+                                                <div class="d-flex gap-2">
+                                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 shadow-none">
+                                                        <i class="fa-solid fa-print me-1"></i> প্রিন্ট
+                                                    </a>
+                                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-none">
+                                                        <i class="fa-solid fa-file-pdf me-1"></i> PDF
+                                                    </a>
+                                                </div>
                                             </div>
-                                            <div class="modal-footer border-top py-2.5 bg-light">
-                                                <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3">
-                                                    <i class="fa-solid fa-print me-1"></i> Print
-                                                </a>
-                                                <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn btn-danger btn-sm rounded-pill px-3">
-                                                    <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
-                                                </a>
-                                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+
+                                            {{-- Modal Body --}}
+                                            <div class="modal-body p-4">
+                                                <div class="tab-content" id="detailTabContent{{ $reg->id }}">
+                                                    
+                                                    {{-- ==========================================
+                                                         TAB 1: STRUCTURED APPLICATION FORM VIEW
+                                                         ========================================== --}}
+                                                    <div class="tab-pane fade show active" id="view-tab-content-{{ $reg->id }}" role="tabpanel">
+                                                        <div class="row g-3">
+                                                            
+                                                            {{-- ১. প্রাথমিক ও ব্যক্তিগত তথ্য --}}
+                                                            <div class="col-12 col-md-6">
+                                                                <div class="p-3 bg-light rounded-3 border h-100">
+                                                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
+                                                                        <i class="fa-solid fa-user text-primary me-1.5"></i> ১. ব্যক্তিগত ও যোগাযোগের তথ্য
+                                                                    </h6>
+                                                                    <div class="table-responsive">
+                                                                        <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
+                                                                            <tr>
+                                                                                <th class="text-muted w-35 py-1">পূর্ণ নাম:</th>
+                                                                                <td class="fw-bold text-dark py-1">{{ $reg->name }}</td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <th class="text-muted py-1">মোবাইল:</th>
+                                                                                <td class="py-1"><a href="tel:{{ $reg->phone }}" class="font-monospace fw-bold text-primary">{{ $reg->phone }}</a></td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                                <th class="text-muted py-1">ইমেইল:</th>
+                                                                                <td class="py-1">{{ $reg->email ?: 'N/A' }}</td>
+                                                                            </tr>
+                                                                            @if($reg->institution_or_org || !empty($reg->form_data['organization_name']))
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">প্রতিষ্ঠান/সংগঠন:</th>
+                                                                                    <td class="py-1">{{ $reg->institution_or_org ?: ($reg->form_data['organization_name'] ?? 'N/A') }}</td>
+                                                                                </tr>
+                                                                            @endif
+                                                                            @if($reg->designation_or_class)
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">পদবি / শাখা:</th>
+                                                                                    <td class="py-1">{{ $reg->designation_or_class }}</td>
+                                                                                </tr>
+                                                                            @endif
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- ২. ঠিকানা বিবরণী --}}
+                                                            @php
+                                                                $isForeign = ($reg->form_data['resident_type'] ?? '') === 'international';
+                                                            @endphp
+                                                            <div class="col-12 col-md-6">
+                                                                <div class="p-3 bg-light rounded-3 border h-100">
+                                                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
+                                                                            <i class="fa-solid fa-location-dot text-danger me-1.5"></i> ২. ঠিকানা বিবরণী
+                                                                        </h6>
+                                                                        @if($isForeign)
+                                                                            <span class="badge bg-primary-subtle text-primary"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / আন্তর্জাতিক</span>
+                                                                        @else
+                                                                            <span class="badge bg-success-subtle text-success"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</span>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <div class="table-responsive">
+                                                                        <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
+                                                                            @if($isForeign)
+                                                                                <tr>
+                                                                                    <th class="text-muted w-35 py-1">দেশ (Country):</th>
+                                                                                    <td class="fw-bold text-dark py-1">{{ $reg->form_data['country_name'] ?? 'Foreign' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">শহর / রাজ্য:</th>
+                                                                                    <td class="py-1">{{ $reg->form_data['state_or_city'] ?? 'N/A' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">পোস্টকোড:</th>
+                                                                                    <td class="py-1 font-monospace">{{ $reg->form_data['zip_code'] ?? 'N/A' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">সড়ক ঠিকানা:</th>
+                                                                                    <td class="py-1">{{ $reg->form_data['foreign_address'] ?? ($reg->address ?: 'N/A') }}</td>
+                                                                                </tr>
+                                                                            @else
+                                                                                <tr>
+                                                                                    <th class="text-muted w-35 py-1">বিভাগ:</th>
+                                                                                    <td class="py-1">{{ $reg->form_data['perm_division'] ?? ($reg->division ?: 'N/A') }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">জেলা:</th>
+                                                                                    <td class="fw-bold text-dark py-1">{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? 'N/A') }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">উপজেলা / থানা:</th>
+                                                                                    <td class="py-1">{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? 'N/A') }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">ডাকঘর:</th>
+                                                                                    <td class="py-1">{{ $reg->form_data['perm_post_office'] ?? 'N/A' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">গ্রাম / সড়ক:</th>
+                                                                                    <td class="py-1">{{ $reg->form_data['perm_village'] ?? 'N/A' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">পূর্ণ ঠিকানা:</th>
+                                                                                    <td class="py-1 text-dark">{{ $reg->address ?: 'N/A' }}</td>
+                                                                                </tr>
+                                                                            @endif
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- ৩. সাহিত্য, লেখক ও প্রকাশনা সংক্রান্ত তথ্য (যদি থাকে) --}}
+                                                            @if(!empty($reg->form_data['author_category']) || !empty($reg->form_data['author_categories']) || !empty($reg->form_data['pen_name']) || !empty($reg->form_data['published_books_count']) || !empty($reg->form_data['notable_books']) || !empty($reg->form_data['magazine_name']) || !empty($reg->form_data['art_medium']))
+                                                                <div class="col-12">
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
+                                                                            <i class="fa-solid fa-feather-pointed text-warning me-1.5"></i> ৩. সাহিত্য, শিল্প ও প্রকাশনা সংক্রান্ত তথ্য
+                                                                        </h6>
+                                                                        <div class="row g-2" style="font-size: 13px;">
+                                                                            @if(!empty($reg->form_data['author_categories']) || !empty($reg->form_data['author_category']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">নির্বাচিত ক্যাটাগরি:</span>
+                                                                                    @php
+                                                                                        $cats = is_array($reg->form_data['author_categories'] ?? null) 
+                                                                                            ? $reg->form_data['author_categories'] 
+                                                                                            : explode(',', $reg->form_data['author_category'] ?? '');
+                                                                                    @endphp
+                                                                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                                                                        @foreach($cats as $cat)
+                                                                                            @if(trim($cat))
+                                                                                                <span class="badge bg-dark-subtle text-dark border">{{ trim($cat) }}</span>
+                                                                                            @endif
+                                                                                        @endforeach
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endif
+
+                                                                            @if(!empty($reg->form_data['pen_name']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">কলমী নাম (Pen Name):</span>
+                                                                                    <strong class="text-dark">{{ $reg->form_data['pen_name'] }}</strong>
+                                                                                </div>
+                                                                            @endif
+
+                                                                            @if(!empty($reg->form_data['published_books_count']) || !empty($reg->form_data['published_book_count']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">প্রকাশিত গ্রন্থ সংখ্যা:</span>
+                                                                                    <strong class="text-dark">{{ $reg->form_data['published_books_count'] ?? $reg->form_data['published_book_count'] }}</strong>
+                                                                                </div>
+                                                                            @endif
+
+                                                                            @if(!empty($reg->form_data['notable_books']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">উল্লেখযোগ্য গ্রন্থসমূহ:</span>
+                                                                                    <span class="text-dark">{{ $reg->form_data['notable_books'] }}</span>
+                                                                                </div>
+                                                                            @endif
+
+                                                                            @if(!empty($reg->form_data['magazine_name']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">লিটিলম্যাগাজিন / প্রকাশনা:</span>
+                                                                                    <strong class="text-dark">{{ $reg->form_data['magazine_name'] }}</strong>
+                                                                                    @if(!empty($reg->form_data['magazine_issue_count']))
+                                                                                        <span class="badge bg-secondary-subtle text-secondary ms-1">{{ $reg->form_data['magazine_issue_count'] }}</span>
+                                                                                    @endif
+                                                                                </div>
+                                                                            @endif
+
+                                                                            @if(!empty($reg->form_data['art_medium']))
+                                                                                <div class="col-12 col-md-6">
+                                                                                    <span class="text-muted d-block small">শিল্প / সাংস্কৃতিক মাধ্যম:</span>
+                                                                                    <strong class="text-dark">{{ $reg->form_data['art_medium'] }}</strong>
+                                                                                </div>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+
+                                                            {{-- ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন নোট --}}
+                                                            <div class="col-12">
+                                                                <div class="p-3 bg-light rounded-3 border">
+                                                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
+                                                                        <i class="fa-solid fa-money-check-dollar text-success me-1.5"></i> ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
+                                                                    </h6>
+                                                                    <div class="row g-2" style="font-size: 13px;">
+                                                                        <div class="col-6 col-sm-3">
+                                                                            <span class="text-muted d-block small">নিবন্ধন স্ট্যাটাস:</span>
+                                                                            <span class="badge bg-primary-subtle text-primary fs-7">{{ ucfirst($reg->status) }}</span>
+                                                                        </div>
+                                                                        <div class="col-6 col-sm-3">
+                                                                            <span class="text-muted d-block small">পেমেন্ট স্ট্যাটাস:</span>
+                                                                            <span class="badge {{ $reg->payment_status === 'verified' ? 'bg-success' : 'bg-secondary' }}">{{ ucfirst($reg->payment_status) }}</span>
+                                                                        </div>
+                                                                        <div class="col-6 col-sm-3">
+                                                                            <span class="text-muted d-block small">পরিশোধিত ফি:</span>
+                                                                            <strong class="font-monospace text-dark">৳{{ number_format($reg->amount_paid, 2) }}</strong>
+                                                                        </div>
+                                                                        <div class="col-6 col-sm-3">
+                                                                            <span class="text-muted d-block small">ট্রানজেকশন আইডি:</span>
+                                                                            <code class="text-dark">{{ $reg->transaction_id ?: 'N/A' }}</code>
+                                                                        </div>
+                                                                        @if($reg->admin_notes)
+                                                                            <div class="col-12 mt-2 pt-2 border-top">
+                                                                                <span class="text-muted d-block small fw-bold">এডমিন মন্তব্য / নোট:</span>
+                                                                                <p class="mb-0 text-secondary bg-white p-2 rounded border small">{{ $reg->admin_notes }}</p>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                        {{-- Footer Action Bar for Tab 1 --}}
+                                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
+                                                                <i class="fa-solid fa-pen-to-square me-1"></i> এই তথ্য এডিট করুন (Edit Form)
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- ==========================================
+                                                         TAB 2: FULL ADMIN LIVE EDIT FORM
+                                                         ========================================== --}}
+                                                    <div class="tab-pane fade" id="edit-tab-content-{{ $reg->id }}" role="tabpanel">
+                                                        <form action="{{ route('admin.event-campaigns.registrations.update', $reg->id) }}" method="POST" enctype="multipart/form-data">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            
+                                                            <div class="row g-3">
+                                                                {{-- Photo & Basic Info --}}
+                                                                <div class="col-12 col-md-3 text-center">
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <label class="form-label small fw-bold text-dark d-block mb-2">প্রোফাইল ছবি</label>
+                                                                        <div class="mb-2 position-relative d-inline-block">
+                                                                            @if($authorPhoto)
+                                                                                <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" id="tabEditPhotoPrev{{ $reg->id }}" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.12);">
+                                                                            @else
+                                                                                <div id="tabEditPhotoPrev{{ $reg->id }}" class="aec-avatar-placeholder mx-auto" style="width: 85px; height: 85px; font-size: 30px; border-radius: 50%;">
+                                                                                    {{ mb_substr($reg->name, 0, 1) }}
+                                                                                </div>
+                                                                            @endif
+                                                                        </div>
+                                                                        <input type="file" name="photo" class="form-control form-control-sm" accept="image/*" onchange="previewEditImage(this, 'tabEditPhotoPrev{{ $reg->id }}')">
+                                                                        <small class="text-muted d-block mt-1" style="font-size: 10px;">নতুন ছবি দিলে আগের ছবি পরিবর্তিত হবে</small>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="col-12 col-md-9">
+                                                                    <div class="row g-2">
+                                                                        <div class="col-12 col-sm-6">
+                                                                            <label class="form-label small fw-bold text-dark mb-1">পূর্ণ নাম <span class="text-danger">*</span></label>
+                                                                            <input type="text" name="name" class="form-control form-control-sm" value="{{ $reg->name }}" required>
+                                                                        </div>
+                                                                        <div class="col-12 col-sm-6">
+                                                                            <label class="form-label small fw-bold text-dark mb-1">মোবাইল নম্বর <span class="text-danger">*</span></label>
+                                                                            <input type="text" name="phone" class="form-control form-control-sm font-monospace" value="{{ $reg->phone }}" required>
+                                                                        </div>
+                                                                        <div class="col-12 col-sm-6">
+                                                                            <label class="form-label small fw-bold text-dark mb-1">ইমেইল</label>
+                                                                            <input type="email" name="email" class="form-control form-control-sm" value="{{ $reg->email }}">
+                                                                        </div>
+                                                                        <div class="col-12 col-sm-6">
+                                                                            <label class="form-label small fw-bold text-dark mb-1">কলমী নাম / ছদ্মনাম (Pen Name)</label>
+                                                                            <input type="text" name="pen_name" class="form-control form-control-sm" value="{{ $reg->form_data['pen_name'] ?? '' }}">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {{-- Address Section --}}
+                                                                <div class="col-12">
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                                            <span class="small fw-bold text-dark"><i class="fa-solid fa-location-dot text-danger me-1"></i> ঠিকানা ও দেশের ধরন</span>
+                                                                            <div class="d-flex gap-3">
+                                                                                <div class="form-check form-check-inline mb-0">
+                                                                                    <input class="form-check-input" type="radio" name="resident_type" id="editResBd{{ $reg->id }}" value="domestic" {{ !$isForeign ? 'checked' : '' }} onchange="toggleModalResidentAddress({{ $reg->id }}, 'domestic')">
+                                                                                    <label class="form-check-label small fw-bold text-success" for="editResBd{{ $reg->id }}"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</label>
+                                                                                </div>
+                                                                                <div class="form-check form-check-inline mb-0">
+                                                                                    <input class="form-check-input" type="radio" name="resident_type" id="editResIntl{{ $reg->id }}" value="international" {{ $isForeign ? 'checked' : '' }} onchange="toggleModalResidentAddress({{ $reg->id }}, 'international')">
+                                                                                    <label class="form-check-label small fw-bold text-primary" for="editResIntl{{ $reg->id }}"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / আন্তর্জাতিক</label>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {{-- বাংলাদেশ ঠিকানা গ্রিড --}}
+                                                                        <div id="modalBdAddressWrap{{ $reg->id }}" style="{{ $isForeign ? 'display: none;' : '' }}">
+                                                                            <div class="row g-2">
+                                                                                <div class="col-12 col-sm-3">
+                                                                                    <label class="form-label small text-muted mb-1">বিভাগ</label>
+                                                                                    <input type="text" name="perm_division" class="form-control form-control-sm" value="{{ $reg->form_data['perm_division'] ?? ($reg->division ?? '') }}" placeholder="যেমন: রংপুর">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-3">
+                                                                                    <label class="form-label small text-muted mb-1">জেলা</label>
+                                                                                    <input type="text" name="district" class="form-control form-control-sm" value="{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? '') }}" placeholder="যেমন: রংপুর">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-3">
+                                                                                    <label class="form-label small text-muted mb-1">উপজেলা / থানা</label>
+                                                                                    <input type="text" name="thana" class="form-control form-control-sm" value="{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? '') }}" placeholder="যেমন: সদর">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-3">
+                                                                                    <label class="form-label small text-muted mb-1">ডাকঘর</label>
+                                                                                    <input type="text" name="perm_post_office" class="form-control form-control-sm" value="{{ $reg->form_data['perm_post_office'] ?? '' }}" placeholder="যেমন: রংপুর প্রধান ডাকঘর">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-6">
+                                                                                    <label class="form-label small text-muted mb-1">গ্রাম / সড়ক নম্বর</label>
+                                                                                    <input type="text" name="perm_village" class="form-control form-control-sm" value="{{ $reg->form_data['perm_village'] ?? '' }}" placeholder="গ্রাম / রোড / মহল্লা">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-6">
+                                                                                    <label class="form-label small text-muted mb-1">পূর্ণ ঠিকানা</label>
+                                                                                    <input type="text" name="address" class="form-control form-control-sm" value="{{ $reg->address }}" placeholder="পূর্ণ ঠিকানা">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        {{-- আন্তর্জাতিক ঠিকানা গ্রিড --}}
+                                                                        <div id="modalIntlAddressWrap{{ $reg->id }}" style="{{ !$isForeign ? 'display: none;' : '' }}">
+                                                                            <div class="row g-2">
+                                                                                <div class="col-12 col-sm-4">
+                                                                                    <label class="form-label small text-muted mb-1">দেশ (Country)</label>
+                                                                                    <input type="text" name="country_name" class="form-control form-control-sm" value="{{ $reg->form_data['country_name'] ?? '' }}" placeholder="যেমন: ভারত, United Kingdom, USA">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-4">
+                                                                                    <label class="form-label small text-muted mb-1">শহর / রাজ্য</label>
+                                                                                    <input type="text" name="state_or_city" class="form-control form-control-sm" value="{{ $reg->form_data['state_or_city'] ?? '' }}" placeholder="Kolkata, London, New York...">
+                                                                                </div>
+                                                                                <div class="col-12 col-sm-4">
+                                                                                    <label class="form-label small text-muted mb-1">পোস্টকোড</label>
+                                                                                    <input type="text" name="zip_code" class="form-control form-control-sm font-monospace" value="{{ $reg->form_data['zip_code'] ?? '' }}" placeholder="700001, 10001...">
+                                                                                </div>
+                                                                                <div class="col-12">
+                                                                                    <label class="form-label small text-muted mb-1">আন্তর্জাতিক সড়ক ঠিকানা</label>
+                                                                                    <input type="text" name="foreign_address" class="form-control form-control-sm" value="{{ $reg->form_data['foreign_address'] ?? ($reg->address ?? '') }}" placeholder="বাড়ি ও পূর্ণ আন্তর্জাতিক সড়ক ঠিকানা">
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                    </div>
+                                                                </div>
+
+                                                                {{-- লেখক ও সাহিত্যিক তথ্য --}}
+                                                                <div class="col-12">
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <span class="small fw-bold text-dark d-block mb-2"><i class="fa-solid fa-feather-pointed text-warning me-1"></i> সাহিত্য, প্রকাশনা ও ক্যাটাগরি</span>
+                                                                        <div class="row g-2">
+                                                                            <div class="col-12">
+                                                                                <label class="form-label small text-muted mb-1">ক্যাটাগরি সমূহ</label>
+                                                                                @php
+                                                                                    $currentAuthorCats = is_array($reg->form_data['author_categories'] ?? null) ? $reg->form_data['author_categories'] : explode(',', $reg->form_data['author_category'] ?? '');
+                                                                                    $currentAuthorCats = array_map('trim', $currentAuthorCats);
+                                                                                    $availCats = [
+                                                                                        'কবি ও কথাসাহিত্যিক', 'প্রাবন্ধিক ও গবেষক', 'শিশুসাহিত্যিক ও ছড়াকার',
+                                                                                        'লিটিলম্যাগাজিন সম্পাদক', 'প্রকাশক', 'শিল্পী / সংস্কৃতিকর্মী',
+                                                                                        'বই প্রতিনিধি ও সংগঠক', 'অন্যান্য / প্রতিনিধি'
+                                                                                    ];
+                                                                                @endphp
+                                                                                <div class="d-flex flex-wrap gap-2 pt-1">
+                                                                                    @foreach($availCats as $availCat)
+                                                                                        <div class="form-check form-check-inline mb-1">
+                                                                                            <input class="form-check-input" type="checkbox" name="author_categories[]" id="catChk{{ $reg->id }}_{{ $loop->index }}" value="{{ $availCat }}" {{ in_array($availCat, $currentAuthorCats) ? 'checked' : '' }}>
+                                                                                            <label class="form-check-label small" for="catChk{{ $reg->id }}_{{ $loop->index }}">{{ $availCat }}</label>
+                                                                                        </div>
+                                                                                    @endforeach
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-12 col-sm-6">
+                                                                                <label class="form-label small text-muted mb-1">প্রকাশিত বই সংখ্যা</label>
+                                                                                <input type="text" name="published_books_count" class="form-control form-control-sm" value="{{ $reg->form_data['published_books_count'] ?? ($reg->form_data['published_book_count'] ?? '') }}" placeholder="যেমন: ৫টি গ্রন্থ">
+                                                                            </div>
+                                                                            <div class="col-12 col-sm-6">
+                                                                                <label class="form-label small text-muted mb-1">লিটিলম্যাগাজিন / প্রকাশনা নাম</label>
+                                                                                <input type="text" name="magazine_name" class="form-control form-control-sm" value="{{ $reg->form_data['magazine_name'] ?? '' }}" placeholder="পত্রিকা / ম্যাগাজিন নাম">
+                                                                            </div>
+                                                                            <div class="col-12">
+                                                                                <label class="form-label small text-muted mb-1">উল্লেখযোগ্য বইসমূহ</label>
+                                                                                <input type="text" name="notable_books" class="form-control form-control-sm" value="{{ $reg->form_data['notable_books'] ?? '' }}" placeholder="কমা দিয়ে বইয়ের নাম লিখুন">
+                                                                            </div>
+                                                                            <div class="col-12 col-sm-6">
+                                                                                <label class="form-label small text-muted mb-1">শিল্প / সাংস্কৃতিক মাধ্যম</label>
+                                                                                <input type="text" name="art_medium" class="form-control form-control-sm" value="{{ $reg->form_data['art_medium'] ?? '' }}" placeholder="যেমন: চিত্রশিল্পী, আবৃত্তিশিল্পী">
+                                                                            </div>
+                                                                            <div class="col-12 col-sm-6">
+                                                                                <label class="form-label small text-muted mb-1">সংগঠন / সংস্থা</label>
+                                                                                <input type="text" name="organization_name" class="form-control form-control-sm" value="{{ $reg->form_data['organization_name'] ?? ($reg->institution_or_org ?? '') }}" placeholder="সংগঠনের নাম">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {{-- Status, Payment & Notes --}}
+                                                                <div class="col-12 col-sm-4">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">নিবন্ধন স্ট্যাটাস</label>
+                                                                    <select name="status" class="form-select form-select-sm fw-bold">
+                                                                        <option value="confirmed" {{ $reg->status === 'confirmed' ? 'selected' : '' }}>✓ Confirmed / Approved</option>
+                                                                        <option value="selected" {{ $reg->status === 'selected' ? 'selected' : '' }}>★ Selected</option>
+                                                                        <option value="attended" {{ $reg->status === 'attended' ? 'selected' : '' }}>🪪 Attended</option>
+                                                                        <option value="pending" {{ $reg->status === 'pending' ? 'selected' : '' }}>⏳ Pending</option>
+                                                                        <option value="rejected" {{ $reg->status === 'rejected' ? 'selected' : '' }}>✕ Rejected</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-12 col-sm-4">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">পরিশোধিত ফি (Amount ৳)</label>
+                                                                    <input type="number" step="1" min="0" name="amount_paid" class="form-control form-control-sm font-monospace" value="{{ $reg->amount_paid }}">
+                                                                </div>
+                                                                <div class="col-12 col-sm-4">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">পেমেন্ট স্ট্যাটাস</label>
+                                                                    <select name="payment_status" class="form-select form-select-sm">
+                                                                        <option value="verified" {{ $reg->payment_status === 'verified' ? 'selected' : '' }}>Verified Paid</option>
+                                                                        <option value="pending" {{ $reg->payment_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                                                                        <option value="waived" {{ $reg->payment_status === 'waived' ? 'selected' : '' }}>Waived (মওকুফ)</option>
+                                                                        <option value="refunded" {{ $reg->payment_status === 'refunded' ? 'selected' : '' }}>Refunded</option>
+                                                                        <option value="free" {{ $reg->payment_status === 'free' ? 'selected' : '' }}>Free</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-12 col-sm-6">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">ট্রানজেকশন আইডি (TrxID)</label>
+                                                                    <input type="text" name="transaction_id" class="form-control form-control-sm font-monospace" value="{{ $reg->transaction_id }}" placeholder="Bkash/Nagad TrxID">
+                                                                </div>
+                                                                <div class="col-12 col-sm-6">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">পেমেন্ট মেথড</label>
+                                                                    <input type="text" name="payment_method" class="form-control form-control-sm" value="{{ $reg->payment_method }}" placeholder="যেমন: bkash, nagad, cash">
+                                                                </div>
+                                                                <div class="col-12">
+                                                                    <label class="form-label small fw-bold text-dark mb-1">এডমিন নোট / মন্তব্য</label>
+                                                                    <textarea name="admin_notes" rows="2" class="form-control form-control-sm" placeholder="অভ্যন্তরীণ মন্তব্য...">{{ $reg->admin_notes }}</textarea>
+                                                                </div>
+                                                            </div>
+
+                                                            {{-- Modal Footer --}}
+                                                            <div class="modal-footer border-top py-2.5 bg-light d-flex justify-content-between mt-4">
+                                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}">
+                                                                    <i class="fa-solid fa-trash me-1"></i> ডিলিট করুন
+                                                                </button>
+                                                                <div class="d-flex gap-2">
+                                                                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" onclick="document.getElementById('view-tab-btn-{{ $reg->id }}').click()">বাতিল</button>
+                                                                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                                                                        <i class="fa-solid fa-floppy-disk me-1"></i> পরিবর্তন সংরক্ষণ করুন
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                </div>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>                          </div>
                                     </div>
                                 </div>
 
@@ -2649,5 +3087,35 @@
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="{{ asset('js/admin-event-campaign.js') }}"></script>
+    <script>
+        function previewEditImage(input, previewId) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById(previewId);
+                    if (preview) {
+                        if (preview.tagName === 'IMG') {
+                            preview.src = e.target.result;
+                        } else {
+                            preview.outerHTML = '<img src="' + e.target.result + '" id="' + previewId + '" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; border: 3px solid #0284c7; box-shadow: 0 4px 10px rgba(0,0,0,0.15);">';
+                        }
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function toggleModalResidentAddress(regId, type) {
+            const bdWrap = document.getElementById('modalBdAddressWrap' + regId);
+            const intlWrap = document.getElementById('modalIntlAddressWrap' + regId);
+            if (type === 'international') {
+                if (bdWrap) bdWrap.style.display = 'none';
+                if (intlWrap) intlWrap.style.display = 'block';
+            } else {
+                if (bdWrap) bdWrap.style.display = 'block';
+                if (intlWrap) intlWrap.style.display = 'none';
+            }
+        }
+    </script>
 @endpush
 @endsection

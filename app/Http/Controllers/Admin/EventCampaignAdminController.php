@@ -531,6 +531,42 @@ class EventCampaignAdminController extends Controller
             $formData = array_merge($formData, $validated['form_data']);
         }
 
+        // Additional direct form inputs support (e.g. from Admin Edit Modal)
+        $directKeys = [
+            'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
+            'perm_division', 'permanent_district', 'perm_upazila', 'perm_post_office', 'perm_village',
+            'author_category', 'author_categories', 'art_medium', 'organization_name', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
+            'father_name', 'mother_name', 'guardian_name', 'guardian_phone', 'gender', 'religion', 'birth_date', 'marital_status',
+            'library_name', 'library_type', 'established_year', 'reg_no', 'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
+            'reader_count', 'current_book_count', 'preferred_genres'
+        ];
+        foreach ($directKeys as $dk) {
+            if ($request->has($dk)) {
+                $formData[$dk] = $request->input($dk);
+            }
+        }
+
+        if ($request->has('author_categories') && is_array($request->input('author_categories'))) {
+            $catList = array_filter($request->input('author_categories'));
+            $formData['author_categories'] = $catList;
+            $formData['author_category'] = implode(', ', $catList);
+        }
+
+        // Resident Type & Country Normalization
+        $resType = $request->input('resident_type', $formData['resident_type'] ?? 'domestic');
+        if ($resType === 'international' || $resType === 'foreign') {
+            $formData['resident_type'] = 'international';
+            $cName = $request->input('country_name', $formData['country_name'] ?? '');
+            if ($cName === 'OTHER' && $request->filled('custom_country')) {
+                $cName = trim($request->input('custom_country'));
+            }
+            $formData['country_name'] = $cName ?: 'Foreign/International';
+        } else {
+            $formData['resident_type'] = 'domestic';
+            $formData['country_name'] = 'বাংলাদেশ (Bangladesh)';
+            unset($formData['custom_country'], $formData['state_or_city'], $formData['zip_code'], $formData['foreign_address']);
+        }
+
         // Photo Replacement Handling
         if ($request->hasFile('photo')) {
             $oldPhoto = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);

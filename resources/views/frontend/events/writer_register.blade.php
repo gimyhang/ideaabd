@@ -1355,10 +1355,18 @@ function toggleResidentAddress(type) {
     const countrySelect = document.getElementById('writerCountrySelect');
     const cityInput = document.getElementById('writerForeignCity');
     const streetInput = document.getElementById('writerForeignStreet');
+    const customCountryInput = document.getElementById('writerCustomCountry');
+    const zipInput = document.getElementById('writerForeignZip');
 
     if (type === 'international') {
-        if (bdTable) bdTable.style.display = 'none';
-        if (intlTable) intlTable.style.display = 'table';
+        if (bdTable) {
+            bdTable.style.display = 'none';
+            bdTable.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        }
+        if (intlTable) {
+            intlTable.style.display = 'table';
+            intlTable.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+        }
 
         if (divSelect) divSelect.required = false;
         if (distSelect) distSelect.required = false;
@@ -1369,8 +1377,14 @@ function toggleResidentAddress(type) {
         if (cityInput) cityInput.required = true;
         if (streetInput) streetInput.required = true;
     } else {
-        if (bdTable) bdTable.style.display = 'table';
-        if (intlTable) intlTable.style.display = 'none';
+        if (bdTable) {
+            bdTable.style.display = 'table';
+            bdTable.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
+        }
+        if (intlTable) {
+            intlTable.style.display = 'none';
+            intlTable.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+        }
 
         if (divSelect) divSelect.required = true;
         if (distSelect) distSelect.required = true;
@@ -1380,6 +1394,7 @@ function toggleResidentAddress(type) {
         if (countrySelect) countrySelect.required = false;
         if (cityInput) cityInput.required = false;
         if (streetInput) streetInput.required = false;
+        if (customCountryInput) customCountryInput.required = false;
     }
 
     formatWriterAddress();
@@ -1484,8 +1499,10 @@ document.addEventListener('DOMContentLoaded', function () {
         localStorage.removeItem('rsu_logo_size');
     } catch (err) {}
 
-    // ০. ক্যাটাগরি ফিল্ড ইনিশিয়ালাইজেশন
+    // ০. ক্যাটাগরি ও রেসিডেন্ট ইনিশিয়ালাইজেশন
     handleMultipleCategoryChange();
+    const initialResType = document.querySelector('input[name="resident_type"]:checked')?.value || 'domestic';
+    toggleResidentAddress(initialResType);
 
     // ১. ৪-স্তরের স্বয়ংক্রিয় ঠিকানা ইনিশিয়ালাইজেশন
     if (typeof initAddressChaining === 'function') {

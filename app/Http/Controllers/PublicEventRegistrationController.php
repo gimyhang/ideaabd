@@ -397,6 +397,26 @@ class PublicEventRegistrationController extends Controller
             $customFieldAnswers['author_category'] = implode(', ', $catList);
         }
 
+        // Sanitize Resident Type & Country
+        $resType = $request->input('resident_type', 'domestic');
+        if ($resType === 'international' || $resType === 'foreign') {
+            $customFieldAnswers['resident_type'] = 'international';
+            $cName = $request->input('country_name');
+            if ($cName === 'OTHER' && $request->filled('custom_country')) {
+                $cName = trim($request->input('custom_country'));
+            }
+            $customFieldAnswers['country_name'] = $cName ?: 'Foreign/International';
+        } else {
+            $customFieldAnswers['resident_type'] = 'domestic';
+            $customFieldAnswers['country_name'] = 'বাংলাদেশ (Bangladesh)';
+            unset(
+                $customFieldAnswers['custom_country'],
+                $customFieldAnswers['state_or_city'],
+                $customFieldAnswers['zip_code'],
+                $customFieldAnswers['foreign_address']
+            );
+        }
+
         if (!empty($campaign->custom_fields) && is_array($campaign->custom_fields)) {
             foreach ($campaign->custom_fields as $field) {
                 $fName = $field['name'] ?? null;
