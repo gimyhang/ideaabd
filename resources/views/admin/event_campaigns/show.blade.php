@@ -639,7 +639,11 @@
 
                                     {{-- Delete Participant Button --}}
                                     <button type="button" class="btn-action-icon text-danger btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="Delete Participant">
-                                        <i class="fa                                {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                                {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
                                 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-xl text-start" style="max-width: 980px;">
                                         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
@@ -1148,8 +1152,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>                          </div>
                                     </div>
                                 </div>
 
