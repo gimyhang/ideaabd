@@ -958,9 +958,10 @@
                         @endphp
                         <img id="photoPreviewThumb" class="lh-photo-img" src="{{ $existingPhoto ?: '' }}" style="{{ $existingPhoto ? 'display: block;' : 'display: none;' }}" alt="Author Photo">
                         <div id="photoUploadPlaceholder" class="lh-photo-placeholder" style="{{ $existingPhoto ? 'display: none;' : '' }}">
-                            <i class="fa-regular fa-image"></i>
-                            <div style="font-weight: 700; color: #0f172a; font-size: 11.5px;">ছবি</div>
-                            <div style="font-size: 9px; color: #64748b;">(পাসপোর্ট সাইজ)</div>
+                            <i class="fa-solid fa-camera text-primary fs-5 mb-1"></i>
+                            <div style="font-weight: 700; color: #0f172a; font-size: 12px;">ছবি আপলোড <span class="text-danger">*</span></div>
+                            <div style="font-size: 10px; color: #dc2626; font-weight: 600;">(বাধ্যতামূলক)</div>
+                            <div style="font-size: 8.5px; color: #64748b; margin-top: 2px;">পাসপোর্ট সাইজ</div>
                         </div>
                     </div>
                     <input type="file" id="rawPhotoInput" name="student_photo" accept="image/*" class="d-none" onchange="optimizeWriterPhoto(this)">
@@ -1675,6 +1676,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('অনুগ্রহ করে অন্তত একটি ক্যাটাগরি নির্বাচন করুন।');
                 return false;
             }
+
+            // Mandatory Photo Check
+            const optPhoto = document.getElementById('optimizedPhotoData')?.value;
+            const rawPhoto = document.getElementById('rawPhotoInput')?.files?.length;
+            const previewImg = document.getElementById('photoPreviewThumb');
+            const hasExistingPhoto = previewImg && previewImg.src && !previewImg.src.includes('data:image/svg') && previewImg.style.display !== 'none' && previewImg.getAttribute('src') !== '';
+
+            if (!optPhoto && !rawPhoto && !hasExistingPhoto) {
+                e.preventDefault();
+                alert('অনুগ্রহ করে আপনার পাসপোর্ট সাইজের ছবি আপলোড করুন। ছবি আপলোড বাধ্যতামূলক।');
+                const photoBox = document.querySelector('.lh-photo-box');
+                if (photoBox) {
+                    photoBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    photoBox.style.border = '2px dashed #dc2626';
+                    photoBox.style.background = '#fef2f2';
+                }
+                return false;
+            }
+
             formatWriterAddress();
             const btn = document.getElementById('submitWriterBtn');
             if (btn) {

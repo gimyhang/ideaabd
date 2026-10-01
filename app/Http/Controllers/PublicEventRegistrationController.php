@@ -221,6 +221,17 @@ class PublicEventRegistrationController extends Controller
 
         $validated = $request->validate($rules);
 
+        $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
+
+        // Mandatory Photo Check
+        if ($isWriter || $isScholarship) {
+            $hasPhotoData = $request->filled('optimized_photo_data') || $request->hasFile('student_photo') || $request->hasFile('photo');
+            $existingPhoto = $existingRegistration?->form_data['student_photo'] ?? ($existingRegistration?->form_data['author_photo'] ?? null);
+            if (!$hasPhotoData && empty($existingPhoto)) {
+                return back()->withInput()->with('error', 'নিবন্ধন সম্পন্ন করতে অনুগ্রহ করে পাসপোর্ট সাইজের ছবি আপলোড করুন (ছবি আপলোড বাধ্যতামূলক)।');
+            }
+        }
+
         // Max 50 words check
         if ($isScholarship && $request->filled('scholarship_reason')) {
             $words = preg_split('/\s+/', trim(strip_tags($request->input('scholarship_reason'))), -1, PREG_SPLIT_NO_EMPTY);
