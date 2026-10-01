@@ -182,7 +182,7 @@
                                     <label class="form-label small fw-bold mb-0 text-dark">
                                         <i class="fa-solid fa-key text-warning me-1"></i> Enter 6-digit OTP code sent to your mobile:
                                     </label>
-                                    <span id="otpCountdownText" class="badge bg-white text-muted border font-monospace" style="font-size: 11px;">60s</span>
+                                    <span id="otpCountdownText" class="badge bg-white text-muted border font-monospace" style="font-size: 11px;">120s</span>
                                 </div>
                                 <div class="input-group mb-2">
                                     <input type="text" id="buyerOtpCode" class="form-control font-monospace text-center fw-bold fs-6" maxlength="6" placeholder="______" style="letter-spacing: 4px; border: 1px solid #cbd5e1; background: #fff;">
@@ -223,7 +223,7 @@
                                     <label class="form-label small fw-bold mb-0 text-dark">
                                         <i class="fa-solid fa-key text-warning me-1"></i> Enter 6-digit OTP code sent to your email:
                                     </label>
-                                    <span id="emailOtpCountdownText" class="badge bg-white text-muted border font-monospace" style="font-size: 11px;">45s</span>
+                                    <span id="emailOtpCountdownText" class="badge bg-white text-muted border font-monospace" style="font-size: 11px;">120s</span>
                                 </div>
                                 <div class="input-group mb-2">
                                     <input type="text" id="buyerEmailOtpCode" class="form-control font-monospace text-center fw-bold fs-6" maxlength="6" placeholder="______" style="letter-spacing: 4px; border: 1px solid #cbd5e1; background: #fff;">
@@ -497,7 +497,7 @@ function handleSendOtp() {
                 waLink.href = result.body.whatsapp_url;
             }
 
-            startOtpCooldown(result.body.cooldown || 60);
+            startOtpCooldown(result.body.cooldown || 120);
             document.getElementById('buyerOtpCode').focus();
         } else {
             sendBtn.disabled = false;
@@ -532,7 +532,7 @@ function startOtpCooldown(seconds) {
             clearInterval(otpCooldownTimer);
             sendBtn.disabled = false;
             sendText.innerHTML = '<i class="fa-solid fa-rotate-right me-1"></i> Resend Code';
-            if (countdownBadge) countdownBadge.textContent = '60s';
+            if (countdownBadge) countdownBadge.textContent = '120s';
         }
     }, 1000);
 }
@@ -662,7 +662,7 @@ function handleSendEmailOtp() {
                 otpFeedback.classList.add('text-success');
                 otpFeedback.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + result.body.message;
             }
-            startEmailOtpCooldown(result.body.cooldown || 45);
+            startEmailOtpCooldown(result.body.cooldown || 120);
             document.getElementById('buyerEmailOtpCode').focus();
         } else {
             sendBtn.disabled = false;
@@ -697,7 +697,7 @@ function startEmailOtpCooldown(seconds) {
             clearInterval(emailOtpCooldownTimer);
             sendBtn.disabled = false;
             sendText.innerHTML = '<i class="fa-solid fa-rotate-right me-1"></i> Resend Code';
-            if (countdownBadge) countdownBadge.textContent = '45s';
+            if (countdownBadge) countdownBadge.textContent = '120s';
         }
     }, 1000);
 }

@@ -678,9 +678,9 @@ class LoginController extends Controller
 
         $targetPhone = $user->phone ?: ('0' . $last10);
         $otpCode = (string) random_int(100000, 999999);
-        $expireAt = now()->addMinutes(10);
+        $expireAt = now()->addMinutes(2);
 
-        // Store OTP in Cache for 10 minutes
+        // Store OTP in Cache for 2 minutes
         $cachePayload = [
             'user_id'    => $user->id,
             'phone'      => $targetPhone,
@@ -696,7 +696,7 @@ class LoginController extends Controller
         // Send SMS via SmsService
         $smsResult = null;
         try {
-            $smsText = "Idea Prokashon: Your login & password setup OTP code is {$otpCode} (Valid 10 mins). www.ideaabd.com";
+            $smsText = "Idea Prokashon: Your login & password setup OTP code is {$otpCode} (Valid 2 mins). www.ideaabd.com";
             $smsResult = \App\Services\SmsService::send($targetPhone, $smsText);
             \Illuminate\Support\Facades\Log::info("Login OTP SMS Result for {$targetPhone}: " . json_encode($smsResult));
         } catch (\Throwable $e) {
@@ -704,7 +704,7 @@ class LoginController extends Controller
         }
 
         $maskedPhone = substr($targetPhone, 0, 3) . '****' . substr($targetPhone, -4);
-        $msg = "A 6-digit OTP verification code has been sent to {$maskedPhone}. Please enter the code and set your password.";
+        $msg = "A 6-digit OTP verification code has been sent to {$maskedPhone} (Valid for 2 minutes). Please enter the code and set your password.";
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -712,7 +712,7 @@ class LoginController extends Controller
                 'phone'        => $targetPhone,
                 'user_name'    => $user->name,
                 'message'      => $msg,
-                'countdown'    => 60,
+                'countdown'    => 120,
                 'sms_status'   => $smsResult['response_code'] ?? null,
             ]);
         }

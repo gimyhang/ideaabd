@@ -89,7 +89,7 @@ class RegistrationController extends Controller
         $otpCode = (string) random_int(100000, 999999);
         $cacheKey = 'reg_email_otp_' . md5($email);
         Cache::put($cacheKey, $otpCode, now()->addMinutes(2));
-        Cache::put($cooldownKey, time() + 45, now()->addSeconds(45));
+        Cache::put($cooldownKey, time() + 120, now()->addSeconds(120));
 
         // Dispatch email
         try {
@@ -105,7 +105,7 @@ class RegistrationController extends Controller
         return response()->json([
             'success'  => true,
             'message'  => 'A 6-digit verification code has been sent to your email (valid for 2 minutes).',
-            'cooldown' => 45,
+            'cooldown' => 120,
         ]);
     }
 
@@ -300,12 +300,12 @@ class RegistrationController extends Controller
         // Generate 6-digit OTP using cryptographically secure random_int
         $otpCode = (string) random_int(100000, 999999);
 
-        // Cache OTP strictly for 5 minutes across all key formats
-        $ttl = now()->addMinutes(5);
+        // Cache OTP strictly for 2 minutes across all key formats
+        $ttl = now()->addMinutes(2);
         Cache::put('reg_otp_' . md5($fullPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . md5($localPhone), $otpCode, $ttl);
         Cache::put('reg_otp_' . $cleanDigits, $otpCode, $ttl);
-        Cache::put($cooldownKey, time() + 60, now()->addSeconds(60));
+        Cache::put($cooldownKey, time() + 120, now()->addSeconds(120));
 
         // Dispatch SMS via static method with exception safety
         $smsSent = false;
@@ -329,8 +329,8 @@ class RegistrationController extends Controller
             'success'              => true,
             'is_existing'          => (bool) $existing,
             'user_name'            => $existing ? $existing->name : null,
-            'message'              => 'আপনার মোবাইলে ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ৫ মিনিট)।',
-            'cooldown'             => 60,
+            'message'              => 'আপনার মোবাইলে ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ২ মিনিট)।',
+            'cooldown'             => 120,
             'phone'                => $localPhone,
             'support_whatsapp_url' => $supportWhatsappUrl,
             'official_whatsapp'    => $officialWhatsApp,

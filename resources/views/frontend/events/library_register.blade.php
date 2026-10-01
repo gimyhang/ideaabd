@@ -241,7 +241,7 @@
                                         <label class="form-label small fw-bold mb-0 text-dark">
                                             <i class="fa-solid fa-shield-halved text-success me-1"></i> মোবাইলে প্রাপ্ত ৬-ডিজিট ওটিপি (OTP) লিখুন:
                                         </label>
-                                        <span id="otpCountdownText" class="badge bg-white text-muted border font-monospace px-2 py-1" style="font-size: 11px;">৬০ সে</span>
+                                        <span id="otpCountdownText" class="badge bg-white text-muted border font-monospace px-2 py-1" style="font-size: 11px;">১২০ সে</span>
                                     </div>
                                     <div class="input-group mb-1">
                                         <input type="text" id="buyerOtpCode" class="form-control font-monospace text-center fw-bold fs-5 lib-otp-code-input" maxlength="6" placeholder="______" autocomplete="one-time-code">
@@ -978,7 +978,7 @@
                         statusBadge.innerHTML = '<i class="fa-solid fa-shield-halved me-1"></i> কোড পাঠানো হয়েছে';
                     }
 
-                    startOtpCooldown(result.body.cooldown || 60);
+                    startOtpCooldown(result.body.cooldown || 120);
                     const otpCodeInput = document.getElementById('buyerOtpCode');
                     if (otpCodeInput) {
                         if (result.body.dev_otp) {
@@ -1028,7 +1028,7 @@
                     clearInterval(otpCooldownTimer);
                     if (sendBtn) sendBtn.disabled = false;
                     if (sendText) sendText.innerHTML = '<i class="fa-solid fa-rotate-right me-1"></i> পুনরায় পাঠান';
-                    if (countdownBadge) countdownBadge.textContent = '৬০ সে';
+                    if (countdownBadge) countdownBadge.textContent = '১২০ সে';
                 }
             }, 1000);
         }

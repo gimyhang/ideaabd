@@ -1100,7 +1100,7 @@
                     </button>
 
                     <div class="text-center mt-3" style="font-size: 13px;">
-                        <span class="text-muted" id="otpCountdownText">Resend code in: <span id="otpCountdownTimer" class="fw-bold font-monospace">60</span>s</span>
+                        <span class="text-muted" id="otpCountdownText">Resend code in: <span id="otpCountdownTimer" class="fw-bold font-monospace">120</span>s</span>
                         <button type="button" id="btnResendLoginOtp" class="btn btn-link btn-sm text-primary p-0 d-none text-decoration-underline fw-semibold" onclick="sendLoginOtpAction(true)">
                             Didn't get code? Resend OTP
                         </button>
@@ -2374,7 +2374,7 @@ function setupOtpInputs() {
 }
 
 let countdownInterval = null;
-function startEmailCountdown(seconds = 45) {
+function startEmailCountdown(seconds = 120) {
     let sec = seconds;
     const countEl = document.getElementById('emailCountdownSec');
     const timerText = document.getElementById('emailOtpTimerText');
@@ -2406,7 +2406,7 @@ async function sendEmailVerificationCode() {
         const data = await res.json();
         if (res.ok && data.success) {
             showAlert(data.message, true);
-            startEmailCountdown(data.cooldown || 45);
+            startEmailCountdown(data.cooldown || 120);
         } else {
             showAlert(data.message || 'Failed to send email verification code.');
         }
@@ -2474,7 +2474,7 @@ async function verifyEmailOtpAndProceed() {
  * ═════════════════════════════════════════════════════════════════════════
  */
 let mobileCountdownInterval = null;
-function startMobileCountdown(seconds = 45) {
+function startMobileCountdown(seconds = 120) {
     let sec = seconds;
     const countEl = document.getElementById('mobileCountdownSec');
     const timerText = document.getElementById('mobileOtpTimerText');
@@ -2538,7 +2538,7 @@ async function sendMobileVerificationOtp() {
         const data = await res.json();
         if (res.ok && data.success) {
             showAlert(data.message, true);
-            startMobileCountdown(data.cooldown || 45);
+            startMobileCountdown(data.cooldown || 120);
             document.getElementById('mOtp1')?.focus();
             if (data.support_whatsapp_url) {
                 const waBtn = document.getElementById('whatsappSupportBtn');
@@ -2894,7 +2894,7 @@ function resetOtpLoginStep() {
     clearInterval(otpCountdownInterval);
 }
 
-function startOtpCountdown(seconds = 60) {
+function startOtpCountdown(seconds = 120) {
     clearInterval(otpCountdownInterval);
     let remaining = seconds;
     const timerSpan = document.getElementById('otpCountdownTimer');
@@ -2953,7 +2953,7 @@ async function sendLoginOtpAction(isResend = false) {
             document.getElementById('otpStepVerifySet')?.classList.remove('d-none');
             const targetDisplay = document.getElementById('otpTargetPhoneDisplay');
             if (targetDisplay) targetDisplay.textContent = currentOtpPhone;
-            startOtpCountdown(60);
+            startOtpCountdown(data.countdown || 120);
             setTimeout(() => document.getElementById('otpVerificationCodeInput')?.focus(), 200);
             return;
         }

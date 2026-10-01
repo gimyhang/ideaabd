@@ -660,7 +660,7 @@ BASH,
      */
     public static function sendVerificationOtp(string $phone, string $otpCode): array
     {
-        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 5 minutes). Do not share this code.";
+        $message = "ideaabd.com: Your account verification code is {$otpCode} (Valid for 2 minutes). Do not share this code.";
         return self::send($phone, $message);
     }
 
@@ -677,7 +677,7 @@ BASH,
      */
     public static function sendLoginOtp(string $phone, string $otpCode): array
     {
-        $message = "ideaabd.com: Your login security OTP code is {$otpCode} (Valid for 5 minutes).";
+        $message = "ideaabd.com: Your login security OTP code is {$otpCode} (Valid for 2 minutes).";
         return self::send($phone, $message);
     }
 
