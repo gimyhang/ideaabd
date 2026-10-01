@@ -8,6 +8,9 @@
     $studioLogoBorderWidth = intval($campaign->form_settings['logo_border_width'] ?? 0);
     $studioLogoBorderColor = $campaign->form_settings['logo_border_color'] ?? '#0f172a';
     $studioEmblemIcon = $campaign->form_settings['emblem_icon'] ?? 'fa-feather-pointed';
+    $studioLogoOffsetX = intval($campaign->form_settings['logo_offset_x'] ?? 0);
+    $studioLogoOffsetY = intval($campaign->form_settings['logo_offset_y'] ?? 0);
+    $studioLogoBg = $campaign->form_settings['logo_bg'] ?? 'transparent';
 
     $studioTitle = $campaign->title;
     $studioSubhead = $campaign->form_settings['form_subhead'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
@@ -117,37 +120,170 @@
                                     </div>
                                 </div>
 
-                                {{-- সাইজ স্লাইডার --}}
-                                <div class="mb-3">
-                                    <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <label class="form-label small fw-semibold text-dark mb-0">লোগোর সাইজ (px)</label>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="adjustStudioLogoSize(-5)">-5</button>
-                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="setStudioLogoSize(70)">রিসেট (70)</button>
-                                            <button type="button" class="btn btn-outline-secondary py-0 px-2" onclick="adjustStudioLogoSize(5)">+5</button>
+                                {{-- সহজ সাইজ কন্ট্রোলার ও প্রিসেট বাটন --}}
+                                <div class="mb-3 p-2.5 bg-light rounded-3 border">
+                                    <div class="d-flex align-items-center justify-content-between mb-1.5 flex-wrap gap-1">
+                                        <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1">
+                                            <i class="fa-solid fa-up-right-and-down-left-from-center text-primary"></i> লোগোর সাইজ (Size)
+                                        </label>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <div class="input-group input-group-sm" style="width: 105px;">
+                                                <input type="number" id="studioLogoSizeNumberInput" class="form-control form-control-sm text-center font-monospace fw-bold" min="30" max="220" value="{{ $studioLogoSize }}" oninput="updateStudioLogoSize(this.value)">
+                                                <span class="input-group-text px-1.5 font-monospace small">px</span>
+                                            </div>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="-1px সূক্ষ্ম ছোট" onclick="adjustStudioLogoSize(-1)">-1</button>
+                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="-5px দ্রুত ছোট" onclick="adjustStudioLogoSize(-5)">-5</button>
+                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="+5px দ্রুত বড়" onclick="adjustStudioLogoSize(5)">+5</button>
+                                                <button type="button" class="btn btn-outline-secondary py-0 px-2" title="+1px সূক্ষ্ম বড়" onclick="adjustStudioLogoSize(1)">+1</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-center gap-2">
+
+                                    {{-- রেঞ্জ স্লাইডার --}}
+                                    <div class="d-flex align-items-center gap-2 mb-2">
                                         <span class="small text-muted font-monospace">30px</span>
                                         <input type="range" name="logo_size" id="studioLogoSizeSlider" class="form-range flex-grow-1" min="30" max="220" value="{{ $studioLogoSize }}" oninput="updateStudioLogoSize(this.value)">
                                         <span class="small text-muted font-monospace">220px</span>
                                     </div>
+
+                                    {{-- এক-ক্লিক সাইজ প্রিসেট --}}
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
+                                        <span class="text-muted" style="font-size: 11px; font-weight: 600;">এক ক্লিকে সাইজ:</span>
+                                        <div class="logo-preset-bar m-0">
+                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 55 ? 'active' : '' }}" onclick="setStudioLogoPreset(55)">
+                                                ছোট <span class="badge-val">55</span>
+                                            </button>
+                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 75 ? 'active' : '' }}" onclick="setStudioLogoPreset(75)">
+                                                স্বাভাবিক <span class="badge-val">75</span>
+                                            </button>
+                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 95 ? 'active' : '' }}" onclick="setStudioLogoPreset(95)">
+                                                মাঝারি <span class="badge-val">95</span>
+                                            </button>
+                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 120 ? 'active' : '' }}" onclick="setStudioLogoPreset(120)">
+                                                বড় <span class="badge-val">120</span>
+                                            </button>
+                                            <button type="button" class="logo-preset-btn {{ $studioLogoSize == 150 ? 'active' : '' }}" onclick="setStudioLogoPreset(150)">
+                                                জাম্বো <span class="badge-val">150</span>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {{-- লোগো শেপ ও বর্ডার --}}
-                                <div class="row g-2 mb-2">
+                                {{-- পজিশন ও অ্যালাইনমেন্ট নিয়ন্ত্রণ (D-Pad Nudge & Offset) --}}
+                                <div class="mb-3 p-2.5 bg-light rounded-3 border">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1">
+                                            <i class="fa-solid fa-arrows-up-down-left-right text-success"></i> পজিশন এডজাস্ট (উপরে/নিচে ও ডানে/বামে)
+                                        </label>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="resetStudioLogoPosition()">
+                                            <i class="fa-solid fa-rotate-left me-1"></i> মাঝখানে আনুন
+                                        </button>
+                                    </div>
+
+                                    <div class="row g-2 align-items-center">
+                                        {{-- D-Pad Nudge Buttons --}}
+                                        <div class="col-sm-5 text-center">
+                                            <div class="nudge-dpad-box p-1.5 d-inline-block">
+                                                <div class="mb-1">
+                                                    <button type="button" class="btn-nudge-tool" title="উপরে তুলুন (-2px)" onclick="nudgeStudioLogo(0, -2)">
+                                                        <i class="fa-solid fa-chevron-up"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                                    <button type="button" class="btn-nudge-tool" title="বামে সরান (-2px)" onclick="nudgeStudioLogo(-2, 0)">
+                                                        <i class="fa-solid fa-chevron-left"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-nudge-tool text-warning" title="সেন্টারে আনুন (0,0)" onclick="resetStudioLogoPosition()">
+                                                        <i class="fa-solid fa-crosshairs"></i>
+                                                    </button>
+                                                    <button type="button" class="btn-nudge-tool" title="ডানে সরান (+2px)" onclick="nudgeStudioLogo(2, 0)">
+                                                        <i class="fa-solid fa-chevron-right"></i>
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button type="button" class="btn-nudge-tool" title="নিচে নামান (+2px)" onclick="nudgeStudioLogo(0, 2)">
+                                                        <i class="fa-solid fa-chevron-down"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Fine Offset Sliders / Values --}}
+                                        <div class="col-sm-7">
+                                            <div class="mb-1.5">
+                                                <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                                    <span class="text-muted" style="font-size: 11px;">উপরে / নিচে (Y):</span>
+                                                    <span class="font-monospace small fw-bold text-dark" id="dispStudioOffsetY">{{ $studioLogoOffsetY > 0 ? '+' : '' }}{{ $studioLogoOffsetY }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" id="studioLogoOffsetYSlider" min="-60" max="60" value="{{ $studioLogoOffsetY }}" oninput="updateStudioLogoOffsetY(this.value)">
+                                                <input type="hidden" name="logo_offset_y" id="studioLogoOffsetYInput" value="{{ $studioLogoOffsetY }}">
+                                            </div>
+
+                                            <div>
+                                                <div class="d-flex align-items-center justify-content-between mb-0.5">
+                                                    <span class="text-muted" style="font-size: 11px;">ডানে / বামে (X):</span>
+                                                    <span class="font-monospace small fw-bold text-dark" id="dispStudioOffsetX">{{ $studioLogoOffsetX > 0 ? '+' : '' }}{{ $studioLogoOffsetX }}px</span>
+                                                </div>
+                                                <input type="range" class="form-range" id="studioLogoOffsetXSlider" min="-60" max="60" value="{{ $studioLogoOffsetX }}" oninput="updateStudioLogoOffsetX(this.value)">
+                                                <input type="hidden" name="logo_offset_x" id="studioLogoOffsetXInput" value="{{ $studioLogoOffsetX }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- ভিজ্যুয়াল আকৃতি বাটন (Visual Shape Cards) --}}
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-shapes text-warning"></i> লোগোর ফ্রেম / আকৃতি (Shape)
+                                    </label>
+                                    <input type="hidden" name="logo_shape" id="studioLogoShapeInput" value="{{ $studioLogoShape }}">
+                                    <div class="shape-card-grid">
+                                        <div class="shape-card-item {{ $studioLogoShape === 'default' ? 'active' : '' }}" onclick="setStudioLogoShape('default', this)" title="কোনো ফ্রেম নেই, স্বাভাবিক লোগো">
+                                            <div class="shape-icon-preview" style="border-radius: 2px;">
+                                                <i class="fa-solid fa-image"></i>
+                                            </div>
+                                            <div class="shape-label">স্বাভাবিক</div>
+                                        </div>
+                                        <div class="shape-card-item {{ $studioLogoShape === 'circle' ? 'active' : '' }}" onclick="setStudioLogoShape('circle', this)" title="বৃত্তাকার ফ্রেম">
+                                            <div class="shape-icon-preview rounded-circle">
+                                                <i class="fa-regular fa-circle"></i>
+                                            </div>
+                                            <div class="shape-label">গোলাকার</div>
+                                        </div>
+                                        <div class="shape-card-item {{ $studioLogoShape === 'rounded' ? 'active' : '' }}" onclick="setStudioLogoShape('rounded', this)" title="কোণা রাউন্ডেড (12px)">
+                                            <div class="shape-icon-preview" style="border-radius: 6px;">
+                                                <i class="fa-regular fa-square"></i>
+                                            </div>
+                                            <div class="shape-label">রাউন্ডেড</div>
+                                        </div>
+                                        <div class="shape-card-item {{ $studioLogoShape === 'square' ? 'active' : '' }}" onclick="setStudioLogoShape('square', this)" title="চারকোনা ফ্রেম">
+                                            <div class="shape-icon-preview" style="border-radius: 0;">
+                                                <i class="fa-solid fa-square"></i>
+                                            </div>
+                                            <div class="shape-label">চারকোনা</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- ব্যাকগ্রাউন্ড ও বর্ডার সেটিংস --}}
+                                <div class="row g-2 mb-2 p-2 bg-light rounded-3 border">
                                     <div class="col-6">
-                                        <label class="form-label small fw-semibold text-dark mb-1">লোগোর আকৃতি</label>
-                                        <select name="logo_shape" id="studioLogoShapeSelect" class="form-select form-select-sm" onchange="syncStudioLivePreview()">
-                                            <option value="default" {{ $studioLogoShape == 'default' ? 'selected' : '' }}>ডিফল্ট (Aspect Fit)</option>
-                                            <option value="circle" {{ $studioLogoShape == 'circle' ? 'selected' : '' }}>গোলাকার (Circle)</option>
-                                            <option value="rounded" {{ $studioLogoShape == 'rounded' ? 'selected' : '' }}>রাউন্ডেড (Rounded 12px)</option>
-                                            <option value="square" {{ $studioLogoShape == 'square' ? 'selected' : '' }}>চারকোনা (Square)</option>
-                                        </select>
+                                        <label class="form-label small fw-semibold text-dark mb-1">ব্যাকগ্রাউন্ড ফিল</label>
+                                        <input type="hidden" name="logo_bg" id="studioLogoBgInput" value="{{ $studioLogoBg }}">
+                                        <div class="btn-group btn-group-sm w-100">
+                                            <button type="button" class="btn {{ $studioLogoBg === 'transparent' ? 'btn-dark' : 'btn-outline-secondary' }}" id="btnBgTransparent" onclick="setStudioLogoBg('transparent')">স্বচ্ছ</button>
+                                            <button type="button" class="btn {{ $studioLogoBg === 'white' ? 'btn-dark' : 'btn-outline-secondary' }}" id="btnBgWhite" onclick="setStudioLogoBg('white')">সাদা ফিল</button>
+                                        </div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small fw-semibold text-dark mb-1">বর্ডার উইডথ (px)</label>
-                                        <input type="number" name="logo_border_width" id="studioLogoBorderWidthInput" class="form-control form-control-sm" min="0" max="10" value="{{ $studioLogoBorderWidth }}" oninput="syncStudioLivePreview()">
+                                        <label class="form-label small fw-semibold text-dark mb-1">বর্ডার উইডথ</label>
+                                        <div class="btn-group btn-group-sm w-100">
+                                            <button type="button" class="btn {{ $studioLogoBorderWidth == 0 ? 'btn-dark' : 'btn-outline-secondary' }}" id="btnBw0" onclick="setStudioBorderWidth(0)">নেই</button>
+                                            <button type="button" class="btn {{ $studioLogoBorderWidth == 1 ? 'btn-dark' : 'btn-outline-secondary' }}" id="btnBw1" onclick="setStudioBorderWidth(1)">১px</button>
+                                            <button type="button" class="btn {{ $studioLogoBorderWidth == 2 ? 'btn-dark' : 'btn-outline-secondary' }}" id="btnBw2" onclick="setStudioBorderWidth(2)">২px</button>
+                                        </div>
+                                        <input type="hidden" name="logo_border_width" id="studioLogoBorderWidthInput" value="{{ $studioLogoBorderWidth }}">
                                     </div>
                                 </div>
 
@@ -502,10 +638,21 @@
                 <div class="d-flex align-items-center justify-content-between gap-3 pb-2 mb-2 border-bottom" style="border-bottom-color: var(--preview-border) !important;">
                     
                     {{-- লোগো প্রিভিউ --}}
-                    <div id="prevLogoContainer" class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: {{ $studioLogoSize }}px; height: {{ $studioLogoSize }}px; border-radius: {{ $studioLogoShape === 'circle' ? '50%' : ($studioLogoShape === 'rounded' ? '12px' : '0px') }}; border: {{ $studioLogoBorderWidth }}px solid {{ $studioLogoBorderColor }}; overflow: hidden; transition: all 0.15s ease;">
-                        <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" style="{{ $studioFormLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
-                        <div id="prevEmblemIcon" class="text-danger d-flex align-items-center justify-content-center" style="{{ $studioFormLogo ? 'display: none;' : 'display: flex;' }} width: 100%; height: 100%; font-size: {{ round($studioLogoSize * 0.55) }}px;">
-                            <i class="fa-solid {{ $studioEmblemIcon }}" id="prevEmblemIconTag"></i>
+                    <div class="prev-logo-wrapper" id="prevLogoWrapper">
+                        <div id="prevLogoContainer" class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: {{ $studioLogoSize }}px; height: {{ $studioLogoSize }}px; border-radius: {{ $studioLogoShape === 'circle' ? '50%' : ($studioLogoShape === 'rounded' ? '12px' : '0px') }}; border: {{ $studioLogoBorderWidth > 0 ? $studioLogoBorderWidth . 'px solid ' . $studioLogoBorderColor : 'none' }}; background-color: {{ $studioLogoBg === 'white' ? '#ffffff' : 'transparent' }}; transform: translate({{ $studioLogoOffsetX }}px, {{ $studioLogoOffsetY }}px); overflow: hidden; transition: all 0.15s ease; cursor: pointer;" title="লোগো সাইজ ও পজিশন পরিবর্তন করতে ক্লিক/হোভার করুন">
+                            <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" style="{{ $studioFormLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
+                            <div id="prevEmblemIcon" class="text-danger d-flex align-items-center justify-content-center" style="{{ $studioFormLogo ? 'display: none;' : 'display: flex;' }} width: 100%; height: 100%; font-size: {{ round($studioLogoSize * 0.55) }}px;">
+                                <i class="fa-solid {{ $studioEmblemIcon }}" id="prevEmblemIconTag"></i>
+                            </div>
+                        </div>
+                        <div class="prev-logo-floating-toolbar" id="prevLogoFloatingToolbar">
+                            <button type="button" class="btn-prev-tool" title="সাইজ বড় করুন (+5px)" onclick="adjustStudioLogoSize(5)"><i class="fa-solid fa-plus"></i></button>
+                            <button type="button" class="btn-prev-tool" title="সাইজ ছোট করুন (-5px)" onclick="adjustStudioLogoSize(-5)"><i class="fa-solid fa-minus"></i></button>
+                            <button type="button" class="btn-prev-tool" title="উপরে তুলুন (-2px)" onclick="nudgeStudioLogo(0, -2)"><i class="fa-solid fa-arrow-up"></i></button>
+                            <button type="button" class="btn-prev-tool" title="নিচে নামান (+2px)" onclick="nudgeStudioLogo(0, 2)"><i class="fa-solid fa-arrow-down"></i></button>
+                            <button type="button" class="btn-prev-tool" title="বামে সরান (-2px)" onclick="nudgeStudioLogo(-2, 0)"><i class="fa-solid fa-arrow-left"></i></button>
+                            <button type="button" class="btn-prev-tool" title="ডানে সরান (+2px)" onclick="nudgeStudioLogo(2, 0)"><i class="fa-solid fa-arrow-right"></i></button>
+                            <button type="button" class="btn-prev-tool text-warning" title="পজিশন রিসেট" onclick="resetStudioLogoPosition()"><i class="fa-solid fa-crosshairs"></i></button>
                         </div>
                     </div>
 
@@ -742,6 +889,21 @@ function updateStudioLogoSize(val) {
     const num = Math.max(30, Math.min(220, parseInt(val) || 70));
     const badge = document.getElementById('studioBadgeLogoSize');
     if (badge) badge.textContent = num + 'px';
+    const slider = document.getElementById('studioLogoSizeSlider');
+    if (slider && parseInt(slider.value) !== num) slider.value = num;
+    const numInput = document.getElementById('studioLogoSizeNumberInput');
+    if (numInput && parseInt(numInput.value) !== num) numInput.value = num;
+
+    // Update active preset buttons
+    document.querySelectorAll('.logo-preset-btn').forEach(btn => {
+        const pVal = parseInt(btn.querySelector('.badge-val')?.textContent);
+        if (pVal === num) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
     syncStudioLivePreview();
 }
 
@@ -749,15 +911,86 @@ function adjustStudioLogoSize(delta) {
     const slider = document.getElementById('studioLogoSizeSlider');
     if (!slider) return;
     const cur = parseInt(slider.value) || 70;
-    slider.value = Math.max(30, Math.min(220, cur + delta));
-    updateStudioLogoSize(slider.value);
+    updateStudioLogoSize(cur + delta);
 }
 
 function setStudioLogoSize(val) {
-    const slider = document.getElementById('studioLogoSizeSlider');
-    if (!slider) return;
-    slider.value = val;
     updateStudioLogoSize(val);
+}
+
+function setStudioLogoPreset(val) {
+    updateStudioLogoSize(val);
+}
+
+function setStudioLogoShape(shape, el) {
+    const shapeInput = document.getElementById('studioLogoShapeInput');
+    if (shapeInput) shapeInput.value = shape;
+    document.querySelectorAll('.shape-card-item').forEach(item => item.classList.remove('active'));
+    if (el) el.classList.add('active');
+    syncStudioLivePreview();
+}
+
+function setStudioLogoBg(bg) {
+    const bgInput = document.getElementById('studioLogoBgInput');
+    if (bgInput) bgInput.value = bg;
+    const btnT = document.getElementById('btnBgTransparent');
+    const btnW = document.getElementById('btnBgWhite');
+    if (btnT && btnW) {
+        if (bg === 'white') {
+            btnW.className = 'btn btn-dark';
+            btnT.className = 'btn btn-outline-secondary';
+        } else {
+            btnT.className = 'btn btn-dark';
+            btnW.className = 'btn btn-outline-secondary';
+        }
+    }
+    syncStudioLivePreview();
+}
+
+function setStudioBorderWidth(bw) {
+    const bwInput = document.getElementById('studioLogoBorderWidthInput');
+    if (bwInput) bwInput.value = bw;
+    [0, 1, 2].forEach(w => {
+        const btn = document.getElementById('btnBw' + w);
+        if (btn) {
+            btn.className = (bw == w) ? 'btn btn-dark' : 'btn btn-outline-secondary';
+        }
+    });
+    syncStudioLivePreview();
+}
+
+function updateStudioLogoOffsetX(val) {
+    const num = Math.max(-100, Math.min(100, parseInt(val) || 0));
+    const disp = document.getElementById('dispStudioOffsetX');
+    if (disp) disp.textContent = (num > 0 ? '+' : '') + num + 'px';
+    const input = document.getElementById('studioLogoOffsetXInput');
+    if (input) input.value = num;
+    const slider = document.getElementById('studioLogoOffsetXSlider');
+    if (slider && parseInt(slider.value) !== num) slider.value = num;
+    syncStudioLivePreview();
+}
+
+function updateStudioLogoOffsetY(val) {
+    const num = Math.max(-100, Math.min(100, parseInt(val) || 0));
+    const disp = document.getElementById('dispStudioOffsetY');
+    if (disp) disp.textContent = (num > 0 ? '+' : '') + num + 'px';
+    const input = document.getElementById('studioLogoOffsetYInput');
+    if (input) input.value = num;
+    const slider = document.getElementById('studioLogoOffsetYSlider');
+    if (slider && parseInt(slider.value) !== num) slider.value = num;
+    syncStudioLivePreview();
+}
+
+function nudgeStudioLogo(dx, dy) {
+    const curX = parseInt(document.getElementById('studioLogoOffsetXInput')?.value) || 0;
+    const curY = parseInt(document.getElementById('studioLogoOffsetYInput')?.value) || 0;
+    if (dx !== 0) updateStudioLogoOffsetX(curX + dx);
+    if (dy !== 0) updateStudioLogoOffsetY(curY + dy);
+}
+
+function resetStudioLogoPosition() {
+    updateStudioLogoOffsetX(0);
+    updateStudioLogoOffsetY(0);
 }
 
 function handleStudioLogoFile(input) {
@@ -849,9 +1082,12 @@ function syncStudioLivePreview() {
 
     // 3. Logo Container
     const logoSize = parseInt(document.getElementById('studioLogoSizeSlider')?.value) || 70;
-    const logoShape = document.getElementById('studioLogoShapeSelect')?.value || 'default';
+    const logoShape = document.getElementById('studioLogoShapeInput')?.value || 'default';
     const logoBw = parseInt(document.getElementById('studioLogoBorderWidthInput')?.value) || 0;
     const logoBc = document.getElementById('studioLogoBorderColorInput')?.value || '#0f172a';
+    const logoBg = document.getElementById('studioLogoBgInput')?.value || 'transparent';
+    const logoOffsetX = parseInt(document.getElementById('studioLogoOffsetXInput')?.value) || 0;
+    const logoOffsetY = parseInt(document.getElementById('studioLogoOffsetYInput')?.value) || 0;
     const emblemIcon = document.getElementById('studioEmblemIconSelect')?.value || 'fa-feather-pointed';
 
     const pLogoCont = document.getElementById('prevLogoContainer');
@@ -860,6 +1096,8 @@ function syncStudioLivePreview() {
         pLogoCont.style.height = logoSize + 'px';
         pLogoCont.style.borderRadius = logoShape === 'circle' ? '50%' : (logoShape === 'rounded' ? '12px' : '0px');
         pLogoCont.style.border = logoBw > 0 ? `${logoBw}px solid ${logoBc}` : 'none';
+        pLogoCont.style.backgroundColor = (logoBg === 'white' || logoBg === '#ffffff') ? '#ffffff' : 'transparent';
+        pLogoCont.style.transform = `translate(${logoOffsetX}px, ${logoOffsetY}px)`;
     }
 
     const pIcon = document.getElementById('prevEmblemIcon');

@@ -803,6 +803,10 @@
     $logoBorderWidth = intval($campaign->form_settings['logo_border_width'] ?? 0);
     $logoBorderColor = $campaign->form_settings['logo_border_color'] ?? '#0f172a';
     $emblemIcon = $campaign->form_settings['emblem_icon'] ?? 'fa-feather-pointed';
+    $logoOffsetX = intval($campaign->form_settings['logo_offset_x'] ?? 0);
+    $logoOffsetY = intval($campaign->form_settings['logo_offset_y'] ?? 0);
+    $logoBg = $campaign->form_settings['logo_bg'] ?? 'transparent';
+    $logoBgColor = ($logoBg === 'white' || $logoBg === '#ffffff') ? '#ffffff' : 'transparent';
     $logoBorderRadius = $logoShape === 'circle' ? '50%' : ($logoShape === 'rounded' ? '12px' : '0px');
     $logoBorderStyle = $logoBorderWidth > 0 ? "border: {$logoBorderWidth}px solid {$logoBorderColor};" : "";
     $photoReqMode = $campaign->form_settings['photo_required'] ?? 'required';
@@ -955,8 +959,8 @@
         <div class="lh-pad-header">
             <div class="lh-pad-inner">
                 {{-- লোগো / এমব্লেম (বর্ডারলেস, এডমিন কর্তৃক নিয়ন্ত্রিত) --}}
-                <div class="lh-pad-emblem-left borderless-emblem-wrap" id="logoEmblemWrap" title="{{ $isAdmin ? 'লোগো পরিবর্তন ও সাইজ নির্ধারণ করতে হোভার করুন (অ্যাডমিন সেটিং)' : '' }}">
-                    <div class="logo-display-container" id="logoDisplayContainer" style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; border-radius: {{ $logoBorderRadius }}; {{ $logoBorderStyle }} overflow: hidden;">
+                <div class="lh-pad-emblem-left borderless-emblem-wrap" id="logoEmblemWrap" title="{{ $isAdmin ? 'লোগো পরিবর্তন ও সাইজ নির্ধারণ করতে হোভার করুন (অ্যাডমিন সেটিং)' : '' }}" style="transform: translate({{ $logoOffsetX }}px, {{ $logoOffsetY }}px);">
+                    <div class="logo-display-container" id="logoDisplayContainer" style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; border-radius: {{ $logoBorderRadius }}; {{ $logoBorderStyle }} background-color: {{ $logoBgColor }}; overflow: hidden;">
                         <img id="customLogoImg" src="{{ $adminLogo ?: '' }}" alt="{{ $campaign->title }}" style="{{ $adminLogo ? 'display: block;' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain; border-radius: {{ $logoBorderRadius }};">
                         <div id="defaultEmblemIcon" class="default-emblem-icon" style="{{ $adminLogo ? 'display: none;' : 'display: flex;' }} font-size: {{ round($adminLogoSize * 0.55) }}px;">
                             <i class="fa-solid {{ $emblemIcon }}"></i>

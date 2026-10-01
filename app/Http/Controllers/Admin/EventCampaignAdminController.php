@@ -1226,7 +1226,7 @@ class EventCampaignAdminController extends Controller
             $formSettings['logo_image'] = $path;
         }
 
-        // 2. Logo Size, Shape & Border
+        // 2. Logo Size, Shape, Border, Position & Background
         if ($request->filled('logo_size')) {
             $formSettings['logo_size'] = max(30, min(220, intval($request->logo_size)));
         }
@@ -1241,6 +1241,15 @@ class EventCampaignAdminController extends Controller
         }
         if ($request->filled('emblem_icon')) {
             $formSettings['emblem_icon'] = trim($request->emblem_icon);
+        }
+        if ($request->has('logo_offset_x')) {
+            $formSettings['logo_offset_x'] = max(-120, min(120, intval($request->logo_offset_x)));
+        }
+        if ($request->has('logo_offset_y')) {
+            $formSettings['logo_offset_y'] = max(-120, min(120, intval($request->logo_offset_y)));
+        }
+        if ($request->has('logo_bg')) {
+            $formSettings['logo_bg'] = in_array($request->logo_bg, ['transparent', 'white', '#ffffff', '#000000'], true) ? $request->logo_bg : 'transparent';
         }
 
         // 3. Form Header and Letterhead Text Fields
