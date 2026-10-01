@@ -1,7 +1,8 @@
 @php
     $studioFormLogo = $campaign->form_settings['logo_image'] ?? null;
-    if ($studioFormLogo && !str_starts_with($studioFormLogo, 'http') && !str_starts_with($studioFormLogo, '/')) {
-        $studioFormLogo = asset('storage/' . $studioFormLogo);
+    if ($studioFormLogo && !str_starts_with($studioFormLogo, 'http')) {
+        $cleanLogoPath = ltrim(preg_replace('#^(public/|storage/)+#', '', $studioFormLogo), '/');
+        $studioFormLogo = '/storage/' . $cleanLogoPath;
     }
     $studioLogoSize = intval($campaign->form_settings['logo_size'] ?? 75);
     $studioLogoWidth = intval($campaign->form_settings['logo_width'] ?? $studioLogoSize);
@@ -106,7 +107,7 @@
                                 {{-- লোগো আপলোড ও থাম্বনেল --}}
                                 <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-light rounded-3 border">
                                     <div class="border rounded-2 p-1 bg-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 72px; height: 72px; overflow: hidden;">
-                                        <img id="studioLogoThumb" src="{{ $studioFormLogo ?: '' }}" alt="Form Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        <img id="studioLogoThumb" src="{{ $studioFormLogo ?: '' }}" alt="Form Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.setProperty('display', 'none', 'important'); this.classList.add('d-none'); document.getElementById('studioLogoPlaceholder').style.setProperty('display', 'block', 'important'); document.getElementById('studioLogoPlaceholder').classList.remove('d-none');" onload="this.style.setProperty('display', 'block', 'important'); this.classList.remove('d-none'); document.getElementById('studioLogoPlaceholder').style.setProperty('display', 'none', 'important'); document.getElementById('studioLogoPlaceholder').classList.add('d-none');">
                                         <div id="studioLogoPlaceholder" class="text-center text-muted {{ $studioFormLogo ? 'd-none' : '' }}" style="{{ $studioFormLogo ? 'display: none !important;' : 'display: block;' }}">
                                             <i class="fa-solid {{ $studioEmblemIcon }} fs-3 text-danger" id="studioPlaceholderIcon"></i>
                                         </div>
@@ -691,7 +692,7 @@
                     {{-- লোগো প্রিভিউ --}}
                     <div class="prev-logo-wrapper" id="prevLogoWrapper">
                         <div id="prevLogoContainer" class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: {{ $studioLogoWidth }}px; height: {{ $studioLogoHeight }}px; border-radius: {{ $studioLogoShape === 'circle' ? '50%' : ($studioLogoShape === 'rounded' ? '12px' : '0px') }}; border: {{ $studioLogoBorderWidth > 0 ? $studioLogoBorderWidth . 'px solid ' . $studioLogoBorderColor : 'none' }}; background-color: {{ $studioLogoBg === 'white' ? '#ffffff' : 'transparent' }}; transform: translate({{ $studioLogoOffsetX }}px, {{ $studioLogoOffsetY }}px); overflow: hidden; transition: all 0.15s ease; cursor: pointer;" title="লোগো সাইজ ও পজিশন পরিবর্তন করতে ক্লিক/হোভার করুন">
-                            <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} width: 100%; height: 100%; object-fit: {{ $studioLogoFit }};">
+                            <img id="prevLogoImg" src="{{ $studioFormLogo ?: '' }}" alt="Logo" class="{{ $studioFormLogo ? '' : 'd-none' }}" style="{{ $studioFormLogo ? 'display: block;' : 'display: none !important;' }} width: 100%; height: 100%; object-fit: {{ $studioLogoFit }};" onerror="this.style.setProperty('display', 'none', 'important'); this.classList.add('d-none'); const iconEl = document.getElementById('prevEmblemIcon'); if (iconEl) { iconEl.style.setProperty('display', 'flex', 'important'); iconEl.classList.remove('d-none'); iconEl.classList.add('d-flex'); }" onload="this.style.setProperty('display', 'block', 'important'); this.classList.remove('d-none'); const iconEl = document.getElementById('prevEmblemIcon'); if (iconEl) { iconEl.style.setProperty('display', 'none', 'important'); iconEl.classList.add('d-none'); iconEl.classList.remove('d-flex'); }">
                             <div id="prevEmblemIcon" class="text-danger align-items-center justify-content-center {{ $studioFormLogo ? 'd-none' : 'd-flex' }}" style="{{ $studioFormLogo ? 'display: none !important;' : 'display: flex !important;' }} width: 100%; height: 100%; font-size: {{ round(min($studioLogoWidth, $studioLogoHeight) * 0.55) }}px;">
                                 <i class="fa-solid {{ $studioEmblemIcon }}" id="prevEmblemIconTag"></i>
                             </div>
@@ -937,7 +938,7 @@ function resetStudioCategories() {
 }
 
 function updateStudioLogoSize(val) {
-    const num = Math.max(30, Math.min(220, parseInt(val) || 70));
+    const num = Math.max(30, Math.min(350, parseInt(val) || 75));
     const badge = document.getElementById('studioBadgeLogoSize');
     if (badge) badge.textContent = num + 'px';
     const slider = document.getElementById('studioLogoSizeSlider');
@@ -954,6 +955,9 @@ function updateStudioLogoSize(val) {
             btn.classList.remove('active');
         }
     });
+
+    updateStudioLogoWidth(num, false);
+}
 
 let isAspectLocked = true;
 
@@ -1382,18 +1386,57 @@ function saveFormStudioAjax() {
                 const hb = document.getElementById('headerBadge');
                 if (hb) hb.innerHTML = '<i class="fa-solid fa-tag"></i> ' + data.badge_text;
             }
-            // Hero logo
+            // Hero logo & Studio logo sync
             const heroImg = document.getElementById('heroFormLogoImg');
             const heroIcon = document.getElementById('heroFormLogoIcon');
-            if (heroImg && heroIcon) {
-                if (data.logo_url) {
-                    heroImg.src = data.logo_url;
-                    heroImg.style.display = 'block';
-                    heroIcon.style.display = 'none';
-                } else if (document.getElementById('studioRemoveLogoInput').value === '1') {
-                    heroImg.src = '';
-                    heroImg.style.display = 'none';
-                    heroIcon.style.display = 'block';
+            const studioThumb = document.getElementById('studioLogoThumb');
+            const studioPlh = document.getElementById('studioLogoPlaceholder');
+            const pLogoImg = document.getElementById('prevLogoImg');
+            const pEmblemIcon = document.getElementById('prevEmblemIcon');
+
+            if (data.logo_url) {
+                if (heroImg) { heroImg.src = data.logo_url; heroImg.style.display = 'block'; }
+                if (heroIcon) { heroIcon.style.display = 'none'; }
+                if (studioThumb) {
+                    studioThumb.src = data.logo_url;
+                    studioThumb.style.setProperty('display', 'block', 'important');
+                    studioThumb.classList.remove('d-none');
+                }
+                if (studioPlh) {
+                    studioPlh.style.setProperty('display', 'none', 'important');
+                    studioPlh.classList.add('d-none');
+                }
+                if (pLogoImg) {
+                    pLogoImg.src = data.logo_url;
+                    pLogoImg.style.setProperty('display', 'block', 'important');
+                    pLogoImg.classList.remove('d-none');
+                }
+                if (pEmblemIcon) {
+                    pEmblemIcon.style.setProperty('display', 'none', 'important');
+                    pEmblemIcon.classList.add('d-none');
+                    pEmblemIcon.classList.remove('d-flex');
+                }
+            } else if (document.getElementById('studioRemoveLogoInput').value === '1') {
+                if (heroImg) { heroImg.src = ''; heroImg.style.display = 'none'; }
+                if (heroIcon) { heroIcon.style.display = 'block'; }
+                if (studioThumb) {
+                    studioThumb.src = '';
+                    studioThumb.style.setProperty('display', 'none', 'important');
+                    studioThumb.classList.add('d-none');
+                }
+                if (studioPlh) {
+                    studioPlh.style.setProperty('display', 'block', 'important');
+                    studioPlh.classList.remove('d-none');
+                }
+                if (pLogoImg) {
+                    pLogoImg.src = '';
+                    pLogoImg.style.setProperty('display', 'none', 'important');
+                    pLogoImg.classList.add('d-none');
+                }
+                if (pEmblemIcon) {
+                    pEmblemIcon.style.setProperty('display', 'flex', 'important');
+                    pEmblemIcon.classList.remove('d-none');
+                    pEmblemIcon.classList.add('d-flex');
                 }
             }
             // Hero Venue & Date

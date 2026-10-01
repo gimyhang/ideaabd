@@ -1388,7 +1388,7 @@ class EventCampaignAdminController extends Controller
         $campaign->form_settings = $formSettings;
         $campaign->save();
 
-        $logoUrl = !empty($formSettings['logo_image']) ? asset('storage/' . $formSettings['logo_image']) : null;
+        $logoUrl = !empty($formSettings['logo_image']) ? '/storage/' . ltrim(preg_replace('#^(public/|storage/)+#', '', $formSettings['logo_image']), '/') : null;
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

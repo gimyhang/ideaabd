@@ -795,8 +795,9 @@
 @section('content')
 @php
     $adminLogo = $campaign->form_settings['logo_image'] ?? null;
-    if ($adminLogo && !str_starts_with($adminLogo, 'http') && !str_starts_with($adminLogo, '/')) {
-        $adminLogo = asset('storage/' . $adminLogo);
+    if ($adminLogo && !str_starts_with($adminLogo, 'http')) {
+        $cleanAdminLogo = ltrim(preg_replace('#^(public/|storage/)+#', '', $adminLogo), '/');
+        $adminLogo = '/storage/' . $cleanAdminLogo;
     }
     $adminLogoSize = intval($campaign->form_settings['logo_size'] ?? 75);
     $adminLogoWidth = intval($campaign->form_settings['logo_width'] ?? $adminLogoSize);
@@ -964,7 +965,7 @@
                 {{-- লোগো / এমব্লেম (বর্ডারলেস, এডমিন কর্তৃক নিয়ন্ত্রিত) --}}
                 <div class="lh-pad-emblem-left borderless-emblem-wrap" id="logoEmblemWrap" title="{{ $isAdmin ? 'লোগো পরিবর্তন ও সাইজ নির্ধারণ করতে হোভার করুন (অ্যাডমিন সেটিং)' : '' }}" style="transform: translate({{ $logoOffsetX }}px, {{ $logoOffsetY }}px);">
                     <div class="logo-display-container" id="logoDisplayContainer" style="width: {{ $adminLogoWidth }}px; height: {{ $adminLogoHeight }}px; border-radius: {{ $logoBorderRadius }}; {{ $logoBorderStyle }} background-color: {{ $logoBgColor }}; overflow: hidden;">
-                        <img id="customLogoImg" src="{{ $adminLogo ?: '' }}" alt="{{ $campaign->title }}" class="{{ $adminLogo ? '' : 'd-none' }}" style="{{ $adminLogo ? 'display: block;' : 'display: none !important;' }} width: 100%; height: 100%; object-fit: {{ $adminLogoFit }}; border-radius: {{ $logoBorderRadius }};">
+                        <img id="customLogoImg" src="{{ $adminLogo ?: '' }}" alt="{{ $campaign->title }}" class="{{ $adminLogo ? '' : 'd-none' }}" style="{{ $adminLogo ? 'display: block;' : 'display: none !important;' }} width: 100%; height: 100%; object-fit: {{ $adminLogoFit }}; border-radius: {{ $logoBorderRadius }};" onerror="this.style.setProperty('display', 'none', 'important'); this.classList.add('d-none'); const iconEl = document.getElementById('defaultEmblemIcon'); if (iconEl) { iconEl.style.setProperty('display', 'flex', 'important'); iconEl.classList.remove('d-none'); iconEl.classList.add('d-flex'); }" onload="this.style.setProperty('display', 'block', 'important'); this.classList.remove('d-none'); const iconEl = document.getElementById('defaultEmblemIcon'); if (iconEl) { iconEl.style.setProperty('display', 'none', 'important'); iconEl.classList.add('d-none'); iconEl.classList.remove('d-flex'); }">
                         <div id="defaultEmblemIcon" class="default-emblem-icon {{ $adminLogo ? 'd-none' : 'd-flex' }}" style="{{ $adminLogo ? 'display: none !important;' : 'display: flex !important;' }} font-size: {{ round(min($adminLogoWidth, $adminLogoHeight) * 0.55) }}px;">
                             <i class="fa-solid {{ $emblemIcon }}"></i>
                         </div>

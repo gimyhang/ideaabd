@@ -70,8 +70,9 @@
                 <div class="d-flex align-items-center gap-3 mb-2">
                     @php
                         $heroFormLogo = $campaign->form_settings['logo_image'] ?? null;
-                        if ($heroFormLogo && !str_starts_with($heroFormLogo, 'http') && !str_starts_with($heroFormLogo, '/')) {
-                            $heroFormLogo = asset('storage/' . $heroFormLogo);
+                        if ($heroFormLogo && !str_starts_with($heroFormLogo, 'http')) {
+                            $cleanHeroLogo = ltrim(preg_replace('#^(public/|storage/)+#', '', $heroFormLogo), '/');
+                            $heroFormLogo = '/storage/' . $cleanHeroLogo;
                         }
                     @endphp
                     <div id="heroFormLogoWrap" class="rounded-3 p-1.5 bg-white bg-opacity-10 border border-white border-opacity-25 d-flex align-items-center justify-content-center cursor-pointer shadow-xs" style="width: 52px; height: 52px;" onclick="switchToFormStudioTab()" title="ফরম লোগো পরিবর্তন ও স্টুডিও দেখতে ক্লিক করুন">
@@ -1577,8 +1578,9 @@
 {{-- MODAL: FORM LOGO UPLOAD & HEADER EDITOR (ফরম লোগো আপলোড ও এডিট স্টুডিও) --}}
 @php
     $modalFormLogo = $campaign->form_settings['logo_image'] ?? null;
-    if ($modalFormLogo && !str_starts_with($modalFormLogo, 'http') && !str_starts_with($modalFormLogo, '/')) {
-        $modalFormLogo = asset('storage/' . $modalFormLogo);
+    if ($modalFormLogo && !str_starts_with($modalFormLogo, 'http')) {
+        $cleanModalLogo = ltrim(preg_replace('#^(public/|storage/)+#', '', $modalFormLogo), '/');
+        $modalFormLogo = '/storage/' . $cleanModalLogo;
     }
     $modalLogoSize = intval($campaign->form_settings['logo_size'] ?? 70);
     $modalVenue = $campaign->form_settings['form_venue'] ?? 'স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ';
