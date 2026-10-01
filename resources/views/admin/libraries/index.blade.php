@@ -618,7 +618,7 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label small fw-bold text-dark mb-1">প্রকাশন লাইন (Session/Org Text)</label>
-                                                <input type="text" name="session_text" id="custSessionText" class="form-control form-control-sm" value="{{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}" oninput="updateLivePreview()">
+                                                <input type="text" name="session_text" id="custSessionText" class="form-control form-control-sm" value="{{ ($formSettings['session_text'] ?? '') === 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' ? '' : ($formSettings['session_text'] ?? '') }}" placeholder="ঐচ্ছিক সেশন টেক্সট" oninput="updateLivePreview()">
                                             </div>
 
                                             <div class="col-12">
@@ -712,18 +712,21 @@
                                 <div class="live-preview-box" id="livePreviewContainer">
                                     {{-- RSU Style Letterhead Pad Mockup --}}
                                     <div class="d-flex align-items-center justify-content-between gap-2 pb-2 mb-2 border-bottom" style="border-bottom: 1.5px solid #000 !important;">
-                                        <div style="width: 76px; height: 38px; aspect-ratio: 2 / 1; border-radius: 6px; border: 1.5px solid {{ $formSettings['theme_color'] ?? '#047857' }}; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px 4px; flex-shrink: 0;" id="prevLogoContainer">
+                                        <div style="width: 76px; height: 38px; aspect-ratio: 2 / 1; border: none !important; background: transparent; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; box-shadow: none !important; flex-shrink: 0;" id="prevLogoContainer">
                                             <img id="prevLogoImg" src="{{ $formSettings['logo_url'] ?? asset('images/logo.png') }}" alt="Logo" style="max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain;">
                                         </div>
                                         <div class="text-center flex-grow-1 px-1">
-                                            <div id="prevBrandName" style="font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.2; font-family: 'Noto Serif Bengali', serif;">
+                                            <div id="prevBrandName" style="font-size: 14px; font-weight: 900; color: #0f172a; line-height: 1.2; font-family: 'Kalpurush', serif !important;">
                                                 {{ $formSettings['brand_name'] ?? 'আইডিয়া পাঠাগার' }}
                                             </div>
                                             <div id="prevSubTitle" style="font-size: 10px; font-weight: 800; color: {{ $formSettings['theme_color'] ?? '#047857' }};">
                                                 {{ $formSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম' }}
                                             </div>
-                                            <div id="prevSessionText" style="font-size: 9px; font-weight: 700; color: #334155;">
-                                                {{ $formSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' }}
+                                            @php
+                                                $curSess = ($formSettings['session_text'] ?? '') === 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' ? '' : ($formSettings['session_text'] ?? '');
+                                            @endphp
+                                            <div id="prevSessionText" style="font-size: 9px; font-weight: 700; color: #334155; display: {{ !empty($curSess) ? 'block' : 'none' }};">
+                                                {{ $curSess }}
                                             </div>
                                             <div id="prevBrandTag" style="font-size: 8px; color: #64748b; line-height: 1.2;">
                                                 {{ $formSettings['brand_tag'] ?? "প্রধান কার্যালয়: রংপুর, বাংলাদেশ\nwww.ideaabd.com" }}
@@ -1252,7 +1255,7 @@ function previewUploadedLogo(input) {
 function updateLivePreview() {
     const brandName = document.getElementById('custBrandName').value || 'আইডিয়া পাঠাগার';
     const subTitle = document.getElementById('custSubTitle').value || 'বই অনুদান আবেদন ফরম';
-    const sessionText = document.getElementById('custSessionText').value || 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    const sessionText = document.getElementById('custSessionText').value || '';
     const brandTag = document.getElementById('custBrandTag').value || '';
     const bannerTitle = document.getElementById('custBannerTitle').value || 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
     const grantSession = document.getElementById('custGrantSession').value || '২০২৬ অনুদান কর্মসূচি';
@@ -1282,7 +1285,11 @@ function updateLivePreview() {
     document.getElementById('prevBrandName').innerText = brandName;
     document.getElementById('prevBrandName').style.color = themeColor;
     document.getElementById('prevSubTitle').innerText = subTitle;
-    document.getElementById('prevSessionText').innerText = sessionText;
+    const pSess = document.getElementById('prevSessionText');
+    if (pSess) {
+        pSess.innerText = sessionText;
+        pSess.style.display = (sessionText.trim() && sessionText.trim() !== 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া') ? 'block' : 'none';
+    }
     document.getElementById('prevBrandTag').innerText = brandTag;
     document.getElementById('prevBannerTitle').innerText = bannerTitle;
     document.getElementById('prevBannerTitle').style.background = themeColor;
@@ -1299,7 +1306,7 @@ function updateLivePreview() {
 function generateAllSnippets() {
     const brandName = document.getElementById('custBrandName').value || 'আইডিয়া পাঠাগার';
     const subTitle = document.getElementById('custSubTitle').value || 'বই অনুদান আবেদন ফরম';
-    const sessionText = document.getElementById('custSessionText').value || 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    const sessionText = document.getElementById('custSessionText').value || '';
     const bannerTitle = document.getElementById('custBannerTitle').value || 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
     const officerName = document.getElementById('custOfficerName').value || 'সাকিল মাসুদ';
     const officerDesignation = document.getElementById('custOfficerDesignation').value || 'তত্বাবধায়ক ও প্রতিষ্ঠাতা';

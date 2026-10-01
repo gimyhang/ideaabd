@@ -33,7 +33,7 @@
     $fSettings = $campaign->form_settings ?? [];
     $brandName = $fSettings['brand_name'] ?? 'আইডিয়া পাঠাগার';
     $subTitle = $fSettings['sub_title'] ?? 'বই অনুদান আবেদন ফরম';
-    $sessionText = $fSettings['session_text'] ?? 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া';
+    $sessionText = ($fSettings['session_text'] ?? '') === 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া' ? '' : ($fSettings['session_text'] ?? '');
     $brandTag = $fSettings['brand_tag'] ?? "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com";
     $bannerTitle = $fSettings['banner_title'] ?? 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম';
     $grantSession = $fSettings['grant_session'] ?? '২০২৬ অনুদান কর্মসূচি';
@@ -79,8 +79,16 @@
     <title>পাঠাগার বই অনুদান ফরম — {{ $registration->registration_number }} — {{ $libName }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
         @page {
             size: A4 portrait;
             margin: 10mm 12mm 10mm 12mm;
@@ -89,9 +97,12 @@
             box-sizing: border-box;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', Arial, sans-serif !important;
+        }
+        body, table, td, th, div, span, p, h1, h2, h3, h4, input, textarea, strong, b {
+            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', Arial, sans-serif !important;
         }
         body {
-            font-family: 'Hind Siliguri', Arial, sans-serif;
             font-size: 11.5px;
             line-height: 1.3;
             color: #000;
@@ -198,16 +209,16 @@
             width: 120px;
             height: 60px;
             aspect-ratio: 2 / 1;
-            border-radius: 8px;
-            border: 2px solid #047857;
-            background: #ffffff;
+            border-radius: 0;
+            border: none !important;
+            background: transparent;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            box-shadow: none !important;
             margin: 0 auto;
-            padding: 4px 6px;
+            padding: 0;
         }
         .lh-emblem-img {
             max-width: 100%;
@@ -233,7 +244,7 @@
             color: #0f172a;
             line-height: 1.25;
             margin-bottom: 2px;
-            font-family: 'Noto Serif Bengali', serif;
+            font-family: 'Kalpurush', serif !important;
             letter-spacing: -0.3px;
         }
         .lh-subhead-text {
@@ -483,9 +494,9 @@
          ========================================================================= --}}
     <table class="lh-pad-header-table">
         <tr>
-            {{-- বাম পাশের গোল লোগো এমব্লেম --}}
+            {{-- বাম পাশের লোগো (বর্ডার ছাড়া) --}}
             <td class="lh-emblem-td">
-                <div class="lh-emblem-circle" style="border-color: {{ $themeColor }};">
+                <div class="lh-emblem-circle" style="border: none !important; box-shadow: none !important;">
                     @if($logoUrl)
                         <img src="{{ $logoUrl }}" alt="{{ $brandName }}" class="lh-emblem-img">
                     @else
@@ -500,7 +511,9 @@
             <td class="lh-center-td">
                 <div class="lh-title-text">{{ $brandName }}</div>
                 <div class="lh-subhead-text" style="color: {{ $themeColor }};">{{ $subTitle }}</div>
-                <div class="lh-venue-text">{{ $sessionText }}</div>
+                @if(!empty($sessionText))
+                    <div class="lh-venue-text">{{ $sessionText }}</div>
+                @endif
                 <div class="lh-org-text">{!! nl2br(e($brandTag)) !!}</div>
             </td>
 

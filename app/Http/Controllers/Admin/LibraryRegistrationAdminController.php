@@ -165,7 +165,7 @@ class LibraryRegistrationAdminController extends Controller
             'logo_size'           => 24,
             'brand_name'          => 'আইডিয়া পাঠাগার',
             'sub_title'           => 'বই অনুদান আবেদন ফরম',
-            'session_text'        => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া',
+            'session_text'        => '',
             'brand_tag'           => "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com",
             'banner_title'        => 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম',
             'grant_session'       => '২০২৬ অনুদান কর্মসূচি',

@@ -47,27 +47,35 @@
 @push('styles')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/library-grant.css') }}">
     <style>
-        body, .library-grant-wrapper, .lib-main-title, .lib-field-label, .lib-input, .lib-select, .genre-chip-item, .lib-auth-gate-card {
-            font-family: 'Hind Siliguri', 'Inter', system-ui, -apple-system, sans-serif;
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body, .library-grant-wrapper, .library-grant-wrapper *, .lib-main-title, .lib-field-label, .lib-input, .lib-select, .genre-chip-item, .lib-auth-gate-card {
+            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', 'Inter', system-ui, sans-serif !important;
         }
         .lib-logo-emblem-circle {
             width: 120px;
             height: 60px;
             aspect-ratio: 2 / 1;
-            background: #ffffff;
-            border-radius: 8px;
-            border: 2px solid #f59e0b;
+            background: transparent;
+            border-radius: 0;
+            border: none !important;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            padding: 4px 6px;
+            box-shadow: none !important;
+            padding: 0;
         }
         .lib-header-logo {
             max-width: 100%;
@@ -133,7 +141,7 @@
                         <img src="{{ $siteLogo }}" alt="{{ $brandName }}" class="lib-header-logo" onerror="this.src='{{ asset('images/logo.png') }}';">
                     </div>
                     <div>
-                        <h1 class="lib-main-title mb-1" style="font-family: 'Noto Serif Bengali', serif; font-size: 24px; font-weight: 900;">{{ $brandName }}</h1>
+                        <h1 class="lib-main-title mb-1" style="font-family: 'Kalpurush', serif !important; font-size: 24px; font-weight: 900;">{{ $brandName }}</h1>
                         <div class="lib-sub-title fw-bold text-warning" style="font-size: 14px;">{{ $subTitle }}</div>
                         <div class="small text-white-50 mt-0.5"><i class="fa-solid fa-layer-group me-1 text-warning"></i>{{ $sessionText }}</div>
                     </div>
@@ -142,7 +150,7 @@
                     <span class="badge bg-dark text-white px-3 py-1.5 font-monospace text-uppercase fw-bold shadow-xs" style="font-size: 11px; letter-spacing: 0.5px;">
                         LIBRARY COPY
                     </span>
-                    <span class="badge bg-white bg-opacity-20 text-white font-monospace border border-white border-opacity-25 px-2.5 py-1" style="font-size: 10.5px;">
+                    <span class="badge bg-dark text-warning border border-warning border-opacity-50 font-monospace px-2.5 py-1 fw-bold shadow-sm" style="font-size: 11px; letter-spacing: 0.5px;">
                         #ONLINE-APPLY
                     </span>
                 </div>
@@ -370,19 +378,21 @@
                 {{-- শীর্ষ লেটার হেড প্যাড (RSU Authentic Full-Width Letterhead Pad) --}}
                 <div class="lib-form-lh-pad p-3 pb-2.5 mb-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fafafa; border-bottom: 2px solid #047857 !important;">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width: 110px; height: 55px; aspect-ratio: 2 / 1; border-radius: 8px; border: 2px solid #047857; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 3px 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0;">
+                        <div style="width: 110px; height: 55px; aspect-ratio: 2 / 1; border: none !important; background: transparent; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 0; box-shadow: none !important; flex-shrink: 0;">
                             <img src="{{ $siteLogo }}" alt="{{ $brandName }}" style="max-width: 100%; max-height: 100%; width: 100%; height: 100%; object-fit: contain;" onerror="this.src='{{ asset('images/logo.png') }}';">
                         </div>
                         <div>
-                            <div style="font-family: 'Noto Serif Bengali', serif; font-size: 19px; font-weight: 900; color: #0f172a; line-height: 1.25;">
+                            <div style="font-family: 'Kalpurush', serif !important; font-size: 19px; font-weight: 900; color: #0f172a; line-height: 1.25;">
                                 {{ $brandName }}
                             </div>
                             <div style="font-size: 13px; font-weight: 800; color: #047857;">
                                 {{ $subTitle }}
                             </div>
-                            <div style="font-size: 11.5px; font-weight: 700; color: #475569;">
-                                {{ $sessionText }}
-                            </div>
+                            @if(!empty($sessionText) && $sessionText !== 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া')
+                                <div style="font-size: 11.5px; font-weight: 700; color: #475569;">
+                                    {{ $sessionText }}
+                                </div>
+                            @endif
                             <div style="font-size: 10.5px; color: #64748b;">
                                 {!! nl2br(e($brandTag)) !!}
                             </div>
@@ -772,9 +782,9 @@
                 </div>
 
                 {{-- নীতিমালার স্পষ্ট বার্তা --}}
-                <div class="alert alert-warning border-0 rounded-4 py-2.5 px-3.5 mb-3 d-flex align-items-center gap-2.5 small text-dark shadow-xs" style="background-color: #fef3c7;">
-                    <i class="fa-solid fa-circle-exclamation text-warning-emphasis fs-5 flex-shrink-0"></i>
-                    <div class="fw-semibold">
+                <div class="alert alert-warning border-0 rounded-4 py-2.5 px-3.5 mb-3 d-flex align-items-center justify-content-center text-center gap-2 small text-dark shadow-xs" style="background-color: #fef3c7;">
+                    <div class="fw-semibold text-center w-100" style="font-size: 13.5px;">
+                        <i class="fa-solid fa-circle-exclamation text-warning-emphasis me-1.5"></i>
                         আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।
                     </div>
                 </div>
@@ -790,7 +800,7 @@
 
                     <button type="submit" id="submitBtn" class="lib-btn-submit">
                         <i class="fa-solid fa-paper-plane"></i>
-                        <span>পাঠাগার আবেদন জমা দিন (Submit Library Apply)</span>
+                        <span>পাঠাগার আবেদন জমা দিন</span>
                     </button>
                 </div>
 
