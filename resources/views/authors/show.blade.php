@@ -33,38 +33,31 @@
 @section('og_url', route('authors.show', $author->slug ?: $author->id))
 
 @section('schema_json')
+@php
+    $sameAsLinks = array_values(array_filter([$fbUrl, $twUrl, $ytUrl, $webUrl]));
+    $authorSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Person',
+        'name' => $authorName,
+        'url' => route('authors.show', $author->slug ?: $author->id),
+        'image' => $photoUrl ?: asset('images/logo.png'),
+        'description' => Str::limit(strip_tags($authorBioOg), 300),
+        'jobTitle' => $authorGenres ? ("লেখক (" . (is_array($authorGenres) ? implode(', ', $authorGenres) : $authorGenres) . ")") : "লেখক (Author)",
+        'worksFor' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+    ];
+    if (!empty($authorNameEn)) {
+        $authorSchema['alternateName'] = $authorNameEn;
+    }
+    if (!empty($sameAsLinks)) {
+        $authorSchema['sameAs'] = $sameAsLinks;
+    }
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Person",
-  "name": @json($authorName),
-  @if($authorNameEn)
-  "alternateName": @json($authorNameEn),
-  @endif
-  "url": @json(route('authors.show', $author->slug ?: $author->id)),
-  "image": @json($photoUrl ?: asset('images/logo.png')),
-  "description": @json(Str::limit(strip_tags($authorBioOg), 300)),
-  @if($authorGenres)
-  "jobTitle": @json("লেখক (" . (is_array($authorGenres) ? implode(', ', $authorGenres) : $authorGenres) . ")"),
-  @else
-  "jobTitle": "লেখক (Author)",
-  @endif
-  @if(!empty($fbUrl) || !empty($twUrl) || !empty($ytUrl) || !empty($webUrl))
-  "sameAs": [
-    @php
-      $links = array_values(array_filter([$fbUrl, $twUrl, $ytUrl, $webUrl]));
-    @endphp
-    @foreach($links as $idx => $link)
-      @json($link){{ $loop->last ? '' : ',' }}
-    @endforeach
-  ],
-  @endif
-  "worksFor": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  }
-}
+{!! json_encode($authorSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

@@ -169,7 +169,7 @@
                                             @if($eCover)
                                                 <img src="{{ $eCover }}" alt="{{ $ebook->title }}" class="w-100 h-100 object-fit-cover">
                                             @else
-                                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-center text-primary fs-3">📱</div>
+                                                <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-primary fs-3"><i class="fa-solid fa-tablet-screen-button"></i></div>
                                             @endif
                                             <span class="position-absolute top-0 end-0 m-2 badge bg-dark rounded-pill small">
                                                 {{ strtoupper($ebook->file_type ?? 'PDF') }}

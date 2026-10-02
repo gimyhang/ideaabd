@@ -29,37 +29,37 @@
     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-5">
         <div class="col">
             <a href="{{ route('book.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #eff6ff;">
-                <span class="fs-1 mb-2 d-block">📚</span>
+                <span class="fs-2 mb-2 d-block text-primary"><i class="fa-solid fa-book-open"></i></span>
                 <span class="fw-bold text-dark small">বই ক্যাটালগ</span>
             </a>
         </div>
         <div class="col">
             <a href="{{ route('ebook.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #f0fdf4;">
-                <span class="fs-1 mb-2 d-block">📱</span>
+                <span class="fs-2 mb-2 d-block text-success"><i class="fa-solid fa-tablet-screen-button"></i></span>
                 <span class="fw-bold text-dark small">ই-বুক</span>
             </a>
         </div>
         <div class="col">
             <a href="{{ route('authors.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #faf5ff;">
-                <span class="fs-1 mb-2 d-block">✍️</span>
+                <span class="fs-2 mb-2 d-block text-purple" style="color: #9333ea;"><i class="fa-solid fa-feather-pointed"></i></span>
                 <span class="fw-bold text-dark small">লেখক ডিরেক্টরি</span>
             </a>
         </div>
         <div class="col">
             <a href="{{ route('publishers.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #fff7ed;">
-                <span class="fs-1 mb-2 d-block">🏢</span>
+                <span class="fs-2 mb-2 d-block text-warning" style="color: #ea580c;"><i class="fa-solid fa-building"></i></span>
                 <span class="fw-bold text-dark small">প্রকাশকগণ</span>
             </a>
         </div>
         <div class="col">
             <a href="{{ route('blog.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #fdf2f8;">
-                <span class="fs-1 mb-2 d-block">📝</span>
+                <span class="fs-2 mb-2 d-block text-danger" style="color: #e11d48;"><i class="fa-solid fa-pen-nib"></i></span>
                 <span class="fw-bold text-dark small">আইডিয়াপত্র</span>
             </a>
         </div>
         <div class="col">
             <a href="{{ route('webzine.index') }}" class="card text-center p-3 h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift" style="background: #f0fdfa;">
-                <span class="fs-1 mb-2 d-block">📰</span>
+                <span class="fs-2 mb-2 d-block text-info" style="color: #0d9488;"><i class="fa-solid fa-newspaper"></i></span>
                 <span class="fw-bold text-dark small">ওয়েবজিন</span>
             </a>
         </div>
@@ -97,7 +97,7 @@
                                 @if($fImg)
                                     <img src="{{ str_starts_with($fImg, 'http') ? $fImg : asset('storage/' . $fImg) }}" class="w-100 h-100 object-fit-cover">
                                 @else
-                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted fs-3">📝</div>
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted fs-3"><i class="fa-solid fa-file-lines"></i></div>
                                 @endif
                             </div>
                             <h6 class="fw-bold text-dark mb-2 line-clamp-2" style="font-size: 1.05rem;">{{ $post->title }}</h6>

@@ -156,7 +156,7 @@ class AutoSeoScannerService
 
                 $schemaJson = [
                     '@context'    => 'https://schema.org',
-                    '@type'       => ['Book', 'Product'],
+                    '@type'       => 'Book',
                     'name'        => $title,
                     'description' => $metaDescription,
                     'image'       => $ogImage,
@@ -290,7 +290,7 @@ class AutoSeoScannerService
 
                 $schemaJson = [
                     '@context'    => 'https://schema.org',
-                    '@type'       => ['Book', 'DigitalDocument'],
+                    '@type'       => 'Book',
                     'name'        => $title,
                     'bookFormat'  => 'https://schema.org/EBook',
                     'description' => $metaDescription,

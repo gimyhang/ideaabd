@@ -154,54 +154,58 @@
     <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
 
     {{-- Universal Google JSON-LD Schema.org Structured Data --}}
+    @php
+        $universalGraph = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => $canonicalDomain . '/#organization',
+                    'name' => $defaultSiteName,
+                    'url' => $canonicalDomain,
+                    'logo' => [
+                        '@type' => 'ImageObject',
+                        'url' => asset('images/logo.png'),
+                        'caption' => $defaultSiteName,
+                    ],
+                    'sameAs' => [
+                        'https://www.facebook.com/ideaprokashon',
+                    ],
+                    'contactPoint' => [
+                        '@type' => 'ContactPoint',
+                        'telephone' => '+8801726976982',
+                        'contactType' => 'customer service',
+                        'areaServed' => 'BD',
+                        'availableLanguage' => ['bn', 'en'],
+                    ],
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => $canonicalDomain . '/#website',
+                    'url' => $canonicalDomain,
+                    'name' => $defaultSiteName,
+                    'description' => $defaultSiteTagline,
+                    'publisher' => [
+                        '@id' => $canonicalDomain . '/#organization',
+                    ],
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => [
+                            '@type' => 'EntryPoint',
+                            'urlTemplate' => $canonicalDomain . '/search?q={search_term_string}',
+                        ],
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ],
+        ];
+    @endphp
     <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@graph": [
-        {
-          "@@type": "Organization",
-          "@@id": "{{ $canonicalDomain }}/#organization",
-          "name": "{{ $defaultSiteName }}",
-          "url": "{{ $canonicalDomain }}",
-          "logo": {
-            "@@type": "ImageObject",
-            "url": "{{ asset('images/logo.png') }}",
-            "caption": "{{ $defaultSiteName }}"
-          },
-          "sameAs": [
-            "https://www.facebook.com/ideaprokashon"
-          ],
-          "contactPoint": {
-            "@@type": "ContactPoint",
-            "telephone": "+8801726976982",
-            "contactType": "customer service",
-            "areaServed": "BD",
-            "availableLanguage": ["bn", "en"]
-          }
-        },
-        {
-          "@@type": "WebSite",
-          "@@id": "{{ $canonicalDomain }}/#website",
-          "url": "{{ $canonicalDomain }}",
-          "name": "{{ $defaultSiteName }}",
-          "description": "{{ $defaultSiteTagline }}",
-          "publisher": {
-            "@@id": "{{ $canonicalDomain }}/#organization"
-          },
-          "potentialAction": {
-            "@@type": "SearchAction",
-            "target": {
-              "@@type": "EntryPoint",
-              "urlTemplate": "{{ $canonicalDomain }}/search?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          }
-        }
-    }
+    {!! json_encode($universalGraph, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
     </script>
     @if(!View::hasSection('schema_json') && !empty($dbSeo?->schema_json))
     <script type="application/ld+json">
-    {!! json_encode($dbSeo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    {!! is_array($dbSeo->schema_json) ? json_encode($dbSeo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) : $dbSeo->schema_json !!}
     </script>
     @endif
     @yield('schema_json')
@@ -218,11 +222,6 @@
 
     <!-- Google AdSense Official Script -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4534355865737776" crossorigin="anonymous"></script>
-
-    <!-- Google AdSense AMP Auto Ads Script -->
-    <script async custom-element="amp-auto-ads"
-            src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
-    </script>
     
     <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
     <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
@@ -353,11 +352,6 @@
     @stack('head')
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
-    <!-- Google AdSense AMP Auto Ads Unit -->
-    <amp-auto-ads type="adsense"
-            data-ad-client="ca-pub-4534355865737776">
-    </amp-auto-ads>
-
     <!-- Header Navigation -->
     @include('layouts.header')
 

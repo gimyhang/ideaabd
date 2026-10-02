@@ -1,34 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="navy">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Invoice #{{ $order->order_number ?? $order->id }} — {{ \App\Support\SiteSetting::name() ?? 'Idea Publication' }}</title>
+    <title>ইনভয়েস #{{ $order->order_number ?? $order->id }} — {{ \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন' }}</title>
     
-    <!-- Google Fonts -->
+    <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome 6 -->
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- QRCode.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     @php
         $siteLogo    = \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.png');
-        $siteName    = \App\Support\SiteSetting::name() ?: 'Idea Publication';
-        $siteAddress = \App\Support\SiteSetting::get('contact_address') ?: 'Central Road, Rangpur 5400, Bangladesh';
-        $sitePhone   = \App\Support\SiteSetting::get('contact_phone') ?: '01558712870';
-        $siteEmail   = \App\Support\SiteSetting::get('contact_email') ?: 'ideapbd@gmail.com';
-        $siteWebsite = 'www.ideaabd.com';
+        $siteName    = $invoiceSettings['sender_name'] ?? (\App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন');
+        $siteAddress = $invoiceSettings['sender_address'] ?? (\App\Support\SiteSetting::get('contact_address') ?: 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ');
+        $sitePhone   = $invoiceSettings['sender_phone'] ?? (\App\Support\SiteSetting::get('contact_phone') ?: '01558712870');
+        $siteEmail   = $invoiceSettings['sender_email'] ?? (\App\Support\SiteSetting::get('contact_email') ?: 'ideapbd@gmail.com');
+        $siteWebsite = $invoiceSettings['sender_website'] ?? 'www.ideaabd.com';
+        $invoiceTitle = $invoiceSettings['invoice_title'] ?? 'ক্যাশ মেমো / ইনভয়েস';
+        $invoiceTerms = $invoiceSettings['invoice_terms'] ?? 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন। কোনো ত্রুটি থাকলে ডেলিভারি ম্যানের উপস্থিতিতেই যোগাযোগ করুন।';
+        $invoiceFooter = $invoiceSettings['invoice_footer'] ?? 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!';
 
-        // Calculation
+        // Financial Calculation
         $itemUnit = $order->unit_price > 0 ? $order->unit_price : ($order->book->discount_price ?? $order->book->price ?? 0);
         $itemQty = $order->quantity ?? 1;
         $itemSubtotal = $itemUnit * $itemQty;
@@ -37,7 +36,7 @@
         $discountAmount = $order->discount_amount ?? 0;
         $grandTotal = $order->total_amount > 0 ? $order->total_amount : ($itemSubtotal + $shippingCost + $giftFee - $discountAmount);
 
-        // Convert number to English words helper
+        // Convert number to English words
         if (!function_exists('numberToWordsEnInvoice')) {
             function numberToWordsEnInvoice($num) {
                 $num = (int)$num;
@@ -72,964 +71,715 @@
                 return implode(' ', $words) . ' Taka Only';
             }
         }
+        $amountInWords = numberToWordsEnInvoice($grandTotal);
 
-        $amountInWordsEn = numberToWordsEnInvoice($grandTotal);
-
-        // Payment method in English
-        $paymentMethodEn = match(strtolower($order->payment_method ?? 'cod')) {
-            'cod' => 'Cash On Delivery (COD)',
-            'bkash' => 'bKash Online Payment',
-            'nagad' => 'Nagad Online Payment',
-            'rocket' => 'Rocket Mobile Banking',
-            'card' => 'Debit / Credit Card',
-            default => strtoupper($order->payment_method ?? 'COD'),
+        // Payment method label
+        $paymentMethodLabel = match(strtolower($order->payment_method ?? 'cod')) {
+            'cod'    => 'ক্যাশ অন ডেলিভারি (COD)',
+            'bkash'  => 'বিকাশ অনলাইন (bKash)',
+            'nagad'  => 'নগদ অনলাইন (Nagad)',
+            'rocket' => 'রকেট (Rocket)',
+            'card'   => 'কার্ড পেমেন্ট (Card)',
+            default  => strtoupper($order->payment_method ?? 'COD'),
         };
 
-        // Payment status in English
-        $paymentStatusEn = match(strtolower($order->payment_status ?? 'pending')) {
-            'paid' => 'PAID',
-            'pending' => 'DUE ON DELIVERY',
-            'unpaid' => 'UNPAID',
-            'partial' => 'PARTIAL PAID',
-            default => strtoupper($order->payment_status ?? 'PENDING'),
-        };
-
-        // Digital signature of logged in user
+        // Digital signature
         $userSignature = auth()->user()?->reg_data['signature'] ?? null;
         $hasSignature = !empty($userSignature) && \Illuminate\Support\Facades\Storage::disk('public')->exists($userSignature);
 
-        // Clean phone for WhatsApp
+        // Tracking URL & QR Code
+        $trackUrl = url('/track-order?order_no=' . ($order->order_number ?? $order->id));
+        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&margin=0&data=' . urlencode($trackUrl);
+
+        // WhatsApp Memo Link
         $cleanPhone = preg_replace('/[^0-9]/', '', $order->customer_phone);
         if (str_starts_with($cleanPhone, '01')) {
             $cleanPhone = '88' . $cleanPhone;
         }
-        $whatsappMessage = "Hello {$order->customer_name}!\nThank you for ordering with Idea Publication. Your invoice #{$order->order_number} details:\n\nTotal Payable: BDT " . number_format($grandTotal, 2) . "\nPayment Status: {$paymentStatusEn}\n\nTrack order / View invoice online:\n" . url('/track-order?order_no=' . ($order->order_number ?? $order->id)) . "\n\nWarm regards,\nIdea Publication";
+        $whatsappMessage = "প্রিয় {$order->customer_name}!\nআইডিয়া প্রকাশনে আপনার অর্ডারটি নিশ্চিত করা হয়েছে।\n\nইনভয়েস: #{$order->order_number}\nমোট প্রদেয়: ৳ " . number_format($grandTotal, 2) . "\nপেমেন্ট: " . ($order->payment_status === 'paid' ? 'পরিশোধিত (PAID)' : 'ক্যাশ অন ডেলিভারি (COD)') . "\n\nঅনলাইন চালান ও ট্র্যাকিং:\n{$trackUrl}\n\nধন্যবাদ,\n{$siteName}";
         $whatsappUrl = "https://api.whatsapp.com/send?phone={$cleanPhone}&text=" . urlencode($whatsappMessage);
     @endphp
 
     <style>
-        :root {
-            --theme-primary: #1e3a8a;
-            --theme-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            --theme-accent: #0284c7;
-            --theme-border: #cbd5e1;
-            --theme-badge-bg: rgba(255, 255, 255, 0.18);
-            --theme-badge-border: rgba(255, 255, 255, 0.35);
-        }
-
-        [data-theme="emerald"] {
-            --theme-primary: #065f46;
-            --theme-gradient: linear-gradient(135deg, #064e3b 0%, #059669 100%);
-            --theme-accent: #10b981;
-            --theme-border: #a7f3d0;
-        }
-
-        [data-theme="noir"] {
-            --theme-primary: #18181b;
-            --theme-gradient: linear-gradient(135deg, #09090b 0%, #27272a 100%);
-            --theme-accent: #71717a;
-            --theme-border: #e4e4e7;
-        }
-
-        [data-theme="purple"] {
-            --theme-primary: #581c87;
-            --theme-gradient: linear-gradient(135deg, #3b0764 0%, #7e22ce 100%);
-            --theme-accent: #a855f7;
-            --theme-border: #e9d5ff;
-        }
-
-        [data-theme="crimson"] {
-            --theme-primary: #991b1b;
-            --theme-gradient: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);
-            --theme-accent: #ef4444;
-            --theme-border: #fecaca;
-        }
-
-        [data-theme="teal"] {
-            --theme-primary: #115e59;
-            --theme-gradient: linear-gradient(135deg, #134e4a 0%, #0d9488 100%);
-            --theme-accent: #14b8a6;
-            --theme-border: #99f6e4;
-        }
-
-        [data-theme="amber"] {
-            --theme-primary: #92400e;
-            --theme-gradient: linear-gradient(135deg, #78350f 0%, #d97706 100%);
-            --theme-accent: #f59e0b;
-            --theme-border: #fde68a;
-        }
-
-        * {
+        /* ══════════════════════════════════════════════════════════════════
+           MINIMALIST MONOCHROME COMMERCIAL INVOICE STYLESHEET
+           সাদাকালো পরিচ্ছন্ন ডিজাইন ও সিঙ্গেল পেজ প্রিন্ট
+           ══════════════════════════════════════════════════════════════════ */
+        *, *::before, *::after {
             box-sizing: border-box;
         }
-
         body {
-            font-family: 'Inter', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f1f5f9;
-            color: #1e293b;
-            font-size: 13.5px;
-            line-height: 1.5;
+            font-family: 'Inter', 'Kalpurush', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #ffffff; /* সাদাকালো ক্লিন ব্যাকগ্রাউন্ড */
+            color: #000000;
+            font-size: 12.5px;
+            line-height: 1.4;
             margin: 0;
-            padding: 20px 0 40px 0;
+            padding: 20px 12px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Top Action Bar Styling */
-        .action-dock {
-            max-width: 880px;
+        /* Top Action Bar (Screen Only - Hidden on Print) */
+        .inv-action-bar {
+            max-width: 800px;
             margin: 0 auto 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 8px 12px;
             background: #ffffff;
-            border-radius: 16px;
-            padding: 12px 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
+            border: 1px solid #000000;
+            border-radius: 6px;
         }
-
-        .btn-action-pill {
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 13px;
-            padding: 6px 14px;
+        .inv-btn {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s ease;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #000000;
+            background: #ffffff;
+            color: #000000;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .inv-btn:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+        .inv-btn-primary {
+            background: #000000;
+            color: #ffffff;
+        }
+        .inv-btn-primary:hover {
+            background: #222222;
+            color: #ffffff;
         }
 
-        .btn-action-pill:hover {
-            transform: translateY(-1px);
-        }
-
-        /* Main Invoice Card */
-        .invoice-card {
-            max-width: 880px;
+        /* Main Printable Document Container */
+        .inv-container {
+            max-width: 800px;
             margin: 0 auto;
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            border: 1px solid var(--theme-border);
-            position: relative;
+            border: 1.5px solid #000000;
+            padding: 26px 30px;
         }
 
-        /* Watermark */
-        .watermark-overlay {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 5.5rem;
-            font-weight: 900;
-            color: rgba(15, 23, 42, 0.035);
-            text-transform: uppercase;
-            letter-spacing: 12px;
-            pointer-events: none;
-            z-index: 1;
-            user-select: none;
-            white-space: nowrap;
-            transition: opacity 0.3s ease;
+        /* Header: Brand & Document Meta (Zero Duplication) */
+        .inv-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid #000000;
+            margin-bottom: 16px;
         }
-
-        .invoice-header-strip {
-            background: var(--theme-gradient);
-            color: #ffffff;
-            padding: 24px 36px;
-            position: relative;
-            z-index: 2;
-            transition: background 0.3s ease;
+        .inv-brand-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
         }
-
-        .invoice-inner {
-            padding: 28px 36px 36px 36px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .brand-logo-img {
-            max-height: 56px;
+        .inv-logo {
+            max-height: 48px;
+            max-width: 140px;
             width: auto;
-            max-width: 190px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
-            background: #ffffff;
-            padding: 4px 8px;
-            border-radius: 8px;
+            display: block;
+            flex-shrink: 0;
+            filter: grayscale(100%); /* সাদাকালো লোগো */
         }
-
-        .invoice-badge-pill {
-            background: var(--theme-badge-bg);
-            border: 1px solid var(--theme-badge-border);
-            color: #ffffff;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-transform: uppercase;
+        .inv-brand-text h1 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #000000;
+            margin: 0 0 2px 0;
+            line-height: 1.2;
         }
-
-        .barcode-pill {
-            font-family: 'Courier New', Courier, monospace;
-            letter-spacing: 3px;
-            font-size: 14px;
-            font-weight: 700;
-            background: rgba(255, 255, 255, 0.95);
-            color: #0f172a;
-            padding: 4px 12px;
-            border-radius: 6px;
-            display: inline-block;
-            margin-top: 6px;
-        }
-
-        .meta-strip {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 22px;
-        }
-
-        .party-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 16px 18px;
-            background: #ffffff;
-            height: 100%;
-            position: relative;
-        }
-
-        .party-card.sender {
-            border-top: 4px solid var(--theme-primary);
-            background: #f8fafc;
-        }
-
-        .party-card.recipient {
-            border-top: 4px solid #059669;
-            background: #f0fdf4;
-        }
-
-        .party-tag {
+        .inv-brand-text p {
             font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-            border-bottom: 1.5px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            color: #222222;
+            margin: 0;
+            line-height: 1.35;
         }
 
-        .table-memo {
-            width: 100%;
-            margin-bottom: 20px;
-            border-collapse: separate;
-            border-spacing: 0;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
+        .inv-meta-box {
+            text-align: right;
+            flex-shrink: 0;
         }
-
-        .table-memo thead th {
-            background: #f8fafc;
-            color: #334155;
-            font-weight: 700;
-            font-size: 12px;
+        .inv-doc-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #000000;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 12px 14px;
-            border-bottom: 1.5px solid #cbd5e1;
+            margin: 0 0 3px 0;
+            line-height: 1.2;
+        }
+        .inv-number {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 4px;
+        }
+        .inv-badge-monochrome {
+            display: inline-block;
+            border: 1.5px solid #000000;
+            color: #000000;
+            background: #ffffff;
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            letter-spacing: 0.5px;
+            border-radius: 3px;
+        }
+        .inv-badge-monochrome.is-paid {
+            background: #000000;
+            color: #ffffff;
         }
 
-        .table-memo tbody td {
-            padding: 14px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9;
+        /* Information Grid: Customer Details & Order Meta (No Duplication) */
+        .inv-info-grid {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 16px;
+            padding: 10px 14px;
+            border: 1px solid #000000;
+            margin-bottom: 16px;
+            font-size: 11.5px;
+            background: #ffffff;
+        }
+        .inv-info-heading {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #000000;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 3px;
+            margin-bottom: 6px;
+        }
+        .inv-customer-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 2px;
+        }
+        .inv-customer-phone {
+            font-weight: 700;
+            color: #000000;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12.5px;
+            margin-bottom: 2px;
+        }
+        .inv-customer-addr {
+            color: #111111;
+            line-height: 1.35;
         }
 
-        .summary-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 18px;
-        }
-
-        .summary-item {
+        .inv-order-meta-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            font-size: 13.5px;
+            margin-bottom: 3px;
+            line-height: 1.35;
+        }
+        .inv-order-meta-item:last-child {
+            margin-bottom: 0;
+        }
+        .inv-order-meta-label {
+            color: #333333;
+        }
+        .inv-order-meta-val {
+            font-weight: 700;
+            color: #000000;
+            text-align: right;
         }
 
-        .summary-item.total-due {
-            border-top: 2px dashed #cbd5e1;
-            margin-top: 8px;
-            padding-top: 12px;
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--theme-primary);
+        /* Items Table (Pure Minimalist B&W) */
+        .inv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
         }
-
-        .paid-stamp {
-            border: 2px solid #059669;
-            color: #059669;
-            font-weight: 800;
-            font-size: 12px;
-            padding: 3px 10px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-        }
-
-        .due-stamp {
-            border: 2px solid #d97706;
-            color: #d97706;
-            font-weight: 800;
-            font-size: 12px;
-            padding: 3px 10px;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-        }
-
-        .in-words-box {
+        .inv-table th {
             background: #ffffff;
-            border: 1px dashed #cbd5e1;
-            border-radius: 8px;
-            padding: 8px 12px;
+            color: #000000;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 6px 8px;
+            border-top: 1.5px solid #000000;
+            border-bottom: 1.5px solid #000000;
+        }
+        .inv-table td {
+            padding: 8px 8px;
+            border-bottom: 1px solid #cccccc;
+            vertical-align: middle;
             font-size: 12px;
-            margin-top: 10px;
-            color: #475569;
+            color: #000000;
+        }
+        .inv-table tbody tr:last-child td {
+            border-bottom: 1.5px solid #000000;
         }
 
-        .theme-dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: inline-block;
-            cursor: pointer;
-            border: 2px solid #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            transition: transform 0.2s ease;
+        /* Bottom Section: Policy & Financial Summary */
+        .inv-bottom-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 20px;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        
+        .inv-policy-box {
+            font-size: 10.5px;
+            color: #222222;
+            border: 1px solid #000000;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            line-height: 1.35;
+        }
+        .inv-policy-title {
+            font-weight: 800;
+            color: #000000;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+        .inv-qr-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .inv-qr-img {
+            width: 48px;
+            height: 48px;
+            border: 1px solid #000000;
+            padding: 1px;
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+        .inv-qr-info {
+            font-size: 10px;
+            color: #333333;
+            line-height: 1.3;
+        }
+        .inv-qr-info strong {
+            color: #000000;
+            display: block;
+            margin-bottom: 1px;
+            font-size: 10.5px;
         }
 
-        .theme-dot:hover {
-            transform: scale(1.25);
+        /* Totals Table */
+        .inv-totals-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+        }
+        .inv-totals-table td {
+            padding: 3px 0;
+            color: #000000;
+        }
+        .inv-totals-label {
+            color: #333333;
+        }
+        .inv-totals-val {
+            text-align: right;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: 700;
+            color: #000000;
+            font-size: 12px;
+        }
+        .inv-grand-total td {
+            border-top: 1.5px solid #000000;
+            border-bottom: 1.5px solid #000000;
+            padding: 6px 0;
+            font-size: 14px;
+            font-weight: 800;
+            color: #000000;
+        }
+        .inv-grand-total .inv-totals-val {
+            font-size: 15px;
+        }
+        .inv-words {
+            font-size: 10.5px;
+            color: #222222;
+            text-align: right;
+            margin-top: 4px;
+            line-height: 1.3;
         }
 
-        /* Print Settings Optimization */
+        /* Footer & Signature Line */
+        .inv-footer {
+            border-top: 1px solid #000000;
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 10.5px;
+            color: #333333;
+        }
+        .inv-sig-box {
+            text-align: center;
+            min-width: 130px;
+        }
+        .inv-sig-img {
+            max-height: 32px;
+            max-width: 110px;
+            object-fit: contain;
+            margin-bottom: 2px;
+            filter: grayscale(100%);
+        }
+        .inv-sig-line {
+            border-top: 1px solid #000000;
+            padding-top: 3px;
+            font-weight: 700;
+            color: #000000;
+            font-size: 10.5px;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           PRINT MEDIA: STRICT SINGLE A4 SHEET FIT
+           ══════════════════════════════════════════════════════════════════ */
         @media print {
-            body {
+            html, body {
                 background: #ffffff !important;
+                margin: 0 !important;
                 padding: 0 !important;
                 color: #000000 !important;
+                font-size: 11px !important;
+                line-height: 1.3 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            .action-dock, .offcanvas, .modal, .d-print-none {
+            .inv-action-bar, .modal, .d-print-none {
                 display: none !important;
             }
-            .invoice-card {
-                box-shadow: none !important;
-                border: 1px solid #94a3b8 !important;
+            .inv-container {
                 max-width: 100% !important;
-                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 4mm 6mm !important;
+                border: none !important;
+                box-shadow: none !important;
             }
-            .invoice-header-strip {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            .inv-header, .inv-info-grid, .inv-table, .inv-bottom-grid, .inv-footer, tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
             }
-            .meta-strip, .party-card, .table-memo, .summary-box {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
+            @page {
+                size: A4 portrait;
+                margin: 6mm 8mm;
             }
+        }
+
+        /* Mobile Screen Adjustments */
+        @media (max-width: 600px) {
+            body { padding: 8px 4px; }
+            .inv-container { padding: 14px 12px; }
+            .inv-header { flex-direction: column; gap: 10px; }
+            .inv-meta-box { text-align: left; }
+            .inv-info-grid { grid-template-columns: 1fr; }
+            .inv-bottom-grid { grid-template-columns: 1fr; gap: 12px; }
+            .inv-words { text-align: left; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Action Dock (Top Controls Bar) -->
-    <div class="action-dock d-print-none">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5">
-            
-            <!-- Left Controls: Back, Status, Quick Edit -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <a href="{{ route('admin.ecommerce-orders') }}" class="btn btn-outline-secondary btn-sm btn-action-pill">
-                    <i class="fa-solid fa-arrow-left"></i> All Orders
-                </a>
-                <button type="button" class="btn btn-warning btn-sm btn-action-pill text-dark shadow-xs" data-bs-toggle="modal" data-bs-target="#modalQuickEdit">
-                    <i class="fa-solid fa-pen-to-square"></i> Quick Edit Info
-                </button>
-                <a href="{{ route('admin.ecommerce-orders.slip', $order) }}" target="_blank" class="btn btn-outline-primary btn-sm btn-action-pill">
-                    <i class="fa-solid fa-tag"></i> Parcel Slip
-                </a>
-            </div>
+    <!-- Top Action Bar (Hidden on Print) -->
+    <div class="inv-action-bar d-print-none">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('admin.ecommerce-orders') }}" class="inv-btn" title="সকল অর্ডার তালিকা">
+                <i class="fa-solid fa-arrow-left"></i> অর্ডার তালিকা
+            </a>
+            <a href="{{ route('admin.ecommerce-orders.slip', $order) }}" target="_blank" class="inv-btn" title="পার্সেল স্লিপ ও লেবেল">
+                <i class="fa-solid fa-tag"></i> পার্সেল স্লিপ
+            </a>
+            <button type="button" class="inv-btn" data-bs-toggle="modal" data-bs-target="#modalQuickEdit" title="তথ্য দ্রুত সম্পাদন করুন">
+                <i class="fa-solid fa-pen-to-square"></i> তথ্য সম্পাদন
+            </button>
+        </div>
 
-            <!-- Middle Controls: Memo Settings, WhatsApp, Share Link -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <button type="button" class="btn btn-dark btn-sm btn-action-pill text-white shadow-xs" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMemoSettings">
-                    <i class="fa-solid fa-sliders text-warning"></i> Memo Settings
-                </button>
-                <a href="{{ $whatsappUrl }}" target="_blank" class="btn btn-success btn-sm btn-action-pill text-white shadow-xs">
-                    <i class="fa-brands fa-whatsapp"></i> WhatsApp Memo
-                </a>
-                <button type="button" class="btn btn-outline-info btn-sm btn-action-pill text-dark" onclick="copyInvoiceLink()">
-                    <i class="fa-solid fa-link" id="copyLinkIcon"></i> Copy Link
-                </button>
-            </div>
-
-            <!-- Right Controls: Themes, Print -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <!-- Theme Palette -->
-                <div class="d-flex align-items-center gap-1.5 px-2 py-1 bg-light rounded-pill border">
-                    <span class="theme-dot" style="background:#1e3a8a;" onclick="setInvoiceTheme('navy')" title="Classic Navy"></span>
-                    <span class="theme-dot" style="background:#059669;" onclick="setInvoiceTheme('emerald')" title="Emerald Green"></span>
-                    <span class="theme-dot" style="background:#18181b;" onclick="setInvoiceTheme('noir')" title="Corporate Noir"></span>
-                    <span class="theme-dot" style="background:#7e22ce;" onclick="setInvoiceTheme('purple')" title="Royal Purple"></span>
-                    <span class="theme-dot" style="background:#dc2626;" onclick="setInvoiceTheme('crimson')" title="Crimson Red"></span>
-                    <span class="theme-dot" style="background:#0d9488;" onclick="setInvoiceTheme('teal')" title="Modern Teal"></span>
-                    <span class="theme-dot" style="background:#d97706;" onclick="setInvoiceTheme('amber')" title="Amber Gold"></span>
-                </div>
-
-                <!-- Print Button -->
-                <button onclick="window.print()" class="btn btn-primary btn-sm btn-action-pill px-3.5 fw-bold shadow-xs">
-                    <i class="fa-solid fa-print"></i> Print Invoice
-                </button>
-            </div>
-
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ $whatsappUrl }}" target="_blank" class="inv-btn" title="গ্রাহকের হোয়াটসঅ্যাপে মেমো পাঠান">
+                <i class="fa-brands fa-whatsapp"></i> হোয়াটসঅ্যাপ মেমো
+            </a>
+            <button type="button" class="inv-btn" onclick="copyInvoiceLink()" title="ট্র্যাকিং লিংক কপি করুন">
+                <i class="fa-solid fa-link" id="copyLinkIcon"></i> লিংক কপি
+            </button>
+            <button onclick="window.print()" class="inv-btn inv-btn-primary" title="প্রিন্ট করুন">
+                <i class="fa-solid fa-print"></i> প্রিন্ট ইনভয়েস
+            </button>
         </div>
     </div>
 
-    <!-- Main Printable Invoice Card -->
-    <div class="invoice-card" id="invoiceCard">
-        
-        <!-- Watermark -->
-        <div class="watermark-overlay" id="watermarkOverlay">
-            {{ $order->payment_status === 'paid' ? 'PAID' : 'OFFICIAL' }}
-        </div>
+    <!-- Printable Invoice Document (Pure B&W) -->
+    <div class="inv-container">
 
-        <!-- Header Banner & Logo -->
-        <div class="invoice-header-strip" id="invoiceHeaderStrip">
-            <div class="row align-items-center">
-                <div class="col-7 d-flex align-items-center gap-3">
-                    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="brand-logo-img" id="invoiceBrandLogo" onerror="this.src='/images/logo.png'; this.onerror=null;">
-                    <div>
-                        <h4 class="fw-bold mb-0 text-white" id="displayCompanyName" style="letter-spacing: -0.2px;">{{ $siteName }}</h4>
-                        <div class="text-white text-opacity-80 small mt-0.5" id="displayCompanyTagline">
-                            <i class="fa-solid fa-globe me-1"></i> <span id="displayCompanyWebsite">{{ $siteWebsite }}</span> | Digital Lighthouse of Knowledge & Creativity
-                        </div>
-                    </div>
-                </div>
-                <div class="col-5 text-end">
-                    <div class="invoice-badge-pill" id="invoiceBadgePill">
-                        <i class="fa-solid fa-file-invoice-dollar text-warning"></i>
-                        <span id="displayInvoiceTitle">CASH MEMO & INVOICE</span>
-                    </div>
-                    <div>
-                        <span class="barcode-pill" id="invoiceBarcodePill">#{{ $order->order_number ?? $order->id }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="invoice-inner">
-
-            <!-- Meta Quick Strip -->
-            <div class="meta-strip" id="invoiceMetaStrip">
-                <div class="row g-2 align-items-center text-center text-md-start">
-                    <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block">Invoice / Memo No:</span>
-                        <strong class="text-dark font-monospace fs-6">#{{ $order->order_number ?? $order->id }}</strong>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block">Order Date & Time:</span>
-                        <strong class="text-dark">{{ $order->created_at->format('d M, Y — h:i A') }}</strong>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <span class="text-muted small d-block">Payment Method:</span>
-                        <strong class="text-dark">{{ $paymentMethodEn }}</strong>
-                        @if($order->transaction_id)
-                            <div class="small font-monospace text-primary" style="font-size: 11px;">TrxID: <strong>{{ $order->transaction_id }}</strong></div>
-                        @endif
-                    </div>
-                    <div class="col-6 col-md-3 text-md-end">
-                        <span class="text-muted small d-block">Payment Status:</span>
-                        @if($order->payment_status === 'paid')
-                            <span class="badge bg-success px-2.5 py-1 fw-bold">
-                                <i class="fa-solid fa-circle-check me-1"></i> PAID
-                            </span>
-                        @else
-                            <span class="badge bg-warning text-dark px-2.5 py-1 fw-bold">
-                                <i class="fa-solid fa-clock me-1"></i> CASH ON DELIVERY
-                            </span>
-                        @endif
-                    </div>
+        <!-- Header: Brand & Document Title (Zero Duplication) -->
+        <div class="inv-header">
+            <div class="inv-brand-box">
+                <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="inv-logo" onerror="this.style.display='none';">
+                <div class="inv-brand-text">
+                    <h1>{{ $siteName }}</h1>
+                    <p>
+                        {{ $siteAddress }}<br>
+                        হটলাইন: <strong>{{ $sitePhone }}</strong> • ইমেইল: {{ $siteEmail }}<br>
+                        ওয়েবসাইট: {{ $siteWebsite }}
+                    </p>
                 </div>
             </div>
 
-            <!-- Sender & Recipient Two-Column Layout -->
-            <div class="row g-3 mb-4" id="partiesSection">
-                
-                <!-- Left: Sender (From) -->
-                <div class="col-md-6" id="senderCardCol">
-                    <div class="party-card sender" id="senderPartyCard">
-                        <div class="party-tag" style="color: var(--theme-primary);">
-                            <span><i class="fa-solid fa-paper-plane me-1"></i> FROM / SENDER</span>
-                            <span class="badge text-white" style="background: var(--theme-primary);">HEAD OFFICE</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1" id="senderDisplayTitle">{{ $siteName }}</h6>
-                        <div class="text-muted small mb-1" id="senderDisplayAddress">
-                            <i class="fa-solid fa-location-dot text-danger me-1"></i>
-                            {{ $siteAddress }}
-                        </div>
-                        <div class="text-dark small mb-1" id="senderDisplayPhone">
-                            <i class="fa-solid fa-phone text-success me-1"></i>
-                            <strong>Hotline:</strong> {{ $sitePhone }}
-                        </div>
-                        @if(!empty($siteEmail))
-                        <div class="text-muted small" id="senderDisplayEmail">
-                            <i class="fa-solid fa-envelope text-primary me-1"></i>
-                            {{ $siteEmail }}
-                        </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Right: Recipient (To / Customer) -->
-                <div class="col-md-6" id="recipientCardCol">
-                    <div class="party-card recipient" id="recipientPartyCard">
-                        <div class="party-tag text-success">
-                            <span><i class="fa-solid fa-user-check me-1"></i> TO / RECIPIENT</span>
-                            <span class="badge bg-success text-white">CUSTOMER</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1">{{ $order->customer_name }}</h6>
-                        <div class="text-dark mb-1">
-                            <i class="fa-solid fa-phone text-success me-1"></i>
-                            <strong>Mobile:</strong> <span class="fw-bold fs-6 font-monospace">{{ $order->customer_phone }}</span>
-                        </div>
-                        <div class="text-dark small mb-1">
-                            <i class="fa-solid fa-map-location-dot text-primary me-1"></i>
-                            <strong>Delivery Address:</strong>
-                            @if($order->house_road)
-                                {{ $order->house_road }},
-                            @endif
-                            {{ $order->customer_address }}
-                        </div>
-                        <div class="text-muted small">
-                            @if($order->thana)
-                                <span class="me-2"><strong>Thana / Area:</strong> {{ $order->thana }}</span>
-                            @endif
-                            @if($order->post_code)
-                                <span class="me-2"><strong>Postal Code:</strong> {{ $order->post_code }}</span>
-                            @endif
-                            <span><strong>District:</strong> {{ $order->district ?? $order->district_label }}</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Gift Notice Ribbon (If applicable) -->
-            @if($order->is_gift)
-            <div class="p-3 bg-amber-50 rounded-3 border border-warning mb-4" id="giftNoticeRibbon" style="background-color: #fffbeb; border-color: #fde68a;">
-                <div class="d-flex align-items-start gap-2.5">
-                    <i class="fa-solid fa-gift text-warning fs-4 mt-0.5"></i>
-                    <div>
-                        <strong class="d-block text-amber-900 fs-6" style="color: #92400e;">GIFT PACKAGE RECIPIENT DETAILS:</strong>
-                        <span class="me-3"><strong>Name:</strong> {{ $order->gift_recipient_name }}</span>
-                        <span class="me-3"><strong>Mobile:</strong> {{ $order->gift_recipient_phone }}</span>
-                        @if($order->gift_recipient_address)
-                            <span class="d-block mt-1"><strong>Gift Address:</strong> {{ $order->gift_recipient_address }}</span>
-                        @endif
-                        @if($order->gift_message)
-                            <div class="mt-2 small p-2 bg-white rounded border border-warning text-dark fst-italic">
-                                <strong>Gift Note:</strong> "{{ $order->gift_message }}"
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            @endif
-
-            <!-- Items Table -->
-            <table class="table-memo" id="itemsTable">
-                <thead>
-                    <tr>
-                        <th class="text-center" style="width: 6%;">SL #</th>
-                        <th style="width: 52%;">Book / Item Description</th>
-                        <th class="text-center" style="width: 14%;">Unit Price</th>
-                        <th class="text-center" style="width: 12%;">Qty</th>
-                        <th class="text-end" style="width: 16%;">Total (BDT)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="text-center fw-bold">1</td>
-                        <td>
-                            @if($order->book)
-                                <div class="d-flex align-items-center gap-2.5">
-                                    @if($order->book->cover_image)
-                                        <img src="{{ asset('storage/' . $order->book->cover_image) }}" alt="{{ $order->book->title }}" id="bookCoverImg" style="width: 38px; height: 50px; object-fit: cover; border-radius: 4px;" class="border d-none d-sm-inline-block">
-                                    @endif
-                                    <div>
-                                        <div class="fw-bold text-dark fs-6">{{ $order->book->title }}</div>
-                                        <div id="bookAuthorIsbnSection">
-                                            @if($order->book->authors && $order->book->authors->count())
-                                                <div class="text-muted small">Author: <strong>{{ $order->book->authors->pluck('name')->implode(', ') }}</strong></div>
-                                            @endif
-                                            @if($order->book->isbn)
-                                                <div class="text-muted small">ISBN: {{ $order->book->isbn }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <div class="fw-bold text-dark fs-6">Book Order #{{ $order->order_number ?? $order->id }}</div>
-                            @endif
-                        </td>
-                        <td class="text-center fw-semibold font-monospace">
-                            BDT {{ number_format($itemUnit, 2) }}
-                        </td>
-                        <td class="text-center fw-bold">
-                            {{ $itemQty }}
-                        </td>
-                        <td class="text-end fw-bold text-dark font-monospace">
-                            BDT {{ number_format($itemSubtotal, 2) }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <!-- Summary & Terms Section -->
-            <div class="row g-4 align-items-start mb-4">
-                
-                <!-- Left Column: Delivery, Courier, QR Code & Terms -->
-                <div class="col-md-6">
-                    
-                    @if($order->courier_name || $order->tracking_code)
-                    <div class="p-3 bg-light rounded-3 border mb-3" id="courierInfoBox">
-                        <div class="fw-bold text-dark mb-1 small d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-truck-fast text-primary"></i> Courier & Shipping Info:
-                        </div>
-                        <div class="small"><strong>Courier Partner:</strong> <span id="displayCourier">{{ $order->courier_name ?? 'Assigned Courier' }}</span></div>
-                        @if($order->tracking_code)
-                            <div class="small mt-1"><strong>Tracking ID:</strong> <span class="font-monospace text-primary fw-bold" id="displayTracking">{{ $order->tracking_code }}</span></div>
-                        @endif
-                    </div>
+            <div class="inv-meta-box">
+                <div class="inv-doc-title">{{ $invoiceTitle }}</div>
+                <div class="inv-number">#{{ $order->order_number ?? $order->id }}</div>
+                <div>
+                    @if($order->payment_status === 'paid')
+                        <span class="inv-badge-monochrome is-paid">পরিশোধিত / PAID</span>
+                    @else
+                        <span class="inv-badge-monochrome">বকেয়া / COD</span>
                     @endif
-
-                    <div class="p-3 bg-light rounded-3 border mb-3" id="termsPolicyBox" style="font-size: 12px;">
-                        <div class="fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-shield-halved text-primary"></i> <span id="displayTermsTitle">Terms & Policy:</span>
-                        </div>
-                        <p class="text-muted mb-0" id="displayTermsText">
-                            Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.
-                        </p>
-                        @if($order->admin_notes)
-                        <div class="mt-2 text-dark fw-semibold pt-1 border-top" id="displayAdminNotes">
-                            <strong>Admin Note:</strong> {{ $order->admin_notes }}
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Live Dynamic QR Code Box -->
-                    <div class="d-flex align-items-center gap-3 p-2.5 bg-white rounded-3 border" id="qrCodeSection">
-                        <div id="invoiceQrCode" style="width: 58px; height: 58px;"></div>
-                        <div class="small">
-                            <strong class="d-block text-dark">Digital Order Verification</strong>
-                            <span class="text-muted" style="font-size: 11px;">Scan with smartphone camera to track order status online.</span>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Right Column: Financial Breakdown -->
-                <div class="col-md-6">
-                    <div class="summary-box" id="summaryBox">
-                        <div class="summary-item">
-                            <span>Items Subtotal:</span>
-                            <span class="fw-bold text-dark font-monospace">BDT {{ number_format($itemSubtotal, 2) }}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Shipping / Delivery Fee:</span>
-                            <span class="fw-semibold text-dark font-monospace">
-                                @if($shippingCost > 0)
-                                    BDT {{ number_format($shippingCost, 2) }}
-                                @else
-                                    <span class="text-success fw-bold">FREE DELIVERY</span>
-                                @endif
-                            </span>
-                        </div>
-                        @if($order->is_gift)
-                        <div class="summary-item">
-                            <span>Gift Wrapping Fee:</span>
-                            <span class="fw-semibold text-dark font-monospace">BDT {{ number_format($giftFee, 2) }}</span>
-                        </div>
-                        @endif
-                        @if($discountAmount > 0)
-                        <div class="summary-item text-danger">
-                            <span>Special Discount:</span>
-                            <span class="font-monospace">- BDT {{ number_format($discountAmount, 2) }}</span>
-                        </div>
-                        @endif
-                        <div class="summary-item total-due">
-                            <span>Grand Total (Payable):</span>
-                            <span class="font-monospace">BDT {{ number_format($grandTotal, 2) }}</span>
-                        </div>
-
-                        <!-- Amount in Words -->
-                        <div class="in-words-box" id="inWordsBox">
-                            <strong>In Words:</strong> {{ $amountInWordsEn }}
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top" id="paymentStampContainer">
-                            <span class="small text-muted">Payment Status:</span>
-                            @if($order->payment_status === 'paid')
-                                <span class="paid-stamp" id="statusStampBadge">
-                                    <i class="fa-solid fa-check-double me-1"></i> PAID
-                                </span>
-                            @else
-                                <span class="due-stamp" id="statusStampBadge">
-                                    <i class="fa-solid fa-hand-holding-dollar me-1"></i> DUE (CASH ON DELIVERY)
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Footer Signature & Thank You Greeting -->
-            <div class="pt-3 border-top mt-4" id="footerSection">
-                <div class="row align-items-end">
-                    <div class="col-7">
-                        <p class="small text-muted mb-0 fw-semibold" id="displayFooterGreeting">
-                            <i class="fa-solid fa-heart text-danger me-1"></i>
-                            May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!
-                        </p>
-                        <div class="text-muted" id="displayPrintDate" style="font-size: 11px;">
-                            Print Date: {{ date('d M, Y — h:i A') }} | Computer Generated Official Digital Invoice
-                        </div>
-                    </div>
-                    <div class="col-5 text-end" id="signatureSection">
-                        <div class="d-inline-block text-center position-relative" style="min-width: 170px;">
-                            @if($hasSignature)
-                                <div id="displaySignatureImgContainer" class="mb-1">
-                                    <img src="{{ asset('storage/' . $userSignature) }}" alt="Authorized Signature" style="max-height: 48px; max-width: 150px; object-fit: contain;">
-                                </div>
-                            @else
-                                <div style="height: 40px;" id="signaturePlaceholder"></div>
-                            @endif
-                            <div class="border-top border-dark pt-1 small fw-bold text-dark" id="displaySignatureTitle">
-                                Authorized Signature
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
-
         </div>
-    </div>
 
-    <!-- ========================================================================= -->
-    <!-- OFFCANVAS: ADVANCED MEMO CUSTOMIZATION SETTINGS                           -->
-    <!-- ========================================================================= -->
-    <div class="offcanvas offcanvas-end d-print-none shadow-lg border-0" tabindex="-1" id="offcanvasMemoSettings" aria-labelledby="offcanvasMemoSettingsLabel" style="width: 420px;">
-        <div class="offcanvas-header bg-dark text-white p-3.5">
-            <h5 class="offcanvas-title fw-bold fs-6 d-flex align-items-center gap-2" id="offcanvasMemoSettingsLabel">
-                <i class="fa-solid fa-sliders text-warning"></i> Memo & Invoice Customizer
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        <!-- Information Grid: Customer Details & Order Meta (Zero Duplication) -->
+        <div class="inv-info-grid">
+            <!-- Left: Customer / Delivery Address -->
+            <div>
+                <div class="inv-info-heading">প্রাপক ও ডেলিভারি ঠিকানা:</div>
+                <div class="inv-customer-name">{{ $order->customer_name }}</div>
+                <div class="inv-customer-phone">{{ $order->customer_phone }}</div>
+                <div class="inv-customer-addr">
+                    @if($order->house_road){{ $order->house_road }}, @endif
+                    {{ $order->customer_address }}
+                    @if($order->thana) • থানা: {{ $order->thana }}@endif
+                    @if($order->district || $order->district_label) • জেলা: {{ $order->district ?? $order->district_label }}@endif
+                    @if($order->post_code) ({{ $order->post_code }})@endif
+                </div>
+
+                @if($order->is_gift)
+                    <div style="margin-top: 4px; font-size: 10.5px; font-weight: 700;">
+                        [গিফট পার্সেল] প্রাপক: {{ $order->gift_recipient_name }} ({{ $order->gift_recipient_phone }})
+                        @if($order->gift_message) — "{{ $order->gift_message }}"@endif
+                    </div>
+                @endif
+            </div>
+
+            <!-- Right: Order Details -->
+            <div>
+                <div class="inv-info-heading">অর্ডারের বিবরণ:</div>
+                <div class="inv-order-meta-item">
+                    <span class="inv-order-meta-label">তারিখ ও সময়:</span>
+                    <span class="inv-order-meta-val">{{ $order->created_at ? $order->created_at->format('d M, Y — h:i A') : date('d M, Y') }}</span>
+                </div>
+                <div class="inv-order-meta-item">
+                    <span class="inv-order-meta-label">পেমেন্ট মাধ্যম:</span>
+                    <span class="inv-order-meta-val">{{ $paymentMethodLabel }}</span>
+                </div>
+                @if($order->transaction_id)
+                <div class="inv-order-meta-item">
+                    <span class="inv-order-meta-label">লেনদেন (TrxID):</span>
+                    <span class="inv-order-meta-val font-monospace">{{ $order->transaction_id }}</span>
+                </div>
+                @endif
+                @if($order->courier_name)
+                <div class="inv-order-meta-item">
+                    <span class="inv-order-meta-label">কুরিয়ার:</span>
+                    <span class="inv-order-meta-val">{{ $order->courier_name }}</span>
+                </div>
+                @endif
+                @if($order->tracking_code)
+                <div class="inv-order-meta-item">
+                    <span class="inv-order-meta-label">ট্র্যাকিং নং:</span>
+                    <span class="inv-order-meta-val font-monospace">{{ $order->tracking_code }}</span>
+                </div>
+                @endif
+            </div>
         </div>
-        <div class="offcanvas-body p-3.5 space-y-4">
+
+        <!-- Items Table -->
+        <table class="inv-table">
+            <thead>
+                <tr>
+                    <th style="width: 6%; text-align: center;">ক্র.</th>
+                    <th style="width: 52%;">বই / পণ্যের বিবরণ</th>
+                    <th style="width: 15%; text-align: right;">একক মূল্য</th>
+                    <th style="width: 10%; text-align: center;">পরিমাণ</th>
+                    <th style="width: 17%; text-align: right;">মোট (টাকা)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="text-align: center; color: #444444;">১</td>
+                    <td>
+                        <strong style="color: #000000; font-size: 12.5px;">
+                            {{ $order->book ? $order->book->title : ('বই অর্ডার #' . ($order->order_number ?? $order->id)) }}
+                        </strong>
+                        @if($order->book && $order->book->authors && $order->book->authors->count())
+                            <div style="font-size: 10.5px; color: #444444;">লেখক: {{ $order->book->authors->pluck('name')->implode(', ') }}</div>
+                        @endif
+                        @if($order->book && $order->book->isbn)
+                            <div style="font-size: 10px; color: #666666;">ISBN: {{ $order->book->isbn }}</div>
+                        @endif
+                    </td>
+                    <td style="text-align: right; font-family: 'Courier New', Courier, monospace;">
+                        ৳ {{ number_format($itemUnit, 2) }}
+                    </td>
+                    <td style="text-align: center; font-weight: 700;">
+                        {{ $itemQty }}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; font-family: 'Courier New', Courier, monospace;">
+                        ৳ {{ number_format($itemSubtotal, 2) }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Summary & Verification Row -->
+        <div class="inv-bottom-grid">
             
-            <!-- 1. Theme & Color Accents -->
-            <div class="mb-4">
-                <label class="form-label small fw-bold text-dark mb-2 d-flex align-items-center justify-content-between">
-                    <span><i class="fa-solid fa-palette text-primary me-1.5"></i> Color Palette Theme</span>
-                </label>
-                <div class="d-grid grid-cols-4 gap-2 text-center" style="grid-template-columns: repeat(4, 1fr);">
-                    <button type="button" class="btn btn-sm btn-outline-primary py-2 fw-semibold" onclick="setInvoiceTheme('navy')">
-                        <span class="theme-dot me-1" style="background:#1e3a8a;"></span> Navy
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-success py-2 fw-semibold" onclick="setInvoiceTheme('emerald')">
-                        <span class="theme-dot me-1" style="background:#059669;"></span> Emerald
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-dark py-2 fw-semibold" onclick="setInvoiceTheme('noir')">
-                        <span class="theme-dot me-1" style="background:#18181b;"></span> Noir
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary py-2 fw-semibold" onclick="setInvoiceTheme('purple')" style="color:#7e22ce; border-color:#7e22ce;">
-                        <span class="theme-dot me-1" style="background:#7e22ce;"></span> Purple
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger py-2 fw-semibold" onclick="setInvoiceTheme('crimson')">
-                        <span class="theme-dot me-1" style="background:#dc2626;"></span> Crimson
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-info py-2 fw-semibold" onclick="setInvoiceTheme('teal')">
-                        <span class="theme-dot me-1" style="background:#0d9488;"></span> Teal
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-warning text-dark py-2 fw-semibold" onclick="setInvoiceTheme('amber')">
-                        <span class="theme-dot me-1" style="background:#d97706;"></span> Amber
-                    </button>
+            <!-- Left: Terms & QR -->
+            <div>
+                <div class="inv-policy-box">
+                    <div class="inv-policy-title">শর্তাবলী ও গ্রাহক সহায়তা:</div>
+                    <div>{{ $invoiceTerms }}</div>
+                    @if($order->admin_notes)
+                        <div style="margin-top: 3px; padding-top: 3px; border-top: 1px dashed #000000;">
+                            <strong>নোট:</strong> {{ $order->admin_notes }}
+                        </div>
+                    @endif
                 </div>
-            </div>
 
-            <hr class="my-3">
-
-            <!-- 2. Section Visibility Toggles -->
-            <div class="mb-4">
-                <h6 class="fw-bold text-dark small mb-2.5"><i class="fa-solid fa-eye me-1.5 text-primary"></i> Show / Hide Invoice Sections</h6>
-                
-                <div class="p-3 bg-light rounded-3 border space-y-2">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleLogo" checked onchange="updateMemoSetting('showLogo', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleLogo">Company Brand Logo</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleWatermark" checked onchange="updateMemoSetting('showWatermark', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleWatermark">Background Watermark</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleSenderCard" checked onchange="updateMemoSetting('showSenderCard', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleSenderCard">Sender (From) Office Card</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleRecipientCard" checked onchange="updateMemoSetting('showRecipientCard', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleRecipientCard">Recipient (To) Customer Card</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleBookThumbnail" checked onchange="updateMemoSetting('showBookThumbnail', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleBookThumbnail">Book Cover Thumbnail Image</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleBookAuthor" checked onchange="updateMemoSetting('showBookAuthor', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleBookAuthor">Book Author & ISBN Details</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleQrCode" checked onchange="updateMemoSetting('showQrCode', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleQrCode">Digital QR Code Verification Box</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleCourierInfo" checked onchange="updateMemoSetting('showCourierInfo', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleCourierInfo">Courier & Tracking ID Box</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleInWords" checked onchange="updateMemoSetting('showInWords', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleInWords">Amount in Words Box</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleTermsPolicy" checked onchange="updateMemoSetting('showTermsPolicy', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleTermsPolicy">Terms & Conditions Policy Box</label>
-                    </div>
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="toggleSignature" checked onchange="updateMemoSetting('showSignature', this.checked)">
-                        <label class="form-check-label small fw-semibold text-dark" for="toggleSignature">Authorized Signature Block</label>
+                <div class="inv-qr-wrap">
+                    <img src="{{ $qrUrl }}" alt="QR" class="inv-qr-img">
+                    <div class="inv-qr-info">
+                        <strong>ডিজিটাল ভেরিফিকেশন ও ট্র্যাকিং</strong>
+                        স্মার্টফোনে কিউআর স্ক্যান করে চালানের সত্যতা ও ডেলিভারি ট্র্যাকিং যাচাই করুন।
                     </div>
                 </div>
             </div>
 
-            <hr class="my-3">
+            <!-- Right: Totals -->
+            <div>
+                <table class="inv-totals-table">
+                    <tr>
+                        <td class="inv-totals-label">পণ্যের মূল্য (Subtotal):</td>
+                        <td class="inv-totals-val">৳ {{ number_format($itemSubtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td class="inv-totals-label">ডেলিভারি চার্জ:</td>
+                        <td class="inv-totals-val">
+                            @if($shippingCost > 0)
+                                ৳ {{ number_format($shippingCost, 2) }}
+                            @else
+                                <span>৳ 0.00 (ফ্রি)</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @if($order->is_gift && $giftFee > 0)
+                    <tr>
+                        <td class="inv-totals-label">গিফট র‍্যাপিং চার্জ:</td>
+                        <td class="inv-totals-val">৳ {{ number_format($giftFee, 2) }}</td>
+                    </tr>
+                    @endif
+                    @if($discountAmount > 0)
+                    <tr>
+                        <td class="inv-totals-label">বিশেষ ছাড় (Discount):</td>
+                        <td class="inv-totals-val">- ৳ {{ number_format($discountAmount, 2) }}</td>
+                    </tr>
+                    @endif
+                    <tr class="inv-grand-total">
+                        <td>সর্বমোট প্রদেয় (Total):</td>
+                        <td class="inv-totals-val">৳ {{ number_format($grandTotal, 2) }}</td>
+                    </tr>
+                </table>
 
-            <!-- 3. Custom Text & Labels -->
-            <div class="mb-4">
-                <h6 class="fw-bold text-dark small mb-2.5"><i class="fa-solid fa-pen-nib me-1.5 text-success"></i> Custom Memo Labels & Text</h6>
-                
-                <div class="space-y-3">
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Invoice Header Title</label>
-                        <input type="text" id="inputInvoiceTitle" class="form-control form-control-sm" value="CASH MEMO & INVOICE" oninput="updateMemoSetting('invoiceTitle', this.value)">
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Watermark Text</label>
-                        <input type="text" id="inputWatermarkText" class="form-control form-control-sm" value="{{ $order->payment_status === 'paid' ? 'PAID' : 'OFFICIAL' }}" oninput="updateMemoSetting('watermarkText', this.value)">
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Company / Publisher Display Name</label>
-                        <input type="text" id="inputCompanyName" class="form-control form-control-sm" value="{{ $siteName }}" oninput="updateMemoSetting('companyName', this.value)">
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Head Office Address</label>
-                        <textarea id="inputCompanyAddress" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('companyAddress', this.value)">{{ $siteAddress }}</textarea>
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Hotline Phone Number</label>
-                        <input type="text" id="inputCompanyPhone" class="form-control form-control-sm" value="{{ $sitePhone }}" oninput="updateMemoSetting('companyPhone', this.value)">
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Terms & Policy Text</label>
-                        <textarea id="inputTermsText" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('termsText', this.value)">Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.</textarea>
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Signatory Title</label>
-                        <input type="text" id="inputSignatureTitle" class="form-control form-control-sm" value="Authorized Signature" oninput="updateMemoSetting('signatureTitle', this.value)">
-                    </div>
-                    <div class="mb-2.5">
-                        <label class="form-label small fw-semibold text-muted">Footer Greeting Note</label>
-                        <textarea id="inputFooterGreeting" class="form-control form-control-sm" rows="2" oninput="updateMemoSetting('footerGreeting', this.value)">May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!</textarea>
-                    </div>
+                <div class="inv-words">
+                    <strong>কথায়:</strong> {{ $amountInWords }}
                 </div>
-            </div>
-
-            <!-- Reset Button -->
-            <div class="pt-2">
-                <button type="button" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-2 fw-semibold" onclick="resetMemoSettings()">
-                    <i class="fa-solid fa-rotate-left me-1.5"></i> Reset All Settings to Default
-                </button>
             </div>
 
         </div>
+
+        <!-- Footer & Signature -->
+        <div class="inv-footer">
+            <div>
+                <div style="font-weight: 700; color: #000000;">{{ $invoiceFooter }}</div>
+                <div style="font-size: 9.5px; color: #555555; margin-top: 1px;">
+                    কম্পিউটার জেনারেটেড ডিজিটাল ইনভয়েস
+                </div>
+            </div>
+
+            <div class="inv-sig-box">
+                @if($hasSignature)
+                    <img src="{{ asset('storage/' . $userSignature) }}" alt="Signature" class="inv-sig-img">
+                @else
+                    <div style="height: 26px;"></div>
+                @endif
+                <div class="inv-sig-line">কর্তৃপক্ষের স্বাক্ষর</div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Quick In-Place Edit Modal -->
+    <!-- Quick In-Place Edit Modal (Hidden on Print) -->
     <div class="modal fade d-print-none" id="modalQuickEdit" tabindex="-1" aria-labelledby="modalQuickEditLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-light border-bottom p-3">
-                    <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modalQuickEditLabel">
-                        <i class="fa-solid fa-pen-to-square text-primary"></i> Edit Order & Invoice Details
+            <div class="modal-content border-0 shadow-lg rounded-3">
+                <div class="modal-header border-bottom p-3">
+                    <h6 class="modal-title fw-bold text-dark" id="modalQuickEditLabel">
+                        <i class="fa-solid fa-pen-to-square me-1.5"></i> ইনভয়েস ও অর্ডার তথ্য সম্পাদন
                     </h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="formQuickEdit" onsubmit="handleQuickEditSubmit(event)">
-                    <div class="modal-body p-4 space-y-3">
+                    <div class="modal-body p-3.5 space-y-3">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Payment Status <span class="text-danger">*</span></label>
-                            <select name="payment_status" id="editPaymentStatus" class="form-select">
-                                <option value="pending" @selected($order->payment_status === 'pending')>Pending (COD)</option>
-                                <option value="paid" @selected($order->payment_status === 'paid')>Paid</option>
-                                <option value="unpaid" @selected($order->payment_status === 'unpaid')>Unpaid</option>
-                                <option value="partial" @selected($order->payment_status === 'partial')>Partial Paid</option>
+                            <label class="form-label fw-semibold small text-muted">পেমেন্ট অবস্থা <span class="text-danger">*</span></label>
+                            <select name="payment_status" id="editPaymentStatus" class="form-select form-select-sm">
+                                <option value="pending" @selected($order->payment_status === 'pending')>বকেয়া / Pending (COD)</option>
+                                <option value="paid" @selected($order->payment_status === 'paid')>পরিশোধিত / Paid</option>
+                                <option value="unpaid" @selected($order->payment_status === 'unpaid')>অপরিশোধিত / Unpaid</option>
+                                <option value="partial" @selected($order->payment_status === 'partial')>আংশিক / Partial Paid</option>
                             </select>
                         </div>
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label fw-semibold small text-muted">Courier Partner</label>
-                                <input type="text" name="courier_name" id="editCourierName" class="form-control" value="{{ $order->courier_name }}" placeholder="e.g. Sundarban, Pathao, Steadfast">
+                                <label class="form-label fw-semibold small text-muted">কুরিয়ার নাম</label>
+                                <input type="text" name="courier_name" id="editCourierName" class="form-control form-control-sm" value="{{ $order->courier_name }}" placeholder="উদা: সুন্দরবন, স্টিডফাস্ট">
                             </div>
                             <div class="col-6">
-                                <label class="form-label fw-semibold small text-muted">Tracking Code</label>
-                                <input type="text" name="tracking_code" id="editTrackingCode" class="form-control font-monospace" value="{{ $order->tracking_code }}" placeholder="TRACK123456">
+                                <label class="form-label fw-semibold small text-muted">ট্র্যাকিং কোড</label>
+                                <input type="text" name="tracking_code" id="editTrackingCode" class="form-control form-control-sm" value="{{ $order->tracking_code }}" placeholder="উদা: ST12345678">
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Transaction ID (TrxID)</label>
-                            <input type="text" name="transaction_id" id="editTrxId" class="form-control font-monospace" value="{{ $order->transaction_id }}" placeholder="e.g. 8N7K5A...">
+                            <label class="form-label fw-semibold small text-muted">লেনদেন আইডি (TrxID)</label>
+                            <input type="text" name="transaction_id" id="editTrxId" class="form-control form-control-sm font-monospace" value="{{ $order->transaction_id }}" placeholder="বিকাশ/নগদ TrxID">
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Admin Note (Shown on Invoice)</label>
-                            <textarea name="admin_notes" id="editAdminNotes" class="form-control" rows="2" placeholder="Special delivery notes...">{{ $order->admin_notes }}</textarea>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold small text-muted">অ্যাডমিন নোট / বিশেষ নির্দেশনা</label>
+                            <textarea name="admin_notes" id="editAdminNotes" rows="2" class="form-control form-control-sm" placeholder="প্রয়োজনীয় অভ্যন্তরীণ নোট...">{{ $order->admin_notes }}</textarea>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between">
-                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold" id="btnSaveQuickEdit">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+                    <div class="modal-footer border-top p-2.5">
+                        <button type="button" class="btn btn-sm btn-outline-secondary px-3" data-bs-dismiss="modal">বাতিল</button>
+                        <button type="submit" id="btnSaveQuickEdit" class="btn btn-sm btn-dark px-3 fw-bold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন
                         </button>
                     </div>
                 </form>
@@ -1037,206 +787,29 @@
         </div>
     </div>
 
-    <!-- Bootstrap 5 JS Bundle -->
+    <!-- Bootstrap 5 Bundle JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Generate Live Dynamic QR Code
-        document.addEventListener('DOMContentLoaded', function() {
-            const qrContainer = document.getElementById('invoiceQrCode');
-            if (qrContainer) {
-                const trackUrl = '{{ url("/track-order?order_no=" . ($order->order_number ?? $order->id)) }}';
-                new QRCode(qrContainer, {
-                    text: trackUrl,
-                    width: 58,
-                    height: 58,
-                    colorDark : "#0f172a",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M
-                });
-            }
-
-            // Load Memo Settings from LocalStorage
-            loadMemoSettings();
-        });
-
-        // Dynamic Theme Switcher
-        function setInvoiceTheme(themeName) {
-            document.documentElement.setAttribute('data-theme', themeName);
-            localStorage.setItem('invoice_theme_pref', themeName);
-        }
-
-        // Restore saved theme on load
-        const savedTheme = localStorage.getItem('invoice_theme_pref');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        }
-
-        // Memo Customization Settings Engine
-        const DEFAULT_MEMO_SETTINGS = {
-            showLogo: true,
-            showWatermark: true,
-            showSenderCard: true,
-            showRecipientCard: true,
-            showBookThumbnail: true,
-            showBookAuthor: true,
-            showQrCode: true,
-            showCourierInfo: true,
-            showInWords: true,
-            showTermsPolicy: true,
-            showSignature: true,
-            invoiceTitle: 'CASH MEMO & INVOICE',
-            watermarkText: '{{ $order->payment_status === "paid" ? "PAID" : "OFFICIAL" }}',
-            companyName: '{{ $siteName }}',
-            companyAddress: '{{ $siteAddress }}',
-            companyPhone: '{{ $sitePhone }}',
-            termsText: 'Please inspect the parcel upon delivery. For any issues or replacement requests, kindly contact our customer care helpline immediately.',
-            signatureTitle: 'Authorized Signature',
-            footerGreeting: 'May the joy of reading books spread to everyone. Thank you for choosing Idea Publication!'
-        };
-
-        function getMemoSettings() {
-            try {
-                const saved = localStorage.getItem('idea_memo_customizer_settings');
-                return saved ? Object.assign({}, DEFAULT_MEMO_SETTINGS, JSON.parse(saved)) : Object.assign({}, DEFAULT_MEMO_SETTINGS);
-            } catch (e) {
-                return Object.assign({}, DEFAULT_MEMO_SETTINGS);
-            }
-        }
-
-        function updateMemoSetting(key, value) {
-            const settings = getMemoSettings();
-            settings[key] = value;
-            localStorage.setItem('idea_memo_customizer_settings', JSON.stringify(settings));
-            applyMemoSettings(settings);
-        }
-
-        function applyMemoSettings(s) {
-            // Visibility Toggles
-            const logo = document.getElementById('invoiceBrandLogo');
-            if (logo) logo.style.display = s.showLogo ? '' : 'none';
-
-            const watermark = document.getElementById('watermarkOverlay');
-            if (watermark) {
-                watermark.style.display = s.showWatermark ? '' : 'none';
-                watermark.textContent = s.watermarkText || 'OFFICIAL';
-            }
-
-            const senderCol = document.getElementById('senderCardCol');
-            if (senderCol) senderCol.style.display = s.showSenderCard ? '' : 'none';
-
-            const recipientCol = document.getElementById('recipientCardCol');
-            if (recipientCol) {
-                recipientCol.style.display = s.showRecipientCard ? '' : 'none';
-                if (!s.showSenderCard) {
-                    recipientCol.className = 'col-12';
-                } else {
-                    recipientCol.className = 'col-md-6';
-                    if (senderCol) senderCol.className = 'col-md-6';
-                }
-            }
-
-            const bookCover = document.getElementById('bookCoverImg');
-            if (bookCover) bookCover.style.display = s.showBookThumbnail ? '' : 'none';
-
-            const authorIsbn = document.getElementById('bookAuthorIsbnSection');
-            if (authorIsbn) authorIsbn.style.display = s.showBookAuthor ? '' : 'none';
-
-            const qrCode = document.getElementById('qrCodeSection');
-            if (qrCode) qrCode.style.display = s.showQrCode ? '' : 'none';
-
-            const courierBox = document.getElementById('courierInfoBox');
-            if (courierBox) courierBox.style.display = s.showCourierInfo ? '' : 'none';
-
-            const inWords = document.getElementById('inWordsBox');
-            if (inWords) inWords.style.display = s.showInWords ? '' : 'none';
-
-            const termsBox = document.getElementById('termsPolicyBox');
-            if (termsBox) termsBox.style.display = s.showTermsPolicy ? '' : 'none';
-
-            const sigSection = document.getElementById('signatureSection');
-            if (sigSection) sigSection.style.display = s.showSignature ? '' : 'none';
-
-            // Custom Text
-            const invTitle = document.getElementById('displayInvoiceTitle');
-            if (invTitle) invTitle.textContent = s.invoiceTitle;
-
-            const compName = document.getElementById('displayCompanyName');
-            if (compName) compName.textContent = s.companyName;
-
-            const senderTitle = document.getElementById('senderDisplayTitle');
-            if (senderTitle) senderTitle.textContent = s.companyName;
-
-            const senderAddr = document.getElementById('senderDisplayAddress');
-            if (senderAddr) senderAddr.innerHTML = `<i class="fa-solid fa-location-dot text-danger me-1"></i> ${s.companyAddress}`;
-
-            const senderPhone = document.getElementById('senderDisplayPhone');
-            if (senderPhone) senderPhone.innerHTML = `<i class="fa-solid fa-phone text-success me-1"></i> <strong>Hotline:</strong> ${s.companyPhone}`;
-
-            const termsText = document.getElementById('displayTermsText');
-            if (termsText) termsText.textContent = s.termsText;
-
-            const sigTitle = document.getElementById('displaySignatureTitle');
-            if (sigTitle) sigTitle.textContent = s.signatureTitle;
-
-            const footerGreeting = document.getElementById('displayFooterGreeting');
-            if (footerGreeting) footerGreeting.innerHTML = `<i class="fa-solid fa-heart text-danger me-1"></i> ${s.footerGreeting}`;
-        }
-
-        function loadMemoSettings() {
-            const s = getMemoSettings();
-
-            // Populate form inputs
-            const setCheck = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
-            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
-
-            setCheck('toggleLogo', s.showLogo);
-            setCheck('toggleWatermark', s.showWatermark);
-            setCheck('toggleSenderCard', s.showSenderCard);
-            setCheck('toggleRecipientCard', s.showRecipientCard);
-            setCheck('toggleBookThumbnail', s.showBookThumbnail);
-            setCheck('toggleBookAuthor', s.showBookAuthor);
-            setCheck('toggleQrCode', s.showQrCode);
-            setCheck('toggleCourierInfo', s.showCourierInfo);
-            setCheck('toggleInWords', s.showInWords);
-            setCheck('toggleTermsPolicy', s.showTermsPolicy);
-            setCheck('toggleSignature', s.showSignature);
-
-            setVal('inputInvoiceTitle', s.invoiceTitle);
-            setVal('inputWatermarkText', s.watermarkText);
-            setVal('inputCompanyName', s.companyName);
-            setVal('inputCompanyAddress', s.companyAddress);
-            setVal('inputCompanyPhone', s.companyPhone);
-            setVal('inputTermsText', s.termsText);
-            setVal('inputSignatureTitle', s.signatureTitle);
-            setVal('inputFooterGreeting', s.footerGreeting);
-
-            applyMemoSettings(s);
-        }
-
-        function resetMemoSettings() {
-            localStorage.removeItem('idea_memo_customizer_settings');
-            loadMemoSettings();
-        }
-
         // Copy Invoice Track Link
         function copyInvoiceLink() {
-            const link = '{{ url("/track-order?order_no=" . ($order->order_number ?? $order->id)) }}';
-            navigator.clipboard.writeText(link).then(() => {
+            navigator.clipboard.writeText('{{ $trackUrl }}').then(() => {
                 const icon = document.getElementById('copyLinkIcon');
-                icon.className = 'fa-solid fa-check text-success';
-                setTimeout(() => {
-                    icon.className = 'fa-solid fa-link';
-                }, 2000);
+                if (icon) {
+                    icon.className = 'fa-solid fa-check';
+                    setTimeout(() => {
+                        icon.className = 'fa-solid fa-link';
+                    }, 2000);
+                }
             });
         }
 
-        // In-Place Quick Edit AJAX Handler
+        // Quick Edit AJAX Handler
         function handleQuickEditSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSaveQuickEdit');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> সংরক্ষণ হচ্ছে...';
 
             const payload = {
                 _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1260,20 +833,21 @@
             .then(res => res.json())
             .then(data => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes';
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন';
 
                 if (data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalQuickEdit'));
+                    const modalEl = document.getElementById('modalQuickEdit');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Failed to save changes.');
+                    alert(data.message || 'সংরক্ষণ ব্যর্থ হয়েছে।');
                 }
             })
             .catch(err => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Save Changes';
-                alert('Server error: ' + err.message);
+                btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন';
+                alert('সার্ভার এরর: ' + err.message);
             });
         }
     </script>

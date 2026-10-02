@@ -13,25 +13,28 @@
 @section('og_url', route('research.show', $paper->slug ?: $paper->id))
 
 @section('schema_json')
+@php
+    $researchSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ScholarlyArticle',
+        'headline' => $paper->title,
+        'name' => $paper->title,
+        'description' => Str::limit(strip_tags($resDesc), 300),
+        'url' => route('research.show', $paper->slug ?: $paper->id),
+        'author' => [
+            '@type' => 'Person',
+            'name' => $resAuthor,
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+        'inLanguage' => 'bn',
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "ScholarlyArticle",
-  "headline": @json($paper->title),
-  "name": @json($paper->title),
-  "description": @json(Str::limit(strip_tags($resDesc), 300)),
-  "url": @json(route('research.show', $paper->slug ?: $paper->id)),
-  "author": {
-    "@@type": "Person",
-    "name": @json($resAuthor)
-  },
-  "publisher": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "inLanguage": "bn"
-}
+{!! json_encode($researchSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 <div class="container py-4 mb-5">

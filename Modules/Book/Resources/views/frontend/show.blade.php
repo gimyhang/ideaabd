@@ -28,48 +28,59 @@
 @section('og_url', route('book.show', $book->slug ?: $book->id))
 
 @section('schema_json')
-<script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Book",
-  "name": @json($book->title),
-  "headline": @json($book->title . ' — ' . $authorNames),
-  "url": @json(route('book.show', $book->slug ?: $book->id)),
-  "image": @json($coverUrl),
-  "description": @json(Str::limit(strip_tags($bookDesc ?: $book->title), 300)),
-  "author": [
-    @if($book->authors->isNotEmpty())
-      @foreach($book->authors as $idx => $auth)
-        {
-          "@@type": "Person",
-          "name": @json($auth->name)
-        }{{ $loop->last ? '' : ',' }}
-      @endforeach
-    @else
-      {
-        "@@type": "Person",
-        "name": @json($authorNames)
-      }
-    @endif
-  ],
-  "publisher": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "inLanguage": "bn",
-  "offers": {
-    "@@type": "Offer",
-    "price": "{{ $book->discount_price > 0 ? $book->discount_price : ($book->price ?: 0) }}",
-    "priceCurrency": "BDT",
-    "availability": "{{ ($book->stock_quantity ?? 1) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
-    "url": @json(route('book.show', $book->slug ?: $book->id)),
-    "seller": {
-      "@@type": "Organization",
-      "name": "আইডিয়া প্রকাশন"
+@php
+    $authorsList = [];
+    if ($book->authors->isNotEmpty()) {
+        foreach ($book->authors as $auth) {
+            $authorsList[] = [
+                '@type' => 'Person',
+                'name'  => $auth->name,
+            ];
+        }
+    } else {
+        $authorsList[] = [
+            '@type' => 'Person',
+            'name'  => $authorNames,
+        ];
     }
-  }
-}
+
+    $bookSchema = [
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Book',
+        'name'        => $book->title,
+        'headline'    => $book->title . ' — ' . $authorNames,
+        'url'         => route('book.show', $book->slug ?: $book->id),
+        'image'       => $coverUrl,
+        'description' => Str::limit(strip_tags($bookDesc ?: $book->title), 300),
+        'author'      => $authorsList,
+        'publisher'   => [
+            '@type' => 'Organization',
+            'name'  => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url'   => 'https://www.ideaabd.com',
+        ],
+        'inLanguage'  => 'bn',
+        'offers'      => [
+            '@type'         => 'Offer',
+            'price'         => (string) ($book->discount_price > 0 ? $book->discount_price : ($book->price ?: 0)),
+            'priceCurrency' => 'BDT',
+            'availability'  => ($book->stock_quantity ?? 1) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'url'           => route('book.show', $book->slug ?: $book->id),
+            'seller'        => [
+                '@type' => 'Organization',
+                'name'  => 'আইডিয়া প্রকাশন',
+            ],
+        ],
+    ];
+
+    if (!empty($book->isbn)) {
+        $bookSchema['isbn'] = $book->isbn;
+    }
+    if (!empty($book->pages_count)) {
+        $bookSchema['numberOfPages'] = (int) $book->pages_count;
+    }
+@endphp
+<script type="application/ld+json">
+{!! json_encode($bookSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 
@@ -687,7 +698,7 @@
                                                     @if($authAvatar)
                                                         <img src="{{ str_starts_with($authAvatar, 'http') ? $authAvatar : asset('storage/' . ltrim($authAvatar, '/')) }}" alt="{{ $author->name }}" class="w-100 h-100 object-fit-cover">
                                                     @else
-                                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-3">✍️</div>
+                                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-3"><i class="fa-solid fa-feather-pointed"></i></div>
                                                     @endif
                                                 </div>
                                             </div>
@@ -708,7 +719,7 @@
                                                 @if($book->author_photo_url)
                                                     <img src="{{ $book->author_photo_url }}" alt="{{ $authorNames }}" class="w-100 h-100 object-fit-cover">
                                                 @else
-                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-3">✍️</div>
+                                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-primary fs-3"><i class="fa-solid fa-feather-pointed"></i></div>
                                                 @endif
                                             </div>
                                         </div>
@@ -915,7 +926,7 @@
                                 @if($coverUrl)
                                     <img src="{{ $coverUrl }}" alt="{{ $book->title }}" class="w-100 h-100 object-fit-cover">
                                 @else
-                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-center text-primary fs-3">📘</div>
+                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-primary fs-3"><i class="fa-solid fa-book-open"></i></div>
                                 @endif
                             </div>
                             <p class="small fw-semibold text-dark text-truncate mb-0" title="{{ $book->title }}">{{ $book->title }}</p>
@@ -933,7 +944,7 @@
                                         @if($fbtImg)
                                             <img src="{{ $fbtImg }}" alt="{{ $fbtBook->title }}" class="w-100 h-100 object-fit-cover">
                                         @else
-                                            <div class="w-100 h-100 bg-light d-flex align-items-center justify-center text-muted fs-3">📖</div>
+                                            <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted fs-3"><i class="fa-solid fa-book-open"></i></div>
                                         @endif
                                     </div>
                                     <p class="small fw-semibold text-dark text-truncate mb-0" title="{{ $fbtBook->title }}">{{ $fbtBook->title }}</p>

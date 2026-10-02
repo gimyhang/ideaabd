@@ -402,9 +402,9 @@
                                                         <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
                                                             <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
                                                                 @if(!empty($mPost->featured_image))
-                                                                    <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<span class=\'fs-5\'>📰</span>';">
+                                                                    <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\'fa-solid fa-newspaper text-muted fs-5\'></i>';">
                                                                 @else
-                                                                    <span class="fs-5">📰</span>
+                                                                    <i class="fa-solid fa-newspaper text-muted fs-5"></i>
                                                                 @endif
                                                             </div>
                                                             <div class="flex-grow-1 min-w-0">
@@ -480,7 +480,7 @@
                                 </div>
                             @empty
                                 <div class="col-12 w-100 text-center py-5">
-                                    <div class="fs-1 text-muted mb-2 opacity-50">📖</div>
+                                    <div class="fs-1 text-muted mb-2 opacity-50"><i class="fa-solid fa-book-open"></i></div>
                                     <h5 class="fw-bold text-dark mb-1">এই ক্যাটাগরিতে কোনো বই পাওয়া যায়নি</h5>
                                     <p class="text-muted small mb-3">শীঘ্রই এই বিষয়ে নতুন বই যুক্ত হবে। আপনি অন্যান্য বিষয় বা সকল বই দেখতে পারেন।</p>
                                     <a href="{{ route('book.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">সকল বই দেখুন</a>

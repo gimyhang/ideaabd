@@ -18,19 +18,22 @@
 @section('og_url', url('/webzines'))
 
 @section('schema_json')
+@php
+    $webzineIndexSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'CollectionPage',
+        'name' => $pageTitle,
+        'description' => $pageDesc,
+        'url' => url('/webzines'),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $siteName,
+            'url' => 'https://www.ideaabd.com',
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "CollectionPage",
-  "name": @json($pageTitle),
-  "description": @json($pageDesc),
-  "url": @json(url('/webzines')),
-  "publisher": {
-    "@@type": "Organization",
-    "name": @json($siteName),
-    "url": "https://www.ideaabd.com"
-  }
-}
+{!! json_encode($webzineIndexSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

@@ -63,7 +63,9 @@ class SeoHelper
 
         // Structured Data (JSON-LD)
         if (!empty($seo->schema_json)) {
-            $json = json_encode($seo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+            $json = is_array($seo->schema_json)
+                ? json_encode($seo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT)
+                : $seo->schema_json;
             $html .= "<script type=\"application/ld+json\">\n{$json}\n</script>\n";
         }
 

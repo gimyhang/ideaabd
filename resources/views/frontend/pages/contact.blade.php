@@ -26,37 +26,40 @@
 @section('og_url', url('/contact'))
 
 @section('schema_json')
+@php
+    $contactSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ContactPage',
+        'name' => $pageTitle,
+        'description' => $pageDesc,
+        'url' => url('/contact'),
+        'mainEntity' => [
+            '@type' => 'Organization',
+            'name' => $siteName,
+            'url' => 'https://www.ideaabd.com',
+            'logo' => \App\Support\SiteSetting::logoUrl() ?: asset('images/logo.svg'),
+            'telephone' => $helplinePhone,
+            'email' => $helplineEmail,
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $officeAddress,
+                'addressLocality' => 'Rangpur / Dhaka',
+                'addressCountry' => 'BD',
+            ],
+            'contactPoint' => [
+                [
+                    '@type' => 'ContactPoint',
+                    'telephone' => $helplinePhone,
+                    'contactType' => 'customer service',
+                    'availableLanguage' => ['Bengali', 'English'],
+                    'areaServed' => 'BD',
+                ]
+            ],
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "ContactPage",
-  "name": @json($pageTitle),
-  "description": @json($pageDesc),
-  "url": @json(url('/contact')),
-  "mainEntity": {
-    "@@type": "Organization",
-    "name": @json($siteName),
-    "url": "https://www.ideaabd.com",
-    "logo": @json(\App\Support\SiteSetting::logoUrl() ?: asset('images/logo.svg')),
-    "telephone": @json($helplinePhone),
-    "email": @json($helplineEmail),
-    "address": {
-      "@@type": "PostalAddress",
-      "streetAddress": @json($officeAddress),
-      "addressLocality": "Rangpur / Dhaka",
-      "addressCountry": "BD"
-    },
-    "contactPoint": [
-      {
-        "@@type": "ContactPoint",
-        "telephone": @json($helplinePhone),
-        "contactType": "customer service",
-        "availableLanguage": ["Bengali", "English"],
-        "areaServed": "BD"
-      }
-    ]
-  }
-}
+{!! json_encode($contactSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

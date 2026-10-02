@@ -16,31 +16,38 @@
 @section('og_url', url('/pathagar'))
 
 @section('schema_json')
+@php
+    $librarySchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Event',
+        'name' => $libTitle,
+        'description' => Str::limit(strip_tags($libDesc), 300),
+        'image' => $libCover,
+        'url' => url('/pathagar'),
+        'startDate' => date('c'),
+        'endDate' => date('c', strtotime('+60 days')),
+        'eventStatus' => 'https://schema.org/EventScheduled',
+        'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
+        'location' => [
+            '@type' => 'VirtualLocation',
+            'url' => url('/pathagar'),
+        ],
+        'organizer' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => url('/pathagar'),
+            'price' => '0',
+            'priceCurrency' => 'BDT',
+            'availability' => 'https://schema.org/InStock',
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Event",
-  "name": @json($libTitle),
-  "description": @json(Str::limit(strip_tags($libDesc), 300)),
-  "image": @json($libCover),
-  "url": @json(url('/pathagar')),
-  "startDate": "{{ date('c') }}",
-  "endDate": "{{ date('c', strtotime('+60 days')) }}",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-  "organizer": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "offers": {
-    "@@type": "Offer",
-    "url": @json(url('/pathagar')),
-    "price": "0",
-    "priceCurrency": "BDT",
-    "availability": "https://schema.org/InStock"
-  }
-}
+{!! json_encode($librarySchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

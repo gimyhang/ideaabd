@@ -16,31 +16,38 @@
 @section('og_url', url('/scholarship'))
 
 @section('schema_json')
+@php
+    $scholarshipSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Event',
+        'name' => $eventTitle,
+        'description' => Str::limit(strip_tags($eventDesc), 300),
+        'image' => $eventCover,
+        'url' => url('/scholarship'),
+        'startDate' => optional($campaign->starts_at)->toIso8601String() ?: date('c'),
+        'endDate' => optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')),
+        'eventStatus' => 'https://schema.org/EventScheduled',
+        'eventAttendanceMode' => 'https://schema.org/OnlineEventAttendanceMode',
+        'location' => [
+            '@type' => 'VirtualLocation',
+            'url' => url('/scholarship'),
+        ],
+        'organizer' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => url('/scholarship'),
+            'price' => '0',
+            'priceCurrency' => 'BDT',
+            'availability' => 'https://schema.org/InStock',
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Event",
-  "name": @json($eventTitle),
-  "description": @json(Str::limit(strip_tags($eventDesc), 300)),
-  "image": @json($eventCover),
-  "url": @json(url('/scholarship')),
-  "startDate": "{{ optional($campaign->starts_at)->toIso8601String() ?: date('c') }}",
-  "endDate": "{{ optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')) }}",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
-  "organizer": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "offers": {
-    "@@type": "Offer",
-    "url": @json(url('/scholarship')),
-    "price": "0",
-    "priceCurrency": "BDT",
-    "availability": "https://schema.org/InStock"
-  }
-}
+{!! json_encode($scholarshipSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

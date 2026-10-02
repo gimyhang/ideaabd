@@ -40,36 +40,39 @@
 @section('og_url', route('blog.show', $post->slug))
 
 @section('schema_json')
+@php
+    $blogSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BlogPosting',
+        'headline' => $post->title,
+        'name' => $post->title,
+        'description' => Str::limit(strip_tags($ogDesc ?: $post->title), 300),
+        'image' => $ogCover,
+        'url' => route('blog.show', $post->slug),
+        'datePublished' => optional($post->created_at)->toIso8601String() ?: date('c'),
+        'dateModified' => optional($post->updated_at)->toIso8601String() ?: date('c'),
+        'author' => [
+            '@type' => 'Person',
+            'name' => $ogAuthor,
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+            'logo' => [
+                '@type' => 'ImageObject',
+                'url' => asset('images/logo.png'),
+            ],
+        ],
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id' => route('blog.show', $post->slug),
+        ],
+        'inLanguage' => 'bn',
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "BlogPosting",
-  "headline": @json($post->title),
-  "name": @json($post->title),
-  "description": @json(Str::limit(strip_tags($ogDesc ?: $post->title), 300)),
-  "image": @json($ogCover),
-  "url": @json(route('blog.show', $post->slug)),
-  "datePublished": "{{ optional($post->created_at)->toIso8601String() ?: date('c') }}",
-  "dateModified": "{{ optional($post->updated_at)->toIso8601String() ?: date('c') }}",
-  "author": {
-    "@@type": "Person",
-    "name": @json($ogAuthor)
-  },
-  "publisher": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com",
-    "logo": {
-      "@@type": "ImageObject",
-      "url": "{{ asset('images/logo.png') }}"
-    }
-  },
-  "mainEntityOfPage": {
-    "@@type": "WebPage",
-    "@@id": @json(route('blog.show', $post->slug))
-  },
-  "inLanguage": "bn"
-}
+{!! json_encode($blogSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 
@@ -779,7 +782,7 @@
                 <div class="print-header d-none">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-2">
-                            <span style="font-size: 1.5rem; font-weight: bold; color: #0c4a6e; font-family: serif;">📖 {{ \App\Support\SiteSetting::name() }}</span>
+                            <span style="font-size: 1.5rem; font-weight: bold; color: #0c4a6e; font-family: serif;"><i class="fa-solid fa-book-open me-1"></i> {{ \App\Support\SiteSetting::name() }}</span>
                             <span style="font-size: 0.95rem; color: #555; border-left: 2px solid #ccc; padding-left: 10px;">{{ \App\Support\SiteSetting::tagline() }}</span>
                         </div>
                         <div class="text-end" style="font-size: 0.8rem; color: #666;">
@@ -1356,7 +1359,7 @@
                                     @if($rImg)
                                         <img src="{{ str_starts_with($rImg, 'http') ? $rImg : (str_starts_with($rImg, 'storage/') ? asset($rImg) : asset('storage/' . $rImg)) }}" class="w-100 h-100 object-fit-cover">
                                     @else
-                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted">📚</div>
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-book-open"></i></div>
                                     @endif
                                 </div>
                                 <h6 class="fw-bold text-dark line-clamp-2 mb-1" style="font-size: 0.9rem; line-height: 1.3;">{{ $rel->title }}</h6>
@@ -1452,7 +1455,7 @@
                                         @if($sImg)
                                             <img src="{{ str_starts_with($sImg, 'http') ? $sImg : (str_starts_with($sImg, 'storage/') ? asset($sImg) : asset('storage/' . $sImg)) }}" class="w-100 h-100 object-fit-cover" alt="{{ $sPost->title }}">
                                         @else
-                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="font-size: 0.85rem;">📖</div>
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted" style="font-size: 0.85rem;"><i class="fa-solid fa-book-open"></i></div>
                                         @endif
                                     </div>
                                     <div class="sidebar-recent-info">

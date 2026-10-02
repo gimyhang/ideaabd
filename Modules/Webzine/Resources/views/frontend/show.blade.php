@@ -14,22 +14,25 @@
 @section('og_url', route('webzine.show', $webzine->slug ?: $webzine->id))
 
 @section('schema_json')
+@php
+    $webzineSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Periodical',
+        'name' => $webzine->title,
+        'headline' => $webzine->title . ' — আইডিয়া ওয়েবজিন',
+        'description' => Str::limit(strip_tags($wzDesc), 300),
+        'image' => $coverUrl,
+        'url' => route('webzine.show', $webzine->slug ?: $webzine->id),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+        'inLanguage' => 'bn',
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Periodical",
-  "name": @json($webzine->title),
-  "headline": @json($webzine->title . ' — আইডিয়া ওয়েবজিন'),
-  "description": @json(Str::limit(strip_tags($wzDesc), 300)),
-  "image": @json($coverUrl),
-  "url": @json(route('webzine.show', $webzine->slug ?: $webzine->id)),
-  "publisher": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "inLanguage": "bn"
-}
+{!! json_encode($webzineSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 <div class="container py-4 mb-5">

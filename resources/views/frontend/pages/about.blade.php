@@ -19,24 +19,27 @@
 @section('og_url', url('/about'))
 
 @section('schema_json')
+@php
+    $aboutSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'AboutPage',
+        'name' => $pageTitle,
+        'description' => $pageDesc,
+        'url' => url('/about'),
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $siteName,
+            'url' => 'https://www.ideaabd.com',
+            'founder' => [
+                '@type' => 'Person',
+                'name' => $about['publisher_name'] ?? 'সাকিল মাসুদ',
+                'jobTitle' => $about['publisher_role'] ?? 'সিইও ও প্রকাশক',
+            ],
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{!! json_encode([
-    '@context' => 'https://schema.org',
-    '@type' => 'AboutPage',
-    'name' => $pageTitle,
-    'description' => $pageDesc,
-    'url' => url('/about'),
-    'publisher' => [
-        '@type' => 'Organization',
-        'name' => $siteName,
-        'url' => 'https://www.ideaabd.com',
-        'founder' => [
-            '@type' => 'Person',
-            'name' => $about['publisher_name'] ?? 'সাকিল মাসুদ',
-            'jobTitle' => $about['publisher_role'] ?? 'সিইও ও প্রকাশক',
-        ]
-    ]
-], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($aboutSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

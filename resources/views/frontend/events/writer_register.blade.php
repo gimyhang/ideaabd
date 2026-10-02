@@ -18,40 +18,43 @@
 @section('og_url', url('/rsu-writer-2026'))
 
 @section('schema_json')
+@php
+    $writerEventSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Event',
+        'name' => $campaign->title,
+        'description' => Str::limit(strip_tags($eventDesc), 300),
+        'image' => $eventCover,
+        'url' => url('/rsu-writer-2026'),
+        'startDate' => optional($campaign->starts_at)->toIso8601String() ?: date('c'),
+        'endDate' => optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')),
+        'eventStatus' => 'https://schema.org/EventScheduled',
+        'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+        'location' => [
+            '@type' => 'Place',
+            'name' => 'আইডিয়া প্রকাশন সম্মেলন কেন্দ্র',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressLocality' => 'ঢাকা',
+                'addressCountry' => 'BD',
+            ],
+        ],
+        'organizer' => [
+            '@type' => 'Organization',
+            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'url' => 'https://www.ideaabd.com',
+        ],
+        'offers' => [
+            '@type' => 'Offer',
+            'url' => url('/rsu-writer-2026'),
+            'price' => (string) ($campaign->has_fee_or_donation ? ($campaign->fee_amount ?: 0) : 0),
+            'priceCurrency' => 'BDT',
+            'availability' => 'https://schema.org/InStock',
+        ],
+    ];
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Event",
-  "name": @json($campaign->title),
-  "description": @json(Str::limit(strip_tags($eventDesc), 300)),
-  "image": @json($eventCover),
-  "url": @json(url('/rsu-writer-2026')),
-  "startDate": "{{ optional($campaign->starts_at)->toIso8601String() ?: date('c') }}",
-  "endDate": "{{ optional($campaign->ends_at)->toIso8601String() ?: date('c', strtotime('+30 days')) }}",
-  "eventStatus": "https://schema.org/EventScheduled",
-  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-  "location": {
-    "@@type": "Place",
-    "name": "আইডিয়া প্রকাশন সম্মেলন কেন্দ্র",
-    "address": {
-      "@@type": "PostalAddress",
-      "addressLocality": "ঢাকা",
-      "addressCountry": "BD"
-    }
-  },
-  "organizer": {
-    "@@type": "Organization",
-    "name": "আইডিয়া প্রকাশন (Idea Publication)",
-    "url": "https://www.ideaabd.com"
-  },
-  "offers": {
-    "@@type": "Offer",
-    "url": @json(url('/rsu-writer-2026')),
-    "price": "{{ $campaign->has_fee_or_donation ? ($campaign->fee_amount ?: 0) : 0 }}",
-    "priceCurrency": "BDT",
-    "availability": "https://schema.org/InStock"
-  }
-}
+{!! json_encode($writerEventSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection
 

@@ -46,43 +46,52 @@
     <meta name="twitter:image" content="{{ $cover }}">
 @endpush
 
-@push('head')
+@section('schema_json')
+@php
+    $ebookSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Book',
+        'name' => $ebook->title,
+        'author' => [
+            '@type' => 'Person',
+            'name' => $authorName,
+        ],
+        'publisher' => [
+            '@type' => 'Organization',
+            'name' => $publisherName,
+        ],
+        'url' => route('ebook.show', $ebook->slug),
+        'image' => $cover,
+        'bookFormat' => 'https://schema.org/EBook',
+        'inLanguage' => 'bn',
+        'numberOfPages' => (int) $pageCount,
+        'description' => Str::limit(strip_tags($shortSynopsis ?: $ebook->title), 300),
+        'offers' => [
+            '@type' => 'Offer',
+            'price' => (string) $finalPrice,
+            'priceCurrency' => 'BDT',
+            'availability' => 'https://schema.org/InStock',
+            'url' => route('ebook.show', $ebook->slug),
+        ],
+    ];
+    if (!empty($ebook->isbn)) {
+        $ebookSchema['isbn'] = $ebook->isbn;
+    }
+    if ((int) $reviewCount > 0 && (float) $avgRating > 0) {
+        $ebookSchema['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'ratingValue' => (string) $avgRating,
+            'reviewCount' => (int) $reviewCount,
+            'bestRating' => '5',
+            'worstRating' => '1',
+        ];
+    }
+@endphp
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@@type": "Book",
-  "name": "{{ addslashes($ebook->title) }}",
-  "author": {
-    "@@type": "Person",
-    "name": "{{ addslashes($authorName) }}"
-  },
-  "publisher": {
-    "@@type": "Organization",
-    "name": "{{ addslashes($publisherName) }}"
-  },
-  "url": "{{ route('ebook.show', $ebook->slug) }}",
-  "image": "{{ $cover }}",
-  "bookFormat": "https://schema.org/EBook",
-  "inLanguage": "bn",
-  "numberOfPages": {{ $pageCount }},
-  "isbn": "{{ $ebook->isbn ?: 'N/A' }}",
-  "description": "{{ addslashes($shortSynopsis) }}",
-  "aggregateRating": {
-    "@@type": "AggregateRating",
-    "ratingValue": "{{ $avgRating }}",
-    "reviewCount": "{{ max(1, $reviewCount) }}",
-    "bestRating": "5",
-    "worstRating": "1"
-  },
-  "offers": {
-    "@@type": "Offer",
-    "price": "{{ $finalPrice }}",
-    "priceCurrency": "BDT",
-    "availability": "https://schema.org/InStock",
-    "url": "{{ route('ebook.show', $ebook->slug) }}"
-  }
-}
+{!! json_encode($ebookSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
 </script>
+@endsection
+@push('styles')
 <style>
 /* -------------------------------------------------------------
    MODERN E-BOOK SINGLE PAGE STYLES (Apple Books / Kindle Spec)
