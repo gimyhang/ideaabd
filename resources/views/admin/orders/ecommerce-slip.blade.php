@@ -37,11 +37,20 @@
     @endphp
 
     <style>
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
         }
-        body {
-            font-family: 'Inter', 'Kalpurush', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        body, table, input, button, select, textarea {
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
             background: #f1f5f9;
             margin: 0;
             padding: 24px 16px;

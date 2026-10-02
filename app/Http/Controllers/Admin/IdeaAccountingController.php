@@ -80,9 +80,9 @@ class IdeaAccountingController extends Controller
         $thisMonthNet = $thisMonthIncome - $thisMonthExpense;
 
         // Invoice stats overview
-        $totalInvoiced = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('grand_total');
-        $totalInvoicePaid = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('paid_amount');
-        $totalInvoiceDue = (float) IdeaInvoice::where('status', '!=', 'cancelled')->sum('due_amount');
+        $totalInvoiced = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total');
+        $totalInvoicePaid = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount');
+        $totalInvoiceDue = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount');
 
         $categories = IdeaAccountingEntry::categories();
 

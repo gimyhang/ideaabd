@@ -11,16 +11,42 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         body {
             background-color: #f1f5f9;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
             color: #1e293b;
             margin: 0;
             padding: 0;
+        }
+
+        .invoice-page-card,
+        .invoice-page-card *,
+        .invoice-table,
+        .invoice-table th,
+        .invoice-table td,
+        .colon-table,
+        .colon-table td,
+        .summary-table,
+        .summary-table td,
+        .destination-box,
+        .subject-reference-box,
+        .invoice-note-box,
+        .invoice-total-words-box {
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
         }
 
         .top-action-bar {
@@ -33,25 +59,163 @@
         }
 
         .invoice-page-card {
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            font-size: 10px;
+            font-size: 10.5px;
             color: #1e293b;
             min-height: 980px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding-left: 0.4in !important;
-            padding-right: 0.4in !important;
+            padding-left: 0.45in !important;
+            padding-right: 0.45in !important;
+            padding-top: 0.35in !important;
+            padding-bottom: 0.35in !important;
             background: #ffffff;
             box-sizing: border-box !important;
         }
 
-        .invoice-table th,
-        .invoice-table td {
-            padding: 5px 8px !important;
+        .destination-box,
+        .subject-reference-box {
+            box-sizing: border-box !important;
+            width: 100% !important;
+            padding: 14px 18px !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+        }
+
+        .subject-reference-box {
+            padding: 10px 18px !important;
+            margin-bottom: 12px !important;
+        }
+
+        .destination-box .col-client-info {
+            padding-right: 18px !important;
+            padding-left: 0 !important;
+            border-right: 1px solid #cbd5e1 !important;
+        }
+
+        .destination-box .col-order-info {
+            padding-left: 18px !important;
+            padding-right: 0 !important;
+        }
+
+        .colon-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .colon-table td {
+            padding: 3.5px 0 !important;
+            vertical-align: top;
+            line-height: 1.45;
+        }
+
+        .colon-table .colon-label {
+            color: #64748b;
+            white-space: nowrap;
+            font-size: 11px;
+            font-weight: 500;
+            padding-right: 8px !important;
+        }
+
+        .colon-table .colon-sep {
+            width: 14px;
+            text-align: center;
+            font-weight: 700;
+            color: #334155;
+            user-select: none;
+            padding: 0 4px !important;
+        }
+
+        .colon-table td:last-child {
+            padding-left: 4px !important;
+        }
+
+        .invoice-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .invoice-table th {
+            padding: 8px 10px !important;
             vertical-align: middle;
             line-height: 1.35;
+            font-size: 9.5px;
+            background-color: #f1f5f9 !important;
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        .invoice-table td {
+            padding: 7px 10px !important;
+            vertical-align: middle;
+            line-height: 1.4;
             font-size: 10px;
+            border: 1px solid #cbd5e1 !important;
+        }
+
+        .invoice-table th:first-child,
+        .invoice-table td:first-child {
+            padding-left: 12px !important;
+        }
+
+        .invoice-table th:last-child,
+        .invoice-table td:last-child {
+            padding-right: 12px !important;
+        }
+
+        .invoice-summary-container {
+            width: 100% !important;
+            margin-bottom: 12px !important;
+        }
+
+        .invoice-total-words-box {
+            padding: 14px 18px !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            box-sizing: border-box !important;
+        }
+
+        .invoice-summary-table-wrap {
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+        }
+
+        .summary-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .summary-table td {
+            padding: 6.5px 16px !important;
+            vertical-align: middle;
+            line-height: 1.4;
+        }
+
+        .summary-table tr td:first-child {
+            padding-left: 18px !important;
+        }
+
+        .summary-table tr td:last-child {
+            padding-right: 18px !important;
+            text-align: right;
+        }
+
+        .invoice-note-box {
+            padding: 12px 18px !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            font-size: 10px;
+            line-height: 1.45;
+            margin-bottom: 14px !important;
+            box-sizing: border-box !important;
         }
 
         .invoice-footer-compact {
@@ -92,32 +256,6 @@
         .invoice-signature-row .auth-sign-col {
             width: 28% !important;
             max-width: 28% !important;
-        }
-
-        .destination-box,
-        .subject-reference-box {
-            box-sizing: border-box !important;
-            width: 100% !important;
-        }
-
-        .colon-table td {
-            padding: 1.5px 0 !important;
-            vertical-align: top;
-        }
-
-        .colon-table .colon-label {
-            color: #64748b;
-            white-space: nowrap;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .colon-table .colon-sep {
-            width: 14px;
-            text-align: center;
-            font-weight: 700;
-            color: #334155;
-            user-select: none;
         }
 
         @media (min-width: 768px) {
@@ -252,6 +390,34 @@
                 margin-right: 0 !important;
                 box-sizing: border-box !important;
                 border-color: #cbd5e1 !important;
+                padding: 10px 14px !important;
+            }
+
+            .destination-box .col-client-info {
+                padding-right: 14px !important;
+                padding-left: 0 !important;
+                border-right: 1px solid #cbd5e1 !important;
+            }
+
+            .destination-box .col-order-info {
+                padding-left: 14px !important;
+                padding-right: 0 !important;
+            }
+
+            .colon-table td {
+                padding: 2.5px 0 !important;
+            }
+
+            .colon-table .colon-label {
+                padding-right: 6px !important;
+            }
+
+            .colon-table .colon-sep {
+                padding: 0 3px !important;
+            }
+
+            .colon-table td:last-child {
+                padding-left: 3px !important;
             }
 
             .table-responsive {
@@ -272,10 +438,20 @@
 
             .invoice-table th,
             .invoice-table td {
-                padding: 4px 6.5px !important;
+                padding: 5px 8px !important;
                 font-size: 9.5px !important;
-                line-height: 1.25 !important;
+                line-height: 1.3 !important;
                 border-color: #475569 !important;
+            }
+
+            .invoice-table th:first-child,
+            .invoice-table td:first-child {
+                padding-left: 10px !important;
+            }
+
+            .invoice-table th:last-child,
+            .invoice-table td:last-child {
+                padding-right: 10px !important;
             }
 
             .invoice-table thead th {
@@ -297,7 +473,30 @@
                 width: 100% !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-bottom: 6px !important;
+                margin-bottom: 8px !important;
+            }
+
+            .invoice-total-words-box {
+                padding: 10px 14px !important;
+                border-color: #cbd5e1 !important;
+            }
+
+            .summary-table td {
+                padding: 5px 12px !important;
+            }
+
+            .summary-table tr td:first-child {
+                padding-left: 14px !important;
+            }
+
+            .summary-table tr td:last-child {
+                padding-right: 14px !important;
+            }
+
+            .invoice-note-box {
+                padding: 8px 14px !important;
+                margin-bottom: 10px !important;
+                font-size: 9.5px !important;
             }
 
             .invoice-footer-compact {
@@ -517,7 +716,7 @@
 
                 {{-- Subject and Reference (for Bill, Challan, Tender & Quotation) --}}
                 @if($invoice->subject || $invoice->reference_no)
-                    <div class="p-2 bg-light rounded-2 border mb-2.5 subject-reference-box destination-box" style="font-size: 11px;">
+                    <div class="subject-reference-box destination-box bg-light rounded-2 border mb-2.5" style="font-size: 11px;">
                         <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                             @if($invoice->reference_no)
                                 <tr>
@@ -543,10 +742,10 @@
                 @endif
 
                 {{-- Customer & Billed To Info (Strict 2-Column Responsive Layout) --}}
-                <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                <div class="bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                     <div class="row g-2 align-items-start m-0">
                         {{-- Left Column: Client / Customer Information --}}
-                        <div class="col-7 col-print-7 p-0 pe-2.5 border-end">
+                        <div class="col-7 col-print-7 col-client-info border-end">
                             <div class="fw-bold text-dark mb-1" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.2px;"><i class="fa-solid fa-user-tag me-1.5 text-primary"></i>Client / Customer Information:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 @if($invoice->customer_name)
@@ -587,7 +786,7 @@
                             </table>
                         </div>
                         {{-- Right Column: ORDER & PAYMENT DETAILS --}}
-                        <div class="col-5 col-print-5 p-0 ps-2.5">
+                        <div class="col-5 col-print-5 col-order-info">
                             <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="fa-solid fa-file-invoice me-1.5 text-primary"></i>ORDER & PAYMENT DETAILS:</div>
                             <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                 <tr>
@@ -738,7 +937,7 @@
                     <div class="row g-2 align-items-stretch">
                         {{-- Left Column: Total in Words & Payment Status --}}
                         <div class="col-6 col-print-6 d-flex flex-column">
-                            <div class="p-2.5 bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
+                            <div class="invoice-total-words-box bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                                 <div>
                                     <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
                                         <i class="fas fa-coins me-1 text-primary"></i>Total in Words:
@@ -749,7 +948,7 @@
                                 </div>
 
                                 @if(in_array($invoice->type, ['invoice', 'challan']))
-                                    <div class="mt-2 pt-2 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 9.5px;">
+                                    <div class="mt-2.5 pt-2.5 border-top border-secondary-subtle d-flex align-items-center justify-content-between flex-wrap gap-1" style="font-size: 9.5px;">
                                         <span class="text-muted fw-semibold">
                                             <i class="fas fa-receipt me-1 text-secondary"></i>Payment Status:
                                         </span>
@@ -773,48 +972,48 @@
 
                         {{-- Right Column: Detailed Calculation Breakdown --}}
                         <div class="col-6 col-print-6 ms-auto">
-                            <div class="border rounded-2 overflow-hidden bg-white">
+                            <div class="invoice-summary-table-wrap border rounded-2 overflow-hidden bg-white">
                                 <table class="table table-sm table-borderless align-middle mb-0 summary-table" style="font-size: 10px;">
                                     <tbody>
                                         <tr class="border-bottom border-light">
-                                            <td class="py-1 px-2 text-muted fw-semibold">Subtotal:</td>
-                                            <td class="py-1 px-2 text-end fw-semibold text-dark font-monospace">৳{{ number_format($invoice->subtotal, 2) }}</td>
+                                            <td class="text-muted fw-semibold">Subtotal:</td>
+                                            <td class="text-end fw-semibold text-dark font-monospace">৳{{ number_format($invoice->subtotal, 2) }}</td>
                                         </tr>
                                         @if($invoice->discount > 0)
                                             <tr class="border-bottom border-light">
-                                                <td class="py-1 px-2 text-danger fw-semibold">
+                                                <td class="text-danger fw-semibold">
                                                     Special Discount @if($specialCommPercent > 0)<span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $specialCommPercent }}%</span>@endif:
                                                 </td>
-                                                <td class="py-1 px-2 text-end text-danger fw-semibold font-monospace">- ৳{{ number_format($invoice->discount, 2) }}</td>
+                                                <td class="text-end text-danger fw-semibold font-monospace">- ৳{{ number_format($invoice->discount, 2) }}</td>
                                             </tr>
                                         @endif
                                         @if(($invoice->previous_due ?? 0) > 0)
                                             <tr class="border-bottom border-warning-subtle table-warning bg-warning bg-opacity-10">
-                                                <td class="py-1 px-2 text-dark fw-bold">Previous Due:</td>
-                                                <td class="py-1 px-2 text-end text-dark fw-bold font-monospace">+ ৳{{ number_format($invoice->previous_due, 2) }}</td>
+                                                <td class="text-dark fw-bold">Previous Due:</td>
+                                                <td class="text-end text-dark fw-bold font-monospace">+ ৳{{ number_format($invoice->previous_due, 2) }}</td>
                                             </tr>
                                         @endif
                                         @if($invoice->tax > 0)
                                             <tr class="border-bottom border-light">
-                                                <td class="py-1 px-2 text-muted fw-semibold">VAT / Tax:</td>
-                                                <td class="py-1 px-2 text-end text-muted fw-semibold font-monospace">+ ৳{{ number_format($invoice->tax, 2) }}</td>
+                                                <td class="text-muted fw-semibold">VAT / Tax:</td>
+                                                <td class="text-end text-muted fw-semibold font-monospace">+ ৳{{ number_format($invoice->tax, 2) }}</td>
                                             </tr>
                                         @endif
                                         <tr class="bg-primary bg-opacity-10 border-top border-primary-subtle">
-                                            <td class="py-1.5 px-2 fw-bold text-dark" style="font-size: 11px;">Grand Total:</td>
-                                            <td class="py-1.5 px-2 text-end fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($invoice->grand_total, 2) }}</td>
+                                            <td class="fw-bold text-dark" style="font-size: 11px;">Grand Total:</td>
+                                            <td class="text-end fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($invoice->grand_total, 2) }}</td>
                                         </tr>
                                         @if(in_array($invoice->type, ['invoice', 'challan']))
                                             @if($invoice->paid_amount > 0)
                                                 <tr class="border-top border-light">
-                                                    <td class="py-1 px-2 text-success fw-bold">Amount Paid:</td>
-                                                    <td class="py-1 px-2 text-end text-success fw-bold font-monospace">৳{{ number_format($invoice->paid_amount, 2) }}</td>
+                                                    <td class="text-success fw-bold">Amount Paid:</td>
+                                                    <td class="text-end text-success fw-bold font-monospace">৳{{ number_format($invoice->paid_amount, 2) }}</td>
                                                 </tr>
                                             @endif
                                             @if($invoice->due_amount > 0)
                                                 <tr class="table-danger bg-danger bg-opacity-10 border-top border-danger-subtle">
-                                                    <td class="py-1 px-2 text-danger fw-bold">Due Balance:</td>
-                                                    <td class="py-1 px-2 text-end text-danger fw-bold font-monospace">৳{{ number_format($invoice->due_amount, 2) }}</td>
+                                                    <td class="text-danger fw-bold">Due Balance:</td>
+                                                    <td class="text-end text-danger fw-bold font-monospace">৳{{ number_format($invoice->due_amount, 2) }}</td>
                                                 </tr>
                                             @endif
                                         @endif
@@ -826,7 +1025,7 @@
                 </div>
 
                 {{-- Note at end right before signature --}}
-                <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
+                <div class="invoice-note-box bg-light rounded-2 text-muted mb-3 border">
                     <strong class="text-dark"><i class="fas fa-circle-info me-1 text-primary"></i>(Note):</strong> 1. VAT not included unless specified.
                     @if($invoice->notes)
                         · {{ $invoice->notes }}
@@ -971,7 +1170,7 @@
 
                     {{-- Challan Subject and Reference --}}
                     @if($invoice->subject || $invoice->reference_no)
-                        <div class="p-1.5 bg-light rounded-2 border mb-2" style="font-size: 10px;">
+                        <div class="subject-reference-box destination-box bg-light rounded-2 border mb-2" style="font-size: 11px;">
                             @if($invoice->reference_no)
                                 <div class="text-muted mb-0.5">
                                     <strong class="text-dark">Challan Ref:</strong> 
@@ -987,10 +1186,10 @@
                     @endif
 
                     {{-- Delivery Destination & Client Details (Strict 2-Column Responsive Layout) --}}
-                    <div class="p-2.5 bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
+                    <div class="bg-light rounded-2 border mb-2.5 destination-box" style="font-size: 12px; box-sizing: border-box;">
                         <div class="row g-2 align-items-start m-0">
                             {{-- Left Column: Recipient & Destination --}}
-                            <div class="col-7 col-print-7 p-0 pe-2.5 border-end">
+                            <div class="col-7 col-print-7 col-client-info border-end">
                                 <div class="fw-bold text-dark mb-1 d-flex align-items-center justify-content-between" style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.2px;">
                                     <span><i class="fa-solid fa-truck-ramp-box me-1.5 text-primary"></i>Delivery Destination & Recipient:</span>
                                 </div>
@@ -1033,7 +1232,7 @@
                                 </table>
                             </div>
                             {{-- Right Column: Challan Tracking & Dispatch Info --}}
-                            <div class="col-5 col-print-5 p-0 ps-2.5">
+                            <div class="col-5 col-print-5 col-order-info">
                                 <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.2px;"><i class="fa-solid fa-truck-fast me-1.5 text-primary"></i>Challan Tracking & Dispatch Info:</div>
                                 <table class="table-borderless p-0 m-0 w-100 colon-table" style="line-height: 1.45;">
                                     <tr>
@@ -1129,7 +1328,7 @@
                     </div>
 
                     {{-- Challan Notes --}}
-                    <div class="p-1.5 bg-light rounded-2 text-muted mb-3 border" style="font-size: 10px; line-height: 1.3;">
+                    <div class="invoice-note-box bg-light rounded-2 text-muted mb-3 border">
                         <strong class="text-dark"><i class="fas fa-circle-info me-1 text-success"></i>(Note):</strong> 1. Please verify the quantity and binding condition before signing receipt.
                         @if($invoice->notes)
                             · {{ $invoice->notes }}

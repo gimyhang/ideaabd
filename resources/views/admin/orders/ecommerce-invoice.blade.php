@@ -105,12 +105,21 @@
            MINIMALIST MONOCHROME COMMERCIAL INVOICE STYLESHEET
            সাদাকালো পরিচ্ছন্ন ডিজাইন ও সিঙ্গেল পেজ প্রিন্ট
            ══════════════════════════════════════════════════════════════════ */
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
         }
-        body {
-            font-family: 'Inter', 'Kalpurush', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #ffffff; /* সাদাকালো ক্লিন ব্যাকগ্রাউন্ড */
+        body, table, input, button, select, textarea {
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            background-color: #ffffff;
             color: #000000;
             font-size: 12.5px;
             line-height: 1.4;
