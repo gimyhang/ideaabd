@@ -482,6 +482,7 @@ class LibraryRegistrationAdminController extends Controller
                 'Reg No', 'Library Name', 'Type', 'Govt Reg No', 'Est Year', 'Representative Name', 'Designation', 'Phone', 'Email',
                 'President Name', 'President Phone', 'Secretary Name', 'Secretary Phone',
                 'Division', 'District', 'Thana', 'Address', 'Readers Count', 'Current Books',
+                'Previous Books Received', 'Previous Grant Year', 'Previous Books Count',
                 'Books Allocated', 'Dispatched Date', 'Tracking No',
                 'Received Books', 'Received Date', 'Acknowledgment Status', 'Approval Status', 'Registered Date'
             ]);
@@ -508,6 +509,9 @@ class LibraryRegistrationAdminController extends Controller
                     $lib->address,
                     $fd['reader_count'] ?? '',
                     $fd['current_book_count'] ?? '',
+                    $lib->has_previous_books ?: ($fd['has_previous_books'] ?? 'না'),
+                    $lib->previous_books_year ?: ($fd['previous_books_year'] ?? ''),
+                    $lib->previous_books_count ?: ($fd['previous_books_count'] ?? ''),
                     $fd['books_allocated'] ?? '0',
                     $fd['dispatched_date'] ?? '',
                     $fd['dispatch_tracking_no'] ?? '',

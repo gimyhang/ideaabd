@@ -426,10 +426,24 @@
                             {{-- Readers / Current Books --}}
                             <td>
                                 <div class="small">
-                                    <span class="text-muted">Readers:</span> <span class="fw-semibold text-dark">{{ $fd['reader_count'] ?? '—' }}</span>
+                                    <span class="text-muted">পাঠক:</span> <span class="fw-semibold text-dark">{{ $fd['reader_count'] ?? '—' }}</span>
                                 </div>
                                 <div class="small text-muted" style="font-size: 11.5px;">
-                                    Current Books: <span class="fw-medium text-dark">{{ $fd['current_book_count'] ?? '—' }}</span>
+                                    বর্তমান বই: <span class="fw-medium text-dark">{{ $fd['current_book_count'] ?? '—' }}</span>
+                                </div>
+                                @php
+                                    $hasPrev = ($fd['has_previous_books'] ?? '') === 'হ্যাঁ' || ($fd['has_previous_books'] ?? '') === 'yes' || (!empty($lib->has_previous_books) && $lib->has_previous_books !== 'না');
+                                @endphp
+                                <div class="mt-1">
+                                    @if($hasPrev)
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5" style="font-size: 10px;" title="ইতোপূর্বে বই প্রাপ্ত পাঠাগার">
+                                            পূর্বের বই: <strong>{{ $fd['previous_books_count'] ?? ($lib->previous_books_count ?? '—') }}</strong> টি ({{ $fd['previous_books_year'] ?? ($lib->previous_books_year ?? '') }})
+                                        </span>
+                                    @else
+                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">
+                                            পূর্বে বই পায়নি
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
 
@@ -1202,6 +1216,11 @@ function openDetailsModal(lib) {
                     <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-book-bookmark me-1"></i> Statistics & Requirements</h6>
                     <div class="small mb-1"><strong>Reader Count:</strong> ${fd.reader_count || '—'}</div>
                     <div class="small mb-1"><strong>Current Books:</strong> ${fd.current_book_count || '—'}</div>
+                    <div class="small mb-1"><strong>পূর্বে বই পেয়েছে কিনা:</strong> ${lib.has_previous_books || fd.has_previous_books || 'না'}</div>
+                    ${(lib.has_previous_books === 'হ্যাঁ' || fd.has_previous_books === 'হ্যাঁ') ? `
+                    <div class="small mb-1"><strong>সর্বশেষ প্রাপ্তির সাল:</strong> <span class="fw-semibold text-success">${lib.previous_books_year || fd.previous_books_year || '—'}</span></div>
+                    <div class="small mb-1"><strong>মোট প্রাপ্ত বইয়ের সংখ্যা:</strong> <span class="fw-bold text-success">${lib.previous_books_count || fd.previous_books_count || '০'} টি</span></div>
+                    ` : ''}
                     <div class="small mb-1"><strong>Preferred Subjects:</strong> <span class="text-secondary">${genres}</span></div>
                     <div class="small"><strong>Delivery Method:</strong> ${fd.delivery_method || 'Direct'}</div>
                 </div>

@@ -453,7 +453,7 @@
                                 <div class="lib-col-12">
                                     <div class="lib-field-group">
                                         <label class="lib-field-label">
-                                            <span><i class="fa-solid fa-landmark text-success me-1"></i> পাঠাগারের পূর্ণ নাম <span class="text-danger">*</span></span>
+                                            <span>১. পাঠাগারের পূর্ণ নাম <span class="text-danger">*</span></span>
                                         </label>
                                         <input type="text" name="institution_or_org" class="lib-input" placeholder="পাঠাগারের পূর্ণ নাম লিখুন" value="{{ old('institution_or_org') }}" required autocomplete="off">
                                     </div>
@@ -461,7 +461,7 @@
                                 <div class="lib-col-12">
                                     <div class="lib-field-group">
                                         <label class="lib-field-label">
-                                            <span><i class="fa-solid fa-shapes text-success me-1"></i> পাঠাগারের ধরন <span class="text-danger">*</span></span>
+                                            <span>২. পাঠাগারের ধরন <span class="text-danger">*</span></span>
                                         </label>
                                         <select name="library_type" class="lib-select" required>
                                             <option value="গণপাঠাগার / পাবলিক লাইব্রেরি" {{ old('library_type') === 'গণপাঠাগার / পাবলিক লাইব্রেরি' || old('library_type') === 'Public / Community Library' ? 'selected' : '' }}>গণপাঠাগার / পাবলিক লাইব্রেরি</option>
@@ -477,7 +477,7 @@
                                 <div class="lib-col-6">
                                     <div class="lib-field-group">
                                         <label class="lib-field-label">
-                                            <span><i class="fa-solid fa-id-card text-success me-1"></i> সরকারি / গ্রন্থকেন্দ্র নিবন্ধন নম্বর</span>
+                                            <span>৩. সরকারি / গ্রন্থকেন্দ্র নিবন্ধন নম্বর</span>
                                         </label>
                                         <input type="text" name="reg_no" class="lib-input" placeholder="নিবন্ধন নম্বর লিখুন (যদি থাকে)" value="{{ old('reg_no') }}">
                                     </div>
@@ -485,7 +485,7 @@
                                 <div class="lib-col-6">
                                     <div class="lib-field-group">
                                         <label class="lib-field-label">
-                                            <span><i class="fa-solid fa-calendar-days text-success me-1"></i> প্রতিষ্ঠা সাল</span>
+                                            <span>৪. প্রতিষ্ঠা সাল</span>
                                         </label>
                                         <input type="text" name="established_year" class="lib-input font-monospace" placeholder="যেমন: ২০১৮" value="{{ old('established_year') }}">
                                     </div>
@@ -497,7 +497,7 @@
                         <div class="lib-col-4">
                             <div class="lib-photo-card">
                                 <label class="lib-field-label mb-2 text-center">
-                                    <span><i class="fa-solid fa-camera text-success me-1"></i> পাঠাগারের ছবি / সাইনবোর্ড</span>
+                                    <span>৫. পাঠাগারের ছবি / সাইনবোর্ড</span>
                                 </label>
                                 <div class="lib-photo-box" id="libPhotoBox" title="ছবি নির্বাচন বা ড্রপ করুন">
                                     <button type="button" class="lib-photo-remove" id="libPhotoRemove" title="ছবি বাদ দিন">
@@ -528,7 +528,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-user-pen text-success me-1"></i> প্রতিনিধির নাম <span class="text-danger">*</span></span>
+                                    <span>৬. প্রতিনিধির নাম <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="name" class="lib-input" placeholder="আবেদনকারী প্রতিনিধির পূর্ণ নাম" value="{{ old('name', auth()->user()?->name) }}" required>
                             </div>
@@ -536,7 +536,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-briefcase text-success me-1"></i> পদবি <span class="text-danger">*</span></span>
+                                    <span>৭. পদবি <span class="text-danger">*</span></span>
                                 </label>
                                 <select name="designation_or_class" class="lib-select" required>
                                     <option value="সাধারণ সম্পাদক" {{ old('designation_or_class') === 'সাধারণ সম্পাদক' || old('designation_or_class') === 'General Secretary' ? 'selected' : '' }}>সাধারণ সম্পাদক</option>
@@ -551,7 +551,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-phone text-success me-1"></i> মোবাইল নম্বর <span class="text-danger">*</span></span>
+                                    <span>৮. মোবাইল নম্বর <span class="text-danger">*</span></span>
                                 </label>
                                 <div class="lib-phone-group d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
                                     <select name="country_code" id="libCountryCodeSelect" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;">
@@ -564,7 +564,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-mobile-screen-button text-success me-1"></i> বিকল্প মোবাইল নম্বর</span>
+                                    <span>৯. বিকল্প মোবাইল নম্বর</span>
                                 </label>
                                 <div class="lib-phone-group d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
                                     <select name="guardian_country_code" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;">
@@ -577,7 +577,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-envelope text-success me-1"></i> ইমেইল ঠিকানা</span>
+                                    <span>১০. ইমেইল ঠিকানা</span>
                                 </label>
                                 <input type="email" name="email" class="lib-input" placeholder="library@example.com" value="{{ old('email', auth()->user()?->email) }}">
                             </div>
@@ -585,7 +585,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-address-card text-success me-1"></i> জাতীয় পরিচয়পত্র (NID) নম্বর</span>
+                                    <span>১১. জাতীয় পরিচয়পত্র (NID) নম্বর</span>
                                 </label>
                                 <input type="text" name="nid" class="lib-input font-monospace" placeholder="জাতীয় পরিচয়পত্র নম্বর" value="{{ old('nid') }}">
                             </div>
@@ -593,15 +593,14 @@
 
                         {{-- পরিচালনা কমিটির তথ্য --}}
                         <div class="lib-col-12 mt-2 pt-2 border-top">
-                            <div class="d-flex align-items-center gap-1.5 text-success fw-bold small mb-2">
-                                <i class="fa-solid fa-users-gear"></i>
-                                <span>পরিচালনা কমিটি <span class="text-danger">*</span>:</span>
+                            <div class="fw-bold small mb-2 text-dark">
+                                <span>১২. পরিচালনা কমিটির তথ্য <span class="text-danger">*</span>:</span>
                             </div>
                         </div>
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-user-check text-success me-1"></i> সভাপতির নাম <span class="text-danger">*</span></span>
+                                    <span>১২(ক). সভাপতির নাম <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="president_name" class="lib-input" placeholder="সভাপতির নাম লিখুন" value="{{ old('president_name') }}" required>
                             </div>
@@ -609,7 +608,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-phone text-success me-1"></i> সভাপতির মোবাইল নম্বর <span class="text-danger">*</span></span>
+                                    <span>১২(খ). সভাপতির মোবাইল নম্বর <span class="text-danger">*</span></span>
                                 </label>
                                 <div class="lib-phone-group d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
                                     <select name="president_country_code" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;">
@@ -622,7 +621,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-user-pen text-success me-1"></i> সাধারণ সম্পাদকের নাম <span class="text-danger">*</span></span>
+                                    <span>১২(গ). সাধারণ সম্পাদকের নাম <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="secretary_name" class="lib-input" placeholder="সাধারণ সম্পাদকের নাম লিখুন" value="{{ old('secretary_name') }}" required>
                             </div>
@@ -630,7 +629,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-phone text-success me-1"></i> সাধারণ সম্পাদকের মোবাইল নম্বর <span class="text-danger">*</span></span>
+                                    <span>১২(ঘ). সাধারণ সম্পাদকের মোবাইল নম্বর <span class="text-danger">*</span></span>
                                 </label>
                                 <div class="lib-phone-group d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
                                     <select name="secretary_country_code" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;">
@@ -655,7 +654,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-earth-asia text-success me-1"></i> বিভাগ <span class="text-danger">*</span></span>
+                                    <span>১৩. বিভাগ <span class="text-danger">*</span></span>
                                 </label>
                                 <select name="division" id="libDivision" class="lib-select" data-old="{{ old('division') }}" required>
                                     <option value="">-- বিভাগ নির্বাচন করুন --</option>
@@ -665,7 +664,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-city text-success me-1"></i> জেলা <span class="text-danger">*</span></span>
+                                    <span>১৪. জেলা <span class="text-danger">*</span></span>
                                 </label>
                                 <select name="district" id="libDistrict" class="lib-select" data-old="{{ old('district') }}" required>
                                     <option value="">-- প্রথমে বিভাগ নির্বাচন করুন --</option>
@@ -675,7 +674,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-location-crosshairs text-success me-1"></i> উপজেলা / থানা <span class="text-danger">*</span></span>
+                                    <span>১৫. উপজেলা / থানা <span class="text-danger">*</span></span>
                                 </label>
                                 <select name="thana" id="libThana" class="lib-select" data-old="{{ old('thana') }}" required>
                                     <option value="">-- প্রথমে জেলা নির্বাচন করুন --</option>
@@ -685,7 +684,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-house-chimney text-success me-1"></i> ইউনিয়ন / গ্রাম / এলাকা <span class="text-danger">*</span></span>
+                                    <span>১৬. ইউনিয়ন / গ্রাম / এলাকা <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="perm_village" class="lib-input" placeholder="গ্রাম / ওয়ার্ড / রোড নম্বর" value="{{ old('perm_village') }}" required>
                             </div>
@@ -693,7 +692,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-envelopes-bulk text-success me-1"></i> ডাকঘর ও পোস্ট কোড <span class="text-danger">*</span></span>
+                                    <span>১৭. ডাকঘর ও পোস্ট কোড <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="perm_post_office" class="lib-input" placeholder="যেমন: ডাকঘর - ৫৪০০" value="{{ old('perm_post_office') }}" required>
                             </div>
@@ -701,7 +700,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-map-pin text-success me-1"></i> পূর্ণ পার্সেল ডাক ঠিকানা <span class="text-danger">*</span></span>
+                                    <span>১৮. পূর্ণ পার্সেল ডাক ঠিকানা <span class="text-danger">*</span></span>
                                 </label>
                                 <input type="text" name="library_address" class="lib-input" placeholder="বই পার্সেল গ্রহণের পূর্ণ ডাক ঠিকানা" value="{{ old('library_address') }}" required>
                             </div>
@@ -721,7 +720,7 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-book-bookmark text-success me-1"></i> পাঠাগারের বর্তমান বই সংখ্যা</span>
+                                    <span>১৯. পাঠাগারের বর্তমান বই সংখ্যা</span>
                                 </label>
                                 <input type="text" name="current_book_count" class="lib-input font-monospace" placeholder="যেমন: ৫০০" value="{{ old('current_book_count') }}">
                             </div>
@@ -729,17 +728,62 @@
                         <div class="lib-col-6">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-users text-success me-1"></i> নিয়মিত পাঠক / সদস্য সংখ্যা</span>
+                                    <span>২০. নিয়মিত পাঠক / সদস্য সংখ্যা</span>
                                 </label>
                                 <input type="text" name="reader_count" class="lib-input font-monospace" placeholder="যেমন: ১২০" value="{{ old('reader_count') }}">
                             </div>
                         </div>
+
+                        {{-- ইতোপূর্বে আইডিয়া পাঠাগার থেকে বই পেয়েছেন কিনা ও বিবরণ --}}
+                        <div class="lib-col-12">
+                            <div class="lib-field-group p-3 rounded-3" style="background: #f8fafc; border: 1.5px solid #cbd5e1;">
+                                <label class="lib-field-label mb-2">
+                                    <span class="fw-bold text-dark">২১. ইতোপূর্বে আইডিয়া পাঠাগার থেকে বই পেয়েছেন কিনা? <span class="text-danger">*</span></span>
+                                </label>
+                                @php
+                                    $hasPrevBooksVal = old('has_previous_books', 'না');
+                                @endphp
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <label class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 border bg-white cursor-pointer fw-semibold text-dark shadow-xs" style="cursor: pointer;">
+                                        <input type="radio" name="has_previous_books" value="না" {{ $hasPrevBooksVal !== 'হ্যাঁ' ? 'checked' : '' }} onchange="togglePreviousBooksFields(this.value)">
+                                        <span>না (নতুন আবেদন)</span>
+                                    </label>
+                                    <label class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 border bg-white cursor-pointer fw-semibold text-dark shadow-xs" style="cursor: pointer;">
+                                        <input type="radio" name="has_previous_books" value="হ্যাঁ" {{ $hasPrevBooksVal === 'হ্যাঁ' ? 'checked' : '' }} onchange="togglePreviousBooksFields(this.value)">
+                                        <span>হ্যাঁ (পূর্বে বই পেয়েছি)</span>
+                                    </label>
+                                </div>
+
+                                {{-- শর্তসাপেক্ষে ২২ ও ২৩ নম্বর প্রশ্ন --}}
+                                <div id="prevBooksDetailsWrap" class="mt-3 pt-3 border-top {{ $hasPrevBooksVal === 'হ্যাঁ' ? '' : 'd-none' }}">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="lib-field-group mb-0">
+                                                <label class="lib-field-label">
+                                                    <span>২২. সর্বশেষ কত সালে পেয়েছেন</span>
+                                                </label>
+                                                <input type="text" name="previous_books_year" id="prevBooksYearInput" class="lib-input font-monospace bg-white" placeholder="যেমন: ২০২৪" value="{{ old('previous_books_year') }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="lib-field-group mb-0">
+                                                <label class="lib-field-label">
+                                                    <span>২৩. মোট প্রাপ্ত বইয়ের সংখ্যা কত?</span>
+                                                </label>
+                                                <input type="text" name="previous_books_count" id="prevBooksCountInput" class="lib-input font-monospace bg-white" placeholder="যেমন: ৫০" value="{{ old('previous_books_count') }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="lib-col-12">
                             <div class="lib-field-group">
                                 <label class="lib-field-label">
-                                    <span><i class="fa-solid fa-truck-fast text-success me-1"></i> বই গ্রহণের মাধ্যম / কুরিয়ার</span>
+                                    <span>২৪. বই গ্রহণের মাধ্যম / কুরিয়ার <span class="text-danger">*</span></span>
                                 </label>
-                                <select name="delivery_method" class="lib-select">
+                                <select name="delivery_method" class="lib-select" required>
                                     <option value="সুন্দরবন কুরিয়ার সার্ভিস" {{ old('delivery_method') === 'সুন্দরবন কুরিয়ার সার্ভিস' ? 'selected' : '' }}>সুন্দরবন কুরিয়ার সার্ভিস</option>
                                     <option value="এসএ পরিবহন" {{ old('delivery_method') === 'এসএ পরিবহন' ? 'selected' : '' }}>এসএ পরিবহন</option>
                                     <option value="করতোয়া কুরিয়ার" {{ old('delivery_method') === 'করতোয়া কুরিয়ার' ? 'selected' : '' }}>করতোয়া কুরিয়ার</option>
@@ -752,7 +796,7 @@
                             <div class="lib-field-group">
                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                     <label class="lib-field-label mb-0">
-                                        <span><i class="fa-solid fa-tags text-success me-1"></i> প্রত্যাশিত বইয়ের বিষয়সমূহ</span>
+                                        <span>২৫. প্রত্যাশিত বইয়ের বিষয়সমূহ</span>
                                     </label>
                                     <span id="selectedGenreCount" class="badge bg-success-subtle text-success border border-success-subtle"></span>
                                 </div>
@@ -793,6 +837,9 @@
                 </div>
                 <div class="lib-form-body">
                     <div class="lib-field-group">
+                        <label class="lib-field-label">
+                            <span>২৬. অনুদানের প্রয়োজনীয়তা ও উদ্দেশ্য</span>
+                        </label>
                         <textarea name="scholarship_reason" id="reasonText" rows="3" class="lib-textarea" placeholder="আপনার পাঠাগারের বর্তমান কার্যক্রম এবং বিনামূল্যে বই অনুদানের প্রয়োজনীয়তা সংক্ষেপে লিখুন (সর্বোচ্চ ৮০ শব্দ)...">{{ old('scholarship_reason') }}</textarea>
                         <div id="wordLimitAlert" class="text-danger small mt-1 d-none font-monospace fw-bold">
                             <i class="fa-solid fa-triangle-exclamation me-1"></i> সতর্কবার্তা: ৮০ শব্দের সীমা অতিক্রম করেছে। অনুগ্রহ করে বিবরণটি সংক্ষিপ্ত করুন।
@@ -809,11 +856,17 @@
                 </div>
 
                 {{-- সেকশন ৬: অঙ্গীকারনামা ও সাবমিশন --}}
-                <div class="lib-submission-footer">
+                <div class="lib-section-head">
+                    <div class="sec-left">
+                        <span class="sec-icon-pill"><i class="fa-solid fa-shield-halved"></i></span>
+                        <span>৬. আবেদনকারীর অঙ্গীকারনামা ও সাবমিশন</span>
+                    </div>
+                </div>
+                <div class="lib-submission-footer mt-0">
                     <div>
                         <label for="agreeCheck" class="lib-declaration-check">
                             <input type="checkbox" id="agreeCheck" name="declaration_agreed" checked required>
-                            <span>আমি ঘোষণা করছি যে, উপরে প্রদত্ত সমস্ত তথ্য সম্পূর্ণ সত্য ও সঠিক। <span class="text-danger">*</span></span>
+                            <span>২৭. আমি ঘোষণা করছি যে, উপরে প্রদত্ত সমস্ত তথ্য সম্পূর্ণ সত্য ও সঠিক। <span class="text-danger">*</span></span>
                         </label>
                     </div>
 
@@ -844,6 +897,17 @@
                 result = result.replaceAll(bn[i], en[i]);
             }
             return result;
+        }
+
+        function togglePreviousBooksFields(val) {
+            const wrap = document.getElementById('prevBooksDetailsWrap');
+            if (!wrap) return;
+            if (val === 'হ্যাঁ') {
+                wrap.classList.remove('d-none');
+                document.getElementById('prevBooksYearInput')?.focus();
+            } else {
+                wrap.classList.add('d-none');
+            }
         }
 
         function switchAuthTab(tab, prefillPhone = '') {

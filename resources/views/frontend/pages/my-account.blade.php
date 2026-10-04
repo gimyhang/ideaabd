@@ -1335,6 +1335,14 @@
                                         <div class="d-flex align-items-center gap-2 flex-wrap small">
                                             <span class="badge bg-light text-secondary border">#{{ $reg->registration_number }}</span>
                                             <span class="text-muted">{{ $reg->district ?? '' }}{{ $reg->thana ? ', ' . $reg->thana : '' }}</span>
+                                            @php
+                                                $hasPrev = ($fd['has_previous_books'] ?? '') === 'হ্যাঁ' || ($fd['has_previous_books'] ?? '') === 'yes' || (!empty($reg->has_previous_books) && $reg->has_previous_books !== 'না');
+                                            @endphp
+                                            @if($hasPrev)
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                    ইতোপূর্বে বই প্রাপ্ত: {{ $fd['previous_books_count'] ?? ($reg->previous_books_count ?? '') }} টি ({{ $fd['previous_books_year'] ?? ($reg->previous_books_year ?? '') }})
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                     <div>

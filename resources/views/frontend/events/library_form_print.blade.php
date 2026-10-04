@@ -595,6 +595,28 @@
             <td class="th-label">কর্মসূচি সেশন:</td>
             <td class="td-val">{{ $grantSession }}</td>
         </tr>
+        <tr>
+            <td class="th-label">পূর্বে আইডিয়া বই প্রাপ্তি:</td>
+            <td class="td-val">
+                @php
+                    $prevRec = ($formData['has_previous_books'] ?? '') === 'হ্যাঁ' || ($formData['has_previous_books'] ?? '') === 'yes' || (!empty($registration->has_previous_books) && $registration->has_previous_books !== 'না');
+                @endphp
+                @if($prevRec)
+                    <strong style="color: #047857;">✔ হ্যাঁ (পূর্বে অনুদানপ্রাপ্ত)</strong>
+                @else
+                    <span>না (নতুন আবেদন)</span>
+                @endif
+            </td>
+            <td class="th-label">পূর্বের সাল ও বই সংখ্যা:</td>
+            <td class="td-val">
+                @if($prevRec)
+                    সাল: <strong>{{ $formData['previous_books_year'] ?? ($registration->previous_books_year ?? '—') }}</strong> | 
+                    মোট বই: <strong>{{ $formData['previous_books_count'] ?? ($registration->previous_books_count ?? '০') }} টি</strong>
+                @else
+                    প্রযোজ্য নয়
+                @endif
+            </td>
+        </tr>
     </table>
 
     {{-- ২. দায়িত্বপ্রাপ্ত প্রতিনিধি ও পরিচালনা কমিটির তথ্য --}}

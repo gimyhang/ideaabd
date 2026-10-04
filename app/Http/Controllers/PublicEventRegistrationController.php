@@ -215,12 +215,15 @@ class PublicEventRegistrationController extends Controller
         $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
 
         if ($isLibrary) {
-            $rules['institution_or_org'] = 'required|string|max:255';
-            $rules['president_name'] = 'required|string|max:255';
-            $rules['president_phone'] = 'required|string|max:30';
-            $rules['secretary_name'] = 'required|string|max:255';
-            $rules['secretary_phone'] = 'required|string|max:30';
-            $rules['delivery_method'] = 'required|string|max:255';
+            $rules['institution_or_org']   = 'required|string|max:255';
+            $rules['president_name']       = 'required|string|max:255';
+            $rules['president_phone']      = 'required|string|max:30';
+            $rules['secretary_name']       = 'required|string|max:255';
+            $rules['secretary_phone']      = 'required|string|max:30';
+            $rules['delivery_method']      = 'required|string|max:255';
+            $rules['has_previous_books']   = 'nullable|string|max:30';
+            $rules['previous_books_year']  = 'nullable|string|max:30';
+            $rules['previous_books_count'] = 'nullable|string|max:30';
         }
 
         $validated = $request->validate($rules);
@@ -403,13 +406,14 @@ class PublicEventRegistrationController extends Controller
             // Library & Book Grant Specific Fields
             'library_name', 'library_type', 'established_year', 'reg_no', 
             'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
-            'reader_count', 'current_book_count', 'preferred_genres', 'delivery_method', 'division', 'remarks', 'library_address'
+            'reader_count', 'current_book_count', 'preferred_genres', 'delivery_method', 'division', 'remarks', 'library_address',
+            'has_previous_books', 'previous_books_year', 'previous_books_count'
         ];
 
         foreach ($extendedInputKeys as $key) {
             if ($request->has($key)) {
                 $val = $request->input($key);
-                if (is_string($val) && (str_contains($key, 'phone') || str_contains($key, 'roll') || str_contains($key, 'year'))) {
+                if (is_string($val) && (str_contains($key, 'phone') || str_contains($key, 'roll') || str_contains($key, 'year') || str_contains($key, 'count'))) {
                     $val = $this->normalizeBnToEn($val);
                 }
                 $customFieldAnswers[$key] = $val;
@@ -476,6 +480,10 @@ class PublicEventRegistrationController extends Controller
         $requiresApproval = (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']) || !empty($campaign->form_settings['requires_approval']));
         $initialStatus = $requiresApproval ? 'pending' : 'confirmed';
 
+        $hasPrevBooks = $request->input('has_previous_books') ?: ($customFieldAnswers['has_previous_books'] ?? null);
+        $prevYear = !empty($customFieldAnswers['previous_books_year']) ? $customFieldAnswers['previous_books_year'] : null;
+        $prevCount = !empty($customFieldAnswers['previous_books_count']) ? intval($customFieldAnswers['previous_books_count']) : null;
+
         $registration = EventRegistration::create([
             'event_campaign_id'    => $campaign->id,
             'user_id'              => $user?->id,
@@ -488,6 +496,9 @@ class PublicEventRegistrationController extends Controller
             'thana'                => $validated['thana'] ?? null,
             'institution_or_org'   => $institution,
             'designation_or_class' => $designation,
+            'has_previous_books'   => $hasPrevBooks,
+            'previous_books_year'  => $prevYear,
+            'previous_books_count' => $prevCount,
             'amount_paid'          => $amountPaid,
             'payment_method'       => $validated['payment_method'] ?? ($campaign->has_fee_or_donation ? 'online' : 'free'),
             'transaction_id'       => $validated['transaction_id'] ?? null,

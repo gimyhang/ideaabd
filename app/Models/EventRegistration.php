@@ -25,6 +25,9 @@ class EventRegistration extends Model
         'thana',
         'institution_or_org',
         'designation_or_class',
+        'has_previous_books',
+        'previous_books_year',
+        'previous_books_count',
         'amount_paid',
         'payment_method',
         'transaction_id',
@@ -36,8 +39,9 @@ class EventRegistration extends Model
     ];
 
     protected $casts = [
-        'amount_paid' => 'decimal:2',
-        'form_data'   => 'array',
+        'amount_paid'          => 'decimal:2',
+        'form_data'            => 'array',
+        'previous_books_count' => 'integer',
     ];
 
     public function campaign(): BelongsTo
