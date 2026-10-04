@@ -244,12 +244,20 @@
     
     <!-- Custom Styles -->
     <style>
-        * {
-            font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        *, html, body, input, select, textarea, button, .btn, .badge, .alert, .form-control, .form-select {
+            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
         }
         
         body {
-            font-family: 'Kalpurush', 'Nikosh', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 13px;
             line-height: 1.6;
             background-color: #f8fafb;

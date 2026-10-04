@@ -63,11 +63,20 @@
             font-family: 'Kalpurush';
             src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
                  url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
-            font-weight: normal;
+            font-weight: 100 900;
             font-style: normal;
+            font-display: swap;
         }
-        body, .library-grant-wrapper, .library-grant-wrapper *, .lib-main-title, .lib-field-label, .lib-input, .lib-select, .genre-chip-item, .lib-auth-gate-card {
-            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', 'Inter', system-ui, sans-serif !important;
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+            font-display: swap;
+        }
+        html, body, .library-grant-wrapper, .library-grant-wrapper *, .lib-main-title, .lib-field-label, .lib-input, .lib-select, .genre-chip-item, .lib-auth-gate-card, input, select, textarea, button, label, .badge, .alert, .modal, .btn {
+            font-family: 'Kalpurush', 'SolaimanLipi', 'Hind Siliguri', sans-serif !important;
         }
         .lib-logo-emblem-circle {
             width: 120px;
@@ -263,14 +272,17 @@
                                         </span>
                                     </label>
                                     <div class="lib-phone-group d-flex align-items-stretch" style="border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #ffffff;">
-                                        <select name="country_code" id="gateCountryCodeSelect" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;" onchange="if(typeof handleGatePhoneCheck==='function') handleGatePhoneCheck();">
+                                        <select name="country_code" id="gateCountryCodeSelect" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;" onchange="onGateCountryCodeChange();">
                                             @include('partials.country-code-options')
                                         </select>
-                                        <input type="tel" name="phone" id="gateRegPhone" class="lib-input font-monospace flex-grow-1 border-0" placeholder="017XXXXXXXX" required maxlength="15" autocomplete="tel" style="border-radius: 0; box-shadow: none;">
+                                        <input type="tel" name="phone" id="gateRegPhone" class="lib-input font-monospace flex-grow-1 border-0" placeholder="17XXXXXXXX" required maxlength="10" autocomplete="tel" style="border-radius: 0; box-shadow: none;">
                                         <button type="button" class="btn btn-success fw-bold px-3 flex-shrink-0 rounded-0" id="sendOtpBtn" onclick="handleSendOtp()" style="font-size: 0.85rem; height: 42px;">
                                             <span class="spinner-border spinner-border-sm d-none" id="otpSpinner" role="status"></span>
                                             <span id="sendOtpText"><i class="fa-solid fa-paper-plane me-1"></i> কোড পাঠান</span>
                                         </button>
+                                    </div>
+                                    <div id="gatePhoneFormatHint" class="small text-muted mt-1" style="font-size: 11px;">
+                                        <i class="fa-solid fa-circle-info text-success me-1"></i> কান্ট্রিকোড +880 নির্বাচিত থাকায় ১০-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: <strong>17XXXXXXXX</strong>, শুরুতে ০ ছাড়া)
                                     </div>
                                     {{-- লাইভ কনফ্লিক্ট নোটিশ বক্স --}}
                                     <div id="phoneConflictAlert" class="d-none mt-2"></div>
@@ -284,7 +296,7 @@
                                         <label class="form-label small fw-bold mb-0 text-dark">
                                             <i class="fa-solid fa-shield-halved text-success me-1"></i> মোবাইলে প্রাপ্ত ৬-ডিজিট ওটিপি (OTP) লিখুন:
                                         </label>
-                                        <span id="otpCountdownText" class="badge bg-white text-muted border font-monospace px-2 py-1" style="font-size: 11px;">১২০ সে</span>
+                                        <span id="otpCountdownText" class="badge bg-white text-success border font-monospace px-2.5 py-1 fw-bold" style="font-size: 11.5px;">০২:০০ মি.</span>
                                     </div>
                                     <div class="input-group mb-1">
                                         <input type="text" id="buyerOtpCode" class="form-control font-monospace text-center fw-bold fs-5 lib-otp-code-input" maxlength="6" placeholder="______" autocomplete="one-time-code">
@@ -882,11 +894,57 @@
         let isPhoneVerified = false;
         const regPhoneInput = document.getElementById('gateRegPhone');
 
+        function toBnDigits(numStr) {
+            const bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+            return String(numStr).replace(/[0-9]/g, d => bn[d]);
+        }
+
+        function formatTimerDisplay(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            const padM = m < 10 ? '0' + m : m;
+            const padS = s < 10 ? '0' + s : s;
+            return toBnDigits(`${padM}:${padS}`) + ' মি.';
+        }
+
+        function onGateCountryCodeChange() {
+            const countryCodeSelect = document.getElementById('gateCountryCodeSelect');
+            const phoneInput = document.getElementById('gateRegPhone');
+            const hint = document.getElementById('gatePhoneFormatHint');
+            if (!countryCodeSelect || !phoneInput) return;
+
+            const code = countryCodeSelect.value;
+            if (code === '+880') {
+                phoneInput.placeholder = '17XXXXXXXX';
+                phoneInput.maxLength = 10;
+                if (hint) {
+                    hint.innerHTML = '<i class="fa-solid fa-circle-info text-success me-1"></i> কান্ট্রিকোড +880 নির্বাচিত থাকায় ১০-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: <strong>17XXXXXXXX</strong>, শুরুতে ০ ছাড়া)';
+                }
+                let val = normalizeBnToEn(phoneInput.value).replace(/[^\d]/g, '');
+                if (val.startsWith('880')) val = val.substring(3);
+                while (val.startsWith('0')) val = val.substring(1);
+                phoneInput.value = val.slice(0, 10);
+            } else {
+                phoneInput.placeholder = 'XXXXXXXXXX';
+                phoneInput.maxLength = 15;
+                if (hint) {
+                    hint.innerHTML = `<i class="fa-solid fa-circle-info text-primary me-1"></i> কান্ট্রিকোড ${code} এর জন্য প্রযোজ্য সঠিক মোবাইল নম্বর লিখুন`;
+                }
+            }
+            handleGatePhoneCheck();
+        }
+
         function handleGatePhoneCheck() {
             if (!regPhoneInput) return;
             const countryCodeSelect = document.getElementById('gateCountryCodeSelect');
             const countryCode = countryCodeSelect ? countryCodeSelect.value : '+880';
-            const enVal = normalizeBnToEn(regPhoneInput.value).replace(/[^\d]/g, '');
+            let enVal = normalizeBnToEn(regPhoneInput.value).replace(/[^\d]/g, '');
+
+            if (countryCode === '+880') {
+                if (enVal.startsWith('880')) enVal = enVal.substring(3);
+                while (enVal.startsWith('0')) enVal = enVal.substring(1);
+                enVal = enVal.slice(0, 10);
+            }
             regPhoneInput.value = enVal;
 
             const conflictBox = document.getElementById('phoneConflictAlert');
@@ -996,8 +1054,10 @@
 
             if (!phoneInput) return;
             let phone = normalizeBnToEn(phoneInput.value.trim()).replace(/[^\d]/g, '');
-            if (countryCode === '+880' && phone.length === 10 && phone.startsWith('1')) {
-                phone = '0' + phone;
+            if (countryCode === '+880') {
+                if (phone.startsWith('880')) phone = phone.substring(3);
+                while (phone.startsWith('0')) phone = phone.substring(1);
+                phone = phone.slice(0, 10);
                 phoneInput.value = phone;
             }
 
@@ -1005,7 +1065,7 @@
             if (!phone || phone.length < minLen) {
                 if (conflictBox) {
                     conflictBox.className = 'alert alert-danger py-2 px-3 rounded-3 small d-flex align-items-center gap-2 mt-2';
-                    conflictBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger"></i> <div>অনুগ্রহ করে সঠিক মোবাইল নম্বর লিখুন।</div>';
+                    conflictBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger"></i> <div>অনুগ্রহ করে ' + (countryCode === '+880' ? '১০-ডিজিটের সঠিক মোবাইল নম্বর লিখুন (যেমন: 17XXXXXXXX)।' : 'সঠিক মোবাইল নম্বর লিখুন।') + '</div>';
                 }
                 phoneInput.focus();
                 return;
@@ -1067,7 +1127,7 @@
                 } else {
                     sendBtn.disabled = false;
                     sendText.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> কোড পাঠান';
-                    const errMsg = result.body.message || 'ভেরিফিকেশন কোড পাঠাতে সমস্যা হয়েছে।';
+                    const errMsg = result.body.message || (result.body.errors ? Object.values(result.body.errors)[0][0] : 'ভেরিফিকেশন কোড পাঠাতে সমস্যা হয়েছে।');
                     
                     if (conflictBox) {
                         conflictBox.className = 'alert alert-danger py-2 px-3 rounded-3 small d-flex align-items-center gap-2 mt-2';
@@ -1086,7 +1146,7 @@
             });
         }
 
-        function startOtpCooldown(seconds) {
+        function startOtpCooldown(seconds = 120) {
             const sendBtn = document.getElementById('sendOtpBtn');
             const sendText = document.getElementById('sendOtpText');
             const countdownBadge = document.getElementById('otpCountdownText');
@@ -1095,16 +1155,19 @@
             if (sendBtn) sendBtn.disabled = true;
             if (otpCooldownTimer) clearInterval(otpCooldownTimer);
 
+            if (countdownBadge) countdownBadge.textContent = formatTimerDisplay(remaining);
+            if (sendText) sendText.innerHTML = `পুনরায় (${toBnDigits(remaining)}সে)`;
+
             otpCooldownTimer = setInterval(() => {
                 remaining--;
-                if (countdownBadge) countdownBadge.textContent = remaining + ' সে';
-                if (sendText) sendText.innerHTML = `পুনরায় (${remaining}সে)`;
+                if (countdownBadge) countdownBadge.textContent = formatTimerDisplay(remaining);
+                if (sendText) sendText.innerHTML = `পুনরায় (${toBnDigits(remaining)}সে)`;
 
                 if (remaining <= 0) {
                     clearInterval(otpCooldownTimer);
                     if (sendBtn) sendBtn.disabled = false;
                     if (sendText) sendText.innerHTML = '<i class="fa-solid fa-rotate-right me-1"></i> পুনরায় পাঠান';
-                    if (countdownBadge) countdownBadge.textContent = '১২০ সে';
+                    if (countdownBadge) countdownBadge.textContent = 'কোডের মেয়াদ শেষ';
                 }
             }, 1000);
         }
@@ -1123,7 +1186,11 @@
             if (!phoneInput || !otpInput) return;
 
             let phone = normalizeBnToEn(phoneInput.value.trim()).replace(/[^\d]/g, '');
-            if (countryCode === '+880' && phone.length === 10 && phone.startsWith('1')) phone = '0' + phone;
+            if (countryCode === '+880') {
+                if (phone.startsWith('880')) phone = phone.substring(3);
+                while (phone.startsWith('0')) phone = phone.substring(1);
+                phone = phone.slice(0, 10);
+            }
             const otp = normalizeBnToEn(otpInput.value.trim()).replace(/[^\d]/g, '');
 
             if (!otp || otp.length !== 6) {
@@ -1376,6 +1443,44 @@
                     e.preventDefault();
                 });
             }
+
+            // Universal 10-digit BD Phone Auto-Sanitizer
+            function attachBdPhoneSanitizer(phoneSelector, countrySelector) {
+                const input = (typeof phoneSelector === 'string' && phoneSelector.startsWith('#'))
+                    ? document.querySelector(phoneSelector)
+                    : (document.getElementById(phoneSelector) || document.querySelector(`input[name="${phoneSelector}"]`));
+                const select = (typeof countrySelector === 'string' && countrySelector.startsWith('#'))
+                    ? document.querySelector(countrySelector)
+                    : (document.getElementById(countrySelector) || document.querySelector(`select[name="${countrySelector}"]`));
+                if (!input) return;
+
+                function sanitize() {
+                    const code = select ? select.value : '+880';
+                    let val = normalizeBnToEn(input.value).replace(/[^\d]/g, '');
+                    if (code === '+880') {
+                        input.placeholder = '17XXXXXXXX';
+                        input.maxLength = 10;
+                        if (val.startsWith('880')) val = val.substring(3);
+                        while (val.startsWith('0')) val = val.substring(1);
+                        val = val.slice(0, 10);
+                    } else {
+                        input.placeholder = 'XXXXXXXXXX';
+                        input.maxLength = 15;
+                        val = val.slice(0, 15);
+                    }
+                    input.value = val;
+                }
+
+                input.addEventListener('input', sanitize);
+                if (select) select.addEventListener('change', sanitize);
+                sanitize();
+            }
+
+            attachBdPhoneSanitizer('gateRegPhone', 'gateCountryCodeSelect');
+            attachBdPhoneSanitizer('libPhone', 'libCountryCodeSelect');
+            attachBdPhoneSanitizer('guardian_phone', 'guardian_country_code');
+            attachBdPhoneSanitizer('president_phone', 'president_country_code');
+            attachBdPhoneSanitizer('secretary_phone', 'secretary_country_code');
         });
     </script>
 @endpush

@@ -51,7 +51,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Kalpurush', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
         html, body {
@@ -1178,8 +1178,9 @@
                             <option value="+977">NP +977</option>
                             <option value="+94">LK +94</option>
                         </select>
-                        <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1" placeholder="Mobile number (e.g. 01712345678)" required>
+                        <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1" placeholder="17XXXXXXXX (10 digits)" maxlength="10" required>
                     </div>
+                    <small id="regPhoneHint" class="text-muted" style="font-size: 11.5px; display: block; margin-top: 3px; font-family: 'Kalpurush', sans-serif;">+880 কান্ট্রিকোডে ০ ছাড়া ১০ সংখ্যার নম্বর লিখুন (যেমন: 17XXXXXXXX)</small>
                 </div>
 
                 <div class="form-group-item">
@@ -1313,7 +1314,7 @@
             </button>
 
             <div style="margin-top: 14px; text-align: center; font-size: 12.5px;">
-                <span id="emailOtpTimerText" class="text-muted">Resend code in 00:<span id="emailCountdownSec">45</span></span>
+                <span id="emailOtpTimerText" class="text-muted">Resend code in <span id="emailCountdownDisplay">02:00</span></span>
                 <a href="javascript:void(0)" id="resendEmailOtpLink" class="custom-link fw-semibold d-none" onclick="resendEmailVerificationCode()">Resend OTP</a>
             </div>
         </div>
@@ -1341,7 +1342,7 @@
                         <option value="+966">SA +966</option>
                         <option value="+60">MY +60</option>
                     </select>
-                    <input type="tel" id="mobileNumberInput" class="input-text-custom flex-grow-1" placeholder="Mobile number">
+                    <input type="tel" id="mobileNumberInput" class="input-text-custom flex-grow-1" placeholder="17XXXXXXXX (10 digits)" maxlength="10">
                 </div>
                 <button type="button" class="btn btn-sm btn-outline-primary w-100 py-1" onclick="updateMobileNumberAndResend()">
                     <i class="fa-solid fa-paper-plane me-1"></i> Resend Code
@@ -1365,7 +1366,7 @@
             </button>
 
             <div style="margin-top: 14px; text-align: center; font-size: 12.5px;">
-                <span id="mobileOtpTimerText" class="text-muted">Resend code in 00:<span id="mobileCountdownSec">45</span></span>
+                <span id="mobileOtpTimerText" class="text-muted">Resend code in <span id="mobileCountdownDisplay">02:00</span></span>
                 <a href="javascript:void(0)" id="resendMobileOtpLink" class="custom-link fw-semibold d-none" onclick="sendMobileVerificationOtp()">Resend OTP</a>
             </div>
 
@@ -2135,7 +2136,7 @@ function refreshCaptchaChallenge() {
 function proceedToCaptchaChallenge() {
     hideAlert();
     const name = document.getElementById('regNameInput') ? document.getElementById('regNameInput').value.trim() : '';
-    const phone = document.getElementById('regPhoneInput') ? document.getElementById('regPhoneInput').value.trim() : '';
+    let phone = document.getElementById('regPhoneInput') ? document.getElementById('regPhoneInput').value.trim() : '';
     const countryCode = document.getElementById('regCountryCodeSelect') ? document.getElementById('regCountryCodeSelect').value : '+880';
     const email = document.getElementById('regEmailInput') ? document.getElementById('regEmailInput').value.trim() : '';
     const pwd = document.getElementById('regPasswordInput') ? document.getElementById('regPasswordInput').value : '';
@@ -2153,6 +2154,18 @@ function proceedToCaptchaChallenge() {
         const phoneInput = document.getElementById('regPhoneInput');
         if (phoneInput) phoneInput.focus();
         return;
+    }
+
+    if (countryCode === '+880') {
+        phone = phone.replace(/\D/g, '');
+        if (phone.startsWith('880')) phone = phone.substring(3);
+        phone = phone.replace(/^0+/, '');
+        if (phone.length !== 10) {
+            showAlert('Please enter a valid 10-digit mobile number (e.g. 17XXXXXXXX).');
+            const phoneInput = document.getElementById('regPhoneInput');
+            if (phoneInput) phoneInput.focus();
+            return;
+        }
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2373,21 +2386,29 @@ function setupOtpInputs() {
     });
 }
 
+function formatTimerDisplay(totalSec) {
+    const s = Math.max(0, parseInt(totalSec, 10) || 0);
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return (m < 10 ? '0' + m : m) + ':' + (rem < 10 ? '0' + rem : rem);
+}
+
 let countdownInterval = null;
 function startEmailCountdown(seconds = 120) {
     let sec = seconds;
-    const countEl = document.getElementById('emailCountdownSec');
+    const countEl = document.getElementById('emailCountdownDisplay') || document.getElementById('emailCountdownSec');
     const timerText = document.getElementById('emailOtpTimerText');
     const resendLink = document.getElementById('resendEmailOtpLink');
 
     if (timerText) timerText.classList.remove('d-none');
     if (resendLink) resendLink.classList.add('d-none');
+    if (countEl) countEl.textContent = formatTimerDisplay(sec);
 
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
         sec--;
-        if (countEl) countEl.textContent = sec < 10 ? '0' + sec : sec;
+        if (countEl) countEl.textContent = formatTimerDisplay(sec);
         if (sec <= 0) {
             clearInterval(countdownInterval);
             if (timerText) timerText.classList.add('d-none');
@@ -2476,18 +2497,19 @@ async function verifyEmailOtpAndProceed() {
 let mobileCountdownInterval = null;
 function startMobileCountdown(seconds = 120) {
     let sec = seconds;
-    const countEl = document.getElementById('mobileCountdownSec');
+    const countEl = document.getElementById('mobileCountdownDisplay') || document.getElementById('mobileCountdownSec');
     const timerText = document.getElementById('mobileOtpTimerText');
     const resendLink = document.getElementById('resendMobileOtpLink');
 
     if (timerText) timerText.classList.remove('d-none');
     if (resendLink) resendLink.classList.add('d-none');
+    if (countEl) countEl.textContent = formatTimerDisplay(sec);
 
     if (mobileCountdownInterval) clearInterval(mobileCountdownInterval);
 
     mobileCountdownInterval = setInterval(() => {
         sec--;
-        if (countEl) countEl.textContent = sec < 10 ? '0' + sec : sec;
+        if (countEl) countEl.textContent = formatTimerDisplay(sec);
         if (sec <= 0) {
             clearInterval(mobileCountdownInterval);
             if (timerText) timerText.classList.add('d-none');
@@ -2504,10 +2526,15 @@ function toggleEditMobileBox() {
 async function updateMobileNumberAndResend() {
     const numInput = document.getElementById('mobileNumberInput');
     const codeSelect = document.getElementById('mobileCountryCode');
-    const newNum = numInput ? numInput.value.trim() : '';
+    let newNum = numInput ? numInput.value.trim() : '';
     const newCode = codeSelect ? codeSelect.value : '+880';
-    if (!newNum || newNum.length < 6) {
-        showAlert('Please enter a valid mobile number.');
+    if (newCode === '+880') {
+        newNum = newNum.replace(/\D/g, '');
+        if (newNum.startsWith('880')) newNum = newNum.substring(3);
+        newNum = newNum.replace(/^0+/, '');
+    }
+    if (!newNum || (newCode === '+880' ? newNum.length !== 10 : newNum.length < 6)) {
+        showAlert(newCode === '+880' ? 'Please enter a valid 10-digit mobile number without leading 0.' : 'Please enter a valid mobile number.');
         return;
     }
     regData.phone = newNum;
@@ -3037,12 +3064,39 @@ async function verifyOtpAndSetPasswordAction() {
     }
 }
 
+function initPhoneInputMasks() {
+    function bindMask(inputEl, codeEl) {
+        if (!inputEl) return;
+        const clean = () => {
+            const code = codeEl ? codeEl.value : '+880';
+            if (code === '+880') {
+                inputEl.maxLength = 10;
+                inputEl.placeholder = '17XXXXXXXX (10 digits)';
+                let val = inputEl.value.replace(/\D/g, '');
+                if (val.startsWith('880')) val = val.substring(3);
+                val = val.replace(/^0+/, '');
+                if (val.length > 10) val = val.substring(0, 10);
+                if (inputEl.value !== val) inputEl.value = val;
+            } else {
+                inputEl.removeAttribute('maxLength');
+                inputEl.placeholder = 'Mobile number';
+            }
+        };
+        inputEl.addEventListener('input', clean);
+        if (codeEl) codeEl.addEventListener('change', clean);
+        clean();
+    }
+    bindMask(document.getElementById('regPhoneInput'), document.getElementById('regCountryCodeSelect'));
+    bindMask(document.getElementById('mobileNumberInput'), document.getElementById('mobileCountryCode'));
+}
+
 /**
  * Standard Sign-in AJAX Form Handling
  */
 document.addEventListener('DOMContentLoaded', function() {
     initDistrictDropdown();
     setupOtpInputs();
+    initPhoneInputMasks();
 
     // Check URL parameters for mode and category/role
     const urlParams = new URLSearchParams(window.location.search);

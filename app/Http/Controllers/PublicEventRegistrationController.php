@@ -253,9 +253,7 @@ class PublicEventRegistrationController extends Controller
             if (str_starts_with($cleanDigits, '880')) {
                 $cleanDigits = substr($cleanDigits, 3);
             }
-            if (str_starts_with($cleanDigits, '0')) {
-                $cleanDigits = substr($cleanDigits, 1);
-            }
+            $cleanDigits = ltrim($cleanDigits, '0');
             $formattedPhone = '+880' . $cleanDigits;
             $localPhone = '0' . $cleanDigits;
         } else {

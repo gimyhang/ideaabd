@@ -354,8 +354,6 @@ Route::get('/register', fn() => redirect('/login?mode=register'))->name('registe
 Route::get('/register/choose', fn() => redirect('/login?mode=register'))->name('register.choose');
 Route::get('/register/author', fn() => redirect('/login?mode=register&role=author'))->name('register.author');
 Route::get('/register/publisher', fn() => redirect('/login?mode=register&role=publisher'))->name('register.publisher');
-Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&role=' . $type))->name('register.form');
-Route::post('/register/{type}', [RegistrationController::class, 'register'])->name('register.submit');
 
 Route::post('/register/complete', [RegistrationController::class, 'completeUnifiedRegistration'])->middleware('throttle:10,1')->name('register.complete');
 Route::get('/register-success', [RegistrationController::class, 'registrationSuccess'])->name('register.success');
@@ -366,6 +364,9 @@ Route::post('/register/send-otp', [RegistrationController::class, 'sendOtp'])->m
 Route::post('/register/verify-otp', [RegistrationController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('register.verify-otp');
 Route::post('/register/quick-customer', [RegistrationController::class, 'quickCustomerRegister'])->name('register.quick-customer');
 Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval'])->name('pending.approval');
+
+Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&role=' . $type))->whereIn('type', ['seller', 'publisher', 'author', 'buyer'])->name('register.form');
+Route::post('/register/{type}', [RegistrationController::class, 'register'])->whereIn('type', ['seller', 'publisher', 'author', 'buyer'])->name('register.submit');
 
 // --- User Account & Portal (Buyer / Customer) --------------------------------
 Route::prefix('my-account')->middleware('auth')->group(function () {

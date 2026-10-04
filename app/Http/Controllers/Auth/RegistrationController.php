@@ -178,9 +178,7 @@ class RegistrationController extends Controller
             if (str_starts_with($cleanDigits, '880')) {
                 $cleanDigits = substr($cleanDigits, 3);
             }
-            if (str_starts_with($cleanDigits, '0')) {
-                $cleanDigits = substr($cleanDigits, 1);
-            }
+            $cleanDigits = ltrim($cleanDigits, '0');
             $fullPhone = '+880' . $cleanDigits;
             $localPhone = '0' . $cleanDigits;
         } else {
@@ -242,14 +240,12 @@ class RegistrationController extends Controller
         $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
 
-        // Normalize phone with country code
+        // Normalize phone with country code (handles both 10-digit '17XXXXXXXX' and 11-digit '017XXXXXXXX')
         if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
             if (str_starts_with($cleanDigits, '880')) {
                 $cleanDigits = substr($cleanDigits, 3);
             }
-            if (str_starts_with($cleanDigits, '0')) {
-                $cleanDigits = substr($cleanDigits, 1);
-            }
+            $cleanDigits = ltrim($cleanDigits, '0');
             $fullPhone = '+880' . $cleanDigits;
             $localPhone = '0' . $cleanDigits;
         } else {
@@ -311,11 +307,25 @@ class RegistrationController extends Controller
 
         // Dispatch SMS via static method with exception safety
         $smsSent = false;
+        $smsErrorMsg = null;
         try {
             $smsResult = SmsService::sendVerificationOtp($fullPhone, $otpCode);
             $smsSent = !empty($smsResult['success']);
+            if (!$smsSent) {
+                $smsErrorMsg = $smsResult['message'] ?? ($smsResult['error'] ?? null);
+            }
         } catch (\Throwable $e) {
+            $smsErrorMsg = $e->getMessage();
             Log::warning("OTP SMS send error: " . $e->getMessage());
+        }
+
+        // If SMS dispatch failed in production, report friendly error
+        if (!$smsSent && !app()->environment('local', 'testing') && !config('app.debug')) {
+            return response()->json([
+                'success' => false,
+                'message' => $smsErrorMsg ?: 'মোবাইল নম্বরে এসএমএস ওটিপি কোড পাঠাতে সমস্যা হয়েছে। দয়া করে নম্বরটি যাচাই করে পুনরায় চেষ্টা করুন।',
+                'phone'   => $localPhone,
+            ], 422);
         }
 
         // Official WhatsApp Helpline Link
@@ -366,9 +376,7 @@ class RegistrationController extends Controller
             if (str_starts_with($cleanDigits, '880')) {
                 $cleanDigits = substr($cleanDigits, 3);
             }
-            if (str_starts_with($cleanDigits, '0')) {
-                $cleanDigits = substr($cleanDigits, 1);
-            }
+            $cleanDigits = ltrim($cleanDigits, '0');
             $fullPhone = '+880' . $cleanDigits;
             $localPhone = '0' . $cleanDigits;
         } else {
@@ -397,7 +405,7 @@ class RegistrationController extends Controller
             Cache::put($failCountKey, $fails + 1, now()->addMinutes(10));
             return response()->json([
                 'success' => false,
-                'message' => 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড (৫ মিনিট সময়সীমা)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।',
+                'message' => 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড (২ মিনিট সময়সীমা)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।',
             ], 422);
         }
 
@@ -1096,15 +1104,20 @@ class RegistrationController extends Controller
         ]);
 
         $rawPhone = trim($request->input('phone'));
+        $countryCode = trim($request->input('country_code', '+880'));
         $cleanDigits = preg_replace('/[^0-9]/', '', $this->normalizeBnToEn($rawPhone));
-        if (str_starts_with($cleanDigits, '880')) {
-            $cleanDigits = substr($cleanDigits, 3);
+        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
+            if (str_starts_with($cleanDigits, '880')) {
+                $cleanDigits = substr($cleanDigits, 3);
+            }
+            $cleanDigits = ltrim($cleanDigits, '0');
+            $fullPhone = '+880' . $cleanDigits;
+            $localPhone = '0' . $cleanDigits;
+        } else {
+            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
+            $fullPhone = $prefix . ltrim($cleanDigits, '0');
+            $localPhone = $fullPhone;
         }
-        if (!str_starts_with($cleanDigits, '0') && strlen($cleanDigits) === 10) {
-            $cleanDigits = '0' . $cleanDigits;
-        }
-        $localPhone = $cleanDigits;
-        $fullPhone = '+880' . ltrim($cleanDigits, '0');
         $email = $request->filled('email') ? strtolower(trim($request->input('email'))) : null;
 
         $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
