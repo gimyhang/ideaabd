@@ -57,7 +57,7 @@
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-1">
                         <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-20 px-3 py-2 rounded-pill font-monospace" style="font-size: 12px;">
-                            <i class="fa-regular fa-clock me-1"></i> সর্বশেষ হালনাগাদ: {{ $termsVersion }}
+                            <i class="fa-solid fa-clock me-1"></i> সর্বশেষ হালনাগাদ: {{ $termsVersion }}
                         </span>
                         <span class="badge bg-success bg-opacity-75 text-white px-3 py-2 rounded-pill" style="font-size: 12px;">
                             <i class="fa-solid fa-circle-check me-1"></i> সক্রিয় ও কার্যকর

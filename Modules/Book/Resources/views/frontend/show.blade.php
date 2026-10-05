@@ -772,7 +772,7 @@
                                         @endforeach
                                     @else
                                         <div class="text-center py-4 text-muted bg-light rounded-4 p-4 border border-dashed" id="noReviewsNotice">
-                                            <i class="fa-regular fa-comment-dots fs-1 text-secondary opacity-50 mb-2"></i>
+                                            <i class="fa-solid fa-comment-dots fs-1 text-secondary opacity-50 mb-2"></i>
                                             <h6>এখনো কোনো রিভিউ দেওয়া হয়নি</h6>
                                             <p class="small mb-0">বইটি পড়ে প্রথম রিভিউটি আপনিই লিখুন!</p>
                                         </div>
@@ -1184,7 +1184,7 @@
                                         <div class="d-flex align-items-center gap-1.5 bg-white px-2.5 py-1 rounded border">
                                             <span class="font-monospace fw-bold text-danger small" id="mfsNumberDisplay">{{ $bkashNum }}</span>
                                             <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 border-0" onclick="copyMfsNumber()" title="কপি করুন">
-                                                <i class="fa-regular fa-copy"></i>
+                                                <i class="fa-solid fa-copy"></i>
                                             </button>
                                         </div>
                                     </div>

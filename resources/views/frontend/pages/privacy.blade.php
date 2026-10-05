@@ -42,7 +42,7 @@
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-1">
                         <span class="badge bg-white bg-opacity-20 text-white border border-white border-opacity-20 px-3 py-2 rounded-pill font-monospace" style="font-size: 12px;">
-                            <i class="fa-regular fa-clock me-1"></i> কার্যকর সংস্করণ: সেপ্টেম্বর ২০২৬
+                            <i class="fa-solid fa-clock me-1"></i> কার্যকর সংস্করণ: সেপ্টেম্বর ২০২৬
                         </span>
                         <span class="badge bg-emerald-500 text-white px-3 py-2 rounded-pill" style="background: #10b981; font-size: 12px;">
                             <i class="fa-solid fa-lock me-1"></i> ২৫৬-বিট SSL সুরক্ষিত

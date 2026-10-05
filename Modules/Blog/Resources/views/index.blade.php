@@ -183,7 +183,7 @@
                 <div class="col-lg-8">
                     @if(!empty($blogCustomizer['hero_badge']))
                         <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-3 backdrop-blur shadow-sm">
-                            <i class="fa-solid fa-sparkles text-warning"></i>
+                            <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
                             <span class="small fw-semibold text-white">{{ $blogCustomizer['hero_badge'] }}</span>
                         </div>
                     @endif

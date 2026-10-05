@@ -43,10 +43,25 @@ class AuthorController extends Controller
         // Alphabetical & Bengali Character Filter
         if ($request->filled('letter')) {
             $letter = trim($request->letter);
-            $query->where(function ($lq) use ($letter) {
-                $lq->where('name', 'like', "{$letter}%")
-                   ->orWhere('name_bn', 'like', "{$letter}%")
-                   ->orWhere('name_en', 'like', "{$letter}%");
+            $letterMap = [
+                'ই' => ['ই', 'ঈ'],
+                'উ' => ['উ', 'ঊ'],
+                'ঋ' => ['ঋ'],
+                'এ' => ['এ', 'ঐ'],
+                'ও' => ['ও', 'ঔ'],
+                'জ' => ['জ', 'ঝ'],
+                'ট' => ['ট', 'ঠ'],
+                'ড' => ['ড', 'ঢ'],
+                'শ' => ['শ', 'ষ'],
+            ];
+            $letters = $letterMap[$letter] ?? [$letter];
+
+            $query->where(function ($lq) use ($letters) {
+                foreach ($letters as $l) {
+                    $lq->orWhere('name', 'like', "{$l}%")
+                       ->orWhere('name_bn', 'like', "{$l}%")
+                       ->orWhere('name_en', 'like', "{$l}%");
+                }
             });
         }
 

@@ -97,7 +97,7 @@
                     <span class="text-white fw-bold font-monospace px-2.5 py-1 rounded-pill shadow-xs" style="font-size: clamp(13.5px, 3.4vw, 15.5px); letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);">+88 01726976982</span>
                 </a>
                 <span class="badge rounded-pill text-light fw-medium ms-1 d-none d-md-inline-flex align-items-center gap-1.5" style="background: rgba(255, 255, 255, 0.10); font-size: 11.5px; border: 1px solid rgba(255, 255, 255, 0.15); padding: 5px 12px;">
-                    <i class="fa-regular fa-clock text-warning" style="font-size: 11px;"></i>
+                    <i class="fa-solid fa-clock text-warning" style="font-size: 11px;"></i>
                     <span>9:00 AM — 11:00 PM</span>
                 </span>
             </div>
@@ -130,35 +130,35 @@
                             aria-expanded="false"
                             title="Switch Language"
                             style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
-                        <i class="fas fa-globe text-warning" style="font-size: 12px;"></i>
+                        <i class="fa-solid fa-globe text-warning" style="font-size: 12px;"></i>
                         <span class="current-lang-display fw-bold text-white">English</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
                         <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10.5px; letter-spacing: 0.5px;">
-                            <i class="fas fa-language me-1 text-primary"></i> Primary Language
+                            <i class="fa-solid fa-language me-1 text-primary"></i> Primary Language
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
                                 <span><span class="me-2">🇬🇧</span><strong>English</strong></span>
-                                <i class="fas fa-check text-success lang-check-icon" data-lang="en"></i>
+                                <i class="fa-solid fa-check text-success lang-check-icon" data-lang="en"></i>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('bn', 'বাংলা')">
                                 <span><span class="me-2">🇧🇩</span><strong>বাংলা</strong> (Bangla)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="bn"></i>
+                                <i class="fa-solid fa-check text-success lang-check-icon d-none" data-lang="bn"></i>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('ar', 'العربية')">
                                 <span><span class="me-2">🇸🇦</span><strong>العربية</strong> (Arabic)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="ar"></i>
+                                <i class="fa-solid fa-check text-success lang-check-icon d-none" data-lang="ar"></i>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn" href="javascript:void(0)" onclick="switchSiteLanguage('hi', 'हिन्दी')">
                                 <span><span class="me-2">🇮🇳</span><strong>हिन्दी</strong> (Hindi)</span>
-                                <i class="fas fa-check text-success lang-check-icon d-none" data-lang="hi"></i>
+                                <i class="fa-solid fa-check text-success lang-check-icon d-none" data-lang="hi"></i>
                             </a>
                         </li>
                     </ul>
@@ -172,7 +172,7 @@
                         data-theme-toggle
                         title="Toggle Dark / Light Mode" 
                         style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
-                    <i class="fas fa-moon text-warning" id="siteThemeIcon" style="font-size: 12px;"></i>
+                    <i class="fa-solid fa-moon text-warning" id="siteThemeIcon" style="font-size: 12px;"></i>
                     <span class="d-none d-sm-inline text-white fw-bold" id="siteThemeLabel">Dark</span>
                 </button>
             </div>

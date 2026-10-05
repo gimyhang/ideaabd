@@ -333,7 +333,7 @@
                                 <div class="d-flex align-items-center gap-1 bg-white px-2 py-0.5 rounded border">
                                     <span class="font-monospace fw-bold text-danger small" id="fullCartMfsNumber">{{ $paymentGateways['bkash']['number'] ?? $ecomSetting['bkash_number'] ?? '01558712810' }}</span>
                                     <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1 border-0" onclick="copyMfsNumber()" title="কপি করুন">
-                                        <i class="fa-regular fa-copy"></i>
+                                        <i class="fa-solid fa-copy"></i>
                                     </button>
                                 </div>
                             </div>

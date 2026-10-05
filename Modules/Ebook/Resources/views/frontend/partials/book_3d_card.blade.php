@@ -116,7 +116,7 @@
                     @elseif($ratingScore >= ($s - 0.5))
                         <i class="fa-solid fa-star-half-stroke" style="font-size: 9px;"></i>
                     @else
-                        <i class="fa-regular fa-star text-secondary opacity-35" style="font-size: 9px;"></i>
+                        <i class="fa-solid fa-star text-black-50 opacity-20" style="font-size: 9px;"></i>
                     @endif
                 @endfor
             </div>

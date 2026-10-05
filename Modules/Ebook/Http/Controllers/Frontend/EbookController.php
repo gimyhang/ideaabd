@@ -433,11 +433,26 @@ class EbookController extends Controller
                             ->orWhere('author_name', 'REGEXP', '^[A-Za-z]');
                     });
                 } else {
-                    $query->where(function($sub) use ($letter) {
-                        $sub->where('title', 'LIKE', "{$letter}%")
-                            ->orWhere('subtitle', 'LIKE', "{$letter}%")
-                            ->orWhere('author_name', 'LIKE', "{$letter}%")
-                            ->orWhereHas('author', fn($a) => $a->where('name', 'LIKE', "{$letter}%"));
+                    $letterMap = [
+                        'ই' => ['ই', 'ঈ'],
+                        'উ' => ['উ', 'ঊ'],
+                        'ঋ' => ['ঋ'],
+                        'এ' => ['এ', 'ঐ'],
+                        'ও' => ['ও', 'ঔ'],
+                        'জ' => ['জ', 'ঝ'],
+                        'ট' => ['ট', 'ঠ'],
+                        'ড' => ['ড', 'ঢ'],
+                        'শ' => ['শ', 'ষ'],
+                    ];
+                    $letters = $letterMap[$letter] ?? [$letter];
+
+                    $query->where(function($sub) use ($letters) {
+                        foreach ($letters as $l) {
+                            $sub->orWhere('title', 'LIKE', "{$l}%")
+                                ->orWhere('subtitle', 'LIKE', "{$l}%")
+                                ->orWhere('author_name', 'LIKE', "{$l}%")
+                                ->orWhereHas('author', fn($a) => $a->where('name', 'LIKE', "{$l}%"));
+                        }
                     });
                 }
             }

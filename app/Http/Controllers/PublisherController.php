@@ -68,7 +68,27 @@ class PublisherController extends Controller
             // Filter: Letter / Alphabet (বাংলা বর্ণমালা বা ইংরেজি)
             if ($request->filled('letter') && $request->string('letter') !== 'all') {
                 $letter = trim($request->string('letter')->value());
-                $query->where('name', 'LIKE', $letter . '%');
+                if ($letter === 'A-Z') {
+                    $query->where('name', 'REGEXP', '^[A-Za-z]');
+                } else {
+                    $letterMap = [
+                        'ই' => ['ই', 'ঈ'],
+                        'উ' => ['উ', 'ঊ'],
+                        'ঋ' => ['ঋ'],
+                        'এ' => ['এ', 'ঐ'],
+                        'ও' => ['ও', 'ঔ'],
+                        'জ' => ['জ', 'ঝ'],
+                        'ট' => ['ট', 'ঠ'],
+                        'ড' => ['ড', 'ঢ'],
+                        'শ' => ['শ', 'ষ'],
+                    ];
+                    $letters = $letterMap[$letter] ?? [$letter];
+                    $query->where(function ($sub) use ($letters) {
+                        foreach ($letters as $l) {
+                            $sub->orWhere('name', 'LIKE', $l . '%');
+                        }
+                    });
+                }
             }
 
             // Sort

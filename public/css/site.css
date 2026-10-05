@@ -50,6 +50,35 @@ img, svg, video, canvas, audio, iframe {
     height: auto;
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   FONT AWESOME ICON ENGINE & SOLID SHAPE RENDERING PROTECTION
+   Guarantees crisp solid shapes everywhere across all pages
+   ══════════════════════════════════════════════════════════════════ */
+.fa, .fas, .far, .fal, .fab, .fad, .fa-solid, .fa-regular, .fa-brands, .fa-light, .fa-thin, .fa-duotone,
+[class*=" fa-"], [class^="fa-"], i[class*="fa-"], span[class*="fa-"],
+.btn i, .badge i, button i, a i {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    display: inline-block;
+    line-height: 1;
+}
+.fa-solid, .fas, i.fas, i.fa-solid {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+.fa-regular, .far, i.far, i.fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+.fa-brands, .fab, i.fab, i.fa-brands {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+}
+
 /* ── Global Responsive Containers with Centering (margin: 0 auto) ── */
 .container,
 .container-sm,

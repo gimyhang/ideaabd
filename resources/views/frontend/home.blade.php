@@ -22,7 +22,7 @@
                 <span>বেস্টসেলার</span>
             </a>
             <a href="{{ route('book.index', ['sort' => 'latest']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
-                <i class="fa-solid fa-sparkles text-success"></i>
+                <i class="fa-solid fa-wand-magic-sparkles text-success"></i>
                 <span>নতুন বই</span>
             </a>
             <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-dark d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift">
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="col-md-7 py-2">
                                             @if($slideBadge)
                                                 <span class="badge {{ $slideBadgeColor }} fw-bold px-3 py-1 mb-2 rounded-pill shadow-xs" style="font-size: 0.82rem;">
-                                                    <i class="fa-solid fa-sparkles me-1 small"></i>{{ $slideBadge }}
+                                                    <i class="fa-solid fa-wand-magic-sparkles me-1 small"></i>{{ $slideBadge }}
                                                 </span>
                                             @endif
                                             <h1 class="fw-bold mb-2 text-white" style="font-size: clamp(1.2rem, 3.8vw, 2.1rem); line-height: 1.35; text-shadow: 0 2px 8px rgba(0,0,0,0.25);">
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <div class="d-flex align-items-center gap-2">
                     <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                        <i class="fa-solid fa-sparkles text-success fs-6"></i>
+                        <i class="fa-solid fa-wand-magic-sparkles text-success fs-6"></i>
                     </span>
                     <div>
                         <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">

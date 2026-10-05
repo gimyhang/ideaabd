@@ -146,7 +146,7 @@
                             <i class="fa-solid fa-phone me-1"></i><span class="d-none d-sm-inline">কল করুন</span><span class="d-sm-none">কল</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $helplinePhone }}', 'ফোন নম্বর')" title="নম্বর কপি করুন">
-                            <i class="fa-regular fa-copy"></i>
+                            <i class="fa-solid fa-copy"></i>
                         </button>
                     </div>
                 </div>
@@ -171,7 +171,7 @@
                             <i class="fa-brands fa-whatsapp me-1"></i><span class="d-none d-sm-inline">চ্যাট করুন</span><span class="d-sm-none">চ্যাট</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $whatsappNum }}', 'হোয়াটসঅ্যাপ নম্বর')" title="কপি করুন">
-                            <i class="fa-regular fa-copy"></i>
+                            <i class="fa-solid fa-copy"></i>
                         </button>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
                             <i class="fa-solid fa-envelope me-1"></i><span class="d-none d-sm-inline">মেইল লিখুন</span><span class="d-sm-none">মেইল</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $helplineEmail }}', 'ইমেইল')" title="কপি করুন">
-                            <i class="fa-regular fa-copy"></i>
+                            <i class="fa-solid fa-copy"></i>
                         </button>
                     </div>
                 </div>
@@ -221,7 +221,7 @@
                             <i class="fa-solid fa-map-pin me-1"></i><span class="d-none d-sm-inline">ম্যাপ ও ঠিকানা</span><span class="d-sm-none">ম্যাপ</span>
                         </a>
                         <button type="button" class="btn btn-action-icon" onclick="copyContactText('{{ $officeAddress }}', 'অফিসের ঠিকানা')" title="ঠিকানা কপি করুন">
-                            <i class="fa-regular fa-copy"></i>
+                            <i class="fa-solid fa-copy"></i>
                         </button>
                     </div>
                 </div>
@@ -288,7 +288,7 @@
                                         আপনার পূর্ণ নাম <span class="text-rose-500">*</span>
                                     </label>
                                     <div class="modern-input-group">
-                                        <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                                        <span class="input-icon"><i class="fa-solid fa-user"></i></span>
                                         <input type="text" name="name" id="contactName" class="form-control modern-input" 
                                                placeholder="আপনার নাম..." required value="{{ old('name', auth()->user()->name ?? '') }}">
                                     </div>
@@ -312,7 +312,7 @@
                                         ইমেইল ঠিকানা <span class="text-slate-400 fw-normal">(ঐচ্ছিক)</span>
                                     </label>
                                     <div class="modern-input-group">
-                                        <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                                        <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
                                         <input type="email" name="email" id="contactEmail" class="form-control modern-input" 
                                                placeholder="name@example.com" value="{{ old('email', auth()->user()->email ?? '') }}">
                                     </div>
@@ -404,7 +404,7 @@
                                 <p class="text-slate-500 small mb-2">নতুন বই প্রকাশনা ও পান্ডুলিপি মূল্যায়নের জন্য যোগাযোগ করুন।</p>
                                 <div class="d-flex align-items-center justify-content-between">
                                     <a href="mailto:{{ $helplineEmail }}" class="dept-contact-link">{{ $helplineEmail }}</a>
-                                    <span class="text-slate-400 small"><i class="fa-regular fa-clock me-1"></i>২৪ ঘণ্টার মধ্যে রেসপন্স</span>
+                                    <span class="text-slate-400 small"><i class="fa-solid fa-clock me-1"></i>২৪ ঘণ্টার মধ্যে রেসপন্স</span>
                                 </div>
                             </div>
 
@@ -530,7 +530,7 @@
                             <i class="fa-solid fa-diamond-turn-right me-1.5"></i>গুগল ম্যাপে দিকনির্দেশনা
                         </a>
                         <button type="button" class="btn btn-action-outline" onclick="copyContactText('{{ $officeAddress }}', 'অফিসের ঠিকানা')">
-                            <i class="fa-regular fa-copy me-1.5"></i>ঠিকানা কপি করুন
+                            <i class="fa-solid fa-copy me-1.5"></i>ঠিকানা কপি করুন
                         </button>
                     </div>
                 </div>

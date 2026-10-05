@@ -49,7 +49,7 @@
                         <span>বেস্টসেলার</span>
                     </a>
                     <a href="{{ route('ebook.index', ['sort' => 'latest']) }}" class="btn btn-sm {{ request('sort') === 'latest' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-sparkles text-success"></i>
+                        <i class="fa-solid fa-wand-magic-sparkles text-success"></i>
                         <span>নতুন ই-বুক</span>
                     </a>
                     <a href="{{ route('ebook.index', ['discount_min' => '20']) }}" class="btn btn-sm {{ request('discount_min') ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
@@ -97,7 +97,7 @@
 
         <!-- ══ 2.1 ALPHABETICAL FILTER CHIPS (BANGLA & ENGLISH) ═══════════════════ -->
         @php
-            $alphabetLetters = ['সব', 'অ', 'আ', 'ই', 'ঈ', 'উ', 'ঋ', 'এ', 'ঐ', 'ও', 'ঔ', 'ক', 'খ', 'গ', 'ঘ', 'চ', 'ছ', 'জ', 'ঝ', 'ট', 'ঠ', 'ড', 'ঢ', 'ত', 'থ', 'দ', 'ধ', 'ন', 'প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'ষ', 'স', 'হ', 'A-Z'];
+            $alphabetLetters = ['সব', 'অ', 'আ', 'ই', 'উ', 'এ', 'ও', 'ক', 'খ', 'গ', 'ঘ', 'চ', 'ছ', 'জ', 'ট', 'ড', 'ত', 'থ', 'দ', 'ধ', 'ন', 'প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'স', 'হ', 'A-Z'];
         @endphp
         <div class="card p-2.5 px-3 border-0 shadow-2xs rounded-4 bg-white mb-4">
             <div class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
@@ -609,7 +609,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
                         <div class="d-flex align-items-center gap-2">
                             <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-sparkles text-success fs-6"></i>
+                                <i class="fa-solid fa-wand-magic-sparkles text-success fs-6"></i>
                             </span>
                             <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
                                 <span>নতুন প্রকাশিত ই-বুক</span>

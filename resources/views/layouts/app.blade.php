@@ -233,8 +233,8 @@
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome 6.6.0 Solid & Brands -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
     <!-- Site chrome (header/nav/footer) — served from /public, no build step needed -->
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ @filemtime(public_path('css/site.css')) ?: 1 }}">
@@ -253,8 +253,40 @@
             font-display: swap;
         }
         
-        *, html, body, input, select, textarea, button, .btn, .badge, .alert, .form-control, .form-select {
-            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+        html, body, input, select, textarea, .form-control, .form-select, p, h1, h2, h3, h4, h5, h6, label {
+            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        button, .btn, .badge, .alert {
+            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        /* ══════════════════════════════════════════════════════════════════
+           FONT AWESOME ICON ENGINE & SOLID SHAPE RENDERING PROTECTION
+           Guarantees crisp solid shapes everywhere across all pages
+           ══════════════════════════════════════════════════════════════════ */
+        .fa, .fas, .far, .fal, .fab, .fad, .fa-solid, .fa-regular, .fa-brands, .fa-light, .fa-thin, .fa-duotone,
+        [class*=" fa-"], [class^="fa-"], i[class*="fa-"], span[class*="fa-"],
+        .btn i, .badge i, button i, a i {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", "FontAwesome" !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            display: inline-block;
+            line-height: 1;
+        }
+        .fa-solid, .fas, i.fas, i.fa-solid {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+        .fa-regular, .far, i.far, i.fa-regular {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 400 !important;
+        }
+        .fa-brands, .fab, i.fab, i.fa-brands {
+            font-family: "Font Awesome 6 Brands" !important;
+            font-weight: 400 !important;
         }
         
         body {

@@ -100,7 +100,7 @@
                class="btn btn-sm {{ !request('letter') ? 'btn-primary' : 'btn-light border' }} rounded-pill px-3 py-1 fw-bold small">
                 সকল
             </a>
-            @foreach(['অ','আ','ই','উ','এ','ও','ক','খ','গ','ঘ','চ','ছ','জ','ঝ','ট','ঠ','ড','ঢ','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','ষ','স','হ'] as $bnChar)
+            @foreach(['অ','আ','ই','উ','এ','ও','ক','খ','গ','ঘ','চ','ছ','জ','ট','ড','ত','থ','দ','ধ','ন','প','ফ','ব','ভ','ম','য','র','ল','শ','স','হ'] as $bnChar)
                 <a href="{{ route('authors.index', array_merge(request()->except(['page']), ['letter' => $bnChar])) }}" 
                    class="btn btn-sm {{ request('letter') === $bnChar ? 'btn-primary' : 'btn-light border' }} rounded-pill px-2 py-1 small fw-semibold transition-all"
                    style="min-width: 32px;">
