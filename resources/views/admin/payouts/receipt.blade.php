@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Payout Voucher #{{ $payout->id }} — আইডিয়া প্রকাশন</title>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <style>
-        body { font-family: 'Hind Siliguri', 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        body { font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
         .voucher-card { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
         @media print {
             body { background: #fff; }

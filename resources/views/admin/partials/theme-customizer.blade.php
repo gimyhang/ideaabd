@@ -6,7 +6,7 @@
     $activePrimary = $userPrefs['primary_color'] ?? $currentTheme['primary_color'] ?? '#0066cc';
     $activeSecondary = $userPrefs['secondary_color'] ?? $currentTheme['secondary_color'] ?? '#0099ff';
     $activeSidebar = $userPrefs['sidebar_theme'] ?? $currentTheme['sidebar_theme'] ?? 'theme-deep-navy';
-    $activeFont = $userPrefs['font_family'] ?? $currentTheme['font_family'] ?? 'Hind Siliguri';
+    $activeFont = $userPrefs['font_family'] ?? $currentTheme['font_family'] ?? 'Kalpurush';
 @endphp
 
 <div class="offcanvas offcanvas-end theme-customizer-drawer" tabindex="-1" id="admThemeCustomizerDrawer" aria-labelledby="admThemeCustomizerLabel">
@@ -257,8 +257,8 @@
                 <span><i class="fa-solid fa-font me-1.5 text-primary"></i>বাংলা ফন্ট টাইপোগ্রাফি (Font)</span>
             </label>
             <select class="form-select form-select-sm rounded-3" id="drawerFontSelect" onchange="AdminTheme.setFont(this.value, true);">
-                <option value="Hind Siliguri" {{ $activeFont === 'Hind Siliguri' ? 'selected' : '' }}>হিন্দ শিলিগুড়ি (Hind Siliguri - Default)</option>
-                <option value="Kalpurush" {{ $activeFont === 'Kalpurush' ? 'selected' : '' }}>কালপুরুষ (Kalpurush)</option>
+                <option value="Kalpurush" {{ $activeFont === 'Kalpurush' ? 'selected' : '' }}>কালপুরুষ (Kalpurush - ডিফল্ট)</option>
+                <option value="Hind Siliguri" {{ $activeFont === 'Hind Siliguri' ? 'selected' : '' }}>হিন্দ শিলিগুড়ি (Hind Siliguri)</option>
                 <option value="Nikosh" {{ $activeFont === 'Nikosh' ? 'selected' : '' }}>নিকোশ (Nikosh)</option>
                 <option value="Inter" {{ $activeFont === 'Inter' ? 'selected' : '' }}>Inter (English / Clean)</option>
             </select>
@@ -349,7 +349,7 @@
                 document.getElementById('drawerPrimaryColorHex').value = '#0066cc';
                 document.getElementById('drawerSecondaryColorPicker').value = '#0099ff';
                 document.getElementById('drawerSecondaryColorHex').value = '#0099ff';
-                document.getElementById('drawerFontSelect').value = 'Hind Siliguri';
+                document.getElementById('drawerFontSelect').value = 'Kalpurush';
                 updateCustomizerActiveState();
             });
         }

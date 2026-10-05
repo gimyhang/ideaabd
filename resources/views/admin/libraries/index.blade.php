@@ -106,7 +106,7 @@
         background: #ffffff;
         padding: 14px 16px;
         border-radius: 8px;
-        font-family: 'Hind Siliguri', Arial, sans-serif;
+        font-family: 'Kalpurush', 'Hind Siliguri', Arial, sans-serif;
         font-size: 11.5px;
         color: #000;
         box-shadow: 0 4px 14px rgba(0,0,0,0.06);

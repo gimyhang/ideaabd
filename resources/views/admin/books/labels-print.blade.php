@@ -12,7 +12,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', sans-serif;
             background: #f1f5f9;
             color: #0f172a;
             padding: 20px;

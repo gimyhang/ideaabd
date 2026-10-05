@@ -3,9 +3,10 @@
 <head>
     <meta charset="utf-8">
     <title>Receipt #{{ $bill->bill_no }} — {{ $invoiceSettings['company_name'] ?? config('brand.name', 'আইডিয়া প্রকাশন') }}</title>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <style>
         body {
-            font-family: monospace, 'Hind Siliguri', sans-serif;
+            font-family: 'Kalpurush', monospace, 'Hind Siliguri', sans-serif;
             font-size: 12px;
             width: 72mm;
             margin: 0 auto;

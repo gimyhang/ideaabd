@@ -303,7 +303,7 @@ class SiteSetting
             'hero_subtitle'     => 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।',
             'write_button_text' => 'নিজের লেখা পোস্ট করুন',
             'write_button_url'  => '/blog/write',
-            'font_family'       => "'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif",
+            'font_family'       => "'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', sans-serif",
             'reading_font_size' => '1.08rem',
             'line_height'       => '1.6',
             'poetry_line_height'=> '1.45',
@@ -659,7 +659,7 @@ class SiteSetting
             'accent_color'    => '#ff6b35',
             'default_mode'    => 'light',
             'sidebar_theme'   => 'theme-deep-navy',
-            'font_family'     => 'Hind Siliguri',
+            'font_family'     => 'Kalpurush',
             'border_radius'   => 'rounded-modern',
             'card_style'      => 'elevated',
             'custom_css'      => '',
@@ -693,7 +693,7 @@ class SiteSetting
 
     public static function fontFamily(): string
     {
-        return (string) (self::themeSettings()['font_family'] ?? 'Hind Siliguri');
+        return (string) (self::themeSettings()['font_family'] ?? 'Kalpurush');
     }
 }
 

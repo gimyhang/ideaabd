@@ -24,8 +24,17 @@
 @import url('https://fonts.maateen.me/kalpurush/font.css');
 @import url('https://fonts.maateen.me/nikosh/font.css');
 
+@font-face {
+    font-family: 'Kalpurush';
+    src: url('../fonts/kalpurush/kalpurush.woff2') format('woff2'),
+         url('../fonts/kalpurush/kalpurush.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 body, button, input, select, textarea, optgroup { 
-    font-family: 'Hind Siliguri', 'Kalpurush', 'Nikosh', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
 }
 
 html {
@@ -1890,19 +1899,19 @@ body.sidebar-minimal-light .adm-side__section {
    ══════════════════════════════════════════════════════════════════ */
 body.font-hind-siliguri, 
 body.font-hind-siliguri :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
-    font-family: 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    font-family: 'Hind Siliguri', 'Kalpurush', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
 }
 body.font-kalpurush, 
 body.font-kalpurush :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
-    font-family: 'Kalpurush', 'Hind Siliguri', sans-serif; 
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; 
 }
 body.font-nikosh, 
 body.font-nikosh :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
-    font-family: 'Nikosh', 'Hind Siliguri', sans-serif; 
+    font-family: 'Nikosh', 'Kalpurush', 'Hind Siliguri', sans-serif; 
 }
 body.font-inter, 
 body.font-inter :not(i):not([class*="fa-"]):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands) { 
-    font-family: 'Inter', 'Hind Siliguri', sans-serif; 
+    font-family: 'Inter', 'Kalpurush', 'Hind Siliguri', sans-serif; 
 }
 
 /* ══════════════════════════════════════════════════════════════════

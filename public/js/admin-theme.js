@@ -54,7 +54,14 @@
             secondary: localStorage.getItem(KEYS.SECONDARY) || document.documentElement.dataset.secondaryColor || '#0099ff',
             accent: localStorage.getItem(KEYS.ACCENT) || '#ff6b35',
             sidebar: localStorage.getItem(KEYS.SIDEBAR) || document.documentElement.dataset.sidebarTheme || 'theme-deep-navy',
-            font: localStorage.getItem(KEYS.FONT) || document.documentElement.dataset.fontFamily || 'Hind Siliguri',
+            font: (function() {
+                var f = localStorage.getItem(KEYS.FONT);
+                if (!f || f === 'Hind Siliguri') {
+                    localStorage.setItem(KEYS.FONT, 'Kalpurush');
+                    return 'Kalpurush';
+                }
+                return f;
+            })() || document.documentElement.dataset.fontFamily || 'Kalpurush',
             radius: localStorage.getItem(KEYS.RADIUS) || 'rounded-modern'
         },
 
@@ -156,16 +163,16 @@
         },
 
         setFont: function (fontName, save) {
-            this.state.font = fontName || 'Hind Siliguri';
+            this.state.font = fontName || 'Kalpurush';
             var body = document.body;
             var fonts = ['font-hind-siliguri', 'font-kalpurush', 'font-nikosh', 'font-inter'];
             fonts.forEach(function (f) { body.classList.remove(f); });
 
-            var fontSlug = fontName.toLowerCase().replace(/\s+/g, '-');
+            var fontSlug = (fontName || 'Kalpurush').toLowerCase().replace(/\s+/g, '-');
             body.classList.add('font-' + fontSlug);
 
             if (save !== false) {
-                localStorage.setItem(KEYS.FONT, fontName);
+                localStorage.setItem(KEYS.FONT, fontName || 'Kalpurush');
             }
             this.dispatchThemeEvent();
         },
@@ -228,7 +235,7 @@
                 accent: '#ff6b35',
                 mode: 'light',
                 sidebar: 'theme-deep-navy',
-                font: 'Hind Siliguri'
+                font: 'Kalpurush'
             };
 
             this.applyPreset(defaultPreset);

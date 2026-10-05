@@ -262,7 +262,7 @@
 
 <style>
 .site-footer {
-    font-family: 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 .footer-heading {
     font-size: 0.95rem;

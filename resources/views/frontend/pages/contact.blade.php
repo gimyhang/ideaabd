@@ -673,7 +673,7 @@
 }
 
 .contact-ultra-wrapper {
-    font-family: 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
     color: #1e293b;
 }
 
@@ -760,7 +760,7 @@
 .hero-title {
     font-size: 2.2rem;
     letter-spacing: -0.02em;
-    font-family: 'Noto Serif Bengali', 'Hind Siliguri', serif;
+    font-family: 'Kalpurush', 'Noto Serif Bengali', 'Hind Siliguri', serif;
 }
 
 .hero-subtitle {

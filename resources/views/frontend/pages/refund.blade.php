@@ -270,7 +270,7 @@
 
 <style>
 .refund-page-wrapper {
-    font-family: 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 .hover-primary:hover {
     color: #0284c7 !important;

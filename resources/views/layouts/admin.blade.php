@@ -5,7 +5,7 @@
     $adminPrimary = $userPrefs['primary_color'] ?? $siteTheme['primary_color'] ?? '#0066cc';
     $adminSecondary = $userPrefs['secondary_color'] ?? $siteTheme['secondary_color'] ?? '#0099ff';
     $adminSidebar = $userPrefs['sidebar_theme'] ?? $siteTheme['sidebar_theme'] ?? 'theme-deep-navy';
-    $adminFont = $userPrefs['font_family'] ?? $siteTheme['font_family'] ?? 'Hind Siliguri';
+    $adminFont = $userPrefs['font_family'] ?? $siteTheme['font_family'] ?? 'Kalpurush';
 @endphp
 <!DOCTYPE html>
 <html lang="en" 
@@ -33,6 +33,8 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="https://fonts.maateen.me/nikosh/font.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@500;600;700;800&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -40,11 +42,22 @@
     {{-- Admin stylesheet lives in /public so deploys need no vite build step --}}
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ @filemtime(public_path('css/admin.css')) ?: 1 }}">
 
-    {{-- Dynamic Server-Side Injected Theme CSS Variables --}}
+    {{-- Dynamic Server-Side Injected Theme CSS Variables & Universal Kalpurush Font-Face --}}
     <style id="admDynamicThemeStyles">
+        @font-face {
+            font-family: 'Kalpurush';
+            src: url('{{ asset("fonts/kalpurush/kalpurush.woff2") }}') format('woff2'),
+                 url('{{ asset("fonts/kalpurush/kalpurush.ttf") }}') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
         :root {
             --brand: {{ $adminPrimary }};
             --brand-2: {{ $adminSecondary }};
+        }
+        html, body, button, input, select, textarea, optgroup, table, .table, h1, h2, h3, h4, h5, h6, .card, .btn, .dropdown-menu, .modal, .offcanvas, .badge, .alert, .breadcrumb, .nav, .navbar {
+            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
     </style>
 
@@ -60,6 +73,13 @@
             var customBrand2 = localStorage.getItem('adm-theme-secondary') || '{{ $adminSecondary }}';
             if (customBrand) document.documentElement.style.setProperty('--brand', customBrand);
             if (customBrand2) document.documentElement.style.setProperty('--brand-2', customBrand2);
+
+            var customFont = localStorage.getItem('adm-theme-font') || '{{ $adminFont }}';
+            if (!localStorage.getItem('adm-theme-font') || localStorage.getItem('adm-theme-font') === 'Hind Siliguri') {
+                customFont = 'Kalpurush';
+                localStorage.setItem('adm-theme-font', 'Kalpurush');
+            }
+            document.documentElement.setAttribute('data-font-family', customFont);
         })();
     </script>
 

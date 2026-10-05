@@ -46,7 +46,7 @@
         50% { transform: scale(1.06); }
     }
     .thankyou-title {
-        font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif;
+        font-family: 'Kalpurush', 'Hind Siliguri', 'SolaimanLipi', sans-serif;
         font-weight: 800;
         font-size: 32px;
         letter-spacing: -0.5px;

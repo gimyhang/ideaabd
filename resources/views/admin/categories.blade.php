@@ -234,7 +234,7 @@
 
     /* Category Name Typography - Padding 0 underneath */
     .cat-title-text {
-        font-family: 'Hind Siliguri', sans-serif;
+        font-family: 'Kalpurush', 'Hind Siliguri', sans-serif;
         font-weight: 700;
         font-size: 0.88rem;
         line-height: 1.22;

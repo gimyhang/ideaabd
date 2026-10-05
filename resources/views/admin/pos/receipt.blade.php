@@ -15,7 +15,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Hind Siliguri', 'JetBrains Mono', monospace, sans-serif;
+            font-family: 'Kalpurush', 'Hind Siliguri', 'JetBrains Mono', monospace, sans-serif;
             font-size: 13px;
             width: 78mm;
             max-width: 100%;

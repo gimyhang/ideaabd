@@ -9,6 +9,7 @@
     <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
@@ -58,7 +59,7 @@
         }
 
         body {
-            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+            font-family: 'Kalpurush', 'Hind Siliguri', 'Inter', sans-serif;
             background-color: var(--reader-bg);
             color: var(--reader-text);
             user-select: none;
@@ -155,7 +156,7 @@
             color: var(--reader-watermark-color);
             white-space: nowrap;
             padding: 45px 35px;
-            font-family: 'Hind Siliguri', monospace;
+            font-family: 'Kalpurush', 'Hind Siliguri', monospace;
             letter-spacing: 0.5px;
         }
 

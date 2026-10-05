@@ -12,7 +12,7 @@
 <style>
     /* POS Terminal Pro UI */
     .pos-wrap {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hind Siliguri", sans-serif;
+        font-family: 'Kalpurush', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hind Siliguri", sans-serif;
     }
     
     /* Mobile View Segmented Controller */

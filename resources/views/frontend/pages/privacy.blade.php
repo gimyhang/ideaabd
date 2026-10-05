@@ -340,7 +340,7 @@
 
 <style>
 .privacy-page-wrapper {
-    font-family: 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 .section-badge-icon {
     width: 48px;
