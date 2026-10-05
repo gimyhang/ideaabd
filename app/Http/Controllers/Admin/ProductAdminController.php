@@ -98,6 +98,20 @@ class ProductAdminController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Pre-clean empty strings to prevent MySQL strict decimal / foreign key errors
+        if ($request->input('discount_price') === '' || $request->input('discount_price') === null) {
+            $request->merge(['discount_price' => null]);
+        }
+        if ($request->input('category_id') === '' || $request->input('category_id') === null) {
+            $request->merge(['category_id' => null]);
+        }
+        if ($request->input('slug') === '' || $request->input('slug') === null) {
+            $request->merge(['slug' => null]);
+        }
+        if ($request->input('sku') === '' || $request->input('sku') === null) {
+            $request->merge(['sku' => null]);
+        }
+
         $validated = $request->validate([
             'type' => 'required|in:electronics,stationery',
             'title' => 'required|string|max:255',
@@ -143,27 +157,42 @@ class ProductAdminController extends Controller
             }
         }
 
+        // Guaranteed Unique Slug
+        $baseSlug = !empty($validated['slug']) ? Str::slug($validated['slug']) : (Str::slug($validated['title']) ?: 'product-' . time());
+        $finalSlug = $baseSlug;
+        $counter = 1;
+        while (Product::where('slug', $finalSlug)->exists()) {
+            $finalSlug = $baseSlug . '-' . (++$counter);
+        }
+
+        // Default SKU if empty
+        $finalSku = !empty($validated['sku']) ? trim((string)$validated['sku']) : null;
+        if (empty($finalSku)) {
+            $prefix = ($validated['type'] === 'electronics') ? 'ELC' : 'STN';
+            $finalSku = $prefix . '-' . date('ym') . '-' . rand(1000, 9999);
+        }
+
         $product = Product::create([
-            'type' => $validated['type'],
-            'category_id' => $validated['category_id'] ?? null,
-            'title' => $validated['title'],
-            'slug' => !empty($validated['slug']) ? Str::slug($validated['slug']) : Str::slug($validated['title']),
-            'sku' => $validated['sku'] ?? null,
-            'brand' => $validated['brand'] ?? null,
-            'model' => $validated['model'] ?? null,
-            'summary' => $validated['summary'] ?? null,
-            'description' => $validated['description'] ?? null,
+            'type'           => $validated['type'],
+            'category_id'    => !empty($validated['category_id']) ? (int)$validated['category_id'] : null,
+            'title'          => $validated['title'],
+            'slug'           => $finalSlug,
+            'sku'            => $finalSku,
+            'brand'          => !empty($validated['brand']) ? trim((string)$validated['brand']) : null,
+            'model'          => !empty($validated['model']) ? trim((string)$validated['model']) : null,
+            'summary'        => !empty($validated['summary']) ? trim((string)$validated['summary']) : null,
+            'description'    => !empty($validated['description']) ? trim((string)$validated['description']) : null,
             'specifications' => $specifications,
-            'price' => $validated['price'],
-            'discount_price' => $validated['discount_price'] ?? null,
-            'stock' => $validated['stock'],
-            'stock_status' => $validated['stock_status'],
-            'cover_image' => $coverImage,
-            'warranty' => $validated['warranty'] ?? null,
-            'badge' => $validated['badge'] ?? null,
-            'is_featured' => !empty($validated['is_featured']),
-            'is_active' => isset($validated['is_active']) ? (bool)$validated['is_active'] : true,
-            'sort_order' => (int)($validated['sort_order'] ?? 0),
+            'price'          => (float)$validated['price'],
+            'discount_price' => (!empty($validated['discount_price']) && is_numeric($validated['discount_price'])) ? (float)$validated['discount_price'] : null,
+            'stock'          => (int)$validated['stock'],
+            'stock_status'   => $validated['stock_status'],
+            'cover_image'    => $coverImage,
+            'warranty'       => !empty($validated['warranty']) ? trim((string)$validated['warranty']) : null,
+            'badge'          => !empty($validated['badge']) ? trim((string)$validated['badge']) : null,
+            'is_featured'    => !empty($validated['is_featured']),
+            'is_active'      => isset($validated['is_active']) ? (bool)$validated['is_active'] : true,
+            'sort_order'     => (int)($validated['sort_order'] ?? 0),
         ]);
 
         return redirect()->route('admin.products.index', ['type' => $product->type])
@@ -196,6 +225,19 @@ class ProductAdminController extends Controller
     {
         $product = Product::findOrFail($id);
 
+        if ($request->input('discount_price') === '' || $request->input('discount_price') === null) {
+            $request->merge(['discount_price' => null]);
+        }
+        if ($request->input('category_id') === '' || $request->input('category_id') === null) {
+            $request->merge(['category_id' => null]);
+        }
+        if ($request->input('slug') === '' || $request->input('slug') === null) {
+            $request->merge(['slug' => null]);
+        }
+        if ($request->input('sku') === '' || $request->input('sku') === null) {
+            $request->merge(['sku' => null]);
+        }
+
         $validated = $request->validate([
             'type' => 'required|in:electronics,stationery',
             'title' => 'required|string|max:255',
@@ -207,7 +249,7 @@ class ProductAdminController extends Controller
             'summary' => 'nullable|string|max:1000',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'discount_price' => 'nullable|numeric|min:0',
+            'discount_price' => 'nullable|numeric|min:0|lt:price',
             'stock' => 'required|integer|min:0',
             'stock_status' => 'required|in:in_stock,out_of_stock,pre_order',
             'warranty' => 'nullable|string|max:150',
@@ -244,27 +286,41 @@ class ProductAdminController extends Controller
             }
         }
 
+        // Guaranteed unique slug on update
+        $baseSlug = !empty($validated['slug']) ? Str::slug($validated['slug']) : ($product->slug ?: Str::slug($validated['title']) ?: 'product-' . $product->id);
+        $finalSlug = $baseSlug;
+        $counter = 1;
+        while (Product::where('slug', $finalSlug)->where('id', '!=', $product->id)->exists()) {
+            $finalSlug = $baseSlug . '-' . (++$counter);
+        }
+
+        $finalSku = !empty($validated['sku']) ? trim((string)$validated['sku']) : $product->sku;
+        if (empty($finalSku)) {
+            $prefix = ($validated['type'] === 'electronics') ? 'ELC' : 'STN';
+            $finalSku = $prefix . '-' . date('ym') . '-' . rand(1000, 9999);
+        }
+
         $product->update([
-            'type' => $validated['type'],
-            'category_id' => $validated['category_id'] ?? null,
-            'title' => $validated['title'],
-            'slug' => !empty($validated['slug']) ? Str::slug($validated['slug']) : $product->slug,
-            'sku' => $validated['sku'] ?? $product->sku,
-            'brand' => $validated['brand'] ?? null,
-            'model' => $validated['model'] ?? null,
-            'summary' => $validated['summary'] ?? null,
-            'description' => $validated['description'] ?? null,
+            'type'           => $validated['type'],
+            'category_id'    => !empty($validated['category_id']) ? (int)$validated['category_id'] : null,
+            'title'          => $validated['title'],
+            'slug'           => $finalSlug,
+            'sku'            => $finalSku,
+            'brand'          => !empty($validated['brand']) ? trim((string)$validated['brand']) : null,
+            'model'          => !empty($validated['model']) ? trim((string)$validated['model']) : null,
+            'summary'        => !empty($validated['summary']) ? trim((string)$validated['summary']) : null,
+            'description'    => !empty($validated['description']) ? trim((string)$validated['description']) : null,
             'specifications' => $specifications,
-            'price' => $validated['price'],
-            'discount_price' => $validated['discount_price'] ?: null,
-            'stock' => $validated['stock'],
-            'stock_status' => $validated['stock_status'],
-            'cover_image' => $coverImage,
-            'warranty' => $validated['warranty'] ?? null,
-            'badge' => $validated['badge'] ?? null,
-            'is_featured' => !empty($validated['is_featured']),
-            'is_active' => !empty($validated['is_active']),
-            'sort_order' => (int)($validated['sort_order'] ?? 0),
+            'price'          => (float)$validated['price'],
+            'discount_price' => (!empty($validated['discount_price']) && is_numeric($validated['discount_price'])) ? (float)$validated['discount_price'] : null,
+            'stock'          => (int)$validated['stock'],
+            'stock_status'   => $validated['stock_status'],
+            'cover_image'    => $coverImage,
+            'warranty'       => !empty($validated['warranty']) ? trim((string)$validated['warranty']) : null,
+            'badge'          => !empty($validated['badge']) ? trim((string)$validated['badge']) : null,
+            'is_featured'    => !empty($validated['is_featured']),
+            'is_active'      => !empty($validated['is_active']),
+            'sort_order'     => (int)($validated['sort_order'] ?? 0),
         ]);
 
         return redirect()->route('admin.products.index', ['type' => $product->type])

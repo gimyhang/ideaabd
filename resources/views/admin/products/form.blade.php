@@ -10,6 +10,21 @@
 
 @section('content')
 <div class="container-fluid px-0">
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-xs mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+                <strong>ফর্ম পূরণে কিছু সমস্যা পাওয়া গেছে:</strong>
+            </div>
+            <ul class="mb-0 ps-3 small">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <form action="{{ $isEdit ? route('admin.products.update', $product->id) : route('admin.products.store') }}" 
           method="POST" 
           enctype="multipart/form-data">
@@ -34,7 +49,7 @@
                             <div class="d-flex gap-3">
                                 <div class="form-check form-check-inline p-3 border rounded-3 flex-grow-1 cursor-pointer bg-light">
                                     <input class="form-check-input" type="radio" name="type" id="type_electronics" value="electronics" 
-                                           {{ old('type', $product->type ?? 'electronics') === 'electronics' ? 'checked' : '' }}
+                                           {{ old('type', $selectedType ?? $product->type ?? 'electronics') === 'electronics' ? 'checked' : '' }}
                                            onchange="filterCategoriesByType('electronics')">
                                     <label class="form-check-label fw-bold text-dark d-flex align-items-center gap-2" for="type_electronics">
                                         <i class="fa-solid fa-laptop-code text-info fa-lg"></i>
@@ -43,7 +58,7 @@
                                 </div>
                                 <div class="form-check form-check-inline p-3 border rounded-3 flex-grow-1 cursor-pointer bg-light">
                                     <input class="form-check-input" type="radio" name="type" id="type_stationery" value="stationery" 
-                                           {{ old('type', $product->type ?? 'electronics') === 'stationery' ? 'checked' : '' }}
+                                           {{ old('type', $selectedType ?? $product->type ?? 'electronics') === 'stationery' ? 'checked' : '' }}
                                            onchange="filterCategoriesByType('stationery')">
                                     <label class="form-check-label fw-bold text-dark d-flex align-items-center gap-2" for="type_stationery">
                                         <i class="fa-solid fa-pen-nib text-success fa-lg"></i>
@@ -115,7 +130,18 @@
 
                         <div id="specsContainer" class="d-flex flex-column gap-2">
                             @php
-                                $specs = old('specifications', $product->specifications ?? []);
+                                $oldKeys = old('spec_keys');
+                                $oldVals = old('spec_vals');
+                                $specs = [];
+                                if (is_array($oldKeys)) {
+                                    foreach ($oldKeys as $idx => $k) {
+                                        if ($k !== '' || !empty($oldVals[$idx])) {
+                                            $specs[$k] = $oldVals[$idx] ?? '';
+                                        }
+                                    }
+                                } elseif (!empty($product->specifications) && is_array($product->specifications)) {
+                                    $specs = $product->specifications;
+                                }
                             @endphp
                             @if(is_array($specs) && count($specs) > 0)
                                 @foreach($specs as $k => $v)
@@ -164,16 +190,32 @@
 
                         <!-- Category Selection -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small">ক্যাটাগরি <span class="text-danger">*</span></label>
-                            <select name="category_id" id="categorySelect" class="form-select" required>
-                                <option value="">ক্যাটাগরি নির্বাচন করুন</option>
-                                @foreach($allCategories as $cat)
-                                    <option value="{{ $cat->id }}" data-type="{{ $cat->type }}" 
-                                            {{ old('category_id', $product->category_id) == $cat->id ? 'selected' : '' }}>
-                                        [{{ $cat->type === 'electronics' ? 'ইলেক' : 'স্টেশ' }}] {{ $cat->name }}
-                                    </option>
-                                @endforeach
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <label class="form-label fw-bold text-dark small mb-0">ক্যাটাগরি <span class="text-danger">*</span></label>
+                                <a href="{{ route('admin.products.index', ['tab' => 'categories', 'type' => $selectedType ?? 'electronics']) }}" target="_blank" class="small text-primary text-decoration-none fw-semibold">
+                                    <i class="fa-solid fa-folder-plus me-1"></i>ক্যাটাগরি ম্যানেজমেন্ট
+                                </a>
+                            </div>
+                            <select name="category_id" id="categorySelect" class="form-select @error('category_id') is-invalid @enderror" required>
+                                <option value="">-- ক্যাটাগরি নির্বাচন করুন --</option>
+                                <optgroup label="ইলেক্ট্রনিক্স ক্যাটাগরি" id="optgroupElectronics">
+                                    @foreach($allCategories->where('type', 'electronics') as $cat)
+                                        <option value="{{ $cat->id }}" data-type="electronics" 
+                                                {{ old('category_id', $product->category_id) == $cat->id ? 'selected' : '' }}>
+                                            {{ $cat->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="স্টেশনারি ক্যাটাগরি" id="optgroupStationery">
+                                    @foreach($allCategories->where('type', 'stationery') as $cat)
+                                        <option value="{{ $cat->id }}" data-type="stationery" 
+                                                {{ old('category_id', $product->category_id) == $cat->id ? 'selected' : '' }}>
+                                            {{ $cat->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
                             </select>
+                            @error('category_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
                         <!-- Active Toggle -->
@@ -293,21 +335,35 @@
 @push('scripts')
 <script>
 function filterCategoriesByType(type) {
+    const grpElectronics = document.getElementById('optgroupElectronics');
+    const grpStationery = document.getElementById('optgroupStationery');
     const select = document.getElementById('categorySelect');
-    if (!select) return;
-    const options = select.querySelectorAll('option');
-    options.forEach(opt => {
-        if (!opt.value) return; // keep default placeholder
-        const optType = opt.getAttribute('data-type');
-        if (optType === type) {
-            opt.style.display = '';
-        } else {
-            opt.style.display = 'none';
-            if (opt.selected) {
-                opt.selected = false;
-            }
+
+    const isElec = (type === 'electronics');
+    if (grpElectronics) {
+        grpElectronics.hidden = !isElec;
+        grpElectronics.disabled = !isElec;
+        grpElectronics.querySelectorAll('option').forEach(o => {
+            o.disabled = !isElec;
+            o.hidden = !isElec;
+        });
+    }
+    if (grpStationery) {
+        const isStat = (type === 'stationery');
+        grpStationery.hidden = !isStat;
+        grpStationery.disabled = !isStat;
+        grpStationery.querySelectorAll('option').forEach(o => {
+            o.disabled = !isStat;
+            o.hidden = !isStat;
+        });
+    }
+
+    if (select) {
+        const selectedOpt = select.options[select.selectedIndex];
+        if (selectedOpt && selectedOpt.value && selectedOpt.disabled) {
+            select.value = '';
         }
-    });
+    }
 }
 
 function addSpecRow() {
