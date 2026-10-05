@@ -85,18 +85,18 @@
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 1: ULTRA-COMPACT UTILITY TOPBAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-topbar text-white" style="background: linear-gradient(90deg, #07192f 0%, #0d2847 50%, #07192f 100%) !important; font-size: 13.5px; border-bottom: 1.5px solid rgba(245, 158, 11, 0.35); min-height: 50px; height: 50px; display: flex; align-items: center; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.18);">
+    <div class="site-topbar text-white" style="background: #07192f !important; font-size: 13.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); min-height: 48px; height: 48px; display: flex; align-items: center; padding: 0; box-shadow: none !important;">
         <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2 gap-md-3">
             {{-- Left: Hotline & WhatsApp info (English, High-Contrast) --}}
             <div class="d-flex align-items-center gap-2 text-nowrap flex-shrink-0">
-                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 hover-warning" title="Contact via WhatsApp or Direct Call">
-                    <span class="rounded-circle bg-success text-white shadow-sm d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 15px; box-shadow: 0 0 10px rgba(37, 211, 102, 0.45) !important;">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2.5 hover-warning" title="Contact via WhatsApp or Direct Call">
+                    <span class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 15px; box-shadow: none !important;">
                         <i class="fa-brands fa-whatsapp"></i>
                     </span>
                     <strong class="text-warning-emphasis fw-bold" style="font-size: 13px; letter-spacing: 0.5px; color: #fde047 !important;">HOTLINE:</strong>
-                    <span class="text-white fw-bold font-monospace px-2.5 py-1 rounded-pill shadow-xs" style="font-size: clamp(13.5px, 3.4vw, 15.5px); letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.22);">+88 01726976982</span>
+                    <span class="text-white fw-bold font-monospace px-2.5 py-1 rounded-pill" style="font-size: clamp(13.5px, 3.4vw, 15.5px); letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: none !important;">+88 01726976982</span>
                 </a>
-                <span class="badge rounded-pill text-light fw-medium ms-1 d-none d-md-inline-flex align-items-center gap-1.5" style="background: rgba(255, 255, 255, 0.10); font-size: 11.5px; border: 1px solid rgba(255, 255, 255, 0.15); padding: 5px 12px;">
+                <span class="badge rounded-pill text-light fw-medium ms-1 d-none d-md-inline-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.08); font-size: 11.5px; border: 1px solid rgba(255, 255, 255, 0.14); padding: 5px 12px; box-shadow: none !important;">
                     <i class="fa-solid fa-clock text-warning" style="font-size: 11px;"></i>
                     <span>9:00 AM — 11:00 PM</span>
                 </span>
@@ -104,18 +104,18 @@
 
             {{-- Right: Quick Utility Links & Focused Language Switcher in English --}}
             <div class="d-flex align-items-center gap-2 gap-md-2.5 text-nowrap ms-auto ms-sm-0">
-                <div class="d-flex align-items-center gap-2 gap-md-2 overflow-x-auto text-nowrap scrollbar-none">
-                    <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white text-decoration-none d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold" style="font-size: 13px;">
+                <div class="d-flex align-items-center gap-2.5 gap-md-3 overflow-x-auto text-nowrap scrollbar-none">
+                    <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold" style="font-size: 13px; box-shadow: none !important;">
                         <i class="fa-solid fa-truck-fast text-info" style="font-size: 13px;"></i>
                         <span>Track Order</span>
                     </a>
                     <span class="text-white-50 opacity-30 d-none d-sm-inline">|</span>
-                    <a href="{{ url('/hub') }}" class="text-white text-decoration-none d-none d-md-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px;">
+                    <a href="{{ url('/hub') }}" class="text-white text-decoration-none d-none d-md-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px; box-shadow: none !important;">
                         <i class="fa-solid fa-briefcase text-warning" style="font-size: 13px;"></i>
                         <span>Careers</span>
                     </a>
                     <span class="text-white-50 opacity-30 d-none d-md-inline">|</span>
-                    <a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}" class="text-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px;">
+                    <a href="{{ Route::has('contact') ? route('contact') : url('/contact') }}" class="text-white text-decoration-none d-none d-sm-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px; box-shadow: none !important;">
                         <i class="fa-solid fa-headset text-success" style="font-size: 13px;"></i>
                         <span>Help Center</span>
                     </a>
@@ -123,19 +123,19 @@
 
                 {{-- Compact Native Language Switcher Dropdown --}}
                 <div class="dropdown notranslate flex-shrink-0">
-                    <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-primary" 
+                    <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-2 hover-primary" 
                             type="button" 
                             id="topLangDropdownBtn" 
                             data-bs-toggle="dropdown" 
                             aria-expanded="false"
                             title="Switch Language"
-                            style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
+                            style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 12px; font-weight: 600; box-shadow: none !important;">
                         <i class="fa-solid fa-globe text-warning" style="font-size: 12px;"></i>
                         <span class="current-lang-display fw-bold text-white">English</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end language-menu rounded-4 py-2 mt-1 shadow-2xl border-0" aria-labelledby="topLangDropdownBtn" style="min-width: 210px; max-height: 380px; overflow-y: auto; z-index: 1100;">
                         <li class="dropdown-header text-uppercase fw-bold text-muted px-3 py-1" style="font-size: 10.5px; letter-spacing: 0.5px;">
-                            <i class="fa-solid fa-language me-1 text-primary"></i> Primary Language
+                            <i class="fa-solid fa-language me-2 text-primary"></i> Primary Language
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center justify-content-between py-2 px-3 lang-item-btn active" href="javascript:void(0)" onclick="switchSiteLanguage('en', 'English')">
@@ -165,13 +165,13 @@
                 </div>
 
                 {{-- Light / Dark Theme Mode Switcher Toggle Button --}}
-                <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 shadow-2xs hover-primary theme-switch-btn flex-shrink-0" 
+                <button class="btn btn-sm btn-outline-light rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-2 hover-primary theme-switch-btn flex-shrink-0" 
                         type="button" 
                         id="siteThemeToggleBtn" 
                         onclick="toggleSiteTheme()" 
                         data-theme-toggle
                         title="Toggle Dark / Light Mode" 
-                        style="background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.35); font-size: 12px; font-weight: 600; backdrop-filter: blur(4px);">
+                        style="background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 12px; font-weight: 600; box-shadow: none !important;">
                     <i class="fa-solid fa-moon text-warning" id="siteThemeIcon" style="font-size: 12px;"></i>
                     <span class="d-none d-sm-inline text-white fw-bold" id="siteThemeLabel">Dark</span>
                 </button>
@@ -605,6 +605,20 @@
                     </a>
                 </li>
 
+                {{-- 3.1. [ইলেক্ট্রনিক্স] --}}
+                <li class="nav-item site-nav__item">
+                    <a class="nav-link site-nav__link {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'is-active' : '' }}" href="{{ route('products.electronics') }}">
+                        <span>ইলেক্ট্রনিক্স</span>
+                    </a>
+                </li>
+
+                {{-- 3.2. [স্টেশনারি] --}}
+                <li class="nav-item site-nav__item">
+                    <a class="nav-link site-nav__link {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'is-active' : '' }}" href="{{ route('products.stationery') }}">
+                        <span>স্টেশনারি</span>
+                    </a>
+                </li>
+
                 {{-- 4. [ই-বুক] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('ebook.index') }}">
@@ -667,29 +681,6 @@
                         <span>যোগাযোগ</span>
                     </a>
                 </li>
-
-                {{-- 12. [Library Grant / Pathagar Apply with Ultra-Dynamic Neon Lighting] --}}
-                @php
-                    $navPathagarCamp = \App\Models\EventCampaign::where('slug', 'pathagar')->orWhere('type', 'library')->first();
-                    $isPathagarActive = $navPathagarCamp ? ($navPathagarCamp->is_active && !$navPathagarCamp->isExpired()) : true;
-                @endphp
-                <li class="nav-item site-nav__item ms-lg-2 my-auto">
-                    <a class="btn-pathagar-nav {{ $isPathagarActive ? 'is-live-lighting' : '' }} {{ request()->is('pathagar*') || request()->is('library*') ? 'is-current-page' : '' }}"
-                       href="{{ url('/pathagar') }}"
-                       title="Annual Free Book Distribution Campaign — Library Grant Application">
-                        <span class="btn-pathagar-sheen"></span>
-                        <span class="btn-pathagar-icon"><i class="fa-solid fa-gift"></i></span>
-                        <span class="btn-pathagar-text">Library Grant</span>
-                        <span class="btn-pathagar-pill">Apply</span>
-                        @if($isPathagarActive)
-                            <span class="pathagar-live-beacon" title="Registration Live">
-                                <span class="beacon-pulse"></span>
-                                <span class="beacon-dot"></span>
-                                <span class="beacon-text">LIVE</span>
-                            </span>
-                        @endif
-                    </a>
-                </li>
             </ul>
         </div>
     </nav>
@@ -697,6 +688,22 @@
          DYNAMIC FUNCTIONAL ICON & AUTH BUTTON STYLES
     ══════════════════════════════════════════════════════════════════ --}}
     <style>
+        /* Clean Topbar: No shadows/shades on any element, proper icon-to-name spacing */
+        .site-topbar,
+        .site-topbar *,
+        .site-topbar a,
+        .site-topbar button,
+        .site-topbar span,
+        .site-topbar strong {
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+        .site-topbar a i,
+        .site-topbar button i,
+        .site-topbar span i {
+            margin-right: 2px;
+        }
+
         /* Ultra-Dynamic Library Grant Button in Main Header Navigation */
         .btn-pathagar-nav {
             display: inline-flex;
@@ -1308,35 +1315,43 @@
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('book.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-book-open text-primary"></i> <span>বুকশপ</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>বুকশপ</span></span>
                     <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">বই সম্ভার</span>
                 </a>
+                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.electronics') }}" style="font-size: 13.5px;">
+                    <span class="d-flex align-items-center gap-2.5"><span>ইলেক্ট্রনিক্স</span></span>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">গ্যাজেট</span>
+                </a>
+                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.stationery') }}" style="font-size: 13.5px;">
+                    <span class="d-flex align-items-center gap-2.5"><span>স্টেশনারি</span></span>
+                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">শিক্ষা সামগ্রী</span>
+                </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('ebook.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-tablet-screen-button text-info"></i> <span>ই-বুক</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>ই-বুক</span></span>
                     <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">ডিজিটাল</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('authors.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('authors.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-feather-pointed text-success"></i> <span>লেখক তালিকা</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>লেখক তালিকা</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('publishers.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('publishers.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-building text-primary"></i> <span>প্রকাশক</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>প্রকাশক</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('blog.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('blog.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-newspaper text-primary"></i> <span>আইডিয়াপত্র</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>আইডিয়াপত্র</span></span>
                     <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">ম্যাগাজিন</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('webzine.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('webzine.index') ? route('webzine.index') : url('/webzines') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-book-open text-primary"></i> <span>ওয়েবজিন</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>ওয়েবজিন</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('research*') || request()->routeIs('research.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('research.index') ? route('research.index') : url('/research') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-flask text-primary"></i> <span>গবেষণা</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>গবেষণা</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('hub*') || request()->routeIs('hub') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('hub') ? route('hub') : url('/hub') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-compass text-warning"></i> <span>আইডিয়া হাব</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>আইডিয়া হাব</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
             </div>
@@ -2414,7 +2429,7 @@
 
         window.addToCartLive = function(arg1, arg2, arg3, arg4, arg5) {
             try {
-                let btn = null, id, title, price, image, qty = 1;
+                let btn = null, id, title, price, image, qty = 1, itemType = '';
 
                 if (arg1 && (arg1 instanceof HTMLElement || (typeof arg1 === 'object' && arg1.nodeType === 1))) {
                     btn = arg1;
@@ -2422,31 +2437,35 @@
                     title = arg3;
                     price = arg4;
                     image = arg5;
+                    itemType = arguments[5] || '';
                 } else if (typeof arg1 === 'object' && arg1 !== null && !arg1.nodeType) {
                     id = arg1.id;
                     title = arg1.title;
                     price = arg1.price;
                     image = arg1.image;
                     qty = arg1.quantity || arg1.qty || 1;
+                    itemType = arg1.type || '';
                 } else {
                     id = arg1;
                     title = arg2;
                     price = arg3;
                     image = arg4;
                     qty = (typeof arg5 === 'number') ? arg5 : (parseInt(document.getElementById('bookQuantity')?.value || 1) || 1);
+                    itemType = arguments[5] || '';
                 }
 
                 if (!id) return;
 
                 let cart = JSON.parse(localStorage.getItem('idea_cart') || '[]');
                 const numPrice = Number(price) || 0;
-                const existing = cart.find(item => item.id == id);
+                const existing = cart.find(item => item.id == id && (!itemType || item.type === itemType));
                 
                 if (existing) {
                     existing.quantity = (existing.quantity || existing.qty || 1) + qty;
                     existing.qty = existing.quantity;
+                    if (itemType && !existing.type) existing.type = itemType;
                 } else {
-                    cart.push({ id, title, price: numPrice, image, quantity: qty, qty: qty });
+                    cart.push({ id, title, price: numPrice, image, quantity: qty, qty: qty, type: itemType });
                 }
 
                 localStorage.setItem('idea_cart', JSON.stringify(cart));

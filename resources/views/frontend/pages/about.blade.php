@@ -269,7 +269,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-10 mx-auto text-center">
                     <span class="about-badge">
-                        <i class="fa-solid fa-feather-pointed me-1"></i> {{ $about['hero_badge'] ?? 'আমাদের কথা ও মূল দর্শন' }}
+                        {{ $about['hero_badge'] ?? 'আমাদের কথা ও মূল দর্শন' }}
                     </span>
                     <h1 class="about-main-headline mb-3">
                         {{ $pageTitle }}

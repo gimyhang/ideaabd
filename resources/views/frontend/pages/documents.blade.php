@@ -8,16 +8,12 @@
     {{-- 1. Hero Banner --}}
     <section class="docs-hero-section position-relative overflow-hidden text-white py-5" 
              style="background: linear-gradient(135deg, #07192f 0%, #004d40 60%, #006a4e 100%);">
-        {{-- Subtle background decoration --}}
-        <div class="position-absolute top-0 end-0 opacity-10 pe-none d-none d-md-block" style="transform: translate(15%, -20%);">
-            <i class="fa-solid fa-folder-open" style="font-size: 380px;"></i>
-        </div>
 
         <div class="container position-relative z-1">
             {{-- Breadcrumb --}}
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb mb-0 small" style="--bs-breadcrumb-divider: '›';">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-white-50 text-decoration-none"><i class="fa-solid fa-house me-1"></i>Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-white-50 text-decoration-none">Home</a></li>
                     <li class="breadcrumb-item text-white active" aria-current="page">Documents</li>
                 </ol>
             </nav>
@@ -25,7 +21,6 @@
             <div class="row align-items-center g-4">
                 <div class="col-lg-7">
                     <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-15 backdrop-blur rounded-pill px-3 py-1 mb-3 fw-bold small text-white border border-white border-opacity-20 shadow-sm">
-                        <i class="fa-solid fa-shield-halved text-warning"></i>
                         <span>অফিশিয়াল ডকুমেন্টেশন ও রিসোর্স পোর্টাল</span>
                     </div>
                     <h1 class="fw-black mb-3 text-white display-6 lh-sm" style="letter-spacing: -0.5px;">
@@ -591,7 +586,7 @@
             <div class="row align-items-center g-4 position-relative z-1">
                 <div class="col-lg-8">
                     <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1 fw-bold small mb-2">
-                        <i class="fa-solid fa-headset me-1"></i> প্রকাশনা পরামর্শ ডেস্ক
+                        প্রকাশনা পরামর্শ ডেস্ক
                     </span>
                     <h3 class="fw-bold mb-2">পান্ডুলিপি বা চুক্তি সম্পর্কিত কোনো প্রশ্ন আছে?</h3>
                     <p class="text-white-50 mb-0 small" style="font-size: 15px; line-height: 1.6;">
@@ -601,11 +596,11 @@
                 <div class="col-lg-4 text-lg-end">
                     <div class="d-flex flex-column flex-sm-row justify-content-lg-end gap-2.5">
                         <a href="https://wa.me/8801726976982?text={{ urlencode('হ্যালো, আমি আইডিয়া প্রকাশনের প্রকাশনা ও ডকুমেন্টস সংক্রান্ত তথ্য জানতে চাই।') }}" target="_blank" 
-                           class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center gap-2">
-                            <i class="fa-brands fa-whatsapp fs-5"></i> <span>হোয়াটসঅ্যাপে কথা বলুন</span>
+                           class="btn btn-success rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center justify-content-center">
+                            <span>হোয়াটসঅ্যাপে কথা বলুন</span>
                         </a>
-                        <a href="mailto:ideapbd@gmail.com" class="btn btn-outline-light rounded-pill px-3.5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center gap-2">
-                            <i class="fa-solid fa-envelope"></i> <span>ideapbd@gmail.com</span>
+                        <a href="mailto:ideapbd@gmail.com" class="btn btn-outline-light rounded-pill px-3.5 py-2.5 fw-bold d-inline-flex align-items-center justify-content-center">
+                            <span>ideapbd@gmail.com</span>
                         </a>
                     </div>
                 </div>

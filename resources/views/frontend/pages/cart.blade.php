@@ -45,7 +45,6 @@
     <div id="cartOfferBannerContainer" class="card border-0 shadow-2xs rounded-4 p-3.5 mb-4 bg-white d-none">
         <div class="d-flex align-items-center justify-content-between mb-2">
             <div class="d-flex align-items-center gap-2">
-                <i class="fa-solid fa-truck-fast text-primary fs-5"></i>
                 <span class="fw-bold text-dark small" id="freeDeliveryMessage">
                     ফ্রি ডেলিভারি পেতে আর মাত্র ৳... টাকার বই কিনুন!
                 </span>
@@ -59,7 +58,6 @@
         </div>
         @if($thresholdOfferEnabled)
             <div class="mt-2 pt-2 border-top d-flex align-items-center gap-2 small text-muted">
-                <i class="fa-solid fa-gift text-warning"></i>
                 <span><strong>বিশেষ অফার:</strong> {{ $thresholdOfferTitle }}</span>
             </div>
         @endif

@@ -48,10 +48,15 @@
                     <i class="fa-solid fa-bag-shopping opacity-50"></i>
                 </div>
                 <h6 class="fw-bold text-dark mb-1">আপনার কার্ট খালি আছে</h6>
-                <p class="text-muted small mb-4">পছন্দের বই খুঁজে নিয়ে কার্টে যুক্ত করুন।</p>
-                <a href="{{ route('book.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" data-bs-dismiss="offcanvas">
-                    <i class="fa-solid fa-book-open me-1"></i> বইসমূহ দেখুন
-                </a>
+                <p class="text-muted small mb-4">পছন্দের বই বা গ্যাজেট খুঁজে নিয়ে কার্টে যুক্ত করুন।</p>
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <a href="{{ route('book.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-book-open me-1"></i> বইসমূহ
+                    </a>
+                    <a href="{{ route('products.electronics') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" data-bs-dismiss="offcanvas">
+                        <i class="fa-solid fa-laptop me-1"></i> গ্যাজেট শপ
+                    </a>
+                </div>
             </div>
 
             <!-- Items List -->
@@ -240,12 +245,22 @@
                 const qty = item.quantity;
                 const price = item.price;
                 const itemTotal = price * qty;
-                const imgSrc = item.image || '/images/default-book.png';
-                const formatLabel = item.format === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক';
+                const isGadget = item.type === 'electronics' || item.type === 'stationery';
+                const imgSrc = item.image || (isGadget ? '/assets/images/placeholder-product.svg' : '/images/default-book.png');
+                let formatLabel = '';
+                if (item.type === 'electronics') {
+                    formatLabel = 'গ্যাজেট';
+                } else if (item.type === 'stationery') {
+                    formatLabel = 'স্টেশনারি';
+                } else if (item.format) {
+                    formatLabel = item.format === 'hardcover' ? 'হার্ডকভার' : 'পেপারব্যাক';
+                } else {
+                    formatLabel = 'জেনুইন';
+                }
 
                 html += `
                     <div class="p-2.5 bg-white border rounded-3 shadow-2xs d-flex align-items-center gap-2.5">
-                        <img src="${imgSrc}" alt="${item.title}" class="rounded-2 object-fit-cover flex-shrink-0" style="width: 50px; height: 68px; border: 1px solid #eee;" onerror="this.onerror=null; this.src='/images/default-book.png';">
+                        <img src="${imgSrc}" alt="${item.title}" class="rounded-2 object-fit-contain bg-light flex-shrink-0" style="width: 52px; height: 52px; border: 1px solid #eee;" onerror="this.onerror=null; this.src='/assets/images/placeholder-product.svg';">
                         <div class="flex-grow-1 min-w-0">
                             <h6 class="fw-bold text-dark mb-1 small text-truncate" title="${item.title}">${item.title}</h6>
                             <div class="d-flex align-items-center gap-1.5 mb-1.5 flex-wrap">
@@ -375,6 +390,7 @@
             }
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]')?.value;
+            const formData = new FormData(form);
 
             fetch("{{ route('cart.checkout') }}", {
                 method: 'POST',

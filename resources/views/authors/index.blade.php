@@ -11,18 +11,13 @@
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-lg rounded-4 position-relative overflow-hidden text-white hero-author-banner" 
          style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 80%, #4338ca 100%);">
         
-        {{-- Background Artistic Icon --}}
-        <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-lg-block pe-4 pb-2" style="pointer-events: none;">
-            <i class="fa-solid fa-feather-pointed" style="font-size: 16rem;"></i>
-        </div>
-
         <div class="position-relative z-1" style="max-width: 720px;">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
                 <span class="badge bg-warning text-dark fw-bold px-3 py-1.5 rounded-pill shadow-sm">
-                    <i class="fas fa-pen-fancy me-1"></i>লেখক ও গবেষক ডিরেক্টরি
+                    লেখক ও গবেষক ডিরেক্টরি
                 </span>
                 <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1.5 shadow-sm small">
-                    <i class="fas fa-book-open me-1"></i>@bn($stats['total_authors'] ?? 0) জন লেখক ও @bn($stats['total_books'] ?? 0)টি ক্যাটালগ বই
+                    @bn($stats['total_authors'] ?? 0) জন লেখক ও @bn($stats['total_books'] ?? 0)টি ক্যাটালগ বই
                 </span>
             </div>
 

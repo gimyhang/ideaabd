@@ -159,7 +159,7 @@
                     <div>
                         <h1 class="lib-main-title mb-1" style="font-family: 'Kalpurush', serif !important; font-size: 24px; font-weight: 900;">{{ $brandName }}</h1>
                         <div class="lib-sub-title fw-bold text-warning" style="font-size: 14px;">{{ $subTitle }}</div>
-                        <div class="small text-white-50 mt-0.5"><i class="fa-solid fa-layer-group me-1 text-warning"></i>{{ $sessionText }}</div>
+                        <div class="small text-white-50 mt-0.5">{{ $sessionText }}</div>
                     </div>
                 </div>
                 <div class="d-flex flex-column align-items-end gap-1">

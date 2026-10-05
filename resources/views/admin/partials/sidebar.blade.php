@@ -29,6 +29,7 @@
         ],
         'Catalog' => [
             ['route' => 'admin.books',          'icon' => 'book',          'label' => 'Books'],
+            ['route' => 'admin.products.index', 'icon' => 'bag-shopping',  'label' => 'Electronics & Stationery'],
             ['route' => 'admin.bundles.index',  'icon' => 'boxes-stacked', 'label' => 'Combos & Bundles'],
             ['route' => 'admin.categories',     'icon' => 'folder-tree',   'label' => 'Categories'],
             ['route' => 'admin.authors',        'icon' => 'pen-fancy',     'label' => 'Authors'],

@@ -8,22 +8,18 @@
     {{-- 1. Hero Search Header --}}
     <section class="faq-hero-section position-relative overflow-hidden text-white py-5" 
              style="background: linear-gradient(135deg, #07192f 0%, #004d40 60%, #006a4e 100%);">
-        <div class="position-absolute top-0 end-0 opacity-10 pe-none d-none d-md-block" style="transform: translate(15%, -20%);">
-            <i class="fa-solid fa-circle-question" style="font-size: 380px;"></i>
-        </div>
 
         <div class="container position-relative z-1">
             {{-- Breadcrumb --}}
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb mb-0 small" style="--bs-breadcrumb-divider: '›';">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-white-50 text-decoration-none"><i class="fa-solid fa-house me-1"></i>Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-white-50 text-decoration-none">Home</a></li>
                     <li class="breadcrumb-item text-white active" aria-current="page">FAQ</li>
                 </ol>
             </nav>
 
             <div class="text-center mx-auto" style="max-width: 760px;">
                 <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-15 backdrop-blur rounded-pill px-3.5 py-1 mb-3 fw-bold small text-white border border-white border-opacity-20 shadow-sm">
-                    <i class="fa-solid fa-circle-question text-warning"></i>
                     <span>সহায়তা কেন্দ্র ও সাধারণ জিজ্ঞাসা</span>
                 </div>
                 <h1 class="fw-black text-white display-6 mb-3 lh-sm" style="letter-spacing: -0.5px;">
@@ -497,7 +493,6 @@
              style="background: linear-gradient(135deg, #07192f 0%, #004d40 60%, #006a4e 100%);">
             <div class="position-relative z-1" style="max-width: 680px; margin: 0 auto;">
                 <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-20 rounded-pill px-3 py-1 mb-3 fw-bold small text-white">
-                    <i class="fa-solid fa-headset text-warning"></i>
                     <span>তাৎক্ষণিক কাস্টমার সাপোর্ট</span>
                 </div>
                 <h3 class="fw-black mb-2 fs-3 text-white">আপনার প্রশ্নের উত্তর কি খুঁজে পাননি?</h3>
@@ -506,13 +501,11 @@
                 </p>
                 <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap">
                     <a href="https://wa.me/8801726976982?text={{ urlencode('হ্যালো, আইডিয়া প্রকাশন সাপোর্ট টিমের সাথে কথা বলতে চাই।') }}" target="_blank" 
-                       class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
-                        <i class="fa-brands fa-whatsapp fs-5"></i>
+                       class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center">
                         <span>হোয়াটসঅ্যাপে কথা বলুন</span>
                     </a>
                     <a href="{{ route('contact') }}" 
-                       class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
-                        <i class="fa-solid fa-envelope"></i>
+                       class="btn btn-outline-light btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center">
                         <span>যোগাযোগ ফরম পূরণ করুন</span>
                     </a>
                 </div>

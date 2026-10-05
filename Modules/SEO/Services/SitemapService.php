@@ -16,14 +16,27 @@ class SitemapService
         $urls = [];
 
         // Core Static Pages
-        $staticPaths = ['/', '/books', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms', '/hub'];
+        $staticPaths = ['/', '/books', '/electronics', '/stationery', '/ebooks', '/authors', '/publishers', '/blog', '/webzines', '/research', '/about', '/contact', '/terms', '/hub'];
         foreach ($staticPaths as $p) {
             $urls[] = [
                 'loc'        => url($p),
                 'lastmod'    => now()->toDateString(),
                 'changefreq' => ($p === '/' ? 'daily' : 'weekly'),
-                'priority'   => ($p === '/' ? '1.0' : '0.8'),
+                'priority'   => ($p === '/' ? '1.0' : '0.85'),
             ];
+        }
+
+        // Electronics & Stationery Products
+        if (class_exists(\App\Models\Product::class)) {
+            $products = \App\Models\Product::where('is_active', true)->latest('updated_at')->take(1000)->get(['id', 'slug', 'type', 'updated_at']);
+            foreach ($products as $pr) {
+                $urls[] = [
+                    'loc'        => route('products.show', ['type' => $pr->type, 'slug' => $pr->slug]),
+                    'lastmod'    => $pr->updated_at ? $pr->updated_at->toDateString() : now()->toDateString(),
+                    'changefreq' => 'weekly',
+                    'priority'   => '0.85',
+                ];
+            }
         }
 
         // Books

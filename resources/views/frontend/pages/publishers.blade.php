@@ -23,9 +23,9 @@
              style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);">
             <div class="card-body p-4 p-md-5 position-relative z-1">
                 <div class="row align-items-center g-4">
-                    <div class="col-lg-8">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold mb-3 d-inline-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-building-columns"></i> সমৃদ্ধ প্রকাশনা ভাণ্ডার
+                    <div class="col-lg-12">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-bold mb-3 d-inline-flex align-items-center">
+                            সমৃদ্ধ প্রকাশনা ভাণ্ডার
                         </span>
                         <h1 class="display-6 fw-bold mb-2">শীর্ষস্থানীয় প্রকাশক ও প্রকাশনী ডিরেক্টরি</h1>
                         <p class="text-light opacity-80 fs-6 mb-4" style="max-width: 650px;">
@@ -35,33 +35,23 @@
                         <!-- Live Stats Pills -->
                         <div class="d-flex flex-wrap gap-3">
                             <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 backdrop-blur px-3 py-2 rounded-3 border border-white border-opacity-10">
-                                <i class="fa-solid fa-building text-warning fs-5"></i>
                                 <div>
                                     <div class="small opacity-75 leading-none">মোট প্রকাশনী</div>
                                     <div class="fw-bold fs-6">@bn($stats['total'] ?? 0) টি</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 backdrop-blur px-3 py-2 rounded-3 border border-white border-opacity-10">
-                                <i class="fa-solid fa-circle-check text-success fs-5"></i>
                                 <div>
                                     <div class="small opacity-75 leading-none">ভেরিফাইড প্রকাশনী</div>
                                     <div class="fw-bold fs-6">@bn($stats['verified'] ?? 0) টি</div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center gap-2 bg-white bg-opacity-10 backdrop-blur px-3 py-2 rounded-3 border border-white border-opacity-10">
-                                <i class="fa-solid fa-book text-info fs-5"></i>
                                 <div>
                                     <div class="small opacity-75 leading-none">প্রকাশিত বই</div>
                                     <div class="fw-bold fs-6">@bn($stats['total_books'] ?? 0)+ টি</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Graphic Icon -->
-                    <div class="col-lg-4 text-center d-none d-lg-block">
-                        <div class="display-1 text-white opacity-10">
-                            <i class="fa-solid fa-city"></i>
                         </div>
                     </div>
                 </div>
@@ -272,8 +262,8 @@
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
-                    <a href="{{ route('register.form', 'publisher') }}" class="btn btn-warning rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
-                        <i class="fa-solid fa-plus"></i> প্রকাশনী হিসেবে যুক্ত হোন
+                    <a href="{{ route('register.form', 'publisher') }}" class="btn btn-warning rounded-pill px-4 py-2.5 fw-bold shadow-sm d-inline-flex align-items-center">
+                        প্রকাশনী হিসেবে যুক্ত হোন
                     </a>
                 </div>
             </div>

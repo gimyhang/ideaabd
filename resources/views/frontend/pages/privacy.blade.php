@@ -11,11 +11,6 @@
     ══════════════════════════════════════════════════════════════════ --}}
     <section class="privacy-hero position-relative overflow-hidden text-white py-5" 
              style="background: linear-gradient(135deg, #091a28 0%, #064e3b 50%, #047857 100%);">
-        
-        {{-- Background decorative icon --}}
-        <div class="position-absolute top-0 end-0 opacity-10 pe-none d-none d-lg-block" style="transform: translate(15%, -15%);">
-            <i class="fa-solid fa-user-shield" style="font-size: 380px;"></i>
-        </div>
 
         <div class="container position-relative z-1">
             {{-- Breadcrumb --}}
@@ -30,7 +25,6 @@
             <div class="row align-items-center g-4">
                 <div class="col-lg-8">
                     <div class="d-inline-flex align-items-center gap-2 bg-white bg-opacity-15 backdrop-blur rounded-pill px-3.5 py-1 mb-3 fw-bold small text-white border border-white border-opacity-20 shadow-sm">
-                        <i class="fa-solid fa-shield-halved text-warning"></i>
                         <span>গ্রাহক তথ্য সুরক্ষা ও ডেটা প্রাইভেসি ফ্রেমওয়ার্ক</span>
                     </div>
                     <h1 class="fw-black mb-3 text-white display-6 lh-sm" style="letter-spacing: -0.5px;">

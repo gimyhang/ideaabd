@@ -7,19 +7,16 @@
     <!-- Hero Banner -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden text-white" 
          style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #0284c7 100%);">
-        <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-md-block pe-4 pb-2" style="pointer-events: none;">
-            <i class="fa-solid fa-compass" style="font-size: 14rem;"></i>
-        </div>
         <div class="position-relative z-1" style="max-width: 650px;">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">আইডিয়া হাব</span>
             <h1 class="fw-bold display-6 mb-2">বিশাল জ্ঞানের ভাণ্ডার</h1>
             <p class="fs-6 opacity-90 mb-4">আপনার প্রিয় লেখক, গবেষক ও প্রকাশকদের বই, গবেষণাপত্র, সাহিত্য সাময়িকী এবং আইডিয়াপত্রের উন্মুক্ত প্ল্যাটফর্ম।</p>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('book.index') }}" class="btn btn-light fw-bold rounded-pill px-4 shadow-sm text-primary">
-                    <i class="fa-solid fa-book-open me-1"></i> বই ব্রাউজ করুন
+                    বই ব্রাউজ করুন
                 </a>
                 <a href="{{ route('authors.index') }}" class="btn btn-outline-light rounded-pill px-4 fw-semibold">
-                    <i class="fa-solid fa-feather me-1"></i> লেখকগণ
+                    লেখকগণ
                 </a>
             </div>
         </div>

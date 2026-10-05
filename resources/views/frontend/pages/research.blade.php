@@ -7,9 +7,6 @@
     <!-- Hero Banner -->
     <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden text-white" 
          style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #0d9488 100%);">
-        <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-md-block pe-4 pb-2" style="pointer-events: none;">
-            <i class="fa-solid fa-flask" style="font-size: 14rem;"></i>
-        </div>
         <div class="position-relative z-1" style="max-width: 650px;">
             <span class="badge bg-warning text-dark fw-bold px-3 py-1 mb-2 rounded-pill shadow-sm">একাডেমিক ও মুক্ত গবেষণা</span>
             <h1 class="fw-bold display-6 mb-2">গবেষণা ও সমকালীন নিবন্ধ</h1>

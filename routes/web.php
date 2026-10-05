@@ -23,6 +23,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\Admin\PaymentAdminController;
 use App\Http\Controllers\Auth\CaptchaController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\Admin\ProductAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,6 +98,14 @@ Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetControll
 // --- Search ------------------------------------------------------------------
 Route::get('/search', [BookController::class, 'index'])->name('search');
 Route::get('/search/suggest', [BookController::class, 'suggest'])->name('search.suggest');
+
+// --- Electronics & Stationery Stores -----------------------------------------
+Route::get('/electronics', [ProductController::class, 'electronics'])->name('products.electronics');
+Route::get('/stationery', [ProductController::class, 'stationery'])->name('products.stationery');
+Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
+Route::get('/products/{type}/{slug}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/electronics/{slug}', fn($slug) => redirect()->route('products.show', ['type' => 'electronics', 'slug' => $slug]));
+Route::get('/stationery/{slug}', fn($slug) => redirect()->route('products.show', ['type' => 'stationery', 'slug' => $slug]));
 
 // --- Wishlist / Cart / Checkout ----------------------------------------------
 Route::get('/wishlist', fn() => redirect('/books'))->name('wishlist')->middleware('auth');
@@ -545,6 +555,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/publishers/{id}/toggle-status', [AdminController::class, 'togglePublisherStatus'])->name('publishers.toggle-status');
     Route::post('/publishers/{id}/quick-payment', [AdminController::class, 'quickPublisherPayment'])->name('publishers.quick-payment');
     Route::post('/publishers/{id}/send-purchase-order', [AdminController::class, 'sendPublisherPurchaseOrderEmail'])->name('publishers.send-po');
+
+    // Electronics & Stationery Product Catalog Management
+    Route::prefix('products')->name('products.')->controller(\App\Http\Controllers\Admin\ProductAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::post('/{id}/toggle-status', 'toggleStatus')->name('toggle-status');
+        Route::post('/categories', 'storeCategory')->name('categories.store');
+        Route::put('/categories/{id}', 'updateCategory')->name('categories.update');
+        Route::delete('/categories/{id}', 'destroyCategory')->name('categories.destroy');
+    });
 
     // Publisher Purchases & Payment Installments
     Route::prefix('purchases')->name('purchases.')->controller(\App\Http\Controllers\Admin\PublisherPurchaseController::class)->group(function () {

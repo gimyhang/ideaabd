@@ -248,23 +248,46 @@ class CartController extends Controller
                     $titles[] = ($item['title'] ?? 'ডিজিটাল ই-বুক') . " (x{$qty})";
                 }
             } elseif ($cleanId > 0) {
-                // 2. Physical Book model
-                $dbBook = Book::find($cleanId);
-                if ($dbBook) {
+                // 2. Electronics or Stationery Product model
+                $itemType = strtolower($item['type'] ?? '');
+                $dbProd = null;
+                if (in_array($itemType, ['electronics', 'stationery', 'product'], true)) {
+                    $dbProd = \App\Models\Product::find($cleanId);
+                }
+
+                if ($dbProd) {
                     $hasPhysicalBooks = true;
-                    $itemFormat = strtolower($item['format'] ?? '');
-                    if ($itemFormat === 'hardcover' && !empty($dbBook->hardcover_price)) {
-                        $price = floatval($dbBook->hardcover_discount_price > 0 && $dbBook->hardcover_discount_price < $dbBook->hardcover_price ? $dbBook->hardcover_discount_price : $dbBook->hardcover_price);
-                    } else {
-                        $price = floatval($dbBook->discount_price > 0 && $dbBook->discount_price < $dbBook->price ? $dbBook->discount_price : $dbBook->price);
-                    }
-                    if (!$primaryBookId) {
-                        $primaryBookId = $dbBook->id;
-                    }
-                    $formatSuffix = $itemFormat === 'hardcover' ? ' [হার্ডকভার]' : '';
-                    $titles[] = $dbBook->title . $formatSuffix . " (x{$qty})";
+                    $price = floatval($dbProd->final_price);
+                    $typeLabel = $dbProd->type === 'electronics' ? ' [ইলেক্ট্রনিক্স]' : ' [স্টেশনারি]';
+                    $titles[] = $dbProd->title . $typeLabel . " (x{$qty})";
                 } else {
-                    $titles[] = ($item['title'] ?? 'বই') . " (x{$qty})";
+                    // 3. Physical Book model
+                    $dbBook = Book::find($cleanId);
+                    if ($dbBook) {
+                        $hasPhysicalBooks = true;
+                        $itemFormat = strtolower($item['format'] ?? '');
+                        if ($itemFormat === 'hardcover' && !empty($dbBook->hardcover_price)) {
+                            $price = floatval($dbBook->hardcover_discount_price > 0 && $dbBook->hardcover_discount_price < $dbBook->hardcover_price ? $dbBook->hardcover_discount_price : $dbBook->hardcover_price);
+                        } else {
+                            $price = floatval($dbBook->discount_price > 0 && $dbBook->discount_price < $dbBook->price ? $dbBook->discount_price : $dbBook->price);
+                        }
+                        if (!$primaryBookId) {
+                            $primaryBookId = $dbBook->id;
+                        }
+                        $formatSuffix = $itemFormat === 'hardcover' ? ' [হার্ডকভার]' : '';
+                        $titles[] = $dbBook->title . $formatSuffix . " (x{$qty})";
+                    } else {
+                        // Fallback: check Product if not found in Book
+                        $fallbackProd = \App\Models\Product::find($cleanId);
+                        if ($fallbackProd) {
+                            $hasPhysicalBooks = true;
+                            $price = floatval($fallbackProd->final_price);
+                            $typeLabel = $fallbackProd->type === 'electronics' ? ' [ইলেক্ট্রনিক্স]' : ' [স্টেশনারি]';
+                            $titles[] = $fallbackProd->title . $typeLabel . " (x{$qty})";
+                        } else {
+                            $titles[] = ($item['title'] ?? 'পণ্য') . " (x{$qty})";
+                        }
+                    }
                 }
             }
 

@@ -222,6 +222,155 @@ class ImageOptimizerService
     }
 
     /**
+     * Convert and optimize product image to a uniform square (1:1) WebP image.
+     * Fits the product cleanly centered on an 800x800 canvas with crisp padding.
+     *
+     * @param \Illuminate\Http\UploadedFile|string $source
+     * @param string $folder
+     * @param string $disk
+     * @param int $quality
+     * @param int $dimension (default 800px)
+     * @return string Relative path
+     */
+    public static function convertAndStoreSquareProductImage($source, string $folder = 'products', string $disk = 'public', int $quality = 82, int $dimension = 800): string
+    {
+        try {
+            $binary = null;
+            $origFilename = 'product';
+
+            if ($source instanceof UploadedFile) {
+                $ext = strtolower($source->getClientOriginalExtension());
+                if (in_array($ext, ['php', 'phtml', 'phar', 'exe', 'sh', 'bat', 'cmd', 'cgi', 'pl', 'py', 'asp', 'aspx', 'jsp', 'htm', 'html', 'js'], true)) {
+                    throw new \InvalidArgumentException('Unsafe file type prohibited.');
+                }
+                $origFilename = pathinfo($source->getClientOriginalName(), PATHINFO_FILENAME);
+                $binary = @file_get_contents($source->getRealPath());
+            } elseif (is_string($source)) {
+                if (str_starts_with($source, 'http://') || str_starts_with($source, 'https://')) {
+                    $context = stream_context_create([
+                        'http' => ['timeout' => 15, 'user_agent' => 'Mozilla/5.0'],
+                        'ssl'  => ['verify_peer' => false, 'verify_peer_name' => false]
+                    ]);
+                    $binary = @file_get_contents($source, false, $context);
+                    $urlPath = parse_url($source, PHP_URL_PATH);
+                    $origFilename = $urlPath ? pathinfo($urlPath, PATHINFO_FILENAME) : 'product';
+                } elseif (str_starts_with($source, 'data:image')) {
+                    if (preg_match('/^data:image\/(\w+);base64,/', $source, $type)) {
+                        $data = substr($source, strpos($source, ',') + 1);
+                        $binary = base64_decode($data);
+                    }
+                } elseif (file_exists($source)) {
+                    $origFilename = pathinfo($source, PATHINFO_FILENAME);
+                    $binary = @file_get_contents($source);
+                } elseif (Storage::disk($disk)->exists($source)) {
+                    $origFilename = pathinfo($source, PATHINFO_FILENAME);
+                    $binary = Storage::disk($disk)->get($source);
+                }
+            }
+
+            if (empty($binary)) {
+                if ($source instanceof UploadedFile) {
+                    $stored = $source->store($folder, $disk);
+                    self::mirrorToPublicIfApplicable($disk, $stored);
+                    return $stored;
+                }
+                return (string) $source;
+            }
+
+            // Create GD Image resource
+            $gdImage = @imagecreatefromstring($binary);
+            if (!$gdImage) {
+                if ($source instanceof UploadedFile) {
+                    $stored = $source->store($folder, $disk);
+                    self::mirrorToPublicIfApplicable($disk, $stored);
+                    return $stored;
+                }
+                return (string) $source;
+            }
+
+            if (function_exists('imageistruecolor') && !imageistruecolor($gdImage) && function_exists('imagepalettetotruecolor')) {
+                imagepalettetotruecolor($gdImage);
+            }
+
+            $origW = imagesx($gdImage);
+            $origH = imagesy($gdImage);
+
+            if ($origW <= 0 || $origH <= 0) {
+                imagedestroy($gdImage);
+                return (string) $source;
+            }
+
+            // Create uniform square canvas (800x800 standard)
+            $canvas = imagecreatetruecolor($dimension, $dimension);
+
+            // Fill canvas with pure white (#ffffff)
+            $white = imagecolorallocate($canvas, 255, 255, 255);
+            imagefilledrectangle($canvas, 0, 0, $dimension, $dimension, $white);
+
+            // Scale content so it comfortably fits within 92% of the canvas (clean uniform margin)
+            $maxContentSize = (int) round($dimension * 0.92);
+            $scale = min($maxContentSize / $origW, $maxContentSize / $origH);
+            $newW = max(1, (int) round($origW * $scale));
+            $newH = max(1, (int) round($origH * $scale));
+
+            // Center image on the square canvas
+            $dstX = (int) round(($dimension - $newW) / 2);
+            $dstY = (int) round(($dimension - $newH) / 2);
+
+            imagecopyresampled($canvas, $gdImage, $dstX, $dstY, 0, 0, $newW, $newH, $origW, $origH);
+            imagedestroy($gdImage);
+
+            // Generate deterministic filename using content hash
+            $contentHash = hash('sha256', $binary);
+            $hashSuffix = substr($contentHash, 0, 10);
+            $slug = Str::slug($origFilename) ?: 'prod';
+            $fileName = "{$slug}_{$hashSuffix}.webp";
+            $folder = trim($folder, '/');
+            $relPath = "{$folder}/{$fileName}";
+
+            // Check if identical file already exists on disk
+            if (Storage::disk($disk)->exists($relPath) && Storage::disk($disk)->size($relPath) > 0) {
+                imagedestroy($canvas);
+                self::mirrorToPublicIfApplicable($disk, $relPath);
+                return $relPath;
+            }
+
+            // WebP Compression
+            $savedData = null;
+            if (function_exists('imagewebp')) {
+                ob_start();
+                imagewebp($canvas, null, $quality);
+                $savedData = ob_get_clean();
+            }
+
+            // Fallback to jpeg if webp failed or not available
+            if (empty($savedData) && function_exists('imagejpeg')) {
+                ob_start();
+                imagejpeg($canvas, null, 88);
+                $savedData = ob_get_clean();
+                $relPath = "{$folder}/{$slug}_{$hashSuffix}.jpg";
+            }
+
+            imagedestroy($canvas);
+
+            if (!empty($savedData)) {
+                self::writeToDiskAndPublic($disk, $relPath, $savedData);
+                return $relPath;
+            }
+
+            return (string) $source;
+        } catch (\Throwable $e) {
+            Log::warning('Product image optimization error: ' . $e->getMessage());
+            if ($source instanceof UploadedFile) {
+                $stored = $source->store($folder, $disk);
+                self::mirrorToPublicIfApplicable($disk, $stored);
+                return $stored;
+            }
+            return (string) $source;
+        }
+    }
+
+    /**
      * Write file to storage disk and mirror to public/storage if disk is public
      */
     public static function writeToDiskAndPublic(string $disk, string $relPath, string $data): void

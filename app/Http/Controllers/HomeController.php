@@ -263,11 +263,34 @@ class HomeController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        $electronicsProducts = collect();
+        $stationeryProducts = collect();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+                $electronicsProducts = \App\Models\Product::electronics()
+                    ->active()
+                    ->with('category')
+                    ->orderBy('sort_order')
+                    ->latest('id')
+                    ->take(14)
+                    ->get();
+
+                $stationeryProducts = \App\Models\Product::stationery()
+                    ->active()
+                    ->with('category')
+                    ->orderBy('sort_order')
+                    ->latest('id')
+                    ->take(14)
+                    ->get();
+            }
+        } catch (\Throwable $e) {}
+
         return view('frontend.home', compact(
             'books', 'recentlySold', 'bestSellerEbooks', 'ebooks', 'flashSales', 'ideaSpecialBooks', 'preOrderBooks',
             'recentlyViewedBooks', 'dynamicCategories', 'categoryBooks', 'categoryGridCards',
             'blogPosts', 'latestBlogPosts', 'mostReadBlogPosts', 'topHonorariumBlogPosts', 'blogCategories',
-            'sidebarAuthors', 'sidebarPublishers', 'topSeller'
+            'sidebarAuthors', 'sidebarPublishers', 'topSeller',
+            'electronicsProducts', 'stationeryProducts'
         ));
     }
 }
