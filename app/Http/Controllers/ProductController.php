@@ -94,6 +94,63 @@ class ProductController extends Controller
             $query->where('rating', '>=', (float) $request->input('rating'));
         }
 
+        // Filter by warranty
+        if ($request->filled('warranty')) {
+            $wVal = $request->input('warranty');
+            if ($wVal === '1year') {
+                $query->where(function ($q) {
+                    $q->where('warranty', 'like', '%১ বছর%')
+                      ->orWhere('warranty', 'like', '%২ বছর%')
+                      ->orWhere('warranty', 'like', '%1 year%')
+                      ->orWhere('warranty', 'like', '%2 year%');
+                });
+            } elseif ($wVal === 'replacement') {
+                $query->where(function ($q) {
+                    $q->where('warranty', 'like', '%রিপ্লেসমেন্ট%')
+                      ->orWhere('warranty', 'like', '%replacement%');
+                });
+            } elseif ($wVal === 'official') {
+                $query->where(function ($q) {
+                    $q->where('warranty', 'like', '%অফিসিয়াল%')
+                      ->orWhere('warranty', 'like', '%ব্র্যান্ড%')
+                      ->orWhere('warranty', 'like', '%official%');
+                });
+            } elseif ($wVal === 'guarantee') {
+                $query->where(function ($q) {
+                    $q->where('warranty', 'like', '%গ্যারান্টি%')
+                      ->orWhere('warranty', 'like', '%লাইফটাইম%')
+                      ->orWhere('warranty', 'like', '%guarantee%');
+                });
+            } elseif ($wVal === 'has_warranty' || $wVal === 'all') {
+                $query->whereNotNull('warranty')->where('warranty', '!=', '');
+            } else {
+                $query->where('warranty', $wVal);
+            }
+        }
+
+        // Filter by product feature (bestseller, hot_deal, featured, new_arrival)
+        if ($request->filled('feature')) {
+            $feat = $request->input('feature');
+            if ($feat === 'featured') {
+                $query->where('is_featured', true);
+            } elseif ($feat === 'bestseller') {
+                $query->where(function ($q) {
+                    $q->where('badge', 'like', '%বেস্টসেলার%')
+                      ->orWhere('badge', 'like', '%সেরা%');
+                });
+            } elseif ($feat === 'hot_deal') {
+                $query->where(function ($q) {
+                    $q->where('badge', 'like', '%হট ডিল%')
+                      ->orWhere('badge', 'like', '%hot deal%');
+                });
+            } elseif ($feat === 'new_arrival') {
+                $query->where(function ($q) {
+                    $q->where('badge', 'like', '%নতুন%')
+                      ->orWhere('badge', 'like', '%new%');
+                });
+            }
+        }
+
         // Sort
         $sort = $request->input('sort', 'latest');
         switch ($sort) {
@@ -124,6 +181,48 @@ class ProductController extends Controller
             ->distinct()
             ->pluck('brand');
 
+        $ratingCounts = [
+            '5' => Product::where('type', $type)->active()->where('rating', '>=', 4.8)->count(),
+            '4' => Product::where('type', $type)->active()->where('rating', '>=', 4.0)->count(),
+            '3' => Product::where('type', $type)->active()->where('rating', '>=', 3.0)->count(),
+        ];
+
+        $warrantyCounts = [
+            'all' => Product::where('type', $type)->active()->whereNotNull('warranty')->where('warranty', '!=', '')->count(),
+            'official' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('warranty', 'like', '%অফিসিয়াল%')
+                  ->orWhere('warranty', 'like', '%ব্র্যান্ড%')
+                  ->orWhere('warranty', 'like', '%official%');
+            })->count(),
+            'replacement' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('warranty', 'like', '%রিপ্লেসমেন্ট%')
+                  ->orWhere('warranty', 'like', '%replacement%');
+            })->count(),
+            '1year' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('warranty', 'like', '%১ বছর%')
+                  ->orWhere('warranty', 'like', '%২ বছর%')
+                  ->orWhere('warranty', 'like', '%1 year%')
+                  ->orWhere('warranty', 'like', '%2 year%');
+            })->count(),
+            'guarantee' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('warranty', 'like', '%গ্যারান্টি%')
+                  ->orWhere('warranty', 'like', '%লাইফটাইম%');
+            })->count(),
+        ];
+
+        $featureCounts = [
+            'featured' => Product::where('type', $type)->active()->where('is_featured', true)->count(),
+            'bestseller' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('badge', 'like', '%বেস্টসেলার%')->orWhere('badge', 'like', '%সেরা%');
+            })->count(),
+            'hot_deal' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('badge', 'like', '%হট ডিল%')->orWhere('badge', 'like', '%hot deal%');
+            })->count(),
+            'new_arrival' => Product::where('type', $type)->active()->where(function ($q) {
+                $q->where('badge', 'like', '%নতুন%')->orWhere('badge', 'like', '%new%');
+            })->count(),
+        ];
+
         $priceStats = [
             'min' => (float) (Product::where('type', $type)->active()->min('price') ?? 0),
             'max' => (float) (Product::where('type', $type)->active()->max('price') ?? 5000),
@@ -144,23 +243,23 @@ class ProductController extends Controller
 
         $typeMeta = [
             'electronics' => [
-                'title' => 'ইলেক্ট্রনিক্স ও ডিজিটাল গ্যাজেট শপ',
-                'subtitle' => 'স্মার্ট স্টাডি ডিভাইস, রিডিং ল্যাম্প, অডিও ও প্রিমিয়াম গ্যাজেটের বিশ্বস্ত কালেকশন',
-                'badge' => 'Idea Electronics',
-                'badge_suffix' => '১০০% অথেনটিক গ্যাজেট',
+                'title' => 'হোম অ্যাপ্লায়েন্স ও ডিজিটাল গ্যাজেট শপ',
+                'subtitle' => 'স্মার্ট কিচেন অ্যাপ্লায়েন্স, ইলেকট্রিক কেটলি, ব্লেন্ডার, এয়ার ফ্রায়ার, ভ্যাকুয়াম ক্লিনার ও আধুনিক হোম ডিভাইসের বিশ্বস্ত সম্ভার',
+                'badge' => 'Idea Home Appliances',
+                'badge_suffix' => '১০০% জেনুইন হোম অ্যাপ্লায়েন্স',
                 'slug' => 'electronics',
-                'icon' => 'fas fa-laptop-code',
+                'icon' => 'fas fa-blender',
                 'theme_color' => '#0284c7',
                 'theme_color_dark' => '#0369a1',
-                'banner_bg' => 'linear-gradient(135deg, #0a192f 0%, #0369a1 55%, #0284c7 100%)',
-                'search_placeholder' => 'রিডিং ল্যাম্প, হেডফোন, স্মার্ট গ্যাজেট খুঁজুন...',
-                'category_title' => 'গ্যাজেট ও ইলেকট্রনিক্স ক্যাটাগরি',
-                'popular_text' => 'সর্বোচ্চ জনপ্রিয় গ্যাজেট',
-                'new_text' => 'নতুন গ্যাজেট',
-                'under_1000_text' => '৳১,০০০-এর নিচের গ্যাজেট',
-                'guarantee_title' => '১০০% আসল ও জেনুইন গ্যাজেট',
-                'guarantee_desc' => 'পরীক্ষিত সেরা ব্র্যান্ড ও সর্বোচ্চ কোয়ালিটি নিশ্চয়তা',
-                'quick_view_summary' => 'উন্নত মানের আকর্ষণীয় ও পরীক্ষিত গ্যাজেট।',
+                'banner_bg' => 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 55%, #f8fafc 100%)',
+                'search_placeholder' => 'ইলেকট্রিক কেটলি, ব্লেন্ডার, এয়ার ফ্রায়ার, ভ্যাকুয়াম ক্লিনার খুঁজুন...',
+                'category_title' => 'হোম অ্যাপ্লায়েন্স ক্যাটাগরি',
+                'popular_text' => 'জনপ্রিয় অ্যাপ্লায়েন্স',
+                'new_text' => 'নতুন সংযোজন',
+                'under_1000_text' => '৳১,০০০-এর নিচের পণ্য',
+                'guarantee_title' => '১০০% আসল ও জেনুইন অ্যাপ্লায়েন্স',
+                'guarantee_desc' => 'পরীক্ষিত সেরা ব্র্যান্ড ও অফিসিয়াল ওয়ারেন্টি নিশ্চয়তা',
+                'quick_view_summary' => 'উন্নত মানের আকর্ষণীয় ও পরীক্ষিত হোম অ্যাপ্লায়েন্স।',
             ],
             'stationery' => [
                 'title' => 'স্টেশনারি ও শিক্ষা সামগ্রী শপ',
@@ -171,7 +270,7 @@ class ProductController extends Controller
                 'icon' => 'fas fa-pen-nib',
                 'theme_color' => '#059669',
                 'theme_color_dark' => '#047857',
-                'banner_bg' => 'linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%)',
+                'banner_bg' => 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 55%, #f8fafc 100%)',
                 'search_placeholder' => 'ডায়েরি, ফাউন্টেন পেন, স্কেচবুক, আর্ট প্যাড খুঁজুন...',
                 'category_title' => 'স্টেশনারি ও শিক্ষা সামগ্রী ক্যাটাগরি',
                 'popular_text' => 'সর্বোচ্চ জনপ্রিয় স্টেশনারি',
@@ -193,7 +292,10 @@ class ProductController extends Controller
             'type',
             'currentMeta',
             'availableBrands',
-            'priceStats'
+            'priceStats',
+            'ratingCounts',
+            'warrantyCounts',
+            'featureCounts'
         ));
     }
 

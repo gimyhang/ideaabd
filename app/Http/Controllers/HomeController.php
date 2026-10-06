@@ -222,7 +222,7 @@ class HomeController extends Controller
                 $sidebarPublishers = \Modules\Publisher\Models\Publisher::query()
                     ->withCount('books')
                     ->orderByDesc('books_count')
-                    ->take(12)
+                    ->take(24)
                     ->get();
 
                 $preOrderBooks = \Modules\Book\Models\Book::query()

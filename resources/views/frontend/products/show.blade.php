@@ -43,8 +43,8 @@
                                  class="w-100 h-100 object-fit-contain d-block rounded-3 transition-all"
                                  onerror="this.onerror=null; this.src='https://placehold.co/500x500/f8fafc/0284c7?text={{ urlencode(mb_substr($product->title, 0, 10)) }}';">
                             
-                            @if($product->discount_percent > 0)
-                                <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger rounded-pill shadow-xs fw-bold px-2.5 py-1 fs-6">
+                            @if($product->discount_price && $product->discount_price < $product->price)
+                                <span class="position-absolute top-0 start-0 m-2.5 badge bg-danger text-white rounded-pill shadow-xs fw-bold px-2.5 py-1" style="font-size: 13px; z-index: 3;">
                                     -{{ $product->discount_percent }}% ছাড়
                                 </span>
                             @endif
@@ -81,11 +81,11 @@
                 <div class="col-lg-7">
                     <div class="d-flex flex-column h-100">
                         
-                        <!-- Badges & Category -->
+                        <!-- Category & Brand Badge -->
                         <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1 fw-bold" style="font-size: 11px;">
-                                <i class="{{ $product->type === 'electronics' ? 'fas fa-laptop-code' : 'fas fa-pen-nib' }} me-1"></i>
-                                {{ $product->category?->name ?? ($product->type === 'electronics' ? 'ইলেক্ট্রনিক্স' : 'স্টেশনারি') }}
+                                <i class="{{ $product->type === 'electronics' ? 'fas fa-blender' : 'fas fa-pen-nib' }} me-1"></i>
+                                {{ $product->category?->name ?? ($product->type === 'electronics' ? 'হোম অ্যাপ্লায়েন্স' : 'স্টেশনারি') }}
                             </span>
                             @if(!empty($product->brand))
                                 <span class="badge bg-secondary bg-opacity-10 text-dark rounded-pill px-2.5 py-1 small fw-semibold">
@@ -103,37 +103,13 @@
                             @endif
                         </div>
 
-                        <!-- Product Title -->
-                        <h1 class="fw-bold text-dark mb-2 fs-3" style="line-height: 1.35;">
+                        <!-- 1. প্রোডাক্ট নাম -->
+                        <h1 class="fw-bold text-dark mb-2.5 fs-3" style="line-height: 1.35;">
                             {{ $product->title }}
                         </h1>
 
-                        <!-- SKU & Reviews -->
-                        <div class="d-flex flex-wrap align-items-center gap-3 pb-3 mb-3 border-bottom text-muted small">
-                            <div class="d-inline-flex align-items-center gap-1 text-warning">
-                                @php $rating = (float)$product->rating ?: 4.9; @endphp
-                                @for($i = 1; $i <= 5; $i++)
-                                    @if($rating >= $i)
-                                        <i class="fa-solid fa-star" style="font-size: 11px;"></i>
-                                    @elseif($rating >= $i - 0.5)
-                                        <i class="fa-solid fa-star-half-stroke" style="font-size: 11px;"></i>
-                                    @else
-                                        <i class="fa-regular fa-star" style="font-size: 11px;"></i>
-                                    @endif
-                                @endfor
-                                <span class="text-dark fw-bold ms-1" style="font-size: 12px;">{{ number_format($rating, 1) }}</span>
-                                <span class="text-muted small">({{ $product->reviews_count ?: 24 }} রিভিউ)</span>
-                            </div>
-                            @if(!empty($product->sku))
-                                <span>SKU: <strong class="text-dark font-monospace">{{ $product->sku }}</strong></span>
-                            @endif
-                            @if(!empty($product->warranty))
-                                <span class="text-success fw-semibold"><i class="fa-solid fa-shield-halved me-1"></i>{{ $product->warranty }}</span>
-                            @endif
-                        </div>
-
-                        <!-- Pricing Row -->
-                        <div class="d-flex flex-wrap align-items-baseline gap-3 mb-3 p-3 bg-light rounded-4 border">
+                        <!-- 2. মূল্য (ছাড় ব্যাজ প্রোডাক্টের মাথায় স্থানান্তরিত) -->
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-2.5 p-3 bg-light rounded-4 border">
                             <div class="d-flex align-items-baseline gap-2">
                                 <span class="fs-2 fw-black text-primary" style="line-height: 1;">
                                     ৳@bn(round($product->final_price))
@@ -144,10 +120,22 @@
                                     </span>
                                 @endif
                             </div>
-                            @if($product->discount_price && $product->discount_price < $product->price)
-                                <div class="badge bg-danger rounded-pill px-2.5 py-1 fw-bold">
-                                    সাশ্রয়: ৳@bn(round($product->price - $product->discount_price))
-                                </div>
+                        </div>
+
+                        <!-- 3. ***** (শুধু ৫টি গোল্ডেন স্টার - 4.8 ও (৪৯) বাদ) -->
+                        <div class="d-flex flex-wrap align-items-center gap-3 pb-3 mb-3 border-bottom text-muted small">
+                            <div class="d-inline-flex align-items-center text-warning" style="letter-spacing: 2px; font-size: 14px;">
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            @if(!empty($product->sku))
+                                <span>SKU: <strong class="text-dark font-monospace">{{ $product->sku }}</strong></span>
+                            @endif
+                            @if(!empty($product->warranty))
+                                <span class="text-success fw-semibold"><i class="fa-solid fa-shield-halved me-1"></i>{{ $product->warranty }}</span>
                             @endif
                         </div>
 
@@ -276,5 +264,22 @@
         @endif
 
     </div>
+</div>
+
+<!-- Mobile Sticky Purchase Bar (Device Friendly UX) -->
+<div class="d-md-none fixed-bottom bg-white border-top shadow-lg p-2.5 z-3 d-flex align-items-center justify-content-between gap-2" style="z-index: 1050;">
+    <div class="d-flex align-items-center gap-2 overflow-hidden">
+        <img src="{{ $product->image_url }}" alt="{{ $product->title }}" class="rounded-2 object-fit-contain border bg-light" style="width: 42px; height: 42px;">
+        <div class="overflow-hidden">
+            <div class="fw-bold text-dark text-truncate small" style="max-width: 155px;">{{ $product->title }}</div>
+            <div class="fw-black text-primary small">৳@bn(round($product->final_price))</div>
+        </div>
+    </div>
+    <button type="button" 
+            class="btn btn-primary rounded-pill px-3 py-2 fw-bold text-nowrap shadow-xs d-inline-flex align-items-center gap-1.5" 
+            onclick="window.addToCartLive(this, {{ $product->id }}, '{{ addslashes($product->title) }}', {{ $product->final_price }}, '{{ $product->image_url }}', 1, '{{ $product->type }}');">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span>অর্ডার করুন</span>
+    </button>
 </div>
 @endsection

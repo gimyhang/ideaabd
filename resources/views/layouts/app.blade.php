@@ -451,25 +451,9 @@
             });
         });
 
-        // Bulletproof Dropdown Toggle Helper for Site-wide Navbar & Topbar
+        // Safe Dropdown Closer Fallback (ensures outside clicks close open dropdowns without breaking Bootstrap's native handler)
         document.addEventListener('click', function(e) {
-            var toggle = e.target.closest('[data-bs-toggle="dropdown"]');
-            if (toggle) {
-                var menu = toggle.nextElementSibling || (toggle.parentElement ? toggle.parentElement.querySelector('.dropdown-menu') : null);
-                if (menu) {
-                    var isShown = menu.classList.contains('show');
-                    document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
-                        if (m !== menu) m.classList.remove('show');
-                    });
-                    if (isShown) {
-                        menu.classList.remove('show');
-                        toggle.setAttribute('aria-expanded', 'false');
-                    } else {
-                        menu.classList.add('show');
-                        toggle.setAttribute('aria-expanded', 'true');
-                    }
-                }
-            } else if (!e.target.closest('.dropdown-menu')) {
+            if (!e.target.closest('.dropdown') && !e.target.closest('[data-bs-toggle="dropdown"]')) {
                 document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
                     m.classList.remove('show');
                     var pToggle = m.parentElement ? m.parentElement.querySelector('[data-bs-toggle="dropdown"]') : null;
