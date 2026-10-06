@@ -189,7 +189,7 @@
                             <div class="col-sm-6">
                                 <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light border small">
                                     <i class="fa-solid fa-shield-halved text-success"></i>
-                                    <span>১০০% আসল প্রোডাক্ট ও রিপ্লেসমেন্ট সুবিধা</span>
+                                    <span>{{ $product->type === 'stationery' ? '১০০% প্রিমিয়াম কাগজ ও উন্নত বাঁধাই নিশ্চয়তা' : '১০০% আসল প্রোডাক্ট ও রিপ্লেসমেন্ট সুবিধা' }}</span>
                                 </div>
                             </div>
                         </div>

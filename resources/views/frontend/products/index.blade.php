@@ -510,7 +510,8 @@
                             </div>
                         </div>
 
-                        <!-- 5. আপডেটকৃত ওয়ারেন্টি ফিল্টার (Updated Warranty Filter) -->
+                        <!-- 5. আপডেটকৃত ওয়ারেন্টি ফিল্টার (ইলেক্ট্রনিক্সের জন্য প্রযোজ্য, স্টেশনারিতে ওয়ারেন্টি নেই) -->
+                        @if($type !== 'stationery')
                         <div class="mb-3.5 pt-3 border-top">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <label class="form-label filter-sec-label mb-0">
@@ -558,6 +559,7 @@
                                 </label>
                             </div>
                         </div>
+                        @endif
 
                         <!-- 6. আপডেটকৃত প্রোডাক্ট ফিচার ও সুবিধাসমূহ (Product Feature Filter) -->
                         <div class="pt-3 border-top">
@@ -938,7 +940,8 @@
                 </div>
             </div>
 
-            <!-- 5. Warranty Filter (Mobile) -->
+            <!-- 5. Warranty Filter (Mobile - Only for electronics) -->
+            @if($type !== 'stationery')
             <div class="mb-3.5 pt-3 border-top">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <label class="form-label filter-sec-label mb-0">
@@ -979,6 +982,7 @@
                     </label>
                 </div>
             </div>
+            @endif
 
             <!-- 6. Features & Toggles (Mobile) -->
             <div class="mb-4 pt-3 border-top">
