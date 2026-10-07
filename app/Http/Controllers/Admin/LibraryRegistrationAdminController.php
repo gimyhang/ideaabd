@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EventCampaign;
 use App\Models\EventRegistration;
 use App\Services\SmsService;
+use App\Support\BangladeshGeo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -69,14 +70,31 @@ class LibraryRegistrationAdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Division Filter
+        // Division Filter (bilingual support)
         if ($request->filled('division')) {
-            $query->where('form_data->division', $request->division);
+            $rawDiv = trim($request->division);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $variants = BangladeshGeo::getVariants($canonicalDiv);
+            $query->where(function ($q) use ($variants) {
+                foreach ($variants as $v) {
+                    $q->orWhere('form_data->division', $v);
+                }
+            });
         }
 
-        // District Filter
+        // District Filter (bilingual support)
         if ($request->filled('district')) {
-            $query->where('district', $request->district);
+            $rawDist = trim($request->district);
+            $canonicalDist = BangladeshGeo::normalizeDistrict($rawDist) ?: $rawDist;
+            $variants = BangladeshGeo::getVariants($canonicalDist);
+            $query->where(function ($q) use ($variants) {
+                $q->whereIn('district', $variants)
+                  ->orWhere(function ($sq) use ($variants) {
+                      foreach ($variants as $v) {
+                          $sq->orWhere('form_data->district', $v);
+                      }
+                  });
+            });
         }
 
         // Acknowledgment Status Filter
@@ -147,13 +165,16 @@ class LibraryRegistrationAdminController extends Controller
                 $acknowledgedCount++;
             }
 
-            if (!empty($row->district)) {
-                $districtSet[trim($row->district)] = true;
+            $rawDist = trim($row->district ?: ($fd['district'] ?? ''));
+            $canonDist = BangladeshGeo::normalizeDistrict($rawDist);
+            if ($canonDist) {
+                $districtSet[$canonDist] = true;
             }
 
-            $div = $fd['division'] ?? '';
-            if ($div && isset($divisionStats[$div])) {
-                $divisionStats[$div]++;
+            $rawDiv = $fd['division'] ?? '';
+            $canonDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: BangladeshGeo::getDivisionForDistrict($canonDist);
+            if ($canonDiv && isset($divisionStats[$canonDiv])) {
+                $divisionStats[$canonDiv]++;
             }
         }
 

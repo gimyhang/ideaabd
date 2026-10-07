@@ -67,14 +67,14 @@
             </div>
         </div>
         <div class="d-flex flex-wrap gap-2" id="geoDivisionPillsWrap">
-            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 py-1 fw-semibold active geo-nav-pill" onclick="filterGeoDivisionView('all')">
+            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 py-1 fw-semibold active geo-nav-pill" onclick="filterGeoDivisionView('all', this)">
                 সকল বিভাগ <span class="badge bg-white text-dark ms-1">{{ $totalRegistrations }}</span>
             </button>
             @foreach($geoDatabase as $divName => $districts)
                 @php
                     $dCount = $divisionStats[$divName] ?? 0;
                 @endphp
-                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold geo-nav-pill" data-div-target="{{ Str::slug($divName) }}" onclick="filterGeoDivisionView('{{ Str::slug($divName) }}')">
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 fw-semibold geo-nav-pill" data-div-target="{{ Str::slug($divName) }}" onclick="filterGeoDivisionView('{{ Str::slug($divName) }}', this)">
                     {{ $divName }} <span class="badge bg-secondary-subtle text-dark border ms-1">{{ $dCount }}</span>
                 </button>
             @endforeach
@@ -303,16 +303,15 @@
         document.querySelectorAll('.geo-division-card .fa-chevron-down').forEach(el => el.style.transform = 'rotate(-90deg)');
     }
 
-    function filterGeoDivisionView(slug) {
+    function filterGeoDivisionView(slug, btnElem) {
         document.querySelectorAll('.geo-nav-pill').forEach(btn => {
             btn.classList.remove('active', 'btn-dark');
             btn.classList.add('btn-outline-secondary');
         });
 
-        const activeBtn = event ? event.target.closest('.geo-nav-pill') : null;
-        if (activeBtn) {
-            activeBtn.classList.add('active', 'btn-dark');
-            activeBtn.classList.remove('btn-outline-secondary');
+        if (btnElem) {
+            btnElem.classList.add('active', 'btn-dark');
+            btnElem.classList.remove('btn-outline-secondary');
         }
 
         const cards = document.querySelectorAll('.geo-division-card');

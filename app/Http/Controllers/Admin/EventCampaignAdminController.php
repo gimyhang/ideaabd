@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\EventCampaign;
 use App\Models\EventRegistration;
 use App\Models\User;
+use App\Support\BangladeshGeo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -173,22 +174,58 @@ class EventCampaignAdminController extends Controller
             $regQuery->where('payment_status', $request->payment_status);
         }
 
-        // Division filter
+        // Division filter (handles both Bengali & English variants)
         if ($request->filled('division')) {
-            $div = trim($request->division);
-            $regQuery->where(function ($q) use ($div) {
-                $q->where('form_data->perm_division', $div)
-                  ->orWhere('form_data->division', $div);
+            $rawDiv = trim($request->division);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = BangladeshGeo::getVariants($canonicalDiv);
+
+            // Also include all districts belonging to this division
+            $divDistricts = BangladeshGeo::DIVISIONS[$canonicalDiv] ?? [];
+            $allDistVariants = [];
+            foreach ($divDistricts as $dName) {
+                $allDistVariants = array_merge($allDistVariants, BangladeshGeo::getVariants($dName));
+            }
+            $allDistVariants = array_values(array_unique(array_filter($allDistVariants)));
+
+            $regQuery->where(function ($q) use ($divVariants, $allDistVariants) {
+                $q->where(function ($sq) use ($divVariants) {
+                    foreach ($divVariants as $v) {
+                        $sq->orWhere('form_data->perm_division', $v)
+                           ->orWhere('form_data->division', $v)
+                           ->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                           ->orWhere('form_data->division', 'like', "%{$v}%");
+                    }
+                });
+                if (!empty($allDistVariants)) {
+                    $q->orWhereIn('district', $allDistVariants)
+                      ->orWhere(function ($sq) use ($allDistVariants) {
+                          foreach (array_slice($allDistVariants, 0, 40) as $dv) {
+                              $sq->orWhere('form_data->district', $dv)
+                                 ->orWhere('form_data->perm_district', $dv);
+                          }
+                      });
+                }
             });
         }
 
-        // District filter
+        // District filter (handles both Bengali & English variants)
         if ($request->filled('district')) {
-            $dst = trim($request->district);
-            $regQuery->where(function ($q) use ($dst) {
-                $q->where('district', $dst)
-                  ->orWhere('form_data->district', $dst)
-                  ->orWhere('form_data->perm_district', $dst);
+            $rawDst = trim($request->district);
+            $canonicalDst = BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = BangladeshGeo::getVariants($canonicalDst);
+
+            $regQuery->where(function ($q) use ($dstVariants) {
+                $q->whereIn('district', $dstVariants)
+                  ->orWhere(function ($sq) use ($dstVariants) {
+                      foreach ($dstVariants as $v) {
+                          $sq->orWhere('district', 'like', "%{$v}%")
+                             ->orWhere('form_data->district', $v)
+                             ->orWhere('form_data->perm_district', $v)
+                             ->orWhere('form_data->district', 'like', "%{$v}%")
+                             ->orWhere('form_data->perm_district', 'like', "%{$v}%");
+                      }
+                  });
             });
         }
 
@@ -233,58 +270,27 @@ class EventCampaignAdminController extends Controller
         // Fetch all registrations to prepare Geo Database and Little Magazine Directory
         $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
 
-        $divisionDistrictMap = [
-            'খুলনা' => ['কুষ্টিয়া', 'খুলনা', 'চুয়াডাঙ্গা', 'ঝিনাইদহ', 'নড়াইল', 'বাগেরহাট', 'মাগুরা', 'মেহেরপুর', 'যশোর', 'সাতক্ষীরা'],
-            'চট্টগ্রাম' => ['কক্সবাজার', 'কুমিল্লা', 'খাগড়াছড়ি', 'চট্টগ্রাম', 'চাঁদপুর', 'নোয়াখালী', 'বান্দরবান', 'ব্রাহ্মণবাড়িয়া', 'লক্ষ্মীপুর', 'রাঙ্গামাটি', 'ফেনী'],
-            'ঢাকা' => ['কিশোরগঞ্জ', 'গাজীপুর', 'গোপালগঞ্জ', 'টাঙ্গাইল', 'ঢাকা', 'নরসিংদী', 'নারায়ণগঞ্জ', 'ফরিদপুর', 'মাদারীপুর', 'মানিকগঞ্জ', 'মুন্সীগঞ্জ', 'রাজবাড়ী', 'শরীয়তপুর'],
-            'বরিশাল' => ['ঝালকাঠি', 'পটুয়াখালী', 'পিরোজপুর', 'বরগুনা', 'বরিশাল', 'ভোলা'],
-            'ময়মনসিংহ' => ['জামালপুর', 'নেত্রকোণা', 'ময়মনসিংহ', 'শেরপুর'],
-            'রংপুর' => ['কুড়িগ্রাম', 'গাইবান্ধা', 'ঠাকুরগাঁও', 'দিনাজপুর', 'নীলফামারী', 'পঞ্চগড়', 'রংপুর', 'লালমনিরহাট'],
-            'রাজশাহী' => ['চাঁপাইনবাবগঞ্জ', 'জয়পুরহাট', 'নওগাঁ', 'নাটোর', 'পাবনা', 'বগুড়া', 'রাজশাহী', 'সিরাজগঞ্জ'],
-            'সিলেট' => ['মৌলভীবাজার', 'সুনামগঞ্জ', 'সিলেট', 'হবিগঞ্জ']
-        ];
-
-        $districtToDivision = [];
-        foreach ($divisionDistrictMap as $divName => $dists) {
-            foreach ($dists as $dist) {
-                $districtToDivision[$dist] = $divName;
-            }
-        }
-
         $geoDatabase = [];
         $divisionStats = [];
         $districtStats = [];
         $littleMagList = collect();
 
         foreach ($allCampaignRegistrations as $reg) {
-            $matchedDist = $reg->resolved_district;
-            foreach ($districtToDivision as $knownDist => $knownDiv) {
-                if (mb_strpos($matchedDist, $knownDist) !== false || mb_strpos($knownDist, $matchedDist) !== false) {
-                    $matchedDist = $knownDist;
-                    break;
-                }
-            }
-
+            $dist = $reg->resolved_district;
             $div = $reg->resolved_division;
-            if (($div === 'অনির্ধারিত বিভাগ' || empty($div)) && isset($districtToDivision[$matchedDist])) {
-                $div = $districtToDivision[$matchedDist];
-            }
-            if (empty($div)) {
-                $div = 'অনির্ধারিত বিভাগ';
-            }
 
             if (!isset($geoDatabase[$div])) {
                 $geoDatabase[$div] = [];
                 $divisionStats[$div] = 0;
             }
-            if (!isset($geoDatabase[$div][$matchedDist])) {
-                $geoDatabase[$div][$matchedDist] = collect();
-                $districtStats[$matchedDist] = 0;
+            if (!isset($geoDatabase[$div][$dist])) {
+                $geoDatabase[$div][$dist] = collect();
+                $districtStats[$dist] = 0;
             }
 
-            $geoDatabase[$div][$matchedDist]->push($reg);
+            $geoDatabase[$div][$dist]->push($reg);
             $divisionStats[$div]++;
-            $districtStats[$matchedDist]++;
+            $districtStats[$dist]++;
 
             if ($reg->isLittleMagEditor()) {
                 $littleMagList->push($reg);
@@ -1382,19 +1388,54 @@ class EventCampaignAdminController extends Controller
         }
 
         if ($request->filled('division')) {
-            $div = trim($request->division);
-            $regQuery->where(function ($q) use ($div) {
-                $q->where('form_data->perm_division', $div)
-                  ->orWhere('form_data->division', $div);
+            $rawDiv = trim($request->division);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = BangladeshGeo::getVariants($canonicalDiv);
+
+            $divDistricts = BangladeshGeo::DIVISIONS[$canonicalDiv] ?? [];
+            $allDistVariants = [];
+            foreach ($divDistricts as $dName) {
+                $allDistVariants = array_merge($allDistVariants, BangladeshGeo::getVariants($dName));
+            }
+            $allDistVariants = array_values(array_unique(array_filter($allDistVariants)));
+
+            $regQuery->where(function ($q) use ($divVariants, $allDistVariants) {
+                $q->where(function ($sq) use ($divVariants) {
+                    foreach ($divVariants as $v) {
+                        $sq->orWhere('form_data->perm_division', $v)
+                           ->orWhere('form_data->division', $v)
+                           ->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                           ->orWhere('form_data->division', 'like', "%{$v}%");
+                    }
+                });
+                if (!empty($allDistVariants)) {
+                    $q->orWhereIn('district', $allDistVariants)
+                      ->orWhere(function ($sq) use ($allDistVariants) {
+                          foreach (array_slice($allDistVariants, 0, 40) as $dv) {
+                              $sq->orWhere('form_data->district', $dv)
+                                 ->orWhere('form_data->perm_district', $dv);
+                          }
+                      });
+                }
             });
         }
 
         if ($request->filled('district')) {
-            $dst = trim($request->district);
-            $regQuery->where(function ($q) use ($dst) {
-                $q->where('district', $dst)
-                  ->orWhere('form_data->district', $dst)
-                  ->orWhere('form_data->perm_district', $dst);
+            $rawDst = trim($request->district);
+            $canonicalDst = BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = BangladeshGeo::getVariants($canonicalDst);
+
+            $regQuery->where(function ($q) use ($dstVariants) {
+                $q->whereIn('district', $dstVariants)
+                  ->orWhere(function ($sq) use ($dstVariants) {
+                      foreach ($dstVariants as $v) {
+                          $sq->orWhere('district', 'like', "%{$v}%")
+                             ->orWhere('form_data->district', $v)
+                             ->orWhere('form_data->perm_district', $v)
+                             ->orWhere('form_data->district', 'like', "%{$v}%")
+                             ->orWhere('form_data->perm_district', 'like', "%{$v}%");
+                      }
+                  });
             });
         }
 

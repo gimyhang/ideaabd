@@ -390,8 +390,14 @@
             <div class="col-6 col-md-2">
                 <select name="division" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
                     <option value="">সকল বিভাগ (Division)</option>
-                    @foreach(['খুলনা', 'চট্টগ্রাম', 'ঢাকা', 'বরিশাল', 'ময়মনসিংহ', 'রংপুর', 'রাজশাহী', 'সিলেট'] as $bdDiv)
-                        <option value="{{ $bdDiv }}" {{ request('division') == $bdDiv ? 'selected' : '' }}>{{ $bdDiv }} বিভাগ</option>
+                    @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDiv => $divDistList)
+                        @php
+                            $isSelectedDiv = \App\Support\BangladeshGeo::normalizeDivision(request('division')) === $bdDiv;
+                            $divCount = $divisionStats[$bdDiv] ?? 0;
+                        @endphp
+                        <option value="{{ $bdDiv }}" {{ $isSelectedDiv ? 'selected' : '' }}>
+                            {{ $bdDiv }} বিভাগ {{ $divCount > 0 ? "({$divCount})" : '' }}
+                        </option>
                     @endforeach
                 </select>
             </div>
@@ -402,7 +408,10 @@
                     <option value="">সকল জেলা (District)</option>
                     @foreach($districtStats as $dName => $dCount)
                         @if($dName !== 'অনির্ধারিত জেলা')
-                            <option value="{{ $dName }}" {{ request('district') == $dName ? 'selected' : '' }}>{{ $dName }} ({{ $dCount }})</option>
+                            @php
+                                $isSelectedDist = \App\Support\BangladeshGeo::normalizeDistrict(request('district')) === $dName;
+                            @endphp
+                            <option value="{{ $dName }}" {{ $isSelectedDist ? 'selected' : '' }}>{{ $dName }} ({{ $dCount }})</option>
                         @endif
                     @endforeach
                 </select>
