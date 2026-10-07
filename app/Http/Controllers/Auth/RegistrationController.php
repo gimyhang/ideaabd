@@ -102,11 +102,17 @@ class RegistrationController extends Controller
             'email' => $email,
         ]);
 
-        return response()->json([
+        $responseData = [
             'success'  => true,
             'message'  => 'A 6-digit verification code has been sent to your email (valid for 2 minutes).',
             'cooldown' => 120,
-        ]);
+        ];
+
+        if (app()->environment('local', 'testing') || config('app.debug')) {
+            $responseData['dev_otp'] = $otpCode;
+        }
+
+        return response()->json($responseData);
     }
 
     // Verify Email OTP for registration
@@ -168,11 +174,14 @@ class RegistrationController extends Controller
         $request->validate([
             'phone'        => ['required', 'string', 'max:25'],
             'country_code' => ['nullable', 'string', 'max:10'],
+            'category'     => ['nullable', 'string', 'max:50'],
+            'role'         => ['nullable', 'string', 'max:50'],
         ]);
 
         $countryCode = trim($request->input('country_code', '+880'));
         $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $category = $request->input('category') ?: $request->input('role');
 
         if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
             if (str_starts_with($cleanDigits, '880')) {
@@ -198,6 +207,24 @@ class RegistrationController extends Controller
         if ($existing) {
             $hasPassword = !empty($existing->password);
             $isVerified = !empty($existing->phone_verified_at);
+            $isCustomer = in_array($existing->role, [User::ROLE_BUYER, User::ROLE_CUSTOMER, null, ''], true);
+            $isApplyingRole = in_array($category, ['author', 'publisher', 'seller'], true);
+
+            // If user is a customer/buyer applying to be an author or publisher
+            if ($isCustomer && $isApplyingRole) {
+                $roleLabel = ($category === 'author' ? 'লেখক (Author)' : ($category === 'publisher' ? 'প্রকাশক (Publisher)' : 'সেলার (Seller)'));
+                return response()->json([
+                    'exists'        => true,
+                    'can_upgrade'   => true,
+                    'has_password'  => $hasPassword,
+                    'is_verified'   => $isVerified,
+                    'phone'         => $localPhone,
+                    'name'          => $existing->name,
+                    'message'       => "আপনার এই নম্বরে সাধারণ গ্রাহক অ্যাকাউন্ট রয়েছে। ওটিপি কোড দিয়ে মোবাইল যাচাই করে আপনি {$roleLabel} হিসেবে আবেদন সম্পন্ন করতে পারবেন।",
+                    'login_url'     => route('login'),
+                    'forgot_url'    => route('password.request'),
+                ]);
+            }
             
             $msg = ($hasPassword && $isVerified)
                 ? 'এই মোবাইল নম্বর (' . $localPhone . ') দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।'
@@ -207,6 +234,7 @@ class RegistrationController extends Controller
 
             return response()->json([
                 'exists'        => true,
+                'can_upgrade'   => false,
                 'has_password'  => $hasPassword,
                 'is_verified'   => $isVerified,
                 'phone'         => $localPhone,
@@ -219,6 +247,7 @@ class RegistrationController extends Controller
 
         return response()->json([
             'exists'       => false,
+            'can_upgrade'  => false,
             'has_password' => false,
             'is_verified'  => false,
             'phone'        => $localPhone,
@@ -234,11 +263,14 @@ class RegistrationController extends Controller
             'country_code'   => ['nullable', 'string', 'max:10'],
             'allow_existing' => ['nullable', 'boolean'],
             'purpose'        => ['nullable', 'string', 'max:50'],
+            'category'       => ['nullable', 'string', 'max:50'],
         ]);
 
         $countryCode = trim($request->input('country_code', '+880'));
         $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
         $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $category = $request->input('category');
+        $purpose = $request->input('purpose');
 
         // Normalize phone with country code (handles both 10-digit '17XXXXXXXX' and 11-digit '017XXXXXXXX')
         if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
@@ -263,23 +295,54 @@ class RegistrationController extends Controller
             ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
             ->first();
 
-        $allowExisting = $request->boolean('allow_existing') || in_array($request->input('purpose'), ['event_registration', 'library', 'otp_login', 'auth_gate']);
+        $isRoleRegistration = in_array($category, ['author', 'publisher', 'seller'], true) 
+            || in_array($purpose, ['author', 'publisher', 'seller', 'library', 'upgrade', 'event_registration', 'auth_gate'], true);
 
-        if ($existing && !$allowExisting) {
-            RegistrationAuditLog::recordEvent('phone_otp_sent', false, [
-                'phone'         => $fullPhone,
-                'error_message' => 'Phone already registered',
-            ]);
+        $allowExisting = $request->boolean('allow_existing') 
+            || $isRoleRegistration 
+            || ($existing && in_array($existing->role, [User::ROLE_BUYER, User::ROLE_CUSTOMER, null, ''], true));
 
-            return response()->json([
-                'success'        => false,
-                'already_exists' => true,
-                'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। আপনি ওটিপি কোড দিয়ে সরাসরি লগইন করতে পারেন অথবা পাসওয়ার্ড দিন।',
-                'phone'          => $localPhone,
-                'user_name'      => $existing->name,
-                'login_url'      => route('login'),
-                'forgot_url'     => route('password.request'),
-            ], 200);
+        if ($existing) {
+            // Block admin/staff accounts from public re-registration
+            if ($existing->role === User::ROLE_ADMIN || $existing->role === User::ROLE_SUB_ADMIN) {
+                return response()->json([
+                    'success'        => false,
+                    'already_exists' => true,
+                    'is_admin'       => true,
+                    'message'        => 'এই নম্বরটি এডমিন বা স্টাফ অ্যাকাউন্টের সাথে যুক্ত। সাধারণ রেজিস্ট্রেশন সম্ভব নয়, দয়া করে সাইন-ইন করুন।',
+                    'login_url'      => route('login'),
+                ], 422);
+            }
+
+            // If user already has the exact approved role requested
+            if ($category && $existing->role === $category && $existing->reg_status === User::STATUS_APPROVED) {
+                $roleLabel = ($category === 'author' ? 'লেখক' : ($category === 'publisher' ? 'প্রকাশক' : ucfirst($category)));
+                return response()->json([
+                    'success'        => false,
+                    'already_exists' => true,
+                    'message'        => "আপনার এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একজন অনুমোদিত {$roleLabel} অ্যাকাউন্ট রয়েছে। দয়া করে লগইন করুন।",
+                    'login_url'      => route('login'),
+                    'forgot_url'     => route('password.request'),
+                ], 200);
+            }
+
+            // Only block if strictly general duplicate buyer registration without allow_existing
+            if (!$allowExisting) {
+                RegistrationAuditLog::recordEvent('phone_otp_sent', false, [
+                    'phone'         => $fullPhone,
+                    'error_message' => 'Phone already registered',
+                ]);
+
+                return response()->json([
+                    'success'        => false,
+                    'already_exists' => true,
+                    'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। আপনি ওটিপি কোড দিয়ে সরাসরি লগইন করতে পারেন অথবা পাসওয়ার্ড দিন।',
+                    'phone'          => $localPhone,
+                    'user_name'      => $existing->name,
+                    'login_url'      => route('login'),
+                    'forgot_url'     => route('password.request'),
+                ], 200);
+            }
         }
 
         // Rate limiting cooldown per phone
@@ -536,33 +599,67 @@ class RegistrationController extends Controller
             }
         }
 
-        // 2. Strict Uniqueness Check — PREVENT ACCOUNT TAKEOVER / PASSWORDLESS LOGIN!
+        // 2. Uniqueness & Existing Account Check — Allow Verified Upgrades
         $existing = User::where('phone', $fullPhone)
             ->orWhere('phone', $localPhone)
             ->orWhere('email', $email)
             ->first();
-
-        if ($existing) {
-            RegistrationAuditLog::recordEvent('completed', false, [
-                'phone' => $fullPhone, 'email' => $email, 'category' => $category,
-                'error_message' => 'User already exists with this phone or email',
-            ]);
-
-            return response()->json([
-                'success'        => false,
-                'already_exists' => true,
-                'message'        => 'This phone number or email is already registered. Please sign in.',
-                'login_url'      => route('login'),
-                'forgot_url'     => route('password.request'),
-            ], 422);
-        }
 
         // 3. Strict Phone OTP Enforcement
         $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
             || session('phone_verified_' . md5($localPhone))
             || session('phone_verified_' . $cleanDigits)
             || session('otp_verified_phone') === $fullPhone
-            || session('otp_verified_phone') === $localPhone;
+            || session('otp_verified_phone') === $localPhone
+            || session('otp_verified_full_phone') === $fullPhone;
+
+        // 4. Strict Email OTP Enforcement
+        $emailVerifiedSession = session('email_verified_' . md5($email))
+            || session('otp_verified_email') === $email;
+
+        // Determine if current submitter is the verified owner of $existing
+        $isAuthorizedOwner = false;
+        if ($existing) {
+            $isAuthorizedOwner = (auth()->check() && auth()->id() === $existing->id)
+                || $phoneVerifiedSession
+                || ($existing->email === $email && $emailVerifiedSession);
+        }
+
+        if ($existing && !$isAuthorizedOwner) {
+            RegistrationAuditLog::recordEvent('completed', false, [
+                'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                'error_message' => 'User already exists with this phone or email and OTP not verified for owner',
+            ]);
+
+            return response()->json([
+                'success'        => false,
+                'already_exists' => true,
+                'message'        => 'এই মোবাইল নম্বর বা ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে সাইন-ইন করুন।',
+                'login_url'      => route('login'),
+                'forgot_url'     => route('password.request'),
+            ], 422);
+        }
+
+        // Safeguard Admin & Staff accounts from public re-registration or modification
+        if ($existing && in_array($existing->role, [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN], true)) {
+            return response()->json([
+                'success'        => false,
+                'already_exists' => true,
+                'message'        => 'এই অ্যাকাউন্টটি অ্যাডমিন বা স্টাফদের জন্য সংরক্ষিত। সাধারণ রেজিস্ট্রেশন সম্ভব নয়।',
+                'login_url'      => route('login'),
+            ], 422);
+        }
+
+        // Prevent cross-user email collision
+        if ($existing) {
+            $emailCollision = User::where('email', $email)->where('id', '!=', $existing->id)->first();
+            if ($emailCollision) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'এই ইমেইল ঠিকানাটি ইতিমধ্যে অন্য একটি অ্যাকাউন্টে ব্যবহৃত হচ্ছে। অনুগ্রহ করে ভিন্ন ইমেইল প্রদান করুন।',
+                ], 422);
+            }
+        }
 
         if (SiteSetting::isPhoneVerificationEnabled() && !$phoneVerifiedSession) {
             RegistrationAuditLog::recordEvent('completed', false, [
@@ -576,10 +673,6 @@ class RegistrationController extends Controller
                 'message'           => 'Your mobile number has not been verified. Please complete OTP verification.',
             ], 422);
         }
-
-        // 4. Strict Email OTP Enforcement
-        $emailVerifiedSession = session('email_verified_' . md5($email))
-            || session('otp_verified_email') === $email;
 
         if (SiteSetting::isEmailVerificationEnabled() && !$emailVerifiedSession) {
             RegistrationAuditLog::recordEvent('completed', false, [
@@ -655,19 +748,48 @@ class RegistrationController extends Controller
         $phoneVerifiedAt = $phoneVerifiedSession ? now() : ($isCustomer && !SiteSetting::isPhoneVerificationEnabled() ? now() : null);
         $emailVerifiedAt = $emailVerifiedSession ? now() : ($isCustomer && !SiteSetting::isEmailVerificationEnabled() ? now() : null);
 
-        $user = User::create([
-            'name'              => $displayName,
-            'email'             => $email,
-            'phone'             => $fullPhone,
-            'password'          => Hash::make($request->input('password')),
-            'role'              => 'customer', // All users register as customer first until admin approval
-            'reg_type'          => $category, // Desired role to be approved by admin
-            'reg_status'        => $regStatus,
-            'reg_data'          => $regData,
-            'is_active'         => $isActive,
-            'phone_verified_at' => $phoneVerifiedAt,
-            'email_verified_at' => $emailVerifiedAt,
-        ]);
+        if ($existing) {
+            $user = $existing;
+            $existingRegData = is_array($user->reg_data) ? $user->reg_data : [];
+            $mergedRegData = array_merge($existingRegData, $regData);
+
+            $updateData = [
+                'reg_type'   => $category,
+                'reg_status' => $regStatus,
+                'reg_data'   => $mergedRegData,
+                'is_active'  => true,
+            ];
+            if (!empty($displayName)) {
+                $updateData['name'] = $displayName;
+            }
+            if ($phoneVerifiedAt && empty($user->phone_verified_at)) {
+                $updateData['phone_verified_at'] = $phoneVerifiedAt;
+            }
+            if ($emailVerifiedAt && empty($user->email_verified_at)) {
+                $updateData['email_verified_at'] = $emailVerifiedAt;
+            }
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->input('password'));
+            }
+            if (!empty($email) && ($user->email === $email || empty($user->email) || str_contains((string) $user->email, '@customer.ideaabd.com'))) {
+                $updateData['email'] = $email;
+            }
+            $user->update($updateData);
+        } else {
+            $user = User::create([
+                'name'              => $displayName,
+                'email'             => $email,
+                'phone'             => $fullPhone,
+                'password'          => Hash::make($request->input('password')),
+                'role'              => 'customer', // All users register as customer first until admin approval
+                'reg_type'          => $category, // Desired role to be approved by admin
+                'reg_status'        => $regStatus,
+                'reg_data'          => $regData,
+                'is_active'         => $isActive,
+                'phone_verified_at' => $phoneVerifiedAt,
+                'email_verified_at' => $emailVerifiedAt,
+            ]);
+        }
 
         // If author category, sync unified author record so that all books, ebooks, ideapatra, and author directory link directly here
         if ($category === 'author' && class_exists(\Modules\Author\Models\Author::class)) {

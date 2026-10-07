@@ -1777,33 +1777,40 @@ function onStepNodeClick(step) {
 
 function updateCategoryBanner() {
     const urlParams = new URLSearchParams(window.location.search);
-    const cat = urlParams.get('category') || regData.category;
+    const cat = urlParams.get('category') || urlParams.get('role') || regData.category;
     const banner = document.getElementById('categoryIndicatorBanner');
     const title = document.getElementById('catBannerTitle');
     const sub = document.getElementById('catBannerSubtitle');
     const icon = document.getElementById('catBannerIcon');
-    if (!banner) return;
-
-    if (cat === 'author') {
-        banner.classList.remove('d-none');
-        if (title) title.textContent = 'Author';
-        if (sub) sub.textContent = 'Publish manuscripts and books';
-        if (icon) icon.innerHTML = '<i class="fa-solid fa-feather-pointed"></i>';
-        regData.category = 'author';
-    } else if (cat === 'publisher') {
-        banner.classList.remove('d-none');
-        if (title) title.textContent = 'Publisher';
-        if (sub) sub.textContent = 'Manage catalog and distribution';
-        if (icon) icon.innerHTML = '<i class="fa-solid fa-building"></i>';
-        regData.category = 'publisher';
-    } else if (cat === 'seller') {
-        banner.classList.remove('d-none');
-        if (title) title.textContent = 'Seller';
-        if (sub) sub.textContent = 'Wholesale and retail bookshop';
-        if (icon) icon.innerHTML = '<i class="fa-solid fa-store"></i>';
-        regData.category = 'seller';
-    } else {
-        banner.classList.add('d-none');
+    if (banner) {
+        if (cat === 'author') {
+            banner.classList.remove('d-none');
+            if (title) title.textContent = 'Author';
+            if (sub) sub.textContent = 'Publish manuscripts and books';
+            if (icon) icon.innerHTML = '<i class="fa-solid fa-feather-pointed"></i>';
+            regData.category = 'author';
+        } else if (cat === 'publisher') {
+            banner.classList.remove('d-none');
+            if (title) title.textContent = 'Publisher';
+            if (sub) sub.textContent = 'Manage catalog and distribution';
+            if (icon) icon.innerHTML = '<i class="fa-solid fa-building"></i>';
+            regData.category = 'publisher';
+        } else if (cat === 'seller') {
+            banner.classList.remove('d-none');
+            if (title) title.textContent = 'Seller';
+            if (sub) sub.textContent = 'Wholesale and retail bookshop';
+            if (icon) icon.innerHTML = '<i class="fa-solid fa-store"></i>';
+            regData.category = 'seller';
+        } else {
+            banner.classList.add('d-none');
+        }
+    }
+    const catSelect = document.getElementById('regCategorySelect');
+    if (catSelect && cat && ['buyer', 'author', 'publisher', 'seller'].includes(cat)) {
+        catSelect.value = cat;
+        if (typeof onRegistrationCategoryChange === 'function') {
+            onRegistrationCategoryChange(cat);
+        }
     }
 }
 
@@ -2428,6 +2435,13 @@ async function sendEmailVerificationCode() {
         if (res.ok && data.success) {
             showAlert(data.message, true);
             startEmailCountdown(data.cooldown || 120);
+            if (data.dev_otp) {
+                const otpDigits = data.dev_otp.toString();
+                for (let i = 0; i < otpDigits.length; i++) {
+                    const el = document.getElementById('eOtp' + (i + 1));
+                    if (el) el.value = otpDigits[i];
+                }
+            }
         } else {
             showAlert(data.message || 'Failed to send email verification code.');
         }
@@ -2560,13 +2574,27 @@ async function sendMobileVerificationOtp() {
     try {
         const res = await fetchWithCsrfRetry('{{ route("register.send-otp") }}', {
             method: 'POST',
-            body: JSON.stringify({ phone: phone, country_code: countryCode })
+            body: JSON.stringify({
+                phone: phone,
+                country_code: countryCode,
+                category: regData.category || 'buyer',
+                role: regData.category || 'buyer',
+                purpose: regData.category || 'registration',
+                allow_existing: true
+            })
         });
         const data = await res.json();
         if (res.ok && data.success) {
             showAlert(data.message, true);
             startMobileCountdown(data.cooldown || 120);
             document.getElementById('mOtp1')?.focus();
+            if (data.dev_otp) {
+                const otpDigits = data.dev_otp.toString();
+                for (let i = 0; i < otpDigits.length; i++) {
+                    const el = document.getElementById('mOtp' + (i + 1));
+                    if (el) el.value = otpDigits[i];
+                }
+            }
             if (data.support_whatsapp_url) {
                 const waBtn = document.getElementById('whatsappSupportBtn');
                 if (waBtn) waBtn.href = data.support_whatsapp_url;
@@ -2604,7 +2632,27 @@ async function verifyMobileOtpAndGoToCategory() {
             hideAlert();
             saveRegState();
 
-            // Directly submit registration seamlessly
+            const cat = regData.category || 'buyer';
+            if (['author', 'publisher', 'seller'].includes(cat)) {
+                goToStep(5);
+                const catSelect = document.getElementById('regCategorySelect');
+                if (catSelect) catSelect.value = cat;
+                if (typeof onRegistrationCategoryChange === 'function') {
+                    onRegistrationCategoryChange(cat);
+                }
+                initDistrictDropdown();
+                const authorInput = document.getElementById('regAuthorNameInput');
+                if (authorInput && !authorInput.value && regData.name) authorInput.value = regData.name;
+                const authorEnInput = document.getElementById('regAuthorNameEnInput');
+                if (authorEnInput && !authorEnInput.value && regData.name) authorEnInput.value = regData.name;
+                const pubHouseInput = document.getElementById('regPublishingHouseNameInput');
+                if (pubHouseInput && !pubHouseInput.value && regData.name) pubHouseInput.value = regData.name;
+                const pubOwnerInput = document.getElementById('regPublisherOwnerNameInput');
+                if (pubOwnerInput && !pubOwnerInput.value && regData.name) pubOwnerInput.value = regData.name;
+                return;
+            }
+
+            // Directly submit registration seamlessly for general customer
             submitCompleteUnifiedRegistration();
             return;
         } else {
