@@ -139,6 +139,9 @@
                         <i class="fa-solid fa-file-excel me-1"></i> Export Data
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
+                        <li><a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'excel']) }}"><i class="fa-solid fa-file-excel text-success me-2"></i> বিভাগ ও জেলা ভিত্তিক এক্সেল শিট (.xls)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'csv']) }}"><i class="fa-solid fa-file-csv text-primary me-2"></i> বিভাগ ও জেলা ভিত্তিক সিএসভি (.csv)</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', $campaign->id) }}"><i class="fa-solid fa-users text-primary me-2"></i> All Participants (সকল অংশগ্রহণকারী)</a></li>
                         <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'sort' => 'alpha']) }}"><i class="fa-solid fa-arrow-down-a-z text-info me-2"></i> বর্ণানুক্রমিক তালিকা (A-Z / ক-হ)</a></li>
                         <li><hr class="dropdown-divider my-1"></li>

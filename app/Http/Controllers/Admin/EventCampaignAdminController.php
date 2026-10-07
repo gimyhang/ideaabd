@@ -1333,91 +1333,32 @@ class EventCampaignAdminController extends Controller
     }
 
     /**
-     * Export participants list to CSV.
+     * Export participants list to Excel (.xls) or CSV with Division & District Geo hierarchy.
      */
     public function exportCsv(Request $request, EventCampaign $campaign)
     {
         $type = $request->input('type');
-        $filename = "participants_{$campaign->slug}_" . date('Y-m-d') . ".csv";
+        $format = strtolower($request->input('format', ''));
+        $targetDivision = $request->input('division');
 
+        // 1. Little Magazine Directory Export
         if ($type === 'littlemag') {
-            $filename = "littlemag_editors_{$campaign->slug}_" . date('Y-m-d') . ".csv";
-            $allRegs = $campaign->registrations()->latest()->get();
-            $registrations = $allRegs->filter(fn($r) => $r->isLittleMagEditor())->sort(function ($a, $b) {
-                $magA = $a->magazine_name ?: $a->name;
-                $magB = $b->magazine_name ?: $b->name;
-                return strcmp($magA, $magB);
-            })->values();
-
-            $headers = [
-                'Content-Type'        => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-            ];
-
-            $callback = function () use ($registrations) {
-                $handle = fopen('php://output', 'w');
-                fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
-                fputcsv($handle, ['Reg Number', 'Magazine Name (পত্রিকা)', 'Editor Name (সম্পাদক)', 'Issue Count (সংখ্যা)', 'Division (বিভাগ)', 'District (জেলা)', 'Thana (থানা)', 'Phone (মোবাইল)', 'Email', 'Status', 'Registered At']);
-
-                foreach ($registrations as $r) {
-                    fputcsv($handle, [
-                        $r->registration_number,
-                        $r->magazine_name ?: 'N/A',
-                        $r->name,
-                        $r->magazine_issue_count ?: 'N/A',
-                        $r->resolved_division,
-                        $r->resolved_district,
-                        $r->resolved_thana ?: 'N/A',
-                        $r->phone,
-                        $r->email,
-                        $r->status,
-                        $r->created_at->format('Y-m-d H:i:s'),
-                    ]);
-                }
-                fclose($handle);
-            };
-
-            return response()->stream($callback, 200, $headers);
+            return $this->exportLittleMag($request, $campaign, $format);
         }
 
+        // 2. Division & District Wise Geo Database Export
+        if ($type === 'geo' || $request->filled('division')) {
+            return $this->exportGeoDatabase($request, $campaign, $targetDivision, $format ?: 'excel');
+        }
+
+        // 3. Standard / General Participants Export
+        $filename = "participants_{$campaign->slug}_" . date('Y-m-d') . ".csv";
         $regQuery = $campaign->registrations();
+
         if ($request->input('sort') === 'alpha' || $request->input('sort') === 'name') {
             $regQuery->orderBy('name', 'asc');
         } else {
             $regQuery->latest();
-        }
-
-        if ($request->filled('division')) {
-            $rawDiv = trim($request->division);
-            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
-            $divVariants = BangladeshGeo::getVariants($canonicalDiv);
-
-            $divDistricts = BangladeshGeo::DIVISIONS[$canonicalDiv] ?? [];
-            $allDistVariants = [];
-            foreach ($divDistricts as $dName) {
-                $allDistVariants = array_merge($allDistVariants, BangladeshGeo::getVariants($dName));
-            }
-            $allDistVariants = array_values(array_unique(array_filter($allDistVariants)));
-
-            $regQuery->where(function ($q) use ($divVariants, $allDistVariants) {
-                $q->where(function ($sq) use ($divVariants) {
-                    foreach ($divVariants as $v) {
-                        $sq->orWhere('form_data->perm_division', $v)
-                           ->orWhere('form_data->division', $v)
-                           ->orWhere('form_data->perm_division', 'like', "%{$v}%")
-                           ->orWhere('form_data->division', 'like', "%{$v}%");
-                    }
-                });
-                if (!empty($allDistVariants)) {
-                    $q->orWhereIn('district', $allDistVariants)
-                      ->orWhere(function ($sq) use ($allDistVariants) {
-                          foreach (array_slice($allDistVariants, 0, 40) as $dv) {
-                              $sq->orWhere('form_data->district', $dv)
-                                 ->orWhere('form_data->perm_district', $dv);
-                          }
-                      });
-                }
-            });
         }
 
         if ($request->filled('district')) {
@@ -1473,6 +1414,395 @@ class EventCampaignAdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export Little Magazine Editors Directory to CSV or Excel.
+     */
+    protected function exportLittleMag(Request $request, EventCampaign $campaign, string $format = 'csv')
+    {
+        $filename = "littlemag_editors_{$campaign->slug}_" . date('Y-m-d') . ".csv";
+        $allRegs = $campaign->registrations()->latest()->get();
+        $registrations = $allRegs->filter(fn($r) => $r->isLittleMagEditor())->sort(function ($a, $b) {
+            $magA = $a->magazine_name ?: $a->name;
+            $magB = $b->magazine_name ?: $b->name;
+            return strcmp($magA, $magB);
+        })->values();
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($registrations) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+            fputcsv($handle, ['Reg Number', 'Magazine Name (পত্রিকা)', 'Editor Name (সম্পাদক)', 'Issue Count (সংখ্যা)', 'Division (বিভাগ)', 'District (জেলা)', 'Thana (থানা)', 'Phone (মোবাইল)', 'Email', 'Status', 'Registered At']);
+
+            foreach ($registrations as $r) {
+                fputcsv($handle, [
+                    $r->registration_number,
+                    $r->magazine_name ?: 'N/A',
+                    $r->name,
+                    $r->magazine_issue_count ?: 'N/A',
+                    $r->resolved_division,
+                    $r->resolved_district,
+                    $r->resolved_thana ?: 'N/A',
+                    $r->phone,
+                    $r->email,
+                    $r->status,
+                    $r->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export participants arranged by Division, District, and Alphabetical Name order.
+     */
+    protected function exportGeoDatabase(Request $request, EventCampaign $campaign, ?string $targetDivision = null, string $format = 'excel')
+    {
+        $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
+
+        // 1. Filter by specific division if requested
+        if (!empty($targetDivision)) {
+            $rawDiv = trim($targetDivision);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = BangladeshGeo::getVariants($canonicalDiv);
+
+            $divDistricts = BangladeshGeo::DIVISIONS[$canonicalDiv] ?? [];
+            $allDistVariants = [];
+            foreach ($divDistricts as $dName) {
+                $allDistVariants = array_merge($allDistVariants, BangladeshGeo::getVariants($dName));
+            }
+            $allDistVariants = array_values(array_unique(array_filter($allDistVariants)));
+
+            $allCampaignRegistrations = $allCampaignRegistrations->filter(function ($reg) use ($canonicalDiv, $divVariants, $allDistVariants) {
+                $rDiv = $reg->resolved_division;
+                if ($rDiv === $canonicalDiv || in_array($rDiv, $divVariants, true)) {
+                    return true;
+                }
+                $rDist = $reg->resolved_district;
+                if (in_array($rDist, $allDistVariants, true)) {
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        // 2. Filter by specific district if requested
+        if ($request->filled('district')) {
+            $rawDst = trim($request->district);
+            $canonicalDst = BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = BangladeshGeo::getVariants($canonicalDst);
+
+            $allCampaignRegistrations = $allCampaignRegistrations->filter(function ($reg) use ($canonicalDst, $dstVariants) {
+                $rDist = $reg->resolved_district;
+                return $rDist === $canonicalDst || in_array($rDist, $dstVariants, true);
+            });
+        }
+
+        // 3. Little Magazine filter if requested
+        if ($request->boolean('is_littlemag')) {
+            $allCampaignRegistrations = $allCampaignRegistrations->filter(fn($r) => $r->isLittleMagEditor());
+        }
+
+        // 4. Build Division -> District -> Participants structure
+        $geoDatabase = [];
+        foreach ($allCampaignRegistrations as $reg) {
+            $div = $reg->resolved_division;
+            $dist = $reg->resolved_district;
+
+            if (!isset($geoDatabase[$div])) {
+                $geoDatabase[$div] = [];
+            }
+            if (!isset($geoDatabase[$div][$dist])) {
+                $geoDatabase[$div][$dist] = collect();
+            }
+            $geoDatabase[$div][$dist]->push($reg);
+        }
+
+        // If target division was requested but had no registrations, create empty placeholder
+        if (!empty($targetDivision) && empty($geoDatabase)) {
+            $canonicalDiv = BangladeshGeo::normalizeDivision($targetDivision) ?: $targetDivision;
+            $geoDatabase[$canonicalDiv] = [];
+        }
+
+        // Sort Divisions alphabetically (Bengali Unicode collation)
+        uksort($geoDatabase, function ($a, $b) {
+            if ($a === 'অনির্ধারিত বিভাগ') return 1;
+            if ($b === 'অনির্ধারিত বিভাগ') return -1;
+            return strcmp($a, $b);
+        });
+
+        // Within each Division, sort Districts alphabetically, and Participants alphabetically by name
+        foreach ($geoDatabase as $divName => $districts) {
+            uksort($geoDatabase[$divName], function ($a, $b) {
+                if ($a === 'অনির্ধারিত জেলা') return 1;
+                if ($b === 'অনির্ধারিত জেলা') return -1;
+                return strcmp($a, $b);
+            });
+
+            foreach ($geoDatabase[$divName] as $dName => $participants) {
+                $geoDatabase[$divName][$dName] = $participants->sort(function ($a, $b) {
+                    return strcmp(trim($a->name), trim($b->name));
+                })->values();
+            }
+        }
+
+        if ($format === 'csv') {
+            return $this->exportGeoCsv($campaign, $geoDatabase, $targetDivision);
+        }
+
+        return $this->exportGeoExcel($campaign, $geoDatabase, $targetDivision);
+    }
+
+    /**
+     * Generate structured Microsoft Excel (.xls XML Spreadsheet 2003) workbook with Division sheets, District headers, and alphabetical participants.
+     */
+    protected function exportGeoExcel(EventCampaign $campaign, array $geoDatabase, ?string $targetDivision = null)
+    {
+        $campaignSlug = Str::slug($campaign->slug ?: 'campaign');
+        $divisionSlug = $targetDivision ? Str::slug($targetDivision) : 'all_divisions';
+        $filename = "geo_participants_{$campaignSlug}_{$divisionSlug}_" . date('Y-m-d') . ".xls";
+
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+        $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
+        $xml .= ' xmlns:o="urn:schemas-microsoft-com:office:office"' . "\n";
+        $xml .= ' xmlns:x="urn:schemas-microsoft-com:office:excel"' . "\n";
+        $xml .= ' xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"' . "\n";
+        $xml .= ' xmlns:html="http://www.w3.org/TR/REC-html40">' . "\n";
+
+        $xml .= ' <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">' . "\n";
+        $xml .= '  <Author>ideaabd</Author>' . "\n";
+        $xml .= '  <Title>' . $this->xmlSafe($campaign->title) . '</Title>' . "\n";
+        $xml .= '  <Created>' . date('Y-m-d\TH:i:s\Z') . '</Created>' . "\n";
+        $xml .= '  <Company>ideaabd</Company>' . "\n";
+        $xml .= ' </DocumentProperties>' . "\n";
+
+        $xml .= ' <Styles>' . "\n";
+        $xml .= '  <Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="10" ss:Color="#0F172A"/></Style>' . "\n";
+        $xml .= '  <Style ss:ID="TitleBanner"><Alignment ss:Horizontal="Left" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="13" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0F766E" ss:Pattern="Solid"/></Style>' . "\n";
+        $xml .= '  <Style ss:ID="SubtitleBanner"><Alignment ss:Horizontal="Left" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="9.5" ss:Color="#E2E8F0"/><Interior ss:Color="#115E59" ss:Pattern="Solid"/></Style>' . "\n";
+        $xml .= '  <Style ss:ID="DistrictBanner"><Alignment ss:Horizontal="Left" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="11" ss:Bold="1" ss:Color="#14532D"/><Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#86EFAC"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#86EFAC"/></Borders></Style>' . "\n";
+        $xml .= '  <Style ss:ID="TableHeader"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="10" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1E293B" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#475569"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#475569"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#475569"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#475569"/></Borders></Style>' . "\n";
+        $xml .= '  <Style ss:ID="CellLeft"><Alignment ss:Horizontal="Left" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="9.5"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/></Borders></Style>' . "\n";
+        $xml .= '  <Style ss:ID="CellCenter"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="9.5"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/></Borders></Style>' . "\n";
+        $xml .= '  <Style ss:ID="DistrictSummary"><Alignment ss:Horizontal="Right" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="10" ss:Bold="1" ss:Color="#065F46"/><Interior ss:Color="#F0FDF4" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#86EFAC"/><Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#86EFAC"/></Borders></Style>' . "\n";
+        $xml .= '  <Style ss:ID="DivisionSummary"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/><Font ss:FontName="Segoe UI, Kalpurush, Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0F766E" ss:Pattern="Solid"/></Style>' . "\n";
+        $xml .= ' </Styles>' . "\n";
+
+        // Generate a Worksheet for each division
+        foreach ($geoDatabase as $divName => $districts) {
+            $divTotal = 0;
+            foreach ($districts as $participants) {
+                $divTotal += $participants->count();
+            }
+            $cleanName = preg_replace('/[\\\\\\/?*[\\]:]/', '', $divName . ($divName !== 'অনির্ধারিত বিভাগ' ? ' বিভাগ' : ''));
+            $sheetTitle = mb_substr($cleanName, 0, 30);
+
+            $xml .= ' <Worksheet ss:Name="' . $this->xmlSafe($sheetTitle) . '">' . "\n";
+            $xml .= '  <Table>' . "\n";
+            $xml .= '   <Column ss:Width="45"/>' . "\n";   // SL
+            $xml .= '   <Column ss:Width="165"/>' . "\n";  // Name
+            $xml .= '   <Column ss:Width="150"/>' . "\n";  // Category / Magazine
+            $xml .= '   <Column ss:Width="95"/>' . "\n";   // District
+            $xml .= '   <Column ss:Width="105"/>' . "\n";  // Thana
+            $xml .= '   <Column ss:Width="180"/>' . "\n";  // Address
+            $xml .= '   <Column ss:Width="105"/>' . "\n";  // Phone
+            $xml .= '   <Column ss:Width="150"/>' . "\n";  // Email
+            $xml .= '   <Column ss:Width="95"/>' . "\n";   // Reg No
+            $xml .= '   <Column ss:Width="85"/>' . "\n";   // Payment
+            $xml .= '   <Column ss:Width="80"/>' . "\n";   // Status
+            $xml .= '   <Column ss:Width="120"/>' . "\n";  // Registered At
+
+            // Division Title Row
+            $xml .= '   <Row ss:Height="28">' . "\n";
+            $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="TitleBanner"><Data ss:Type="String">' . $this->xmlSafe($divName . ($divName !== 'অনির্ধারিত বিভাগ' ? ' বিভাগ' : '') . ' — অংশগ্রহণকারী ডাটাবেজ (মোট: ' . $divTotal . ' জন)') . '</Data></Cell>' . "\n";
+            $xml .= '   </Row>' . "\n";
+
+            // Subtitle Row
+            $xml .= '   <Row ss:Height="20">' . "\n";
+            $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="SubtitleBanner"><Data ss:Type="String">' . $this->xmlSafe('ইভেন্ট: ' . $campaign->title . ' | জেলা অনুসারে এবং নামের বর্ণাক্রমে (A-Z / ক-হ) সাজানো | ডাউনলোডের তারিখ: ' . date('d M, Y h:i A')) . '</Data></Cell>' . "\n";
+            $xml .= '   </Row>' . "\n";
+
+            if (empty($districts)) {
+                $xml .= '   <Row ss:Height="24">' . "\n";
+                $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="CellCenter"><Data ss:Type="String">এই বিভাগে এখনও কোনো অংশগ্রহণকারী নিবন্ধন করেনি।</Data></Cell>' . "\n";
+                $xml .= '   </Row>' . "\n";
+            }
+
+            foreach ($districts as $distName => $participants) {
+                $distCount = $participants->count();
+
+                // District Banner Row
+                $xml .= '   <Row ss:Height="24">' . "\n";
+                $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="DistrictBanner"><Data ss:Type="String">' . $this->xmlSafe('▶ জেলা: ' . $distName . ($distName !== 'অনির্ধারিত জেলা' ? ' জেলা' : '') . ' (মোট অংশগ্রহণকারী: ' . $distCount . ' জন)') . '</Data></Cell>' . "\n";
+                $xml .= '   </Row>' . "\n";
+
+                // Column Header Row
+                $xml .= '   <Row ss:Height="22">' . "\n";
+                $headers = ['ক্রঃ', 'নাম (বর্ণানুক্রমে)', 'ক্যাটাগরি / সাহিত্য শাখা / পত্রিকা', 'জেলা', 'উপজেলা / থানা', 'ঠিকানা / গ্রাম', 'মোবাইল নম্বর', 'ইমেইল', 'রেজিস্ট্রেশন নং', 'পেমেন্ট অবস্থা', 'স্ট্যাটাস', 'নিবন্ধন তারিখ'];
+                foreach ($headers as $h) {
+                    $xml .= '    <Cell ss:StyleID="TableHeader"><Data ss:Type="String">' . $this->xmlSafe($h) . '</Data></Cell>' . "\n";
+                }
+                $xml .= '   </Row>' . "\n";
+
+                // Data Rows (Sorted Alphabetically by Name)
+                $sl = 1;
+                foreach ($participants as $r) {
+                    $cat = trim(($r->institution_or_org ?: ($r->form_data['author_category'] ?? '')) . ($r->magazine_name ? ' [পত্রিকা: ' . $r->magazine_name . ']' : ''));
+                    $thana = $r->resolved_thana ?: ($r->thana ?: '—');
+                    $addr = $r->address ?: ($r->form_data['perm_address'] ?? ($r->form_data['present_address'] ?? '—'));
+                    $dateStr = $r->created_at ? $r->created_at->format('d/m/Y h:i A') : '—';
+
+                    $xml .= '   <Row ss:Height="20">' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="Number">' . $sl++ . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellLeft"><Data ss:Type="String">' . $this->xmlSafe($r->name) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellLeft"><Data ss:Type="String">' . $this->xmlSafe($cat ?: '—') . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe($r->resolved_district) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe($thana) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellLeft"><Data ss:Type="String">' . $this->xmlSafe($addr) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe($r->phone) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellLeft"><Data ss:Type="String">' . $this->xmlSafe($r->email ?: '—') . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe($r->registration_number) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe(ucfirst($r->payment_status)) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe(ucfirst($r->status)) . '</Data></Cell>' . "\n";
+                    $xml .= '    <Cell ss:StyleID="CellCenter"><Data ss:Type="String">' . $this->xmlSafe($dateStr) . '</Data></Cell>' . "\n";
+                    $xml .= '   </Row>' . "\n";
+                }
+
+                // District Summary Row
+                $xml .= '   <Row ss:Height="20">' . "\n";
+                $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="DistrictSummary"><Data ss:Type="String">' . $this->xmlSafe($distName . ' জেলার মোট: ' . $distCount . ' জন') . '</Data></Cell>' . "\n";
+                $xml .= '   </Row>' . "\n";
+
+                // Spacer Row
+                $xml .= '   <Row ss:Height="10"><Cell ss:MergeAcross="11"><Data ss:Type="String"></Data></Cell></Row>' . "\n";
+            }
+
+            // Division Final Summary Row
+            $xml .= '   <Row ss:Height="24">' . "\n";
+            $xml .= '    <Cell ss:MergeAcross="11" ss:StyleID="DivisionSummary"><Data ss:Type="String">' . $this->xmlSafe('★ ' . $divName . ' বিভাগের সর্বমোট অংশগ্রহণকারী: ' . $divTotal . ' জন') . '</Data></Cell>' . "\n";
+            $xml .= '   </Row>' . "\n";
+
+            $xml .= '  </Table>' . "\n";
+            $xml .= ' </Worksheet>' . "\n";
+        }
+
+        $xml .= '</Workbook>';
+
+        $headers = [
+            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control'       => 'max-age=0, no-cache, must-revalidate',
+            'Pragma'              => 'public',
+        ];
+
+        return response($xml, 200, $headers);
+    }
+
+    /**
+     * Generate structured CSV export grouped by Division & District with alphabetical name sorting.
+     */
+    protected function exportGeoCsv(EventCampaign $campaign, array $geoDatabase, ?string $targetDivision = null)
+    {
+        $campaignSlug = Str::slug($campaign->slug ?: 'campaign');
+        $divisionSlug = $targetDivision ? Str::slug($targetDivision) : 'all_divisions';
+        $filename = "geo_participants_{$campaignSlug}_{$divisionSlug}_" . date('Y-m-d') . ".csv";
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($campaign, $geoDatabase) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+
+            fputcsv($handle, [$campaign->title . ' — বিভাগ ও জেলা ভিত্তিক অংশগ্রহণকারী ডাটাবেজ']);
+            fputcsv($handle, ['তৈরির তারিখ: ' . date('d M, Y h:i A') . ' | জেলা অনুসারে এবং নামের বর্ণাক্রমে (A-Z / ক-হ) সাজানো']);
+            fputcsv($handle, []);
+
+            foreach ($geoDatabase as $divName => $districts) {
+                $divTotal = 0;
+                foreach ($districts as $pList) {
+                    $divTotal += $pList->count();
+                }
+
+                fputcsv($handle, ["================== {$divName} বিভাগ (মোট: {$divTotal} জন) =================="]);
+                fputcsv($handle, []);
+
+                foreach ($districts as $distName => $participants) {
+                    $distCount = $participants->count();
+                    fputcsv($handle, ["--- জেলা: {$distName} (মোট: {$distCount} জন) ---"]);
+                    fputcsv($handle, [
+                        'ক্রঃ নং',
+                        'নাম (বর্ণানুক্রমে)',
+                        'ক্যাটাগরি / সাহিত্য শাখা / পত্রিকা',
+                        'বিভাগ',
+                        'জেলা',
+                        'উপজেলা / থানা',
+                        'ঠিকানা / গ্রাম',
+                        'মোবাইল নম্বর',
+                        'ইমেইল',
+                        'রেজিস্ট্রেশন নং',
+                        'পেমেন্ট অবস্থা',
+                        'অনুমোদন অবস্থা',
+                        'নিবন্ধনের তারিখ',
+                    ]);
+
+                    $sl = 1;
+                    foreach ($participants as $r) {
+                        $cat = trim(($r->institution_or_org ?: ($r->form_data['author_category'] ?? '')) . ($r->magazine_name ? ' [পত্রিকা: ' . $r->magazine_name . ']' : ''));
+                        $thana = $r->resolved_thana ?: ($r->thana ?: '—');
+                        $addr = $r->address ?: ($r->form_data['perm_address'] ?? ($r->form_data['present_address'] ?? '—'));
+
+                        fputcsv($handle, [
+                            $sl++,
+                            $r->name,
+                            $cat ?: '—',
+                            $r->resolved_division,
+                            $r->resolved_district,
+                            $thana,
+                            $addr,
+                            $r->phone,
+                            $r->email ?: '—',
+                            $r->registration_number,
+                            ucfirst($r->payment_status),
+                            ucfirst($r->status),
+                            $r->created_at ? $r->created_at->format('Y-m-d H:i:s') : '—',
+                        ]);
+                    }
+
+                    fputcsv($handle, ["{$distName} জেলার মোট অংশগ্রহণকারী: {$distCount} জন"]);
+                    fputcsv($handle, []);
+                }
+
+                fputcsv($handle, ["★ {$divName} বিভাগের সর্বমোট অংশগ্রহণকারী: {$divTotal} জন"]);
+                fputcsv($handle, []);
+                fputcsv($handle, []);
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * XML string safe escaper for XML Spreadsheet.
+     */
+    protected function xmlSafe(?string $str): string
+    {
+        if ($str === null || $str === '') {
+            return '';
+        }
+        return htmlspecialchars((string) $str, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 
     /**

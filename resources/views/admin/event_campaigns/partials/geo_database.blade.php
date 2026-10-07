@@ -22,6 +22,24 @@
             </div>
 
             <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-success text-white rounded-pill px-3 py-1.5 fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-file-excel me-1"></i> বিভাগ ও জেলা ভিত্তিক এক্সেল ডাউনলোড
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
+                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'excel']) }}"><i class="fa-solid fa-file-excel text-success me-2"></i> সকল বিভাগের পূর্ণাঙ্গ এক্সেল শিট (.xls)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'csv']) }}"><i class="fa-solid fa-file-csv text-primary me-2"></i> সকল বিভাগের সিএসভি ফাইল (.csv)</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li class="dropdown-header text-muted py-1 small fw-bold"><i class="fa-solid fa-map me-1"></i> নির্দিষ্ট বিভাগ ডাউনলোড:</li>
+                        @foreach($geoDatabase as $divName => $districts)
+                            <li>
+                                <a class="dropdown-item py-1.5 small fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'division' => ($divName !== 'অনির্ধারিত বিভাগ' ? $divName : ''), 'format' => 'excel']) }}">
+                                    <i class="fa-solid fa-angle-right text-muted me-1.5"></i> {{ $divName }} ({{ $divisionStats[$divName] ?? 0 }} জন)
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
                 <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold shadow-sm" onclick="expandAllGeoAccordions()">
                     <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> সব বিভাগ খুলুন
                 </button>
@@ -110,9 +128,26 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2">
-                        <a href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'division' => ($divName !== 'অনির্ধারিত বিভাগ' ? $divName : ''), 'sort' => 'alpha']) }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" onclick="event.stopPropagation();" title="এই বিভাগের এক্সেল ডাউনলোড করুন">
-                            <i class="fa-solid fa-file-excel me-1"></i> এক্সপোর্ট
-                        </a>
+                        <div class="btn-group btn-group-sm" onclick="event.stopPropagation();">
+                            <a href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'division' => ($divName !== 'অনির্ধারিত বিভাগ' ? $divName : ''), 'format' => 'excel']) }}" class="btn btn-sm btn-success text-white rounded-start-pill px-3 py-1 fw-bold shadow-2xs" title="{{ $divName }} বিভাগের জেলা ও নাম ভিত্তিক এক্সেল শিট (.xls) ডাউনলোড করুন">
+                                <i class="fa-solid fa-file-excel me-1"></i> এক্সেল ডাউনলোড
+                            </a>
+                            <button type="button" class="btn btn-sm btn-success text-white dropdown-toggle dropdown-toggle-split rounded-end-pill px-2" data-bs-toggle="dropdown" aria-expanded="false" title="অন্যান্য ফরম্যাট">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 12px;">
+                                <li>
+                                    <a class="dropdown-item py-1.5 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'division' => ($divName !== 'অনির্ধারিত বিভাগ' ? $divName : ''), 'format' => 'excel']) }}">
+                                        <i class="fa-solid fa-file-excel text-success me-2"></i> এক্সেল শিট (.xls)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-1.5 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'division' => ($divName !== 'অনির্ধারিত বিভাগ' ? $divName : ''), 'format' => 'csv']) }}">
+                                        <i class="fa-solid fa-file-csv text-primary me-2"></i> সিএসভি ফাইল (.csv)
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1" onclick="event.stopPropagation(); printSingleSection('geo-sec-{{ $divSlug }}');" title="এই বিভাগ প্রিন্ট করুন">
                             <i class="fa-solid fa-print me-1"></i> প্রিন্ট
                         </button>
