@@ -172,4 +172,109 @@ class EventRegistration extends Model
     {
         return $this->acknowledgment_status === 'acknowledged' || !empty($this->form_data['is_acknowledged']);
     }
+
+    /**
+     * Check if participant is a Little Magazine Editor (লিটিলম্যাগ সম্পাদক)
+     */
+    public function isLittleMagEditor(): bool
+    {
+        if (!empty($this->form_data['magazine_name'])) {
+            return true;
+        }
+
+        $cats = (array) ($this->form_data['author_categories'] ?? []);
+        foreach ($cats as $cat) {
+            $catStr = (string) $cat;
+            if (mb_strpos($catStr, 'লিটিলম্যাগ') !== false || mb_strpos($catStr, 'সম্পাদক') !== false) {
+                return true;
+            }
+        }
+
+        $singleCat = (string) ($this->form_data['author_category'] ?? '');
+        if (mb_strpos($singleCat, 'লিটিলম্যাগ') !== false) {
+            return true;
+        }
+
+        $desig = (string) ($this->designation_or_class ?? '');
+        if (mb_strpos($desig, 'লিটিলম্যাগ') !== false || mb_strpos($desig, 'সম্পাদক') !== false) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get Little Magazine name
+     */
+    public function getMagazineNameAttribute(): ?string
+    {
+        return !empty($this->form_data['magazine_name']) ? trim($this->form_data['magazine_name']) : null;
+    }
+
+    /**
+     * Get Little Magazine issue/volume count
+     */
+    public function getMagazineIssueCountAttribute(): ?string
+    {
+        return !empty($this->form_data['magazine_issue_count']) ? trim($this->form_data['magazine_issue_count']) : null;
+    }
+
+    /**
+     * Get resolved District
+     */
+    public function getResolvedDistrictAttribute(): string
+    {
+        $dist = trim($this->district ?? '');
+        if (empty($dist)) {
+            $dist = trim($this->form_data['district'] ?? $this->form_data['perm_district'] ?? '');
+        }
+        return !empty($dist) ? $dist : 'অনির্ধারিত জেলা';
+    }
+
+    /**
+     * Get resolved Division
+     */
+    public function getResolvedDivisionAttribute(): string
+    {
+        $div = trim($this->form_data['perm_division'] ?? $this->form_data['division'] ?? '');
+        if (!empty($div)) {
+            return $div;
+        }
+
+        $dist = $this->resolved_district;
+        if ($dist && $dist !== 'অনির্ধারিত জেলা') {
+            $map = [
+                'খুলনা' => ['কুষ্টিয়া', 'খুলনা', 'চুয়াডাঙ্গা', 'ঝিনাইদহ', 'নড়াইল', 'বাগেরহাট', 'মাগুরা', 'মেহেরপুর', 'যশোর', 'সাতক্ষীরা'],
+                'চট্টগ্রাম' => ['কক্সবাজার', 'কুমিল্লা', 'খাগড়াছড়ি', 'চট্টগ্রাম', 'চাঁদপুর', 'নোয়াখালী', 'বান্দরবান', 'ব্রাহ্মণবাড়িয়া', 'লক্ষ্মীপুর', 'রাঙ্গামাটি', 'ফেনী'],
+                'ঢাকা' => ['কিশোরগঞ্জ', 'গাজীপুর', 'গোপালগঞ্জ', 'টাঙ্গাইল', 'ঢাকা', 'নরসিংদী', 'নারায়ণগঞ্জ', 'ফরিদপুর', 'মাদারীপুর', 'মানিকগঞ্জ', 'মুন্সীগঞ্জ', 'রাজবাড়ী', 'শরীয়তপুর'],
+                'বরিশাল' => ['ঝালকাঠি', 'পটুয়াখালী', 'পিরোজপুর', 'বরগুনা', 'বরিশাল', 'ভোলা'],
+                'ময়মনসিংহ' => ['জামালপুর', 'নেত্রকোণা', 'ময়মনসিংহ', 'শেরপুর'],
+                'রংপুর' => ['কুড়িগ্রাম', 'গাইবান্ধা', 'ঠাকুরগাঁও', 'দিনাজপুর', 'নীলফামারী', 'পঞ্চগড়', 'রংপুর', 'লালমনিরহাট'],
+                'রাজশাহী' => ['চাঁপাইনবাবগঞ্জ', 'জয়পুরহাট', 'নওগাঁ', 'নাটোর', 'পাবনা', 'বগুড়া', 'রাজশাহী', 'সিরাজগঞ্জ'],
+                'সিলেট' => ['মৌলভীবাজার', 'সুনামগঞ্জ', 'সিলেট', 'হবিগঞ্জ']
+            ];
+
+            foreach ($map as $dName => $dists) {
+                foreach ($dists as $d) {
+                    if (mb_strpos($dist, $d) !== false || mb_strpos($d, $dist) !== false) {
+                        return $dName;
+                    }
+                }
+            }
+        }
+
+        return 'অনির্ধারিত বিভাগ';
+    }
+
+    /**
+     * Get resolved Thana / Upazila
+     */
+    public function getResolvedThanaAttribute(): ?string
+    {
+        $thana = trim($this->thana ?? '');
+        if (empty($thana)) {
+            $thana = trim($this->form_data['thana'] ?? $this->form_data['perm_thana'] ?? '');
+        }
+        return !empty($thana) ? $thana : null;
+    }
 }

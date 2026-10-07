@@ -145,8 +145,9 @@ class EventCampaignAdminController extends Controller
     {
         $campaign->loadCount('registrations');
 
-        $regQuery = $campaign->registrations()->with('user')->latest();
+        $regQuery = $campaign->registrations()->with('user');
 
+        // Search
         if ($request->filled('search')) {
             $s = trim($request->search);
             $regQuery->where(function ($q) use ($s) {
@@ -154,7 +155,13 @@ class EventCampaignAdminController extends Controller
                   ->orWhere('phone', 'like', "%{$s}%")
                   ->orWhere('email', 'like', "%{$s}%")
                   ->orWhere('registration_number', 'like', "%{$s}%")
-                  ->orWhere('institution_or_org', 'like', "%{$s}%");
+                  ->orWhere('institution_or_org', 'like', "%{$s}%")
+                  ->orWhere('district', 'like', "%{$s}%")
+                  ->orWhere('thana', 'like', "%{$s}%")
+                  ->orWhere('form_data->magazine_name', 'like', "%{$s}%")
+                  ->orWhere('form_data->author_category', 'like', "%{$s}%")
+                  ->orWhere('form_data->author_categories', 'like', "%{$s}%")
+                  ->orWhere('form_data->perm_division', 'like', "%{$s}%");
             });
         }
 
@@ -166,6 +173,53 @@ class EventCampaignAdminController extends Controller
             $regQuery->where('payment_status', $request->payment_status);
         }
 
+        // Division filter
+        if ($request->filled('division')) {
+            $div = trim($request->division);
+            $regQuery->where(function ($q) use ($div) {
+                $q->where('form_data->perm_division', $div)
+                  ->orWhere('form_data->division', $div);
+            });
+        }
+
+        // District filter
+        if ($request->filled('district')) {
+            $dst = trim($request->district);
+            $regQuery->where(function ($q) use ($dst) {
+                $q->where('district', $dst)
+                  ->orWhere('form_data->district', $dst)
+                  ->orWhere('form_data->perm_district', $dst);
+            });
+        }
+
+        // Little Magazine filter
+        if ($request->boolean('is_littlemag') || $request->input('category') === 'littlemag') {
+            $regQuery->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->whereNotNull('form_data->magazine_name')
+                       ->where('form_data->magazine_name', '!=', '');
+                })
+                ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+            });
+        }
+
+        // Alphabetical or Custom Sorting
+        $sort = $request->input('sort', 'latest');
+        if ($sort === 'alpha' || $sort === 'name') {
+            $regQuery->orderBy('name', 'asc');
+        } elseif ($sort === 'alpha_desc') {
+            $regQuery->orderBy('name', 'desc');
+        } elseif ($sort === 'oldest') {
+            $regQuery->oldest();
+        } elseif ($sort === 'reg_no') {
+            $regQuery->orderBy('registration_number', 'asc');
+        } else {
+            $regQuery->latest();
+        }
+
         $perPage = (int) $request->input('per_page', $campaign->table_settings['per_page'] ?? 25);
         if (!in_array($perPage, [10, 25, 50, 100, 250], true)) {
             $perPage = 25;
@@ -174,8 +228,118 @@ class EventCampaignAdminController extends Controller
         $registrations = $regQuery->paginate($perPage)->withQueryString();
         $totalRegistrations = $campaign->registrations()->count();
         $totalCollected = $campaign->registrations()->where('payment_status', 'verified')->sum('amount_paid');
+        $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
 
-        return view('admin.event_campaigns.show', compact('campaign', 'registrations', 'totalRegistrations', 'totalCollected', 'perPage'));
+        // Fetch all registrations to prepare Geo Database and Little Magazine Directory
+        $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
+
+        $divisionDistrictMap = [
+            'খুলনা' => ['কুষ্টিয়া', 'খুলনা', 'চুয়াডাঙ্গা', 'ঝিনাইদহ', 'নড়াইল', 'বাগেরহাট', 'মাগুরা', 'মেহেরপুর', 'যশোর', 'সাতক্ষীরা'],
+            'চট্টগ্রাম' => ['কক্সবাজার', 'কুমিল্লা', 'খাগড়াছড়ি', 'চট্টগ্রাম', 'চাঁদপুর', 'নোয়াখালী', 'বান্দরবান', 'ব্রাহ্মণবাড়িয়া', 'লক্ষ্মীপুর', 'রাঙ্গামাটি', 'ফেনী'],
+            'ঢাকা' => ['কিশোরগঞ্জ', 'গাজীপুর', 'গোপালগঞ্জ', 'টাঙ্গাইল', 'ঢাকা', 'নরসিংদী', 'নারায়ণগঞ্জ', 'ফরিদপুর', 'মাদারীপুর', 'মানিকগঞ্জ', 'মুন্সীগঞ্জ', 'রাজবাড়ী', 'শরীয়তপুর'],
+            'বরিশাল' => ['ঝালকাঠি', 'পটুয়াখালী', 'পিরোজপুর', 'বরগুনা', 'বরিশাল', 'ভোলা'],
+            'ময়মনসিংহ' => ['জামালপুর', 'নেত্রকোণা', 'ময়মনসিংহ', 'শেরপুর'],
+            'রংপুর' => ['কুড়িগ্রাম', 'গাইবান্ধা', 'ঠাকুরগাঁও', 'দিনাজপুর', 'নীলফামারী', 'পঞ্চগড়', 'রংপুর', 'লালমনিরহাট'],
+            'রাজশাহী' => ['চাঁপাইনবাবগঞ্জ', 'জয়পুরহাট', 'নওগাঁ', 'নাটোর', 'পাবনা', 'বগুড়া', 'রাজশাহী', 'সিরাজগঞ্জ'],
+            'সিলেট' => ['মৌলভীবাজার', 'সুনামগঞ্জ', 'সিলেট', 'হবিগঞ্জ']
+        ];
+
+        $districtToDivision = [];
+        foreach ($divisionDistrictMap as $divName => $dists) {
+            foreach ($dists as $dist) {
+                $districtToDivision[$dist] = $divName;
+            }
+        }
+
+        $geoDatabase = [];
+        $divisionStats = [];
+        $districtStats = [];
+        $littleMagList = collect();
+
+        foreach ($allCampaignRegistrations as $reg) {
+            $matchedDist = $reg->resolved_district;
+            foreach ($districtToDivision as $knownDist => $knownDiv) {
+                if (mb_strpos($matchedDist, $knownDist) !== false || mb_strpos($knownDist, $matchedDist) !== false) {
+                    $matchedDist = $knownDist;
+                    break;
+                }
+            }
+
+            $div = $reg->resolved_division;
+            if (($div === 'অনির্ধারিত বিভাগ' || empty($div)) && isset($districtToDivision[$matchedDist])) {
+                $div = $districtToDivision[$matchedDist];
+            }
+            if (empty($div)) {
+                $div = 'অনির্ধারিত বিভাগ';
+            }
+
+            if (!isset($geoDatabase[$div])) {
+                $geoDatabase[$div] = [];
+                $divisionStats[$div] = 0;
+            }
+            if (!isset($geoDatabase[$div][$matchedDist])) {
+                $geoDatabase[$div][$matchedDist] = collect();
+                $districtStats[$matchedDist] = 0;
+            }
+
+            $geoDatabase[$div][$matchedDist]->push($reg);
+            $divisionStats[$div]++;
+            $districtStats[$matchedDist]++;
+
+            if ($reg->isLittleMagEditor()) {
+                $littleMagList->push($reg);
+            }
+        }
+
+        // Sort Divisions alphabetically (Bengali Unicode collation)
+        uksort($geoDatabase, function ($a, $b) {
+            if ($a === 'অনির্ধারিত বিভাগ') return 1;
+            if ($b === 'অনির্ধারিত বিভাগ') return -1;
+            return strcmp($a, $b);
+        });
+
+        // Within each Division, sort Districts alphabetically and participants alphabetically
+        foreach ($geoDatabase as $divName => $dists) {
+            uksort($geoDatabase[$divName], function ($a, $b) {
+                if ($a === 'অনির্ধারিত জেলা') return 1;
+                if ($b === 'অনির্ধারিত জেলা') return -1;
+                return strcmp($a, $b);
+            });
+
+            foreach ($geoDatabase[$divName] as $dName => $pList) {
+                $geoDatabase[$divName][$dName] = $pList->sort(function ($a, $b) {
+                    return strcmp($a->name, $b->name);
+                })->values();
+            }
+        }
+
+        // Sort Little Magazine List alphabetically (by Magazine Name, then Editor Name)
+        $littleMagList = $littleMagList->sort(function ($a, $b) {
+            $magA = $a->magazine_name ?: $a->name;
+            $magB = $b->magazine_name ?: $b->name;
+            return strcmp($magA, $magB);
+        })->values();
+
+        $totalLittleMagCount = $littleMagList->count();
+        $totalGeoDivisions = count(array_filter(array_keys($geoDatabase), fn($d) => $d !== 'অনির্ধারিত বিভাগ'));
+        $totalGeoDistricts = count(array_filter(array_keys($districtStats), fn($d) => $d !== 'অনির্ধারিত জেলা'));
+
+        return view('admin.event_campaigns.show', compact(
+            'campaign',
+            'registrations',
+            'totalRegistrations',
+            'totalCollected',
+            'pendingCount',
+            'perPage',
+            'geoDatabase',
+            'divisionStats',
+            'districtStats',
+            'littleMagList',
+            'totalLittleMagCount',
+            'totalGeoDivisions',
+            'totalGeoDistricts',
+            'sort'
+        ));
     }
 
     /**
@@ -1165,10 +1329,76 @@ class EventCampaignAdminController extends Controller
     /**
      * Export participants list to CSV.
      */
-    public function exportCsv(EventCampaign $campaign)
+    public function exportCsv(Request $request, EventCampaign $campaign)
     {
-        $registrations = $campaign->registrations()->latest()->get();
+        $type = $request->input('type');
         $filename = "participants_{$campaign->slug}_" . date('Y-m-d') . ".csv";
+
+        if ($type === 'littlemag') {
+            $filename = "littlemag_editors_{$campaign->slug}_" . date('Y-m-d') . ".csv";
+            $allRegs = $campaign->registrations()->latest()->get();
+            $registrations = $allRegs->filter(fn($r) => $r->isLittleMagEditor())->sort(function ($a, $b) {
+                $magA = $a->magazine_name ?: $a->name;
+                $magB = $b->magazine_name ?: $b->name;
+                return strcmp($magA, $magB);
+            })->values();
+
+            $headers = [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            $callback = function () use ($registrations) {
+                $handle = fopen('php://output', 'w');
+                fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
+                fputcsv($handle, ['Reg Number', 'Magazine Name (পত্রিকা)', 'Editor Name (সম্পাদক)', 'Issue Count (সংখ্যা)', 'Division (বিভাগ)', 'District (জেলা)', 'Thana (থানা)', 'Phone (মোবাইল)', 'Email', 'Status', 'Registered At']);
+
+                foreach ($registrations as $r) {
+                    fputcsv($handle, [
+                        $r->registration_number,
+                        $r->magazine_name ?: 'N/A',
+                        $r->name,
+                        $r->magazine_issue_count ?: 'N/A',
+                        $r->resolved_division,
+                        $r->resolved_district,
+                        $r->resolved_thana ?: 'N/A',
+                        $r->phone,
+                        $r->email,
+                        $r->status,
+                        $r->created_at->format('Y-m-d H:i:s'),
+                    ]);
+                }
+                fclose($handle);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
+        $regQuery = $campaign->registrations();
+        if ($request->input('sort') === 'alpha' || $request->input('sort') === 'name') {
+            $regQuery->orderBy('name', 'asc');
+        } else {
+            $regQuery->latest();
+        }
+
+        if ($request->filled('division')) {
+            $div = trim($request->division);
+            $regQuery->where(function ($q) use ($div) {
+                $q->where('form_data->perm_division', $div)
+                  ->orWhere('form_data->division', $div);
+            });
+        }
+
+        if ($request->filled('district')) {
+            $dst = trim($request->district);
+            $regQuery->where(function ($q) use ($dst) {
+                $q->where('district', $dst)
+                  ->orWhere('form_data->district', $dst)
+                  ->orWhere('form_data->perm_district', $dst);
+            });
+        }
+
+        $registrations = $regQuery->get();
 
         $headers = [
             'Content-Type'        => 'text/csv; charset=UTF-8',
@@ -1178,7 +1408,7 @@ class EventCampaignAdminController extends Controller
         $callback = function () use ($registrations) {
             $handle = fopen('php://output', 'w');
             fputs($handle, "\xEF\xBB\xBF"); // UTF-8 BOM
-            fputcsv($handle, ['Reg Number', 'Name', 'Phone', 'Email', 'District', 'Thana', 'Institution', 'Amount Paid', 'Trx ID', 'Payment Status', 'Status', 'Registered At']);
+            fputcsv($handle, ['Reg Number', 'Name', 'Phone', 'Email', 'Division', 'District', 'Thana', 'Institution/Genre', 'Magazine Name', 'Amount Paid', 'Trx ID', 'Payment Status', 'Status', 'Registered At']);
 
             foreach ($registrations as $r) {
                 fputcsv($handle, [
@@ -1186,9 +1416,11 @@ class EventCampaignAdminController extends Controller
                     $r->name,
                     $r->phone,
                     $r->email,
-                    $r->district,
-                    $r->thana,
-                    $r->institution_or_org,
+                    $r->resolved_division,
+                    $r->resolved_district,
+                    $r->resolved_thana ?: 'N/A',
+                    $r->institution_or_org ?: ($r->form_data['author_category'] ?? ''),
+                    $r->magazine_name ?: '',
                     $r->amount_paid,
                     $r->transaction_id,
                     $r->payment_status,

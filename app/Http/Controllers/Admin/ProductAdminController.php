@@ -145,8 +145,42 @@ class ProductAdminController extends Controller
             $coverImage = ImageOptimizerService::convertAndStoreSquareProductImage($coverImage, 'products', 'public', 82, 800);
         }
 
-        // Process key-value specifications
+        // Process specialized form fields based on product type
         $specifications = [];
+
+        if ($validated['type'] === 'electronics') {
+            $specializedFields = [
+                'Power'    => $request->input('spec_wattage'),
+                'Voltage'  => $request->input('spec_voltage'),
+                'Battery'  => $request->input('spec_battery'),
+                'Ports'    => $request->input('spec_ports'),
+                'Warranty' => $request->input('spec_guarantee'),
+                'Color'    => $request->input('spec_color'),
+            ];
+            foreach ($specializedFields as $k => $v) {
+                $v = trim((string)$v);
+                if ($v !== '') {
+                    $specifications[$k] = $v;
+                }
+            }
+        } elseif ($validated['type'] === 'stationery') {
+            $specializedFields = [
+                'GSM'      => $request->input('spec_paper_gsm'),
+                'Pages'    => $request->input('spec_pages'),
+                'Size'     => $request->input('spec_dimensions'),
+                'Binding'  => $request->input('spec_binding'),
+                'Pack'     => $request->input('spec_pack_unit'),
+                'Ink'      => $request->input('spec_ink_color'),
+            ];
+            foreach ($specializedFields as $k => $v) {
+                $v = trim((string)$v);
+                if ($v !== '') {
+                    $specifications[$k] = $v;
+                }
+            }
+        }
+
+        // Process custom key-value specifications
         if (!empty($validated['spec_keys']) && !empty($validated['spec_vals'])) {
             foreach ($validated['spec_keys'] as $idx => $key) {
                 $k = trim((string)$key);
@@ -274,8 +308,42 @@ class ProductAdminController extends Controller
             }
         }
 
-        // Process specifications
+        // Process specialized form fields based on product type
         $specifications = [];
+
+        if ($validated['type'] === 'electronics') {
+            $specializedFields = [
+                'Power'    => $request->input('spec_wattage'),
+                'Voltage'  => $request->input('spec_voltage'),
+                'Battery'  => $request->input('spec_battery'),
+                'Ports'    => $request->input('spec_ports'),
+                'Warranty' => $request->input('spec_guarantee'),
+                'Color'    => $request->input('spec_color'),
+            ];
+            foreach ($specializedFields as $k => $v) {
+                $v = trim((string)$v);
+                if ($v !== '') {
+                    $specifications[$k] = $v;
+                }
+            }
+        } elseif ($validated['type'] === 'stationery') {
+            $specializedFields = [
+                'GSM'      => $request->input('spec_paper_gsm'),
+                'Pages'    => $request->input('spec_pages'),
+                'Size'     => $request->input('spec_dimensions'),
+                'Binding'  => $request->input('spec_binding'),
+                'Pack'     => $request->input('spec_pack_unit'),
+                'Ink'      => $request->input('spec_ink_color'),
+            ];
+            foreach ($specializedFields as $k => $v) {
+                $v = trim((string)$v);
+                if ($v !== '') {
+                    $specifications[$k] = $v;
+                }
+            }
+        }
+
+        // Process custom key-value specifications
         if (!empty($validated['spec_keys']) && !empty($validated['spec_vals'])) {
             foreach ($validated['spec_keys'] as $idx => $key) {
                 $k = trim((string)$key);

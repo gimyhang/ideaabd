@@ -39,6 +39,17 @@ class ProductController extends Controller
             }])
             ->get();
 
+        $categoriesWithProducts = ProductCategory::where('type', $type)
+            ->active()
+            ->orderBy('sort_order')
+            ->with(['products' => function ($q) {
+                $q->active()->orderBy('sort_order')->orderByDesc('id');
+            }])
+            ->get()
+            ->filter(function ($cat) {
+                return $cat->products->isNotEmpty();
+            });
+
         $query = Product::where('type', $type)
             ->active()
             ->with('category');
@@ -79,9 +90,16 @@ class ProductController extends Controller
             $query->where('stock', '>', 0);
         }
 
-        // Filter by brand
+        // Filter by brand (supports single, comma-separated, or array)
         if ($request->filled('brand')) {
-            $query->where('brand', $request->input('brand'));
+            $brandParam = $request->input('brand');
+            if (is_array($brandParam)) {
+                $query->whereIn('brand', array_filter($brandParam));
+            } elseif (str_contains((string) $brandParam, ',')) {
+                $query->whereIn('brand', array_filter(explode(',', (string) $brandParam)));
+            } else {
+                $query->where('brand', $brandParam);
+            }
         }
 
         // Filter by discount only
@@ -181,6 +199,15 @@ class ProductController extends Controller
             ->distinct()
             ->pluck('brand');
 
+        $brandsWithCount = Product::where('type', $type)
+            ->active()
+            ->whereNotNull('brand')
+            ->where('brand', '!=', '')
+            ->select('brand', \Illuminate\Support\Facades\DB::raw('count(*) as products_count'))
+            ->groupBy('brand')
+            ->orderByDesc('products_count')
+            ->get();
+
         $ratingCounts = [
             '5' => Product::where('type', $type)->active()->where('rating', '>=', 4.8)->count(),
             '4' => Product::where('type', $type)->active()->where('rating', '>=', 4.0)->count(),
@@ -244,22 +271,22 @@ class ProductController extends Controller
         $typeMeta = [
             'electronics' => [
                 'title' => 'হোম অ্যাপ্লায়েন্স ও ডিজিটাল গ্যাজেট শপ',
-                'subtitle' => 'স্মার্ট কিচেন অ্যাপ্লায়েন্স, ইলেকট্রিক কেটলি, ব্লেন্ডার, এয়ার ফ্রায়ার, ভ্যাকুয়াম ক্লিনার ও আধুনিক হোম ডিভাইসের বিশ্বস্ত সম্ভার',
-                'badge' => 'Idea Home Appliances',
-                'badge_suffix' => '১০০% জেনুইন হোম অ্যাপ্লায়েন্স',
+                'subtitle' => 'রান্নার সামগ্রী, রাইস কুকার, ইন্ডাকশন চুলা, রিচার্জেবল ফ্যান, ফাস্ট চার্জার, পাওয়ার ব্যাংক, মাল্টিপ্লাগ ও আধুনিক হোম গ্যাজেটের বিশ্বস্ত সম্ভার',
+                'badge' => 'Idea Home & Gadget Shop',
+                'badge_suffix' => '১০০% জেনুইন হোম অ্যাপ্লায়েন্স ও গ্যাজেট',
                 'slug' => 'electronics',
-                'icon' => 'fas fa-blender',
+                'icon' => 'fas fa-kitchen-set',
                 'theme_color' => '#0284c7',
                 'theme_color_dark' => '#0369a1',
                 'banner_bg' => 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 55%, #f8fafc 100%)',
-                'search_placeholder' => 'ইলেকট্রিক কেটলি, ব্লেন্ডার, এয়ার ফ্রায়ার, ভ্যাকুয়াম ক্লিনার খুঁজুন...',
-                'category_title' => 'হোম অ্যাপ্লায়েন্স ক্যাটাগরি',
-                'popular_text' => 'জনপ্রিয় অ্যাপ্লায়েন্স',
+                'search_placeholder' => 'রাইস কুকার, চুলা, ফ্যান, চার্জার, পাওয়ার ব্যাংক, মাল্টিপ্লাগ বা ব্লেন্ডার খুঁজুন...',
+                'category_title' => 'হোম অ্যাপ্লায়েন্স ও গ্যাজেট ক্যাটাগরি',
+                'popular_text' => 'জনপ্রিয় পণ্য',
                 'new_text' => 'নতুন সংযোজন',
                 'under_1000_text' => '৳১,০০০-এর নিচের পণ্য',
-                'guarantee_title' => '১০০% আসল ও জেনুইন অ্যাপ্লায়েন্স',
-                'guarantee_desc' => 'পরীক্ষিত সেরা ব্র্যান্ড ও অফিসিয়াল ওয়ারেন্টি নিশ্চয়তা',
-                'quick_view_summary' => 'উন্নত মানের আকর্ষণীয় ও পরীক্ষিত হোম অ্যাপ্লায়েন্স।',
+                'guarantee_title' => '১০০% আসল ও জেনুইন অ্যাপ্লায়েন্স ও গ্যাজেট',
+                'guarantee_desc' => 'পরীক্ষিত সেরা ব্র্যান্ড, রিপ্লেসমেন্ট সুবিধা ও অফিসিয়াল ওয়ারেন্টি নিশ্চয়তা',
+                'quick_view_summary' => 'উন্নত মানের আকর্ষণীয় ও পরীক্ষিত হোম অ্যাপ্লায়েন্স এবং ডিজিটাল গ্যাজেট।',
             ],
             'stationery' => [
                 'title' => 'স্টেশনারি ও অফিস সামগ্রী শপ',
@@ -287,11 +314,13 @@ class ProductController extends Controller
         return view('frontend.products.index', compact(
             'products',
             'categories',
+            'categoriesWithProducts',
             'featuredProducts',
             'selectedCategory',
             'type',
             'currentMeta',
             'availableBrands',
+            'brandsWithCount',
             'priceStats',
             'ratingCounts',
             'warrantyCounts',

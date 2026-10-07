@@ -134,9 +134,17 @@
                     <i class="fa-solid {{ $campaign->is_active ? 'fa-pause' : 'fa-play' }} me-1"></i>
                     {{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}
                 </button>
-                <a href="{{ route('admin.event-campaigns.export', $campaign->id) }}" class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm">
-                    <i class="fa-solid fa-file-excel me-1"></i> Export Excel
-                </a>
+                <div class="dropdown">
+                    <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-file-excel me-1"></i> Export Data
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
+                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', $campaign->id) }}"><i class="fa-solid fa-users text-primary me-2"></i> All Participants (সকল অংশগ্রহণকারী)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'sort' => 'alpha']) }}"><i class="fa-solid fa-arrow-down-a-z text-info me-2"></i> বর্ণানুক্রমিক তালিকা (A-Z / ক-হ)</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}"><i class="fa-solid fa-newspaper text-warning me-2"></i> লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
+                    </ul>
+                </div>
                 <button type="button" class="btn btn-warning text-dark rounded-pill px-3 py-2 small fw-bold shadow-sm" onclick="switchToFormStudioTab()">
                     <i class="fa-solid fa-sliders me-1"></i> ফরম ডিজাইন ও লোগো
                 </button>
@@ -294,15 +302,30 @@
     </div>
 
     {{-- NAVIGATION TABS --}}
+    @php
+        $currentTab = request('tab', (request('is_littlemag') ? 'littlemag' : 'participants'));
+    @endphp
     <ul class="nav form-studio-nav-tabs mt-4" id="campaignMainTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="tab-participants-nav" data-bs-toggle="tab" data-bs-target="#tab-participants" type="button" role="tab" aria-controls="tab-participants" aria-selected="true">
-                <i class="fa-solid fa-users"></i> অংশগ্রহণকারী ও ডেটাবেজ
+            <button class="nav-link {{ $currentTab === 'participants' ? 'active' : '' }}" id="tab-participants-nav" data-bs-toggle="tab" data-bs-target="#tab-participants" type="button" role="tab" aria-controls="tab-participants" aria-selected="{{ $currentTab === 'participants' ? 'true' : 'false' }}">
+                <i class="fa-solid fa-users"></i> সকল অংশগ্রহণকারী
                 <span class="badge bg-primary rounded-pill ms-1">{{ $totalRegistrations }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-form-studio-nav" data-bs-toggle="tab" data-bs-target="#tab-form-studio" type="button" role="tab" aria-controls="tab-form-studio" aria-selected="false">
+            <button class="nav-link {{ $currentTab === 'geo' ? 'active' : '' }}" id="tab-geo-database-nav" data-bs-toggle="tab" data-bs-target="#tab-geo-database" type="button" role="tab" aria-controls="tab-geo-database" aria-selected="{{ $currentTab === 'geo' ? 'true' : 'false' }}">
+                <i class="fa-solid fa-map-location-dot text-info"></i> বিভাগ ও জেলা ভিত্তিক ডাটাবেজ
+                <span class="badge bg-teal-subtle text-dark border rounded-pill ms-1" style="background-color: #ccfbf1;">{{ $totalGeoDistricts }} জেলা</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{ $currentTab === 'littlemag' ? 'active' : '' }}" id="tab-littlemag-nav" data-bs-toggle="tab" data-bs-target="#tab-littlemag" type="button" role="tab" aria-controls="tab-littlemag" aria-selected="{{ $currentTab === 'littlemag' ? 'true' : 'false' }}">
+                <i class="fa-solid fa-feather-pointed text-warning"></i> লিটিলম্যাগ সম্পাদক তালিকা
+                <span class="badge bg-warning text-dark rounded-pill ms-1">{{ $totalLittleMagCount }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {{ $currentTab === 'form-studio' ? 'active' : '' }}" id="tab-form-studio-nav" data-bs-toggle="tab" data-bs-target="#tab-form-studio" type="button" role="tab" aria-controls="tab-form-studio" aria-selected="{{ $currentTab === 'form-studio' ? 'true' : 'false' }}">
                 <i class="fa-solid fa-wand-magic-sparkles text-warning"></i> ফর্ম স্টুডিও ও লাইভ কাস্টমাইজার
                 <span class="badge bg-warning text-dark rounded-pill ms-1">Logo & Design</span>
             </button>
@@ -311,15 +334,21 @@
 
     <div class="tab-content" id="campaignMainTabContent">
         {{-- TAB 1: PARTICIPANTS LIST & FILTER --}}
-        <div class="tab-pane fade show active" id="tab-participants" role="tabpanel" aria-labelledby="tab-participants-nav">
+        <div class="tab-pane fade {{ $currentTab === 'participants' ? 'show active' : '' }}" id="tab-participants" role="tabpanel" aria-labelledby="tab-participants-nav">
 
     {{-- FILTER TABS & INSTANT SEARCH BAR --}}
     <div class="aec-filter-card">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
             {{-- Quick Filter Pills --}}
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="aec-tab-btn {{ !request('status') && !request('payment_status') ? 'active' : '' }}">
+                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="aec-tab-btn {{ !request('status') && !request('payment_status') && !request('is_littlemag') && !request('division') && !request('district') && !request('tab') ? 'active' : '' }}">
                     <i class="fa-solid fa-list-ul"></i> All Participants <span class="badge bg-secondary">{{ $totalRegistrations }}</span>
+                </a>
+                <a href="{{ route('admin.event-campaigns.show', ['campaign' => $campaign->id, 'tab' => 'geo']) }}" class="aec-tab-btn {{ $currentTab === 'geo' ? 'active' : '' }}">
+                    <i class="fa-solid fa-map-location-dot text-info"></i> বিভাগ ও জেলা ভিত্তিক ডাটাবেজ <span class="badge bg-info-subtle text-dark border">{{ $totalGeoDistricts }} জেলা</span>
+                </a>
+                <a href="{{ route('admin.event-campaigns.show', ['campaign' => $campaign->id, 'tab' => 'littlemag']) }}" class="aec-tab-btn {{ $currentTab === 'littlemag' || request('is_littlemag') ? 'active' : '' }}">
+                    <i class="fa-solid fa-feather-pointed text-warning"></i> লিটিলম্যাগ সম্পাদক <span class="badge bg-warning-subtle text-dark border">{{ $totalLittleMagCount }}</span>
                 </a>
                 <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?status=confirmed" class="aec-tab-btn {{ request('status') === 'confirmed' ? 'active' : '' }}">
                     <i class="fa-solid fa-check"></i> Confirmed / Approved
@@ -349,45 +378,85 @@
 
         {{-- Search & Server Filter Form --}}
         <form action="{{ route('admin.event-campaigns.show', $campaign->id) }}" method="GET" class="row g-2 align-items-center" id="filterForm">
-            <div class="col-12 col-md-5">
+            <div class="col-12 col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text" id="tableLiveSearch" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Type to search live by name, phone, reg no, district, institution..." value="{{ request('search') }}">
+                    <input type="text" id="tableLiveSearch" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="নাম, ফোন, রেজি নং, জেলা, থানা, পত্রিকা..." value="{{ request('search') }}">
                     <span class="badge bg-primary-subtle text-primary align-self-center me-2" id="liveMatchCount" style="display: none;"></span>
                 </div>
             </div>
+
+            {{-- Division Filter --}}
+            <div class="col-6 col-md-2">
+                <select name="division" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
+                    <option value="">সকল বিভাগ (Division)</option>
+                    @foreach(['খুলনা', 'চট্টগ্রাম', 'ঢাকা', 'বরিশাল', 'ময়মনসিংহ', 'রংপুর', 'রাজশাহী', 'সিলেট'] as $bdDiv)
+                        <option value="{{ $bdDiv }}" {{ request('division') == $bdDiv ? 'selected' : '' }}>{{ $bdDiv }} বিভাগ</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- District Filter --}}
+            <div class="col-6 col-md-2">
+                <select name="district" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
+                    <option value="">সকল জেলা (District)</option>
+                    @foreach($districtStats as $dName => $dCount)
+                        @if($dName !== 'অনির্ধারিত জেলা')
+                            <option value="{{ $dName }}" {{ request('district') == $dName ? 'selected' : '' }}>{{ $dName }} ({{ $dCount }})</option>
+                        @endif
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Alphabetical or Custom Sort --}}
+            <div class="col-6 col-md-2">
+                <select name="sort" class="form-select bg-light fw-medium" onchange="document.getElementById('filterForm').submit()">
+                    <option value="latest" {{ request('sort', 'latest') == 'latest' ? 'selected' : '' }}>সর্বশেষ নিবন্ধন (Newest)</option>
+                    <option value="alpha" {{ request('sort') == 'alpha' || request('sort') == 'name' ? 'selected' : '' }}>নামের বর্ণানুক্রমে (A-Z / ক-হ)</option>
+                    <option value="alpha_desc" {{ request('sort') == 'alpha_desc' ? 'selected' : '' }}>বর্ণানুক্রমে উল্টো (Z-A / হ-ক)</option>
+                    <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>প্রথম নিবন্ধন (Oldest)</option>
+                    <option value="reg_no" {{ request('sort') == 'reg_no' ? 'selected' : '' }}>রেজিস্ট্রেশন নং (Reg #)</option>
+                </select>
+            </div>
+
+            {{-- Status Filter --}}
             <div class="col-6 col-md-2">
                 <select name="status" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
-                    <option value="">Status (All)</option>
-                    <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                    <option value="">স্ট্যাটাস (Status: All)</option>
+                    <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed / Approved</option>
                     <option value="selected" {{ request('status') == 'selected' ? 'selected' : '' }}>Selected</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="attended" {{ request('status') == 'attended' ? 'selected' : '' }}>Attended</option>
                     <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
                 </select>
             </div>
+
+            {{-- Payment Status Filter --}}
             <div class="col-6 col-md-2">
                 <select name="payment_status" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
-                    <option value="">Payment (All)</option>
+                    <option value="">পেমেন্ট (Payment: All)</option>
                     <option value="verified" {{ request('payment_status') == 'verified' ? 'selected' : '' }}>Verified</option>
                     <option value="pending" {{ request('payment_status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="free" {{ request('payment_status') == 'free' ? 'selected' : '' }}>Free</option>
                 </select>
             </div>
-            <div class="col-6 col-md-2">
-                <select name="per_page" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
-                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10 / page</option>
-                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25 / page</option>
-                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50 / page</option>
-                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100 / page</option>
-                    <option value="250" {{ $perPage == 250 ? 'selected' : '' }}>250 / page</option>
+
+            {{-- Per Page --}}
+            <div class="col-6 col-md-1">
+                <select name="per_page" class="form-select bg-light px-2" onchange="document.getElementById('filterForm').submit()">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                    <option value="250" {{ $perPage == 250 ? 'selected' : '' }}>250</option>
                 </select>
             </div>
-            <div class="col-6 col-md-1 d-flex gap-1">
+
+            <div class="col-12 col-md-1 d-flex gap-1">
                 <button type="submit" class="btn btn-primary rounded-pill px-3 fw-semibold w-100" title="Apply Filter">
                     <i class="fa-solid fa-filter"></i>
                 </button>
-                @if(request()->hasAny(['search', 'status', 'payment_status', 'per_page']))
+                @if(request()->hasAny(['search', 'status', 'payment_status', 'division', 'district', 'sort', 'is_littlemag', 'per_page']))
                     <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn btn-light rounded-pill px-2.5 border" title="Reset Filters">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
@@ -1516,8 +1585,18 @@
     </div>
         </div> {{-- End of #tab-participants --}}
 
-        {{-- TAB 2: LIVE FORM STUDIO & CUSTOMIZER --}}
-        <div class="tab-pane fade" id="tab-form-studio" role="tabpanel" aria-labelledby="tab-form-studio-nav">
+        {{-- TAB 2: GEO DATABASE (DIVISION & DISTRICT WISE) --}}
+        <div class="tab-pane fade {{ $currentTab === 'geo' ? 'show active' : '' }}" id="tab-geo-database" role="tabpanel" aria-labelledby="tab-geo-database-nav">
+            @include('admin.event_campaigns.partials.geo_database')
+        </div>
+
+        {{-- TAB 3: LITTLE MAGAZINE EDITORS DIRECTORY --}}
+        <div class="tab-pane fade {{ $currentTab === 'littlemag' ? 'show active' : '' }}" id="tab-littlemag" role="tabpanel" aria-labelledby="tab-littlemag-nav">
+            @include('admin.event_campaigns.partials.littlemag_directory')
+        </div>
+
+        {{-- TAB 4: LIVE FORM STUDIO & CUSTOMIZER --}}
+        <div class="tab-pane fade {{ $currentTab === 'form-studio' ? 'show active' : '' }}" id="tab-form-studio" role="tabpanel" aria-labelledby="tab-form-studio-nav">
             @include('admin.event_campaigns.partials.form_studio')
         </div>
     </div> {{-- End of #campaignMainTabContent --}}
@@ -3848,6 +3927,32 @@
                 tabBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         };
+
+        window.switchToGeoTab = function() {
+            const tabBtn = document.getElementById('tab-geo-database-nav');
+            if (tabBtn) {
+                const bsTab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                bsTab.show();
+                tabBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        window.switchToLittleMagTab = function() {
+            const tabBtn = document.getElementById('tab-littlemag-nav');
+            if (tabBtn) {
+                const bsTab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                bsTab.show();
+                tabBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        };
+
+        // Handle URL hash switching on load
+        if (window.location.hash) {
+            const targetTab = document.querySelector(`button[data-bs-target="${window.location.hash}"]`);
+            if (targetTab) {
+                bootstrap.Tab.getOrCreateInstance(targetTab).show();
+            }
+        }
     </script>
 @endpush
 @endsection

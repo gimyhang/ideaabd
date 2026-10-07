@@ -80,7 +80,7 @@
     });
 @endphp
 
-<header class="site-head" id="siteHead">
+<header class="site-head position-relative" id="siteHead" style="z-index: 1060;">
 
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 1: ULTRA-COMPACT UTILITY TOPBAR
@@ -479,9 +479,9 @@
          BAR 3: CENTERED PRIMARY NAVIGATION BAR WITH DYNAMIC 'সকল বিষয়' & CLEAN DROPDOWNS
          [সকল বিষয় ▾] [হোম] [ই-বুক] [লেখক ▾] [প্রকাশক] [আইডিয়াপত্র ▾] [ওয়েবজিন] [গবেষণা] [আইডিয়া হাব] [আমাদের সম্পর্কে] [যোগাযোগ]
     ══════════════════════════════════════════════════════════════════ --}}
-    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02);" aria-label="প্রধান মেনু">
-        <div class="container d-flex align-items-center justify-content-center text-center position-relative">
-            <ul class="nav align-items-center justify-content-center site-nav__list py-1 my-0 w-100 flex-wrap gap-1" style="min-height: 44px; justify-content: center !important; margin: 0 auto !important;">
+    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); z-index: 1065;" aria-label="প্রধান মেনু">
+        <div class="container d-flex align-items-center justify-content-center text-center position-relative" style="overflow: visible;">
+            <ul class="nav align-items-center justify-content-center site-nav__list py-1 my-0 w-100" style="min-height: 42px; overflow: visible;">
 
                 {{-- 1. [সকল বিষয় ▾] Clean Category & Department Mega Dropdown --}}
                 <li class="nav-item dropdown site-nav__item has-mega position-relative">
@@ -499,7 +499,7 @@
                     {{-- Clean Mega Panel: 3 Elegant Columns --}}
                     <div class="dropdown-menu site-drop site-mega border-0 shadow-2xl p-4 rounded-4" 
                          aria-labelledby="navAllCatsMegaDropdown" 
-                         style="width: min(820px, 92vw); max-height: 520px; overflow-y: auto; z-index: 1080; border: 1px solid #e2e8f0; left: 0; margin-top: 6px;">
+                         style="width: min(820px, 92vw); max-height: 520px; overflow-y: auto; z-index: 2500; border: 1px solid #e2e8f0; left: 0; margin-top: 6px;">
                         
                         <div class="row g-4 text-start">
                             {{-- Col 1 & 2: বিষয় ও ক্যাটাগরি (2 Columns of Category Links) --}}

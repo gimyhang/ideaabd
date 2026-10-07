@@ -8,14 +8,18 @@
 @endsection
 
 @section('actions')
-    <div class="d-flex align-items-center gap-2">
+    <div class="d-flex align-items-center flex-wrap gap-2">
         <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#categoryManageModal">
             <i class="fa-solid fa-folder-tree text-primary"></i>
             <span>ক্যাটাগরি ম্যানেজমেন্ট</span>
         </button>
-        <a href="{{ route('admin.products.create', ['type' => $type !== 'all' ? $type : 'electronics']) }}" class="btn btn-primary rounded-pill px-3.5 py-2 shadow-sm fw-bold d-inline-flex align-items-center gap-2">
-            <i class="fa-solid fa-circle-plus"></i>
-            <span>নতুন পণ্য যোগ করুন</span>
+        <a href="{{ route('admin.products.create', ['type' => 'electronics']) }}" class="btn btn-info text-white rounded-pill px-3.5 py-2 shadow-xs fw-bold d-inline-flex align-items-center gap-1.5" title="নতুন ইলেক্ট্রনিক্স পণ্য এন্ট্রি ফর্ম">
+            <i class="fa-solid fa-laptop-code"></i>
+            <span>+ নতুন ইলেক্ট্রনিক্স পণ্য</span>
+        </a>
+        <a href="{{ route('admin.products.create', ['type' => 'stationery']) }}" class="btn btn-success rounded-pill px-3.5 py-2 shadow-xs fw-bold d-inline-flex align-items-center gap-1.5" title="নতুন স্টেশনারি পণ্য এন্ট্রি ফর্ম">
+            <i class="fa-solid fa-pen-ruler"></i>
+            <span>+ নতুন স্টেশনারি পণ্য</span>
         </a>
     </div>
 @endsection
@@ -123,7 +127,7 @@
                 <div class="col-md-4">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm border-start-0" placeholder="নাম, SKU বা ব্র্যান্ড খুঁজুন...">
+                        <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm border-start-0 table-spec-input" placeholder="Search...">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -160,13 +164,13 @@
             <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3" style="width: 70px;">ছবি</th>
-                        <th>পণ্যের নাম ও বিবরণ</th>
-                        <th>টাইপ ও ক্যাটাগরি</th>
-                        <th>মূল্য ও ছাড়</th>
-                        <th>স্টক</th>
-                        <th>স্ট্যাটাস</th>
-                        <th class="text-end pe-3" style="width: 140px;">অ্যাকশন</th>
+                        <th class="ps-3" style="width: 70px; font-weight: 700; color: #334155;">Image</th>
+                        <th style="font-weight: 700; color: #334155;">Product</th>
+                        <th style="font-weight: 700; color: #334155;">Category</th>
+                        <th style="font-weight: 700; color: #334155;">Price</th>
+                        <th style="font-weight: 700; color: #334155;">Stock</th>
+                        <th style="font-weight: 700; color: #334155;">Status</th>
+                        <th class="text-end pe-3" style="width: 140px; font-weight: 700; color: #334155;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -375,3 +379,15 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.table-spec-input::placeholder,
+.table-spec-input::-webkit-input-placeholder,
+.table-spec-input::-moz-placeholder,
+.table-spec-input:-ms-input-placeholder {
+    opacity: 0.3 !important;
+    color: #475569 !important;
+}
+</style>
+@endpush
