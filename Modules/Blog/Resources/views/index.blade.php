@@ -10,10 +10,10 @@
     }
 @endphp
 
-@section('title', 'আইডিয়াপত্র — সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা (Ideapatra)')
+@section('title', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ (Ideapatra)')
 @section('og_type', 'website')
-@section('og_title', 'আইডিয়াপত্র (Ideapatra) — সমকালীন সাহিত্য ও চিন্তা')
-@section('og_description', 'আইডিয়াপত্রে নিয়মিত প্রকাশিত হচ্ছে সমকালীন প্রবন্ধ, গল্প, কবিতা, গ্রন্থালোচনা ও গবেষণামূলক রচনা।')
+@section('og_title', 'আইডিয়াপত্র (Ideapatra) — মুক্তচিন্তার অসীম আকাশ')
+@section('og_description', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ। নিয়মিত প্রকাশিত হচ্ছে সমকালীন প্রবন্ধ, গল্প, কবিতা, গ্রন্থালোচনা ও গবেষণামূলক রচনা।')
 @section('og_image', $ogBlogImage)
 @section('og_url', route('blog.index'))
 
@@ -99,6 +99,8 @@
         justify-content: center;
         border-radius: 50%;
         box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25);
+        margin-right: 8px;
+        flex-shrink: 0;
     }
 
     /* Submenu Category Navigation */
@@ -155,6 +157,70 @@
         box-shadow: 0 6px 20px rgba(2, 132, 199, 0.15);
     }
 
+    /* Clean Custom Category Dropdown */
+    .lit-category-dropdown .dropdown-toggle {
+        font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', sans-serif;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    .lit-category-dropdown .dropdown-toggle::after {
+        color: #64748b;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        transition: transform 0.2s ease;
+    }
+    .lit-category-dropdown .dropdown-toggle.show::after {
+        transform: rotate(180deg);
+    }
+    .lit-category-dropdown .dropdown-menu {
+        border-radius: 16px !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.22), 0 8px 16px -4px rgba(15, 23, 42, 0.1) !important;
+        padding: 6px !important;
+        background-color: #ffffff !important;
+        z-index: 1060 !important;
+    }
+    .lit-category-dropdown .dropdown-item {
+        font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', sans-serif;
+        font-size: 0.95rem;
+        padding: 9px 14px !important;
+        border-radius: 10px !important;
+        transition: all 0.16s ease;
+        line-height: 1.45;
+    }
+    .lit-category-dropdown .dropdown-item:hover {
+        background-color: #f0f9ff !important;
+        color: var(--lit-primary) !important;
+    }
+    .lit-category-dropdown .dropdown-item.active {
+        background-color: var(--lit-primary) !important;
+        color: #ffffff !important;
+    }
+    .lit-category-dropdown .dropdown-menu::-webkit-scrollbar {
+        width: 5px;
+    }
+    .lit-category-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .lit-popular-card {
+        background: #f8fafc;
+        border: 1px solid #edf2f7;
+        padding: 13px 15px !important;
+        border-radius: 12px !important;
+        transition: all 0.22s ease;
+    }
+    .lit-popular-card:hover {
+        background: #f0fdf4 !important;
+        border-color: #86efac !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+    .lit-popular-card:hover h6 {
+        color: var(--lit-primary) !important;
+    }
+
     .btn-lit-read {
         transition: all 0.2s ease;
     }
@@ -172,56 +238,78 @@
 <div class="container py-4 mb-5">
 
     <!-- Masthead / Hero Header -->
-    <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-hidden text-white" 
-         style="background: {{ $blogCustomizer['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)' }};">
-        <div class="position-absolute end-0 bottom-0 opacity-10 d-none d-md-block pe-4 pb-2" style="pointer-events: none;">
-            <i class="fa-solid fa-feather-pointed" style="font-size: 14rem;"></i>
-        </div>
+    <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-visible text-white" 
+         style="z-index: 25; background: {{ $blogCustomizer['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)' }};">
 
-        <div class="position-relative z-1">
-            <div class="row align-items-center g-4">
-                <div class="col-lg-8">
-                    @if(!empty($blogCustomizer['hero_badge']))
-                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 bg-white bg-opacity-20 rounded-pill mb-3 backdrop-blur shadow-sm">
-                            <i class="fa-solid fa-wand-magic-sparkles text-warning"></i>
-                            <span class="small fw-semibold text-white">{{ $blogCustomizer['hero_badge'] }}</span>
-                        </div>
-                    @endif
-                    <h1 class="fw-bold display-5 mb-2 lit-title">{{ $blogCustomizer['hero_title'] ?? 'আইডিয়া ব্লগ ও সাহিত্যপত্র' }}</h1>
-                    @if(!empty($blogCustomizer['hero_subtitle']))
-                        <p class="fs-6 opacity-90 mb-0 leading-relaxed" style="max-width: 620px;">
-                            {{ $blogCustomizer['hero_subtitle'] }}
-                        </p>
-                    @endif
-                </div>
+        <div class="position-relative z-1 text-center py-2">
+            <h1 class="fw-bold display-5 mb-2 lit-title text-white tracking-tight">{{ $blogCustomizer['hero_title'] ?? 'আইডিয়াপত্র' }}</h1>
+            <p class="fs-5 opacity-90 mb-0 font-kalpurush fw-normal text-white-50" style="letter-spacing: 0.3px;">
+                মুক্তচিন্তার অসীম আকাশ
+            </p>
 
-                <div class="col-lg-4 text-lg-end">
-                    <a href="{{ url($blogCustomizer['write_button_url'] ?? '/blog/write') }}" class="btn btn-warning text-dark btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-lg d-inline-flex align-items-center gap-2">
-                        <i class="fas fa-feather-pointed fs-5"></i>
-                        <span>{{ $blogCustomizer['write_button_text'] ?? 'নিজের লেখা পোস্ট করুন' }}</span>
-                    </a>
-                </div>
-            </div>
+            <!-- Unified Search Bar with Clean Custom Category Dropdown -->
+            <div class="mt-4 pt-1 mx-auto position-relative" style="max-width: 760px; z-index: 30;">
+                <form action="{{ route('blog.index') }}" method="GET" id="litSearchForm" 
+                      class="lit-search-container d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 position-relative">
+                    
+                    @php
+                        $activeCatSlug = request('category');
+                        $activeCat = isset($categories) ? $categories->firstWhere('slug', $activeCatSlug) : null;
+                        $activeCatName = $activeCat ? $activeCat->name : 'সকল ক্যাটাগরি';
+                    @endphp
 
-            <!-- Unified Search Bar with Category Dropdown -->
-            <div class="mt-4 pt-2">
-                <form action="{{ route('blog.index') }}" method="GET" class="lit-search-container d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
-                    <div class="d-flex align-items-center flex-shrink-0 px-2 py-1 border-end-md">
-                        <i class="fa-solid fa-folder-open text-primary me-2 ms-2"></i>
-                        <select name="category" class="form-select border-0 shadow-none bg-transparent fw-semibold text-dark ps-0" style="min-width: 140px; cursor: pointer;">
-                            <option value="">সকল ক্যাটাগরি</option>
+                    <!-- Clean Category Dropdown with perfect padding & styling -->
+                    <div class="dropdown lit-category-dropdown flex-shrink-0">
+                        <button class="btn bg-transparent border-0 d-flex align-items-center justify-content-between gap-2 px-3 py-2 fw-semibold text-dark dropdown-toggle shadow-none w-100" 
+                                type="button" id="litCategoryDropdownBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" 
+                                style="min-width: 160px; font-size: 0.94rem;">
+                            <span class="d-flex align-items-center gap-2 text-truncate" id="selectedCatLabel">
+                                <i class="fa-solid fa-shapes text-primary" style="font-size: 0.95rem;"></i>
+                                <span class="fw-semibold">{{ $activeCatName }}</span>
+                            </span>
+                        </button>
+                        <input type="hidden" name="category" id="litCategoryInput" value="{{ request('category') }}">
+
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-4 py-2 mt-2 dropdown-menu-start" 
+                            aria-labelledby="litCategoryDropdownBtn" 
+                            style="min-width: 280px; max-height: 380px; overflow-y: auto; z-index: 1060; background: #ffffff;">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 rounded-2 mx-1 {{ !request('category') ? 'active bg-primary text-white fw-bold' : 'text-dark' }}" 
+                                   href="javascript:void(0)" onclick="selectLitCategory('', 'সকল ক্যাটাগরি')">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-border-all {{ !request('category') ? 'text-white' : 'text-primary' }}" style="width: 16px;"></i>
+                                        <span>সকল ক্যাটাগরি</span>
+                                    </span>
+                                    @if(isset($categories) && $categories->isNotEmpty())
+                                        <span class="badge {{ !request('category') ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill font-monospace" style="font-size: 0.72rem;">@bn($categories->sum('posts_count'))</span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1.5 opacity-50"></li>
                             @if(isset($categories) && $categories->isNotEmpty())
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->slug }}" @selected(request('category') === $cat->slug)>{{ $cat->name }}</option>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 rounded-2 mx-1 my-0.5 {{ request('category') === $cat->slug ? 'active bg-primary text-white fw-bold' : 'text-secondary-emphasis' }}" 
+                                           href="javascript:void(0)" onclick="selectLitCategory('{{ $cat->slug }}', '{{ addslashes($cat->name) }}')">
+                                            <span class="d-flex align-items-center gap-2">
+                                                <i class="fa-regular fa-folder {{ request('category') === $cat->slug ? 'text-white' : 'text-muted' }}" style="width: 16px;"></i>
+                                                <span class="text-truncate" style="max-width: 175px;">{{ $cat->name }}</span>
+                                            </span>
+                                            <span class="badge {{ request('category') === $cat->slug ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill font-monospace" style="font-size: 0.72rem;">@bn($cat->posts_count ?? 0)</span>
+                                        </a>
+                                    </li>
                                 @endforeach
                             @endif
-                        </select>
+                        </ul>
                     </div>
+
+                    <!-- Clean Divider -->
+                    <div class="d-none d-md-block bg-secondary bg-opacity-25" style="width: 1px; height: 26px;"></div>
 
                     <div class="d-flex align-items-center flex-grow-1 px-2">
                         <i class="fas fa-search text-muted me-2"></i>
                         <input type="text" name="search" value="{{ request('search') }}" 
-                               class="form-control border-0 shadow-none ps-1" 
+                               class="form-control border-0 shadow-none ps-1 font-kalpurush" 
                                placeholder="নিবন্ধের শিরোনাম, বিষয়বস্তু বা লেখকের নাম দিয়ে খুঁজুন...">
                     </div>
 
@@ -233,122 +321,39 @@
         </div>
     </div>
 
-    <!-- 5-Column x 1-Row Visual Category Showcase with Thumbnails -->
-    @if(isset($categories) && $categories->isNotEmpty())
-    <div class="mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-shapes text-primary"></i>
-                <span>সাহিত্য ও বিষয়ভিত্তিক ক্যাটাগরি</span>
-            </h5>
-            @if(request('category') || request('search'))
-                <a href="{{ route('blog.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1 fw-semibold">
-                    <i class="fas fa-xmark me-1"></i> ফিল্টার মুছুন
-                </a>
-            @endif
-        </div>
 
-        @php
-            $firstFiveCategories = $categories->take(5);
-            $remainingCategories = $categories->skip(5);
-            $catIcons = [
-                'poetry-kobita' => ['icon' => 'fa-feather-pointed', 'color' => '#0284c7', 'bg' => '#e0f2fe'],
-                'stories-uponnash' => ['icon' => 'fa-book-open-reader', 'color' => '#059669', 'bg' => '#d1fae5'],
-                'essays-probondho' => ['icon' => 'fa-newspaper', 'color' => '#ea580c', 'bg' => '#ffedd5'],
-                'travelogue-vromon' => ['icon' => 'fa-compass', 'color' => '#0891b2', 'bg' => '#cffafe'],
-                'book-reviews' => ['icon' => 'fa-glasses', 'color' => '#d97706', 'bg' => '#fef3c7'],
-                'research-philosophy' => ['icon' => 'fa-microscope', 'color' => '#2563eb', 'bg' => '#dbeafe'],
-                'translation-literature' => ['icon' => 'fa-language', 'color' => '#4f46e5', 'bg' => '#e0e7ff'],
-                'interviews' => ['icon' => 'fa-microphone-lines', 'color' => '#db2777', 'bg' => '#fce7f3'],
-                'science-tech' => ['icon' => 'fa-atom', 'color' => '#16a34a', 'bg' => '#dcfce7'],
-            ];
-        @endphp
-
-        <!-- First Row (5 Columns on Desktop) -->
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 mb-2">
-            @foreach($firstFiveCategories as $cat)
-                @php
-                    $style = $catIcons[$cat->slug] ?? ['icon' => 'fa-folder-open', 'color' => '#0284c7', 'bg' => '#e0f2fe'];
-                    $catImage = $cat->image ? (str_starts_with($cat->image, 'http') ? $cat->image : asset('storage/' . $cat->image)) : null;
-                @endphp
-                <div class="col">
-                    <a href="{{ route('blog.category', $cat->slug) }}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift overflow-hidden text-center p-3" 
-                       style="background: {{ request('category') === $cat->slug ? '#0369a1' : '#ffffff' }}; border: 1px solid {{ request('category') === $cat->slug ? '#0369a1' : '#e2e8f0' }} !important; transition: all 0.25s ease;">
-                        <div class="mb-2.5 mx-auto rounded-4 d-flex align-items-center justify-content-center shadow-xs overflow-hidden" 
-                             style="width: 58px; height: 58px; background: {{ request('category') === $cat->slug ? 'rgba(255,255,255,0.2)' : $style['bg'] }};">
-                            @if($catImage)
-                                <img src="{{ $catImage }}" alt="{{ $cat->name }}" class="w-100 h-100 object-fit-cover">
-                            @else
-                                <i class="fa-solid {{ $style['icon'] }} fs-4" style="color: {{ request('category') === $cat->slug ? '#ffffff' : $style['color'] }};"></i>
-                            @endif
-                        </div>
-                        <h6 class="fw-bold mb-1 line-clamp-1 {{ request('category') === $cat->slug ? 'text-white' : 'text-dark' }}" style="font-size: 0.95rem;">
-                            {{ $cat->name }}
-                        </h6>
-                        <span class="small {{ request('category') === $cat->slug ? 'text-white-50' : 'text-muted' }}" style="font-size: 0.75rem;">
-                            @bn($cat->posts_count ?? 0)টি রচনা
-                        </span>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-
-        <!-- Collapsible Remaining Categories -->
-        @if($remainingCategories->isNotEmpty())
-            <div class="collapse mt-2" id="moreCategoriesCollapse">
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 pt-2">
-                    @foreach($remainingCategories as $cat)
-                        @php
-                            $style = $catIcons[$cat->slug] ?? ['icon' => 'fa-folder-open', 'color' => '#0284c7', 'bg' => '#e0f2fe'];
-                            $catImage = $cat->image ? (str_starts_with($cat->image, 'http') ? $cat->image : asset('storage/' . $cat->image)) : null;
-                        @endphp
-                        <div class="col">
-                            <a href="{{ route('blog.category', $cat->slug) }}" class="card h-100 border-0 shadow-sm rounded-4 text-decoration-none hover-lift overflow-hidden text-center p-3" 
-                               style="background: {{ request('category') === $cat->slug ? '#0369a1' : '#ffffff' }}; border: 1px solid {{ request('category') === $cat->slug ? '#0369a1' : '#e2e8f0' }} !important; transition: all 0.25s ease;">
-                                <div class="mb-2.5 mx-auto rounded-4 d-flex align-items-center justify-content-center shadow-xs overflow-hidden" 
-                                     style="width: 58px; height: 58px; background: {{ request('category') === $cat->slug ? 'rgba(255,255,255,0.2)' : $style['bg'] }};">
-                                    @if($catImage)
-                                        <img src="{{ $catImage }}" alt="{{ $cat->name }}" class="w-100 h-100 object-fit-cover">
-                                    @else
-                                        <i class="fa-solid {{ $style['icon'] }} fs-4" style="color: {{ request('category') === $cat->slug ? '#ffffff' : $style['color'] }};"></i>
-                                    @endif
-                                </div>
-                                <h6 class="fw-bold mb-1 line-clamp-1 {{ request('category') === $cat->slug ? 'text-white' : 'text-dark' }}" style="font-size: 0.95rem;">
-                                    {{ $cat->name }}
-                                </h6>
-                                <span class="small {{ request('category') === $cat->slug ? 'text-white-50' : 'text-muted' }}" style="font-size: 0.75rem;">
-                                    @bn($cat->posts_count ?? 0)টি রচনা
-                                </span>
-                            </a>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <!-- See More / Show Less Toggle Button -->
-            <div class="text-center mt-3">
-                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 py-1.5 fw-semibold shadow-xs" type="button" 
-                        data-bs-toggle="collapse" data-bs-target="#moreCategoriesCollapse" aria-expanded="false" 
-                        aria-controls="moreCategoriesCollapse" id="toggleMoreCatsBtn" onclick="toggleCatBtnText(this)">
-                    <span>আরও ক্যাটাগরি দেখুন (See More)</span> <i class="fa-solid fa-chevron-down ms-1"></i>
-                </button>
-            </div>
-        @endif
-    </div>
-    @endif
 
     {{-- Author Action Bar & Writer Invitation --}}
     @auth
+        @php
+            $authUser = auth()->user();
+            $authorAvatar = $authUser->avatar_url ?? null;
+            if ((!$authorAvatar || str_contains($authorAvatar, 'ui-avatars') || empty($authUser->avatar)) && class_exists(\Modules\Author\Models\Author::class)) {
+                $authorProfile = \Modules\Author\Models\Author::where('user_id', $authUser->id)->orWhere('phone', $authUser->phone)->first();
+                if ($authorProfile && $authorProfile->avatar) {
+                    $authorAvatar = str_starts_with($authorProfile->avatar, 'http') ? $authorProfile->avatar : asset('storage/' . ltrim($authorProfile->avatar, '/'));
+                }
+            }
+        @endphp
         <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 text-white" style="background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center shadow-sm fs-4 flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="fas fa-feather-pointed"></i>
+                    <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0 border border-2 border-white d-flex align-items-center justify-content-center me-1" style="width: 50px; height: 50px; background: #ffffff;">
+                        @if ($authorAvatar)
+                            <img src="{{ $authorAvatar }}" alt="{{ $authUser->name }}" class="w-100 h-100 object-fit-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span class="w-100 h-100 text-white fw-bold align-items-center justify-content-center font-kalpurush fs-5" style="background: linear-gradient(135deg, #059669, #047857); display: none;">
+                                {{ mb_substr($authUser->name ?: 'উ', 0, 1) }}
+                            </span>
+                        @else
+                            <span class="w-100 h-100 text-white fw-bold d-inline-flex align-items-center justify-content-center font-kalpurush fs-5" style="background: linear-gradient(135deg, #059669, #047857);">
+                                {{ mb_substr($authUser->name ?: 'উ', 0, 1) }}
+                            </span>
+                        @endif
                     </div>
-                    <div>
-                        <div class="d-flex align-items-center gap-2">
-                            <h5 class="fw-bold mb-0 text-white lit-title">স্বাগতম, {{ auth()->user()->name }}!</h5>
-                            <span class="badge bg-warning text-dark px-2.5 py-0.5 rounded-pill small fw-bold">অনুমোদিত লেখক</span>
+                    <div class="ps-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h5 class="fw-bold mb-0 text-white lit-title">স্বাগতম, {{ $authUser->name }}!</h5>
+                            <span class="badge bg-warning text-dark px-2.5 py-0.5 rounded-pill small fw-bold ms-1">অনুমোদিত লেখক</span>
                         </div>
                         <p class="small mb-0 text-light opacity-90">আইডিয়া সাহিত্যপত্রে আপনার নতুন গল্প, প্রবন্ধ, কবিতা বা বই পর্যালোচনা পোস্ট করুন।</p>
                     </div>
@@ -450,12 +455,12 @@
                     </p>
 
                     <div class="d-flex align-items-center justify-content-between pt-3 border-top">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="lit-author-avatar" style="width: 38px; height: 38px; font-size: 1rem;">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="lit-author-avatar me-2" style="width: 38px; height: 38px; font-size: 1rem;">
                                 {{ mb_substr($heroPost->author_name ?: 'আ', 0, 1) }}
                             </div>
-                            <div>
-                                <span class="fw-bold text-dark d-block small">{{ $heroPost->author_name ?: 'সম্পাদকীয় বিভাগ' }}</span>
+                            <div class="ps-0.5">
+                                <span class="fw-bold text-dark d-block small" style="font-size: 0.94rem;">{{ $heroPost->author_name ?: 'সম্পাদকীয় বিভাগ' }}</span>
                                 <span class="text-muted" style="font-size: 0.72rem;">আইডিয়া প্রকাশন</span>
                             </div>
                         </div>
@@ -565,11 +570,11 @@
                                         $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
                                     @endphp
                                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
-                                        <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-1.5 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                            <span class="lit-author-avatar flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                        <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                            <span class="lit-author-avatar flex-shrink-0 me-2" style="width: 28px; height: 28px; font-size: 0.78rem;">
                                                 {{ mb_substr($authorName, 0, 1) }}
                                             </span>
-                                            <span class="fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                            <span class="fw-bold text-dark text-truncate ps-0.5" style="max-width: 130px;">
                                                 {{ $authorName }}
                                             </span>
                                         </a>
@@ -682,11 +687,11 @@
                                                 $catAuthorSearchUrl = route('authors.index') . '?search=' . urlencode($catAuthorName);
                                             @endphp
                                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
-                                                <a href="{{ $catAuthorSearchUrl }}" class="d-flex align-items-center gap-1.5 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                                    <span class="lit-author-avatar flex-shrink-0" style="width: 26px; height: 26px; font-size: 0.75rem;">
+                                                <a href="{{ $catAuthorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
+                                                    <span class="lit-author-avatar flex-shrink-0 me-2" style="width: 28px; height: 28px; font-size: 0.78rem;">
                                                         {{ mb_substr($catAuthorName, 0, 1) }}
                                                     </span>
-                                                    <span class="fw-bold text-dark text-truncate" style="max-width: 130px;">
+                                                    <span class="fw-bold text-dark text-truncate ps-0.5" style="max-width: 130px;">
                                                         {{ $catAuthorName }}
                                                     </span>
                                                 </a>
@@ -774,22 +779,26 @@
 
             <!-- Trending / Popular Stories Widget -->
             @if(isset($featured) && $featured->isNotEmpty())
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 bg-white">
-                <h6 class="fw-bold text-dark mb-2.5 pb-2 border-bottom d-flex align-items-center lit-title" style="font-size: 0.88rem;">
-                    <i class="fa-solid fa-fire text-danger me-1.5"></i>শীর্ষ পঠিত সাহিত্যকর্ম
+            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
+                <h6 class="fw-bold text-dark mb-3 pb-2.5 border-bottom d-flex align-items-center lit-title" style="font-size: 0.92rem;">
+                    <i class="fa-solid fa-fire text-danger me-2"></i>শীর্ষ পঠিত সাহিত্যকর্ম
                 </h6>
                 <div class="d-flex flex-column gap-2.5">
-                    @foreach($featured->take(4) as $idx => $feat)
-                        <a href="{{ route('blog.show', $feat->slug) }}" class="d-flex align-items-start gap-2 text-decoration-none text-dark hover-primary group">
-                            <div class="fw-bold text-muted opacity-50 flex-shrink-0" style="width: 20px; font-size: 0.95rem;">
-                                0{{ $idx + 1 }}
-                            </div>
-                            <div class="min-w-0 flex-grow-1">
-                                <h6 class="fw-bold text-dark mb-0.5 line-clamp-2" style="font-size: 0.82rem; line-height: 1.38;">{{ $feat->title }}</h6>
-                                <div class="text-muted" style="font-size: 0.7rem;">
-                                    <i class="fa-regular fa-clock me-1"></i>
-                                    {{ $feat->published_at ? $feat->published_at->format('d M, Y') : ($feat->created_at ? $feat->created_at->format('d M, Y') : '') }}
-                                </div>
+                    @foreach($featured->take(4) as $feat)
+                        <a href="{{ route('blog.show', $feat->slug) }}" class="d-block p-3 rounded-3 text-decoration-none text-dark lit-popular-card">
+                            <h6 class="fw-bold text-dark mb-2 line-clamp-2 font-kalpurush" style="font-size: 0.88rem; line-height: 1.45;">{{ $feat->title }}</h6>
+                            <div class="d-flex flex-wrap align-items-center gap-3 text-muted" style="font-size: 0.74rem;">
+                                @if(!empty($feat->author_name))
+                                    <span class="text-truncate d-inline-flex align-items-center gap-2" style="max-width: 135px;">
+                                        <i class="fa-solid fa-pen-nib text-primary opacity-75"></i>
+                                        <span class="fw-semibold text-dark-emphasis">{{ $feat->author_name }}</span>
+                                    </span>
+                                    <span class="text-muted opacity-50">•</span>
+                                @endif
+                                <span class="d-inline-flex align-items-center gap-2 text-muted">
+                                    <i class="fa-regular fa-clock opacity-75"></i>
+                                    <span>{{ $feat->published_at ? $feat->published_at->format('d M, Y') : ($feat->created_at ? $feat->created_at->format('d M, Y') : '') }}</span>
+                                </span>
                             </div>
                         </a>
                     @endforeach
@@ -887,15 +896,13 @@
 @endguest
 
 <script>
-    function toggleCatBtnText(btn) {
-        setTimeout(() => {
-            const collapseEl = document.getElementById('moreCategoriesCollapse');
-            if (collapseEl && collapseEl.classList.contains('show')) {
-                btn.innerHTML = '<span>কম ক্যাটাগরি দেখুন (Show Less)</span> <i class="fa-solid fa-chevron-up ms-1"></i>';
-            } else {
-                btn.innerHTML = '<span>আরও ক্যাটাগরি দেখুন (See More)</span> <i class="fa-solid fa-chevron-down ms-1"></i>';
-            }
-        }, 350);
+    function selectLitCategory(slug, name) {
+        const input = document.getElementById('litCategoryInput');
+        const labelSpan = document.getElementById('selectedCatLabel')?.querySelector('span');
+        if (input) input.value = slug;
+        if (labelSpan) labelSpan.textContent = name;
+        const form = document.getElementById('litSearchForm');
+        if (form) form.submit();
     }
 </script>
 @endsection

@@ -298,9 +298,9 @@ class SiteSetting
     public static function blogCustomizer(): array
     {
         $default = [
-            'hero_badge'        => 'সাহিত্য, শিল্প-সংস্কৃতি, গবেষণা ও মুক্তচিন্তা',
+            'hero_badge'        => '',
             'hero_title'        => 'আইডিয়াপত্র',
-            'hero_subtitle'     => 'সমকালীন সাহিত্য আলোচনা, প্রবন্ধ, ছোটগল্প, কবিতা, নতুন বইয়ের প্রামাণ্য পর্যালোচনা ও গবেষণামূলক লেখার উন্মুক্ত ডিজিটাল সাময়িকী।',
+            'hero_subtitle'     => 'মুক্তচিন্তার অসীম আকাশ',
             'write_button_text' => 'নিজের লেখা পোস্ট করুন',
             'write_button_url'  => '/blog/write',
             'font_family'       => "'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', sans-serif",
@@ -317,7 +317,13 @@ class SiteSetting
         ];
 
         $saved = self::get('blog_customizer_settings', []);
-        if (is_array($saved)) {
+        if (is_array($saved) && !empty($saved)) {
+            if (isset($saved['hero_badge']) && str_contains($saved['hero_badge'], 'সাহিত্য, শিল্প-সংস্কৃতি')) {
+                $saved['hero_badge'] = '';
+            }
+            if (isset($saved['hero_subtitle']) && str_contains($saved['hero_subtitle'], 'সমকালীন সাহিত্য')) {
+                $saved['hero_subtitle'] = 'মুক্তচিন্তার অসীম আকাশ';
+            }
             return array_merge($default, $saved);
         }
         return $default;

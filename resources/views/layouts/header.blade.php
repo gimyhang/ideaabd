@@ -460,11 +460,6 @@
                     <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold font-monospace" id="siteCartCount" style="font-size: 11px;">০</span>
                 </a>
 
-                {{-- Direct 'লেখা পোস্ট' Button in Header --}}
-                <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-pill fw-bold px-3 py-2 shadow-sm text-dark d-none d-xl-inline-flex align-items-center gap-1.5 hover-shadow" title="ব্লগে নিজের লেখা পোস্ট করুন" style="min-height: 42px; font-size: 12.5px;">
-                    <i class="fas fa-pen-nib text-dark"></i>
-                    <span>লেখা পোস্ট</span>
-                </a>
 
                 {{-- Mobile Menu Hamburger Toggle --}}
                 <button class="site-burger d-lg-none btn btn-light border rounded-3 p-2" type="button" data-bs-toggle="offcanvas"

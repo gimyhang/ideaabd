@@ -828,9 +828,9 @@
 
                     {{-- Author Details Linked to Author Profile / Directory & Exact Publish Date/Time --}}
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 text-muted small py-3 my-3 border-top border-bottom" style="background: rgba(0,0,0,0.015); border-color: #e2e8f0 !important;">
-                        <div class="d-flex align-items-center gap-2.5">
-                            <a href="{{ $authorUrl }}" class="d-flex align-items-center gap-2.5 text-decoration-none text-dark hover-primary" title="লেখকের প্রোফাইল ও সকল বই দেখুন">
-                                <div class="position-relative flex-shrink-0" style="width: 44px; height: 44px;">
+                        <div class="d-flex align-items-center gap-3">
+                            <a href="{{ $authorUrl }}" class="d-flex align-items-center gap-3 text-decoration-none text-dark hover-primary" title="লেখকের প্রোফাইল ও সকল বই দেখুন">
+                                <div class="position-relative flex-shrink-0 me-1" style="width: 44px; height: 44px;">
                                     @if($authorAvatarUrl)
                                         <img src="{{ $authorAvatarUrl }}" alt="{{ $authorName }}" class="rounded-circle object-fit-cover shadow-sm w-100 h-100 border" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('d-none');">
                                         <div class="rounded-circle text-white d-none align-items-center justify-content-center fw-bold shadow-sm w-100 h-100" style="font-size: 1.05rem; background: {{ $authorBgColor }};">
@@ -842,10 +842,10 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div>
+                                <div class="ps-0.5">
                                     <span class="fw-bold text-dark d-block" style="font-size: 0.98rem;">
                                         {{ $authorName }}
-                                        <i class="fa-solid fa-circle-check text-primary ms-0.5" style="font-size: 0.8rem;" title="ভেরিফাইড লেখক"></i>
+                                        <i class="fa-solid fa-circle-check text-primary ms-1" style="font-size: 0.8rem;" title="ভেরিফাইড লেখক"></i>
                                     </span>
                                     <span class="text-muted" style="font-size: 0.74rem;">আইডিয়া সাহিত্যপত্র লেখক ও গবেষক</span>
                                 </div>

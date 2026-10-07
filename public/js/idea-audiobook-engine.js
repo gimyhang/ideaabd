@@ -727,6 +727,12 @@
 
                 if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
                     const range = selection.getRangeAt(0);
+                    const container = range.commonAncestorContainer;
+                    const el = container.nodeType === 1 ? container : container.parentElement;
+                    if (el && el.closest('header, nav, .card, .banner, .lit-search-container, button, select, input, .no-audio-selection, .lit-category-dropdown')) {
+                        tooltip.style.display = 'none';
+                        return;
+                    }
                     const text = selection.toString().trim();
                     if (text.length >= 4) {
                         const rect = range.getBoundingClientRect();
