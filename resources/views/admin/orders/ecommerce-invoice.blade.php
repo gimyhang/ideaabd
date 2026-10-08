@@ -188,14 +188,15 @@
         .inv-header-left {
             text-align: left;
         }
-        .inv-brand-wrapper {
+        .inv-brand-top {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            margin-bottom: 5px;
         }
         .inv-logo {
-            max-height: 52px;
-            max-width: 75px;
+            max-height: 40px;
+            max-width: 60px;
             width: auto;
             object-fit: contain;
             display: block;
@@ -205,61 +206,59 @@
         .inv-brand-details {
             display: flex;
             flex-direction: column;
+            justify-content: center;
         }
         .inv-brand-name {
-            font-size: 16px;
+            font-size: 16.5px;
             font-weight: 800;
             color: #000000;
             line-height: 1.2;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin: 0 0 2px 0;
         }
         .inv-brand-address {
             font-size: 11px;
+            font-weight: 600;
             color: #222222;
-            line-height: 1.35;
-            margin-bottom: 3px;
+            line-height: 1.25;
+            margin: 0;
             text-transform: uppercase;
         }
-        .inv-brand-contact {
-            font-size: 11px;
+        .inv-brand-contact-line {
+            font-size: 10.5px;
             color: #222222;
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
-            line-height: 1.35;
+            line-height: 1.3;
+            flex-wrap: nowrap;
         }
-        .inv-brand-contact span {
+        .inv-brand-contact-line span {
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
-        .inv-brand-web {
-            font-size: 11px;
-            color: #222222;
-            margin-top: 2px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+        .inv-brand-contact-line i {
+            font-size: 10px;
+            color: #000000;
         }
 
         .inv-header-center {
             text-align: center;
-            padding-top: 2px;
+            align-self: center;
         }
         .inv-doc-shape {
             display: inline-block;
-            border: 1.5px solid #000000;
+            border: 1.2px solid #000000;
             color: #000000;
             background: #ffffff;
-            font-size: 11.5px;
+            font-size: 9.5px;
             font-weight: 800;
-            padding: 3px 14px;
-            letter-spacing: 1.5px;
+            padding: 2px 10px;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            border-radius: 4px;
-            line-height: 1.3;
+            border-radius: 3px;
+            line-height: 1.2;
         }
 
         .inv-header-right {
@@ -572,23 +571,21 @@
 
         <!-- Header: 3-Column Layout -->
         <div class="inv-header">
-            <!-- Left Column: Brand Info with Logo on Left -->
+            <!-- Left Column: Brand Info (Logo level with name/address, contact in single line below) -->
             <div class="inv-header-left">
-                <div class="inv-brand-wrapper">
+                <div class="inv-brand-top">
                     @if($siteLogo)
                         <img src="{{ $siteLogo }}" alt="IDEA" class="inv-logo" onerror="this.style.display='none';">
                     @endif
                     <div class="inv-brand-details">
                         <div class="inv-brand-name">IDEA PROKASHON</div>
                         <div class="inv-brand-address">CENTRAL ROAD, RANGPUR-5400</div>
-                        <div class="inv-brand-contact">
-                            <span><i class="fa-solid fa-phone"></i> +8801726976982</span>
-                            <span><i class="fa-solid fa-envelope"></i> ideapbd@gmail.com</span>
-                        </div>
-                        <div class="inv-brand-web">
-                            <i class="fa-solid fa-globe"></i> www.ideaabd.com
-                        </div>
                     </div>
+                </div>
+                <div class="inv-brand-contact-line">
+                    <span><i class="fa-solid fa-phone"></i> +8801726976982</span>
+                    <span><i class="fa-solid fa-envelope"></i> ideapbd@gmail.com</span>
+                    <span><i class="fa-solid fa-globe"></i> www.ideaabd.com</span>
                 </div>
             </div>
 
