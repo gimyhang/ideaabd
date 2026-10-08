@@ -177,10 +177,10 @@
 
         /* Header: 3 Columns (Left: Brand, Middle: Invoice, Right: Order Meta) */
         .inv-header {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+            display: flex;
+            justify-content: space-between;
             align-items: flex-start;
-            gap: 16px;
+            position: relative;
             padding-bottom: 14px;
             border-bottom: 2px solid #000000;
             margin-bottom: 16px;
@@ -244,8 +244,11 @@
         }
 
         .inv-header-center {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
             text-align: center;
-            align-self: center;
         }
         .inv-doc-shape {
             display: inline-block;
@@ -511,9 +514,17 @@
                 box-shadow: none !important;
             }
             .inv-header {
-                display: grid !important;
-                grid-template-columns: auto 1fr auto !important;
+                display: flex !important;
+                justify-content: space-between !important;
                 align-items: flex-start !important;
+                position: relative !important;
+            }
+            .inv-header-center {
+                position: absolute !important;
+                left: 50% !important;
+                top: 0 !important;
+                transform: translateX(-50%) !important;
+                text-align: center !important;
             }
             .inv-header, .inv-customer-box, .inv-table, .inv-bottom-grid, .inv-footer, tr {
                 page-break-inside: avoid !important;
@@ -529,8 +540,8 @@
         @media (max-width: 600px) {
             body { padding: 8px 4px; }
             .inv-container { padding: 14px 12px; }
-            .inv-header { grid-template-columns: 1fr; gap: 10px; }
-            .inv-header-center { text-align: left; }
+            .inv-header { flex-direction: column; gap: 10px; }
+            .inv-header-center { position: static; transform: none; text-align: left; }
             .inv-header-right { align-items: flex-start; text-align: left; }
             .inv-bottom-grid { grid-template-columns: 1fr; gap: 12px; }
             .inv-words { text-align: left; }
