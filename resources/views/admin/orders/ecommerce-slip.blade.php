@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +10,10 @@
             $due = max(0.0, (float)$order->total_amount - $paid);
             $slip = [
                 'type'             => 'order',
-                'type_badge'       => 'বুক পার্সেল / PARCEL',
+                'type_badge'       => 'PARCEL',
                 'doc_no'           => $order->order_number ?? $order->id,
                 'date'             => !empty($order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M, Y') : date('d M, Y'),
-                'customer_name'    => $order->customer_name ?: 'সম্মানিত গ্রাহক',
+                'customer_name'    => $order->customer_name ?: 'Customer',
                 'customer_phone'   => $order->customer_phone,
                 'customer_address' => trim(($order->house_road ? $order->house_road . ', ' : '') . ($order->customer_address ?: '')),
                 'customer_org'     => null,
@@ -27,24 +27,29 @@
                 'payment_method'   => $order->payment_method ?: 'cod',
                 'items'            => [],
                 'items_count'      => (int) ($order->quantity ?: 1),
-                'items_title'      => $order->book->title ?? 'বই অর্ডার',
+                'items_title'      => $order->book->title ?? 'Book Order',
                 'is_gift'          => (bool) $order->is_gift,
                 'gift_recipient'   => $order->gift_recipient_name,
                 'gift_phone'       => $order->gift_recipient_phone,
-                'courier_name'     => $order->courier_name ?: 'সাধারণ কুরিয়ার',
+                'courier_name'     => $order->courier_name,
                 'tracking_code'    => $order->tracking_code,
                 'back_url'         => route('admin.ecommerce-orders'),
                 'invoice_url'      => route('admin.ecommerce-orders.invoice', $order->id),
             ];
         }
 
+        $currentFormat     = request('format');
+        if (!in_array($currentFormat, ['half', 'pos', 'full'])) {
+            $currentFormat = 'half';
+        }
+
         $slipType          = $slip['type'] ?? 'order';
-        $slipBadge         = $slip['type_badge'] ?? 'ডকুমেন্ট স্লিপ / SLIP';
+        $slipBadge         = 'PARCEL';
         $docNo             = $slip['doc_no'] ?? 'N/A';
         $docDate           = $slip['date'] ?? date('d M, Y');
-        $customerName      = $slip['customer_name'] ?? 'সম্মানিত গ্রাহক';
+        $customerName      = $slip['customer_name'] ?? 'Customer';
         $customerPhone     = $slip['customer_phone'] ?? null;
-        $customerAddress   = $slip['customer_address'] ?? 'ঠিকানা উল্লেখ নেই';
+        $customerAddress   = $slip['customer_address'] ?? 'No Address';
         $customerOrg       = $slip['customer_org'] ?? null;
         $customerThana     = $slip['thana'] ?? null;
         $customerPostCode  = $slip['post_code'] ?? null;
@@ -56,7 +61,7 @@
         $paymentMethod     = $slip['payment_method'] ?? 'cash';
         $itemsList         = $slip['items'] ?? [];
         $itemsCount        = (int) ($slip['items_count'] ?? 1);
-        $itemsTitle        = $slip['items_title'] ?? 'পণ্য ও বই';
+        $itemsTitle        = $slip['items_title'] ?? 'Books / Items';
         $isGift            = !empty($slip['is_gift']);
         $giftRecipient     = $slip['gift_recipient'] ?? null;
         $giftPhone         = $slip['gift_phone'] ?? null;
@@ -66,8 +71,8 @@
         $invoiceUrl        = $slip['invoice_url'] ?? null;
         $notes             = $slip['notes'] ?? null;
 
-        $senderName    = $invoiceSettings['sender_name'] ?? (\App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন');
-        $senderAddress = $invoiceSettings['sender_address'] ?? (\App\Support\SiteSetting::get('contact_address') ?: 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ');
+        $senderName    = $invoiceSettings['sender_name'] ?? (\App\Support\SiteSetting::name() ?: 'IDEA PROKASHON');
+        $senderAddress = $invoiceSettings['sender_address'] ?? (\App\Support\SiteSetting::get('contact_address') ?: 'Central Road, Rangpur 5400, Bangladesh');
         $senderPhone   = $invoiceSettings['sender_phone'] ?? (\App\Support\SiteSetting::get('contact_phone') ?: '01558712870');
         $senderEmail   = $invoiceSettings['sender_email'] ?? 'ideapbd@gmail.com';
         $senderWebsite = $invoiceSettings['sender_website'] ?? 'www.ideaabd.com';
@@ -88,7 +93,7 @@
         $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=0&data=' . urlencode($trackUrl);
     @endphp
 
-    <title>স্লিপ #{{ $docNo }} — {{ $customerName }}</title>
+    <title>Slip #{{ $docNo }} — {{ $customerName }}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,9 +127,8 @@
         }
 
         /* Top Action Bar (Clean Outline Design - No Heavy Solid Blocks) */
-        /* Top Action Bar (Clean Outline Design - No Heavy Solid Blocks) */
         .slip-actions {
-            max-width: 400px;
+            max-width: 480px;
             margin: 0 auto 14px auto;
             display: flex;
             align-items: center;
@@ -154,7 +158,7 @@
             cursor: pointer;
             background: #ffffff;
             color: #334155;
-            border: 1.5px solid #cbd5e1;
+            border: 1px solid #cbd5e1;
             transition: all 0.15s ease;
             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         }
@@ -166,7 +170,7 @@
         .btn-clean-primary {
             background: #ffffff;
             color: #0f172a;
-            border: 1.5px solid #0f172a;
+            border: 1px solid #0f172a;
             font-weight: 700;
         }
         .btn-clean-primary:hover {
@@ -179,7 +183,7 @@
             display: inline-flex;
             align-items: center;
             background: #ffffff;
-            border: 1.5px solid #cbd5e1;
+            border: 1px solid #cbd5e1;
             border-radius: 8px;
             padding: 3px;
             gap: 2px;
@@ -200,50 +204,98 @@
             color: #ffffff;
         }
 
-        /* Main Slip Card (Half-size by default) */
+        /* Main Slip Card (+100px width: 480px, no outer side border) */
         .slip-card {
-            max-width: 380px;
+            max-width: 480px;
             margin: 0 auto;
             background: #ffffff;
-            border: 1.5px solid #0f172a;
+            border: none;
             border-radius: 8px;
-            padding: 14px 16px;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+            padding: 16px 18px;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             transition: max-width 0.2s ease;
         }
 
-        /* Format Variants */
+        /* Format Variants - Dynamic sizing (Half, POS, Full) */
+        .slip-card.format-half {
+            max-width: 480px;
+            padding: 16px 18px;
+        }
+        .slip-actions.format-half {
+            max-width: 480px;
+        }
+
         .slip-card.format-full {
-            max-width: 650px;
+            max-width: 720px;
             padding: 22px 24px;
         }
+        .slip-actions.format-full {
+            max-width: 720px;
+        }
+        .slip-card.format-full .slip-grid {
+            grid-template-columns: 1fr 1.35fr;
+            gap: 16px;
+        }
+
         .slip-card.format-pos {
-            max-width: 300px;
+            max-width: 320px;
             padding: 10px 12px;
-            border-style: dashed;
+        }
+        .slip-actions.format-pos {
+            max-width: 320px;
+        }
+        .slip-card.format-pos .slip-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .slip-card.format-pos .slip-header-meta {
+            align-items: flex-start;
+            text-align: left;
+        }
+        .slip-card.format-pos .slip-meta-doc {
+            justify-content: flex-start;
+        }
+        .slip-card.format-pos .slip-meta-details {
+            text-align: left;
+        }
+        .slip-card.format-pos .slip-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+        .slip-card.format-pos .slip-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .slip-card.format-pos .slip-qr-box {
+            width: 100%;
+            justify-content: space-between;
+            border-top: 0.5px dashed #cbd5e1;
+            padding-top: 6px;
         }
 
         /* Header & Logo */
         .slip-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-            border-bottom: 1.5px solid #0f172a;
-            gap: 10px;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #0f172a;
+            gap: 12px;
         }
         .slip-brand-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             flex: 1;
         }
         .slip-logo {
-            max-height: 36px;
-            max-width: 100px;
+            max-height: 38px;
+            max-width: 115px;
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
@@ -255,7 +307,7 @@
             justify-content: center;
         }
         .slip-brand-title {
-            font-size: 14.5px;
+            font-size: 15px;
             font-weight: 800;
             color: #0f172a;
             margin: 0 0 1px 0;
@@ -263,117 +315,62 @@
             line-height: 1.2;
         }
         .slip-brand-sub {
-            font-size: 10.5px;
+            font-size: 11px;
             color: #64748b;
             margin: 0;
             font-weight: 500;
+        }
+        .slip-header-meta {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0;
         }
         .slip-badge-outline {
             display: inline-block;
             background: #ffffff;
             color: #0f172a;
-            border: 1.5px solid #0f172a;
+            border: 1px solid #0f172a;
             padding: 3px 8px;
             border-radius: 5px;
-            font-size: 10px;
+            font-size: 10.5px;
             font-weight: 700;
             letter-spacing: 0.6px;
             text-transform: uppercase;
             white-space: nowrap;
         }
-
-        /* Document Strip (Clean Outline / High Contrast) */
-        .slip-strip {
-            display: flex;
-            align-items: stretch;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 12px;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+        .slip-meta-details {
+            font-size: 11px;
+            color: #475569;
+            line-height: 1.45;
+            text-align: right;
+            margin-top: 3px;
         }
-        .slip-strip-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 8px 10px;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-        }
-        .slip-order-num {
+        .slip-meta-doc {
             font-family: 'Courier New', Courier, monospace;
             font-size: 13.5px;
             font-weight: 800;
-            letter-spacing: 1.1px;
             color: #0f172a;
-            margin-bottom: 2px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            justify-content: flex-end;
+            gap: 5px;
         }
-        .slip-copy-icon {
-            font-size: 11.5px;
-            color: #94a3b8;
-            cursor: pointer;
-            transition: color 0.15s ease;
+        .slip-meta-row {
+            font-size: 11px;
+            color: #475569;
         }
-        .slip-copy-icon:hover {
-            color: #0f172a;
-        }
-        .slip-order-date {
-            font-size: 10.5px;
-            color: #64748b;
-        }
-
-        /* Clean COD & Payment Status Box */
-        .slip-strip-right {
-            width: auto;
-            min-width: 125px;
-            flex-shrink: 0;
-            background: #ffffff;
-            border: 1.5px solid #0f172a;
-            border-radius: 8px;
-            padding: 8px 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: center;
-        }
-        .slip-strip-right.is-paid {
-            border-color: #16a34a;
-            background: #f0fdf4;
-        }
-        .slip-cod-label {
-            font-size: 9.5px;
+        .slip-meta-row strong {
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #64748b;
-            margin-bottom: 2px;
-        }
-        .slip-strip-right.is-paid .slip-cod-label {
-            color: #15803d;
-        }
-        .slip-cod-val {
-            font-size: 15px;
-            font-weight: 800;
-            line-height: 1.2;
-            color: #0f172a;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        .slip-strip-right.is-paid .slip-cod-val {
-            color: #15803d;
-            font-family: inherit;
-            font-size: 13px;
         }
 
         /* 2-Column Sender & Recipient */
         .slip-grid {
             display: grid;
-            grid-template-columns: 1fr 1.25fr;
-            gap: 10px;
+            grid-template-columns: 1fr 1.35fr;
+            gap: 12px;
             margin-bottom: 12px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
@@ -388,20 +385,20 @@
         }
         .slip-box-sender {
             background: #f8fafc;
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #cbd5e1;
         }
         .slip-box-recipient {
             background: #ffffff;
-            border: 1.5px solid #0f172a;
+            border: 1px solid #0f172a;
         }
         .slip-box-header {
-            font-size: 12.5px; /* +2px from 10.5px */
+            font-size: 12.5px; /* +2px */
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
             padding-bottom: 5px;
             margin-bottom: 8px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 0.5px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -411,25 +408,25 @@
         }
         .slip-box-recipient .slip-box-header {
             color: #0f172a;
-            border-bottom-color: #cbd5e1;
+            border-bottom: 0.5px solid #cbd5e1;
         }
 
         /* Sender Details (+2px font size) */
         .sender-name {
-            font-size: 15.5px; /* +2px from 13.5px */
+            font-size: 15.5px; /* +2px */
             font-weight: 700;
             color: #0f172a;
             margin-bottom: 4px;
             line-height: 1.35;
         }
         .sender-address {
-            font-size: 13.5px; /* +2px from 11.5px */
+            font-size: 13.5px; /* +2px */
             color: #475569;
             line-height: 1.45;
             margin-bottom: 6px;
         }
         .sender-phone {
-            font-size: 13.5px; /* +2px from 11.5px */
+            font-size: 13.5px; /* +2px */
             font-weight: 600;
             color: #0f172a;
             display: flex;
@@ -440,7 +437,7 @@
 
         /* Recipient Details (+2px font size) */
         .recipient-name {
-            font-size: 18px; /* +2px from 16px */
+            font-size: 18px; /* +2px */
             font-weight: 800;
             color: #0f172a;
             line-height: 1.3;
@@ -451,14 +448,14 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 16.5px; /* +2px from 14.5px */
+            font-size: 16.5px; /* +2px */
             font-weight: 800;
             color: #0f172a;
             font-family: 'Courier New', Courier, monospace;
             margin-bottom: 6px;
         }
         .recipient-address {
-            font-size: 14.5px; /* +2px from 12.5px */
+            font-size: 14.5px; /* +2px */
             color: #1e293b;
             line-height: 1.45;
             margin-bottom: 8px;
@@ -471,16 +468,16 @@
             margin-top: auto;
         }
         .recipient-pill {
-            font-size: 13px; /* +2px from 11px */
+            font-size: 13px; /* +2px */
             font-weight: 600;
             background: #ffffff;
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #cbd5e1;
             padding: 2px 7px;
             border-radius: 4px;
             color: #334155;
         }
         .recipient-pill-dark {
-            border: 1.5px solid #0f172a;
+            border: 1px solid #0f172a;
             color: #0f172a;
             background: #ffffff;
             font-weight: 700;
@@ -488,9 +485,9 @@
 
         /* Item & Parcel Content Box */
         .slip-item-box {
-            padding: 9px 12px;
+            padding: 10px 14px;
             background: #f8fafc;
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #cbd5e1;
             border-radius: 8px;
             margin-bottom: 12px;
             page-break-inside: avoid !important;
@@ -503,7 +500,7 @@
             gap: 12px;
         }
         .slip-item-title {
-            font-size: 11.5px;
+            font-size: 12px;
             color: #0f172a;
             line-height: 1.4;
             flex: 1;
@@ -517,15 +514,15 @@
             color: #334155;
             white-space: nowrap;
             background: #ffffff;
-            padding: 2px 6px;
-            border: 1px solid #cbd5e1;
+            padding: 2px 7px;
+            border: 0.5px solid #cbd5e1;
             border-radius: 5px;
             font-weight: 600;
         }
         .slip-gift-notice {
             margin-top: 6px;
             padding-top: 6px;
-            border-top: 1px dashed #cbd5e1;
+            border-top: 0.5px dashed #cbd5e1;
             font-size: 11px;
             color: #92400e;
             display: flex;
@@ -543,15 +540,15 @@
         }
         .slip-items-table th {
             text-align: left;
-            padding: 3px 5px;
-            border-bottom: 1px solid #cbd5e1;
+            padding: 4px 6px;
+            border-bottom: 0.5px solid #cbd5e1;
             color: #64748b;
             font-size: 10px;
             text-transform: uppercase;
         }
         .slip-items-table td {
-            padding: 4px 5px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 4px 6px;
+            border-bottom: 0.5px solid #e2e8f0;
             color: #0f172a;
         }
 
@@ -563,7 +560,7 @@
             gap: 10px;
             padding: 8px 12px;
             background: #ffffff;
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #cbd5e1;
             border-radius: 8px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
@@ -589,7 +586,7 @@
             width: 36px;
             height: 36px;
             display: block;
-            border: 1px solid #cbd5e1;
+            border: 0.5px solid #cbd5e1;
             border-radius: 4px;
             padding: 2px;
             background: #ffffff;
@@ -623,7 +620,7 @@
 
         /* 
          * ROCK SOLID PRINT MEDIA STYLES 
-         * Half size (105mm width - half A4) by default
+         * Dynamic formats (Half, Full, POS) - Never break!
          */
         @media print {
             html, body {
@@ -638,27 +635,65 @@
                 display: none !important;
             }
             .slip-card {
-                max-width: 105mm !important;
-                width: 105mm !important;
+                max-width: 480px !important;
+                width: 480px !important;
                 box-shadow: none !important;
-                border: 1.5pt solid #000000 !important;
-                border-radius: 4px !important;
-                padding: 3.5mm 4mm !important;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 2mm 0 !important;
                 margin: 0 auto !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
             }
+            .slip-card.format-half {
+                max-width: 480px !important;
+                width: 480px !important;
+                padding: 2mm 0 !important;
+            }
             .slip-card.format-full {
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 5mm 6mm !important;
+                padding: 4mm 0 !important;
+            }
+            .slip-card.format-full .slip-grid {
+                grid-template-columns: 1fr 1.35fr !important;
+                gap: 16px !important;
             }
             .slip-card.format-pos {
                 max-width: 76mm !important;
                 width: 76mm !important;
-                padding: 2.5mm 3mm !important;
+                padding: 2mm 0 !important;
             }
-            .slip-strip,
+            .slip-card.format-pos .slip-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+            }
+            .slip-card.format-pos .slip-header-meta {
+                align-items: flex-start !important;
+                text-align: left !important;
+            }
+            .slip-card.format-pos .slip-meta-doc {
+                justify-content: flex-start !important;
+            }
+            .slip-card.format-pos .slip-meta-details {
+                text-align: left !important;
+            }
+            .slip-card.format-pos .slip-grid {
+                grid-template-columns: 1fr !important;
+                gap: 8px !important;
+            }
+            .slip-card.format-pos .slip-footer {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 6px !important;
+            }
+            .slip-card.format-pos .slip-qr-box {
+                width: 100% !important;
+                justify-content: space-between !important;
+                border-top: 0.5pt dashed #000000 !important;
+                padding-top: 4px !important;
+            }
             .slip-grid,
             .slip-box,
             .slip-item-box,
@@ -667,21 +702,19 @@
                 break-inside: avoid !important;
             }
             .slip-header {
-                border-bottom: 1.5pt solid #000000 !important;
+                border-bottom: 1pt solid #000000 !important;
             }
             .slip-badge-outline,
             .slip-box-recipient,
-            .recipient-pill-dark,
-            .slip-strip-right {
-                border: 1.5pt solid #000000 !important;
+            .recipient-pill-dark {
+                border: 1pt solid #000000 !important;
                 color: #000000 !important;
                 background: #ffffff !important;
             }
             .slip-box-sender,
             .slip-item-box,
-            .slip-strip-left,
             .slip-footer {
-                border: 1pt solid #000000 !important;
+                border: 0.5pt solid #000000 !important;
                 background: #ffffff !important;
             }
             * {
@@ -702,15 +735,24 @@
             .slip-card {
                 padding: 12px 10px;
             }
+            .slip-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .slip-header-meta {
+                align-items: flex-start;
+                text-align: left;
+            }
+            .slip-meta-doc {
+                justify-content: flex-start;
+            }
+            .slip-meta-details {
+                text-align: left;
+            }
             .slip-grid {
                 grid-template-columns: 1fr;
                 gap: 10px;
-            }
-            .slip-strip {
-                flex-direction: column;
-            }
-            .slip-strip-right {
-                width: 100%;
             }
             .slip-footer {
                 flex-direction: column;
@@ -720,7 +762,7 @@
                 width: 100%;
                 justify-content: space-between;
                 padding-top: 8px;
-                border-top: 1px dashed #cbd5e1;
+                border-top: 0.5px dashed #cbd5e1;
             }
         }
     </style>
@@ -728,34 +770,34 @@
 <body>
 
     <!-- Top Action Bar (Clean Outline - No Heavy Solid Color Buttons) -->
-    <div class="slip-actions">
+    <div class="slip-actions format-{{ $currentFormat }}">
         <div class="slip-actions-group">
-            <a href="{{ $backUrl }}" class="btn-clean" title="পূর্ববর্তী তালিকায় ফিরুন">
-                <i class="fa-solid fa-arrow-left"></i> ফিরে যান
+            <a href="{{ $backUrl }}" class="btn-clean" title="Go back">
+                <i class="fa-solid fa-arrow-left"></i> Back
             </a>
             @if($invoiceUrl)
-                <a href="{{ $invoiceUrl }}" class="btn-clean" title="ইনভয়েস বা মেমো দেখুন">
-                    <i class="fa-solid fa-file-invoice"></i> ইনভয়েস
+                <a href="{{ $invoiceUrl }}" class="btn-clean" title="View invoice">
+                    <i class="fa-solid fa-file-invoice"></i> Invoice
                 </a>
             @endif
         </div>
 
         <!-- Dynamic Format Selector & Print Trigger -->
         <div class="slip-actions-group">
-            <div class="format-selector" title="প্রিন্ট ফরম্যাট নির্বাচন করুন">
-                <button type="button" class="format-pill active" onclick="switchFormat('half', this)">হাফ সাইজ (ডিফল্ট)</button>
-                <button type="button" class="format-pill" onclick="switchFormat('pos', this)">পজ (80mm)</button>
-                <button type="button" class="format-pill" onclick="switchFormat('full', this)">ফুল পেইজ (A4)</button>
+            <div class="format-selector" title="Select print format">
+                <button type="button" class="format-pill {{ $currentFormat === 'half' ? 'active' : '' }}" onclick="switchFormat('half', this)">হাফ সাইজ (ডিফল্ট)</button>
+                <button type="button" class="format-pill {{ $currentFormat === 'pos' ? 'active' : '' }}" onclick="switchFormat('pos', this)">পজ (80mm)</button>
+                <button type="button" class="format-pill {{ $currentFormat === 'full' ? 'active' : '' }}" onclick="switchFormat('full', this)">ফুল পেইজ (A4)</button>
             </div>
 
-            <button type="button" onclick="window.print()" class="btn-clean btn-clean-primary" title="প্রিন্ট করুন (Ctrl + P)">
-                <i class="fa-solid fa-print"></i> প্রিন্ট স্লিপ
+            <button type="button" onclick="window.print()" class="btn-clean btn-clean-primary" title="Print slip (Ctrl + P)">
+                <i class="fa-solid fa-print"></i> Print Slip
             </button>
         </div>
     </div>
 
     <!-- Main Slip Container -->
-    <div class="slip-card" id="slipCard">
+    <div class="slip-card format-{{ $currentFormat }}" id="slipCard">
         
         <!-- Header & Logo -->
         <div class="slip-header">
@@ -766,35 +808,23 @@
                     <p class="slip-brand-sub">{{ $senderWebsite }} • {{ $senderPhone }}</p>
                 </div>
             </div>
-            <div>
-                <span class="slip-badge-outline">{{ $slipBadge }}</span>
-            </div>
-        </div>
-
-        <!-- Document & COD / Payment Strip -->
-        <div class="slip-strip">
-            <div class="slip-strip-left">
-                <div class="slip-order-num">
-                    <span>#{{ $docNo }}</span>
-                    <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $docNo }}', 'ডকুমেন্ট নম্বর')" title="কপি করুন"></i>
-                </div>
-                <div class="slip-order-date">
-                    <i class="fa-regular fa-calendar-check me-1"></i> তারিখ: {{ $docDate }}
-                </div>
-            </div>
-            
-            <div class="slip-strip-right {{ $paymentStatus === 'paid' ? 'is-paid' : '' }}">
-                @if($paymentStatus === 'paid')
-                    <div class="slip-cod-label">পেমেন্ট স্ট্যাটাস</div>
-                    <div class="slip-cod-val">
-                        <i class="fa-solid fa-circle-check me-1"></i> পেইড (PAID)
+            <div class="slip-header-meta">
+                <span class="slip-badge-outline">PARCEL</span>
+                <div class="slip-meta-details">
+                    <div class="slip-meta-doc">
+                        <span>#{{ $docNo }}</span>
+                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $docNo }}', 'Order No')" title="Copy"></i>
                     </div>
-                @else
-                    <div class="slip-cod-label">ক্যাশ অন ডেলিভারি (COD)</div>
-                    <div class="slip-cod-val">
-                        ৳ {{ number_format($dueAmount > 0.001 ? $dueAmount : $totalAmount) }}
+                    <div class="slip-meta-row">Date: {{ $docDate }}</div>
+                    <div class="slip-meta-row">
+                        Payment Status: 
+                        @if($paymentStatus === 'paid')
+                            <strong style="color: #16a34a;">PAID</strong>
+                        @else
+                            <strong style="color: #dc2626;">COD (৳ {{ number_format($dueAmount > 0.001 ? $dueAmount : $totalAmount) }})</strong>
+                        @endif
                     </div>
-                @endif
+                </div>
             </div>
         </div>
 
@@ -804,7 +834,7 @@
             <!-- Sender (FROM) -->
             <div class="slip-box slip-box-sender">
                 <div class="slip-box-header">
-                    <span><i class="fa-solid fa-paper-plane me-1"></i> প্রেরক / FROM</span>
+                    <span><i class="fa-solid fa-paper-plane me-1"></i> FROM</span>
                 </div>
                 <div class="sender-name">{{ $senderName }}</div>
                 <div class="sender-address">{{ $senderAddress }}</div>
@@ -816,8 +846,8 @@
             <!-- Recipient (TO / DELIVERY) -->
             <div class="slip-box slip-box-recipient">
                 <div class="slip-box-header">
-                    <span><i class="fa-solid fa-user-check me-1"></i> প্রাপক / TO</span>
-                    <span style="font-size: 12px; font-weight: 700; color: #64748b;">ডেলিভারি ঠিকানা</span>
+                    <span><i class="fa-solid fa-user-check me-1"></i> TO</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #64748b;">Delivery Address</span>
                 </div>
                 
                 <div class="recipient-name">{{ $customerName }}</div>
@@ -826,7 +856,7 @@
                     <div class="recipient-phone-wrap">
                         <i class="fa-solid fa-phone" style="font-size: 14px;"></i>
                         <span>{{ $customerPhone }}</span>
-                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $customerPhone }}', 'ফোন নম্বর')" title="কপি করুন"></i>
+                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $customerPhone }}', 'Phone')" title="Copy"></i>
                     </div>
                 @endif
 
@@ -842,13 +872,13 @@
 
                 <div class="recipient-pills">
                     @if($customerThana)
-                        <span class="recipient-pill">থানা: {{ $customerThana }}</span>
+                        <span class="recipient-pill">Thana: {{ $customerThana }}</span>
                     @endif
                     @if($customerPostCode)
-                        <span class="recipient-pill">পোস্ট কোড: {{ $customerPostCode }}</span>
+                        <span class="recipient-pill">Post Code: {{ $customerPostCode }}</span>
                     @endif
                     @if($customerDistrict)
-                        <span class="recipient-pill recipient-pill-dark">জেলা: {{ $customerDistrict }}</span>
+                        <span class="recipient-pill recipient-pill-dark">District: {{ $customerDistrict }}</span>
                     @endif
                 </div>
             </div>
@@ -859,20 +889,20 @@
         <div class="slip-item-box">
             @if(!empty($itemsList) && count($itemsList) > 0)
                 <div class="d-flex justify-content-between align-items-center mb-1">
-                    <strong style="font-size: 11px; text-transform: uppercase; color: #475569;">আইটেমের বিবরণ ({{ count($itemsList) }} টি)</strong>
-                    <span class="slip-item-qty">মোট: {{ $itemsCount }} কপি/একক</span>
+                    <strong style="font-size: 11px; text-transform: uppercase; color: #475569;">Item Details ({{ count($itemsList) }})</strong>
+                    <span class="slip-item-qty">Total: {{ $itemsCount }} Qty</span>
                 </div>
                 <table class="slip-items-table">
                     <thead>
                         <tr>
-                            <th>বিবরণ</th>
-                            <th style="width: 50px; text-align: center;">পরিমাণ</th>
+                            <th>Description</th>
+                            <th style="width: 60px; text-align: center;">Qty</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($itemsList as $it)
                             @php
-                                $name = $it['name'] ?? $it['title'] ?? 'বই / পণ্য';
+                                $name = $it['name'] ?? $it['title'] ?? 'Book / Product';
                                 $qty = $it['qty'] ?? $it['quantity'] ?? 1;
                             @endphp
                             <tr>
@@ -885,23 +915,23 @@
             @else
                 <div class="slip-item-grid">
                     <div class="slip-item-title">
-                        <strong>আইটেম / বই:</strong> {{ $itemsTitle }}
+                        <strong>Item / Book:</strong> {{ $itemsTitle }}
                     </div>
                     <div class="slip-item-qty">
-                        <strong>পরিমাণ:</strong> {{ $itemsCount }} কপি
+                        <strong>Qty:</strong> {{ $itemsCount }}
                     </div>
                 </div>
             @endif
 
             @if($isGift)
                 <div class="slip-gift-notice">
-                    <i class="fa-solid fa-gift"></i> গিফট পার্সেল (প্রাপক: {{ $giftRecipient ?? $customerName }} {{ $giftPhone ? ' | ' . $giftPhone : '' }})
+                    <i class="fa-solid fa-gift"></i> Gift Parcel (To: {{ $giftRecipient ?? $customerName }} {{ $giftPhone ? ' | ' . $giftPhone : '' }})
                 </div>
             @endif
 
             @if($notes)
                 <div style="margin-top: 6px; font-size: 11px; color: #64748b; font-style: italic;">
-                    নোট: {{ $notes }}
+                    Note: {{ $notes }}
                 </div>
             @endif
         </div>
@@ -909,19 +939,21 @@
         <!-- Courier & Verification Strip -->
         <div class="slip-footer">
             <div class="slip-courier-info">
-                <span>কুরিয়ার: <strong>{{ $courierName ?: 'সাধারণ কুরিয়ার / ডেলিভারি' }}</strong></span>
+                @if($courierName && !str_contains($courierName, 'সাধারণ'))
+                    <span>Courier: <strong>{{ $courierName }}</strong></span>
+                @endif
                 @if($trackingCode)
-                    <span>ট্র্যাকিং নং: 
+                    <span>Tracking No: 
                         <strong style="font-family: monospace; font-size: 12.5px;">{{ $trackingCode }}</strong>
-                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $trackingCode }}', 'ট্র্যাকিং নম্বর')" title="কপি করুন"></i>
+                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $trackingCode }}', 'Tracking Code')" title="Copy"></i>
                     </span>
                 @endif
-                <span>সহায়তা: <strong>{{ $senderPhone }}</strong></span>
+                <span>Helpline: <strong>{{ $senderPhone }}</strong></span>
             </div>
 
             <div class="slip-qr-box">
                 <div class="slip-qr-text">
-                    স্ক্যান করে<br>ট্র্যাক করুন
+                    Scan to<br>Track Order
                 </div>
                 <img src="{{ $qrUrl }}" alt="QR" class="slip-qr-img">
             </div>
@@ -930,38 +962,45 @@
     </div>
 
     <!-- Toast Notification for Quick Copy -->
-    <div id="copyToast">কপি হয়েছে!</div>
+    <div id="copyToast">Copied!</div>
 
     <!-- Dynamic JavaScript Helper -->
     <script>
-        // Format Switcher Live Preview
+        // Dynamic Format Switcher Live Preview
         function switchFormat(format, btn) {
             const card = document.getElementById('slipCard');
             const actions = document.querySelector('.slip-actions');
             document.querySelectorAll('.format-pill').forEach(el => el.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            card.classList.remove('format-full', 'format-pos');
-            if (actions) actions.classList.remove('format-full');
-
-            if (format === 'full') {
-                card.classList.add('format-full');
-                if (actions) actions.classList.add('format-full');
-            } else if (format === 'pos') {
-                card.classList.add('format-pos');
+            if (card) {
+                card.classList.remove('format-half', 'format-full', 'format-pos');
+                card.classList.add('format-' + format);
             }
+            if (actions) {
+                actions.classList.remove('format-half', 'format-full', 'format-pos');
+                actions.classList.add('format-' + format);
+            }
+
             try {
                 localStorage.setItem('idea_slip_format_pref', format);
+                const url = new URL(window.location);
+                url.searchParams.set('format', format);
+                window.history.replaceState({}, '', url);
             } catch(e) {}
         }
 
         // Restore Format Preference
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                const saved = localStorage.getItem('idea_slip_format_pref');
-                if (saved && (saved === 'full' || saved === 'pos')) {
-                    const btn = document.querySelector(`.format-pill[onclick*="${saved}"]`);
-                    switchFormat(saved, btn);
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlFormat = urlParams.get('format');
+                const savedFormat = localStorage.getItem('idea_slip_format_pref');
+                const targetFormat = urlFormat || savedFormat || '{{ $currentFormat }}';
+
+                if (targetFormat && ['half', 'pos', 'full'].includes(targetFormat)) {
+                    const btn = document.querySelector(`.format-pill[onclick*="'${targetFormat}'"]`);
+                    if (btn) switchFormat(targetFormat, btn);
                 }
             } catch(e) {}
 
@@ -976,7 +1015,7 @@
         function copyText(text, label) {
             if (!text) return;
             navigator.clipboard.writeText(text).then(() => {
-                showToast((label || 'টেক্সট') + ' কপি হয়েছে!');
+                showToast((label || 'Text') + ' copied!');
             }).catch(() => {
                 const temp = document.createElement('input');
                 temp.value = text;
@@ -984,7 +1023,7 @@
                 temp.select();
                 document.execCommand('copy');
                 document.body.removeChild(temp);
-                showToast((label || 'টেক্সট') + ' কপি হয়েছে!');
+                showToast((label || 'Text') + ' copied!');
             });
         }
 
