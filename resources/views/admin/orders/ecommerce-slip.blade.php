@@ -122,14 +122,19 @@
         }
 
         /* Top Action Bar (Clean Outline Design - No Heavy Solid Blocks) */
+        /* Top Action Bar (Clean Outline Design - No Heavy Solid Blocks) */
         .slip-actions {
-            max-width: 650px;
-            margin: 0 auto 18px auto;
+            max-width: 400px;
+            margin: 0 auto 14px auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
+            transition: max-width 0.2s ease;
+        }
+        .slip-actions.format-full {
+            max-width: 650px;
         }
         .slip-actions-group {
             display: flex;
@@ -141,9 +146,9 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 7px 14px;
+            padding: 7px 12px;
             border-radius: 8px;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 600;
             text-decoration: none;
             cursor: pointer;
@@ -180,12 +185,12 @@
             gap: 2px;
         }
         .format-pill {
-            padding: 4px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
             border: none;
             background: transparent;
             color: #64748b;
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -195,14 +200,14 @@
             color: #ffffff;
         }
 
-        /* Main Slip Card (Classic Editorial Design) */
+        /* Main Slip Card (Half-size by default) */
         .slip-card {
-            max-width: 650px;
+            max-width: 380px;
             margin: 0 auto;
             background: #ffffff;
             border: 1.5px solid #0f172a;
-            border-radius: 10px;
-            padding: 24px 26px;
+            border-radius: 8px;
+            padding: 14px 16px;
             box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
             page-break-inside: avoid !important;
             break-inside: avoid !important;
@@ -210,13 +215,13 @@
         }
 
         /* Format Variants */
-        .slip-card.format-a6 {
-            max-width: 480px;
-            padding: 18px 20px;
+        .slip-card.format-full {
+            max-width: 650px;
+            padding: 22px 24px;
         }
         .slip-card.format-pos {
-            max-width: 380px;
-            padding: 14px 16px;
+            max-width: 300px;
+            padding: 10px 12px;
             border-style: dashed;
         }
 
@@ -225,20 +230,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-bottom: 14px;
-            margin-bottom: 16px;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
             border-bottom: 1.5px solid #0f172a;
-            gap: 16px;
+            gap: 10px;
         }
         .slip-brand-group {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
             flex: 1;
         }
         .slip-logo {
-            max-height: 44px;
-            max-width: 130px;
+            max-height: 36px;
+            max-width: 100px;
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
@@ -250,15 +255,15 @@
             justify-content: center;
         }
         .slip-brand-title {
-            font-size: 17px;
+            font-size: 14.5px;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 2px 0;
+            margin: 0 0 1px 0;
             letter-spacing: -0.2px;
-            line-height: 1.25;
+            line-height: 1.2;
         }
         .slip-brand-sub {
-            font-size: 11.5px;
+            font-size: 10.5px;
             color: #64748b;
             margin: 0;
             font-weight: 500;
@@ -268,11 +273,11 @@
             background: #ffffff;
             color: #0f172a;
             border: 1.5px solid #0f172a;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             text-transform: uppercase;
             white-space: nowrap;
         }
@@ -282,8 +287,8 @@
             display: flex;
             align-items: stretch;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 10px;
+            margin-bottom: 12px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
         }
@@ -292,24 +297,24 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 10px 14px;
+            padding: 8px 10px;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
         }
         .slip-order-num {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
+            font-size: 13.5px;
             font-weight: 800;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.1px;
             color: #0f172a;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .slip-copy-icon {
-            font-size: 12px;
+            font-size: 11.5px;
             color: #94a3b8;
             cursor: pointer;
             transition: color 0.15s ease;
@@ -318,18 +323,19 @@
             color: #0f172a;
         }
         .slip-order-date {
-            font-size: 11.5px;
+            font-size: 10.5px;
             color: #64748b;
         }
 
-        /* Clean COD & Payment Status Box (No Solid Black Block) */
+        /* Clean COD & Payment Status Box */
         .slip-strip-right {
-            width: 210px;
+            width: auto;
+            min-width: 125px;
             flex-shrink: 0;
             background: #ffffff;
             border: 1.5px solid #0f172a;
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 8px 10px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -340,10 +346,10 @@
             background: #f0fdf4;
         }
         .slip-cod-label {
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.6px;
             color: #64748b;
             margin-bottom: 2px;
         }
@@ -351,7 +357,7 @@
             color: #15803d;
         }
         .slip-cod-val {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
             line-height: 1.2;
             color: #0f172a;
@@ -360,21 +366,21 @@
         .slip-strip-right.is-paid .slip-cod-val {
             color: #15803d;
             font-family: inherit;
-            font-size: 15px;
+            font-size: 13px;
         }
 
         /* 2-Column Sender & Recipient */
         .slip-grid {
             display: grid;
-            grid-template-columns: 1fr 1.35fr;
-            gap: 14px;
-            margin-bottom: 16px;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 10px;
+            margin-bottom: 12px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
         }
         .slip-box {
             border-radius: 8px;
-            padding: 14px 16px;
+            padding: 10px 12px;
             display: flex;
             flex-direction: column;
             page-break-inside: avoid !important;
@@ -389,12 +395,12 @@
             border: 1.5px solid #0f172a;
         }
         .slip-box-header {
-            font-size: 10.5px;
+            font-size: 12.5px; /* +2px from 10.5px */
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.6px;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
@@ -408,21 +414,22 @@
             border-bottom-color: #cbd5e1;
         }
 
-        /* Sender Details */
+        /* Sender Details (+2px font size) */
         .sender-name {
-            font-size: 13.5px;
+            font-size: 15.5px; /* +2px from 13.5px */
             font-weight: 700;
             color: #0f172a;
             margin-bottom: 4px;
+            line-height: 1.35;
         }
         .sender-address {
-            font-size: 11.5px;
+            font-size: 13.5px; /* +2px from 11.5px */
             color: #475569;
-            line-height: 1.5;
+            line-height: 1.45;
             margin-bottom: 6px;
         }
         .sender-phone {
-            font-size: 11.5px;
+            font-size: 13.5px; /* +2px from 11.5px */
             font-weight: 600;
             color: #0f172a;
             display: flex;
@@ -431,12 +438,12 @@
             margin-top: auto;
         }
 
-        /* Recipient Details */
+        /* Recipient Details (+2px font size) */
         .recipient-name {
-            font-size: 16px;
+            font-size: 18px; /* +2px from 16px */
             font-weight: 800;
             color: #0f172a;
-            line-height: 1.35;
+            line-height: 1.3;
             margin-bottom: 4px;
             word-break: break-word;
         }
@@ -444,27 +451,27 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 14.5px;
+            font-size: 16.5px; /* +2px from 14.5px */
             font-weight: 800;
             color: #0f172a;
             font-family: 'Courier New', Courier, monospace;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .recipient-address {
-            font-size: 12.5px;
+            font-size: 14.5px; /* +2px from 12.5px */
             color: #1e293b;
-            line-height: 1.5;
-            margin-bottom: 10px;
+            line-height: 1.45;
+            margin-bottom: 8px;
             word-break: break-word;
         }
         .recipient-pills {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
             margin-top: auto;
         }
         .recipient-pill {
-            font-size: 11px;
+            font-size: 13px; /* +2px from 11px */
             font-weight: 600;
             background: #ffffff;
             border: 1px solid #cbd5e1;
@@ -481,11 +488,11 @@
 
         /* Item & Parcel Content Box */
         .slip-item-box {
-            padding: 12px 16px;
+            padding: 9px 12px;
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
         }
@@ -493,12 +500,12 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
+            gap: 12px;
         }
         .slip-item-title {
-            font-size: 12.5px;
+            font-size: 11.5px;
             color: #0f172a;
-            line-height: 1.45;
+            line-height: 1.4;
             flex: 1;
         }
         .slip-item-title strong {
@@ -506,20 +513,20 @@
             color: #0f172a;
         }
         .slip-item-qty {
-            font-size: 12px;
+            font-size: 11px;
             color: #334155;
             white-space: nowrap;
             background: #ffffff;
-            padding: 3px 8px;
+            padding: 2px 6px;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 5px;
             font-weight: 600;
         }
         .slip-gift-notice {
-            margin-top: 8px;
-            padding-top: 8px;
+            margin-top: 6px;
+            padding-top: 6px;
             border-top: 1px dashed #cbd5e1;
-            font-size: 11.5px;
+            font-size: 11px;
             color: #92400e;
             display: flex;
             align-items: center;
@@ -531,19 +538,19 @@
         .slip-items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
-            margin-top: 6px;
+            font-size: 11.5px;
+            margin-top: 4px;
         }
         .slip-items-table th {
             text-align: left;
-            padding: 4px 6px;
+            padding: 3px 5px;
             border-bottom: 1px solid #cbd5e1;
             color: #64748b;
-            font-size: 10.5px;
+            font-size: 10px;
             text-transform: uppercase;
         }
         .slip-items-table td {
-            padding: 5px 6px;
+            padding: 4px 5px;
             border-bottom: 1px solid #e2e8f0;
             color: #0f172a;
         }
@@ -553,8 +560,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding: 10px 14px;
+            gap: 10px;
+            padding: 8px 12px;
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 8px;
@@ -564,9 +571,9 @@
         .slip-courier-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-            font-size: 11.5px;
+            font-size: 10.5px;
             color: #475569;
         }
         .slip-courier-info strong {
@@ -575,12 +582,12 @@
         .slip-qr-box {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
         }
         .slip-qr-img {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             display: block;
             border: 1px solid #cbd5e1;
             border-radius: 4px;
@@ -588,8 +595,8 @@
             background: #ffffff;
         }
         .slip-qr-text {
-            font-size: 9.5px;
-            line-height: 1.25;
+            font-size: 9px;
+            line-height: 1.2;
             color: #64748b;
             text-align: right;
         }
@@ -616,7 +623,7 @@
 
         /* 
          * ROCK SOLID PRINT MEDIA STYLES 
-         * No page breaks, no split elements, no disappearing texts
+         * Half size (105mm width - half A4) by default
          */
         @media print {
             html, body {
@@ -631,15 +638,25 @@
                 display: none !important;
             }
             .slip-card {
-                max-width: 100% !important;
-                width: 100% !important;
+                max-width: 105mm !important;
+                width: 105mm !important;
                 box-shadow: none !important;
                 border: 1.5pt solid #000000 !important;
                 border-radius: 4px !important;
-                padding: 5mm 6mm !important;
+                padding: 3.5mm 4mm !important;
                 margin: 0 auto !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+            }
+            .slip-card.format-full {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 5mm 6mm !important;
+            }
+            .slip-card.format-pos {
+                max-width: 76mm !important;
+                width: 76mm !important;
+                padding: 2.5mm 3mm !important;
             }
             .slip-strip,
             .slip-grid,
@@ -673,21 +690,21 @@
             }
             @page {
                 size: auto;
-                margin: 6mm;
+                margin: 5mm;
             }
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 580px) {
+        /* Mobile & Narrow Responsive */
+        @media (max-width: 480px) {
             body {
                 padding: 12px 8px;
             }
             .slip-card {
-                padding: 16px 14px;
+                padding: 12px 10px;
             }
             .slip-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 10px;
             }
             .slip-strip {
                 flex-direction: column;
@@ -726,9 +743,9 @@
         <!-- Dynamic Format Selector & Print Trigger -->
         <div class="slip-actions-group">
             <div class="format-selector" title="প্রিন্ট ফরম্যাট নির্বাচন করুন">
-                <button type="button" class="format-pill active" onclick="switchFormat('standard', this)">স্ট্যান্ডার্ড (A4)</button>
-                <button type="button" class="format-pill" onclick="switchFormat('a6', this)">লেবেল (A6)</button>
+                <button type="button" class="format-pill active" onclick="switchFormat('half', this)">হাফ সাইজ (ডিফল্ট)</button>
                 <button type="button" class="format-pill" onclick="switchFormat('pos', this)">পজ (80mm)</button>
+                <button type="button" class="format-pill" onclick="switchFormat('full', this)">ফুল পেইজ (A4)</button>
             </div>
 
             <button type="button" onclick="window.print()" class="btn-clean btn-clean-primary" title="প্রিন্ট করুন (Ctrl + P)">
@@ -800,21 +817,21 @@
             <div class="slip-box slip-box-recipient">
                 <div class="slip-box-header">
                     <span><i class="fa-solid fa-user-check me-1"></i> প্রাপক / TO</span>
-                    <span style="font-size: 10px; font-weight: 700; color: #64748b;">ডেলিভারি ঠিকানা</span>
+                    <span style="font-size: 12px; font-weight: 700; color: #64748b;">ডেলিভারি ঠিকানা</span>
                 </div>
                 
                 <div class="recipient-name">{{ $customerName }}</div>
                 
                 @if($customerPhone)
                     <div class="recipient-phone-wrap">
-                        <i class="fa-solid fa-phone" style="font-size: 12px;"></i>
+                        <i class="fa-solid fa-phone" style="font-size: 14px;"></i>
                         <span>{{ $customerPhone }}</span>
                         <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $customerPhone }}', 'ফোন নম্বর')" title="কপি করুন"></i>
                     </div>
                 @endif
 
                 @if($customerOrg)
-                    <div style="font-size: 11.5px; color: #475569; margin-bottom: 4px; font-weight: 600;">
+                    <div style="font-size: 13.5px; color: #475569; margin-bottom: 4px; font-weight: 600;">
                         <i class="fa-regular fa-building me-1"></i> {{ $customerOrg }}
                     </div>
                 @endif
@@ -920,12 +937,16 @@
         // Format Switcher Live Preview
         function switchFormat(format, btn) {
             const card = document.getElementById('slipCard');
+            const actions = document.querySelector('.slip-actions');
             document.querySelectorAll('.format-pill').forEach(el => el.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            card.classList.remove('format-a6', 'format-pos');
-            if (format === 'a6') {
-                card.classList.add('format-a6');
+            card.classList.remove('format-full', 'format-pos');
+            if (actions) actions.classList.remove('format-full');
+
+            if (format === 'full') {
+                card.classList.add('format-full');
+                if (actions) actions.classList.add('format-full');
             } else if (format === 'pos') {
                 card.classList.add('format-pos');
             }
@@ -938,7 +959,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const saved = localStorage.getItem('idea_slip_format_pref');
-                if (saved && (saved === 'a6' || saved === 'pos')) {
+                if (saved && (saved === 'full' || saved === 'pos')) {
                     const btn = document.querySelector(`.format-pill[onclick*="${saved}"]`);
                     switchFormat(saved, btn);
                 }
