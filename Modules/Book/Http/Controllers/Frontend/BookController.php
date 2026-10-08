@@ -53,7 +53,7 @@ class BookController extends Controller
         $matchedPages = collect();
         $topSeller = null;
         $rawSearch = trim((string)($request->input('search') ?: $request->input('q') ?: ''));
-        $isSearchMode = $request->anyFilled(['search', 'q', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort', 'letter']) || ($request->has('page') && (int)$request->get('page') > 1);
+        $isSearchMode = $request->anyFilled(['search', 'q', 'category', 'author', 'publisher', 'in_stock', 'min_price', 'max_price', 'rating', 'format', 'discount_min', 'sort', 'letter', 'filter', 'stock_status']) || ($request->has('page') && (int)$request->get('page') > 1);
 
         $activeFilterTitle = null;
 
@@ -120,6 +120,19 @@ class BookController extends Controller
                 $pubVal = $request->string('publisher')->trim()->value();
                 $matchedPub = $sidebarPublishers->first(fn($p) => $p->slug === $pubVal || (string)$p->id === $pubVal || $p->name === $pubVal);
                 $activeFilterTitle = $matchedPub ? $matchedPub->name : $pubVal;
+            } elseif ($request->filled('filter')) {
+                $flt = $request->string('filter')->value();
+                if ($flt === 'flash_sale' || $flt === 'live_sale') {
+                    $activeFilterTitle = 'লাইভ সেল ও বিশেষ অফার';
+                } elseif ($flt === 'discounted') {
+                    $activeFilterTitle = 'স্পেশাল ছাড়ের বইসমূহ';
+                } elseif ($flt === 'pre_order') {
+                    $activeFilterTitle = 'প্রি-অর্ডার বইসমূহ';
+                } else {
+                    $activeFilterTitle = 'ফিল্টারকৃত বইসমূহ';
+                }
+            } elseif ($request->filled('stock_status') && $request->get('stock_status') === 'pre_order') {
+                $activeFilterTitle = 'প্রি-অর্ডার বইসমূহ';
             } elseif (!empty($rawSearch)) {
                 $activeFilterTitle = 'অনুসন্ধান: "' . $rawSearch . '"';
             } elseif ($request->has('page') && (int)$request->get('page') > 1) {
@@ -191,6 +204,28 @@ class BookController extends Controller
                     if ($minPercent > 0) {
                         $q->whereNotNull('discount_price')
                           ->whereRaw('((price - discount_price) * 100 / price) >= ?', [$minPercent]);
+                    }
+                })
+                ->when($request->filled('filter'), function ($q) use ($request) {
+                    $filter = $request->string('filter')->trim()->value();
+                    if ($filter === 'flash_sale' || $filter === 'live_sale') {
+                        $q->whereNotNull('discount_price')
+                          ->where('discount_price', '>', 0)
+                          ->whereColumn('discount_price', '<', 'price');
+                    } elseif ($filter === 'discounted') {
+                        $q->whereNotNull('discount_price')
+                          ->where('discount_price', '>', 0)
+                          ->whereColumn('discount_price', '<', 'price');
+                    } elseif ($filter === 'pre_order') {
+                        $q->where('stock_status', 'pre_order');
+                    }
+                })
+                ->when($request->filled('stock_status'), function ($q) use ($request) {
+                    $status = $request->string('stock_status')->trim()->value();
+                    if ($status === 'pre_order') {
+                        $q->where('stock_status', 'pre_order');
+                    } elseif ($status === 'in_stock') {
+                        $q->where('stock_quantity', '>', 0);
                     }
                 })
                 ->when($request->boolean('in_stock'), fn ($q) =>
@@ -442,9 +477,12 @@ class BookController extends Controller
         } elseif (!empty($rawSearch)) {
             $activeFilterTitle = '"' . $rawSearch . '" সম্পর্কিত ফলাফল';
         } elseif ($request->string('sort') === 'bestselling') {
-            $activeFilterTitle = 'বেস্টসেলার ও জনপ্রিয় বই';
-        } elseif ($request->string('filter') === 'flash_sale') {
-            $activeFilterTitle = 'ফ্ল্যাশ সেল ও বিশেষ অফার';
+        } elseif ($request->string('filter') === 'flash_sale' || $request->string('filter') === 'live_sale') {
+            $activeFilterTitle = 'লাইভ সেল ও বিশেষ অফার';
+        } elseif ($request->string('filter') === 'discounted') {
+            $activeFilterTitle = 'স্পেশাল ছাড়ের বইসমূহ';
+        } elseif ($request->string('filter') === 'pre_order' || $request->string('stock_status') === 'pre_order') {
+            $activeFilterTitle = 'প্রি-অর্ডার বইসমূহ';
         }
 
         return view('book::frontend.index', compact(

@@ -10,6 +10,10 @@ use App\Models\IdeaInvoicePayment;
 use App\Models\IdeaEmployee;
 use App\Models\IdeaSalaryPayment;
 use App\Models\IdeaEmployeeWorkLog;
+use App\Models\Order;
+use App\Models\Bill;
+use App\Models\PosSale;
+use App\Models\PublisherPurchase;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +22,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use App\Services\IdeaInvoiceItemService;
@@ -26,75 +32,339 @@ use Modules\Book\Models\Book;
 class IdeaAccountingController extends Controller
 {
     /**
-     * Display Income/Expense Accounting Dashboard & Ledger.
+     * Unified Dynamic Accounting, Billing & Financial Hub.
+     * কেন্দ্রীয় ডাইনামিক রুট: অনলাইন ও অফলাইন বিলিং কনফ্লিক্ট-মুক্ত, সকল আয়, ব্যয়, বিল, মেমো এক জায়গায় সার্চযোগ্য।
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|JsonResponse
     {
-        $type = $request->input('type');
-        $category = $request->input('category');
-        $search = $request->input('search');
+        $stream = $request->input('stream', 'all'); // 'all', 'income', 'expense', 'online', 'offline', 'invoices', 'purchases'
+        $search = $request->string('search')->trim()->value();
+        $datePreset = $request->input('date_preset');
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
+        $paymentStatus = $request->input('payment_status'); // 'paid', 'partial', 'unpaid'
         $paymentMethod = $request->input('payment_method');
+        $category = $request->input('category');
+        $type = $request->input('type'); // invoice, challan, quotation, tender
 
-        $query = IdeaAccountingEntry::query()
-            ->with('creator', 'invoice')
-            ->when($type, fn($q) => $q->where('type', $type))
-            ->when($category, fn($q) => $q->where('category', $category))
-            ->when($paymentMethod, fn($q) => $q->where('payment_method', $paymentMethod))
-            ->when($dateFrom, fn($q) => $q->whereDate('entry_date', '>=', $dateFrom))
-            ->when($dateTo, fn($q) => $q->whereDate('entry_date', '<=', $dateTo))
-            ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('title', 'like', $like)
-                      ->orWhere('entry_no', 'like', $like)
-                      ->orWhere('party_name', 'like', $like)
-                      ->orWhere('voucher_no', 'like', $like);
-                });
-            })
-            ->latest('entry_date')
-            ->latest('id');
+        // Resolve date preset shortcuts
+        if ($datePreset === 'today') {
+            $dateFrom = today()->toDateString();
+            $dateTo = today()->toDateString();
+        } elseif ($datePreset === 'yesterday') {
+            $dateFrom = today()->subDay()->toDateString();
+            $dateTo = today()->subDay()->toDateString();
+        } elseif ($datePreset === 'this_week') {
+            $dateFrom = now()->startOfWeek()->toDateString();
+            $dateTo = now()->endOfWeek()->toDateString();
+        } elseif ($datePreset === 'this_month') {
+            $dateFrom = now()->startOfMonth()->toDateString();
+            $dateTo = now()->endOfMonth()->toDateString();
+        } elseif ($datePreset === 'last_month') {
+            $dateFrom = now()->subMonth()->startOfMonth()->toDateString();
+            $dateTo = now()->subMonth()->endOfMonth()->toDateString();
+        } elseif ($datePreset === 'this_year') {
+            $dateFrom = now()->startOfYear()->toDateString();
+            $dateTo = now()->endOfYear()->toDateString();
+        }
 
-        $entries = $query->paginate(25)->withQueryString();
+        // 1. Conflict Prevention & Deduplication Mapping
+        // Find all online orders that have already been converted into an official Idea Invoice.
+        $syncedInvoices = IdeaInvoice::whereNotNull('reference_no')
+            ->where('reference_no', '!=', '')
+            ->get(['id', 'invoice_no', 'reference_no', 'paid_amount', 'grand_total', 'due_amount']);
+        $syncedOrdersMap = $syncedInvoices->keyBy('reference_no')->all();
+        $syncedOrderNumbers = array_keys($syncedOrdersMap);
 
-        $totalIncome = (float) IdeaAccountingEntry::where('type', 'income')->sum('amount');
-        $totalExpense = (float) IdeaAccountingEntry::where('type', 'expense')->sum('amount');
-        $netBalance = $totalIncome - $totalExpense;
+        // 2. Stream Data Collections
+        $itemsCollection = collect();
 
-        // Today & Current Month Stats
+        // --- Stream A: General Cashbook Income & Expense Entries ---
+        if (in_array($stream, ['all', 'income', 'expense'])) {
+            try {
+                $entriesQuery = IdeaAccountingEntry::query()
+                    ->with(['creator', 'invoice'])
+                    ->when($stream === 'income', fn($q) => $q->where('type', 'income'))
+                    ->when($stream === 'expense', fn($q) => $q->where('type', 'expense'))
+                    ->when($category, fn($q) => $q->where('category', $category))
+                    ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('entry_date', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('entry_date', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('title', 'like', $like)
+                              ->orWhere('entry_no', 'like', $like)
+                              ->orWhere('party_name', 'like', $like)
+                              ->orWhere('voucher_no', 'like', $like)
+                              ->orWhere('notes', 'like', $like);
+                        });
+                    })
+                    ->latest('entry_date')
+                    ->latest('id');
+
+                $entries = $entriesQuery->take(200)->get();
+                $normEntries = $entries->map(fn($e) => $this->normalizeAccountingRecord('entry', $e, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normEntries);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub entries query error: ' . $e->getMessage());
+            }
+        }
+
+        // --- Stream B: Institutional Invoices, Challans & Documents ---
+        if (in_array($stream, ['all', 'invoices'])) {
+            try {
+                $invoicesQuery = IdeaInvoice::query()
+                    ->with(['creator', 'payments'])
+                    ->when($type, fn($q) => $q->where('type', $type))
+                    ->when($category, fn($q) => $q->where('sales_category', $category))
+                    ->when($paymentStatus, fn($q) => $q->where('payment_status', $paymentStatus))
+                    ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('invoice_no', 'like', $like)
+                              ->orWhere('customer_name', 'like', $like)
+                              ->orWhere('customer_org', 'like', $like)
+                              ->orWhere('customer_phone', 'like', $like)
+                              ->orWhere('customer_email', 'like', $like)
+                              ->orWhere('reference_no', 'like', $like)
+                              ->orWhere('subject', 'like', $like)
+                              ->orWhere('notes', 'like', $like);
+                        });
+                    })
+                    ->latest('invoice_date')
+                    ->latest('id');
+
+                $invoices = $invoicesQuery->take(200)->get();
+                $normInvoices = $invoices->map(fn($i) => $this->normalizeAccountingRecord('invoice', $i, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normInvoices);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub invoices query error: ' . $e->getMessage());
+            }
+        }
+
+        // --- Stream C: Online Billing (Orders) ---
+        // Deduplication rule: In 'all' stream, skip orders that already have an invoice,
+        // because the invoice is already displayed above with the online order reference.
+        if (in_array($stream, ['all', 'online']) && Schema::hasTable('orders')) {
+            try {
+                $ordersQuery = Order::query()
+                    ->with('book')
+                    ->when($stream === 'all' && !empty($syncedOrderNumbers), function ($q) use ($syncedOrderNumbers) {
+                        $q->whereNotIn('order_number', $syncedOrderNumbers);
+                    })
+                    ->when($paymentStatus, function($q, $st) {
+                        if ($st === 'paid') $q->where('payment_status', 'paid');
+                        elseif ($st === 'unpaid') $q->where(fn($w) => $w->where('payment_status', '!=', 'paid')->orWhereNull('payment_status'));
+                        elseif ($st === 'partial') $q->where('payment_status', 'partial');
+                    })
+                    ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('order_number', 'like', $like)
+                              ->orWhere('customer_name', 'like', $like)
+                              ->orWhere('customer_phone', 'like', $like)
+                              ->orWhere('customer_address', 'like', $like)
+                              ->orWhere('tracking_code', 'like', $like)
+                              ->orWhere('transaction_id', 'like', $like);
+                        });
+                    })
+                    ->latest('created_at')
+                    ->latest('id');
+
+                $orders = $ordersQuery->take(200)->get();
+                $normOrders = $orders->map(fn($o) => $this->normalizeAccountingRecord('order', $o, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normOrders);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub orders query error: ' . $e->getMessage());
+            }
+        }
+
+        // --- Stream D: Offline Billing 1: Boi Mela Stall POS Sales ---
+        if (in_array($stream, ['all', 'offline']) && Schema::hasTable('pos_sales')) {
+            try {
+                $posQuery = PosSale::query()
+                    ->with(['cashier', 'register'])
+                    ->when($paymentStatus, function($q, $st) {
+                        if ($st === 'paid') $q->where('status', '!=', 'voided');
+                        elseif ($st === 'unpaid') $q->where('status', 'voided');
+                    })
+                    ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('created_at', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('created_at', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('receipt_no', 'like', $like)
+                              ->orWhere('customer_name', 'like', $like)
+                              ->orWhere('customer_phone', 'like', $like)
+                              ->orWhere('trx_id', 'like', $like)
+                              ->orWhere('notes', 'like', $like);
+                        });
+                    })
+                    ->latest('created_at')
+                    ->latest('id');
+
+                $posSales = $posQuery->take(200)->get();
+                $normPos = $posSales->map(fn($p) => $this->normalizeAccountingRecord('pos', $p, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normPos);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub pos_sales query error: ' . $e->getMessage());
+            }
+        }
+
+        // --- Stream E: Offline Billing 2: Sub-Admin / Seller Store Bills ---
+        if (in_array($stream, ['all', 'offline']) && Schema::hasTable('bills')) {
+            try {
+                $billsQuery = Bill::query()
+                    ->with(['seller', 'customer'])
+                    ->when($paymentStatus, function($q, $st) {
+                        if ($st === 'paid') $q->where('payment_status', 'paid');
+                        elseif ($st === 'unpaid') $q->where('payment_status', '!=', 'paid')->where('due_amount', '>', 0);
+                        elseif ($st === 'partial') $q->where('paid_amount', '>', 0)->where('due_amount', '>', 0);
+                    })
+                    ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('bill_date', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('bill_date', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('bill_no', 'like', $like)
+                              ->orWhere('customer_name', 'like', $like)
+                              ->orWhere('customer_phone', 'like', $like)
+                              ->orWhere('customer_org', 'like', $like)
+                              ->orWhere('notes', 'like', $like);
+                        });
+                    })
+                    ->latest('bill_date')
+                    ->latest('id');
+
+                $bills = $billsQuery->take(200)->get();
+                $normBills = $bills->map(fn($b) => $this->normalizeAccountingRecord('bill', $b, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normBills);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub bills query error: ' . $e->getMessage());
+            }
+        }
+
+        // --- Stream F: Supplier Purchases (Press, Paper, Books) ---
+        if (in_array($stream, ['all', 'expense', 'purchases']) && Schema::hasTable('publisher_purchases')) {
+            try {
+                $purchasesQuery = PublisherPurchase::query()
+                    ->with('publisher')
+                    ->when($paymentStatus, function($q, $st) {
+                        if ($st === 'paid') $q->where('payment_status', 'paid');
+                        elseif ($st === 'unpaid') $q->where('payment_status', '!=', 'paid')->where('due_amount', '>', 0);
+                        elseif ($st === 'partial') $q->where('paid_amount', '>', 0)->where('due_amount', '>', 0);
+                    })
+                    ->when($paymentMethod, fn($q) => $q->where('payment_type', 'like', "%{$paymentMethod}%"))
+                    ->when($dateFrom, fn($q) => $q->whereDate('purchase_date', '>=', $dateFrom))
+                    ->when($dateTo, fn($q) => $q->whereDate('purchase_date', '<=', $dateTo))
+                    ->when($search, function ($q, $term) {
+                        $like = '%' . $term . '%';
+                        $q->where(function ($w) use ($like) {
+                            $w->where('purchase_no', 'like', $like)
+                              ->orWhere('vendor_name', 'like', $like)
+                              ->orWhere('supplier_name', 'like', $like)
+                              ->orWhere('vendor_phone', 'like', $like)
+                              ->orWhere('publisher_memo_no', 'like', $like);
+                        });
+                    })
+                    ->latest('purchase_date')
+                    ->latest('id');
+
+                $purchases = $purchasesQuery->take(200)->get();
+                $normPurchases = $purchases->map(fn($p) => $this->normalizeAccountingRecord('purchase', $p, $syncedOrdersMap));
+                $itemsCollection = $itemsCollection->concat($normPurchases);
+            } catch (\Throwable $e) {
+                Log::warning('Accounting Hub purchases query error: ' . $e->getMessage());
+            }
+        }
+
+        // Sort unified stream by date descending
+        $sortedItems = $itemsCollection->sortByDesc(fn($r) => $r->date ? $r->date->timestamp : 0)->values();
+
+        // Paginate unified stream (25 items per page)
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 25;
+        $currentPageItems = $sortedItems->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $paginatedRecords = new \Illuminate\Pagination\LengthAwarePaginator(
+            $currentPageItems,
+            $sortedItems->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
+        // 3. Live Deduplicated KPI Statistics
+        $invoicesTotal = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total');
+        $invoicesPaid = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount');
+        $invoicesDue = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount');
+        $invoicesCount = IdeaInvoice::count();
+
+        $hasOrders = Schema::hasTable('orders');
+        $allOrdersCount = $hasOrders ? Order::count() : 0;
+        $unsyncedOrdersQuery = $hasOrders ? Order::whereNotIn('order_number', $syncedOrderNumbers) : null;
+        $unsyncedOrdersAmount = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->sum('total_amount') : 0.0;
+        $unsyncedOrdersPaid = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->where('payment_status', 'paid')->sum('total_amount') : 0.0;
+        $unsyncedOrdersDue = $unsyncedOrdersQuery ? (float) (clone $unsyncedOrdersQuery)->where('payment_status', '!=', 'paid')->sum('total_amount') : 0.0;
+        $allOrdersAmount = $hasOrders ? (float) Order::sum('total_amount') : 0.0;
+        $syncedOrdersCount = count($syncedOrderNumbers);
+
+        $hasPos = Schema::hasTable('pos_sales');
+        $posCount = $hasPos ? PosSale::where('status', '!=', 'voided')->count() : 0;
+        $posAmount = $hasPos ? (float) PosSale::where('status', '!=', 'voided')->sum('total') : 0.0;
+        $posPaid = $hasPos ? (float) PosSale::where('status', '!=', 'voided')->sum(DB::raw('paid_cash + paid_online')) : 0.0;
+        $posDue = max(0.0, $posAmount - $posPaid);
+
+        $hasBills = Schema::hasTable('bills');
+        $billsCount = $hasBills ? Bill::count() : 0;
+        $billsAmount = $hasBills ? (float) Bill::sum('total') : 0.0;
+        $billsPaid = $hasBills ? (float) Bill::sum('paid_amount') : 0.0;
+        $billsDue = $hasBills ? (float) Bill::sum('due_amount') : 0.0;
+
+        $hasEntries = Schema::hasTable('idea_accounting_entries');
+        $incomeLedgerTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->sum('amount') : 0.0;
+        $expenseLedgerTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'expense')->sum('amount') : 0.0;
+        $incomeCount = $hasEntries ? IdeaAccountingEntry::where('type', 'income')->count() : 0;
+        $expenseCount = $hasEntries ? IdeaAccountingEntry::where('type', 'expense')->count() : 0;
+        $directIncomeTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->whereNull('invoice_id')->sum('amount') : 0.0;
+
+        $hasPurchases = Schema::hasTable('publisher_purchases');
+        $purchasesCount = $hasPurchases ? PublisherPurchase::count() : 0;
+        $purchasesAmount = $hasPurchases ? (float) PublisherPurchase::sum('grand_total') : 0.0;
+        $purchasesPaid = $hasPurchases ? (float) PublisherPurchase::sum('paid_amount') : 0.0;
+        $purchasesDue = $hasPurchases ? (float) PublisherPurchase::sum('due_amount') : 0.0;
+
+        // Grand KPI Aggregations (100% Deduplicated!)
+        $totalTurnover = $invoicesTotal + $unsyncedOrdersAmount + $posAmount + $billsAmount;
+        $totalCollected = $invoicesPaid + $unsyncedOrdersPaid + $posPaid + $billsPaid + $directIncomeTotal;
+        $totalDue = $invoicesDue + $unsyncedOrdersDue + $posDue + $billsDue;
+        $totalExpenses = $expenseLedgerTotal + $purchasesAmount;
+        $netBalance = $totalCollected - $totalExpenses;
+
+        // Today & This Month KPIs
         $today = Carbon::today();
         $thisMonth = Carbon::now();
-
         $todayIncome = (float) IdeaAccountingEntry::where('type', 'income')->whereDate('entry_date', $today)->sum('amount');
         $todayExpense = (float) IdeaAccountingEntry::where('type', 'expense')->whereDate('entry_date', $today)->sum('amount');
-
-        $thisMonthIncome = (float) IdeaAccountingEntry::where('type', 'income')
-            ->whereYear('entry_date', $thisMonth->year)
-            ->whereMonth('entry_date', $thisMonth->month)
-            ->sum('amount');
-        $thisMonthExpense = (float) IdeaAccountingEntry::where('type', 'expense')
-            ->whereYear('entry_date', $thisMonth->year)
-            ->whereMonth('entry_date', $thisMonth->month)
-            ->sum('amount');
+        $thisMonthIncome = (float) IdeaAccountingEntry::where('type', 'income')->whereYear('entry_date', $thisMonth->year)->whereMonth('entry_date', $thisMonth->month)->sum('amount');
+        $thisMonthExpense = (float) IdeaAccountingEntry::where('type', 'expense')->whereYear('entry_date', $thisMonth->year)->whereMonth('entry_date', $thisMonth->month)->sum('amount');
         $thisMonthNet = $thisMonthIncome - $thisMonthExpense;
 
-        // Invoice stats overview
-        $totalInvoiced = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total');
-        $totalInvoicePaid = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount');
-        $totalInvoiceDue = (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount');
-
         $categories = IdeaAccountingEntry::categories();
-
-        // Sector wise expense breakdown
         $expenseBreakdown = IdeaAccountingEntry::where('type', 'expense')
             ->select('category', DB::raw('SUM(amount) as total'))
             ->groupBy('category')
             ->orderByDesc('total')
             ->take(8)
             ->get();
-
-        // Sector wise income breakdown
         $incomeBreakdown = IdeaAccountingEntry::where('type', 'income')
             ->select('category', DB::raw('SUM(amount) as total'))
             ->groupBy('category')
@@ -102,34 +372,83 @@ class IdeaAccountingController extends Controller
             ->take(6)
             ->get();
 
-        // 6-month historical trend for visual chart
+        // 6-month Trend for Chart
         $trendMonths = [];
         $trendIncome = [];
         $trendExpense = [];
         for ($i = 5; $i >= 0; $i--) {
             $m = Carbon::now()->subMonths($i);
             $trendMonths[] = $m->format('M Y');
+            $trendIncome[] = (float) IdeaAccountingEntry::where('type', 'income')
+                ->whereYear('entry_date', $m->year)->whereMonth('entry_date', $m->month)->sum('amount');
+            $trendExpense[] = (float) IdeaAccountingEntry::where('type', 'expense')
+                ->whereYear('entry_date', $m->year)->whereMonth('entry_date', $m->month)->sum('amount');
+        }
 
-            $inc = (float) IdeaAccountingEntry::where('type', 'income')
-                ->whereYear('entry_date', $m->year)
-                ->whereMonth('entry_date', $m->month)
-                ->sum('amount');
-            $exp = (float) IdeaAccountingEntry::where('type', 'expense')
-                ->whereYear('entry_date', $m->year)
-                ->whereMonth('entry_date', $m->month)
-                ->sum('amount');
+        $stats = [
+            'total_turnover'       => $totalTurnover,
+            'total_collected'      => $totalCollected,
+            'total_due'            => $totalDue,
+            'total_expenses'       => $totalExpenses,
+            'net_balance'          => $netBalance,
+            'all_count'            => $incomeCount + $expenseCount + $invoicesCount + $allOrdersCount + $posCount + $billsCount + $purchasesCount,
+            'income_count'         => $incomeCount,
+            'expense_count'        => $expenseCount + $purchasesCount,
+            'online_count'         => $allOrdersCount,
+            'online_synced_count'  => $syncedOrdersCount,
+            'online_unsynced_count'=> max(0, $allOrdersCount - $syncedOrdersCount),
+            'offline_count'        => $posCount + $billsCount,
+            'pos_count'            => $posCount,
+            'bills_count'          => $billsCount,
+            'invoices_count'       => $invoicesCount,
+            'purchases_count'      => $purchasesCount,
+            'invoices_total'       => $invoicesTotal,
+            'invoices_paid'        => $invoicesPaid,
+            'invoices_due'         => $invoicesDue,
+            'orders_total'         => $allOrdersAmount,
+            'pos_total'            => $posAmount,
+            'pos_paid'             => $posPaid,
+            'pos_due'              => $posDue,
+            'bills_total'          => $billsAmount,
+            'bills_paid'           => $billsPaid,
+            'bills_due'            => $billsDue,
+            'purchases_total'      => $purchasesAmount,
+            'purchases_paid'       => $purchasesPaid,
+            'purchases_due'        => $purchasesDue,
+            'today_income'         => $todayIncome,
+            'today_expense'        => $todayExpense,
+            'this_month_income'    => $thisMonthIncome,
+            'this_month_expense'   => $thisMonthExpense,
+            'this_month_net'       => $thisMonthNet,
+        ];
 
-            $trendIncome[] = $inc;
-            $trendExpense[] = $exp;
+        // Legacy compatibility variables for existing partials/modals
+        $entries = $paginatedRecords;
+        $totalIncome = $incomeLedgerTotal;
+        $totalExpense = $totalExpenses;
+        $totalInvoiced = $invoicesTotal;
+        $totalInvoicePaid = $invoicesPaid;
+        $totalInvoiceDue = $invoicesDue;
+        $invoiceSettings = self::getInvoiceSettings();
+
+        // AJAX response for snappy instant live search & tab switching
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'count'   => $paginatedRecords->total(),
+                'stats'   => $stats,
+                'html'    => view('admin.accounting.partials.table_rows', ['records' => $paginatedRecords])->render(),
+                'pagination' => (string) $paginatedRecords->links('pagination::bootstrap-5'),
+            ]);
         }
 
         return view('admin.accounting.index', compact(
-            'entries', 'totalIncome', 'totalExpense', 'netBalance',
-            'todayIncome', 'todayExpense', 'thisMonthIncome', 'thisMonthExpense', 'thisMonthNet',
-            'totalInvoiced', 'totalInvoicePaid', 'totalInvoiceDue',
-            'categories', 'expenseBreakdown', 'incomeBreakdown',
-            'trendMonths', 'trendIncome', 'trendExpense',
-            'type', 'category', 'search', 'dateFrom', 'dateTo', 'paymentMethod'
+            'paginatedRecords', 'entries', 'stats', 'stream', 'search', 'datePreset',
+            'dateFrom', 'dateTo', 'paymentStatus', 'paymentMethod', 'category', 'type',
+            'totalIncome', 'totalExpense', 'netBalance', 'todayIncome', 'todayExpense',
+            'thisMonthIncome', 'thisMonthExpense', 'thisMonthNet', 'totalInvoiced',
+            'totalInvoicePaid', 'totalInvoiceDue', 'categories', 'expenseBreakdown',
+            'incomeBreakdown', 'trendMonths', 'trendIncome', 'trendExpense', 'invoiceSettings'
         ));
     }
 
@@ -223,88 +542,493 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Invoices & Challans List (বিল ও চালান তালিকা).
+     * Invoices Route Alias -> Dynamic Central Hub.
+     * সমস্ত ইনভয়েস ও মেমো রিকোয়েস্টকে কেন্দ্রীয় একক ডাইনামিক রুটে রিডাইরেক্ট করে।
      */
-    public function invoices(Request $request): View
+    public function invoices(Request $request): mixed
     {
-        $type = $request->input('type');
-        $salesCategory = $request->input('sales_category');
-        $status = $request->input('payment_status');
-        $search = $request->input('search');
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
+        return redirect()->route('admin.accounting.index', array_merge(['stream' => 'invoices'], $request->all()));
+    }
 
-        $query = IdeaInvoice::query()
-            ->with('creator')
-            ->when($type, fn($q) => $q->where('type', $type))
-            ->when($salesCategory && in_array($salesCategory, ['books', 'stationery', 'printing_goods', 'other']), function($q) use ($salesCategory) {
-                if ($salesCategory === 'books') {
-                    $q->where(fn($sub) => $sub->where('sales_category', 'books')->orWhereNull('sales_category'));
-                } else {
-                    $q->where('sales_category', $salesCategory);
-                }
-            })
-            ->when($status, fn($q) => $q->where('payment_status', $status))
-            ->when($dateFrom, fn($q) => $q->whereDate('invoice_date', '>=', $dateFrom))
-            ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
-            ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
-                $q->where(function ($w) use ($like) {
-                    $w->where('invoice_no', 'like', $like)
-                      ->orWhere('customer_name', 'like', $like)
-                      ->orWhere('customer_org', 'like', $like)
-                      ->orWhere('customer_phone', 'like', $like)
-                      ->orWhere('customer_email', 'like', $like)
-                      ->orWhere('reference_no', 'like', $like)
-                      ->orWhere('subject', 'like', $like)
-                      ->orWhere('notes', 'like', $like)
-                      ->orWhere('items', 'like', $like);
-                });
-            })
-            ->latest('invoice_date')
-            ->latest('id');
+    /**
+     * Unified Normalization Engine for All Accounting, Billing & Ledger Records.
+     * সকল আয়, ব্যয়, অনলাইন ও অফলাইন বিলিং রেকর্ডকে একটি ইউনিফায়েড অবজেক্টে রূপান্তর করে।
+     */
+    protected function normalizeAccountingRecord(string $stream, mixed $item, array $syncedOrdersMap = []): object
+    {
+        if ($stream === 'entry') {
+            $isIncome = ($item->type === 'income');
+            $date = $item->entry_date ? Carbon::parse($item->entry_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);
+            $amount = (float) $item->amount;
 
-        $invoices = $query->paginate(20)->withQueryString();
+            return (object) [
+                'id'                      => $item->id,
+                'global_id'               => 'entry_' . $item->id,
+                'stream'                  => $isIncome ? 'income' : 'expense',
+                'stream_label'            => $isIncome ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি',
+                'stream_badge_class'      => $isIncome ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle',
+                'channel'                 => 'ledger',
+                'channel_label'           => $isIncome ? 'ক্যাশ খতিয়ান (আয়)' : 'অপারেশন খরচ (ব্যয়)',
+                'channel_badge_class'     => $isIncome ? 'badge-income' : 'badge-expense',
+                'doc_no'                  => $item->entry_no ?: ('ENT-' . $item->id),
+                'invoice_no'              => $item->entry_no ?: ('ENT-' . $item->id),
+                'doc_type'                => $isIncome ? 'আয় ভাউচার' : 'ব্যয় ভাউচার',
+                'doc_icon'                => $isIncome ? 'fa-solid fa-arrow-trend-up text-success' : 'fa-solid fa-arrow-trend-down text-danger',
+                'reference_no'            => $item->voucher_no,
+                'date'                    => $date,
+                'invoice_date'            => $date,
+                'party_name'              => $item->party_name ?: ($isIncome ? 'স্বত্বাধিকারী / ক্রেতা' : 'অফিস / সরবরাহকারী'),
+                'customer_name'           => $item->party_name ?: ($isIncome ? 'স্বত্বাধিকারী / ক্রেতা' : 'অফিস / সরবরাহকারী'),
+                'party_phone'             => null,
+                'customer_phone'          => null,
+                'party_org'               => null,
+                'customer_org'            => null,
+                'party_address'           => null,
+                'customer_address'        => null,
+                'category'                => $item->category ?: ($isIncome ? 'সাধারণ আয়' : 'বিবিধ খরচ'),
+                'sales_category'          => 'ledger',
+                'category_label'          => $item->category ?: ($isIncome ? 'সাধারণ আয়' : 'বিবিধ খরচ'),
+                'items_count'             => 1,
+                'items_summary'           => $item->title,
+                'total_amount'            => $amount,
+                'grand_total'             => $amount,
+                'paid_amount'             => $amount,
+                'due_amount'              => 0.0,
+                'payment_method'          => $item->payment_method ?: 'Cash',
+                'payment_status'          => 'paid',
+                'is_online_order'         => false,
+                'online_order_number'     => null,
+                'is_synced'               => false,
+                'synced_invoice_no'       => null,
+                'synced_invoice_id'       => null,
+                'can_sync_invoice'        => false,
+                'sync_url'                => null,
+                'view_url'                => null,
+                'edit_url'                => null,
+                'print_url'               => null,
+                'receipt_url'             => null,
+                'quick_pay_url'           => null,
+                'delete_url'              => route('admin.accounting.entries.destroy', $item->id),
+                'notes'                   => $item->notes,
+                'raw_model'               => $item,
+            ];
+        }
 
-        $stats = [
-            'total_invoices'   => IdeaInvoice::count(),
-            'total_bills'      => IdeaInvoice::where('type', 'invoice')->count(),
-            'total_challans'   => IdeaInvoice::where('type', 'challan')->count(),
-            'total_quotations' => IdeaInvoice::where('type', 'quotation')->count(),
-            'total_tenders'    => IdeaInvoice::where('type', 'tender')->count(),
-            'books_count'      => IdeaInvoice::where(fn($q) => $q->where('sales_category', 'books')->orWhereNull('sales_category'))->count(),
-            'stationery_count' => IdeaInvoice::where('sales_category', 'stationery')->count(),
-            'printing_count'   => IdeaInvoice::where('sales_category', 'printing_goods')->count(),
-            'other_count'      => IdeaInvoice::where('sales_category', 'other')->count(),
-            'total_amount'     => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('grand_total'),
-            'total_paid'       => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('paid_amount'),
-            'total_due'        => (float) IdeaInvoice::whereIn('type', ['invoice', 'challan'])->sum('due_amount'),
+        if ($stream === 'order') {
+            $bookTitle = $item->book?->title ?? 'বই অর্ডার';
+            $paid = ($item->payment_status === 'paid') ? (float) $item->total_amount : 0.0;
+            $due = max(0.0, (float) $item->total_amount - $paid);
+            $payStatus = ($due <= 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
+            $date = $item->created_at ? Carbon::parse($item->created_at) : null;
+            $docNo = $item->order_number ?: ('ORD-' . $item->id);
 
-            // Folder-specific Metrics
-            'bills_amount'     => (float) IdeaInvoice::where('type', 'invoice')->sum('grand_total'),
-            'bills_paid'       => (float) IdeaInvoice::where('type', 'invoice')->sum('paid_amount'),
-            'bills_due'        => (float) IdeaInvoice::where('type', 'invoice')->sum('due_amount'),
+            $syncedInv = $syncedOrdersMap[$item->order_number] ?? null;
+            $isSynced = !empty($syncedInv);
 
-            'challans_amount'      => (float) IdeaInvoice::where('type', 'challan')->sum('grand_total'),
-            'challans_paid'        => (float) IdeaInvoice::where('type', 'challan')->sum('paid_amount'),
-            'challans_due'         => (float) IdeaInvoice::where('type', 'challan')->sum('due_amount'),
-            'challans_books_count' => IdeaInvoice::where('type', 'challan')->where(fn($q) => $q->where('sales_category', 'books')->orWhereNull('sales_category'))->count(),
-            'challans_other_count' => IdeaInvoice::where('type', 'challan')->where('sales_category', '!=', 'books')->count(),
+            return (object) [
+                'id'                      => $item->id,
+                'global_id'               => 'ord_' . $item->id,
+                'stream'                  => 'online',
+                'stream_label'            => 'অনলাইন অর্ডার',
+                'stream_badge_class'      => 'bg-success-subtle text-success border border-success-subtle',
+                'channel'                 => 'online',
+                'channel_label'           => 'অনলাইন শপ (Online)',
+                'channel_badge_class'     => 'bg-success-subtle text-success border border-success-subtle',
+                'doc_no'                  => $docNo,
+                'invoice_no'              => $docNo,
+                'doc_type'                => 'অনলাইন কাস্টমার অর্ডার',
+                'doc_icon'                => 'fa-solid fa-cart-shopping text-success',
+                'reference_no'            => $item->transaction_id ?: $item->tracking_code,
+                'date'                    => $date,
+                'invoice_date'            => $date,
+                'party_name'              => $item->customer_name ?: 'অনলাইন ক্রেতা',
+                'customer_name'           => $item->customer_name ?: 'অনলাইন ক্রেতা',
+                'party_phone'             => $item->customer_phone,
+                'customer_phone'          => $item->customer_phone,
+                'party_org'               => $item->district ? "জেলা: {$item->district}" : null,
+                'customer_org'            => $item->district ? "জেলা: {$item->district}" : null,
+                'party_address'           => $item->customer_address,
+                'customer_address'        => $item->customer_address,
+                'category'                => 'books',
+                'sales_category'          => 'books',
+                'category_label'          => 'বই ও প্রকাশনা',
+                'items_count'             => (int) ($item->quantity ?: 1),
+                'items_summary'           => "{$bookTitle} (পরিমাণ: " . ($item->quantity ?: 1) . ")",
+                'total_amount'            => (float) $item->total_amount,
+                'grand_total'             => (float) $item->total_amount,
+                'paid_amount'             => $paid,
+                'due_amount'              => $due,
+                'payment_method'          => $item->payment_method ?: 'cod',
+                'payment_status'          => $payStatus,
+                'is_online_order'         => true,
+                'online_order_number'     => $item->order_number,
+                'is_synced'               => $isSynced,
+                'synced_invoice_no'       => $syncedInv?->invoice_no,
+                'synced_invoice_id'       => $syncedInv?->id,
+                'can_sync_invoice'        => !$isSynced,
+                'sync_url'                => route('admin.accounting.invoices.sync-order', $item->id),
+                'view_url'                => route('admin.ecommerce-orders.show', $item->id),
+                'edit_url'                => null,
+                'print_url'               => route('admin.ecommerce-orders.slip', $item->id),
+                'receipt_url'             => route('admin.ecommerce-orders.invoice', $item->id),
+                'quick_pay_url'           => null,
+                'delete_url'              => null,
+                'notes'                   => $item->admin_notes ?: ($item->tracking_code ? "ট্র্যাকিং: {$item->tracking_code}" : null),
+                'raw_model'               => $item,
+            ];
+        }
 
-            'quotations_amount'  => (float) IdeaInvoice::where('type', 'quotation')->sum('grand_total'),
-            'quotations_active'  => IdeaInvoice::where('type', 'quotation')->where(fn($q) => $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()))->count(),
-            'quotations_expired' => IdeaInvoice::where('type', 'quotation')->whereNotNull('valid_until')->whereDate('valid_until', '<', now())->count(),
+        if ($stream === 'pos') {
+            $paid = (float) ($item->paid_cash + $item->paid_online);
+            $total = (float) $item->total;
+            $due = max(0.0, $total - $paid);
+            $payStatus = ($item->status === 'voided') ? 'unpaid' : ($due <= 0.001 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid'));
+            $date = $item->created_at ? Carbon::parse($item->created_at) : null;
+            $docNo = $item->receipt_no ?: ('POS-' . $item->id);
+            $cashierName = $item->cashier?->name ?? 'স্টল অপারেটর';
 
-            'tenders_amount' => (float) IdeaInvoice::where('type', 'tender')->sum('grand_total'),
-            'tenders_active' => IdeaInvoice::where('type', 'tender')->where(fn($q) => $q->whereNull('valid_until')->orWhereDate('valid_until', '>=', now()))->count(),
-            'tenders_orgs'   => IdeaInvoice::where('type', 'tender')->whereNotNull('customer_org')->where('customer_org', '!=', '')->distinct('customer_org')->count('customer_org'),
+            return (object) [
+                'id'                      => $item->id,
+                'global_id'               => 'pos_' . $item->id,
+                'stream'                  => 'offline',
+                'stream_label'            => 'অফলাইন POS বিক্রয়',
+                'stream_badge_class'      => 'bg-warning-subtle text-dark border border-warning-subtle',
+                'channel'                 => 'offline_pos',
+                'channel_label'           => 'বইমেলা স্টল (POS)',
+                'channel_badge_class'     => 'bg-warning-subtle text-dark border border-warning-subtle',
+                'doc_no'                  => $docNo,
+                'invoice_no'              => $docNo,
+                'doc_type'                => 'বইমেলা স্টল POS বিক্রয়',
+                'doc_icon'                => 'fa-solid fa-cash-register text-warning',
+                'reference_no'            => $item->trx_id,
+                'date'                    => $date,
+                'invoice_date'            => $date,
+                'party_name'              => $item->customer_name ?: 'কাউন্টার ক্রেতা (Walk-in)',
+                'customer_name'           => $item->customer_name ?: 'কাউন্টার ক্রেতা (Walk-in)',
+                'party_phone'             => $item->customer_phone,
+                'customer_phone'          => $item->customer_phone,
+                'party_org'               => "ক্যাশিয়ার: {$cashierName}",
+                'customer_org'            => "ক্যাশিয়ার: {$cashierName}",
+                'party_address'           => 'অমর একুশে বইমেলা স্টল',
+                'customer_address'        => 'অমর একুশে বইমেলা স্টল',
+                'category'                => 'books',
+                'sales_category'          => 'books',
+                'category_label'          => 'বই ও প্রকাশনা',
+                'items_count'             => is_array($item->items_json) ? count($item->items_json) : 1,
+                'items_summary'           => is_array($item->items_json) ? count($item->items_json) . 'টি বই বিক্রয়' : 'বই বিক্রয়',
+                'total_amount'            => $total,
+                'grand_total'             => $total,
+                'paid_amount'             => $paid,
+                'due_amount'              => $due,
+                'payment_method'          => $item->payment_method ?: 'Cash',
+                'payment_status'          => $payStatus,
+                'is_online_order'         => false,
+                'online_order_number'     => null,
+                'is_synced'               => false,
+                'synced_invoice_no'       => null,
+                'synced_invoice_id'       => null,
+                'can_sync_invoice'        => false,
+                'sync_url'                => null,
+                'view_url'                => route('admin.pos.receipt', $item->id),
+                'edit_url'                => null,
+                'print_url'               => route('admin.pos.receipt', $item->id),
+                'receipt_url'             => route('admin.pos.receipt', $item->id),
+                'quick_pay_url'           => null,
+                'delete_url'              => null,
+                'notes'                   => $item->notes,
+                'raw_model'               => $item,
+            ];
+        }
+
+        if ($stream === 'bill') {
+            $sellerName = $item->seller?->name ?? 'সেলার স্টোর';
+            $paid = (float) $item->paid_amount;
+            $due = (float) $item->due_amount;
+            $payStatus = ($due <= 0.001 && $item->total > 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
+            $date = $item->bill_date ? Carbon::parse($item->bill_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);
+            $docNo = $item->bill_no ?: ('BILL-' . $item->id);
+
+            return (object) [
+                'id'                      => $item->id,
+                'global_id'               => 'bill_' . $item->id,
+                'stream'                  => 'offline',
+                'stream_label'            => 'সেলার বিল',
+                'stream_badge_class'      => 'bg-info-subtle text-info-emphasis border border-info-subtle',
+                'channel'                 => 'offline_bill',
+                'channel_label'           => 'সেলার স্টোর (Store)',
+                'channel_badge_class'     => 'bg-info-subtle text-info-emphasis border border-info-subtle',
+                'doc_no'                  => $docNo,
+                'invoice_no'              => $docNo,
+                'doc_type'                => 'সেলার স্টোর বিক্রয় বিল',
+                'doc_icon'                => 'fa-solid fa-store text-info',
+                'reference_no'            => $item->reference_no,
+                'date'                    => $date,
+                'invoice_date'            => $date,
+                'party_name'              => $item->customer_name ?: $sellerName,
+                'customer_name'           => $item->customer_name ?: $sellerName,
+                'party_phone'             => $item->customer_phone,
+                'customer_phone'          => $item->customer_phone,
+                'party_org'               => "সেলার: {$sellerName}",
+                'customer_org'            => "সেলার: {$sellerName}",
+                'party_address'           => $item->customer_address,
+                'customer_address'        => $item->customer_address,
+                'category'                => 'books',
+                'sales_category'          => 'books',
+                'category_label'          => 'বই ও স্টেশনারি',
+                'items_count'             => is_array($item->items) ? count($item->items) : 1,
+                'items_summary'           => is_array($item->items) ? count($item->items) . 'টি আইটেম' : 'বিক্রয় বিল',
+                'total_amount'            => (float) $item->total,
+                'grand_total'             => (float) $item->total,
+                'paid_amount'             => $paid,
+                'due_amount'              => $due,
+                'payment_method'          => $item->payment_method ?: 'cash',
+                'payment_status'          => $payStatus,
+                'is_online_order'         => false,
+                'online_order_number'     => null,
+                'is_synced'               => false,
+                'synced_invoice_no'       => null,
+                'synced_invoice_id'       => null,
+                'can_sync_invoice'        => false,
+                'sync_url'                => null,
+                'view_url'                => route('subadmin.bills.show', $item->id),
+                'edit_url'                => route('subadmin.bills.edit', $item->id),
+                'print_url'               => route('subadmin.bills.receipt', $item->id),
+                'receipt_url'             => route('subadmin.bills.receipt', $item->id),
+                'quick_pay_url'           => route('subadmin.bills.quick-pay', $item->id),
+                'delete_url'              => route('subadmin.bills.destroy', $item->id),
+                'notes'                   => $item->notes,
+                'raw_model'               => $item,
+            ];
+        }
+
+        if ($stream === 'purchase') {
+            $supplierName = $item->party_name ?: 'সরবরাহকারী';
+            $paid = (float) $item->paid_amount;
+            $due = (float) $item->due_amount;
+            $payStatus = ($due <= 0.001 && $item->grand_total > 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
+            $date = $item->purchase_date ? Carbon::parse($item->purchase_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);
+            $docNo = $item->purchase_no ?: ('PUR-' . $item->id);
+
+            return (object) [
+                'id'                      => $item->id,
+                'global_id'               => 'pur_' . $item->id,
+                'stream'                  => 'purchases',
+                'stream_label'            => 'প্রেস ও সাপ্লায়ার',
+                'stream_badge_class'      => 'bg-purple-subtle text-purple border border-purple-subtle',
+                'channel'                 => 'supplier',
+                'channel_label'           => 'প্রেস ও সাপ্লায়ার (Press)',
+                'channel_badge_class'     => 'bg-purple-subtle text-purple border border-purple-subtle',
+                'doc_no'                  => $docNo,
+                'invoice_no'              => $docNo,
+                'doc_type'                => 'প্রেস ও সাপ্লায়ার ক্রয়',
+                'doc_icon'                => 'fa-solid fa-boxes-packing text-purple',
+                'reference_no'            => $item->publisher_memo_no,
+                'date'                    => $date,
+                'invoice_date'            => $date,
+                'party_name'              => $supplierName,
+                'customer_name'           => $supplierName,
+                'party_phone'             => $item->party_phone,
+                'customer_phone'          => $item->party_phone,
+                'party_org'               => $item->vendor_name ?: $item->supplier_name,
+                'customer_org'            => $item->vendor_name ?: $item->supplier_name,
+                'party_address'           => $item->vendor_address,
+                'customer_address'        => $item->vendor_address,
+                'category'                => $item->purchase_category ?: 'books',
+                'sales_category'          => $item->purchase_category ?: 'books',
+                'category_label'          => 'কাঁচামাল ও বই ক্রয়',
+                'items_count'             => 1,
+                'items_summary'           => 'প্রকাশক ও প্রেস সরবরাহ বিল',
+                'total_amount'            => (float) $item->grand_total,
+                'grand_total'             => (float) $item->grand_total,
+                'paid_amount'             => $paid,
+                'due_amount'              => $due,
+                'payment_method'          => $item->payment_type ?: 'cash',
+                'payment_status'          => $payStatus,
+                'is_online_order'         => false,
+                'online_order_number'     => null,
+                'is_synced'               => false,
+                'synced_invoice_no'       => null,
+                'synced_invoice_id'       => null,
+                'can_sync_invoice'        => false,
+                'sync_url'                => null,
+                'view_url'                => route('admin.purchases.show', $item->id),
+                'edit_url'                => route('admin.purchases.edit', $item->id),
+                'print_url'               => route('admin.purchases.show', $item->id),
+                'receipt_url'             => route('admin.purchases.show', $item->id),
+                'quick_pay_url'           => null,
+                'delete_url'              => route('admin.purchases.destroy', $item->id),
+                'notes'                   => $item->notes,
+                'raw_model'               => $item,
+            ];
+        }
+
+        // Default: Institutional Invoices (IdeaInvoice)
+        $isOnlineOrder = !empty($item->reference_no) && isset($syncedOrdersMap[$item->reference_no]);
+        $typeLabel = match($item->type) {
+            'challan'   => 'ডেলিভারি চালান',
+            'quotation' => 'দর কোটেশন',
+            'tender'    => 'টেন্ডার প্রস্তাবনা',
+            default     => ($isOnlineOrder ? 'অনলাইন অর্ডার ইনভয়েস' : 'বিক্রয় ইনভয়েস / ক্যাশ মেমো'),
+        };
+        $icon = match($item->type) {
+            'challan'   => 'fa-solid fa-truck text-success',
+            'quotation' => 'fa-solid fa-file-lines text-warning',
+            'tender'    => 'fa-solid fa-landmark text-primary',
+            default     => ($isOnlineOrder ? 'fa-solid fa-cart-shopping text-success' : 'fa-solid fa-receipt text-primary'),
+        };
+        $date = $item->invoice_date ? Carbon::parse($item->invoice_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);
+
+        return (object) [
+            'id'                      => $item->id,
+            'global_id'               => 'inv_' . $item->id,
+            'stream'                  => 'invoices',
+            'stream_label'            => $isOnlineOrder ? 'অনলাইন ইনভয়েস' : 'প্রাতিষ্ঠানিক',
+            'stream_badge_class'      => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
+            'channel'                 => $isOnlineOrder ? 'online_invoiced' : 'institutional',
+            'channel_label'           => $isOnlineOrder ? 'অনলাইন শপ (সিঙ্কড)' : 'প্রাতিষ্ঠানিক (Invoice)',
+            'channel_badge_class'     => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
+            'doc_no'                  => $item->invoice_no,
+            'invoice_no'              => $item->invoice_no,
+            'doc_type'                => $typeLabel,
+            'doc_icon'                => $icon,
+            'reference_no'            => $item->reference_no,
+            'date'                    => $date,
+            'invoice_date'            => $date,
+            'party_name'              => $item->customer_name ?: 'সম্মানিত গ্রাহক',
+            'customer_name'           => $item->customer_name ?: 'সম্মানিত গ্রাহক',
+            'party_phone'             => $item->customer_phone,
+            'customer_phone'          => $item->customer_phone,
+            'party_org'               => $item->customer_org,
+            'customer_org'            => $item->customer_org,
+            'party_address'           => $item->customer_address,
+            'customer_address'        => $item->customer_address,
+            'category'                => $item->sales_category ?: 'books',
+            'sales_category'          => $item->sales_category ?: 'books',
+            'category_label'          => $item->category_label ?? 'বই ও প্রকাশনা',
+            'items_count'             => is_array($item->items) ? count($item->items) : 1,
+            'items_summary'           => is_array($item->items) ? count($item->items) . 'টি আইটেম' : ($item->subject ?: 'বিক্রয় ইনভয়েস'),
+            'total_amount'            => (float) $item->grand_total,
+            'grand_total'             => (float) $item->grand_total,
+            'paid_amount'             => (float) $item->paid_amount,
+            'due_amount'              => (float) $item->due_amount,
+            'payment_method'          => $item->payment_method ?: 'cash',
+            'payment_status'          => $item->payment_status ?: 'unpaid',
+            'is_online_order'         => $isOnlineOrder,
+            'online_order_number'     => $item->reference_no,
+            'is_synced'               => true,
+            'synced_invoice_no'       => $item->invoice_no,
+            'synced_invoice_id'       => $item->id,
+            'can_sync_invoice'        => false,
+            'sync_url'                => null,
+            'view_url'                => route('admin.accounting.invoices.show', $item->id),
+            'edit_url'                => route('admin.accounting.invoices.edit', $item->id),
+            'print_url'               => route('admin.accounting.invoices.show', $item->id),
+            'receipt_url'             => route('admin.accounting.invoices.show', $item->id),
+            'quick_pay_url'           => route('admin.accounting.invoices.quick-payment', $item->id),
+            'delete_url'              => route('admin.accounting.invoices.destroy', $item->id),
+            'notes'                   => $item->notes,
+            'raw_model'               => $item,
+        ];
+    }
+
+    /**
+     * Convert an online customer order into an official Idea Invoice & Memo.
+     */
+    public function syncOrderToInvoice(Order $order): RedirectResponse
+    {
+        $existing = IdeaInvoice::where('reference_no', $order->order_number)->first();
+        if ($existing) {
+            return redirect()->route('admin.accounting.invoices.show', $existing->id)
+                ->with('info', "এই অর্ডারের জন্য ইতিমধ্যে ইনভয়েস #{$existing->invoice_no} তৈরি করা আছে।");
+        }
+
+        $book = $order->book;
+        $unitPrice = (float)($order->unit_price > 0 ? $order->unit_price : ($order->quantity > 0 ? $order->total_amount / $order->quantity : $order->total_amount));
+        $qty = (float)($order->quantity ?: 1);
+
+        $items = [
+            [
+                'title'            => $book?->title ?? 'বই / প্রকাশনা অর্ডার',
+                'author_name'      => $book?->author_name ?? '',
+                'item_type'        => 'Book',
+                'unit'             => 'Copy',
+                'book_id'          => $order->book_id,
+                'quantity'         => $qty,
+                'regular_price'    => $unitPrice,
+                'discount_percent' => 0,
+                'price'            => $unitPrice,
+                'subtotal'         => (float)($unitPrice * $qty),
+            ]
         ];
 
-        $invoiceSettings = self::getInvoiceSettings();
+        if ((float) $order->shipping_cost > 0) {
+            $items[] = [
+                'title'            => 'ডেলিভারি চার্জ (Shipping Cost)',
+                'author_name'      => '',
+                'item_type'        => 'Service',
+                'unit'             => 'Trip',
+                'book_id'          => null,
+                'quantity'         => 1,
+                'regular_price'    => (float) $order->shipping_cost,
+                'discount_percent' => 0,
+                'price'            => (float) $order->shipping_cost,
+                'subtotal'         => (float) $order->shipping_cost,
+            ];
+        }
 
-        return view('admin.accounting.invoices.index', compact(
-            'invoices', 'stats', 'type', 'salesCategory', 'status', 'search', 'dateFrom', 'dateTo', 'invoiceSettings'
-        ));
+        $dateStr = date('Ymd');
+        $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
+        $invoiceNo = 'IDEA-INV-' . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
+
+        $paidAmount = ($order->payment_status === 'paid') ? (float) $order->total_amount : 0.0;
+        $dueAmount = max(0.0, (float) $order->total_amount - $paidAmount);
+        $payStatus = ($dueAmount <= 0.001) ? 'paid' : ($paidAmount > 0.001 ? 'partial' : 'unpaid');
+
+        $invoice = IdeaInvoice::create([
+            'invoice_no'       => $invoiceNo,
+            'type'             => 'invoice',
+            'sales_category'   => 'books',
+            'subject'          => "অনলাইন অর্ডার #{$order->order_number} বিল ও চালান",
+            'reference_no'     => $order->order_number,
+            'customer_name'    => $order->customer_name ?: 'সম্মানিত অনলাইন ক্রেতা',
+            'customer_phone'   => $order->customer_phone,
+            'customer_address' => $order->customer_address,
+            'invoice_date'     => $order->created_at ? $order->created_at->format('Y-m-d') : date('Y-m-d'),
+            'items'            => $items,
+            'subtotal'         => (float) ($unitPrice * $qty),
+            'discount'         => (float) $order->discount_amount,
+            'tax'              => 0,
+            'grand_total'      => (float) $order->total_amount,
+            'paid_amount'      => $paidAmount,
+            'due_amount'       => $dueAmount,
+            'payment_method'   => $order->payment_method ?: 'cash',
+            'payment_status'   => $payStatus,
+            'notes'            => "অনলাইন শপ থেকে অর্ডার রূপান্তর। Trx ID: " . ($order->transaction_id ?: 'N/A'),
+            'created_by'       => auth()->id(),
+        ]);
+
+        if ($paidAmount > 0 && Schema::hasTable('idea_invoice_payments')) {
+            try {
+                IdeaInvoicePayment::create([
+                    'invoice_id'           => $invoice->id,
+                    'customer_name'        => $order->customer_name,
+                    'customer_phone'       => $order->customer_phone,
+                    'payment_no'           => IdeaInvoicePayment::generatePaymentNo(),
+                    'payment_date'         => $order->created_at ? $order->created_at->format('Y-m-d') : date('Y-m-d'),
+                    'amount'               => $paidAmount,
+                    'net_amount'           => $paidAmount,
+                    'payment_method'       => $order->payment_method ?: 'cash',
+                    'transaction_ref'      => $order->transaction_id,
+                    'note'                 => 'অনলাইন অর্ডার থেকে সংগৃহীত পেমেন্ট',
+                    'recorded_by'          => auth()->id(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Error creating payment record in syncOrderToInvoice: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('admin.accounting.invoices.show', $invoice->id)
+            ->with('success', "অনলাইন অর্ডার #{$order->order_number} সফলভাবে প্রাতিষ্ঠানিক ইনভয়েস #{$invoice->invoice_no}-এ রূপান্তর করা হয়েছে!");
     }
 
     /**
@@ -575,6 +1299,86 @@ class IdeaAccountingController extends Controller
             'payment_status' => $invoice->payment_status,
             'payment_no'     => $payment->payment_no,
         ]);
+    }
+
+    /**
+     * Universal Quick Pay Handler across Invoices, Seller Bills, and Online Orders.
+     */
+    public function quickPayUniversal(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'target_type'    => 'required|in:invoice,bill,order',
+            'target_id'      => 'required',
+            'amount'         => 'required|numeric|min:0.01',
+            'payment_date'   => 'required|date',
+            'payment_method' => 'required|string|max:50',
+            'transaction_ref'=> 'nullable|string|max:100',
+            'note'           => 'nullable|string|max:500',
+        ]);
+
+        $amount = (float) $validated['amount'];
+        $type = $validated['target_type'];
+        $id = $validated['target_id'];
+        $userId = auth()->id() ?: null;
+
+        if ($type === 'invoice') {
+            $invoice = IdeaInvoice::findOrFail($id);
+            return $this->quickPayment($request, $invoice);
+        }
+
+        if ($type === 'bill') {
+            $bill = Bill::findOrFail($id);
+            $newPaid = (float)$bill->paid_amount + $amount;
+            $newDue = max(0.0, (float)$bill->total - $newPaid);
+            $payStatus = ($newDue <= 0.001) ? 'paid' : 'partial';
+
+            $bill->update([
+                'paid_amount'    => $newPaid,
+                'due_amount'     => $newDue,
+                'payment_status' => $payStatus,
+                'payment_method' => $validated['payment_method'],
+            ]);
+
+            // Record accounting entry
+            IdeaAccountingEntry::create([
+                'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
+                'type'           => 'income',
+                'category'       => 'সেলার বিক্রয় বিল',
+                'title'          => "সেলার বিল #{$bill->bill_no} হতে পেমেন্ট আদায় — {$bill->customer_name}",
+                'amount'         => $amount,
+                'entry_date'     => $validated['payment_date'],
+                'payment_method' => $validated['payment_method'],
+                'party_name'     => $bill->customer_name,
+                'notes'          => $validated['note'] ?: "বিল নম্বর #{$bill->bill_no}",
+                'created_by'     => $userId,
+            ]);
+
+            return response()->json([
+                'success'        => true,
+                'message'        => "সেলার বিল #{$bill->bill_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
+                'paid_amount'    => $newPaid,
+                'due_amount'     => $newDue,
+                'payment_status' => $payStatus,
+            ]);
+        }
+
+        if ($type === 'order') {
+            $order = Order::findOrFail($id);
+            $order->update([
+                'payment_status' => 'paid',
+                'transaction_id' => $validated['transaction_ref'] ?: $order->transaction_id,
+            ]);
+
+            return response()->json([
+                'success'        => true,
+                'message'        => "অনলাইন অর্ডার #{$order->order_number} সফলভাবে পরিশোধিত (Paid) চিহ্নিত করা হয়েছে।",
+                'paid_amount'    => (float) $order->total_amount,
+                'due_amount'     => 0.0,
+                'payment_status' => 'paid',
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'অকার্যকর রিকোয়েস্ট'], 422);
     }
 
     /**
@@ -2199,7 +3003,10 @@ class IdeaAccountingController extends Controller
             ->when($dateTo, fn($q) => $q->whereDate('invoice_date', '<=', $dateTo))
             ->get();
 
-        $standalonePayments = IdeaInvoicePayment::whereNull('invoice_id')->get();
+        $this->ensureTaxVatDeductionsSchema();
+        $standalonePayments = Schema::hasTable('idea_invoice_payments')
+            ? IdeaInvoicePayment::whereNull('invoice_id')->get()
+            : collect();
 
         $customers = [];
         $today = \Carbon\Carbon::today();
@@ -2752,10 +3559,89 @@ class IdeaAccountingController extends Controller
     }
 
     /**
+     * Ensure required tables and columns for Tax & VAT deductions exist (auto-migration & healing).
+     */
+    protected function ensureTaxVatDeductionsSchema(): void
+    {
+        try {
+            // Check if idea_invoice_payments table exists
+            if (!Schema::hasTable('idea_invoice_payments')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+
+            // If table still doesn't exist, create it directly
+            if (!Schema::hasTable('idea_invoice_payments')) {
+                Schema::create('idea_invoice_payments', function (Blueprint $table) {
+                    $table->id();
+                    $table->foreignId('invoice_id')->nullable()->constrained('idea_invoices')->cascadeOnDelete();
+                    $table->string('customer_name', 255)->nullable();
+                    $table->string('customer_phone', 50)->nullable();
+                    $table->string('payment_no', 50)->unique();
+                    $table->date('payment_date');
+                    $table->decimal('amount', 12, 2)->default(0.00);
+                    $table->decimal('net_amount', 12, 2)->default(0.00)->nullable();
+                    $table->decimal('vat_deduction_rate', 5, 2)->default(0)->nullable();
+                    $table->decimal('vat_deduction_amount', 12, 2)->default(0)->nullable();
+                    $table->decimal('tax_deduction_rate', 5, 2)->default(0)->nullable();
+                    $table->decimal('tax_deduction_amount', 12, 2)->default(0)->nullable();
+                    $table->decimal('other_deduction_amount', 12, 2)->default(0)->nullable();
+                    $table->string('deduction_challan_no', 100)->nullable();
+                    $table->text('deduction_notes')->nullable();
+                    $table->string('payment_method', 50)->default('cash');
+                    $table->string('transaction_ref', 100)->nullable();
+                    $table->text('note')->nullable();
+                    $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
+                    $table->timestamps();
+                    $table->softDeletes();
+                });
+            }
+
+            // If table exists, check if tax/vat deduction columns exist
+            if (Schema::hasTable('idea_invoice_payments') && !Schema::hasColumn('idea_invoice_payments', 'vat_deduction_amount')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+
+                if (!Schema::hasColumn('idea_invoice_payments', 'vat_deduction_amount')) {
+                    Schema::table('idea_invoice_payments', function (Blueprint $table) {
+                        if (!Schema::hasColumn('idea_invoice_payments', 'net_amount')) {
+                            $table->decimal('net_amount', 12, 2)->default(0)->nullable()->after('amount');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'vat_deduction_rate')) {
+                            $table->decimal('vat_deduction_rate', 5, 2)->default(0)->nullable()->after('net_amount');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'vat_deduction_amount')) {
+                            $table->decimal('vat_deduction_amount', 12, 2)->default(0)->nullable()->after('vat_deduction_rate');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'tax_deduction_rate')) {
+                            $table->decimal('tax_deduction_rate', 5, 2)->default(0)->nullable()->after('vat_deduction_amount');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'tax_deduction_amount')) {
+                            $table->decimal('tax_deduction_amount', 12, 2)->default(0)->nullable()->after('tax_deduction_rate');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'other_deduction_amount')) {
+                            $table->decimal('other_deduction_amount', 12, 2)->default(0)->nullable()->after('tax_deduction_amount');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'deduction_challan_no')) {
+                            $table->string('deduction_challan_no', 100)->nullable()->after('other_deduction_amount');
+                        }
+                        if (!Schema::hasColumn('idea_invoice_payments', 'deduction_notes')) {
+                            $table->text('deduction_notes')->nullable()->after('deduction_challan_no');
+                        }
+                    });
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::warning('ensureTaxVatDeductionsSchema warning: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Tax & VAT (TDS & VDS) Deduction Register & Monthly Statement (উৎসে কর ও মূসক কর্তন রেজিস্টার).
      */
     public function taxVatDeductions(Request $request): View
     {
+        // 1. Auto-heal / ensure schema is up to date
+        $this->ensureTaxVatDeductionsSchema();
+
         $selectedMonth = $request->input('month'); // e.g. 2026-09
         $selectedYear = $request->input('year');
         $dateFrom = $request->input('date_from');
@@ -2769,84 +3655,103 @@ class IdeaAccountingController extends Controller
             $selectedMonth = date('Y-m');
         }
 
-        $query = IdeaInvoicePayment::query()
-            ->with(['invoice', 'recorder'])
-            ->where(function ($q) {
-                $q->where('vat_deduction_amount', '>', 0)
-                  ->orWhere('tax_deduction_amount', '>', 0)
-                  ->orWhere('other_deduction_amount', '>', 0);
-            });
+        $deductions = collect();
+        $monthlyDeductionSummaries = collect();
 
-        if (!empty($selectedMonth)) {
+        $hasTable = Schema::hasTable('idea_invoice_payments');
+        $hasVatCol = $hasTable && Schema::hasColumn('idea_invoice_payments', 'vat_deduction_amount');
+
+        if ($hasTable && $hasVatCol) {
             try {
-                $dt = Carbon::parse($selectedMonth . '-01');
-                $query->whereYear('payment_date', $dt->year)
-                      ->whereMonth('payment_date', $dt->month);
-            } catch (\Throwable $e) {}
-        } elseif (!empty($selectedYear)) {
-            $query->whereYear('payment_date', (int)$selectedYear);
-        } elseif (!empty($dateFrom) || !empty($dateTo)) {
-            if (!empty($dateFrom)) $query->whereDate('payment_date', '>=', $dateFrom);
-            if (!empty($dateTo)) $query->whereDate('payment_date', '<=', $dateTo);
-        }
+                $query = IdeaInvoicePayment::query()
+                    ->with(['invoice', 'recorder'])
+                    ->where(function ($q) {
+                        $q->where('vat_deduction_amount', '>', 0)
+                          ->orWhere('tax_deduction_amount', '>', 0)
+                          ->orWhere('other_deduction_amount', '>', 0);
+                    });
 
-        if (!empty($customer)) {
-            $query->where(function ($q) use ($customer) {
-                $q->where('customer_name', 'like', "%{$customer}%")
-                  ->orWhere('customer_phone', 'like', "%{$customer}%");
-            });
-        }
+                if (!empty($selectedMonth)) {
+                    try {
+                        $dt = Carbon::parse($selectedMonth . '-01');
+                        $query->whereYear('payment_date', $dt->year)
+                              ->whereMonth('payment_date', $dt->month);
+                    } catch (\Throwable $e) {}
+                } elseif (!empty($selectedYear)) {
+                    $query->whereYear('payment_date', (int)$selectedYear);
+                } elseif (!empty($dateFrom) || !empty($dateTo)) {
+                    if (!empty($dateFrom)) $query->whereDate('payment_date', '>=', $dateFrom);
+                    if (!empty($dateTo)) $query->whereDate('payment_date', '<=', $dateTo);
+                }
 
-        if (!empty($search)) {
-            $like = "%{$search}%";
-            $query->where(function ($q) use ($like) {
-                $q->where('payment_no', 'like', $like)
-                  ->orWhere('customer_name', 'like', $like)
-                  ->orWhere('customer_phone', 'like', $like)
-                  ->orWhere('deduction_challan_no', 'like', $like)
-                  ->orWhere('transaction_ref', 'like', $like)
-                  ->orWhere('note', 'like', $like)
-                  ->orWhereHas('invoice', function ($w) use ($like) {
-                      $w->where('invoice_no', 'like', $like)
-                        ->orWhere('customer_org', 'like', $like);
-                  });
-            });
-        }
+                if (!empty($customer)) {
+                    $query->where(function ($q) use ($customer) {
+                        $q->where('customer_name', 'like', "%{$customer}%")
+                          ->orWhere('customer_phone', 'like', "%{$customer}%");
+                    });
+                }
 
-        if ($deductionType === 'vat_only') {
-            $query->where('vat_deduction_amount', '>', 0);
-        } elseif ($deductionType === 'tax_only') {
-            $query->where('tax_deduction_amount', '>', 0);
-        }
+                if (!empty($search)) {
+                    $like = "%{$search}%";
+                    $query->where(function ($q) use ($like) {
+                        $q->where('payment_no', 'like', $like)
+                          ->orWhere('customer_name', 'like', $like)
+                          ->orWhere('customer_phone', 'like', $like)
+                          ->orWhere('deduction_challan_no', 'like', $like)
+                          ->orWhere('transaction_ref', 'like', $like)
+                          ->orWhere('note', 'like', $like)
+                          ->orWhereHas('invoice', function ($w) use ($like) {
+                              $w->where('invoice_no', 'like', $like)
+                                ->orWhere('customer_org', 'like', $like);
+                          });
+                    });
+                }
 
-        $deductions = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->get();
+                if ($deductionType === 'vat_only') {
+                    $query->where('vat_deduction_amount', '>', 0);
+                } elseif ($deductionType === 'tax_only') {
+                    $query->where('tax_deduction_amount', '>', 0);
+                }
+
+                $deductions = $query->orderBy('payment_date', 'desc')->orderBy('id', 'desc')->get();
+            } catch (\Throwable $e) {
+                Log::error('taxVatDeductions query error: ' . $e->getMessage());
+                $deductions = collect();
+            }
+
+            // Month-by-month history (Last 12 distinct months with deduction activities)
+            try {
+                $monthlyDeductionSummaries = IdeaInvoicePayment::whereNotNull('payment_date')
+                    ->where(function ($q) {
+                        $q->where('vat_deduction_amount', '>', 0)
+                          ->orWhere('tax_deduction_amount', '>', 0)
+                          ->orWhere('other_deduction_amount', '>', 0);
+                    })
+                    ->select(
+                        DB::raw("DATE_FORMAT(payment_date, '%Y-%m') as ym"),
+                        DB::raw("COUNT(*) as count"),
+                        DB::raw("SUM(amount) as sum_settled"),
+                        DB::raw("SUM(vat_deduction_amount) as sum_vat"),
+                        DB::raw("SUM(tax_deduction_amount) as sum_tax")
+                    )
+                    ->groupBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"))
+                    ->orderBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"), 'desc')
+                    ->limit(12)
+                    ->get();
+            } catch (\Throwable $e) {
+                Log::warning('taxVatDeductions monthly summaries error: ' . $e->getMessage());
+                $monthlyDeductionSummaries = collect();
+            }
+        }
 
         // Metric Aggregations
         $totalSettledAmount = (float) $deductions->sum('amount');
-        $totalNetCollected = (float) $deductions->sum(fn($p) => $p->effective_net_amount);
+        $totalNetCollected = (float) $deductions->sum(fn($p) => $p->effective_net_amount ?? 0);
         $totalVatDeducted = (float) $deductions->sum('vat_deduction_amount');
         $totalTaxDeducted = (float) $deductions->sum('tax_deduction_amount');
         $totalOtherDeducted = (float) $deductions->sum('other_deduction_amount');
         $grandTotalDeductions = $totalVatDeducted + $totalTaxDeducted + $totalOtherDeducted;
         $totalClientsCount = $deductions->pluck('party_name')->unique()->count();
-
-        // Month-by-month history (Last 12 distinct months with deduction activities)
-        $monthlyDeductionSummaries = IdeaInvoicePayment::where(function ($q) {
-                $q->where('vat_deduction_amount', '>', 0)
-                  ->orWhere('tax_deduction_amount', '>', 0)
-                  ->orWhere('other_deduction_amount', '>', 0);
-            })
-            ->select(
-                DB::raw("DATE_FORMAT(payment_date, '%Y-%m') as ym"),
-                DB::raw("COUNT(*) as count"),
-                DB::raw("SUM(amount) as sum_settled"),
-                DB::raw("SUM(vat_deduction_amount) as sum_vat"),
-                DB::raw("SUM(tax_deduction_amount) as sum_tax")
-            )
-            ->groupBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"))
-            ->orderBy(DB::raw("DATE_FORMAT(payment_date, '%Y-%m')"), 'desc')
-            ->limit(12)
-            ->get();
 
         $invoiceSettings = self::getInvoiceSettings();
 

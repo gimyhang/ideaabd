@@ -16,6 +16,16 @@
             <a href="{{ route('book.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center shadow-2xs hover-lift">
                 <span>সকল বই</span>
             </a>
+            {{-- 1.1 লাইভ সেল (Live Sale) --}}
+            <a href="{{ route('book.index', ['filter' => 'live_sale']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-danger d-inline-flex align-items-center gap-1.5 shadow-2xs hover-lift" title="লাইভ সেল ও ডিসকাউন্ট অফার">
+                <span class="live-pulse-dot" style="width: 7px; height: 7px; background-color: #ef4444; border-radius: 50%; display: inline-block;"></span>
+                <span>লাইভ সেল</span>
+            </a>
+            {{-- 1.2 প্রি-অর্ডার (Pre-Order) --}}
+            <a href="{{ route('book.index', ['stock_status' => 'pre_order']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-warning-emphasis d-inline-flex align-items-center gap-1 shadow-2xs hover-lift" title="আসন্ন বই প্রি-অর্ডার করুন">
+                <i class="fa-solid fa-clock-rotate-left text-warning" style="font-size: 11px;"></i>
+                <span>প্রি-অর্ডার</span>
+            </a>
             <a href="{{ route('book.index', ['filter' => 'flash_sale']) }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 fw-bold text-danger d-inline-flex align-items-center shadow-2xs hover-lift">
                 <span>ফ্ল্যাশ সেল</span>
             </a>
@@ -985,6 +995,94 @@ document.addEventListener('DOMContentLoaded', function() {
                 </button>
             </div>
 
+            {{-- ══ DYNAMIC CATEGORY & COLLECTIONS EXPLORER (লাইভ সেল, প্রি-অর্ডার ও বিষয়ভিত্তিক বই সম্ভার) ══ --}}
+            <div id="dynamicCategoryExplorer" class="mt-4 pt-3 border-top">
+                <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 fw-bold" style="font-size: 0.74rem;">
+                            <i class="fa-solid fa-bolt me-1 text-warning"></i>ডায়নামিক এক্সপ্লোরার
+                        </span>
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: 1.15rem;">
+                            <span id="activeExplorerTitle">সকল বই সম্ভার</span>
+                            <span class="badge bg-light text-muted border rounded-pill px-2.5 py-0.5" id="activeExplorerCount" style="font-size: 0.72rem;">{{ $books->count() }}টি বই</span>
+                        </h5>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a id="activeExplorerViewAll" href="{{ route('book.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3.5 py-1.5 fw-bold" style="font-size: 0.82rem;">
+                            ক্যাটালগে সবগুলো দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Interactive Filter Tab Buttons --}}
+                <div class="cat-explorer-tabs-wrapper position-relative mb-3">
+                    <div class="cat-explorer-tabs d-flex gap-2 overflow-x-auto text-nowrap scrollbar-none py-1" id="catExplorerTabsBar">
+                        {{-- Tab 1: All (সকল বই) --}}
+                        <button type="button" 
+                                class="btn btn-sm cat-explorer-tab active rounded-pill px-3 py-1.5 fw-bold shadow-2xs d-inline-flex align-items-center gap-1.5" 
+                                data-tab="all" 
+                                onclick="switchCategoryExplorer('all', this, 'সকল বই সম্ভার', '{{ route('book.index') }}')">
+                            <i class="fa-solid fa-border-all"></i>
+                            <span>সকল বই</span>
+                        </button>
+
+                        {{-- Tab 2: Live Sale (লাইভ সেল) --}}
+                        <button type="button" 
+                                class="btn btn-sm cat-explorer-tab btn-light border text-danger rounded-pill px-3 py-1.5 fw-bold shadow-2xs d-inline-flex align-items-center gap-1.5" 
+                                data-tab="live_sale" 
+                                onclick="switchCategoryExplorer('live_sale', this, 'লাইভ সেল ও বিশেষ অফার', '{{ route('book.index', ['filter' => 'live_sale']) }}')">
+                            <span class="live-pulse-dot" style="width: 7px; height: 7px; background-color: #ef4444; border-radius: 50%; display: inline-block;"></span>
+                            <span>লাইভ সেল</span>
+                            @if(isset($flashSales) && $flashSales->isNotEmpty())
+                                <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.5" style="font-size: 9.5px;">{{ $flashSales->count() }}</span>
+                            @endif
+                        </button>
+
+                        {{-- Tab 3: Pre-Order (প্রি-অর্ডার) --}}
+                        <button type="button" 
+                                class="btn btn-sm cat-explorer-tab btn-light border text-warning-emphasis rounded-pill px-3 py-1.5 fw-bold shadow-2xs d-inline-flex align-items-center gap-1.5" 
+                                data-tab="pre_order" 
+                                onclick="switchCategoryExplorer('pre_order', this, 'প্রি-অর্ডার বইসমূহ', '{{ route('book.index', ['stock_status' => 'pre_order']) }}')">
+                            <i class="fa-solid fa-clock-rotate-left text-warning" style="font-size: 11px;"></i>
+                            <span>প্রি-অর্ডার</span>
+                            @if(isset($preOrderBooks) && $preOrderBooks->isNotEmpty())
+                                <span class="badge bg-warning text-dark rounded-pill px-1.5 py-0.5" style="font-size: 9.5px;">{{ $preOrderBooks->count() }}</span>
+                            @endif
+                        </button>
+
+                        {{-- Dynamic Categories from Database --}}
+                        @foreach($dynamicCategories->take(12) as $dCat)
+                            <button type="button" 
+                                    class="btn btn-sm cat-explorer-tab btn-light border text-dark rounded-pill px-3 py-1.5 fw-bold shadow-2xs d-inline-flex align-items-center gap-1.5" 
+                                    data-tab="{{ $dCat->slug }}" 
+                                    onclick="switchCategoryExplorer('{{ $dCat->slug }}', this, '{{ $dCat->name }} সম্ভার', '{{ route('book.index', ['category' => $dCat->slug]) }}')">
+                                <span>{{ $dCat->name }}</span>
+                                <span class="badge bg-light text-muted border rounded-pill px-1.5 py-0.5" style="font-size: 9.5px;">{{ $dCat->books_count }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Books Container & Dynamic Loading Indicator --}}
+                <div class="position-relative" id="explorerContentArea" style="min-height: 180px;">
+                    <div id="catExplorerLoader" class="d-none text-center py-5">
+                        <div class="spinner-border text-primary" role="status" style="width: 2.2rem; height: 2.2rem;">
+                            <span class="visually-hidden">লোড হচ্ছে...</span>
+                        </div>
+                        <p class="text-muted small mt-2">বইসমূহ লোড হচ্ছে...</p>
+                    </div>
+
+                    <div id="categoryBooksContainer">
+                        @include('frontend.partials.category-books-grid', [
+                            'books' => $books,
+                            'tab' => 'all',
+                            'title' => 'সকল বই সম্ভার',
+                            'viewAllUrl' => route('book.index')
+                        ])
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -1245,6 +1343,43 @@ document.addEventListener('DOMContentLoaded', function() {
 .ideapatra-ribbon-header {
     letter-spacing: -0.2px;
 }
+
+/* Dynamic Category Explorer Tabs & Shelf */
+.cat-explorer-tabs {
+    scroll-behavior: smooth;
+    padding: 3px 1px;
+}
+.cat-explorer-tab {
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    cursor: pointer;
+}
+.cat-explorer-tab:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.cat-explorer-tab.active {
+    background: #0066cc !important;
+    border-color: #0066cc !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(0, 102, 204, 0.35) !important;
+}
+.cat-explorer-tab.active .badge {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+.cat-explorer-tab.active i,
+.cat-explorer-tab.active span {
+    color: #ffffff !important;
+}
+.animate-fade-in {
+    animation: catFadeIn 0.28s ease-out;
+}
+@keyframes catFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>
 
 @push('scripts')
@@ -1378,6 +1513,88 @@ document.addEventListener('DOMContentLoaded', function() {
             btnH.classList.add('text-white');
         }
     }
+
+    // Dynamic Category Explorer Tab Switcher with fast AJAX & caching
+    const categoryExplorerCache = {};
+
+    function switchCategoryExplorer(tab, btn, title, viewAllUrl) {
+        // 1. Update Tab active UI
+        document.querySelectorAll('.cat-explorer-tab').forEach(b => {
+            b.classList.remove('active');
+            b.classList.add('btn-light', 'border');
+        });
+        if (btn) {
+            btn.classList.add('active');
+            btn.classList.remove('btn-light', 'border');
+        }
+
+        // 2. Update Header Title & View All URL
+        const titleEl = document.getElementById('activeExplorerTitle');
+        const countEl = document.getElementById('activeExplorerCount');
+        const viewAllEl = document.getElementById('activeExplorerViewAll');
+        if (titleEl && title) titleEl.textContent = title;
+        if (viewAllEl && viewAllUrl) viewAllEl.setAttribute('href', viewAllUrl);
+
+        const container = document.getElementById('categoryBooksContainer');
+        const loader = document.getElementById('catExplorerLoader');
+
+        // Check client cache first
+        if (categoryExplorerCache[tab]) {
+            if (container) container.innerHTML = categoryExplorerCache[tab].html;
+            if (countEl) countEl.textContent = (categoryExplorerCache[tab].count || 0) + 'টি বই';
+            return;
+        }
+
+        // Show loader
+        if (loader) loader.classList.remove('d-none');
+        if (container) container.style.opacity = '0.35';
+
+        // Fetch via AJAX
+        fetch('/?tab=' + encodeURIComponent(tab), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (loader) loader.classList.add('d-none');
+            if (container) {
+                container.style.opacity = '1';
+                if (data.success && data.html) {
+                    categoryExplorerCache[tab] = data;
+                    container.innerHTML = data.html;
+                    if (countEl) countEl.textContent = (data.count || 0) + 'টি বই';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching category books:', err);
+            if (loader) loader.classList.add('d-none');
+            if (container) container.style.opacity = '1';
+        });
+    }
+
+    // Connect 75px category circle icons to the dynamic category explorer
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.idea-category-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href.includes('category=')) {
+                    const urlParams = new URLSearchParams(href.split('?')[1]);
+                    const catSlug = urlParams.get('category');
+                    if (catSlug) {
+                        const targetTabBtn = document.querySelector(`.cat-explorer-tab[data-tab="${catSlug}"]`);
+                        if (targetTabBtn) {
+                            e.preventDefault();
+                            targetTabBtn.click();
+                            document.getElementById('dynamicCategoryExplorer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            });
+        });
+    });
 </script>
 <script src="{{ asset('js/ideapatra-publishers.js') }}"></script>
 @endpush

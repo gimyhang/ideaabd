@@ -5,16 +5,17 @@
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
 
+    $monthsMap = [
+        'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
+        'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
+        'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
+        'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর',
+    ];
+
     $monthNameBn = '';
     if (!empty($selectedMonth)) {
         try {
             $dt = \Illuminate\Support\Carbon::parse($selectedMonth . '-01');
-            $monthsMap = [
-                'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
-                'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
-                'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
-                'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর',
-            ];
             $monthNameBn = ($monthsMap[$dt->format('F')] ?? $dt->format('F')) . ' ' . $dt->format('Y');
         } catch (\Throwable $e) {
             $monthNameBn = $selectedMonth;
@@ -338,8 +339,13 @@
                         </span>
                         @foreach($monthlyDeductionSummaries as $ms)
                             @php
-                                $mDt = \Illuminate\Support\Carbon::parse($ms->ym . '-01');
-                                $mLabel = ($monthsMap[$mDt->format('F')] ?? $mDt->format('M')) . ' ' . $mDt->format('y');
+                                $mLabel = $ms->ym ?? '—';
+                                if (!empty($ms->ym)) {
+                                    try {
+                                        $mDt = \Illuminate\Support\Carbon::parse($ms->ym . '-01');
+                                        $mLabel = ($monthsMap[$mDt->format('F')] ?? $mDt->format('M')) . ' ' . $mDt->format('y');
+                                    } catch (\Throwable $e) {}
+                                }
                             @endphp
                             <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => $ms->ym]) }}" class="month-pill-btn {{ $selectedMonth === $ms->ym ? 'active' : '' }}">
                                 <span>{{ $mLabel }}</span>

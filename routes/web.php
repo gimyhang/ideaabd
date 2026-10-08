@@ -616,6 +616,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');
         Route::delete('/invoices/{invoice}/email-logs/{logId}', 'deleteEmailLog')->name('invoices.email-logs.destroy');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
+        Route::post('/invoices/orders/{order}/sync', 'syncOrderToInvoice')->name('invoices.sync-order');
+        Route::post('/quick-pay-universal', 'quickPayUniversal')->name('quick-pay-universal');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');
 
