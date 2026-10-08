@@ -297,7 +297,7 @@
         }
         .slip-header-brand {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 8px;
             flex-shrink: 0;
         }
@@ -308,11 +308,12 @@
             object-fit: contain;
             flex-shrink: 0;
             display: block;
+            margin-top: 1px;
         }
         .slip-brand-info {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
         }
         .slip-brand-title {
             font-size: 13.5px;
