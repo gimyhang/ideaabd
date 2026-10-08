@@ -162,14 +162,14 @@
 
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small text-muted fw-semibold">
-                    <i class="fa-solid fa-magnifying-glass me-1 text-primary"></i>গ্রাহকের নাম, মোবাইল নম্বর বা প্রতিষ্ঠান টাইপ করলে পুরাতন তথ্য অটো-ফিল হবে:
+                    <i class="fa-solid fa-magnifying-glass me-1 text-primary"></i>Type customer name, phone, or organization to auto-fill details:
                 </span>
                 <div class="d-flex align-items-center gap-2">
                     <span id="customerMatchBadge" class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="display:none;">
-                        <i class="fa-solid fa-circle-check me-1"></i>পুরাতন রেজিস্টার্ড কাস্টমার সংযুক্ত
+                        <i class="fa-solid fa-circle-check me-1"></i>Existing registered customer connected
                     </span>
-                    <button type="button" id="btnClearCustomerInfo" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="display:none;" onclick="clearClientInfo()" title="তথ্য মুছে নতুন গ্রাহক এন্ট্রি করুন">
-                        <i class="fa-solid fa-rotate-left me-1"></i>নতুন এন্ট্রি
+                    <button type="button" id="btnClearCustomerInfo" class="btn btn-xs btn-outline-secondary rounded-pill px-2 py-0.5" style="display:none;" onclick="clearClientInfo()" title="Clear and enter new customer">
+                        <i class="fa-solid fa-rotate-left me-1"></i>New Entry
                     </button>
                 </div>
             </div>
@@ -422,7 +422,7 @@
                                 $authorName = $item['author_name'] ?? $item['author'] ?? ($bookObj ? $bookObj->author_name : '');
                                 $regPrice = (float)($item['regular_price'] ?? $item['cover_price'] ?? 0);
                                 if ($regPrice <= 0 && $bookObj) {
-                                    $isHc = str_contains($itemType, 'Hardcover') || str_contains($itemType, 'হার্ডকভার') || ($bookObj->cover_type === 'hardcover');
+                                    $isHc = str_contains($itemType, 'Hardcover') || ($bookObj->cover_type === 'hardcover');
                                     $regPrice = (float)($isHc ? ($bookObj->hardcover_price ?: $bookObj->price) : ($bookObj->price ?: $bookObj->hardcover_price));
                                 }
                                 if ($regPrice <= 0) {
@@ -460,21 +460,21 @@
                                 <td>
                                     <select name="items[{{ $i }}][item_type]" class="form-select item-type-select" onchange="onTypeChange(this, {{ $i }})">
                                         <optgroup label="Books & Publications">
-                                            <option value="Book (Hardcover)" @selected(($item['item_type'] ?? '') === 'Book (Hardcover)' || ($item['item_type'] ?? '') === 'বই (হার্ডকভার)')>Book (Hardcover)</option>
-                                            <option value="Book (Paperback)" @selected(($item['item_type'] ?? '') === 'Book (Paperback)' || ($item['item_type'] ?? '') === 'বই (পেপারব্যাক)' || ($item['item_type'] ?? '') === 'বই (Book)' || ($item['item_type'] ?? '') === 'বই')>Book (Paperback)</option>
-                                            <option value="Book (Standard)" @selected(($item['item_type'] ?? '') === 'Book (Standard)' || ($item['item_type'] ?? '') === 'বই (সাধারণ)')>Book (Standard)</option>
+                                            <option value="Book (Hardcover)" @selected(($item['item_type'] ?? '') === 'Book (Hardcover)')>Book (Hardcover)</option>
+                                            <option value="Book (Paperback)" @selected(($item['item_type'] ?? '') === 'Book (Paperback)' || ($item['item_type'] ?? '') === 'Book')>Book (Paperback)</option>
+                                            <option value="Book (Standard)" @selected(($item['item_type'] ?? '') === 'Book (Standard)')>Book (Standard)</option>
                                         </optgroup>
                                         <optgroup label="Stationery & Supplies">
-                                            <option value="Stationery" @selected(($item['item_type'] ?? '') === 'Stationery' || ($item['item_type'] ?? '') === 'স্টেশনারী' || ($item['item_type'] ?? '') === 'শিক্ষা উপকরণ')>Stationery & Materials</option>
+                                            <option value="Stationery" @selected(($item['item_type'] ?? '') === 'Stationery')>Stationery & Materials</option>
                                         </optgroup>
                                         <optgroup label="Printing & Press">
-                                            <option value="Printing & Binding" @selected(($item['item_type'] ?? '') === 'Printing & Binding' || ($item['item_type'] ?? '') === 'মুদ্রণ ও বাঁধাই')>Printing & Binding</option>
-                                            <option value="Paper / Raw Materials" @selected(($item['item_type'] ?? '') === 'Paper / Raw Materials' || ($item['item_type'] ?? '') === 'কাগজ/কাঁচামাল')>Paper / Raw Materials</option>
+                                            <option value="Printing & Binding" @selected(($item['item_type'] ?? '') === 'Printing & Binding')>Printing & Binding</option>
+                                            <option value="Paper / Raw Materials" @selected(($item['item_type'] ?? '') === 'Paper / Raw Materials')>Paper / Raw Materials</option>
                                         </optgroup>
                                         <optgroup label="Products & Services">
-                                            <option value="Product" @selected(($item['item_type'] ?? '') === 'Product' || ($item['item_type'] ?? '') === 'পণ্য (Product)' || ($item['item_type'] ?? '') === 'পণ্য')>General Product</option>
-                                            <option value="Service" @selected(($item['item_type'] ?? '') === 'Service' || ($item['item_type'] ?? '') === 'সেবা (Service)' || ($item['item_type'] ?? '') === 'সেবা')>Service & Support</option>
-                                            <option value="Other" @selected(($item['item_type'] ?? '') === 'Other' || ($item['item_type'] ?? '') === 'বিবিধ' || ($item['item_type'] ?? '') === 'অন্যান্য')>Other Items</option>
+                                            <option value="Product" @selected(($item['item_type'] ?? '') === 'Product')>General Product</option>
+                                            <option value="Service" @selected(($item['item_type'] ?? '') === 'Service')>Service & Support</option>
+                                            <option value="Other" @selected(($item['item_type'] ?? '') === 'Other')>Other Items</option>
                                         </optgroup>
                                     </select>
                                 </td>
@@ -576,7 +576,7 @@
                             <span class="fw-bold font-monospace" id="displayDiscount">-৳0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small text-muted" id="displayPreviousDueRow" style="{{ (($invoice->previous_due ?? 0) > 0) ? '' : 'display: none !important;' }}">
-                            <span>Previous Due (জের):</span>
+                            <span>Previous Due:</span>
                             <span class="fw-bold text-warning font-monospace" id="displayPreviousDue">+৳{{ number_format($invoice->previous_due ?? 0, 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small text-muted">
@@ -590,12 +590,12 @@
                         </div>
                     </div>
 
-                    {{-- Previous Due (জের) Integration --}}
+                    {{-- Previous Due Integration --}}
                     @php $hasPrevDue = ($invoice->previous_due ?? 0) > 0; @endphp
                     <div class="mb-3 p-2.5 rounded-3 bg-warning bg-opacity-10 border border-warning-subtle" id="previousDueCard">
                         <div class="d-flex justify-content-between align-items-center mb-1.5">
                             <label class="form-label small fw-bold text-dark mb-0">
-                                <i class="fa-solid fa-clock-rotate-left me-1 text-warning"></i>পূর্বের বকেয়া জের (Previous Due)
+                                <i class="fa-solid fa-clock-rotate-left me-1 text-warning"></i>Previous Due Balance
                             </label>
                             <div class="form-check form-switch m-0">
                                 <input class="form-check-input" type="checkbox" id="togglePreviousDueCheck" {{ $hasPrevDue ? 'checked' : '' }} onchange="togglePreviousDueInput(this.checked)">
@@ -607,7 +607,7 @@
                                 <input type="number" step="0.01" name="previous_due" id="previousDueInput" class="form-control font-monospace fw-bold text-dark text-end" value="{{ old('previous_due', $invoice->previous_due ?? 0) }}" min="0" placeholder="0.00" oninput="calcTotals()">
                             </div>
                             <div class="form-text text-muted" style="font-size: 10.5px;">
-                                পূর্বের বকেয়া টাকা মোট বিলের (Grand Total) সাথে যুক্ত হবে।
+                                Previous due balance will be added to the grand total of this invoice/challan.
                             </div>
                         </div>
                         <div id="customerDueLiveNotice" class="small mt-1 text-dark fw-semibold" style="display: none; font-size: 11px;"></div>
@@ -659,21 +659,21 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold text-muted">পরিশোধের শেষ তারিখ / কিস্তির তারিখ (ঐচ্ছিক)</label>
+                            <label class="form-label small fw-semibold text-muted">Due Date / Installment Date (Optional)</label>
                             <input type="date" name="due_date" id="dueDateInput" class="form-control form-control-sm" value="{{ old('due_date', $invoice->due_date?->format('Y-m-d')) }}">
-                            <div class="form-text text-muted" style="font-size: 10.5px;">বকেয়া বিল পরিশোধের সম্ভাব্য তারিখ (ঐচ্ছিক)</div>
+                            <div class="form-text text-muted" style="font-size: 10.5px;">Target date for settling outstanding dues (optional)</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-muted">Payment Method</label>
                             <select name="payment_method" class="form-select form-select-sm">
-                                <option value="Cash" @selected(old('payment_method', $invoice->payment_method) === 'Cash' || old('payment_method', $invoice->payment_method) === 'ক্যাশ / নগদ (Cash)')>Cash</option>
-                                <option value="bKash" @selected(old('payment_method', $invoice->payment_method) === 'bKash' || old('payment_method', $invoice->payment_method) === 'বিকাশ (bKash)')>bKash</option>
-                                <option value="Nagad" @selected(old('payment_method', $invoice->payment_method) === 'Nagad' || old('payment_method', $invoice->payment_method) === 'নগদ (Nagad)')>Nagad</option>
-                                <option value="Rocket" @selected(old('payment_method', $invoice->payment_method) === 'Rocket' || old('payment_method', $invoice->payment_method) === 'রকেট (Rocket)')>Rocket</option>
-                                <option value="Bank Transfer" @selected(old('payment_method', $invoice->payment_method) === 'Bank Transfer' || old('payment_method', $invoice->payment_method) === 'ব্যাংক ডিপোজিট / ট্রান্সফার')>Bank Transfer</option>
-                                <option value="Cheque" @selected(old('payment_method', $invoice->payment_method) === 'Cheque' || old('payment_method', $invoice->payment_method) === 'চেক (Cheque)')>Cheque</option>
-                                <option value="Other" @selected(old('payment_method', $invoice->payment_method) === 'Other' || old('payment_method', $invoice->payment_method) === 'অন্যান্য')>Other</option>
+                                <option value="Cash" @selected(old('payment_method', $invoice->payment_method) === 'Cash')>Cash</option>
+                                <option value="bKash" @selected(old('payment_method', $invoice->payment_method) === 'bKash')>bKash</option>
+                                <option value="Nagad" @selected(old('payment_method', $invoice->payment_method) === 'Nagad')>Nagad</option>
+                                <option value="Rocket" @selected(old('payment_method', $invoice->payment_method) === 'Rocket')>Rocket</option>
+                                <option value="Bank Transfer" @selected(old('payment_method', $invoice->payment_method) === 'Bank Transfer')>Bank Transfer</option>
+                                <option value="Cheque" @selected(old('payment_method', $invoice->payment_method) === 'Cheque')>Cheque</option>
+                                <option value="Other" @selected(old('payment_method', $invoice->payment_method) === 'Other')>Other</option>
                             </select>
                         </div>
                     </div>
@@ -717,11 +717,11 @@
                     <div id="quickBookAlert"></div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark mb-1">Book Title <span class="text-danger">*</span></label>
-                        <input type="text" id="qbTitle" class="form-control form-control-sm fw-bold" placeholder="বইয়ের পূর্ণ নাম লিখুন..." required>
+                        <input type="text" id="qbTitle" class="form-control form-control-sm fw-bold" placeholder="Enter full book title..." required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark mb-1">Author Name</label>
-                        <input type="text" id="qbAuthor" class="form-control form-control-sm" placeholder="লেখকের নাম...">
+                        <input type="text" id="qbAuthor" class="form-control form-control-sm" placeholder="Author name...">
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
@@ -944,11 +944,11 @@
         if (!results || results.length === 0) {
             dropdown.innerHTML = `
                 <div class="p-3 text-center">
-                    <div class="text-muted small mb-2"><i class="fa-solid fa-magnifying-glass me-1"></i> "${escapeHtml(query)}" বইটি তালিকায় পাওয়া যায়নি</div>
+                    <div class="text-muted small mb-2"><i class="fa-solid fa-magnifying-glass me-1"></i> "${escapeHtml(query)}" not found in catalog</div>
                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-2xs" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
                         <i class="fa-solid fa-circle-plus me-1"></i> + Add "${escapeHtml(query)}" to Bookshop
                     </button>
-                    <div class="text-muted small mt-1" style="font-size: 11px;">কাস্টম আইটেম হিসেবে সরাসরি ইনভয়েসে ব্যবহার করা যাবে</div>
+                    <div class="text-muted small mt-1" style="font-size: 11px;">Can be used directly as a custom item in this invoice</div>
                 </div>
             `;
             dropdown.classList.remove('d-none');
@@ -957,7 +957,7 @@
 
         let html = `
             <div class="px-3 py-1.5 bg-light border-bottom small fw-bold text-muted d-flex justify-content-between align-items-center">
-                <span><i class="fa-solid fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'ক্যাটালগের বইসমূহ' : 'পাওয়া গেছে'} (${results.length}টি):</span>
+                <span><i class="fa-solid fa-book-open text-primary me-1.5"></i> ${isDefaultList ? 'Catalog Books' : 'Found'} (${results.length}):</span>
                 <span class="badge bg-white text-muted border font-monospace" style="font-size: 10px;">↑ ↓ Enter</span>
             </div>
             <div class="list-group list-group-flush p-1">
@@ -1007,7 +1007,7 @@
         html += `
             <div class="p-2 border-top bg-light text-center">
                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1 small fw-bold" onclick="openQuickAddBookModal(${rowIndex}, '${escapeHtml(query)}')">
-                    <i class="fa-solid fa-circle-plus me-1"></i> তালিকাভুক্ত নয়? "${escapeHtml(query || 'নতুন বই')}" বুকশপে যুক্ত করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> Not listed? Add "${escapeHtml(query || 'New Book')}" to Bookshop
                 </button>
             </div>
         </div>`;
@@ -1079,7 +1079,7 @@
             if (titleInput) titleInput.value = book.title;
             if (hiddenId) hiddenId.value = book.id;
             if (authorInput) authorInput.value = book.author || book.author_name || '';
-            if (unitInput && !unitInput.value) unitInput.value = 'কপি';
+            if (unitInput && !unitInput.value) unitInput.value = 'Copy';
 
             // User requirement: Type / Edition should always default to Hardcover
             let targetEdition = edition || 'hardcover';
@@ -1510,7 +1510,7 @@
             if (quickAddBtn) quickAddBtn.classList.add('d-none');
             if (titleInput) titleInput.placeholder = 'Item / Product description...';
             if (authorInput) authorInput.placeholder = 'Specification / Model / Notes';
-            if (unitInput && (!unitInput.value || unitInput.value === 'Copy' || unitInput.value === 'কপি')) {
+            if (unitInput && (!unitInput.value || unitInput.value === 'Copy')) {
                 const lower = val.toLowerCase();
                 if (lower.includes('paper')) {
                     unitInput.value = 'Ream';
@@ -1526,7 +1526,7 @@
             if (quickAddBtn) quickAddBtn.classList.remove('d-none');
             if (titleInput) titleInput.placeholder = 'Search book title, author, ISBN...';
             if (authorInput) authorInput.placeholder = 'Author / Spec';
-            if (unitInput && (!unitInput.value || unitInput.value === 'Pcs' || unitInput.value === 'Ream' || unitInput.value === 'Item' || unitInput.value === 'পিস' || unitInput.value === 'রিম')) {
+            if (unitInput && (!unitInput.value || unitInput.value === 'Pcs' || unitInput.value === 'Ream' || unitInput.value === 'Item')) {
                 unitInput.value = 'Copy';
             }
 
@@ -1667,8 +1667,8 @@
                 if (data && data.total_due > 0) {
                     if (noticeEl) {
                         noticeEl.style.display = 'block';
-                        const invoiceWord = (data.invoices_count || data.due_count || 1) + 'টি বিল';
-                        noticeEl.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>গ্রাহকের পূর্বের মোট বকেয়া: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ বিলে জের যুক্ত করুন</button>`;
+                        const invoiceWord = (data.invoices_count || data.due_count || 1) + ' invoices';
+                        noticeEl.innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Previous Outstanding Due: <strong>৳${data.total_due.toFixed(2)}</strong> (${invoiceWord})</span> <button type="button" class="btn btn-xs btn-warning text-dark fw-bold ms-1 py-0 px-2 rounded-pill shadow-2xs" onclick="applyCustomerDue(${data.total_due})">+ Add Due to Invoice</button>`;
                     }
                 } else {
                     if (noticeEl) noticeEl.style.display = 'none';
@@ -1764,7 +1764,7 @@
             dropdown.style.width = Math.max(340, rect.width) + 'px';
         }
 
-        resultsList.innerHTML = `<div class="p-2.5 text-center text-muted small"><i class="fa-solid fa-spinner fa-spin me-1.5 text-primary"></i>গ্রাহক অনুসন্ধান করা হচ্ছে...</div>`;
+        resultsList.innerHTML = `<div class="p-2.5 text-center text-muted small"><i class="fa-solid fa-spinner fa-spin me-1.5 text-primary"></i>Searching customers...</div>`;
         dropdown.style.display = 'block';
 
         fetch(`{{ route('admin.accounting.invoices.customer-search') }}?q=${encodeURIComponent(query)}`, {
@@ -1775,7 +1775,7 @@
             if (!customers || !customers.length) {
                 resultsList.innerHTML = `
                     <div class="p-2.5 text-center text-muted small">
-                        <i class="fa-solid fa-user-slash me-1 text-secondary"></i>কোন পুরাতন রেজিস্টার্ড কাস্টমার পাওয়া যায়নি।
+                        <i class="fa-solid fa-user-slash me-1 text-secondary"></i>No matching registered customers found.
                     </div>`;
                 return;
             }
@@ -1783,9 +1783,9 @@
             let html = `
                 <div class="px-2 py-1 mb-1 border-bottom d-flex align-items-center justify-content-between bg-light rounded-top">
                     <span class="small fw-bold text-muted text-uppercase" style="font-size: 10.5px;">
-                        <i class="fa-solid fa-users text-primary me-1"></i>মিলিত কাস্টমার তালিকা (${customers.length})
+                        <i class="fa-solid fa-users text-primary me-1"></i>Matching Customers (${customers.length})
                     </span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 9.5px;">ক্লিক করে অটো-পূরণ করুন</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 9.5px;">Click to auto-fill</span>
                 </div>
             `;
 
@@ -1809,7 +1809,7 @@
                             </div>
                             <div class="text-end text-nowrap">
                                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 10px;">${c.source}</span>
-                                ${c.due_amount > 0 ? `<div class="badge bg-danger text-white rounded-pill mt-1 d-block shadow-2xs" style="font-size: 9.5px;"><i class="fa-solid fa-triangle-exclamation me-0.5"></i>বকেয়া: ৳${c.due_formatted}</div>` : ''}
+                                ${c.due_amount > 0 ? `<div class="badge bg-danger text-white rounded-pill mt-1 d-block shadow-2xs" style="font-size: 9.5px;"><i class="fa-solid fa-triangle-exclamation me-0.5"></i>Due: ৳${c.due_formatted}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -1819,7 +1819,7 @@
             resultsList.innerHTML = html;
         })
         .catch(() => {
-            resultsList.innerHTML = `<div class="p-2 text-center text-danger small">অনুসন্ধানে সমস্যা হয়েছে।</div>`;
+            resultsList.innerHTML = `<div class="p-2 text-center text-danger small">An error occurred while searching.</div>`;
         });
     }
 
@@ -1859,7 +1859,7 @@
         const clearBtn = document.getElementById('btnClearCustomerInfo');
         if (badge) {
             badge.style.display = 'inline-flex';
-            badge.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>${c.source || 'পুরাতন কাস্টমার'} অটো-ফিল হয়েছে`;
+            badge.innerHTML = `<i class="fa-solid fa-circle-check me-1"></i>${c.source || 'Registered customer'} auto-filled`;
         }
         if (clearBtn) clearBtn.style.display = 'inline-flex';
 
@@ -3289,7 +3289,7 @@
 
                 if (validCount === 0) {
                     e.preventDefault();
-                    alert('অনুগ্রহ করে কমপক্ষে একটি আইটেমের নাম ও বিবরণ লিখুন।');
+                    alert('Please enter at least one item title and description.');
                     const firstTitle = document.querySelector('#itemsBody .item-title');
                     if (firstTitle) firstTitle.focus();
                     return false;
@@ -3317,7 +3317,7 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold shadow-xs" onclick="resetPrintCostCalculator()" title="Reset all fields to 0">
-                        <i class="fa-solid fa-rotate-right me-1"></i> Reset / ক্লিয়ার (0)
+                        <i class="fa-solid fa-rotate-right me-1"></i> Reset (0)
                     </button>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -3405,7 +3405,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-primary text-white rounded-pill px-2.5 py-1 fw-bold">Step 1</span>
                                         <span class="fw-bold fs-6">
-                                            ✍️ 1. Pre-press & Editorial (প্রাক-মুদ্রণ ও সম্পাদনা)
+                                            ✍️ 1. Pre-press & Editorial
                                         </span>
                                     </div>
                                     <span class="badge bg-secondary-subtle text-dark-emphasis rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">Custom Scope & Rate</span>
@@ -3415,9 +3415,9 @@
                                         <thead class="table-light text-secondary">
                                             <tr>
                                                 <th style="width: 50px;" class="text-center">✓</th>
-                                                <th>Item / Scope (বিবরণ ও বিবরণী)</th>
-                                                <th style="width: 140px;" class="text-center">Qty (পরিমাণ)</th>
-                                                <th style="width: 150px;" class="text-end">Rate (টাকা)</th>
+                                                <th>Item / Scope</th>
+                                                <th style="width: 140px;" class="text-center">Qty</th>
+                                                <th style="width: 150px;" class="text-end">Rate (BDT)</th>
                                                 <th style="width: 140px;" class="text-end">Total (৳)</th>
                                             </tr>
                                         </thead>
@@ -3532,7 +3532,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-success text-white rounded-pill px-2.5 py-1 fw-bold">Step 2</span>
                                         <span class="fw-bold fs-6">
-                                            📄 2. Inner Pages (Paper & Press) (ভেতরের কাগজ ও অফসেট মুদ্রণ)
+                                            📄 2. Inner Pages (Paper & Press)
                                         </span>
                                     </div>
                                     <span class="badge bg-secondary-subtle text-dark-emphasis rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">GSM, Plates & Impressions</span>
@@ -3542,9 +3542,9 @@
                                         <thead class="table-light text-secondary">
                                             <tr>
                                                 <th style="width: 50px;" class="text-center">✓</th>
-                                                <th>Item / Specification (কাগজ ও প্লেট বিবরণী)</th>
-                                                <th style="width: 140px;" class="text-center">Qty (পরিমাণ)</th>
-                                                <th style="width: 150px;" class="text-end">Rate (টাকা)</th>
+                                                <th>Item / Specification</th>
+                                                <th style="width: 140px;" class="text-center">Qty</th>
+                                                <th style="width: 150px;" class="text-end">Rate (BDT)</th>
                                                 <th style="width: 140px;" class="text-end">Total (৳)</th>
                                             </tr>
                                         </thead>
@@ -3634,7 +3634,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">Step 3</span>
                                         <span class="fw-bold fs-6">
-                                            🎨 3. Cover & Special Packaging (প্রচ্ছদ, board ও ল্যামিনেশন)
+                                            🎨 3. Cover & Special Packaging
                                         </span>
                                     </div>
                                     <span class="badge bg-secondary-subtle text-dark-emphasis rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">Art Card, CTP & UV</span>
@@ -3644,9 +3644,9 @@
                                         <thead class="table-light text-secondary">
                                             <tr>
                                                 <th style="width: 50px;" class="text-center">✓</th>
-                                                <th>Item / Finishing (প্রচ্ছদ ও ফিনিশিং)</th>
-                                                <th style="width: 140px;" class="text-center">Qty (পরিমাণ)</th>
-                                                <th style="width: 150px;" class="text-end">Rate (টাকা)</th>
+                                                <th>Item / Finishing</th>
+                                                <th style="width: 140px;" class="text-center">Qty</th>
+                                                <th style="width: 150px;" class="text-end">Rate (BDT)</th>
                                                 <th style="width: 140px;" class="text-end">Total (৳)</th>
                                             </tr>
                                         </thead>
@@ -3753,7 +3753,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-info text-dark rounded-pill px-2.5 py-1 fw-bold">Step 4</span>
                                         <span class="fw-bold fs-6">
-                                            📖 4. Post-press & Binding (বাইন্ডিং ও ফিনিশিং)
+                                            📖 4. Post-press & Binding
                                         </span>
                                     </div>
                                     <span class="badge bg-secondary-subtle text-dark-emphasis rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">Bind, Die-cut & Poly</span>
@@ -3763,9 +3763,9 @@
                                         <thead class="table-light text-secondary">
                                             <tr>
                                                 <th style="width: 50px;" class="text-center">✓</th>
-                                                <th>Style / Accessory (বাইন্ডিং ও প্যাক)</th>
-                                                <th style="width: 140px;" class="text-center">Qty (পরিমাণ)</th>
-                                                <th style="width: 150px;" class="text-end">Rate (টাকা)</th>
+                                                <th>Style / Accessory</th>
+                                                <th style="width: 140px;" class="text-center">Qty</th>
+                                                <th style="width: 150px;" class="text-end">Rate (BDT)</th>
                                                 <th style="width: 140px;" class="text-end">Total (৳)</th>
                                             </tr>
                                         </thead>
@@ -3864,7 +3864,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1 fw-bold">Step 5</span>
                                         <span class="fw-bold fs-6">
-                                            🚚 5. Logistics, Contingency & Profit Margin (পরিবহন ও লাভ)
+                                            🚚 5. Logistics, Contingency & Profit Margin
                                         </span>
                                     </div>
                                     <span class="badge bg-secondary-subtle text-dark-emphasis rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;">Logistics & Markup %</span>
@@ -3874,7 +3874,7 @@
                                         <thead class="table-light text-secondary">
                                             <tr>
                                                 <th style="width: 50px;" class="text-center">✓</th>
-                                                <th>Scope / Parameter (বিবরণ ও প্যারামিটার)</th>
+                                                <th>Scope / Parameter</th>
                                                 <th style="width: 140px;" class="text-center">Qty / Setting</th>
                                                 <th style="width: 150px;" class="text-end">Rate / Percentage</th>
                                                 <th style="width: 140px;" class="text-end">Total (৳)</th>
@@ -3988,7 +3988,7 @@
                                 <table class="table table-hover table-bordered align-middle mb-0 font-monospace" style="font-size: 13px;">
                                     <tbody>
                                         <tr>
-                                            <td class="font-sans fw-semibold text-secondary py-2.5 px-3" style="width: 55%;">Subtotal Direct Manufacturing Cost (মূল উৎপাদন খরচ):</td>
+                                            <td class="font-sans fw-semibold text-secondary py-2.5 px-3" style="width: 55%;">Subtotal Direct Manufacturing Cost:</td>
                                             <td class="text-end font-monospace py-2.5 px-3 fw-bold text-dark fs-6" id="bcalc_t_subtotal">৳0</td>
                                             <td class="text-end py-2.5 px-3 text-muted" style="width: 22%;">Direct Expenses</td>
                                         </tr>
@@ -3998,7 +3998,7 @@
                                             <td class="text-end font-monospace py-2.5 px-3 text-muted" id="bcalc_t_overhead_unit">৳0.00 / copy</td>
                                         </tr>
                                         <tr class="table-secondary fw-bold text-dark">
-                                            <td class="font-sans py-3 px-3 fs-6">Total Manufacturing Cost (মোট উৎপাদন খরচ):</td>
+                                            <td class="font-sans py-3 px-3 fs-6">Total Manufacturing Cost:</td>
                                             <td class="text-end font-monospace py-3 px-3 fs-5 text-primary" id="bcalc_t_grand_total">৳0</td>
                                             <td class="text-end font-monospace py-3 px-3 text-primary fw-bold" id="bcalc_t_grand_unit">৳0.00 / copy</td>
                                         </tr>

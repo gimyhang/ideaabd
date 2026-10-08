@@ -82,31 +82,31 @@
                     </form>
 
                     <!-- Customer Convenience & Instant Support Quick Actions -->
-                    <div class="d-flex align-items-center flex-wrap gap-2 pt-1.5">
+                    <div class="d-flex align-items-center flex-wrap gap-2.5 pt-2">
                         <a href="https://wa.me/8801726976982?text={{ urlencode('হ্যালো আইডিয়া প্রকাশন, আমি পণ্য সম্পর্কে জানতে চাই।') }}" 
                            target="_blank" 
                            class="btn btn-sm btn-outline-success bg-white rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs text-success"
-                           title="হোয়াটসঅ্যাপে প্রশ্ন বা সরাসরি অর্ডার করুন"
+                           title="হোয়াটসঅ্যাপে সরাসরি যোগাযোগ"
                            style="font-size: 12.5px;">
                             <i class="fa-brands fa-whatsapp fs-6"></i>
-                            <span>হোয়াটসঅ্যাপে সরাসরি অর্ডার ও তথ্য</span>
+                            <span>হোয়াটসঅ্যাপ</span>
                         </a>
 
                         <a href="tel:01726976982" 
-                           class="btn btn-sm btn-light border bg-white rounded-pill px-2.5 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs text-dark"
-                           title="হটলাইনে সরাসরি কথা বলুন"
+                           class="btn btn-sm btn-light border bg-white rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs text-dark"
+                           title="হটলাইনে সরাসরি কল করুন"
                            style="font-size: 12.5px;">
                             <i class="fa-solid fa-phone text-primary" style="font-size: 11px;"></i>
                             <span>০১৭২৬-৯৭৬৯৮২</span>
                         </a>
 
                         <button type="button" 
-                                class="btn btn-sm btn-link text-decoration-none text-dark fw-semibold p-0 ps-1 d-inline-flex align-items-center gap-1"
+                                class="btn btn-sm btn-link text-decoration-none text-dark fw-semibold p-0 ps-1 d-inline-flex align-items-center gap-1.5"
                                 data-bs-toggle="modal" 
                                 data-bs-target="#storeGuaranteePolicyModal"
                                 style="font-size: 12.5px;">
                             <i class="fa-solid fa-shield-halved text-primary" style="font-size: 11px;"></i>
-                            <span class="text-decoration-underline">৭ দিনের রিপ্লেসমেন্ট ও ওয়ারেন্টি পলিসি</span>
+                            <span class="text-decoration-underline">রিপ্লেসমেন্ট পলিসি</span>
                         </button>
                     </div>
                 </div>
@@ -116,13 +116,13 @@
                     <div class="shop-hero-card">
                         <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                             <span class="small fw-bold text-uppercase tracking-wider text-dark">
-                                <i class="fa-solid fa-shield-halved text-primary me-1.5"></i>স্টোর নিশ্চয়তা ও সুবিধা
+                                <i class="fa-solid fa-shield-halved text-primary me-1.5"></i>সুবিধাসমূহ
                             </span>
                             <button type="button" 
                                     class="btn btn-link text-primary p-0 text-decoration-none fw-bold small" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#storeGuaranteePolicyModal">
-                                পলিসি বিস্তারিত →
+                                পলিসি →
                             </button>
                         </div>
                         <div class="d-flex flex-column gap-2.5">
@@ -131,8 +131,8 @@
                                 <div class="feature-desc">{{ $currentMeta['guarantee_desc'] }}</div>
                             </div>
                             <div class="hero-feature-item">
-                                <div class="feature-title"><i class="fa-solid fa-truck-fast text-primary me-1.5"></i>সারা দেশে ক্যাশ অন ডেলিভারি</div>
-                                <div class="feature-desc">পার্সেল চেক করে গ্রহণের সুযোগ এবং দ্রুত হোম ডেলিভারি</div>
+                                <div class="feature-title"><i class="fa-solid fa-truck-fast text-primary me-1.5"></i>ক্যাশ অন ডেলিভারি</div>
+                                <div class="feature-desc">সারা দেশে দ্রুত ডেলিভারি ও পার্সেল চেক করার সুবিধা</div>
                             </div>
                         </div>
                     </div>
@@ -311,7 +311,7 @@
                        class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center text-nowrap transition-all shadow-2xs flex-shrink-0 {{ $isDiscount ? 'btn-shop-primary text-white shadow-xs' : 'btn-light border text-dark' }}"
                        style="font-size: 12.5px;"
                        title="{{ $isDiscount ? 'ছাড় ফিল্টার বাতিল করুন' : 'শুধুমাত্র ছাড়যুক্ত পণ্য দেখুন' }}">
-                        <span>বিশেষ ছাড়</span>
+                        <span>ছাড়</span>
                     </a>
 
                     <!-- Curated: In Stock -->
@@ -325,7 +325,7 @@
                        class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center text-nowrap transition-all shadow-2xs flex-shrink-0 {{ $isStock ? 'btn-shop-primary text-white shadow-xs' : 'btn-light border text-dark' }}"
                        style="font-size: 12.5px;"
                        title="{{ $isStock ? 'ইন-স্টক ফিল্টার বাতিল করুন' : 'শুধুমাত্র স্টকে থাকা পণ্য দেখুন' }}">
-                        <span>ইন-স্টক</span>
+                        <span>স্টকে আছে</span>
                     </a>
 
                     <!-- Vertical Divider for Budget Chips -->
@@ -350,50 +350,20 @@
                            style="font-size: 11.5px;"
                            title="৳১,০০০ থেকে ২,৫০০ টাকার পণ্য">
                             ৳১,০০০-২,৫০০
-                        </a>
-                        <a href="{{ $isB3 ? route($shopRoute, request()->except(['min_price', 'max_price', 'page'])) : route($shopRoute, array_merge(request()->except(['max_price', 'page']), ['min_price' => 2500])) }}" 
-                           class="btn btn-sm rounded-pill px-2.5 py-1 text-nowrap transition-all {{ $isB3 ? 'btn-primary text-white fw-bold shadow-xs' : 'btn-light border text-dark' }}" 
-                           style="font-size: 11.5px;"
-                           title="৳২,৫০০ টাকার উপরের পণ্য">
-                            ৳২,৫০০+
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Right: Product Summary -->
-                <div class="d-none d-xl-flex align-items-center gap-2 flex-shrink-0">
-                    <span class="badge bg-light text-dark border px-3 py-1.5 rounded-pill small fw-semibold">
-                        মোট <strong>@bn($products->total())</strong>টি পণ্য
-                    </span>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══ 3. CATALOG CONTENT & ADVANCED FILTERS ═══ -->
-    <div class="container py-4">
-        <div class="row g-4">
-            
-            <!-- Left Sidebar Filter (Desktop) -->
-            <div class="col-lg-3 d-none d-lg-block" id="desktopFilterSidebarWrap">
-                <div class="shop-sidebar-modern-card bg-white rounded-4 p-3.5 border shadow-sm sticky-top" style="top: 75px; max-height: calc(100vh - 90px); overflow-y: auto;">
+                   <div class="shop-sidebar-modern-card bg-white rounded-4 p-3.5 border shadow-sm sticky-top" style="top: 80px; max-height: calc(100vh - 95px); overflow-y: auto;">
                     
                     <!-- Sidebar Top Header -->
                     <div class="d-flex align-items-center justify-content-between pb-3 mb-2.5 border-bottom">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 13px;">
+                            <span class="rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 13px;">
                                 <i class="fa-solid fa-sliders"></i>
                             </span>
-                            <div>
-                                <h6 class="text-dark mb-0 fw-bold" style="font-size: 14px;">ফিল্টার ও বাছাই</h6>
-                                <span class="text-muted" style="font-size: 10.5px;">পণ্য ফিল্টার করুন</span>
-                            </div>
+                            <h6 class="text-dark mb-0 fw-bold" style="font-size: 15px; letter-spacing: 0.2px;">ফিল্টার</h6>
                         </div>
                         @if(request()->anyFilled(['category', 'q', 'min_price', 'max_price', 'sort', 'in_stock', 'brand', 'discount', 'rating', 'warranty', 'feature']))
                             <a href="{{ route($shopRoute) }}" 
                                class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-1 fw-bold ajax-filter-trigger" style="font-size: 11px;">
-                                সব মুছুন ✕
+                                মুছুন ✕
                             </a>
                         @endif
                     </div>
@@ -401,43 +371,43 @@
                     <!-- Active Filters Tray (Chips) -->
                     @if(request()->anyFilled(['category', 'brand', 'rating', 'warranty', 'feature', 'min_price', 'max_price', 'in_stock', 'discount']))
                     <div class="mb-3 pb-2.5 border-bottom">
-                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                            <span class="text-muted fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">সক্রিয় ফিল্টারসমূহ</span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size: 9.5px;">সক্রিয়</span>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">সক্রিয় ফিল্টার</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size: 9.5px;">সক্রিয়</span>
                         </div>
-                        <div class="d-flex flex-wrap gap-1">
+                        <div class="d-flex flex-wrap gap-1.5">
                             @if($selectedCategory)
-                                <a href="{{ route($shopRoute, request()->except(['category', 'page'])) }}" class="badge bg-primary text-white text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger shadow-2xs" style="font-size: 11px;">
+                                <a href="{{ route($shopRoute, request()->except(['category', 'page'])) }}" class="badge bg-primary text-white text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger shadow-2xs" style="font-size: 11px;">
                                     <span>{{ $selectedCategory->name }}</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             @endif
                             @if(request('brand'))
-                                <a href="{{ route($shopRoute, request()->except(['brand', 'page'])) }}" class="badge bg-warning text-dark text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger shadow-2xs" style="font-size: 11px;">
+                                <a href="{{ route($shopRoute, request()->except(['brand', 'page'])) }}" class="badge bg-warning text-dark text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger shadow-2xs" style="font-size: 11px;">
                                     <span>{{ request('brand') }}</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             @endif
                             @if(request('rating'))
-                                <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="badge bg-warning-subtle text-dark text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
-                                    <span>{{ request('rating') }}★+ রেটিং</span>
+                                <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="badge bg-warning-subtle text-dark text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
+                                    <span>{{ request('rating') }}★+</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             @endif
                             @if(request('warranty'))
-                                <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="badge bg-success-subtle text-success text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
-                                    <span>ওয়ারেন্টি পণ্য</span>
+                                <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="badge bg-success-subtle text-success text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
+                                    <span>ওয়ারেন্টি</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             @endif
                             @if(request('feature'))
-                                <a href="{{ route($shopRoute, request()->except(['feature', 'page'])) }}" class="badge bg-info-subtle text-info text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
+                                <a href="{{ route($shopRoute, request()->except(['feature', 'page'])) }}" class="badge bg-info-subtle text-info text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
                                     <span>{{ request('feature') === 'bestseller' ? 'বেস্টসেলার' : (request('feature') === 'hot_deal' ? 'হট ডিল' : 'নতুন') }}</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
                             @endif
                             @if(request('min_price') || request('max_price'))
-                                <a href="{{ route($shopRoute, request()->except(['min_price', 'max_price', 'page'])) }}" class="badge bg-light text-dark text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
+                                <a href="{{ route($shopRoute, request()->except(['min_price', 'max_price', 'page'])) }}" class="badge bg-light text-dark text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
                                     <span>৳{{ request('min_price') ?? 0 }} - ৳{{ request('max_price') ?? 'সর্বোচ্চ' }}</span>
                                     <i class="fa-solid fa-xmark"></i>
                                 </a>
@@ -457,10 +427,10 @@
                             <input type="hidden" name="category" value="{{ request('category') }}">
                         @endif
 
-                        <!-- 1. ক্যাটাগরি তালিকা (Live Search + Rich Icons) -->
-                        <div class="mb-3.5 pb-2">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                        <!-- 1. ক্যাটাগরি তালিকা -->
+                        <div class="mb-3.5 pb-1">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                                     <i class="fa-solid fa-shapes text-primary"></i>
                                     <span>ক্যাটাগরি</span>
                                 </label>
@@ -468,13 +438,13 @@
                             </div>
 
                             <!-- Live Category Search -->
-                            <div class="position-relative mb-2">
+                            <div class="position-relative mb-2.5">
                                 <input type="text" 
                                        class="form-control form-control-sm rounded-pill ps-3 pe-4 bg-light border-0 shadow-2xs" 
-                                       placeholder="ক্যাটাগরি ফিল্টার..." 
-                                       style="font-size: 11.5px; height: 31px;"
+                                       placeholder="ক্যাটাগরি খুঁজুন..." 
+                                       style="font-size: 11.5px; height: 32px;"
                                        oninput="filterSidebarList(this.value, 'sidebarCategoryList', 'data-cat-name')">
-                                <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-2.5 text-muted" style="font-size: 10px; pointer-events: none;"></i>
+                                <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-3 text-muted" style="font-size: 10px; pointer-events: none;"></i>
                             </div>
 
                             <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" id="sidebarCategoryList" style="max-height: 220px;">
@@ -485,13 +455,13 @@
                                 @endphp
                                 <a href="{{ $allCatUrl }}" 
                                    class="sidebar-filter-item d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 text-decoration-none transition-all ajax-cat-filter {{ $isAllCatActive ? 'bg-primary text-white fw-bold shadow-2xs' : 'text-dark hover-bg-light' }}"
-                                   data-cat-name="সকল ক্যাটাগরি all"
-                                   style="font-size: 13px;">
+                                   data-cat-name="সকল all"
+                                   style="font-size: 12.5px;">
                                     <span class="d-flex align-items-center gap-2 text-truncate">
-                                        <span class="rounded-circle d-flex align-items-center justify-content-center {{ $isAllCatActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 26px; height: 26px; font-size: 11px; flex-shrink: 0;">
+                                        <span class="rounded-circle d-flex align-items-center justify-content-center {{ $isAllCatActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 25px; height: 25px; font-size: 11px; flex-shrink: 0;">
                                             <i class="fa-solid fa-border-all"></i>
                                         </span>
-                                        <span class="text-truncate">সকল ক্যাটাগরি</span>
+                                        <span class="text-truncate">সকল</span>
                                     </span>
                                     <span class="badge {{ $isAllCatActive ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill" style="font-size: 10.5px; padding: 0.22rem 0.55rem;">@bn($products->total())</span>
                                 </a>
@@ -507,10 +477,10 @@
                                     <a href="{{ $catUrl }}" 
                                        class="sidebar-filter-item d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 text-decoration-none transition-all ajax-cat-filter {{ $isCatActive ? 'bg-primary text-white fw-bold shadow-2xs' : 'text-dark hover-bg-light' }}"
                                        data-cat-name="{{ strtolower($cat->name) }}"
-                                       style="font-size: 13px;">
+                                       style="font-size: 12.5px;">
                                         <span class="d-flex align-items-center gap-2 text-truncate">
                                             <span class="rounded-circle d-flex align-items-center justify-content-center text-white" 
-                                                  style="width: 26px; height: 26px; font-size: 11px; flex-shrink: 0; background: {{ $isCatActive ? '#ffffff' : $cIcon['bg'] }}; color: {{ $isCatActive ? '#0284c7' : '#ffffff' }} !important;">
+                                                  style="width: 25px; height: 25px; font-size: 11px; flex-shrink: 0; background: {{ $isCatActive ? '#ffffff' : $cIcon['bg'] }}; color: {{ $isCatActive ? '#0284c7' : '#ffffff' }} !important;">
                                                 @if($cIcon['type'] === 'image')
                                                     <img src="{{ $cIcon['value'] }}" alt="" class="w-100 h-100 rounded-circle object-fit-cover">
                                                 @else
@@ -522,32 +492,32 @@
                                         <span class="badge {{ $isCatActive ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill" style="font-size: 10.5px; padding: 0.22rem 0.55rem;">@bn($cat->products_count)</span>
                                     </a>
                                 @endforeach
-                                <div class="px-2 py-1.5 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো ক্যাটাগরি মেলেনি</div>
+                                <div class="px-2 py-1.5 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো মিল নেই</div>
                             </div>
                         </div>
 
-                        <!-- 2. কোম্পানি ও ব্র্যান্ড ফিল্টার -->
+                        <!-- 2. ব্র্যান্ড ফিল্টার -->
                         @if(isset($availableBrands) && $availableBrands->count() > 0)
                             <div class="mb-3.5 pt-3 border-top" id="sidebarBrandSection">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                                         <i class="fa-solid fa-award text-warning"></i>
-                                        <span>কোম্পানি ও ব্র্যান্ড</span>
+                                        <span>ব্র্যান্ড</span>
                                     </label>
                                     <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn(isset($brandsWithCount) ? $brandsWithCount->count() : $availableBrands->count())টি</span>
                                 </div>
 
-                                <!-- Fast Live Search Inside Sidebar Brands -->
-                                <div class="position-relative mb-2">
+                                <!-- Live Search Inside Sidebar Brands -->
+                                <div class="position-relative mb-2.5">
                                     <input type="text" 
                                            class="form-control form-control-sm rounded-pill ps-3 pe-4 bg-light border-0 shadow-2xs" 
                                            placeholder="ব্র্যান্ড খুঁজুন..." 
-                                           style="font-size: 11.5px; height: 31px;"
+                                           style="font-size: 11.5px; height: 32px;"
                                            oninput="filterSidebarList(this.value, 'sidebarBrandList', 'data-brand-name')">
-                                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-2.5 text-muted" style="font-size: 10px; pointer-events: none;"></i>
+                                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-3 text-muted" style="font-size: 10px; pointer-events: none;"></i>
                                 </div>
 
-                                <!-- Modern Visual Brand Chips / Checkbox List -->
+                                <!-- Modern Visual Brand List -->
                                 <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" id="sidebarBrandList" style="max-height: 220px;">
                                     {{-- All Brands Option --}}
                                     @php
@@ -557,8 +527,8 @@
                                     <a href="{{ $allBrandUrl }}" 
                                        class="sidebar-filter-item d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 text-decoration-none transition-all brand-chip-item ajax-brand-filter {{ $isAllBrandActive ? 'bg-primary text-white fw-bold shadow-2xs' : 'text-dark hover-bg-light' }}"
                                        data-brand-name="সকল all"
-                                       style="font-size: 13px;">
-                                        <span class="d-flex align-items-center gap-2 text-truncate">
+                                       style="font-size: 12.5px;">
+                                       <span class="d-flex align-items-center gap-2 text-truncate">
                                             <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold {{ $isAllBrandActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 25px; height: 25px; font-size: 10.5px; flex-shrink: 0;">
                                                 <i class="fa-solid fa-tag"></i>
                                             </span>
@@ -585,7 +555,7 @@
                                             <a href="{{ $bUrl }}" 
                                                class="sidebar-filter-item d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 text-decoration-none transition-all brand-chip-item ajax-brand-filter {{ $isBActive ? 'bg-primary text-white fw-bold shadow-2xs' : 'text-dark hover-bg-light' }}"
                                                data-brand-name="{{ strtolower($bName) }}"
-                                               style="font-size: 13px;">
+                                               style="font-size: 12.5px;">
                                                 <span class="d-flex align-items-center gap-2 text-truncate">
                                                     <span class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" 
                                                           style="width: 25px; height: 25px; font-size: 10.5px; flex-shrink: 0; background: {{ $isBActive ? '#ffffff' : $bStyle['bg'] }}; color: {{ $isBActive ? '#0284c7' : '#ffffff' }} !important;">
@@ -593,7 +563,7 @@
                                                     </span>
                                                     <span class="text-truncate">{{ $bName }}</span>
                                                 </span>
-                                                <div class="d-flex align-items-center gap-1">
+                                                <div class="d-flex align-items-center gap-1.5">
                                                     @if($isBActive)
                                                         <i class="fa-solid fa-check text-white" style="font-size: 10px;"></i>
                                                     @endif
@@ -602,13 +572,13 @@
                                             </a>
                                         @endforeach
                                     @endif
-                                    <div class="px-2 py-1.5 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো ব্র্যান্ড মেলেনি</div>
+                                    <div class="px-2 py-1.5 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো মিল নেই</div>
                                 </div>
 
-                                <!-- Accessible Synchronized Dropdown Fallback -->
-                                <div class="mt-2 pt-1 border-top">
+                                <!-- Dropdown Fallback -->
+                                <div class="mt-2.5 pt-2 border-top">
                                     <select name="brand" id="brandSelect" class="form-select form-select-sm rounded-pill shadow-2xs fw-semibold py-1.5 bg-light border-0" onchange="this.form.submit()" style="font-size: 11.5px;">
-                                        <option value="">সকল ব্র্যান্ড ড্রপডাউন ({{ $availableBrands->count() }}টি)</option>
+                                        <option value="">সকল ব্র্যান্ড (@bn($availableBrands->count()))</option>
                                         @foreach($availableBrands as $bName)
                                             <option value="{{ $bName }}" {{ request('brand') === $bName ? 'selected' : '' }}>
                                                 {{ $bName }}
@@ -619,44 +589,44 @@
                             </div>
                         @endif
 
-                        <!-- 3. মূল্যের পরিসর ও চিপস -->
+                        <!-- 3. মূল্যের পরিসর -->
                         <div class="mb-3.5 pt-3 border-top">
-                            <label class="form-label filter-sec-label mb-2 d-flex align-items-center gap-1.5">
+                            <label class="form-label filter-sec-label mb-2.5 d-flex align-items-center gap-2">
                                 <i class="fa-solid fa-bangladeshi-taka-sign text-success"></i>
-                                <span>মূল্যের পরিসর (টাকা)</span>
+                                <span>মূল্য (৳)</span>
                             </label>
-                            <div class="d-flex align-items-center gap-1.5 mb-2">
-                                <input type="number" name="min_price" id="dMinPrice" value="{{ request('min_price') }}" class="form-control form-control-sm rounded-3 bg-light border-0 shadow-2xs" placeholder="সর্বনিম্ন">
-                                <span class="text-muted">-</span>
-                                <input type="number" name="max_price" id="dMaxPrice" value="{{ request('max_price') }}" class="form-control form-control-sm rounded-3 bg-light border-0 shadow-2xs" placeholder="সর্বোচ্চ">
+                            <div class="d-flex align-items-center gap-2 mb-2.5">
+                                <input type="number" name="min_price" id="dMinPrice" value="{{ request('min_price') }}" class="form-control form-control-sm rounded-3 bg-light border-0 shadow-2xs text-center" placeholder="সর্বনিম্ন" style="font-size: 12px; height: 33px;">
+                                <span class="text-muted fw-bold">—</span>
+                                <input type="number" name="max_price" id="dMaxPrice" value="{{ request('max_price') }}" class="form-control form-control-sm rounded-3 bg-light border-0 shadow-2xs text-center" placeholder="সর্বোচ্চ" style="font-size: 12px; height: 33px;">
                             </div>
-                            <div class="d-flex flex-wrap gap-1 mb-2.5">
-                                <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 transition-all {{ request('max_price') == 1000 && !request('min_price') ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter('', 1000, 'desktopFilterForm')">৳১,০০০ নিচে</button>
-                                <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 transition-all {{ request('min_price') == 1000 && request('max_price') == 2500 ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter(1000, 2500, 'desktopFilterForm')">৳১,০০০-২,৫০০</button>
-                                <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 transition-all {{ request('min_price') == 2500 && !request('max_price') ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter(2500, '', 'desktopFilterForm')">৳২,৫০০+</button>
+                            <div class="d-flex flex-wrap gap-1.5 mb-2.5">
+                                <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 transition-all {{ request('max_price') == 1000 && !request('min_price') ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter('', 1000, 'desktopFilterForm')">৳১,০০০ নিচে</button>
+                                <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 transition-all {{ request('min_price') == 1000 && request('max_price') == 2500 ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter(1000, 2500, 'desktopFilterForm')">৳১,০০০-২,৫০০</button>
+                                <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 transition-all {{ request('min_price') == 2500 && !request('max_price') ? 'btn-primary fw-bold text-white' : 'btn-light border text-muted' }}" style="font-size: 10.5px;" onclick="setPriceFilter(2500, '', 'desktopFilterForm')">৳২,৫০০+</button>
                             </div>
-                            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold shadow-2xs">
-                                প্রয়োগ করুন
+                            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-bold shadow-2xs py-1.5" style="font-size: 12px;">
+                                ফিল্টার প্রয়োগ
                             </button>
                         </div>
 
                         <!-- 4. গ্রাহক রেটিং -->
                         <div class="mb-3.5 pt-3 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                                     <i class="fa-solid fa-star text-warning"></i>
-                                    <span>গ্রাহক রেটিং</span>
+                                    <span>রেটিং</span>
                                 </label>
                                 @if(request('rating'))
-                                    <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">রিসেট ✕</a>
+                                    <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
                                 @endif
                             </div>
                             <div class="d-flex flex-column gap-1.5">
                                 <!-- All Ratings -->
-                                <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border transition-all cursor-pointer {{ !request('rating') ? 'bg-primary-subtle border-primary-subtle fw-semibold text-primary' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border transition-all cursor-pointer {{ !request('rating') ? 'bg-primary-subtle border-primary-subtle fw-semibold text-primary' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
                                     <div class="d-flex align-items-center gap-2">
                                         <input class="form-check-input mt-0" type="radio" name="rating" value="" {{ !request('rating') ? 'checked' : '' }} onchange="this.form.submit()">
-                                        <span>সকল রেটিং</span>
+                                        <span>সকল</span>
                                     </div>
                                     <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill" style="font-size: 10.5px;">
                                         @bn($products->total())
@@ -664,7 +634,7 @@
                                 </label>
 
                                 <!-- 5 Star (4.8+) -->
-                                <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border transition-all cursor-pointer {{ request('rating') == '4.8' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
+                                <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('rating') == '4.8' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
                                     <div class="d-flex align-items-center gap-2">
                                         <input class="form-check-input mt-0" type="radio" name="rating" value="4.8" {{ request('rating') == '4.8' ? 'checked' : '' }} onchange="this.form.submit()">
                                         <span class="text-warning text-nowrap" style="letter-spacing: 1px;">
@@ -678,7 +648,7 @@
                                 </label>
 
                                 <!-- 4 Star+ (4.0+) -->
-                                <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border transition-all cursor-pointer {{ request('rating') == '4.0' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
+                                <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('rating') == '4.0' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
                                     <div class="d-flex align-items-center gap-2">
                                         <input class="form-check-input mt-0" type="radio" name="rating" value="4.0" {{ request('rating') == '4.0' ? 'checked' : '' }} onchange="this.form.submit()">
                                         <span class="text-warning text-nowrap" style="letter-spacing: 1px;">
@@ -692,7 +662,7 @@
                                 </label>
 
                                 <!-- 3 Star+ (3.0+) -->
-                                <label class="d-flex align-items-center justify-content-between p-2 rounded-3 border transition-all cursor-pointer {{ request('rating') == '3.0' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
+                                <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('rating') == '3.0' ? 'bg-primary bg-opacity-10 border-primary fw-bold text-primary' : 'hover-bg-light' }}" style="font-size: 12px;">
                                     <div class="d-flex align-items-center gap-2">
                                         <input class="form-check-input mt-0" type="radio" name="rating" value="3.0" {{ request('rating') == '3.0' ? 'checked' : '' }} onchange="this.form.submit()">
                                         <span class="text-warning text-nowrap" style="letter-spacing: 1px;">
@@ -707,51 +677,51 @@
                             </div>
                         </div>
 
-                        <!-- 5. ওয়ারেন্টি ফিল্টার (ইলেক্ট্রনিক্সের জন্য) -->
+                        <!-- 5. ওয়ারেন্টি ফিল্টার -->
                         @if($type !== 'stationery')
                         <div class="mb-3.5 pt-3 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                                     <i class="fa-solid fa-shield-halved text-success"></i>
-                                    <span>ওয়ারেন্টি সুবিধা</span>
+                                    <span>ওয়ারেন্টি</span>
                                 </label>
                                 @if(request('warranty'))
-                                    <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">রিসেট ✕</a>
+                                    <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
                                 @endif
                             </div>
-                            <div class="d-flex flex-column gap-1">
-                                <label class="form-check py-1 px-2 rounded-2 transition-all cursor-pointer {{ request('warranty') === 'has_warranty' ? 'bg-success bg-opacity-10 fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
-                                    <input class="form-check-input me-1.5" type="radio" name="warranty" value="has_warranty" {{ request('warranty') === 'has_warranty' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <div class="d-flex flex-column gap-1.5">
+                                <label class="form-check py-1.5 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('warranty') === 'has_warranty' ? 'bg-success bg-opacity-10 border-success fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                    <input class="form-check-input me-2" type="radio" name="warranty" value="has_warranty" {{ request('warranty') === 'has_warranty' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <span class="d-flex align-items-center justify-content-between flex-grow-1">
-                                        <span>সকল ওয়ারেন্টি পণ্য</span>
+                                        <span>সকল</span>
                                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn($warrantyCounts['all'] ?? 0)</span>
                                     </span>
                                 </label>
-                                <label class="form-check py-1 px-2 rounded-2 transition-all cursor-pointer {{ request('warranty') === 'official' ? 'bg-success bg-opacity-10 fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
-                                    <input class="form-check-input me-1.5" type="radio" name="warranty" value="official" {{ request('warranty') === 'official' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check py-1.5 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('warranty') === 'official' ? 'bg-success bg-opacity-10 border-success fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                    <input class="form-check-input me-2" type="radio" name="warranty" value="official" {{ request('warranty') === 'official' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <span class="d-flex align-items-center justify-content-between flex-grow-1">
-                                        <span>অফিসিয়াল ব্র্যান্ড ওয়ারেন্টি</span>
+                                        <span>অফিসিয়াল</span>
                                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn($warrantyCounts['official'] ?? 0)</span>
                                     </span>
                                 </label>
-                                <label class="form-check py-1 px-2 rounded-2 transition-all cursor-pointer {{ request('warranty') === 'replacement' ? 'bg-success bg-opacity-10 fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
-                                    <input class="form-check-input me-1.5" type="radio" name="warranty" value="replacement" {{ request('warranty') === 'replacement' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check py-1.5 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('warranty') === 'replacement' ? 'bg-success bg-opacity-10 border-success fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                    <input class="form-check-input me-2" type="radio" name="warranty" value="replacement" {{ request('warranty') === 'replacement' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <span class="d-flex align-items-center justify-content-between flex-grow-1">
-                                        <span>রিপ্লেসমেন্ট সুবিধা</span>
+                                        <span>রিপ্লেসমেন্ট</span>
                                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn($warrantyCounts['replacement'] ?? 0)</span>
                                     </span>
                                 </label>
-                                <label class="form-check py-1 px-2 rounded-2 transition-all cursor-pointer {{ request('warranty') === '1year' ? 'bg-success bg-opacity-10 fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
-                                    <input class="form-check-input me-1.5" type="radio" name="warranty" value="1year" {{ request('warranty') === '1year' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check py-1.5 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('warranty') === '1year' ? 'bg-success bg-opacity-10 border-success fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                    <input class="form-check-input me-2" type="radio" name="warranty" value="1year" {{ request('warranty') === '1year' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <span class="d-flex align-items-center justify-content-between flex-grow-1">
-                                        <span>১ বছর+ মেয়াদি ওয়ারেন্টি</span>
+                                        <span>১ বছর+</span>
                                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn($warrantyCounts['1year'] ?? 0)</span>
                                     </span>
                                 </label>
-                                <label class="form-check py-1 px-2 rounded-2 transition-all cursor-pointer {{ request('warranty') === 'guarantee' ? 'bg-success bg-opacity-10 fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
-                                    <input class="form-check-input me-1.5" type="radio" name="warranty" value="guarantee" {{ request('warranty') === 'guarantee' ? 'checked' : '' }} onchange="this.form.submit()">
+                                <label class="form-check py-1.5 px-2.5 rounded-3 border transition-all cursor-pointer {{ request('warranty') === 'guarantee' ? 'bg-success bg-opacity-10 border-success fw-bold text-success' : 'hover-bg-light text-dark' }}" style="font-size: 12px;">
+                                    <input class="form-check-input me-2" type="radio" name="warranty" value="guarantee" {{ request('warranty') === 'guarantee' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <span class="d-flex align-items-center justify-content-between flex-grow-1">
-                                        <span>লাইফটাইম গ্যারান্টি</span>
+                                        <span>লাইফটাইম</span>
                                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn($warrantyCounts['guarantee'] ?? 0)</span>
                                     </span>
                                 </label>
@@ -759,54 +729,54 @@
                         </div>
                         @endif
 
-                        <!-- 6. প্রোডাক্ট ফিচার ও সুবিধাসমূহ -->
+                        <!-- 6. ফিচার ফিল্টার -->
                         <div class="pt-3 border-top">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                            <div class="d-flex align-items-center justify-content-between mb-2.5">
+                                <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                                     <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
-                                    <span>প্রোডাক্ট ফিচার</span>
+                                    <span>ফিচার</span>
                                 </label>
                                 @if(request()->anyFilled(['feature', 'in_stock', 'discount']))
-                                    <a href="{{ route($shopRoute, request()->except(['feature', 'in_stock', 'discount', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">রিসেট ✕</a>
+                                    <a href="{{ route($shopRoute, request()->except(['feature', 'in_stock', 'discount', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
                                 @endif
                             </div>
-                            <div class="d-flex flex-column gap-2">
-                                <div class="form-check form-switch">
+                            <div class="d-flex flex-column gap-2.5">
+                                <div class="form-check form-switch py-1">
                                     <input class="form-check-input" type="checkbox" name="feature" value="bestseller" id="dFeatBestseller" 
                                            {{ request('feature') === 'bestseller' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label small fw-semibold text-dark cursor-pointer d-flex align-items-center justify-content-between" for="dFeatBestseller">
-                                        <span>বেস্টসেলার পণ্য</span>
+                                        <span>বেস্টসেলার</span>
                                         <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size: 10px;">@bn($featureCounts['bestseller'] ?? 0)</span>
                                     </label>
                                 </div>
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch py-1">
                                     <input class="form-check-input" type="checkbox" name="feature" value="hot_deal" id="dFeatHotDeal" 
                                            {{ request('feature') === 'hot_deal' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label small fw-semibold text-dark cursor-pointer d-flex align-items-center justify-content-between" for="dFeatHotDeal">
-                                        <span>হট ডিল অফার</span>
+                                        <span>হট ডিল</span>
                                         <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill" style="font-size: 10px;">@bn($featureCounts['hot_deal'] ?? 0)</span>
                                     </label>
                                 </div>
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch py-1">
                                     <input class="form-check-input" type="checkbox" name="feature" value="new_arrival" id="dFeatNewArrival" 
                                            {{ request('feature') === 'new_arrival' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label small fw-semibold text-dark cursor-pointer d-flex align-items-center justify-content-between" for="dFeatNewArrival">
-                                        <span>নতুন আগমন</span>
+                                        <span>নতুন</span>
                                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill" style="font-size: 10px;">@bn($featureCounts['new_arrival'] ?? 0)</span>
                                     </label>
                                 </div>
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch py-1">
                                     <input class="form-check-input" type="checkbox" name="in_stock" value="1" id="dInStockCheck" 
                                            {{ request('in_stock') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label small fw-semibold text-dark cursor-pointer" for="dInStockCheck">
-                                        শুধুমাত্র স্টকে থাকা পণ্য
+                                        স্টকে আছে
                                     </label>
                                 </div>
-                                <div class="form-check form-switch">
+                                <div class="form-check form-switch py-1">
                                     <input class="form-check-input" type="checkbox" name="discount" value="1" id="dDiscountCheck" 
                                            {{ request('discount') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
                                     <label class="form-check-label small fw-semibold text-dark cursor-pointer" for="dDiscountCheck">
-                                        ছাড়কৃত অফার পণ্য
+                                        ছাড়
                                     </label>
                                 </div>
                             </div>
@@ -829,12 +799,12 @@
                                 <i class="fa-solid fa-sliders me-1"></i> ফিল্টার
                             </button>
                             @if($isCategorySliderMode)
-                                <span class="fw-bold text-dark" style="font-size: 14px;">
-                                    মোট <strong>@bn($products->total())</strong>টি পণ্য • <strong>@bn($categoriesWithProducts->count())</strong>টি ক্যাটাগরি
+                                <span class="fw-bold text-dark" style="font-size: 13.5px;">
+                                    @bn($products->total()) পণ্য • @bn($categoriesWithProducts->count()) ক্যাটাগরি
                                 </span>
                             @else
-                                <span class="fw-bold text-dark" style="font-size: 14px;">
-                                    মোট <strong>@bn($products->total())</strong> টি পণ্য
+                                <span class="fw-bold text-dark" style="font-size: 13.5px;">
+                                    @bn($products->total()) পণ্য
                                 </span>
                             @endif
                         </div>
@@ -845,16 +815,16 @@
                             @if($isCategorySliderMode)
                                 <div class="d-flex align-items-center gap-1.5">
                                     <span class="badge {{ $type === 'stationery' ? 'bg-success text-white' : 'bg-primary text-white' }} rounded-pill px-3 py-1.5 fw-bold shadow-xs" style="font-size: 12px;">
-                                        <i class="fa-solid fa-layer-group me-1"></i>স্লাইডার ভিউ
+                                        <i class="fa-solid fa-layer-group me-1"></i>স্লাইডার
                                     </span>
                                     <a href="{{ route($shopRoute, array_merge(request()->query(), ['view' => 'grid'])) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-dark fw-semibold shadow-2xs hover-lift" style="font-size: 12px;" title="সকল পণ্য একক গ্রিডে দেখুন">
-                                        <i class="fa-solid fa-grip me-1"></i>গ্রিড ভিউ
+                                        <i class="fa-solid fa-grip me-1"></i>গ্রিড
                                     </a>
                                 </div>
                             @else
                                 @if(isset($categoriesWithProducts) && $categoriesWithProducts->isNotEmpty() && !$hasActiveFilters)
                                     <a href="{{ route($shopRoute) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-dark fw-semibold shadow-2xs hover-lift" style="font-size: 12px;" title="ক্যাটাগরিভিত্তিক স্লাইডারে ফিরে যান">
-                                        <i class="fa-solid fa-layer-group {{ $type === 'stationery' ? 'text-success' : 'text-primary' }} me-1"></i>স্লাইডার ভিউ
+                                        <i class="fa-solid fa-layer-group {{ $type === 'stationery' ? 'text-success' : 'text-primary' }} me-1"></i>স্লাইডার
                                     </a>
                                 @endif
                                 <!-- Grid / List Toggle Buttons -->
@@ -880,12 +850,12 @@
                                     @endif
                                 @endforeach
 
-                                <select name="sort" class="form-select form-select-sm rounded-pill border-muted fw-semibold" style="width: auto; min-width: 170px;" onchange="this.form.submit()">
-                                    <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>নতুন সংযোজন</option>
-                                    <option value="popular" {{ request('sort') === 'popular' ? 'selected' : '' }}>জনপ্রিয় ও সর্বোচ্চ রেটিং</option>
-                                    <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>দাম: কম থেকে বেশি</option>
-                                    <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>দাম: বেশি থেকে কম</option>
-                                    <option value="discount" {{ request('sort') === 'discount' ? 'selected' : '' }}>সর্বোচ্চ ছাড় (%)</option>
+                                <select name="sort" class="form-select form-select-sm rounded-pill border-muted fw-semibold" style="width: auto; min-width: 140px;" onchange="this.form.submit()">
+                                    <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>নতুন</option>
+                                    <option value="popular" {{ request('sort') === 'popular' ? 'selected' : '' }}>জনপ্রিয়</option>
+                                    <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>দাম: কম → বেশি</option>
+                                    <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>দাম: বেশি → কম</option>
+                                    <option value="discount" {{ request('sort') === 'discount' ? 'selected' : '' }}>ছাড় (%)</option>
                                 </select>
                             </form>
                         </div>
@@ -1063,116 +1033,55 @@
                                 <line x1="8" y1="11" x2="14" y2="11"></line>
                             </svg>
                         </div>
-                        <h4 class="fw-bold text-dark mb-1">কোনো পণ্য পাওয়া যায়নি</h4>
-                        <p class="text-muted small mb-4" style="max-width: 420px; margin: 0 auto;">আপনার প্রদত্ত ফিল্টার বা সার্চ শব্দের সাথে মেলে এমন কোনো পণ্য বর্তমানে তালিকায় পাওয়া যায়নি। ফিল্টার রিসেট করে পুনরায় দেখুন।</p>
-                        <a href="{{ route($shopRoute) }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
-                            সকল পণ্য দেখুন
-                        </a>
-                    </div>
-                @endif
-                @endif
-
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══ 4. STORE TRUST & VALUE PROPOSITIONS ═══ -->
-    <div class="container pt-4 pb-3">
-        <div class="row g-3">
-            <div class="col-lg-3 col-6">
-                <div class="store-feature-card">
-                    <div class="store-feature-icon icon-blue">
-                        <i class="fa-solid fa-truck-fast"></i>
-                    </div>
-                    <div class="store-feature-badge badge-blue">শিপিং সুবিধা</div>
-                    <h6 class="store-feature-title">দ্রুত হোম ডেলিভারি</h6>
-                    <p class="store-feature-desc">সারা দেশে সর্বোচ্চ দ্রুত ও নিরাপদ শিপিং সেবা পৌঁছে দেওয়া হয়</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="store-feature-card">
-                    <div class="store-feature-icon icon-green">
-                        <i class="fa-solid fa-certificate"></i>
-                    </div>
-                    <div class="store-feature-badge badge-green">গুণগত মান</div>
-                    <h6 class="store-feature-title">{{ $currentMeta['guarantee_title'] }}</h6>
-                    <p class="store-feature-desc">{{ $currentMeta['guarantee_desc'] }}</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="store-feature-card">
-                    <div class="store-feature-icon icon-amber">
-                        <i class="fa-solid fa-shield-halved"></i>
-                    </div>
-                    <div class="store-feature-badge badge-amber">সুবিধা ও নিশ্চয়তা</div>
-                    <h6 class="store-feature-title">{{ $type === 'electronics' ? 'সহজ রিপ্লেসমেন্ট' : 'বিশ্বস্ত ব্র্যান্ড কালেকশন' }}</h6>
-                    <p class="store-feature-desc">{{ $type === 'electronics' ? 'ত্রুটিযুক্ত পণ্যে দ্রুত অফিসিয়াল রিপ্লেসমেন্ট ও টেকনিক্যাল সাপোর্ট' : 'আসল ও আন্তর্জাতিক ব্র্যান্ডের সেরা স্টেশনারি ও আর্ট টুলস' }}</p>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="store-feature-card">
-                    <div class="store-feature-icon icon-cyan">
-                        <i class="fa-solid fa-headset"></i>
-                    </div>
-                    <div class="store-feature-badge badge-cyan">কাস্টমার সাপোর্ট</div>
-                    <h6 class="store-feature-title">সার্বক্ষণিক হেল্পলাইন</h6>
-                    <p class="store-feature-desc">পণ্য তথ্য ও দ্রুত অর্ডারে সার্বক্ষণিক সহায়তার জন্য হেল্পলাইন</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ═══ 5. MOBILE FILTER OFFCANVAS ═══ -->
-<div class="offcanvas offcanvas-start rounded-end-4" tabindex="-1" id="mobileFilterOffcanvas" aria-labelledby="mobileFilterLabel" style="width: 320px;">
-    <div class="offcanvas-header border-bottom py-3">
+                        <h4 class="fw-bold text-dark mb-1">কোনো পণ্য পাওয়া �<div class="offcanvas offcanvas-start rounded-end-4" tabindex="-1" id="mobileFilterOffcanvas" aria-labelledby="mobileFilterLabel" style="width: 320px;">
+    <div class="offcanvas-header border-bottom py-3 px-3.5">
         <div class="d-flex align-items-center gap-2">
-            <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 13px;">
+            <span class="rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 13px;">
                 <i class="fa-solid fa-sliders"></i>
             </span>
-            <h5 class="offcanvas-title fw-bold text-dark fs-6 mb-0" id="mobileFilterLabel">
-                পণ্য ফিল্টারসমূহ
+            <h5 class="offcanvas-title fw-bold text-dark fs-6 mb-0" id="mobileFilterLabel" style="letter-spacing: 0.2px;">
+                ফিল্টার
             </h5>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body p-3 custom-scrollbar" id="mobileFilterOffcanvasBody">
+    <div class="offcanvas-body p-3.5 custom-scrollbar" id="mobileFilterOffcanvasBody">
         
         <!-- Active Filters Tray (Mobile) -->
         @if(request()->anyFilled(['category', 'brand', 'rating', 'warranty', 'feature', 'min_price', 'max_price', 'in_stock', 'discount']))
-        <div class="mb-3 pb-2.5 border-bottom">
-            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                <span class="text-muted fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">সক্রিয় ফিল্টারসমূহ</span>
-                <a href="{{ route($shopRoute) }}" class="small text-danger text-decoration-none fw-bold" style="font-size: 11px;">সব মুছুন ✕</a>
+        <div class="mb-3.5 pb-2.5 border-bottom">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 0.5px;">সক্রিয় ফিল্টার</span>
+                <a href="{{ route($shopRoute) }}" class="small text-danger text-decoration-none fw-bold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
             </div>
-            <div class="d-flex flex-wrap gap-1">
+            <div class="d-flex flex-wrap gap-1.5">
                 @if($selectedCategory)
-                    <a href="{{ route($shopRoute, request()->except(['category', 'page'])) }}" class="badge bg-primary text-white text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger" style="font-size: 11px;">
+                    <a href="{{ route($shopRoute, request()->except(['category', 'page'])) }}" class="badge bg-primary text-white text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger" style="font-size: 11px;">
                         <span>{{ $selectedCategory->name }}</span>
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 @endif
                 @if(request('brand'))
-                    <a href="{{ route($shopRoute, request()->except(['brand', 'page'])) }}" class="badge bg-warning text-dark text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger" style="font-size: 11px;">
+                    <a href="{{ route($shopRoute, request()->except(['brand', 'page'])) }}" class="badge bg-warning text-dark text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger" style="font-size: 11px;">
                         <span>{{ request('brand') }}</span>
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 @endif
                 @if(request('rating'))
-                    <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="badge bg-warning-subtle text-dark text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
-                        <span>{{ request('rating') }}★+ রেটিং</span>
+                    <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="badge bg-warning-subtle text-dark text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
+                        <span>{{ request('rating') }}★+</span>
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 @endif
                 @if(request('warranty'))
-                    <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="badge bg-success-subtle text-success text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
+                    <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="badge bg-success-subtle text-success text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
                         <span>ওয়ারেন্টি</span>
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 @endif
                 @if(request('feature'))
-                    <a href="{{ route($shopRoute, request()->except(['feature', 'page'])) }}" class="badge bg-info-subtle text-info text-decoration-none rounded-pill py-1 px-2 d-inline-flex align-items-center gap-1 ajax-filter-trigger border" style="font-size: 11px;">
-                        <span>{{ request('feature') }}</span>
+                    <a href="{{ route($shopRoute, request()->except(['feature', 'page'])) }}" class="badge bg-info-subtle text-info text-decoration-none rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1.5 ajax-filter-trigger border" style="font-size: 11px;">
+                        <span>{{ request('feature') === 'bestseller' ? 'বেস্টসেলার' : (request('feature') === 'hot_deal' ? 'হট ডিল' : 'নতুন') }}</span>
                         <i class="fa-solid fa-xmark"></i>
                     </a>
                 @endif
@@ -1192,9 +1101,9 @@
             @endif
 
             <!-- 1. Category Filter -->
-            <div class="mb-3.5 pb-2">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+            <div class="mb-3.5 pb-1">
+                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                         <i class="fa-solid fa-shapes text-primary"></i>
                         <span>ক্যাটাগরি</span>
                     </label>
@@ -1202,13 +1111,13 @@
                 </div>
 
                 <!-- Live Search for Mobile Categories -->
-                <div class="position-relative mb-2">
+                <div class="position-relative mb-2.5">
                     <input type="text" 
                            class="form-control form-control-sm rounded-pill ps-3 pe-4 bg-light border-0 shadow-2xs" 
-                           placeholder="ক্যাটাগরি ফিল্টার..." 
-                           style="font-size: 11.5px; height: 31px;"
+                           placeholder="ক্যাটাগরি খুঁজুন..." 
+                           style="font-size: 11.5px; height: 32px;"
                            oninput="filterSidebarList(this.value, 'mSidebarCategoryList', 'data-cat-name')">
-                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-2.5 text-muted" style="font-size: 10px; pointer-events: none;"></i>
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-3 text-muted" style="font-size: 10px; pointer-events: none;"></i>
                 </div>
 
                 <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1 mb-1" id="mSidebarCategoryList" style="max-height: 220px;">
@@ -1217,10 +1126,10 @@
                        data-cat-name="সকল all"
                        style="font-size: 12.5px;">
                         <span class="d-flex align-items-center gap-2 text-truncate">
-                            <span class="rounded-circle d-flex align-items-center justify-content-center {{ !$selectedCategory ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 24px; height: 24px; font-size: 11px; flex-shrink: 0;">
+                            <span class="rounded-circle d-flex align-items-center justify-content-center {{ !$selectedCategory ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 25px; height: 25px; font-size: 11px; flex-shrink: 0;">
                                 <i class="fa-solid fa-border-all"></i>
                             </span>
-                            <span class="text-truncate fw-semibold">সকল ক্যাটাগরি</span>
+                            <span class="text-truncate fw-semibold">সকল</span>
                         </span>
                         <span class="badge {{ !$selectedCategory ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill" style="font-size: 10.5px; padding: 0.22rem 0.52rem;">@bn($products->total())</span>
                     </a>
@@ -1238,7 +1147,7 @@
                            style="font-size: 12.5px;">
                             <span class="d-flex align-items-center gap-2 text-truncate">
                                 <span class="rounded-circle d-flex align-items-center justify-content-center text-white" 
-                                      style="width: 24px; height: 24px; font-size: 10.5px; flex-shrink: 0; background: {{ $isCatActive ? '#ffffff' : $cIcon['bg'] }}; color: {{ $isCatActive ? '#0284c7' : '#ffffff' }} !important;">
+                                      style="width: 25px; height: 25px; font-size: 10.5px; flex-shrink: 0; background: {{ $isCatActive ? '#ffffff' : $cIcon['bg'] }}; color: {{ $isCatActive ? '#0284c7' : '#ffffff' }} !important;">
                                     @if($cIcon['type'] === 'image')
                                         <img src="{{ $cIcon['value'] }}" alt="" class="w-100 h-100 rounded-circle object-fit-cover">
                                     @else
@@ -1250,33 +1159,33 @@
                             <span class="badge {{ $isCatActive ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill" style="font-size: 10.5px; padding: 0.22rem 0.52rem;">@bn($cat->products_count)</span>
                         </a>
                     @endforeach
-                    <div class="px-2 py-1 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো ক্যাটাগরি মেলেনি</div>
+                    <div class="px-2 py-1 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো মিল নেই</div>
                 </div>
             </div>
 
             <!-- 2. Brand Filter (Mobile) -->
             @if(isset($availableBrands) && $availableBrands->count() > 0)
                 <div class="mb-3.5 pt-3 border-top" id="mSidebarBrandSection">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                    <div class="d-flex align-items-center justify-content-between mb-2.5">
+                        <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                             <i class="fa-solid fa-award text-warning"></i>
-                            <span>কোম্পানি ও ব্র্যান্ড</span>
+                            <span>ব্র্যান্ড</span>
                         </label>
                         <span class="badge bg-light text-muted border rounded-pill" style="font-size: 10px;">@bn(isset($brandsWithCount) ? $brandsWithCount->count() : $availableBrands->count())টি</span>
                     </div>
 
                     <!-- Fast Live Search for Mobile Brands -->
-                    <div class="position-relative mb-2">
+                    <div class="position-relative mb-2.5">
                         <input type="text" 
                                class="form-control form-control-sm rounded-pill ps-3 pe-4 bg-light border-0 shadow-2xs" 
                                placeholder="ব্র্যান্ড খুঁজুন..." 
-                               style="font-size: 11.5px; height: 31px;"
+                               style="font-size: 11.5px; height: 32px;"
                                oninput="filterSidebarList(this.value, 'mSidebarBrandList', 'data-brand-name')">
-                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-2.5 text-muted" style="font-size: 10px; pointer-events: none;"></i>
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-3 text-muted" style="font-size: 10px; pointer-events: none;"></i>
                     </div>
 
                     <!-- Modern Visual Brand Chips List (Mobile) -->
-                    <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1 mb-2" id="mSidebarBrandList" style="max-height: 220px;">
+                    <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1 mb-2.5" id="mSidebarBrandList" style="max-height: 220px;">
                         @php
                             $isAllBrandActive = empty(request('brand'));
                             $allBrandUrl = route($shopRoute, request()->except(['brand', 'page']));
@@ -1286,7 +1195,7 @@
                            data-brand-name="সকল all"
                            style="font-size: 12.5px;">
                             <span class="d-flex align-items-center gap-2 text-truncate">
-                                <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold {{ $isAllBrandActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 24px; height: 24px; font-size: 10.5px; flex-shrink: 0;">
+                                <span class="rounded-circle d-flex align-items-center justify-content-center fw-bold {{ $isAllBrandActive ? 'bg-white text-primary' : 'bg-primary bg-opacity-10 text-primary' }}" style="width: 25px; height: 25px; font-size: 10.5px; flex-shrink: 0;">
                                     <i class="fa-solid fa-tag"></i>
                                 </span>
                                 <span class="text-truncate fw-semibold">সকল ব্র্যান্ড</span>
@@ -1314,12 +1223,12 @@
                                    style="font-size: 12.5px;">
                                     <span class="d-flex align-items-center gap-2 text-truncate">
                                         <span class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" 
-                                              style="width: 24px; height: 24px; font-size: 10.5px; flex-shrink: 0; background: {{ $isBActive ? '#ffffff' : $bStyle['bg'] }}; color: {{ $isBActive ? '#0284c7' : '#ffffff' }} !important;">
+                                              style="width: 25px; height: 25px; font-size: 10.5px; flex-shrink: 0; background: {{ $isBActive ? '#ffffff' : $bStyle['bg'] }}; color: {{ $isBActive ? '#0284c7' : '#ffffff' }} !important;">
                                             {{ $bStyle['icon'] }}
                                         </span>
                                         <span class="text-truncate {{ $isBActive ? 'fw-bold' : '' }}">{{ $bName }}</span>
                                     </span>
-                                    <div class="d-flex align-items-center gap-1">
+                                    <div class="d-flex align-items-center gap-1.5">
                                         @if($isBActive)
                                             <i class="fa-solid fa-check text-white" style="font-size: 9px;"></i>
                                         @endif
@@ -1328,12 +1237,12 @@
                                 </a>
                             @endforeach
                         @endif
-                        <div class="px-2 py-1 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো ব্র্যান্ড মেলেনি</div>
+                        <div class="px-2 py-1 text-center text-muted small d-none no-filter-match" style="font-size: 11px;">কোনো মিল নেই</div>
                     </div>
 
                     <!-- Alternate Dropdown for Mobile -->
                     <select name="brand" id="mBrandSelect" class="form-select form-select-sm rounded-pill shadow-2xs fw-semibold py-1.5 bg-light border-0" onchange="this.form.submit()" style="font-size: 11.5px;">
-                        <option value="">সকল ব্র্যান্ড ড্রপডাউন ({{ $availableBrands->count() }}টি)</option>
+                        <option value="">সকল ব্র্যান্ড (@bn($availableBrands->count()))</option>
                         @foreach($availableBrands as $bName)
                             <option value="{{ $bName }}" {{ request('brand') === $bName ? 'selected' : '' }}>
                                 {{ $bName }}
@@ -1345,42 +1254,42 @@
 
             <!-- 3. Price Range -->
             <div class="mb-3.5 pt-3 border-top">
-                <label class="form-label filter-sec-label mb-2 d-flex align-items-center gap-1.5">
+                <label class="form-label filter-sec-label mb-2.5 d-flex align-items-center gap-2">
                     <i class="fa-solid fa-bangladeshi-taka-sign text-success"></i>
-                    <span>মূল্যের পরিসর (টাকা)</span>
+                    <span>মূল্য (৳)</span>
                 </label>
-                <div class="d-flex align-items-center gap-2 mb-2">
-                    <input type="number" name="min_price" id="mMinPrice" value="{{ request('min_price') }}" class="form-control form-control-sm bg-light border-0 shadow-2xs rounded-3" placeholder="সর্বনিম্ন">
-                    <span>-</span>
-                    <input type="number" name="max_price" id="mMaxPrice" value="{{ request('max_price') }}" class="form-control form-control-sm bg-light border-0 shadow-2xs rounded-3" placeholder="সর্বোচ্চ">
+                <div class="d-flex align-items-center gap-2 mb-2.5">
+                    <input type="number" name="min_price" id="mMinPrice" value="{{ request('min_price') }}" class="form-control form-control-sm bg-light border-0 shadow-2xs rounded-3 text-center" placeholder="সর্বনিম্ন" style="font-size: 12px; height: 33px;">
+                    <span class="text-muted fw-bold">—</span>
+                    <input type="number" name="max_price" id="mMaxPrice" value="{{ request('max_price') }}" class="form-control form-control-sm bg-light border-0 shadow-2xs rounded-3 text-center" placeholder="সর্বোচ্চ" style="font-size: 12px; height: 33px;">
                 </div>
-                <div class="d-flex flex-wrap gap-1 mb-2">
-                    <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter('', 1000, 'mobileFilterForm')">৳১,০০০ নিচে</button>
-                    <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter(1000, 2500, 'mobileFilterForm')">৳১,০০০-২,৫০০</button>
-                    <button type="button" class="btn btn-xs rounded-pill py-0.5 px-2 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter(2500, '', 'mobileFilterForm')">৳২,৫০০+</button>
+                <div class="d-flex flex-wrap gap-1.5 mb-2.5">
+                    <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter('', 1000, 'mobileFilterForm')">৳১,০০০ নিচে</button>
+                    <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter(1000, 2500, 'mobileFilterForm')">৳১,০০০-২,৫০০</button>
+                    <button type="button" class="btn btn-xs rounded-pill py-1 px-2.5 btn-light border text-muted" style="font-size: 10.5px;" onclick="setPriceFilter(2500, '', 'mobileFilterForm')">৳২,৫০০+</button>
                 </div>
             </div>
 
             <!-- 4. Dynamic Rating Filter (Mobile) -->
             <div class="mb-3.5 pt-3 border-top">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                         <i class="fa-solid fa-star text-warning"></i>
-                        <span>গ্রাহক রেটিং</span>
+                        <span>রেটিং</span>
                     </label>
                     @if(request('rating'))
-                        <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">রিসেট ✕</a>
+                        <a href="{{ route($shopRoute, request()->except(['rating', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
                     @endif
                 </div>
                 <div class="d-flex flex-column gap-1.5">
-                    <label class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border {{ !request('rating') ? 'bg-primary-subtle text-primary fw-semibold' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ !request('rating') ? 'bg-primary-subtle text-primary fw-semibold' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="rating" value="" {{ !request('rating') ? 'checked' : '' }} onchange="this.form.submit()">
-                            <span>সকল রেটিং</span>
+                            <span>সকল</span>
                         </div>
                         <span class="badge bg-secondary bg-opacity-10 text-muted rounded-pill px-2 py-1" style="font-size: 10px;">@bn($products->total())</span>
                     </label>
-                    <label class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border {{ request('rating') == '4.8' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('rating') == '4.8' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="rating" value="4.8" {{ request('rating') == '4.8' ? 'checked' : '' }} onchange="this.form.submit()">
                             <span class="text-warning"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></span>
@@ -1388,7 +1297,7 @@
                         </div>
                         <span class="badge bg-secondary bg-opacity-10 text-dark rounded-pill px-2 py-1" style="font-size: 10px;">@bn($ratingCounts['5'] ?? 0)</span>
                     </label>
-                    <label class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border {{ request('rating') == '4.0' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('rating') == '4.0' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="rating" value="4.0" {{ request('rating') == '4.0' ? 'checked' : '' }} onchange="this.form.submit()">
                             <span class="text-warning"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-muted"></i></span>
@@ -1396,7 +1305,7 @@
                         </div>
                         <span class="badge bg-secondary bg-opacity-10 text-dark rounded-pill px-2 py-1" style="font-size: 10px;">@bn($ratingCounts['4'] ?? 0)</span>
                     </label>
-                    <label class="d-flex align-items-center justify-content-between p-2.5 rounded-3 border {{ request('rating') == '3.0' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('rating') == '3.0' ? 'bg-primary bg-opacity-10 text-primary fw-bold' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="rating" value="3.0" {{ request('rating') == '3.0' ? 'checked' : '' }} onchange="this.form.submit()">
                             <span class="text-warning"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star text-muted"></i><i class="fa-regular fa-star text-muted"></i></span>
@@ -1410,29 +1319,87 @@
             <!-- 5. Warranty Filter (Mobile) -->
             @if($type !== 'stationery')
             <div class="mb-3.5 pt-3 border-top">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-1.5">
+                <div class="d-flex align-items-center justify-content-between mb-2.5">
+                    <label class="form-label filter-sec-label mb-0 d-flex align-items-center gap-2">
                         <i class="fa-solid fa-shield-halved text-success"></i>
-                        <span>ওয়ারেন্টি সুবিধা</span>
+                        <span>ওয়ারেন্টি</span>
                     </label>
                     @if(request('warranty'))
-                        <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">রিসেট ✕</a>
+                        <a href="{{ route($shopRoute, request()->except(['warranty', 'page'])) }}" class="small text-danger text-decoration-none fw-semibold ajax-filter-trigger" style="font-size: 11px;">মুছুন ✕</a>
                     @endif
                 </div>
-                <div class="d-flex flex-column gap-1">
-                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'has_warranty' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                <div class="d-flex flex-column gap-1.5">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'has_warranty' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <span class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="warranty" value="has_warranty" {{ request('warranty') === 'has_warranty' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <span>সকল ওয়ারেন্টি পণ্য</span>
+                            <span>সকল</span>
                         </span>
                         <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['all'] ?? 0)</span>
                     </label>
-                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'official' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'official' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
                         <span class="d-flex align-items-center gap-2">
                             <input class="form-check-input mt-0" type="radio" name="warranty" value="official" {{ request('warranty') === 'official' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <span>অফিসিয়াল ব্র্যান্ড ওয়ারেন্টি</span>
+                            <span>অফিসিয়াল</span>
                         </span>
                         <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['official'] ?? 0)</span>
+                    </label>
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'replacement' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
+                        <span class="d-flex align-items-center gap-2">
+                            <input class="form-check-input mt-0" type="radio" name="warranty" value="replacement" {{ request('warranty') === 'replacement' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <span>রিপ্লেসমেন্ট</span>
+                        </span>
+                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['replacement'] ?? 0)</span>
+                    </label>
+                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === '1year' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12px; cursor: pointer;">
+                        <span class="d-flex align-items-center gap-2">
+                            <input class="form-check-input mt-0" type="radio" name="warranty" value="1year" {{ request('warranty') === '1year' ? 'checked' : '' }} onchange="this.form.submit()">
+                            <span>১ বছর+</span>
+                        </span>
+                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['1year'] ?? 0)</span>
+                    </label>
+                </div>
+            </div>
+            @endif
+
+            <!-- 6. Features & Toggles (Mobile) -->
+            <div class="mb-4 pt-3 border-top">
+                <label class="form-label filter-sec-label mb-2.5 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
+                    <span>ফিচার</span>
+                </label>
+                <div class="d-flex flex-column gap-2.5">
+                    <div class="form-check form-switch py-1">
+                        <input class="form-check-input" type="checkbox" name="feature" value="bestseller" id="mFeatBestseller" {{ request('feature') === 'bestseller' ? 'checked' : '' }} onchange="this.form.submit()">
+                        <label class="form-check-label small fw-semibold d-flex justify-content-between" for="mFeatBestseller">
+                            <span>বেস্টসেলার</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">@bn($featureCounts['bestseller'] ?? 0)</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch py-1">
+                        <input class="form-check-input" type="checkbox" name="feature" value="hot_deal" id="mFeatHotDeal" {{ request('feature') === 'hot_deal' ? 'checked' : '' }} onchange="this.form.submit()">
+                        <label class="form-check-label small fw-semibold d-flex justify-content-between" for="mFeatHotDeal">
+                            <span>হট ডিল</span>
+                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">@bn($featureCounts['hot_deal'] ?? 0)</span>
+                        </label>
+                    </div>
+                    <div class="form-check form-switch py-1">
+                        <input class="form-check-input" type="checkbox" name="in_stock" value="1" id="mInStock" {{ request('in_stock') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
+                        <label class="form-check-label small fw-semibold" for="mInStock">স্টকে আছে</label>
+                    </div>
+                    <div class="form-check form-switch py-1">
+                        <input class="form-check-input" type="checkbox" name="discount" value="1" id="mDiscount" {{ request('discount') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
+                        <label class="form-check-label small fw-semibold" for="mDiscount">ছাড়</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill fw-bold py-2 shadow-xs">প্রয়োগ করুন</button>
+                <a href="{{ route($shopRoute, request()->only(['q'])) }}" class="btn btn-light rounded-pill py-2 text-muted border ajax-filter-trigger">সব মুছুন</a>
+            </div>
+        </form>
+    </div>
+</div>ill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['official'] ?? 0)</span>
                     </label>
                     <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'replacement' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
                         <span class="d-flex align-items-center gap-2">

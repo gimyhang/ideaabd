@@ -64,13 +64,13 @@
         {{-- Collect Installment Payment Button --}}
         @if(in_array($invoice->type, ['invoice', 'challan']) && $invoice->due_amount > 0)
             <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
-                <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> কিস্তি জমা নিন
+                <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Collect Installment
             </button>
         @endif
 
         {{-- Customer Ledger Link --}}
-        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" title="গ্রাহকের সম্পূর্ণ খতিয়ান দেখুন">
-            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
+        <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-sm" title="View complete customer ledger">
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledger
         </a>
 
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
@@ -107,7 +107,7 @@
         {{-- Convert to Invoice/Challan if currently Quotation or Tender --}}
         @if(in_array($invoice->type, ['quotation', 'tender']))
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  data-confirm="আপনি কি এই কোটেশন/টেন্ডারটিকে চূড়ান্ত ইনভয়েস/বিল এ রূপান্তর করতে চান?" data-confirm-title="বিল রূপান্তর" data-confirm-icon="question">
+                  data-confirm="Are you sure you want to convert this quotation/tender into a final invoice/bill?" data-confirm-title="Convert to Bill" data-confirm-icon="question">
                 @csrf
                 <input type="hidden" name="target_type" value="invoice">
                 <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold shadow-sm">
@@ -116,7 +116,7 @@
             </form>
 
             <form action="{{ route('admin.accounting.invoices.convert', $invoice->id) }}" method="POST" class="d-inline"
-                  data-confirm="আপনি কি এই কোটেশন/টেন্ডারটিকে ডেলিভারি চালানে রূপান্তর করতে চান?" data-confirm-title="চালান রূপান্তর" data-confirm-icon="question">
+                  data-confirm="Are you sure you want to convert this quotation/tender into a delivery challan?" data-confirm-title="Convert to Challan" data-confirm-icon="question">
                 @csrf
                 <input type="hidden" name="target_type" value="challan">
                 <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-3 fw-semibold shadow-sm">
@@ -489,7 +489,7 @@
                         <div class="invoice-total-words-box bg-light bg-opacity-50 rounded-2 border h-100 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="text-muted fw-bold mb-1" style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.3px;">
-                                    <i class="fa-solid fa-coins me-1 text-primary"></i>Total in Words (টাকা কথায়):
+                                    <i class="fa-solid fa-coins me-1 text-primary"></i>Total in Words:
                                 </div>
                                 <div class="fw-bold text-dark text-wrap" style="font-size: 11.5px; line-height: 1.45;">
                                     @takaInWordsEn($invoice->grand_total)
@@ -538,7 +538,7 @@
                                     @endif
                                     @if(($invoice->previous_due ?? 0) > 0)
                                         <tr class="border-bottom border-warning-subtle table-warning bg-warning bg-opacity-10">
-                                            <td class="text-dark fw-bold">Previous Due (জের):</td>
+                                            <td class="text-dark fw-bold">Previous Due:</td>
                                             <td class="text-end text-dark fw-bold font-monospace">+ ৳{{ number_format($invoice->previous_due, 2) }}</td>
                                         </tr>
                                     @endif
@@ -945,20 +945,20 @@
                     </div>
                     <div>
                         <h6 class="fw-bold mb-1 text-dark">
-                            গ্রাহক <span class="text-primary">{{ $invoice->customer_name }}</span>-এর একাধিক বিলে বকেয়া রয়েছে
+                            Customer <span class="text-primary">{{ $invoice->customer_name }}</span> has dues across multiple bills
                         </h6>
                         <div class="text-muted small">
-                            মোট বকেয়া বিল: <strong class="text-dark">{{ $customerDueCount }}টি</strong> | সর্বমোট অপরিশোধিত বকেয়া: <strong class="text-danger font-monospace fs-6">৳{{ number_format($customerTotalDue, 2) }}</strong>
-                            (বর্তমান ইনভয়েস বকেয়া: <strong class="text-dark font-monospace">৳{{ number_format($invoice->due_amount, 2) }}</strong>)
+                            Total Due Invoices: <strong class="text-dark">{{ $customerDueCount }}</strong> | Total Outstanding Due: <strong class="text-danger font-monospace fs-6">৳{{ number_format($customerTotalDue, 2) }}</strong>
+                            (Current Invoice Due: <strong class="text-dark font-monospace">৳{{ number_format($invoice->due_amount, 2) }}</strong>)
                         </div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> খতিয়ান দেখুন
+                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> View Ledger
                     </a>
                     <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3.5 fw-bold shadow-sm" onclick="openAllDueSettlementModal()">
-                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> সকল বকেয়া একসাথে পরিশোধ করুন
+                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Settle All Dues Together
                     </button>
                 </div>
             </div>
@@ -968,7 +968,7 @@
 @endif
 
 {{-- ========================================================================= --}}
-{{-- STEP-BY-STEP PAYMENT & INSTALLMENTS TRACKER CARD (ধাপে ধাপে জমা ও কিস্তি হিসাব) --}}
+{{-- STEP-BY-STEP PAYMENT & INSTALLMENTS TRACKER CARD --}}
 {{-- ========================================================================= --}}
 @if(in_array($invoice->type, ['invoice', 'challan']))
 <div class="row justify-content-center mt-3 d-print-none">
@@ -980,17 +980,17 @@
                         <i class="fa-solid fa-hand-holding-dollar fs-6"></i>
                     </span>
                     <div>
-                        <h5 class="card-title fw-bold mb-0 text-dark">ধাপে ধাপে কিস্তি ও জমা পরিশোধের হিসাব</h5>
-                        <div class="text-muted small">ইনভয়েস #{{ $invoice->invoice_no }} — {{ $invoice->customer_name }}</div>
+                        <h5 class="card-title fw-bold mb-0 text-dark">Payment & Installment Tracker</h5>
+                        <div class="text-muted small">Invoice #{{ $invoice->invoice_no }} — {{ $invoice->customer_name }}</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <a href="{{ route('admin.accounting.customer-ledger.index', ['customer_name' => $invoice->customer_name, 'customer_phone' => $invoice->customer_phone]) }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> সম্পূর্ণ গ্রাহক খতিয়ান
+                        <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Full Customer Ledger
                     </a>
                     @if($invoice->due_amount > 0 || ($customerTotalDue ?? 0) > 0)
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">
-                            <i class="fa-solid fa-plus me-1"></i> নতুন কিস্তি জমা নিন
+                            <i class="fa-solid fa-plus me-1"></i> Record New Payment
                         </button>
                     @endif
                 </div>
@@ -1004,37 +1004,37 @@
                 <div class="row g-3 mb-4">
                     <div class="col-md-3 col-6">
                         <div class="p-3 bg-light rounded-3 border text-center">
-                            <div class="text-muted small fw-semibold">মোট বিলের দাবি</div>
+                            <div class="text-muted small fw-semibold">Total Bill Amount</div>
                             <div class="fs-5 fw-bold text-dark font-monospace mt-1">৳{{ number_format($invoice->grand_total, 2) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-3 bg-success-subtle rounded-3 border border-success-subtle text-center">
-                            <div class="text-success small fw-semibold">মোট জমা / পরিশোধ</div>
+                            <div class="text-success small fw-semibold">Total Paid Amount</div>
                             <div class="fs-5 fw-bold text-success font-monospace mt-1">৳{{ number_format($invoice->paid_amount, 2) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-3 {{ $invoice->due_amount > 0 ? 'bg-danger-subtle border-danger-subtle' : 'bg-light' }} rounded-3 border text-center">
-                            <div class="{{ $invoice->due_amount > 0 ? 'text-danger' : 'text-muted' }} small fw-semibold">বর্তমান বকেয়া জের</div>
+                            <div class="{{ $invoice->due_amount > 0 ? 'text-danger' : 'text-muted' }} small fw-semibold">Current Balance Due</div>
                             <div class="fs-5 fw-bold {{ $invoice->due_amount > 0 ? 'text-danger' : 'text-success' }} font-monospace mt-1">৳{{ number_format($invoice->due_amount, 2) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6">
                         <div class="p-3 bg-light rounded-3 border text-center">
-                            <div class="text-muted small fw-semibold">পরিশোধের শেষ তারিখ (ঐচ্ছিক)</div>
+                            <div class="text-muted small fw-semibold">Due Date (Optional)</div>
                             <div class="fs-6 fw-bold text-dark font-monospace mt-1">
                                 @if($invoice->due_date && $invoice->due_amount > 0)
                                     <span class="{{ $invoice->is_overdue ? 'text-danger' : 'text-primary' }}">
                                         <i class="fa-solid fa-calendar-day me-1"></i>{{ $invoice->due_date->format('d M, Y') }}
                                         @if($invoice->is_overdue)
-                                            <span class="badge bg-danger text-white ms-1" style="font-size: 9px;">মেয়াদোত্তীর্ণ</span>
+                                            <span class="badge bg-danger text-white ms-1" style="font-size: 9px;">Overdue</span>
                                         @endif
                                     </span>
                                 @elseif($invoice->due_amount <= 0)
-                                    <span class="text-success small"><i class="fa-solid fa-circle-check me-1"></i>সম্পূর্ণ পরিশোধিত</span>
+                                    <span class="text-success small"><i class="fa-solid fa-circle-check me-1"></i>Fully Paid</span>
                                 @else
-                                    <span class="text-muted small">নির্ধারিত নেই</span>
+                                    <span class="text-muted small">Not set</span>
                                 @endif
                             </div>
                         </div>
@@ -1044,14 +1044,14 @@
                 {{-- Visual Progress Bar --}}
                 <div class="mb-4">
                     <div class="d-flex justify-content-between small text-muted mb-1.5 fw-semibold">
-                        <span>পরিশোধের অগ্রগতি: <strong class="text-dark">{{ $pctPaid }}%</strong></span>
-                        <span>স্থিতি: 
+                        <span>Payment Progress: <strong class="text-dark">{{ $pctPaid }}%</strong></span>
+                        <span>Status: 
                             @if($invoice->payment_status === 'paid')
-                                <span class="badge bg-success">পরিশোধিত (Paid)</span>
+                                <span class="badge bg-success">Paid</span>
                             @elseif($invoice->payment_status === 'partial')
-                                <span class="badge bg-warning text-dark">আংশিক জমা (Partial)</span>
+                                <span class="badge bg-warning text-dark">Partial</span>
                             @else
-                                <span class="badge bg-danger">বকেয়া (Unpaid)</span>
+                                <span class="badge bg-danger">Unpaid</span>
                             @endif
                         </span>
                     </div>
@@ -1192,30 +1192,30 @@
                             <i class="fa-solid fa-list-check me-1"></i>Logs ({{ $totalDispatches }})
                         </button>
                         <button type="button" class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-semibold text-dark" id="dispatchNavMsgBtn" onclick="switchDispatchTab('message')">
-                            <i class="fa-solid fa-comment-dots me-1 text-success"></i>কাস্টমার মেসেজ ও অভিবাদন বার্তা কাস্টমাইজেশন
+                            <i class="fa-solid fa-comment-dots me-1 text-success"></i>Message Customization
                         </button>
                     </div>
 
                     {{-- Copy Link --}}
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs text-dark" onclick="copyCustomerShareLink()" title="গ্রাহকের জন্য সরাসরি পাবলিক লিংক কপি করুন">
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold shadow-2xs text-dark" onclick="copyCustomerShareLink()" title="Copy public link for customer">
                         <i class="fa-solid fa-copy me-1 text-primary"></i> Copy Link
                     </button>
                     
                     {{-- WhatsApp Share --}}
                     @php
-                        $docTypeBn = ($invoice->type === 'challan' ? 'ডেলিভারি চালান' : ($invoice->type === 'quotation' ? 'মূল্য কোটেশন' : ($invoice->type === 'tender' ? 'টেন্ডার প্রপোজাল' : 'বিল / ইনভয়েস')));
+                        $docTypeEn = ($invoice->type === 'challan' ? 'Delivery Challan' : ($invoice->type === 'quotation' ? 'Price Quotation' : ($invoice->type === 'tender' ? 'Tender Proposal' : 'Invoice / Bill')));
                         $waTemplate = !empty($settings['whatsapp_message_template']) 
                             ? $settings['whatsapp_message_template'] 
-                            : "{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}";
+                            : "Your {doc_type} (#{invoice_no}) from {business_name} is ready. View online: {invoice_url}";
 
                         $waMsg = str_replace(
                             ['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}', '{invoice_url}'],
-                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'Idea Publication', $docTypeBn, $invoice->invoice_no, $invoice->public_url],
+                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'Idea Publication', $docTypeEn, $invoice->invoice_no, $invoice->public_url],
                             $waTemplate
                         );
                     @endphp
                     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? '') }}?text={{ urlencode($waMsg) }}" target="_blank" id="headerWhatsAppShareBtn" 
-                       class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" title="হোয়াটসঅ্যাপে গ্রাহককে ইনভয়েস লিংক পাঠান">
+                       class="btn btn-sm btn-outline-success rounded-pill px-3 py-1.5 fw-semibold shadow-2xs" title="Send invoice link to customer via WhatsApp">
                         <i class="fab fa-whatsapp me-1 text-success"></i> WhatsApp
                     </a>
 
@@ -1237,9 +1237,9 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
                                 <span class="text-muted small fw-semibold d-block mb-1">
-                                    <i class="fa-solid fa-user text-primary me-1"></i>গ্রাহকের ইমেইল
+                                    <i class="fa-solid fa-user text-primary me-1"></i>Customer Email
                                 </span>
-                                <div class="font-monospace fw-bold text-dark text-truncate" title="{{ $invoice->customer_email ?: 'নির্ধারিত নেই' }}" style="font-size: 13px;">
+                                <div class="font-monospace fw-bold text-dark text-truncate" title="{{ $invoice->customer_email ?: 'Not set' }}" style="font-size: 13px;">
                                     {{ $invoice->customer_email ?: '—' }}
                                 </div>
                             </div>
@@ -1249,10 +1249,10 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
                                 <span class="text-muted small fw-semibold d-block mb-1">
-                                    <i class="fa-solid fa-paper-plane text-info me-1"></i>মোট প্রেরণ সংখ্যা
+                                    <i class="fa-solid fa-paper-plane text-info me-1"></i>Total Dispatches
                                 </span>
                                 <div class="fs-5 fw-bold text-dark font-monospace">
-                                    {{ $totalDispatches }} <span class="fs-6 fw-normal text-muted">বার</span>
+                                    {{ $totalDispatches }} <span class="fs-6 fw-normal text-muted">times</span>
                                 </div>
                             </div>
                         </div>
@@ -1261,14 +1261,14 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-between">
                                 <span class="text-muted small fw-semibold d-block mb-1">
-                                    <i class="fa-solid fa-clock text-warning me-1"></i>সর্বশেষ প্রেরণ
+                                    <i class="fa-solid fa-clock text-warning me-1"></i>Latest Dispatch
                                 </span>
                                 <div class="text-dark fw-bold" style="font-size: 12.5px;">
                                     @if($latestSentAt)
                                         <div>{{ $latestSentAt->format('d M, Y') }}</div>
                                         <small class="text-muted fw-normal">{{ $latestSentAt->format('h:i A') }} ({{ $latestSentAt->diffForHumans() }})</small>
                                     @else
-                                        <span class="text-muted">— এখনও পাঠানো হয়নি —</span>
+                                        <span class="text-muted">— Not sent yet —</span>
                                     @endif
                                 </div>
                             </div>
@@ -1278,16 +1278,16 @@
                         <div class="col-6 col-md-3">
                             <div class="p-3 {{ $totalDispatches > 0 ? 'bg-success-subtle border-success-subtle' : 'bg-light' }} rounded-3 border h-100 d-flex flex-column justify-content-between">
                                 <span class="text-muted small fw-semibold d-block mb-1">
-                                    <i class="fa-solid fa-shield-check text-success me-1"></i>ডেলিভারি হেলথ
+                                    <i class="fa-solid fa-shield-check text-success me-1"></i>Delivery Health
                                 </span>
                                 <div>
                                     @if($totalDispatches > 0)
                                         <span class="badge bg-success text-white px-2.5 py-1 rounded-pill shadow-2xs">
-                                            <i class="fa-solid fa-circle-check me-1"></i> সক্রিয় (Active)
+                                            <i class="fa-solid fa-circle-check me-1"></i> Active
                                         </span>
                                     @else
                                         <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1 rounded-pill">
-                                            <i class="fa-regular fa-clock me-1"></i> অপেক্ষমান
+                                            <i class="fa-regular fa-clock me-1"></i> Pending
                                         </span>
                                     @endif
                                 </div>
@@ -1300,7 +1300,7 @@
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5 mb-3 p-2 bg-light rounded-3 border">
                             {{-- Filter Tabs --}}
                             <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                <span class="small text-muted fw-semibold me-1"><i class="fa-solid fa-filter me-1 text-secondary"></i>ফিল্টার:</span>
+                                <span class="small text-muted fw-semibold me-1"><i class="fa-solid fa-filter me-1 text-secondary"></i>Filter:</span>
                                 <button type="button" class="btn btn-sm btn-white border rounded-pill px-3 py-1 active-filter fw-bold shadow-2xs text-dark" id="filterAllBtn" onclick="filterEmailLogs('all', this)">
                                     All ({{ $totalDispatches }})
                                 </button>
@@ -1317,7 +1317,7 @@
                             {{-- Search Input --}}
                             <div class="input-group input-group-sm" style="max-width: 240px;">
                                 <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                                <input type="text" id="emailLogsSearch" class="form-control bg-white border-start-0" placeholder="ইমেইল বা মেসেজ খুঁজুন..." oninput="searchEmailLogs(this.value)">
+                                <input type="text" id="emailLogsSearch" class="form-control bg-white border-start-0" placeholder="Search email or message..." oninput="searchEmailLogs(this.value)">
                             </div>
                         </div>
 
@@ -1327,13 +1327,13 @@
                                 <thead class="table-light text-secondary border-bottom">
                                     <tr>
                                         <th class="text-center" style="width: 40px;">#</th>
-                                        <th style="width: 135px;">তারিখ ও সময়</th>
-                                        <th style="min-width: 200px;">প্রাপক তালিকা (Recipients)</th>
-                                        <th style="width: 140px;">প্রেরক (Sender)</th>
-                                        <th style="min-width: 150px;">বার্তা / বিবরণ</th>
-                                        <th style="width: 100px;">প্রেরণকারী</th>
-                                        <th class="text-center" style="width: 105px;">স্ট্যাটাস</th>
-                                        <th class="text-center" style="width: 85px;">অ্যাকশন</th>
+                                        <th style="width: 135px;">Date & Time</th>
+                                        <th style="min-width: 200px;">Recipients</th>
+                                        <th style="width: 140px;">Sender</th>
+                                        <th style="min-width: 150px;">Message / Details</th>
+                                        <th style="width: 100px;">Sent By</th>
+                                        <th class="text-center" style="width: 105px;">Status</th>
+                                        <th class="text-center" style="width: 85px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1368,7 +1368,7 @@
                                                     @if(!empty($recipients))
                                                         <div class="d-flex flex-wrap gap-1">
                                                             @foreach($recipients as $recEmail)
-                                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;" title="সফলভাবে প্রেরিত">
+                                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 11px;" title="Successfully sent">
                                                                     <i class="fa-solid fa-circle-check text-success me-1"></i>{{ $recEmail }}
                                                                 </span>
                                                             @endforeach
@@ -1400,7 +1400,7 @@
                                                                 @if($fError)
                                                                     <button type="button" class="btn btn-link p-0 text-danger small text-decoration-none" 
                                                                             data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $fError }}" style="font-size: 11px;">
-                                                                        <i class="fa-solid fa-circle-info"></i> <span style="font-size: 10px;">ত্রুটি দেখুন</span>
+                                                                        <i class="fa-solid fa-circle-info"></i> <span style="font-size: 10px;">View Error</span>
                                                                     </button>
                                                                 @endif
                                                             </div>
@@ -1424,7 +1424,7 @@
                                                     {{ Str::limit($log['custom_message'], 60) }}
                                                 </div>
                                             @else
-                                                <span class="text-muted small" style="font-size: 11px;">— ডিজিটাল ইনভয়েস লিংক —</span>
+                                                <span class="text-muted small" style="font-size: 11px;">— Digital Invoice Link —</span>
                                             @endif
                                         </td>
 
@@ -1437,15 +1437,15 @@
                                         <td class="text-center text-nowrap">
                                             @if($status === 'success')
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
-                                                    <i class="fa-solid fa-circle-check me-1"></i> ডেলিভার্ড
+                                                    <i class="fa-solid fa-circle-check me-1"></i> Delivered
                                                 </span>
                                             @elseif($status === 'partial')
                                                 <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
-                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> আংশিক
+                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Partial
                                                 </span>
                                             @else
                                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold" style="font-size: 11px;">
-                                                    <i class="fa-solid fa-circle-xmark me-1"></i> ব্যর্থ
+                                                    <i class="fa-solid fa-circle-xmark me-1"></i> Failed
                                                 </span>
                                             @endif
                                         </td>
@@ -1456,14 +1456,14 @@
                                                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-0.5 shadow-2xs fw-semibold" 
                                                         style="font-size: 11px;" 
                                                         onclick="openResendModal('{{ implode(', ', $allRecipientEmails) }}', '{{ addslashes($log['custom_message'] ?? '') }}')" 
-                                                        title="এই ঠিকানায় পুনরায় ইনভয়েস মেইল পাঠান">
+                                                        title="Resend invoice email to this address">
                                                     <i class="fa-solid fa-rotate-right me-0.5"></i> Resend
                                                 </button>
                                                 @if(!empty($log['id']))
                                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5 shadow-2xs" 
                                                             style="font-size: 11px;" 
                                                             onclick="deleteEmailLogEntry('{{ $invoice->id }}', '{{ $log['id'] }}', this)" 
-                                                            title="এই লগটি মুছে ফেলুন">
+                                                            title="Delete this log">
                                                         <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 @endif
@@ -1479,14 +1479,14 @@
                         <div class="d-flex align-items-center gap-3">
                             <i class="fa-solid fa-circle-check fs-3 text-success"></i>
                             <div>
-                                <h6 class="fw-bold mb-0 text-success">ইমেইল সফলভাবে পাঠানো হয়েছিল</h6>
+                                <h6 class="fw-bold mb-0 text-success">Email Successfully Sent</h6>
                                 <small class="text-muted">
-                                    সর্বশেষ মেইল পাঠানো হয়েছে: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }}) — প্রাপক: <strong class="font-monospace text-dark">{{ $invoice->customer_email ?: 'গ্রাহকের ইমেইল' }}</strong>
+                                    Last emailed: <strong>{{ $invoice->emailed_at->format('d M, Y h:i A') }}</strong> ({{ $invoice->emailed_at->diffForHumans() }}) — Recipient: <strong class="font-monospace text-dark">{{ $invoice->customer_email ?: 'Customer Email' }}</strong>
                                 </small>
                             </div>
                         </div>
                         <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            পুনরায় পাঠান
+                            Resend
                         </button>
                     </div>
                 @else
@@ -1495,12 +1495,12 @@
                         <div class="rounded-circle bg-white shadow-2xs d-inline-flex align-items-center justify-content-center p-3 mb-2">
                             <i class="fa-solid fa-paper-plane fs-2 text-success"></i>
                         </div>
-                        <h6 class="fw-bold text-dark mb-1">এখনো কোনো ইমেইল প্রেরণ করা হয়নি</h6>
+                        <h6 class="fw-bold text-dark mb-1">No Email Dispatched Yet</h6>
                         <p class="text-muted small mb-3 mx-auto" style="max-width: 500px;">
-                            গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় এক ক্লিকে ডিজিটাল বিল ও ডেলিভারি চালানের সরাসরি লিংক এবং পিডিএফ কপি পাঠাতে নিচের বাটনে ক্লিক করুন।
+                            Click the button below to send the direct live link and PDF copy of the digital bill and delivery challan to the customer.
                         </p>
                         <button type="button" class="btn btn-success btn-sm rounded-pill px-4 py-2 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#sendInvoiceEmailModal">
-                            <i class="fa-solid fa-paper-plane me-1.5"></i> এখনই গ্রাহককে ইমেইল পাঠান
+                            <i class="fa-solid fa-paper-plane me-1.5"></i> Send Email to Customer Now
                         </button>
                     </div>
                 @endif
@@ -1513,23 +1513,23 @@
                     @php
                         $autoFilledWaMsg = str_replace(
                             ['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}', '{invoice_url}'],
-                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $docTypeBn, $invoice->invoice_no, $invoice->public_url],
+                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'Idea Publication', $docTypeEn, $invoice->invoice_no, $invoice->public_url],
                             !empty($settings['whatsapp_message_template']) 
                                 ? $settings['whatsapp_message_template'] 
-                                : "{business_name} থেকে আপনার {doc_type} (#{invoice_no}) প্রস্তুত করা হয়েছে। সরাসরি দেখতে ভিজিট করুন: {invoice_url}"
+                                : "Your {doc_type} (#{invoice_no}) from {business_name} is ready. View online: {invoice_url}"
                         );
 
                         $autoFilledEmailIntro = str_replace(
                             ['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}', '{invoice_url}'],
-                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $docTypeBn, $invoice->invoice_no, $invoice->public_url],
+                            [$invoice->customer_name ?? '', $settings['business_name'] ?? 'Idea Publication', $docTypeEn, $invoice->invoice_no, $invoice->public_url],
                             !empty($settings['email_intro_text']) 
                                 ? $settings['email_intro_text'] 
-                                : "{business_name} থেকে আপনার অর্ডারের {doc_type} প্রস্তুত করা হয়েছে।"
+                                : "{business_name} has prepared your {doc_type}."
                         );
 
                         $autoFilledGreeting = !empty($settings['email_greeting_salutation']) 
                             ? $settings['email_greeting_salutation'] 
-                            : 'সম্মানিত গ্রাহক';
+                            : 'Dear Customer';
                     @endphp
 
                     <form action="{{ route('admin.accounting.settings.update') }}" method="POST" id="customMessageSettingsForm" onsubmit="handleCustomMessageSubmit(event)" class="p-3.5 bg-light rounded-4 border">
@@ -1554,15 +1554,15 @@
                                         <div class="mb-3">
                                             <div class="d-flex align-items-center justify-content-between mb-1.5 flex-wrap gap-1">
                                                 <label class="form-label small fw-bold text-dark mb-0">
-                                                    <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share বার্তা (অটোফিল):
+                                                    <i class="fab fa-whatsapp text-success me-1"></i>WhatsApp / Social Share Message (Auto-fill):
                                                 </label>
                                                 {{-- Inline Auto-fill Value Insertion Chips --}}
                                                 <div class="d-flex align-items-center gap-1 flex-wrap">
-                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'customer_name')" title="গ্রাহকের নাম বসান">{{ $invoice->customer_name ?: '{customer_name}' }}</button>
-                                                    <button type="button" class="btn btn-xs btn-outline-success py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'business_name')" title="প্রতিষ্ঠানের নাম বসান">{{ $settings['business_name'] ?? 'Idea Publication' }}</button>
-                                                    <button type="button" class="btn btn-xs btn-outline-info py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'doc_type')" title="ডকুমেন্টের ধরন বসান">{{ $docTypeBn }}</button>
-                                                    <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_no')" title="ইনভয়েস নম্বর বসান">#{{ $invoice->invoice_no }}</button>
-                                                    <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_url')" title="অনলাইন লিংক বসান">🔗 Link</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'customer_name')" title="Insert Customer Name">{{ $invoice->customer_name ?: '{customer_name}' }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-success py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'business_name')" title="Insert Business Name">{{ $settings['business_name'] ?? 'Idea Publication' }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-info py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'doc_type')" title="Insert Document Type">{{ $docTypeEn }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-warning text-dark py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_no')" title="Insert Invoice No">#{{ $invoice->invoice_no }}</button>
+                                                    <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1.5 rounded-pill" style="font-size: 10px;" onclick="insertAutoFillValue('whatsappMsgTemplateInput', 'invoice_url')" title="Insert Online Link">🔗 Link</button>
                                                 </div>
                                             </div>
                                             <textarea name="whatsapp_message_template" id="whatsappMsgTemplateInput" class="form-control rounded-2 font-sans" rows="3" 
@@ -1574,21 +1574,21 @@
                                         <div class="row g-2.5">
                                             <div class="col-md-5">
                                                 <label class="form-label small fw-bold text-dark mb-1">
-                                                    <i class="fa-solid fa-envelope text-primary me-1"></i>ইমেইল সম্ভাষণ:
+                                                    <i class="fa-solid fa-envelope text-primary me-1"></i>Email Salutation:
                                                 </label>
                                                 <input type="text" name="email_greeting_salutation" id="emailGreetingInput" class="form-control form-control-sm rounded-2" 
                                                        value="{{ $autoFilledGreeting }}" 
                                                        oninput="handleMessageInput()"
-                                                       placeholder="সম্মানিত গ্রাহক">
+                                                       placeholder="Dear Customer">
                                             </div>
                                             <div class="col-md-7">
                                                 <div class="d-flex align-items-center justify-content-between mb-1">
                                                     <label class="form-label small fw-bold text-dark mb-0">
-                                                        <i class="fa-solid fa-file-lines text-info me-1"></i>ইমেইল ভূমিকা বার্তা:
+                                                        <i class="fa-solid fa-file-lines text-info me-1"></i>Email Intro Message:
                                                     </label>
                                                     <div class="d-flex gap-1">
                                                         <button type="button" class="btn btn-xs btn-outline-success py-0 px-1 rounded-pill" style="font-size: 9.5px;" onclick="insertAutoFillValue('emailIntroInput', 'business_name')">{{ $settings['business_name'] ?? 'Idea Publication' }}</button>
-                                                        <button type="button" class="btn btn-xs btn-outline-info py-0 px-1 rounded-pill" style="font-size: 9.5px;" onclick="insertAutoFillValue('emailIntroInput', 'doc_type')">{{ $docTypeBn }}</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-info py-0 px-1 rounded-pill" style="font-size: 9.5px;" onclick="insertAutoFillValue('emailIntroInput', 'doc_type')">{{ $docTypeEn }}</button>
                                                     </div>
                                                 </div>
                                                 <input type="text" name="email_intro_text" id="emailIntroInput" class="form-control form-control-sm rounded-2" 
@@ -1602,11 +1602,11 @@
                                     {{-- Save and Reset Toolbar --}}
                                     <div class="d-flex align-items-center justify-content-between pt-3 mt-3 border-top">
                                         <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 12px;" onclick="resetToAutoFilledMessages()">
-                                            <i class="fa-solid fa-rotate-left me-1"></i>অটোফিল রিস্টোর
+                                            <i class="fa-solid fa-rotate-left me-1"></i>Restore Defaults
                                         </button>
                                         <button type="submit" class="btn btn-sm btn-success rounded-pill px-4 py-1.5 fw-bold shadow-xs" id="btnSaveCustomMsg">
                                             <i class="fa-solid fa-save me-1.5" id="btnSaveCustomMsgIcon"></i>
-                                            <span id="btnSaveCustomMsgText">বার্তা সংরক্ষণ করুন</span>
+                                            <span id="btnSaveCustomMsgText">Save Message Settings</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1619,10 +1619,10 @@
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-1.5">
                                             <span class="small fw-bold text-success">
-                                                <i class="fab fa-whatsapp me-1"></i>WhatsApp প্রিভিউ
+                                                <i class="fab fa-whatsapp me-1"></i>WhatsApp Preview
                                             </span>
                                             <a href="#" id="previewWaActionBtn" target="_blank" class="btn btn-xs btn-outline-success rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                                <i class="fab fa-whatsapp me-1"></i>টেস্ট লিংক
+                                                <i class="fab fa-whatsapp me-1"></i>Test Link
                                             </a>
                                         </div>
                                         <div class="p-2.5 rounded-3 border" style="background-color: #e7f7e4;">
@@ -1637,7 +1637,7 @@
                                     {{-- Email Preview --}}
                                     <div class="border-top pt-2">
                                         <span class="small fw-bold text-primary d-block mb-1">
-                                            <i class="fa-solid fa-envelope me-1"></i>ইমেইল বার্তা প্রিভিউ
+                                            <i class="fa-solid fa-envelope me-1"></i>Email Preview
                                         </span>
                                         <div class="p-2 rounded-2 bg-light border small text-dark" style="font-size: 11.5px; line-height: 1.4;">
                                             <div class="fw-bold text-dark" id="liveEmailGreetingText"></div>
@@ -1657,9 +1657,9 @@
 <script>
 // Global Dynamic Variables (Auto-filled from settings and invoice)
 const invoiceDynamicVars = {
-    customer_name: @json($invoice->customer_name ?: 'সম্মানিত গ্রাহক'),
-    business_name: @json($settings['business_name'] ?? 'আইডিয়া প্রকাশন'),
-    doc_type: @json($docTypeBn),
+    customer_name: @json($invoice->customer_name ?: 'Dear Customer'),
+    business_name: @json($settings['business_name'] ?? 'Idea Publication'),
+    doc_type: @json($docTypeEn),
     invoice_no: @json($invoice->invoice_no),
     invoice_url: @json($invoice->public_url),
     customer_phone: @json(preg_replace('/[^0-9]/', '', $invoice->customer_phone ?? ''))
@@ -1771,7 +1771,7 @@ function handleCustomMessageSubmit(e) {
     if (btnIcon) {
         btnIcon.className = "fa-solid fa-spinner fa-spin me-1.5";
     }
-    if (btnText) btnText.textContent = "সংরক্ষণ হচ্ছে...";
+    if (btnText) btnText.textContent = "Saving...";
 
     const formData = new FormData(form);
 
@@ -1789,13 +1789,13 @@ function handleCustomMessageSubmit(e) {
             alertBox.style.display = "block";
             if (data.success) {
                 alertBox.className = "alert alert-success border-success-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
-                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-check text-success me-2"></i><strong>সফল:</strong> ${data.message || "বার্তা সফলভাবে সংরক্ষিত হয়েছে!"}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-check text-success me-2"></i><strong>Success:</strong> ${data.message || "Message successfully saved!"}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
                 setTimeout(() => {
                     if (alertBox) alertBox.style.display = "none";
                 }, 5000);
             } else {
                 alertBox.className = "alert alert-danger border-danger-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
-                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>ত্রুটি:</strong> ${data.message || "সংরক্ষণে সমস্যা হয়েছে।"}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+                alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>Error:</strong> ${data.message || "Failed to save message."}</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
             }
         }
         handleMessageInput();
@@ -1804,7 +1804,7 @@ function handleCustomMessageSubmit(e) {
         if (alertBox) {
             alertBox.style.display = "block";
             alertBox.className = "alert alert-danger border-danger-subtle rounded-3 py-2 px-3 d-flex align-items-center justify-content-between mb-3 shadow-2xs";
-            alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>ত্রুটি:</strong> সংরক্ষণে সমস্যা হয়েছে (${err.message})</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
+            alertBox.innerHTML = `<div><i class="fa-solid fa-circle-exmark text-danger me-2"></i><strong>Error:</strong> Failed to save message (${err.message})</div><button type="button" class="btn-close btn-sm" onclick="this.parentElement.style.display='none'"></button>`;
         }
     })
     .finally(() => {
@@ -1812,7 +1812,7 @@ function handleCustomMessageSubmit(e) {
         if (btnIcon) {
             btnIcon.className = "fa-solid fa-save me-1.5";
         }
-        if (btnText) btnText.textContent = "বার্তা সংরক্ষণ করুন";
+        if (btnText) btnText.textContent = "Save Message Settings";
     });
 }
 
@@ -1898,7 +1898,7 @@ function searchEmailLogs(query) {
 }
 
 function deleteEmailLogEntry(invoiceId, logId, btn) {
-    if (!confirm('আপনি কি নিশ্চিত যে এই ইমেইল লগটি তালিকা থেকে মুছে ফেলতে চান?')) {
+    if (!confirm('Are you sure you want to delete this email log entry?')) {
         return;
     }
 
@@ -1931,13 +1931,13 @@ function deleteEmailLogEntry(invoiceId, logId, btn) {
                 }, 300);
             }
         } else {
-            alert('লগ মুছতে সমস্যা হয়েছে: ' + (data.message || 'অজানা ত্রুটি'));
+            alert('Failed to delete log: ' + (data.message || 'Unknown error'));
             btn.disabled = false;
             btn.innerHTML = originalContent;
         }
     })
     .catch(err => {
-        alert('ত্রুটি: ' + err.message);
+        alert('Error: ' + err.message);
         btn.disabled = false;
         btn.innerHTML = originalContent;
     });
@@ -2268,21 +2268,21 @@ function togglePaymentScope(scope) {
         if (singleBox) singleBox.classList.add('d-none');
         if (allBox) allBox.classList.remove('d-none');
         if (noteInput && !noteInput.value) {
-            noteInput.value = 'সকল বকেয়া বিল বাবদ এককালীন/কিস্তি জমা';
+            noteInput.value = 'Lump sum / installment payment against outstanding dues';
         }
         if (helpText) {
-            helpText.textContent = 'প্রদত্ত অর্থ গ্রাহকের সবচেয়ে পুরোনো বকেয়া বিল হতে পর্যায়ক্রমে স্বয়ংক্রিয়ভাবে বণ্টন হবে।';
+            helpText.textContent = 'The payment will be automatically distributed sequentially starting from the oldest overdue bill.';
         }
     } else {
         form.action = singleInvoiceActionUrl;
         amountInput.value = singleInvoiceDue > 0 ? singleInvoiceDue.toFixed(2) : '';
         if (singleBox) singleBox.classList.remove('d-none');
         if (allBox) allBox.classList.add('d-none');
-        if (noteInput && noteInput.value === 'সকল বকেয়া বিল বাবদ এককালীন/কিস্তি জমা') {
+        if (noteInput && noteInput.value === 'Lump sum / installment payment against outstanding dues') {
             noteInput.value = '';
         }
         if (helpText) {
-            helpText.textContent = 'ভ্যাট-ট্যাক্স কর্তনসহ বিলের মোট যে পরিমাণ সমন্বয় বা পরিশোধ হবে।';
+            helpText.textContent = 'Total amount adjusted or paid on the bill including VAT/Tax deductions.';
         }
     }
     calculateVatTaxDeductions();
@@ -2460,7 +2460,7 @@ function updateCalcDisplays(net, deductions, gross) {
                             <h5 class="modal-title fw-bold mb-0" id="sendInvoiceEmailModalLabel">
                                 Send Invoice Link to Customer
                             </h5>
-                            <small class="text-white-50" style="font-size: 11.5px;">ডিজিটাল ইনভয়েস ও ডেলিভারি চালানের লাইভ লিংক ইমেইলে প্রেরণ</small>
+                            <small class="text-white-50" style="font-size: 11.5px;">Send live link of digital invoice & delivery challan via email</small>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -2469,7 +2469,7 @@ function updateCalcDisplays(net, deductions, gross) {
                     <div class="alert alert-info py-2 px-3 small d-flex align-items-center mb-3 rounded-3 border-info-subtle">
                         <i class="fa-solid fa-circle-info me-2 fs-5 text-info"></i>
                         <div style="font-size: 12.5px;">
-                            গ্রাহক বা প্রতিষ্ঠানের ঠিকানায় সরাসরি ডিজিটাল ইনভয়েস দেখা এবং পিডিএফ (PDF) ডাউনলোড করার লিংক স্বয়ংক্রিয়ভাবে প্রেরিত হবে।
+                            A direct link to view the digital invoice and download the PDF will be automatically sent to the customer or organization.
                         </div>
                     </div>
 
@@ -2479,7 +2479,7 @@ function updateCalcDisplays(net, deductions, gross) {
                             <input type="text" class="form-control bg-light fw-bold" value="{{ $invoice->customer_name ?? '—' }} {{ $invoice->customer_org ? '(' . $invoice->customer_org . ')' : '' }}" readonly>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-muted small mb-1">Sender Email (প্রেরক)</label>
+                            <label class="form-label fw-semibold text-muted small mb-1">Sender Email</label>
                             <input type="text" class="form-control bg-light font-monospace" value="{{ config('mail.from.address') ?: 'ad@ideaabd.com' }} ({{ config('mail.from.name') ?: 'Idea Prokashon' }})" readonly>
                         </div>
                     </div>
@@ -2498,7 +2498,7 @@ function updateCalcDisplays(net, deductions, gross) {
                                   required oninput="updateRecipientCount(this)">{{ $invoice->customer_email }}</textarea>
                         <div class="d-flex align-items-center justify-content-between mt-1">
                             <div class="text-muted" style="font-size: 11.5px;">
-                                <i class="fa-solid fa-circle-nodes text-primary me-1"></i>একাধিক ইমেইল দিতে কমা (<code>,</code>), সেমিকোলন (<code>;</code>) বা স্পেস দিয়ে লিখুন।
+                                <i class="fa-solid fa-circle-nodes text-primary me-1"></i>To add multiple emails, separate with comma (<code>,</code>), semicolon (<code>;</code>), or space.
                             </div>
                         </div>
                         <div id="emailPillsContainer" class="d-flex flex-wrap gap-1 mt-2"></div>
@@ -2506,13 +2506,13 @@ function updateCalcDisplays(net, deductions, gross) {
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold mb-1">Custom Message / Note (Optional)</label>
-                        <textarea name="custom_message" class="form-control rounded-3" rows="3" placeholder="e.g. আপনার ক্রয়কৃত বইসমূহ কুরিয়ারে বুকিং দেওয়া হয়েছে। ট্র্যাকিং নং..."></textarea>
+                        <textarea name="custom_message" class="form-control rounded-3" rows="3" placeholder="e.g. Your invoice has been generated and books dispatched via courier..."></textarea>
                     </div>
 
                     @if(!empty($invoice->email_logs))
                         <div class="mt-3 p-3 bg-light rounded-3 border">
                             <span class="small fw-bold text-dark d-block mb-1">
-                                <i class="fa-solid fa-history me-1 text-success"></i> পূর্ববর্তী প্রেরণের ইতিহাস (Dispatch History):
+                                <i class="fa-solid fa-history me-1 text-success"></i> Dispatch History:
                             </span>
                             <div class="d-flex flex-column gap-1" style="max-height: 120px; overflow-y: auto;">
                                 @foreach(array_slice($invoice->email_logs, 0, 3) as $hLog)
@@ -2888,7 +2888,7 @@ function updateCalcDisplays(net, deductions, gross) {
                                 <select name="digit_language" class="form-select form-select-sm">
                                     @php $dLang = $settings['digit_language'] ?? 'bn'; @endphp
                                     <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3, ৳)</option>
-                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>Bengali Digits (১, ২, ৩, ৳)</option>
+                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>Bengali Digits</option>
                                 </select>
                             </div>
 

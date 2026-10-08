@@ -50,14 +50,14 @@
             ['route' => 'admin.purchases.ledger',   'icon' => 'book-bookmark',       'label' => 'Vendor & Press Ledgers'],
             ['route' => 'admin.purchases.monthly-report', 'icon' => 'chart-pie',     'label' => 'Monthly Report'],
         ],
-        'Idea Accounting' => [
-            ['route' => 'admin.accounting.index',                  'icon' => 'scale-balanced',      'label' => 'Income & Expenses'],
-            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices & Challans'],
-            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Customer Ledgers'],
-            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'TDS & VDS Register'],
-            ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll & Salaries'],
-            ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Employee Profiles'],
-            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'P&L Reports'],
+        'Accounting' => [
+            ['route' => 'admin.accounting.index',                  'icon' => 'scale-balanced',      'label' => 'Transactions'],
+            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices'],
+            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Customer Ledger'],
+            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax & VAT'],
+            ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll & Salary'],
+            ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Staff & Employees'],
+            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'Reports & Statements'],
         ],
         'Content' => [
             ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Ideapatra / Blog'],

@@ -23,10 +23,10 @@
 
     $currentCategory = request('sales_category');
     $currentCategoryLabel = match($currentCategory) {
-        'books'          => 'Books (বই)',
-        'stationery'     => 'Stationery (স্টেশনারি)',
-        'printing_goods' => 'Printing (মুদ্রণ)',
-        'other'          => 'Others (অন্যান্য)',
+        'books'          => 'Books & Publications',
+        'stationery'     => 'Stationery Materials',
+        'printing_goods' => 'Printing & Press Works',
+        'other'          => 'Other Goods & Services',
         default          => 'All Categories'
     };
     $currentCategoryCount = match($currentCategory) {
@@ -94,34 +94,34 @@
                 <span class="badge bg-light text-dark border rounded-pill fs-7 px-2 py-0.5">{{ number_format($currentCategoryCount) }}</span>
             </button>
             <ul class="dropdown-menu shadow-lg rounded-4 border-0 p-2" style="min-width: 250px; z-index: 1060;">
-                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">বিক্রয় ক্যাটাগরি:</h6></li>
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Sales Category:</h6></li>
                 <li>
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ empty($currentCategory) ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'))) }}">
-                        <span><i class="fa-solid fa-layer-group me-2 {{ empty($currentCategory) ? 'text-white' : 'text-primary' }}"></i>সকল ক্যাটাগরি (All)</span>
+                        <span><i class="fa-solid fa-layer-group me-2 {{ empty($currentCategory) ? 'text-white' : 'text-primary' }}"></i>All Categories</span>
                         <span class="badge {{ empty($currentCategory) ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['total_invoices'] }}</span>
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'books' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'books'])) }}">
-                        <span><i class="fa-solid fa-book me-2 {{ $currentCategory === 'books' ? 'text-white' : 'text-primary' }}"></i>বই ও প্রকাশনা (Books)</span>
+                        <span><i class="fa-solid fa-book me-2 {{ $currentCategory === 'books' ? 'text-white' : 'text-primary' }}"></i>Books & Publications</span>
                         <span class="badge {{ $currentCategory === 'books' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['books_count'] }}</span>
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'stationery' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'stationery'])) }}">
-                        <span><i class="fa-solid fa-pen-ruler me-2 {{ $currentCategory === 'stationery' ? 'text-white' : 'text-info' }}"></i>স্টেশনারি (Stationery)</span>
+                        <span><i class="fa-solid fa-pen-ruler me-2 {{ $currentCategory === 'stationery' ? 'text-white' : 'text-info' }}"></i>Stationery Materials</span>
                         <span class="badge {{ $currentCategory === 'stationery' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['stationery_count'] }}</span>
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'printing_goods' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'printing_goods'])) }}">
-                        <span><i class="fa-solid fa-print me-2 {{ $currentCategory === 'printing_goods' ? 'text-white' : 'text-warning' }}"></i>মুদ্রণ সামগ্রী (Printing)</span>
+                        <span><i class="fa-solid fa-print me-2 {{ $currentCategory === 'printing_goods' ? 'text-white' : 'text-warning' }}"></i>Printing & Press Works</span>
                         <span class="badge {{ $currentCategory === 'printing_goods' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['printing_count'] }}</span>
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-between {{ $currentCategory === 'other' ? 'active bg-primary text-white' : '' }}" href="{{ route('admin.accounting.invoices.index', array_merge(request()->except('sales_category', 'page'), ['sales_category' => 'other'])) }}">
-                        <span><i class="fa-solid fa-cart-plus me-2 {{ $currentCategory === 'other' ? 'text-white' : 'text-secondary' }}"></i>অন্যান্য পণ্য (Others)</span>
+                        <span><i class="fa-solid fa-cart-plus me-2 {{ $currentCategory === 'other' ? 'text-white' : 'text-secondary' }}"></i>Other Goods & Services</span>
                         <span class="badge {{ $currentCategory === 'other' ? 'bg-white text-primary' : 'bg-light text-dark' }} rounded-pill">{{ $stats['other_count'] }}</span>
                     </a>
                 </li>
@@ -192,16 +192,16 @@
             </ul>
         </div>
 
-        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="গ্রাহকদের খতিয়ান ও বকেয়া জের">
+        <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="Customer Ledgers & Running Statements">
             <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledgers
         </a>
-        <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="উৎসে কর ও মূসক কর্তন রেজিস্টার (TDS & VDS)">
+        <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="Tax & VAT Deductions Register (TDS & VDS)">
             <i class="fa-solid fa-receipt me-1 text-warning"></i> TDS & VDS Register
         </a>
         <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-semibold shadow-xs" data-bs-toggle="modal" data-bs-target="#invoiceSettingsModal" title="Design & Typography Settings">
             <i class="fa-solid fa-palette me-1 text-primary"></i> Design Settings
         </button>
-        <a href="{{ route('subadmin.bills.index') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="সেলারদের সকল বিক্রয় ও ডেলিভারি চালান চেক করুন">
+        <a href="{{ route('subadmin.bills.index') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold shadow-xs" title="Check all seller bills and delivery challans">
             <i class="fa-solid fa-store me-1"></i> Seller Bills & Challans
         </a>
         <a href="{{ route('admin.accounting.index') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
@@ -212,7 +212,7 @@
 
 @section('content')
 
-{{-- 1. Dedicated Document Folder Tabs (ডকুমেন্ট ফোল্ডার হাব) --}}
+{{-- 1. Dedicated Document Folder Tabs --}}
 <div class="mb-4">
     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-2.5">
         {{-- Folder 1: Invoices / Bills --}}
@@ -229,11 +229,11 @@
                     </span>
                 </div>
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
-                    <span>বিল ও ইনভয়েস</span>
+                    <span>Invoices & Bills</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">নিয়মিত বিক্রয় ও মেমো</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">Sales & Billing Memos</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted" style="font-size: 10.5px;">মোট বিল:</span>
+                    <span class="text-muted" style="font-size: 10.5px;">Total Billed:</span>
                     <span class="fw-bold text-primary font-monospace" style="font-size: 11.5px;">৳{{ number_format($stats['bills_amount']) }}</span>
                 </div>
                 @if($currentType === 'invoice')
@@ -256,12 +256,12 @@
                     </span>
                 </div>
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
-                    <span>ডেলিভারি চালান</span>
+                    <span>Delivery Challans</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">পণ্য সরবরাহ ও চালান কপি</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">Dispatched Shipments</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted" style="font-size: 10.5px;">বই চালান:</span>
-                    <span class="fw-bold text-info-emphasis font-monospace" style="font-size: 11.5px;">{{ $stats['challans_books_count'] }} টি</span>
+                    <span class="text-muted" style="font-size: 10.5px;">Book Challans:</span>
+                    <span class="fw-bold text-info-emphasis font-monospace" style="font-size: 11.5px;">{{ $stats['challans_books_count'] }} pcs</span>
                 </div>
                 @if($currentType === 'challan')
                     <div class="position-absolute bottom-0 start-0 w-100 bg-info" style="height: 3.5px;"></div>
@@ -283,11 +283,11 @@
                     </span>
                 </div>
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
-                    <span>দরপত্র ও কোটেশন</span>
+                    <span>Quotations & Offers</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">প্রস্তাবিত মূল্য তালিকা</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">Price Estimates & Estimates</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted" style="font-size: 10.5px;">প্রস্তাবিত মান:</span>
+                    <span class="text-muted" style="font-size: 10.5px;">Estimated Value:</span>
                     <span class="fw-bold text-warning-emphasis font-monospace" style="font-size: 11.5px;">৳{{ number_format($stats['quotations_amount']) }}</span>
                 </div>
                 @if($currentType === 'quotation')
@@ -310,11 +310,11 @@
                     </span>
                 </div>
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
-                    <span>টেন্ডার ফাইল</span>
+                    <span>Tender Proposals</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">প্রাতিষ্ঠানিক দরপত্র ও ফাইল</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">Institutional Bids & Files</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted" style="font-size: 10.5px;">টেন্ডার মূল্য:</span>
+                    <span class="text-muted" style="font-size: 10.5px;">Tender Value:</span>
                     <span class="fw-bold font-monospace" style="font-size: 11.5px; color: #7e22ce;">৳{{ number_format($stats['tenders_amount']) }}</span>
                 </div>
                 @if($currentType === 'tender')
@@ -337,12 +337,12 @@
                     </span>
                 </div>
                 <h6 class="fw-bold text-dark mb-0.5 d-flex align-items-center gap-1.5" style="font-size: 14.5px;">
-                    <span>সকল ডকুমেন্ট</span>
+                    <span>All Documents</span>
                 </h6>
-                <p class="text-muted small mb-2" style="font-size: 11px;">সার্বিক ফাইল আর্কাইভ</p>
+                <p class="text-muted small mb-2" style="font-size: 11px;">Complete File Archive</p>
                 <div class="pt-1.5 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted" style="font-size: 10.5px;">ক্যাটাগরি:</span>
-                    <span class="fw-bold text-dark" style="font-size: 11px;">৪টি ফোল্ডার</span>
+                    <span class="text-muted" style="font-size: 10.5px;">Categories:</span>
+                    <span class="fw-bold text-dark" style="font-size: 11px;">4 Folders</span>
                 </div>
                 @if(empty($currentType))
                     <div class="position-absolute bottom-0 start-0 w-100 bg-secondary" style="height: 3.5px;"></div>
@@ -359,32 +359,32 @@
             <div class="d-flex align-items-center justify-content-between mb-1.5">
                 <span class="small fw-bold text-dark d-flex align-items-center gap-1.5">
                     <i class="fa-solid fa-chart-pie text-primary"></i>
-                    <span>আদায় ও বকেয়া অগ্রগতি (Collection Performance):</span>
+                    <span>Collection Performance:</span>
                 </span>
                 <span class="badge bg-primary text-white font-monospace fs-7 px-2.5 py-1 rounded-pill">
-                    {{ $collectionRate }}% আদায় সম্পন্ন
+                    {{ $collectionRate }}% Collected
                 </span>
             </div>
             <div class="progress rounded-pill overflow-hidden shadow-inner" style="height: 12px; background-color: #fee2e2;">
                 <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" 
                      style="width: {{ $collectionRate }}%;" 
                      aria-valuenow="{{ $collectionRate }}" aria-valuemin="0" aria-valuemax="100" 
-                     title="আদায়: {{ $collectionRate }}%"></div>
+                     title="Collected: {{ $collectionRate }}%"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-2 small text-muted">
-                <div><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>আদায়কৃত: <strong class="text-success font-monospace">৳{{ number_format($stats['total_paid'], 2) }}</strong></div>
-                <div><i class="fa-solid fa-circle text-danger me-1" style="font-size: 8px;"></i>বকেয়া জের: <strong class="text-danger font-monospace">৳{{ number_format($stats['total_due'], 2) }}</strong></div>
-                <div><i class="fa-solid fa-circle text-primary me-1" style="font-size: 8px;"></i>সর্বমোট বিক্রয়: <strong class="text-dark font-monospace">৳{{ number_format($stats['total_amount'], 2) }}</strong></div>
+                <div><i class="fa-solid fa-circle text-success me-1" style="font-size: 8px;"></i>Collected: <strong class="text-success font-monospace">৳{{ number_format($stats['total_paid'], 2) }}</strong></div>
+                <div><i class="fa-solid fa-circle text-danger me-1" style="font-size: 8px;"></i>Outstanding Due: <strong class="text-danger font-monospace">৳{{ number_format($stats['total_due'], 2) }}</strong></div>
+                <div><i class="fa-solid fa-circle text-primary me-1" style="font-size: 8px;"></i>Total Sales: <strong class="text-dark font-monospace">৳{{ number_format($stats['total_amount'], 2) }}</strong></div>
             </div>
         </div>
         <div class="col-lg-4 border-start-lg ps-lg-4">
             <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light">
-                <span class="small text-muted fw-semibold">বই ও প্রকাশনা:</span>
-                <span class="badge bg-white text-primary border rounded-pill font-monospace fw-bold">{{ number_format($stats['books_count']) }} টি</span>
+                <span class="small text-muted fw-semibold">Books & Publications:</span>
+                <span class="badge bg-white text-primary border rounded-pill font-monospace fw-bold">{{ number_format($stats['books_count']) }} items</span>
             </div>
             <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light mt-1.5">
-                <span class="small text-muted fw-semibold">স্টেশনারি ও মুদ্রণ:</span>
-                <span class="badge bg-white text-info-emphasis border rounded-pill font-monospace fw-bold">{{ number_format($stats['stationery_count'] + $stats['printing_count']) }} টি</span>
+                <span class="small text-muted fw-semibold">Stationery & Printing:</span>
+                <span class="badge bg-white text-info-emphasis border rounded-pill font-monospace fw-bold">{{ number_format($stats['stationery_count'] + $stats['printing_count']) }} items</span>
             </div>
         </div>
     </div>
@@ -401,39 +401,39 @@
             <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" name="search" id="liveSearchInput" class="form-control border-start-0 ps-1" placeholder="ডকুমেন্ট # / গ্রাহক / প্রতিষ্ঠান / বিষয়..." value="{{ $search }}">
+                    <input type="text" name="search" id="liveSearchInput" class="form-control border-start-0 ps-1" placeholder="Document # / Customer / Organization / Subject..." value="{{ $search }}">
                 </div>
             </div>
             
             <div class="col-md-3">
                 <select name="sales_category" class="form-select" onchange="this.form.submit()">
-                    <option value="">সকল পণ্য ক্যাটাগরি (All Categories)</option>
-                    <option value="books" @selected($salesCategory === 'books')>বই ও প্রকাশনা (Books)</option>
-                    <option value="stationery" @selected($salesCategory === 'stationery')>স্টেশনারি সামগ্রী (Stationery)</option>
-                    <option value="printing_goods" @selected($salesCategory === 'printing_goods')>মুদ্রণ ও প্রিন্টিং (Printing)</option>
-                    <option value="other" @selected($salesCategory === 'other')>অন্যান্য পণ্য (Others)</option>
+                    <option value="">All Categories</option>
+                    <option value="books" @selected($salesCategory === 'books')>Books & Publications</option>
+                    <option value="stationery" @selected($salesCategory === 'stationery')>Stationery Materials</option>
+                    <option value="printing_goods" @selected($salesCategory === 'printing_goods')>Printing & Press Works</option>
+                    <option value="other" @selected($salesCategory === 'other')>Other Goods & Services</option>
                 </select>
             </div>
 
             @if(in_array($currentType, ['invoice', 'challan', null, '']))
                 <div class="col-md-2">
                     <select name="payment_status" class="form-select" onchange="this.form.submit()">
-                        <option value="">পেমেন্ট স্ট্যাটাস (All)</option>
-                        <option value="paid" @selected($status === 'paid')>পরিশোধিত (Paid)</option>
-                        <option value="partial" @selected($status === 'partial')>আংশিক পরিশোধ (Partial)</option>
-                        <option value="unpaid" @selected($status === 'unpaid')>বকেয়া (Unpaid / Due)</option>
+                        <option value="">Payment Status (All)</option>
+                        <option value="paid" @selected($status === 'paid')>Paid</option>
+                        <option value="partial" @selected($status === 'partial')>Partial</option>
+                        <option value="unpaid" @selected($status === 'unpaid')>Unpaid / Due</option>
                     </select>
                 </div>
             @endif
 
             <div class="col-md-2">
-                <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="তারিখ থেকে">
+                <input type="date" name="date_from" class="form-control" value="{{ $dateFrom }}" title="Date From">
             </div>
 
             <div class="col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary w-100 fw-semibold" title="ফিল্টার প্রয়োগ করুন"><i class="fa-solid fa-filter"></i></button>
+                <button type="submit" class="btn btn-primary w-100 fw-semibold" title="Apply Filter"><i class="fa-solid fa-filter"></i></button>
                 @if(request()->hasAny(['search', 'sales_category', 'payment_status', 'date_from', 'date_to']))
-                    <a href="{{ route('admin.accounting.invoices.index', $type ? ['type' => $type] : []) }}" class="btn btn-light border" title="রিসেট"><i class="fa-solid fa-rotate-left"></i></a>
+                    <a href="{{ route('admin.accounting.invoices.index', $type ? ['type' => $type] : []) }}" class="btn btn-light border" title="Reset"><i class="fa-solid fa-rotate-left"></i></a>
                 @endif
             </div>
         </form>
@@ -446,39 +446,39 @@
         <div class="d-flex align-items-center gap-2">
             @if($currentType === 'invoice')
                 <i class="fa-solid fa-receipt text-primary fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">বিল ও ক্যাশ মেমো তালিকা</h5>
+                <h5 class="fw-bold mb-0 text-dark">Invoices & Cash Memos</h5>
             @elseif($currentType === 'challan')
                 <i class="fa-solid fa-truck-fast text-info fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">ডেলিভারি চালান তালিকা</h5>
+                <h5 class="fw-bold mb-0 text-dark">Delivery Challans</h5>
             @elseif($currentType === 'quotation')
                 <i class="fa-solid fa-file-lines text-warning fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">দরপত্র ও কোটেশন তালিকা</h5>
+                <h5 class="fw-bold mb-0 text-dark">Quotations & Price Estimates</h5>
             @elseif($currentType === 'tender')
                 <i class="fa-solid fa-landmark text-purple fs-5" style="color: #7e22ce;"></i>
-                <h5 class="fw-bold mb-0 text-dark">টেন্ডার ডকুমেন্ট ও প্রস্তাবনা তালিকা</h5>
+                <h5 class="fw-bold mb-0 text-dark">Tender Proposals & BoQ</h5>
             @else
                 <i class="fa-solid fa-folder-tree text-secondary fs-5"></i>
-                <h5 class="fw-bold mb-0 text-dark">সকল সংরক্ষিত ফাইল ও ডকুমেন্টস</h5>
+                <h5 class="fw-bold mb-0 text-dark">All Documents & Files</h5>
             @endif
-            <span class="badge bg-light text-muted border rounded-pill font-monospace">{{ $invoices->total() }} টি ফাইল</span>
+            <span class="badge bg-light text-muted border rounded-pill font-monospace">{{ $invoices->total() }} Files</span>
         </div>
 
         <div class="d-flex align-items-center gap-2">
             @if($currentType === 'quotation')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন কোটেশন তৈরি
+                    <i class="fa-solid fa-circle-plus me-1"></i> New Quotation
                 </a>
             @elseif($currentType === 'tender')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs" style="background-color: #9333ea;">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন টেন্ডার প্রস্তাবনা
+                    <i class="fa-solid fa-circle-plus me-1"></i> New Tender Proposal
                 </a>
             @elseif($currentType === 'challan')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'challan']) }}" class="btn btn-info btn-sm rounded-pill px-3 fw-semibold text-white shadow-xs">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন ডেলিভারি চালান
+                    <i class="fa-solid fa-circle-plus me-1"></i> New Delivery Challan
                 </a>
             @else
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold shadow-xs">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন বিক্রয় বিল
+                    <i class="fa-solid fa-circle-plus me-1"></i> New Invoice / Bill
                 </a>
             @endif
         </div>
@@ -489,23 +489,23 @@
             <div class="mb-3">
                 <i class="fa-solid fa-folder-open fs-1 text-muted opacity-50"></i>
             </div>
-            <h5 class="fw-bold text-muted">কোনো ফাইল পাওয়া যায়নি</h5>
-            <p class="text-muted small">এই ফোল্ডারে নতুন ফাইল তৈরি করতে উপরের বাটনে ক্লিক করুন।</p>
+            <h5 class="fw-bold text-muted">No Documents Found</h5>
+            <p class="text-muted small">Click the button above to create a new document in this folder.</p>
             @if($currentType === 'quotation')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'quotation']) }}" class="btn btn-warning btn-sm rounded-pill px-3.5 fw-semibold mt-2">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন কোটেশন তৈরি করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> Create New Quotation
                 </a>
             @elseif($currentType === 'tender')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'tender']) }}" class="btn btn-sm rounded-pill px-3.5 fw-semibold text-white mt-2" style="background-color: #9333ea;">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন টেন্ডার ডকুমেন্ট তৈরি করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> Create New Tender Proposal
                 </a>
             @elseif($currentType === 'challan')
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'challan']) }}" class="btn btn-info btn-sm rounded-pill px-3.5 fw-semibold text-white mt-2">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন চালান তৈরি করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> Create New Challan
                 </a>
             @else
                 <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-semibold mt-2">
-                    <i class="fa-solid fa-circle-plus me-1"></i> নতুন বিল তৈরি করুন
+                    <i class="fa-solid fa-circle-plus me-1"></i> Create New Invoice
                 </a>
             @endif
         </div>
@@ -515,7 +515,7 @@
                 <thead>
                     <tr>
                         <th class="ps-3 py-3" style="width: 40px;">
-                            <input type="checkbox" class="form-check-input select-all-docs" id="selectAllDocsCheckbox" title="সকল ডকুমেন্ট সিলেক্ট করুন">
+                            <input type="checkbox" class="form-check-input select-all-docs" id="selectAllDocsCheckbox" title="Select All Documents">
                         </th>
                         <th class="py-3" style="width: 170px;">Document #</th>
                         <th class="py-3" style="width: 115px;">Type</th>
@@ -634,7 +634,7 @@
                             <td class="text-center" id="statusBadge-{{ $inv->id }}">
                                 @if(in_array($inv->type, ['quotation', 'tender']))
                                     @if($isExpired)
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill">মেয়াদোত্তীর্ণ</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 rounded-pill">Expired</span>
                                     @else
                                         <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">Proposed</span>
                                     @endif
@@ -670,7 +670,7 @@
                                     @if(in_array($inv->type, ['invoice', 'challan']) && $hasDue)
                                         <button type="button" class="btn btn-outline-success" 
                                                 onclick="openQuickPaymentModal({{ $inv->id }}, '{{ $inv->invoice_no }}', {{ $inv->due_amount }}, '{{ $inv->customer_name }}')" 
-                                                title="পেমেন্ট জমা নিন (Quick Pay)">
+                                                title="Record Payment (Quick Pay)">
                                             <i class="fa-solid fa-hand-holding-dollar"></i>
                                         </button>
                                     @endif
@@ -779,7 +779,7 @@
     @endif
 </div>
 
-{{-- 5. Floating Bulk Action Dock (সক্রিয় হবে যখন অন্তত ১টি চেক করা হবে) --}}
+{{-- 5. Floating Bulk Action Dock --}}
 <div id="bulkActionDock" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 p-2 bg-dark bg-opacity-95 text-white rounded-pill shadow-lg border border-secondary d-none z-3" style="min-width: 320px; max-width: 90vw; backdrop-filter: blur(8px);">
     <div class="d-flex align-items-center justify-content-between gap-3 px-3 py-1">
         <div class="d-flex align-items-center gap-2">
@@ -834,7 +834,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark mb-1">Payment Amount (টাকা) <span class="text-danger">*</span></label>
+                        <label class="form-label small fw-bold text-dark mb-1">Payment Amount (৳) <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text bg-light fw-bold">৳</span>
                             <input type="number" step="0.01" class="form-control font-monospace fw-bold fs-5 text-success" id="quickPayAmountInput" required min="0.01">
@@ -849,24 +849,24 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-dark mb-1">Payment Method</label>
                             <select class="form-select form-select-sm" id="quickPayMethodInput" required>
-                                <option value="cash">ক্যাশ / নগদ (Cash)</option>
-                                <option value="bkash">বিকাশ (bKash)</option>
-                                <option value="nagad">নগদ (Nagad)</option>
-                                <option value="rocket">রকেট (Rocket)</option>
-                                <option value="bank">ব্যাংক ডিপোজিট (Bank)</option>
-                                <option value="cheque">চেক (Cheque)</option>
-                                <option value="other">অন্যান্য (Other)</option>
+                                <option value="cash">Cash</option>
+                                <option value="bkash">bKash</option>
+                                <option value="nagad">Nagad</option>
+                                <option value="rocket">Rocket</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="cheque">Cheque</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label small fw-semibold text-dark mb-1">Transaction Ref / TrxID (ঐচ্ছিক)</label>
+                        <label class="form-label small fw-semibold text-dark mb-1">Transaction Ref / TrxID (Optional)</label>
                         <input type="text" class="form-control form-control-sm font-monospace" id="quickPayRefInput" placeholder="e.g. TrxID / Check # / Receipt #">
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label small fw-semibold text-dark mb-1">Notes / মন্তব্য</label>
+                        <label class="form-label small fw-semibold text-dark mb-1">Notes / Remarks</label>
                         <input type="text" class="form-control form-control-sm" id="quickPayNoteInput" placeholder="Quick payment entry">
                     </div>
                 </div>
@@ -1208,8 +1208,8 @@
                                 <label class="form-label small fw-semibold text-dark mb-1">Digit & Number Format</label>
                                 <select name="digit_language" class="form-select form-select-sm">
                                     @php $dLang = $settings['digit_language'] ?? 'bn'; @endphp
-                                    <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3, ৳)</option>
-                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>Bengali Digits (১, ২, ৩, ৳)</option>
+                                    <option value="en" {{ ($dLang === 'en') ? 'selected' : '' }}>English Digits (1, 2, 3)</option>
+                                    <option value="bn" {{ ($dLang === 'bn') ? 'selected' : '' }}>Bengali Digits</option>
                                 </select>
                             </div>
 

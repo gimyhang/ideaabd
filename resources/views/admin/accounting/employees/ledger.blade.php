@@ -192,15 +192,15 @@
     <div class="print-only-block print-letterhead">
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <div class="print-company-name">আইডিয়া প্রকাশন | IDEA PRAKASHAN</div>
+                <div class="print-company-name">{{ $invoiceSettings['company_name'] ?? 'IDEA PRAKASHAN' }}</div>
                 <div style="font-size: 8pt; color: #334155;">
-                    {{ $invoiceSettings['company_address'] ?? 'বাংলাবাজার, ঢাকা — বই প্রকাশনা, টাইপসেটিং, প্রুফ রিডিং ও বাঁধাই ব্যবস্থাপনা' }}
+                    {{ $invoiceSettings['company_address'] ?? 'Banglabazar, Dhaka — Book Publication & Press Management' }}
                     @if(!empty($invoiceSettings['company_phone'])) · Phone: {{ $invoiceSettings['company_phone'] }} @endif
                     @if(!empty($invoiceSettings['company_email'])) · Email: {{ $invoiceSettings['company_email'] }} @endif
                 </div>
             </div>
             <div class="text-end">
-                <div class="print-doc-title">{{ $role['title_bn'] }} (Statement)</div>
+                <div class="print-doc-title">{{ $role['title_en'] ?? $role['title_bn'] }} (Statement)</div>
                 <div style="font-size: 7.5pt; color: #475569; margin-top: 2px;">
                     Date: <strong>{{ date('d M, Y — h:i A') }}</strong>
                 </div>
@@ -284,12 +284,12 @@
 
                     <!-- Add Work / Task Log Button -->
                     <button type="button" class="btn text-white rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWorkModal" style="background-color: {{ $role['accent_color'] }}; border-color: {{ $role['accent_color'] }};">
-                        <i class="fa-solid fa-circle-plus me-1.5"></i> Add Work Log (কাজের হিসাব)
+                        <i class="fa-solid fa-circle-plus me-1.5"></i> Add Work Log
                     </button>
 
                     <!-- Record Cash Payout Button -->
                     <button type="button" class="btn btn-success rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWithdrawalModal">
-                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Payout (টাকা পরিশোধ)
+                        <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Record Payout
                     </button>
 
                     <!-- Print Button -->
@@ -306,7 +306,7 @@
                 <div class="col-sm-6 col-lg-3">
                     <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid {{ $role['accent_color'] }} !important;">
                         <div>
-                            <span class="small text-muted fw-semibold">Total Work Earned (মোট উপার্জন)</span>
+                            <span class="small text-muted fw-semibold">Total Work Earned</span>
                             <h4 class="fw-bold mb-0 font-monospace" style="color: {{ $role['accent_color'] }};">৳{{ number_format($totalEarned, 2) }}</h4>
                             <span class="text-muted" style="font-size: 11.5px;">Completed: <strong class="text-dark font-monospace">{{ number_format($totalWorkQuantity) }}</strong> {{ $role['unit_default'] }}</span>
                         </div>
@@ -318,7 +318,7 @@
                 <div class="col-sm-6 col-lg-3">
                     <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between h-100" style="border-left: 4px solid #0284c7 !important;">
                         <div>
-                            <span class="small text-muted fw-semibold">Total Paid / Drawn (পরিশোধিত টাকা)</span>
+                            <span class="small text-muted fw-semibold">Total Paid / Drawn</span>
                             <h4 class="fw-bold text-primary mb-0 font-monospace">৳{{ number_format($totalPaid, 2) }}</h4>
                             <span class="text-muted" style="font-size: 11.5px;">Cash / bKash / Bank Draws</span>
                         </div>
@@ -330,7 +330,7 @@
                          style="background-color: {{ $balanceDue > 0 ? '#fef2f2' : '#f0fdf4' }}; border-color: {{ $balanceDue > 0 ? '#fca5a5' : '#86efac' }} !important; border-left: 4px solid {{ $balanceDue > 0 ? '#dc2626' : '#16a34a' }} !important;">
                         <div>
                             <span class="small fw-semibold {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
-                                {{ $balanceDue >= 0 ? 'Current Net Due (বকেয়া পাওনা)' : 'Advance Balance (অগ্রিম জমা)' }}
+                                {{ $balanceDue >= 0 ? 'Current Net Due' : 'Advance Balance' }}
                             </span>
                             <h4 class="fw-bold mb-0 font-monospace {{ $balanceDue > 0 ? 'text-danger' : 'text-success' }}">
                                 ৳{{ number_format(abs($balanceDue), 2) }}
@@ -368,9 +368,9 @@
                 </div>
                 <div class="col-md-2">
                     <select name="entry_type" class="form-select form-select-sm">
-                        <option value="">All Transactions (সকল)</option>
-                        <option value="work" {{ request('entry_type') === 'work' ? 'selected' : '' }}>Work Logs Only (কাজের এন্ট্রি)</option>
-                        <option value="payment" {{ request('entry_type') === 'payment' ? 'selected' : '' }}>Payouts & Draws (টাকা উত্তোলন)</option>
+                        <option value="">All Transactions</option>
+                        <option value="work" {{ request('entry_type') === 'work' ? 'selected' : '' }}>Work Logs Only</option>
+                        <option value="payment" {{ request('entry_type') === 'payment' ? 'selected' : '' }}>Payouts & Draws</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -709,7 +709,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header text-white border-0 py-3 px-4" style="background-color: {{ $role['accent_color'] }};">
                 <h5 class="modal-title fw-bold text-white mb-0" id="addWorkModalLabel">
-                    <i class="{{ $role['icon'] }} me-2"></i> {{ $role['title_bn'] }} — কাজের হিসাব এন্ট্রি
+                    <i class="{{ $role['icon'] }} me-2"></i> {{ $role['title'] ?? 'Staff' }} — Add Work Log Entry
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -731,18 +731,18 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Date (কাজের তারিখ) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Date <span class="text-danger">*</span></label>
                             <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Book / Project / Task Title (বই বা কাজের নাম) <span class="text-danger">*</span></label>
-                            <input type="text" name="book_title" class="form-control" placeholder="e.g. বাংলা ব্যাকরণ সহায়িকা / কভার ডিজাইন / টাইপসেটিং" required>
+                            <label class="form-label small fw-bold text-dark">Book / Project / Task Title <span class="text-danger">*</span></label>
+                            <input type="text" name="book_title" class="form-control" placeholder="e.g. Bangla Byakoron Shohayika / Cover Design / Typesetting" required>
                         </div>
 
                         <!-- Unit & Quantity Section -->
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-dark">Work Unit (একক) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Work Unit <span class="text-danger">*</span></label>
                             <select name="unit_name" id="workUnitSelect" class="form-select" onchange="calculateWorkTotal()">
                                 @foreach($role['units'] as $u)
                                     <option value="{{ $u }}" {{ str_contains($u, $role['unit_default']) ? 'selected' : '' }}>{{ $u }}</option>
@@ -751,19 +751,19 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-dark">Completed Quantity (পরিমাণ / সংখ্যা) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Completed Quantity <span class="text-danger">*</span></label>
                             <input type="number" step="any" name="quantity" id="workQuantityInput" value="1" class="form-control font-monospace fw-bold" placeholder="e.g. 100" required oninput="calculateWorkTotal()">
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-dark">Unit Rate (প্রতি এককের দর ৳) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Unit Rate (৳) <span class="text-danger">*</span></label>
                             <input type="number" step="any" name="unit_rate" id="workUnitRateInput" value="{{ $employee->basic_salary ?: 0 }}" class="form-control font-monospace fw-bold text-primary" required oninput="calculateWorkTotal()">
                         </div>
 
                         <div class="col-12">
                             <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between">
                                 <div>
-                                    <span class="small text-muted d-block">Total Calculated Earnings (মোট উপার্জিত মজুরি):</span>
+                                    <span class="small text-muted d-block">Total Calculated Earnings:</span>
                                     <h4 class="fw-bold mb-0 font-monospace" id="displayEarnedAmount" style="color: {{ $role['accent_color'] }};">
                                         ৳{{ number_format($employee->basic_salary ?: 0, 2) }}
                                     </h4>
@@ -782,34 +782,34 @@
                                     <div class="accordion-item border rounded-3">
                                         <h2 class="accordion-header">
                                             <button class="accordion-button collapsed py-2 px-3 small fw-bold text-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#pressDetailsCollapse">
-                                                <i class="fa-solid fa-sliders me-2"></i> Press & Multi-Day Production Quantities (ঐচ্ছিক / বিস্তারিত বাঁধাই হিসাব)
+                                                <i class="fa-solid fa-sliders me-2"></i> Press & Multi-Day Production Quantities (Detailed Book Binding)
                                             </button>
                                         </h2>
                                         <div id="pressDetailsCollapse" class="accordion-collapse collapse" data-bs-parent="#pressDetailsAccordion">
                                             <div class="accordion-body p-3 bg-light">
                                                 <div class="row g-2">
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Print Date (ছাপার তারিখ)</label>
+                                                        <label class="form-label small text-muted">Print Date</label>
                                                         <input type="date" name="print_date" class="form-control form-control-sm">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Total Printed (মোট ছাপা সংখ্যা)</label>
+                                                        <label class="form-label small text-muted">Total Printed</label>
                                                         <input type="number" step="any" name="printed_quantity" class="form-control form-control-sm font-monospace">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Received (বাঁধাইয়ের জন্য গ্রহণ)</label>
+                                                        <label class="form-label small text-muted">Received for Binding</label>
                                                         <input type="number" step="any" name="received_quantity" class="form-control form-control-sm font-monospace">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Delivered to Godown (গোডাউনে জমা)</label>
+                                                        <label class="form-label small text-muted">Delivered to Godown</label>
                                                         <input type="number" step="any" name="delivered_quantity" class="form-control form-control-sm font-monospace">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Wastage / Defect (নষ্ট / ওয়েস্টেজ)</label>
+                                                        <label class="form-label small text-muted">Wastage / Defect</label>
                                                         <input type="number" step="any" name="wastage_quantity" class="form-control form-control-sm font-monospace">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label class="form-label small text-muted">Incomplete Left (অবশিষ্ট সংখ্যা)</label>
+                                                        <label class="form-label small text-muted">Incomplete Left</label>
                                                         <input type="number" step="any" name="incomplete_quantity" class="form-control form-control-sm font-monospace">
                                                     </div>
                                                 </div>
@@ -821,8 +821,8 @@
                         @endif
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark">Notes / Remarks (কাজের নোট বা মন্তব্য)</label>
-                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. ১ম খণ্ডের ১-১২০ পৃষ্ঠা টাইপ সম্পন্ন / কাভার ল্যামিনেশন ও বাঁধাই ডেলিভারি"></textarea>
+                            <label class="form-label small fw-bold text-dark">Notes / Remarks</label>
+                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. Typeset completed pages 1-120 / Cover lamination & binding delivered"></textarea>
                         </div>
                     </div>
                 </div>
@@ -830,7 +830,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background-color: {{ $role['accent_color'] }};">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Work Log (কাজের হিসাব সংরক্ষণ)
+                        <i class="fa-solid fa-circle-check me-1"></i> Save Work Log
                     </button>
                 </div>
             </form>
@@ -846,7 +846,7 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <div class="modal-header bg-success text-white border-0 py-3 px-4">
                 <h5 class="modal-title fw-bold text-white mb-0" id="addWithdrawalModalLabel">
-                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Cash Payout (টাকা পরিশোধ / উত্তোলন)
+                    <i class="fa-solid fa-hand-holding-dollar me-2"></i> Record Cash Payout
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -868,44 +868,44 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Payment Date (টাকা পরিশোধের তারিখ) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Date <span class="text-danger">*</span></label>
                             <input type="date" name="log_date" value="{{ date('Y-m-d') }}" class="form-control" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Paid Amount (টাকার পরিমাণ ৳) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Paid Amount (৳) <span class="text-danger">*</span></label>
                             <input type="number" step="any" name="paid_amount" class="form-control font-monospace fw-bold fs-5 text-success" placeholder="e.g. 5000" required>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Payment Method (পরিশোধের মাধ্যম) <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-dark">Payment Method <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select" required>
-                                <option value="cash" selected>💵 Cash (নগদ ক্যাশ)</option>
-                                <option value="bkash">📱 bKash (বিকাশ)</option>
-                                <option value="nagad">📱 Nagad (নগদ)</option>
-                                <option value="rocket">📱 Rocket (রকেট)</option>
-                                <option value="bank">🏦 Bank Transfer (ব্যাংক)</option>
-                                <option value="cheque">📄 Cheque (চেক)</option>
+                                <option value="cash" selected>💵 Cash</option>
+                                <option value="bkash">📱 bKash</option>
+                                <option value="nagad">📱 Nagad</option>
+                                <option value="rocket">📱 Rocket</option>
+                                <option value="bank">🏦 Bank Transfer</option>
+                                <option value="cheque">📄 Cheque</option>
                             </select>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">Purpose / Expense Head (ব্যয়ের খাত)</label>
+                            <label class="form-label small fw-bold text-dark">Purpose / Expense Head</label>
                             <select name="expense_category" class="form-select">
-                                <option value="">Auto-Assign by Staff Role (স্বয়ংক্রিয় খাত)</option>
-                                <option value="কম্পিউটার টাইপ, কম্পোজ ও মেকআপ মজুরি">কম্পিউটার টাইপ, কম্পোজ ও মেকআপ মজুরি</option>
-                                <option value="প্রুফ রিডিং ও সম্পাদনা মজুরি">প্রুফ রিডিং ও সম্পাদনা মজুরি</option>
-                                <option value="চুক্তিভিত্তিক ও বাইন্ডিং মজুরি (Piece-rate Wages)">চুক্তিভিত্তিক ও বাইন্ডিং মজুরি</option>
-                                <option value="অফিস সহায়ক ও স্টাফ বেতন/ভাতা">অফিস সহায়ক ও স্টাফ বেতন/ভাতা</option>
-                                <option value="মার্কেটিং ও সেলস বেতন/টিএ/কমিশন">মার্কেটিং ও সেলস বেতন/টিএ/কমিশন</option>
-                                <option value="গ্রাফিক্স ও কভার ডিজাইন মজুরি">গ্রাফিক্স ও কভার ডিজাইন মজুরি</option>
-                                <option value="স্টাফ অগ্রিম উত্তোলন (Advance Salary/Wage)">স্টাফ অগ্রিম উত্তোলন (Advance)</option>
+                                <option value="">Auto-Assign by Staff Role</option>
+                                <option value="Computer Typesetting & Makeup Wages">Computer Typesetting & Makeup Wages</option>
+                                <option value="Proofreading & Editorial Wages">Proofreading & Editorial Wages</option>
+                                <option value="Contract & Book Binding Wages (Piece-rate)">Contract & Book Binding Wages (Piece-rate)</option>
+                                <option value="Office Support & Staff Wages">Office Support & Staff Wages</option>
+                                <option value="Marketing & Sales Commission/TA">Marketing & Sales Commission/TA</option>
+                                <option value="Graphics & Cover Design Fees">Graphics & Cover Design Fees</option>
+                                <option value="Staff Advance Salary/Wage">Staff Advance Salary/Wage</option>
                             </select>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark">Notes / Reference (ভাউচার নোট বা কারণ)</label>
-                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. সাপ্তাহিক মজুরি পরিশোধ / হাতখরচ / চলতি মাসের অগ্রিম বাবদ"></textarea>
+                            <label class="form-label small fw-bold text-dark">Notes / Reference</label>
+                            <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="e.g. Weekly wage disbursement / pocket expense / current month advance"></textarea>
                         </div>
                     </div>
                 </div>
@@ -913,7 +913,7 @@
                 <div class="modal-footer bg-light border-0 py-3 px-4">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
-                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> Confirm Payout (টাকা পরিশোধ নিশ্চিত করুন)
+                        <i class="fa-solid fa-hand-holding-dollar me-1"></i> Confirm Payout
                     </button>
                 </div>
             </form>

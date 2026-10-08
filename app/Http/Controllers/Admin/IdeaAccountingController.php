@@ -565,29 +565,29 @@ class IdeaAccountingController extends Controller
                 'id'                      => $item->id,
                 'global_id'               => 'entry_' . $item->id,
                 'stream'                  => $isIncome ? 'income' : 'expense',
-                'stream_label'            => $isIncome ? 'আয় এন্ট্রি' : 'ব্যয় এন্ট্রি',
+                'stream_label'            => $isIncome ? 'INC' : 'EXP',
                 'stream_badge_class'      => $isIncome ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle',
                 'channel'                 => 'ledger',
-                'channel_label'           => $isIncome ? 'ক্যাশ খতিয়ান (আয়)' : 'অপারেশন খরচ (ব্যয়)',
+                'channel_label'           => $isIncome ? 'CASH' : 'EXPENSE',
                 'channel_badge_class'     => $isIncome ? 'badge-income' : 'badge-expense',
                 'doc_no'                  => $item->entry_no ?: ('ENT-' . $item->id),
                 'invoice_no'              => $item->entry_no ?: ('ENT-' . $item->id),
-                'doc_type'                => $isIncome ? 'আয় ভাউচার' : 'ব্যয় ভাউচার',
+                'doc_type'                => $isIncome ? 'Income Voucher' : 'Expense Voucher',
                 'doc_icon'                => $isIncome ? 'fa-solid fa-arrow-trend-up text-success' : 'fa-solid fa-arrow-trend-down text-danger',
                 'reference_no'            => $item->voucher_no,
                 'date'                    => $date,
                 'invoice_date'            => $date,
-                'party_name'              => $item->party_name ?: ($isIncome ? 'স্বত্বাধিকারী / ক্রেতা' : 'অফিস / সরবরাহকারী'),
-                'customer_name'           => $item->party_name ?: ($isIncome ? 'স্বত্বাধিকারী / ক্রেতা' : 'অফিস / সরবরাহকারী'),
+                'party_name'              => $item->party_name ?: ($isIncome ? 'Owner / Client' : 'Office / Vendor'),
+                'customer_name'           => $item->party_name ?: ($isIncome ? 'Owner / Client' : 'Office / Vendor'),
                 'party_phone'             => null,
                 'customer_phone'          => null,
                 'party_org'               => null,
                 'customer_org'            => null,
                 'party_address'           => null,
                 'customer_address'        => null,
-                'category'                => $item->category ?: ($isIncome ? 'সাধারণ আয়' : 'বিবিধ খরচ'),
+                'category'                => $item->category ?: ($isIncome ? 'General Income' : 'Miscellaneous Expense'),
                 'sales_category'          => 'ledger',
-                'category_label'          => $item->category ?: ($isIncome ? 'সাধারণ আয়' : 'বিবিধ খরচ'),
+                'category_label'          => $item->category ?: ($isIncome ? 'General Income' : 'Miscellaneous Expense'),
                 'items_count'             => 1,
                 'items_summary'           => $item->title,
                 'total_amount'            => $amount,
@@ -605,7 +605,8 @@ class IdeaAccountingController extends Controller
                 'sync_url'                => null,
                 'view_url'                => null,
                 'edit_url'                => null,
-                'print_url'               => null,
+                'print_url'               => route('admin.accounting.slip', ['type' => 'entry', 'id' => $item->id]),
+                'slip_url'                => route('admin.accounting.slip', ['type' => 'entry', 'id' => $item->id]),
                 'receipt_url'             => null,
                 'quick_pay_url'           => null,
                 'delete_url'              => route('admin.accounting.entries.destroy', $item->id),
@@ -615,7 +616,7 @@ class IdeaAccountingController extends Controller
         }
 
         if ($stream === 'order') {
-            $bookTitle = $item->book?->title ?? 'বই অর্ডার';
+            $bookTitle = $item->book?->title ?? 'Book Order';
             $paid = ($item->payment_status === 'paid') ? (float) $item->total_amount : 0.0;
             $due = max(0.0, (float) $item->total_amount - $paid);
             $payStatus = ($due <= 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
@@ -629,31 +630,31 @@ class IdeaAccountingController extends Controller
                 'id'                      => $item->id,
                 'global_id'               => 'ord_' . $item->id,
                 'stream'                  => 'online',
-                'stream_label'            => 'অনলাইন অর্ডার',
+                'stream_label'            => 'ORD',
                 'stream_badge_class'      => 'bg-success-subtle text-success border border-success-subtle',
                 'channel'                 => 'online',
-                'channel_label'           => 'অনলাইন শপ (Online)',
+                'channel_label'           => 'ONLINE',
                 'channel_badge_class'     => 'bg-success-subtle text-success border border-success-subtle',
                 'doc_no'                  => $docNo,
                 'invoice_no'              => $docNo,
-                'doc_type'                => 'অনলাইন কাস্টমার অর্ডার',
+                'doc_type'                => 'Online Customer Order',
                 'doc_icon'                => 'fa-solid fa-cart-shopping text-success',
                 'reference_no'            => $item->transaction_id ?: $item->tracking_code,
                 'date'                    => $date,
                 'invoice_date'            => $date,
-                'party_name'              => $item->customer_name ?: 'অনলাইন ক্রেতা',
-                'customer_name'           => $item->customer_name ?: 'অনলাইন ক্রেতা',
+                'party_name'              => $item->customer_name ?: 'Online Customer',
+                'customer_name'           => $item->customer_name ?: 'Online Customer',
                 'party_phone'             => $item->customer_phone,
                 'customer_phone'          => $item->customer_phone,
-                'party_org'               => $item->district ? "জেলা: {$item->district}" : null,
-                'customer_org'            => $item->district ? "জেলা: {$item->district}" : null,
+                'party_org'               => $item->district ? "District: {$item->district}" : null,
+                'customer_org'            => $item->district ? "District: {$item->district}" : null,
                 'party_address'           => $item->customer_address,
                 'customer_address'        => $item->customer_address,
                 'category'                => 'books',
                 'sales_category'          => 'books',
-                'category_label'          => 'বই ও প্রকাশনা',
+                'category_label'          => 'Books & Publications',
                 'items_count'             => (int) ($item->quantity ?: 1),
-                'items_summary'           => "{$bookTitle} (পরিমাণ: " . ($item->quantity ?: 1) . ")",
+                'items_summary'           => "{$bookTitle} (Qty: " . ($item->quantity ?: 1) . ")",
                 'total_amount'            => (float) $item->total_amount,
                 'grand_total'             => (float) $item->total_amount,
                 'paid_amount'             => $paid,
@@ -670,10 +671,11 @@ class IdeaAccountingController extends Controller
                 'view_url'                => route('admin.ecommerce-orders.show', $item->id),
                 'edit_url'                => null,
                 'print_url'               => route('admin.ecommerce-orders.slip', $item->id),
+                'slip_url'                => route('admin.ecommerce-orders.slip', $item->id),
                 'receipt_url'             => route('admin.ecommerce-orders.invoice', $item->id),
                 'quick_pay_url'           => null,
                 'delete_url'              => null,
-                'notes'                   => $item->admin_notes ?: ($item->tracking_code ? "ট্র্যাকিং: {$item->tracking_code}" : null),
+                'notes'                   => $item->admin_notes ?: ($item->tracking_code ? "Tracking: {$item->tracking_code}" : null),
                 'raw_model'               => $item,
             ];
         }
@@ -685,37 +687,37 @@ class IdeaAccountingController extends Controller
             $payStatus = ($item->status === 'voided') ? 'unpaid' : ($due <= 0.001 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid'));
             $date = $item->created_at ? Carbon::parse($item->created_at) : null;
             $docNo = $item->receipt_no ?: ('POS-' . $item->id);
-            $cashierName = $item->cashier?->name ?? 'স্টল অপারেটর';
+            $cashierName = $item->cashier?->name ?? 'Stall Operator';
 
             return (object) [
                 'id'                      => $item->id,
                 'global_id'               => 'pos_' . $item->id,
                 'stream'                  => 'offline',
-                'stream_label'            => 'অফলাইন POS বিক্রয়',
+                'stream_label'            => 'POS',
                 'stream_badge_class'      => 'bg-warning-subtle text-dark border border-warning-subtle',
                 'channel'                 => 'offline_pos',
-                'channel_label'           => 'বইমেলা স্টল (POS)',
+                'channel_label'           => 'STALL',
                 'channel_badge_class'     => 'bg-warning-subtle text-dark border border-warning-subtle',
                 'doc_no'                  => $docNo,
                 'invoice_no'              => $docNo,
-                'doc_type'                => 'বইমেলা স্টল POS বিক্রয়',
+                'doc_type'                => 'Stall POS Sale',
                 'doc_icon'                => 'fa-solid fa-cash-register text-warning',
                 'reference_no'            => $item->trx_id,
                 'date'                    => $date,
                 'invoice_date'            => $date,
-                'party_name'              => $item->customer_name ?: 'কাউন্টার ক্রেতা (Walk-in)',
-                'customer_name'           => $item->customer_name ?: 'কাউন্টার ক্রেতা (Walk-in)',
+                'party_name'              => $item->customer_name ?: 'Counter Customer',
+                'customer_name'           => $item->customer_name ?: 'Counter Customer',
                 'party_phone'             => $item->customer_phone,
                 'customer_phone'          => $item->customer_phone,
-                'party_org'               => "ক্যাশিয়ার: {$cashierName}",
-                'customer_org'            => "ক্যাশিয়ার: {$cashierName}",
-                'party_address'           => 'অমর একুশে বইমেলা স্টল',
-                'customer_address'        => 'অমর একুশে বইমেলা স্টল',
+                'party_org'               => "Cashier: {$cashierName}",
+                'customer_org'            => "Cashier: {$cashierName}",
+                'party_address'           => 'Amar Ekushey Book Fair Stall',
+                'customer_address'        => 'Amar Ekushey Book Fair Stall',
                 'category'                => 'books',
                 'sales_category'          => 'books',
-                'category_label'          => 'বই ও প্রকাশনা',
+                'category_label'          => 'Books & Publications',
                 'items_count'             => is_array($item->items_json) ? count($item->items_json) : 1,
-                'items_summary'           => is_array($item->items_json) ? count($item->items_json) . 'টি বই বিক্রয়' : 'বই বিক্রয়',
+                'items_summary'           => is_array($item->items_json) ? count($item->items_json) . ' Books Sold' : 'Book Sale',
                 'total_amount'            => $total,
                 'grand_total'             => $total,
                 'paid_amount'             => $paid,
@@ -732,6 +734,7 @@ class IdeaAccountingController extends Controller
                 'view_url'                => route('admin.pos.receipt', $item->id),
                 'edit_url'                => null,
                 'print_url'               => route('admin.pos.receipt', $item->id),
+                'slip_url'                => route('admin.accounting.slip', ['type' => 'pos', 'id' => $item->id]),
                 'receipt_url'             => route('admin.pos.receipt', $item->id),
                 'quick_pay_url'           => null,
                 'delete_url'              => null,
@@ -741,7 +744,7 @@ class IdeaAccountingController extends Controller
         }
 
         if ($stream === 'bill') {
-            $sellerName = $item->seller?->name ?? 'সেলার স্টোর';
+            $sellerName = $item->seller?->name ?? 'Seller Store';
             $paid = (float) $item->paid_amount;
             $due = (float) $item->due_amount;
             $payStatus = ($due <= 0.001 && $item->total > 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
@@ -752,14 +755,14 @@ class IdeaAccountingController extends Controller
                 'id'                      => $item->id,
                 'global_id'               => 'bill_' . $item->id,
                 'stream'                  => 'offline',
-                'stream_label'            => 'সেলার বিল',
+                'stream_label'            => 'BILL',
                 'stream_badge_class'      => 'bg-info-subtle text-info-emphasis border border-info-subtle',
                 'channel'                 => 'offline_bill',
-                'channel_label'           => 'সেলার স্টোর (Store)',
+                'channel_label'           => 'STORE',
                 'channel_badge_class'     => 'bg-info-subtle text-info-emphasis border border-info-subtle',
                 'doc_no'                  => $docNo,
                 'invoice_no'              => $docNo,
-                'doc_type'                => 'সেলার স্টোর বিক্রয় বিল',
+                'doc_type'                => 'Store Sales Bill',
                 'doc_icon'                => 'fa-solid fa-store text-info',
                 'reference_no'            => $item->reference_no,
                 'date'                    => $date,
@@ -768,15 +771,15 @@ class IdeaAccountingController extends Controller
                 'customer_name'           => $item->customer_name ?: $sellerName,
                 'party_phone'             => $item->customer_phone,
                 'customer_phone'          => $item->customer_phone,
-                'party_org'               => "সেলার: {$sellerName}",
-                'customer_org'            => "সেলার: {$sellerName}",
+                'party_org'               => "Seller: {$sellerName}",
+                'customer_org'            => "Seller: {$sellerName}",
                 'party_address'           => $item->customer_address,
                 'customer_address'        => $item->customer_address,
                 'category'                => 'books',
                 'sales_category'          => 'books',
-                'category_label'          => 'বই ও স্টেশনারি',
+                'category_label'          => 'Books & Stationery',
                 'items_count'             => is_array($item->items) ? count($item->items) : 1,
-                'items_summary'           => is_array($item->items) ? count($item->items) . 'টি আইটেম' : 'বিক্রয় বিল',
+                'items_summary'           => is_array($item->items) ? count($item->items) . ' Items' : 'Sales Bill',
                 'total_amount'            => (float) $item->total,
                 'grand_total'             => (float) $item->total,
                 'paid_amount'             => $paid,
@@ -793,6 +796,7 @@ class IdeaAccountingController extends Controller
                 'view_url'                => route('subadmin.bills.show', $item->id),
                 'edit_url'                => route('subadmin.bills.edit', $item->id),
                 'print_url'               => route('subadmin.bills.receipt', $item->id),
+                'slip_url'                => route('admin.accounting.slip', ['type' => 'bill', 'id' => $item->id]),
                 'receipt_url'             => route('subadmin.bills.receipt', $item->id),
                 'quick_pay_url'           => route('subadmin.bills.quick-pay', $item->id),
                 'delete_url'              => route('subadmin.bills.destroy', $item->id),
@@ -802,7 +806,7 @@ class IdeaAccountingController extends Controller
         }
 
         if ($stream === 'purchase') {
-            $supplierName = $item->party_name ?: 'সরবরাহকারী';
+            $supplierName = $item->party_name ?: 'Supplier';
             $paid = (float) $item->paid_amount;
             $due = (float) $item->due_amount;
             $payStatus = ($due <= 0.001 && $item->grand_total > 0.001) ? 'paid' : ($paid > 0.001 ? 'partial' : 'unpaid');
@@ -813,14 +817,14 @@ class IdeaAccountingController extends Controller
                 'id'                      => $item->id,
                 'global_id'               => 'pur_' . $item->id,
                 'stream'                  => 'purchases',
-                'stream_label'            => 'প্রেস ও সাপ্লায়ার',
+                'stream_label'            => 'PUR',
                 'stream_badge_class'      => 'bg-purple-subtle text-purple border border-purple-subtle',
                 'channel'                 => 'supplier',
-                'channel_label'           => 'প্রেস ও সাপ্লায়ার (Press)',
+                'channel_label'           => 'SUPPLIER',
                 'channel_badge_class'     => 'bg-purple-subtle text-purple border border-purple-subtle',
                 'doc_no'                  => $docNo,
                 'invoice_no'              => $docNo,
-                'doc_type'                => 'প্রেস ও সাপ্লায়ার ক্রয়',
+                'doc_type'                => 'Press & Supplier Purchase',
                 'doc_icon'                => 'fa-solid fa-boxes-packing text-purple',
                 'reference_no'            => $item->publisher_memo_no,
                 'date'                    => $date,
@@ -835,9 +839,9 @@ class IdeaAccountingController extends Controller
                 'customer_address'        => $item->vendor_address,
                 'category'                => $item->purchase_category ?: 'books',
                 'sales_category'          => $item->purchase_category ?: 'books',
-                'category_label'          => 'কাঁচামাল ও বই ক্রয়',
+                'category_label'          => 'Raw Materials & Book Purchase',
                 'items_count'             => 1,
-                'items_summary'           => 'প্রকাশক ও প্রেস সরবরাহ বিল',
+                'items_summary'           => 'Publisher & Press Supply Bill',
                 'total_amount'            => (float) $item->grand_total,
                 'grand_total'             => (float) $item->grand_total,
                 'paid_amount'             => $paid,
@@ -854,6 +858,7 @@ class IdeaAccountingController extends Controller
                 'view_url'                => route('admin.purchases.show', $item->id),
                 'edit_url'                => route('admin.purchases.edit', $item->id),
                 'print_url'               => route('admin.purchases.show', $item->id),
+                'slip_url'                => route('admin.accounting.slip', ['type' => 'purchase', 'id' => $item->id]),
                 'receipt_url'             => route('admin.purchases.show', $item->id),
                 'quick_pay_url'           => null,
                 'delete_url'              => route('admin.purchases.destroy', $item->id),
@@ -865,10 +870,10 @@ class IdeaAccountingController extends Controller
         // Default: Institutional Invoices (IdeaInvoice)
         $isOnlineOrder = !empty($item->reference_no) && isset($syncedOrdersMap[$item->reference_no]);
         $typeLabel = match($item->type) {
-            'challan'   => 'ডেলিভারি চালান',
-            'quotation' => 'দর কোটেশন',
-            'tender'    => 'টেন্ডার প্রস্তাবনা',
-            default     => ($isOnlineOrder ? 'অনলাইন অর্ডার ইনভয়েস' : 'বিক্রয় ইনভয়েস / ক্যাশ মেমো'),
+            'challan'   => 'Delivery Challan',
+            'quotation' => 'Price Quotation',
+            'tender'    => 'Tender Proposal',
+            default     => ($isOnlineOrder ? 'Online Order Invoice' : 'Sales Invoice / Cash Memo'),
         };
         $icon = match($item->type) {
             'challan'   => 'fa-solid fa-truck text-success',
@@ -882,10 +887,10 @@ class IdeaAccountingController extends Controller
             'id'                      => $item->id,
             'global_id'               => 'inv_' . $item->id,
             'stream'                  => 'invoices',
-            'stream_label'            => $isOnlineOrder ? 'অনলাইন ইনভয়েস' : 'প্রাতিষ্ঠানিক',
+            'stream_label'            => $isOnlineOrder ? 'ORD' : 'INV',
             'stream_badge_class'      => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
             'channel'                 => $isOnlineOrder ? 'online_invoiced' : 'institutional',
-            'channel_label'           => $isOnlineOrder ? 'অনলাইন শপ (সিঙ্কড)' : 'প্রাতিষ্ঠানিক (Invoice)',
+            'channel_label'           => $isOnlineOrder ? 'ONLINE' : 'INVOICE',
             'channel_badge_class'     => $isOnlineOrder ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-primary-subtle text-primary border border-primary-subtle',
             'doc_no'                  => $item->invoice_no,
             'invoice_no'              => $item->invoice_no,
@@ -894,8 +899,8 @@ class IdeaAccountingController extends Controller
             'reference_no'            => $item->reference_no,
             'date'                    => $date,
             'invoice_date'            => $date,
-            'party_name'              => $item->customer_name ?: 'সম্মানিত গ্রাহক',
-            'customer_name'           => $item->customer_name ?: 'সম্মানিত গ্রাহক',
+            'party_name'              => $item->customer_name ?: 'Client',
+            'customer_name'           => $item->customer_name ?: 'Client',
             'party_phone'             => $item->customer_phone,
             'customer_phone'          => $item->customer_phone,
             'party_org'               => $item->customer_org,
@@ -904,9 +909,9 @@ class IdeaAccountingController extends Controller
             'customer_address'        => $item->customer_address,
             'category'                => $item->sales_category ?: 'books',
             'sales_category'          => $item->sales_category ?: 'books',
-            'category_label'          => $item->category_label ?? 'বই ও প্রকাশনা',
+            'category_label'          => $item->category_label ?? 'Books & Publications',
             'items_count'             => is_array($item->items) ? count($item->items) : 1,
-            'items_summary'           => is_array($item->items) ? count($item->items) . 'টি আইটেম' : ($item->subject ?: 'বিক্রয় ইনভয়েস'),
+            'items_summary'           => is_array($item->items) ? count($item->items) . ' Items' : ($item->subject ?: 'Sales Invoice'),
             'total_amount'            => (float) $item->grand_total,
             'grand_total'             => (float) $item->grand_total,
             'paid_amount'             => (float) $item->paid_amount,
@@ -923,12 +928,163 @@ class IdeaAccountingController extends Controller
             'view_url'                => route('admin.accounting.invoices.show', $item->id),
             'edit_url'                => route('admin.accounting.invoices.edit', $item->id),
             'print_url'               => route('admin.accounting.invoices.show', $item->id),
+            'slip_url'                => route('admin.accounting.slip', ['type' => 'invoice', 'id' => $item->id]),
             'receipt_url'             => route('admin.accounting.invoices.show', $item->id),
             'quick_pay_url'           => route('admin.accounting.invoices.quick-payment', $item->id),
             'delete_url'              => route('admin.accounting.invoices.destroy', $item->id),
             'notes'                   => $item->notes,
             'raw_model'               => $item,
         ];
+    }
+
+    /**
+     * Universal Bill & Document Slip Viewer.
+     * সকল বিল, মেমো, অর্ডার, পার্সেল এবং রসিদের জন্য কেন্দ্রীয় স্লিপ ও স্টিকার জেনারেটর।
+     */
+    public function billSlip(Request $request, string $type, int|string $id): View
+    {
+        $invoiceSettings = self::getInvoiceSettings();
+        $slip = null;
+        $order = null;
+
+        if ($type === 'order' || $type === 'ecommerce') {
+            $order = Order::with(['book', 'user', 'affiliate'])->findOrFail($id);
+        } elseif ($type === 'invoice') {
+            $invoice = IdeaInvoice::with(['payments', 'creator'])->findOrFail($id);
+            $slip = [
+                'type'             => 'invoice',
+                'type_badge'       => 'ইনভয়েস / INVOICE',
+                'doc_no'           => $invoice->invoice_no,
+                'date'             => $invoice->invoice_date ? Carbon::parse($invoice->invoice_date)->format('d M, Y') : date('d M, Y'),
+                'customer_name'    => $invoice->customer_name ?: 'সম্মানিত গ্রাহক',
+                'customer_phone'   => $invoice->customer_phone,
+                'customer_address' => $invoice->customer_address ?: ($invoice->customer_org ? 'প্রতিষ্ঠান: ' . $invoice->customer_org : 'অফিস / প্রতিষ্ঠান'),
+                'customer_org'     => $invoice->customer_org,
+                'total_amount'     => (float) $invoice->grand_total,
+                'paid_amount'      => (float) $invoice->paid_amount,
+                'due_amount'       => (float) $invoice->due_amount,
+                'payment_status'   => $invoice->payment_status ?: 'paid',
+                'payment_method'   => $invoice->payment_method ?: 'Cash',
+                'items'            => is_array($invoice->items) ? $invoice->items : [],
+                'items_count'      => is_array($invoice->items) ? count($invoice->items) : 1,
+                'items_title'      => is_array($invoice->items) && count($invoice->items) ? ($invoice->items[0]['name'] ?? 'ইনভয়েস পণ্য ও বই') : ($invoice->subject ?: 'ইনভয়েস বই/মালামাল'),
+                'notes'            => $invoice->notes,
+                'reference_no'     => $invoice->reference_no,
+                'tracking_code'    => $invoice->reference_no,
+                'back_url'         => route('admin.accounting.index', ['stream' => 'invoices']),
+                'invoice_url'      => route('admin.accounting.invoices.show', $invoice->id),
+            ];
+        } elseif ($type === 'pos') {
+            $pos = PosSale::with(['cashier'])->findOrFail($id);
+            $cashierName = $pos->cashier?->name ?? 'স্টল অপারেটর';
+            $paid = (float) ($pos->paid_cash + $pos->paid_online);
+            $total = (float) $pos->total;
+            $due = max(0.0, $total - $paid);
+            $slip = [
+                'type'             => 'pos',
+                'type_badge'       => 'স্টল মেমো / POS',
+                'doc_no'           => $pos->receipt_no ?: ('POS-' . $pos->id),
+                'date'             => $pos->created_at ? Carbon::parse($pos->created_at)->format('d M, Y') : date('d M, Y'),
+                'customer_name'    => $pos->customer_name ?: 'কাউন্টার ক্রেতা',
+                'customer_phone'   => $pos->customer_phone,
+                'customer_address' => 'অমর একুশে বইমেলা স্টল',
+                'customer_org'     => "ক্যাশিয়ার: {$cashierName}",
+                'total_amount'     => $total,
+                'paid_amount'      => $paid,
+                'due_amount'       => $due,
+                'payment_status'   => ($due <= 0.001) ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid'),
+                'payment_method'   => $pos->payment_method ?: 'নগদ',
+                'items'            => is_array($pos->items_json) ? $pos->items_json : [],
+                'items_count'      => is_array($pos->items_json) ? count($pos->items_json) : 1,
+                'items_title'      => is_array($pos->items_json) && count($pos->items_json) ? ($pos->items_json[0]['name'] ?? $pos->items_json[0]['title'] ?? 'স্টল বিক্রয়') : 'বইমেলা স্টল বই বিক্রয়',
+                'notes'            => $pos->notes,
+                'reference_no'     => $pos->trx_id,
+                'tracking_code'    => $pos->trx_id,
+                'back_url'         => route('admin.accounting.index', ['stream' => 'offline']),
+                'invoice_url'      => route('admin.pos.receipt', $pos->id),
+            ];
+        } elseif ($type === 'bill') {
+            $bill = Bill::with(['seller', 'customer'])->findOrFail($id);
+            $sellerName = $bill->seller?->name ?? 'সেলার স্টোর';
+            $slip = [
+                'type'             => 'bill',
+                'type_badge'       => 'বিক্রয় বিল / BILL',
+                'doc_no'           => $bill->bill_no ?: ('BILL-' . $bill->id),
+                'date'             => $bill->bill_date ? Carbon::parse($bill->bill_date)->format('d M, Y') : date('d M, Y'),
+                'customer_name'    => $bill->customer_name ?: 'সম্মানিত ক্রেতা',
+                'customer_phone'   => $bill->customer_phone,
+                'customer_address' => $bill->customer_address ?: ($bill->customer_org ? 'প্রতিষ্ঠান: ' . $bill->customer_org : 'স্টোর গ্রাহক'),
+                'customer_org'     => "স্টোর/সেলার: {$sellerName}",
+                'total_amount'     => (float) $bill->total,
+                'paid_amount'      => (float) $bill->paid_amount,
+                'due_amount'       => (float) $bill->due_amount,
+                'payment_status'   => $bill->payment_status ?: 'paid',
+                'payment_method'   => $bill->payment_method ?: 'cash',
+                'items'            => is_array($bill->items) ? $bill->items : [],
+                'items_count'      => is_array($bill->items) ? count($bill->items) : 1,
+                'items_title'      => is_array($bill->items) && count($bill->items) ? ($bill->items[0]['name'] ?? 'স্টোর আইটেম') : ($bill->subject ?: 'স্টোর বিক্রয়'),
+                'notes'            => $bill->notes,
+                'reference_no'     => $bill->reference_no,
+                'tracking_code'    => $bill->reference_no,
+                'back_url'         => route('admin.accounting.index', ['stream' => 'offline']),
+                'invoice_url'      => route('subadmin.bills.receipt', $bill->id),
+            ];
+        } elseif ($type === 'purchase') {
+            $purchase = PublisherPurchase::with(['publisher'])->findOrFail($id);
+            $slip = [
+                'type'             => 'purchase',
+                'type_badge'       => 'ক্রয় ভাউচার / PURCHASE',
+                'doc_no'           => $purchase->purchase_no ?: ('PUR-' . $purchase->id),
+                'date'             => $purchase->purchase_date ? Carbon::parse($purchase->purchase_date)->format('d M, Y') : date('d M, Y'),
+                'customer_name'    => $purchase->vendor_name ?: ($purchase->supplier_name ?: 'সরবরাহকারী'),
+                'customer_phone'   => $purchase->vendor_phone,
+                'customer_address' => $purchase->vendor_address ?: 'প্রেস / সাপ্লায়ার ঠিকানা',
+                'customer_org'     => $purchase->publisher?->name ?? 'আইডিয়া প্রকাশন',
+                'total_amount'     => (float) $purchase->grand_total,
+                'paid_amount'      => (float) $purchase->paid_amount,
+                'due_amount'       => (float) $purchase->due_amount,
+                'payment_status'   => $purchase->payment_status ?: 'paid',
+                'payment_method'   => $purchase->payment_type ?: 'cash',
+                'items'            => [],
+                'items_count'      => 1,
+                'items_title'      => 'প্রেস, কাগজ ও বই সরবরাহ',
+                'notes'            => $purchase->notes,
+                'reference_no'     => $purchase->publisher_memo_no,
+                'tracking_code'    => $purchase->publisher_memo_no,
+                'back_url'         => route('admin.accounting.index', ['stream' => 'purchases']),
+                'invoice_url'      => route('admin.purchases.show', $purchase->id),
+            ];
+        } elseif ($type === 'entry') {
+            $entry = IdeaAccountingEntry::findOrFail($id);
+            $isIncome = ($entry->type === 'income');
+            $slip = [
+                'type'             => 'entry',
+                'type_badge'       => $isIncome ? 'আয় রসিদ / INCOME' : 'ব্যয় ভাউচার / EXPENSE',
+                'doc_no'           => $entry->entry_no ?: ('ENT-' . $entry->id),
+                'date'             => $entry->entry_date ? Carbon::parse($entry->entry_date)->format('d M, Y') : date('d M, Y'),
+                'customer_name'    => $entry->party_name ?: ($isIncome ? 'গ্রাহক / উৎস' : 'অফিস / সেবা প্রদানকারী'),
+                'customer_phone'   => null,
+                'customer_address' => 'আইডিয়া প্রকাশন ও বুক শপ',
+                'customer_org'     => 'ক্যাটাগরি: ' . ($entry->category ?: ($isIncome ? 'সাধারণ আয়' : 'সাধারণ ব্যয়')),
+                'total_amount'     => (float) $entry->amount,
+                'paid_amount'      => (float) $entry->amount,
+                'due_amount'       => 0.0,
+                'payment_status'   => 'paid',
+                'payment_method'   => $entry->payment_method ?: 'cash',
+                'items'            => [],
+                'items_count'      => 1,
+                'items_title'      => $entry->title,
+                'notes'            => $entry->notes,
+                'reference_no'     => $entry->voucher_no,
+                'tracking_code'    => $entry->voucher_no,
+                'back_url'         => route('admin.accounting.index', ['stream' => $isIncome ? 'income' : 'expense']),
+                'invoice_url'      => null,
+            ];
+        } else {
+            abort(404, 'Invalid slip type');
+        }
+
+        return view('admin.orders.ecommerce-slip', compact('slip', 'order', 'invoiceSettings'));
     }
 
     /**

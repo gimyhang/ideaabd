@@ -17,13 +17,13 @@
     $aging60 = collect($allSummaries)->sum(fn($c) => $c['aging']['days_60'] ?? 0);
     $aging90p = collect($allSummaries)->sum(fn($c) => $c['aging']['days_90p'] ?? 0);
 
-    $pageTitle = $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট (Customer Ledger & Statement)";
+    $pageTitle = $activeCustomer ? "Customer Ledger — {$activeCustomer['name']}" : "Customer Ledger & Running Statement";
 @endphp
 
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fs-5 fw-bold text-dark"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "গ্রাহক খতিয়ান — {$activeCustomer['name']}" : "গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট" }}</span>
+        <span class="fs-5 fw-bold text-dark"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>{{ $activeCustomer ? "Customer Ledger — {$activeCustomer['name']}" : "Customer Ledger & Running Statement" }}</span>
         @if($activeCustomer)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
                 ID: {{ $activeCustomer['phone'] !== '—' ? $activeCustomer['phone'] : 'ACC-' . substr(md5($activeCustomer['name']), 0, 6) }}
@@ -41,37 +41,37 @@
 @section('actions')
     <div class="d-flex flex-wrap gap-2 align-items-center">
         {{-- Customize Logo & Info Button --}}
-        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#ledgerBrandingSettingsModal" title="লেজার ও বিলের লোগো এবং অফিসিয়াল তথ্য কাস্টমাইজ করুন">
-            <i class="fa-solid fa-palette me-1 text-primary"></i> লোগো ও তথ্য পরিবর্তন
+        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#ledgerBrandingSettingsModal" title="Customize Ledger Branding & Info">
+            <i class="fa-solid fa-palette me-1 text-primary"></i> Branding & Info
         </button>
 
         {{-- Collect Payment Button --}}
         <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#collectLedgerPaymentModal">
-            <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> কিস্তি / জমা নিন
+            <i class="fa-solid fa-hand-holding-dollar me-1.5"></i> Receive Payment
         </button>
 
         {{-- Export Tools Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs btn-sm rounded-pill px-3 fw-semibold dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-file-export me-1 text-primary"></i> এক্সপোর্ট / শেয়ার
+                <i class="fa-solid fa-file-export me-1 text-primary"></i> Export / Share
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
-                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">এক্সপোর্ট ফরম্যাট:</h6></li>
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Export Formats:</h6></li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportTableToCSV('customer-ledger-data.csv')">
-                        <i class="fa-solid fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
+                        <i class="fa-solid fa-file-csv text-success me-2"></i> Download CSV / Excel
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="copyTableToClipboard()">
-                        <i class="fa-solid fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
+                        <i class="fa-solid fa-copy text-info me-2"></i> Copy to Clipboard
                     </button>
                 </li>
                 @if($statement && $activeCustomer)
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
                         <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold text-success" onclick="shareViaWhatsApp()">
-                            <i class="fab fa-whatsapp text-success fs-6 me-2"></i> WhatsApp এ স্টেটমেন্ট পাঠান
+                            <i class="fab fa-whatsapp text-success fs-6 me-2"></i> Share via WhatsApp
                         </button>
                     </li>
                 @endif
@@ -80,15 +80,15 @@
 
         @if($statement)
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold" onclick="window.print()">
-                <i class="fa-solid fa-print me-1.5"></i> স্টেটমেন্ট প্রিন্ট / PDF
+                <i class="fa-solid fa-print me-1.5"></i> Print Statement / PDF
             </button>
             <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-                <i class="fa-solid fa-users me-1"></i> সকল গ্রাহক তালিকা
+                <i class="fa-solid fa-users me-1"></i> All Customers
             </a>
         @endif
 
         <a href="{{ route('admin.accounting.invoices.create') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fa-solid fa-plus me-1"></i> নতুন বিল / চালান
+            <i class="fa-solid fa-plus me-1"></i> New Invoice / Challan
         </a>
     </div>
 @endsection
@@ -396,7 +396,7 @@
                             <img src="{{ $logoSrc }}" alt="Logo" style="height: 52px; max-width: 160px; object-fit: contain;">
                         @endif
                         <div>
-                            <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
+                            <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'Idea Prakashan' }}</h4>
                             @if(!empty($settings['tagline']))
                                 <div class="text-muted small fw-medium">{{ $settings['tagline'] }}</div>
                             @endif
@@ -1300,7 +1300,7 @@
         }
 
         navigator.clipboard.writeText(text.join('\n')).then(() => {
-            alert('টেবিল ডাটা ক্লিপবোর্ডে সফলভাবে কপি হয়েছে! এটি Excel বা Google Sheet-এ পেস্ট করতে পারবেন।');
+            alert('Table data copied to clipboard successfully! You can paste it into Excel or Google Sheets.');
         });
     }
 
@@ -1312,13 +1312,13 @@
             const billed = "৳{{ number_format($statement['total_debit'], 2) }}";
             const paid = "৳{{ number_format($statement['total_credit'], 2) }}";
             const due = "৳{{ number_format($statement['net_due'], 2) }}";
-            const biz = "{{ addslashes($settings['business_name'] ?? 'আইডিয়া প্রকাশন') }}";
+            const biz = "{{ addslashes($settings['business_name'] ?? 'Idea Prakashan') }}";
 
-            const msg = `আসসালামু আলাইকুম ${name},\n${biz} থেকে আপনার হালনাগাদ খতিয়ান হিসাব বিবরণী:\n\n` +
-                        `• মোট বিক্রয়/বিল দাবি: ${billed}\n` +
-                        `• মোট জমা/পরিশোধ: ${paid}\n` +
-                        `• বর্তমান বকেয়া জের: ${due}\n\n` +
-                        `ধন্যবাদ,\n${biz}`;
+            const msg = `Dear ${name},\nUpdated running ledger statement from ${biz}:\n\n` +
+                        `• Total Invoiced / Billed: ${billed}\n` +
+                        `• Total Received / Paid: ${paid}\n` +
+                        `• Outstanding Due Balance: ${due}\n\n` +
+                        `Thank you,\n${biz}`;
 
             const waPhone = phone.startsWith('88') ? phone : (phone.startsWith('0') ? '88' + phone : phone);
             const waUrl = waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
@@ -1329,9 +1329,9 @@
     // Copy Customer Statement Summary
     function copyCustomerStatementSummary() {
         @if($statement && $activeCustomer)
-            const text = `গ্রাহক: {{ $activeCustomer['name'] }}\nমোট বিল: ৳{{ number_format($statement['total_debit'], 2) }}\nমোট জমা: ৳{{ number_format($statement['total_credit'], 2) }}\nবর্তমান বকেয়া: ৳{{ number_format($statement['net_due'], 2) }}`;
+            const text = `Customer: {{ $activeCustomer['name'] }}\nTotal Billed: ৳{{ number_format($statement['total_debit'], 2) }}\nTotal Received: ৳{{ number_format($statement['total_credit'], 2) }}\nNet Due: ৳{{ number_format($statement['net_due'], 2) }}`;
             navigator.clipboard.writeText(text).then(() => {
-                alert('গ্রাহকের হিসাবের সারাংশ কপি হয়েছে!');
+                alert('Customer statement summary copied to clipboard!');
             });
         @endif
     }

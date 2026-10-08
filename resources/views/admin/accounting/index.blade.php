@@ -1,29 +1,29 @@
 @extends('layouts.admin')
 
-@section('title', 'হিসাব ও বিলিং কেন্দ্র | Dynamic Accounting & Billing Hub')
-@section('heading', 'হিসাব ও বিলিং ব্যবস্থাপনা (Unified Accounting Hub)')
+@section('title', 'Accounting')
+@section('heading', 'Accounting')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
-    <li class="breadcrumb-item active" aria-current="page">হিসাব ও বিলিং কেন্দ্র</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Accounting</li>
 @endsection
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2">
         <button type="button" class="btn btn-emerald btn-sm rounded-pill px-3.5 shadow-sm fw-semibold text-white d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#newIncomeModal">
             <i class="fa-solid fa-circle-plus"></i>
-            <span>আয় এন্ট্রি করুন</span>
+            <span>Income</span>
         </button>
         <button type="button" class="btn btn-rose btn-sm rounded-pill px-3.5 shadow-sm fw-semibold text-white d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#newExpenseModal">
             <i class="fa-solid fa-cart-shopping"></i>
-            <span>ব্যয় এন্ট্রি করুন</span>
+            <span>Expense</span>
         </button>
         <a href="{{ route('admin.accounting.invoices.create', ['type' => 'invoice']) }}" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5">
             <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span>নতুন ইনভয়েস / বিল</span>
+            <span>Invoice</span>
         </a>
-        <a href="{{ route('admin.accounting.invoices.export', array_merge(request()->all(), ['format' => 'csv'])) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" title="CSV ফাইল ডাউনলোড">
+        <a href="{{ route('admin.accounting.invoices.export', array_merge(request()->all(), ['format' => 'csv'])) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" title="Export CSV" style="border: 1px solid #cbd5e1;">
             <i class="fa-solid fa-file-csv text-success"></i>
-            <span>এক্সপোর্ট</span>
+            <span>Export</span>
         </a>
     </div>
 @endsection
@@ -67,7 +67,6 @@
 }
 
 .acc-card {
-    border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 1.1rem;
     background: #ffffff;
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
@@ -79,19 +78,19 @@
 }
 
 .acc-stat-icon {
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 14px;
-    font-size: 1.35rem;
+    border-radius: 13px;
+    font-size: 1.25rem;
 }
 
 .stream-tab-btn {
     white-space: nowrap;
     border-radius: 9999px;
-    padding: 0.5rem 1.15rem;
+    padding: 0.55rem 1.2rem;
     font-size: 0.86rem;
     font-weight: 600;
     color: #475569;
@@ -120,8 +119,8 @@
 }
 
 .filter-preset-pill {
-    font-size: 0.76rem;
-    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.85rem;
     border-radius: 9999px;
     border: 1px solid #cbd5e1;
     background: #fff;
@@ -136,6 +135,32 @@
     border-color: #3b82f6;
 }
 
+#unifiedAccountingTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+#unifiedAccountingTable thead th {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: none;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+    padding: 0.95rem 0.85rem;
+    white-space: nowrap;
+}
+#unifiedAccountingTable tbody td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    border-top: none;
+    padding: 1rem 0.85rem;
+    vertical-align: middle;
+}
+#unifiedAccountingTable tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
 .record-row {
     transition: background-color 0.15s ease;
 }
@@ -143,7 +168,10 @@
     background-color: #f8fafc;
 }
 .record-row.has-due {
-    background-color: rgba(254, 242, 242, 0.25);
+    background-color: rgba(254, 242, 242, 0.35);
+}
+.record-row.has-due:hover {
+    background-color: rgba(254, 242, 242, 0.6);
 }
 
 .badge-income {
@@ -170,7 +198,7 @@
     color: #334155;
     font-size: 0.8rem;
     border-radius: 9999px;
-    padding: 0.3rem 0.75rem;
+    padding: 0.35rem 0.85rem;
 }
 .category-chip:hover {
     background: #e2e8f0;
@@ -187,71 +215,71 @@
 @section('content')
 
 {{-- 1. Stream Selection & Central Hub Header --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
-    <div class="card-body p-3">
+<div class="card border shadow-sm rounded-4 mb-4 bg-white overflow-hidden" style="border: 1px solid #e2e8f0 !important;">
+    <div class="card-body p-3.5 px-md-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             {{-- Dynamic Tabs --}}
-            <div class="d-flex flex-wrap align-items-center gap-2 flex-grow-1" id="streamTabsContainer">
+            <div class="d-flex flex-wrap align-items-center gap-2.5 flex-grow-1" id="streamTabsContainer">
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'all'])) }}" 
                    class="stream-tab-btn {{ ($stream === 'all' || empty($stream)) ? 'active' : '' }}" data-stream="all">
                     <i class="fa-solid fa-layer-group text-warning"></i>
-                    <span>সকল লেনদেন ও বিল (All)</span>
+                    <span>All</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['all_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'online'])) }}" 
                    class="stream-tab-btn {{ $stream === 'online' ? 'active' : '' }}" data-stream="online">
                     <i class="fa-solid fa-cart-shopping text-success"></i>
-                    <span>অনলাইন বিলিং (Online)</span>
+                    <span>Online</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['online_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'offline'])) }}" 
                    class="stream-tab-btn {{ $stream === 'offline' ? 'active' : '' }}" data-stream="offline">
                     <i class="fa-solid fa-store text-info"></i>
-                    <span>অফলাইন POS ও সেলার (Offline)</span>
+                    <span>Offline</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['offline_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'invoices'])) }}" 
                    class="stream-tab-btn {{ $stream === 'invoices' ? 'active' : '' }}" data-stream="invoices">
                     <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
-                    <span>ইনভয়েস ও মেমো (Invoices)</span>
+                    <span>Invoices</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['invoices_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'income'])) }}" 
                    class="stream-tab-btn {{ $stream === 'income' ? 'active' : '' }}" data-stream="income">
                     <i class="fa-solid fa-arrow-trend-up text-success"></i>
-                    <span>আয় খতিয়ান (Income)</span>
+                    <span>Income</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['income_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'expense'])) }}" 
                    class="stream-tab-btn {{ $stream === 'expense' ? 'active' : '' }}" data-stream="expense">
                     <i class="fa-solid fa-arrow-trend-down text-danger"></i>
-                    <span>ব্যয় খতিয়ান (Expense)</span>
+                    <span>Expense</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['expense_count']) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'purchases'])) }}" 
                    class="stream-tab-btn {{ $stream === 'purchases' ? 'active' : '' }}" data-stream="purchases">
                     <i class="fa-solid fa-boxes-packing text-purple" style="color: #8b5cf6;"></i>
-                    <span>সাপ্লায়ার ক্রয় বিল (Purchases)</span>
+                    <span>Purchases</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['purchases_count']) }}</span>
                 </a>
             </div>
 
             {{-- Sub-Modules Quick Links --}}
-            <div class="d-none d-xl-flex align-items-center gap-1.5 border-start ps-3">
-                <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" title="গ্রাহকদের খতিয়ান ও জের">
-                    <i class="fa-solid fa-users me-1 text-primary"></i>খতিয়ান
+            <div class="d-none d-xl-flex align-items-center gap-2 border-start ps-3" style="border-left: 1px solid #e2e8f0 !important;">
+                <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Customer Ledger" style="border: 1px solid #cbd5e1 !important;">
+                    <i class="fa-solid fa-users me-1 text-primary"></i>Ledger
                 </a>
-                <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" title="কর ও মূসক কর্তন রেজিস্টার">
-                    <i class="fa-solid fa-landmark me-1 text-warning"></i>কর ও মূসক
+                <a href="{{ route('admin.accounting.tax-vat-deductions.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Tax & VAT Register" style="border: 1px solid #cbd5e1 !important;">
+                    <i class="fa-solid fa-landmark me-1 text-warning"></i>Tax / VAT
                 </a>
-                <a href="{{ route('admin.accounting.reports.index') }}" class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted" title="হিসাব বিবরণী">
-                    <i class="fa-solid fa-chart-pie me-1 text-success"></i>রিপোর্টস
+                <a href="{{ route('admin.accounting.reports.index') }}" class="btn btn-sm btn-light border rounded-pill px-3 py-1.5 text-muted fw-semibold" title="Financial Reports" style="border: 1px solid #cbd5e1 !important;">
+                    <i class="fa-solid fa-chart-pie me-1 text-success"></i>Reports
                 </a>
             </div>
         </div>
@@ -259,99 +287,104 @@
 </div>
 
 {{-- 2. Financial KPI Metric Cards (Deduplicated & Accurate) --}}
-<div class="row g-3 mb-4">
+<div class="row g-3 g-xl-3.5 mb-4">
     {{-- Total Turnover / Sales Card --}}
     <div class="col-12 col-sm-6 col-xl-2-4" style="flex: 0 0 20%; max-width: 20%;">
-        <div class="card acc-card p-3 h-100 border-start border-4 border-primary">
+        <div class="card acc-card p-3.5 p-xl-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden" 
+             style="border: 1px solid #bfdbfe !important; border-top: 2px solid #2563eb !important; background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">মোট বিক্রয় টার্নওভার</span>
-                    <h4 class="fw-bold text-primary mb-0 mt-1 font-monospace">৳{{ number_format($stats['total_turnover'], 2) }}</h4>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL TURNOVER</span>
+                    <h4 class="fw-bold text-primary mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_turnover'], 2) }}</h4>
                 </div>
-                <div class="acc-stat-icon bg-primary-subtle text-primary">
+                <div class="acc-stat-icon bg-primary-subtle text-primary flex-shrink-0" style="border: 1px solid #bfdbfe;">
                     <i class="fa-solid fa-chart-line"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted" style="font-size: 11px;">
-                <span>ইনভয়েস: <strong>৳{{ number_format($stats['invoices_total']) }}</strong></span>
-                <span>অনলাইন: <strong>৳{{ number_format($stats['orders_total']) }}</strong></span>
+            <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(37, 99, 235, 0.12) !important;">
+                <span>Invoices: <strong class="text-dark">৳{{ number_format($stats['invoices_total']) }}</strong></span>
+                <span>Online: <strong class="text-dark">৳{{ number_format($stats['orders_total']) }}</strong></span>
             </div>
         </div>
     </div>
 
     {{-- Total Collected Card --}}
     <div class="col-12 col-sm-6 col-xl-2-4" style="flex: 0 0 20%; max-width: 20%;">
-        <div class="card acc-card p-3 h-100 border-start border-4 border-success">
+        <div class="card acc-card p-3.5 p-xl-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden" 
+             style="border: 1px solid #bbf7d0 !important; border-top: 2px solid #16a34a !important; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">মোট সংগৃহীত নগদ</span>
-                    <h4 class="fw-bold text-success mb-0 mt-1 font-monospace">৳{{ number_format($stats['total_collected'], 2) }}</h4>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL COLLECTED</span>
+                    <h4 class="fw-bold text-success mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_collected'], 2) }}</h4>
                 </div>
-                <div class="acc-stat-icon bg-success-subtle text-success">
+                <div class="acc-stat-icon bg-success-subtle text-success flex-shrink-0" style="border: 1px solid #bbf7d0;">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted" style="font-size: 11px;">
-                <span>আজকের আয়: <strong class="text-success">৳{{ number_format($stats['today_income']) }}</strong></span>
-                <span>চলতি মাস: <strong>৳{{ number_format($stats['this_month_income']) }}</strong></span>
+            <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(22, 163, 74, 0.15) !important;">
+                <span>Today: <strong class="text-success">৳{{ number_format($stats['today_income']) }}</strong></span>
+                <span>Month: <strong class="text-dark">৳{{ number_format($stats['this_month_income']) }}</strong></span>
             </div>
         </div>
     </div>
 
     {{-- Total Running Due Card --}}
     <div class="col-12 col-sm-6 col-xl-2-4" style="flex: 0 0 20%; max-width: 20%;">
-        <div class="card acc-card p-3 h-100 border-start border-4 border-warning">
+        <div class="card acc-card p-3.5 p-xl-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden" 
+             style="border: 1px solid #fed7aa !important; border-top: 2px solid #ea580c !important; background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">মোট রানিং বকেয়া জের</span>
-                    <h4 class="fw-bold text-warning mb-0 mt-1 font-monospace">৳{{ number_format($stats['total_due'], 2) }}</h4>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL DUE</span>
+                    <h4 class="fw-bold text-warning mb-0 mt-1.5 font-monospace" style="color: #ea580c !important;">৳{{ number_format($stats['total_due'], 2) }}</h4>
                 </div>
-                <div class="acc-stat-icon bg-warning-subtle text-warning">
+                <div class="acc-stat-icon bg-warning-subtle text-warning flex-shrink-0" style="border: 1px solid #fed7aa; color: #ea580c !important;">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted" style="font-size: 11px;">
-                <span>ইনভয়েস ডিউ: <strong>৳{{ number_format($stats['invoices_due']) }}</strong></span>
-                <span>সেলার ডিউ: <strong>৳{{ number_format($stats['bills_due']) }}</strong></span>
+            <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(234, 88, 12, 0.15) !important;">
+                <span>Invoice Due: <strong class="text-dark">৳{{ number_format($stats['invoices_due']) }}</strong></span>
+                <span>Seller Due: <strong class="text-dark">৳{{ number_format($stats['bills_due']) }}</strong></span>
             </div>
         </div>
     </div>
 
     {{-- Total Expenses Card --}}
     <div class="col-12 col-sm-6 col-xl-2-4" style="flex: 0 0 20%; max-width: 20%;">
-        <div class="card acc-card p-3 h-100 border-start border-4 border-danger">
+        <div class="card acc-card p-3.5 p-xl-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden" 
+             style="border: 1px solid #fecdd3 !important; border-top: 2px solid #e11d48 !important; background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">মোট ব্যয় ও কেনাকাটা</span>
-                    <h4 class="fw-bold text-danger mb-0 mt-1 font-monospace">৳{{ number_format($stats['total_expenses'], 2) }}</h4>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">TOTAL EXPENSES</span>
+                    <h4 class="fw-bold text-danger mb-0 mt-1.5 font-monospace">৳{{ number_format($stats['total_expenses'], 2) }}</h4>
                 </div>
-                <div class="acc-stat-icon bg-danger-subtle text-danger">
+                <div class="acc-stat-icon bg-danger-subtle text-danger flex-shrink-0" style="border: 1px solid #fecdd3;">
                     <i class="fa-solid fa-cart-arrow-down"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted" style="font-size: 11px;">
-                <span>আজকের খরচ: <strong class="text-danger">৳{{ number_format($stats['today_expense']) }}</strong></span>
-                <span>চলতি মাস: <strong>৳{{ number_format($stats['this_month_expense']) }}</strong></span>
+            <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(225, 29, 72, 0.15) !important;">
+                <span>Today: <strong class="text-danger">৳{{ number_format($stats['today_expense']) }}</strong></span>
+                <span>Month: <strong class="text-dark">৳{{ number_format($stats['this_month_expense']) }}</strong></span>
             </div>
         </div>
     </div>
 
     {{-- Net Cash Balance Card --}}
     <div class="col-12 col-sm-6 col-xl-2-4" style="flex: 0 0 20%; max-width: 20%;">
-        <div class="card acc-card p-3 h-100 border-start border-4 {{ $stats['net_balance'] >= 0 ? 'border-info' : 'border-danger' }}">
+        <div class="card acc-card p-3.5 p-xl-4 h-100 d-flex flex-column justify-content-between position-relative overflow-hidden" 
+             style="border: 1px solid #cffafe !important; border-top: 2px solid #0891b2 !important; background: linear-gradient(135deg, #ecfeff 0%, #ffffff 100%);">
             <div class="d-flex align-items-start justify-content-between mb-2">
                 <div>
-                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">নিট ক্যাশ উদ্বৃত্ত</span>
-                    <h4 class="fw-bold {{ $stats['net_balance'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1 font-monospace">৳{{ number_format($stats['net_balance'], 2) }}</h4>
+                    <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">NET CASH BALANCE</span>
+                    <h4 class="fw-bold {{ $stats['net_balance'] >= 0 ? 'text-info' : 'text-danger' }} mb-0 mt-1.5 font-monospace" style="{{ $stats['net_balance'] >= 0 ? 'color: #0891b2 !important;' : '' }}">৳{{ number_format($stats['net_balance'], 2) }}</h4>
                 </div>
-                <div class="acc-stat-icon {{ $stats['net_balance'] >= 0 ? 'bg-info-subtle text-info' : 'bg-danger-subtle text-danger' }}">
+                <div class="acc-stat-icon bg-info-subtle text-info flex-shrink-0" style="border: 1px solid #cffafe; color: #0891b2 !important;">
                     <i class="fa-solid fa-wallet"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center justify-content-between pt-2 border-top small text-muted" style="font-size: 11px;">
-                <span>মাসিক উদ্বৃত্ত: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($stats['this_month_net']) }}</strong></span>
-                <span class="badge {{ $stats['net_balance'] >= 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} rounded-pill px-2 py-0.5">
-                    {{ $stats['net_balance'] >= 0 ? 'উদ্বৃত্ত' : 'ঘাটতি' }}
+            <div class="d-flex align-items-center justify-content-between pt-2.5 mt-auto border-top small text-muted" style="font-size: 11px; border-top: 1px solid rgba(8, 145, 178, 0.15) !important;">
+                <span>Month Net: <strong class="{{ $stats['this_month_net'] >= 0 ? 'text-success' : 'text-danger' }}">৳{{ number_format($stats['this_month_net']) }}</strong></span>
+                <span class="badge {{ $stats['net_balance'] >= 0 ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle' }} rounded-pill px-2 py-0.5" style="font-size: 10px;">
+                    {{ $stats['net_balance'] >= 0 ? 'Surplus' : 'Deficit' }}
                 </span>
             </div>
         </div>
@@ -370,14 +403,16 @@
 
 {{-- 3. Visual Charts (Collapsible Section) --}}
 <div class="collapse mb-4" id="accountingChartsCollapse">
-    <div class="row g-3">
+    <div class="row g-3 g-xl-4">
         <div class="col-12 col-lg-8">
-            <div class="card acc-card p-3.5 h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div class="card acc-card p-4 h-100" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2.5 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <div>
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-chart-line text-primary"></i>
-                            <span>মাসিক আয় বনাম ব্যয় তুলনামূলক ট্রেন্ড (Last 6 Months)</span>
+                            <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </span>
+                            <span>Cash Flow Trend</span>
                         </h6>
                     </div>
                 </div>
@@ -387,12 +422,14 @@
             </div>
         </div>
         <div class="col-12 col-lg-4">
-            <div class="card acc-card p-3.5 h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div class="card acc-card p-4 h-100" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2.5 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
                     <div>
                         <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-chart-pie text-danger"></i>
-                            <span>ব্যয় খাত বণ্টন (Expense Breakdown)</span>
+                            <span class="badge bg-danger-subtle text-danger p-1.5 rounded-circle fs-6">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </span>
+                            <span>Expense Breakdown</span>
                         </h6>
                     </div>
                 </div>
@@ -405,48 +442,48 @@
 </div>
 
 {{-- 4. Unified Interactive Filters & Real-Time Search Bar --}}
-<div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
-    <div class="card-body p-3">
+<div class="card border shadow-sm rounded-4 mb-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+    <div class="card-body p-3.5 p-md-4">
         {{-- Quick Date Presets & Toggle Section --}}
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
-            <div class="d-flex flex-wrap align-items-center gap-1.5">
-                <span class="small fw-bold text-muted text-uppercase me-1"><i class="fa-solid fa-calendar-days me-1"></i> দ্রুত ফিল্টার:</span>
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2.5 mb-3.5 pb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="small fw-bold text-muted text-uppercase me-1"><i class="fa-solid fa-calendar-days me-1"></i> FILTERS:</span>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'today', 'date_from' => date('Y-m-d'), 'date_to' => date('Y-m-d')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'today' || (request('date_from') == date('Y-m-d') && request('date_to') == date('Y-m-d')) ? 'active' : '' }}">আজ (Today)</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'today' || (request('date_from') == date('Y-m-d') && request('date_to') == date('Y-m-d')) ? 'active' : '' }}">Today</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'yesterday', 'date_from' => date('Y-m-d', strtotime('-1 day')), 'date_to' => date('Y-m-d', strtotime('-1 day'))])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'yesterday' ? 'active' : '' }}">গতকাল</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'yesterday' ? 'active' : '' }}">Yesterday</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_week', 'date_from' => date('Y-m-d', strtotime('monday this week')), 'date_to' => date('Y-m-d')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_week' ? 'active' : '' }}">চলতি সপ্তাহ</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_week' ? 'active' : '' }}">This Week</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_month', 'date_from' => date('Y-m-01'), 'date_to' => date('Y-m-t')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_month' || request('date_from') == date('Y-m-01') ? 'active' : '' }}">চলতি মাস</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_month' || request('date_from') == date('Y-m-01') ? 'active' : '' }}">This Month</a>
                 <a href="{{ route('admin.accounting.index', array_merge(request()->all(), ['date_preset' => 'this_year', 'date_from' => date('Y-01-01'), 'date_to' => date('Y-12-31')])) }}" 
-                   class="filter-preset-pill {{ request('date_preset') === 'this_year' ? 'active' : '' }}">চলতি বছর</a>
+                   class="filter-preset-pill {{ request('date_preset') === 'this_year' ? 'active' : '' }}">This Year</a>
                 <a href="{{ route('admin.accounting.index', request()->only('stream')) }}" 
-                   class="filter-preset-pill {{ !request()->hasAny(['date_from', 'date_to', 'date_preset', 'payment_status', 'payment_method', 'search', 'category']) ? 'active' : '' }}">সকল সময়</a>
+                   class="filter-preset-pill {{ !request()->hasAny(['date_from', 'date_to', 'date_preset', 'payment_status', 'payment_method', 'search', 'category']) ? 'active' : '' }}">All</a>
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" type="button" data-bs-toggle="collapse" data-bs-target="#accountingChartsCollapse" aria-expanded="false">
-                    <i class="fa-solid fa-chart-simple me-1"></i> চার্ট দেখুন / লুকান
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#accountingChartsCollapse" aria-expanded="false" style="border: 1px solid #cbd5e1;">
+                    <i class="fa-solid fa-chart-simple me-1"></i> Charts
                 </button>
-                <div class="small text-muted font-monospace">
-                    মোট: <strong class="text-primary">{{ $paginatedRecords->total() }}</strong> টি রেকর্ড
+                <div class="small text-muted font-monospace ps-2">
+                    Total: <strong class="text-primary">{{ $paginatedRecords->total() }}</strong> records
                 </div>
             </div>
         </div>
 
         {{-- Filter & Search Form --}}
-        <form action="{{ route('admin.accounting.index') }}" method="GET" class="row g-2 align-items-center" id="accountingFilterForm">
+        <form action="{{ route('admin.accounting.index') }}" method="GET" class="row g-2.5 align-items-center" id="accountingFilterForm">
             <input type="hidden" name="stream" id="filterStreamInput" value="{{ $stream }}">
 
             {{-- 1. Unified Search Input --}}
             <div class="col-12 col-md-3">
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <span class="input-group-text bg-light border-end-0 text-muted" style="border: 1px solid #cbd5e1; border-right: none;"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" name="search" id="liveSearchInput" class="form-control form-control-sm border-start-0 ps-0" 
-                           placeholder="বিল #, ইনভয়েস #, অর্ডার #, কাস্টমার, ফোন..." value="{{ $search }}" autocomplete="off">
+                           placeholder="Search transaction, doc #, client, phone..." value="{{ $search }}" autocomplete="off" style="border: 1px solid #cbd5e1; border-left: none;">
                     @if($search)
-                        <button type="button" class="btn btn-sm btn-outline-secondary border-start-0" onclick="clearSearchInput()" title="ক্লিয়ার করুন">
+                        <button type="button" class="btn btn-sm btn-outline-secondary border-start-0" onclick="clearSearchInput()" title="Clear" style="border: 1px solid #cbd5e1; border-left: none;">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     @endif
@@ -455,55 +492,55 @@
 
             {{-- 2. Stream Filter --}}
             <div class="col-6 col-md-2">
-                <select name="stream" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="all" @selected($stream === 'all' || empty($stream))>🌟 সকল চ্যানেল (All)</option>
-                    <option value="online" @selected($stream === 'online')>🌐 অনলাইন বিলিং (Online)</option>
-                    <option value="offline" @selected($stream === 'offline')>🏪 অফলাইন POS ও সেলার (Offline)</option>
-                    <option value="invoices" @selected($stream === 'invoices')>📄 ইনভয়েস ও মেমো (Invoices)</option>
-                    <option value="income" @selected($stream === 'income')>🟢 আয় খতিয়ান (Income)</option>
-                    <option value="expense" @selected($stream === 'expense')>🔴 ব্যয় খতিয়ান (Expense)</option>
-                    <option value="purchases" @selected($stream === 'purchases')>📦 সাপ্লায়ার ক্রয় বিল (Purchases)</option>
+                <select name="stream" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                    <option value="all" @selected($stream === 'all' || empty($stream))>All Streams</option>
+                    <option value="online" @selected($stream === 'online')>Online Orders</option>
+                    <option value="offline" @selected($stream === 'offline')>Offline Sales</option>
+                    <option value="invoices" @selected($stream === 'invoices')>Invoices</option>
+                    <option value="income" @selected($stream === 'income')>Income</option>
+                    <option value="expense" @selected($stream === 'expense')>Expense</option>
+                    <option value="purchases" @selected($stream === 'purchases')>Purchases</option>
                 </select>
             </div>
 
             {{-- 3. Payment Status Filter --}}
             <div class="col-6 col-md-1.5">
-                <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">সকল পেমেন্ট স্ট্যাটাস</option>
-                    <option value="paid" @selected($paymentStatus === 'paid')>✅ পরিশোধিত (Paid)</option>
-                    <option value="partial" @selected($paymentStatus === 'partial')>⏳ আংশিক (Partial)</option>
-                    <option value="unpaid" @selected($paymentStatus === 'unpaid')>⚠️ বকেয়া (Due / Unpaid)</option>
+                <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                    <option value="">All Status</option>
+                    <option value="paid" @selected($paymentStatus === 'paid')>Paid</option>
+                    <option value="partial" @selected($paymentStatus === 'partial')>Partial</option>
+                    <option value="unpaid" @selected($paymentStatus === 'unpaid')>Unpaid</option>
                 </select>
             </div>
 
             {{-- 4. Payment Method Filter --}}
             <div class="col-6 col-md-1.5">
-                <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">সকল মেথড</option>
-                    <option value="Cash" @selected($paymentMethod === 'Cash')>নগদ (Cash)</option>
-                    <option value="bKash" @selected($paymentMethod === 'bKash')>বিকাশ (bKash)</option>
-                    <option value="Nagad" @selected($paymentMethod === 'Nagad')>নগদ (Nagad)</option>
-                    <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>ব্যাংক (Bank)</option>
-                    <option value="cod" @selected($paymentMethod === 'cod')>ক্যাশ অন ডেলিভারি</option>
-                    <option value="Cheque" @selected($paymentMethod === 'Cheque')>চেক (Cheque)</option>
+                <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                    <option value="">All Methods</option>
+                    <option value="Cash" @selected($paymentMethod === 'Cash')>Cash</option>
+                    <option value="bKash" @selected($paymentMethod === 'bKash')>bKash</option>
+                    <option value="Nagad" @selected($paymentMethod === 'Nagad')>Nagad</option>
+                    <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>Bank Transfer</option>
+                    <option value="cod" @selected($paymentMethod === 'cod')>COD</option>
+                    <option value="Cheque" @selected($paymentMethod === 'Cheque')>Cheque</option>
                 </select>
             </div>
 
             {{-- 5. Date From & To --}}
             <div class="col-6 col-md-1.5">
-                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}" title="তারিখ হতে">
+                <input type="date" name="date_from" class="form-control form-control-sm" value="{{ $dateFrom }}" title="From Date" style="border: 1px solid #cbd5e1;">
             </div>
             <div class="col-6 col-md-1.5">
-                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}" title="তারিখ পর্যন্ত">
+                <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $dateTo }}" title="To Date" style="border: 1px solid #cbd5e1;">
             </div>
 
             {{-- 6. Submit & Reset --}}
-            <div class="col-6 col-md-1 d-flex gap-1">
-                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="ফিল্টার প্রয়োগ">
+            <div class="col-6 col-md-1 d-flex gap-1.5">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" title="Apply Filter">
                     <i class="fa-solid fa-filter"></i>
                 </button>
                 @if(request()->hasAny(['search', 'payment_status', 'payment_method', 'date_from', 'date_to', 'date_preset', 'category']))
-                    <a href="{{ route('admin.accounting.index', ['stream' => $stream]) }}" class="btn btn-light btn-sm border text-muted" title="ফিল্টার রিসেট">
+                    <a href="{{ route('admin.accounting.index', ['stream' => $stream]) }}" class="btn btn-light btn-sm border text-muted" title="Reset Filters" style="border: 1px solid #cbd5e1 !important;">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
@@ -513,54 +550,54 @@
 </div>
 
 {{-- 5. Unified Transactions & Billing Table --}}
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
-    <div class="card-header bg-white border-bottom py-3 px-3.5 d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <div class="d-flex align-items-center gap-2">
-            <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+<div class="card border shadow-sm rounded-4 overflow-hidden mb-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+    <div class="card-header bg-white border-bottom py-3.5 px-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="border-bottom: 1px solid #e2e8f0 !important;">
+        <div class="d-flex align-items-center gap-2.5">
+            <span class="rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; border: 1px solid #bfdbfe;">
                 <i class="fa-solid fa-list-check fs-6"></i>
             </span>
             <div>
-                <h6 class="fw-bold text-dark mb-0">
+                <h6 class="fw-bold text-dark mb-0 fs-6">
                     @if($stream === 'online')
-                        অনলাইন শপ কাস্টমার অর্ডার তালিকা (Online Billing)
+                        Online Orders
                     @elseif($stream === 'offline')
-                        অফলাইন বইমেলা স্টল ও সেলার বিক্রয় বিল (Offline Billing)
+                        Offline Sales & Bills
                     @elseif($stream === 'invoices')
-                        প্রাতিষ্ঠানিক ইনভয়েস, মেমো ও ডেলিভারি চালান
+                        Invoices & Challans
                     @elseif($stream === 'income')
-                        ক্যাশ ও রাজস্ব আয় খতিয়ান (Income Ledger)
+                        Income Entries
                     @elseif($stream === 'expense')
-                        অপারেশন ও প্রকাশনা ব্যয় খতিয়ান (Expense Ledger)
+                        Expense Entries
                     @elseif($stream === 'purchases')
-                        প্রেস, কাগজ ও প্রকাশনী ক্রয় বিল (Supplier Bills)
+                        Supplier Purchases
                     @else
-                        সার্বিক আয়, ব্যয় ও বিক্রয় বিল (Unified Central Stream — ডুপ্লিকেটমুক্ত)
+                        All Transactions & Billing
                     @endif
                 </h6>
-                <p class="small text-muted mb-0" style="font-size: 11.5px;">অনলাইন ও অফলাইনের সকল আর্থিক লেনদেন এক নজরে</p>
+                <small class="text-muted" style="font-size: 11.5px;">Live central transactions ledger & records stream</small>
             </div>
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-light text-dark border rounded-pill px-3 py-1 font-monospace" style="font-size: 11.5px;">
-                পেজ: {{ $paginatedRecords->currentPage() }} / {{ $paginatedRecords->lastPage() }}
+            <span class="badge bg-light text-dark border rounded-pill px-3 py-1.5 font-monospace" style="font-size: 11.5px; border: 1px solid #cbd5e1 !important;">
+                Page {{ $paginatedRecords->currentPage() }} / {{ $paginatedRecords->lastPage() }}
             </span>
         </div>
     </div>
 
     <div class="table-responsive">
-        <table class="table align-middle mb-0" id="unifiedAccountingTable" style="min-width: 1050px;">
-            <thead class="table-light text-muted small text-uppercase" style="font-size: 11px;">
+        <table class="table table-hover align-middle mb-0" id="unifiedAccountingTable" style="min-width: 1050px;">
+            <thead class="table-light text-muted small text-uppercase" style="font-size: 11px; border-bottom: 1px solid #e2e8f0 !important;">
                 <tr>
-                    <th class="ps-3 py-3" style="width: 140px;">তারিখ ও চ্যানেল</th>
-                    <th style="width: 175px;">ডকুমেন্ট / রেফারেন্স #</th>
-                    <th style="min-width: 200px;">গ্রাহক / প্রতিষ্ঠান / উৎস</th>
-                    <th style="min-width: 180px;">বিবরণ ও আইটেম</th>
-                    <th class="text-end" style="width: 120px;">মোট মূল্য</th>
-                    <th class="text-end" style="width: 115px;">পরিশোধ</th>
-                    <th class="text-end" style="width: 115px;">বকেয়া</th>
-                    <th class="text-center" style="width: 130px;">স্ট্যাটাস ও মেথড</th>
-                    <th class="text-center pe-3" style="width: 140px;">অ্যাকশন</th>
+                    <th class="ps-4 py-3.5" style="width: 140px;">DATE & CHANNEL</th>
+                    <th class="py-3.5 px-3" style="width: 175px;">DOC #</th>
+                    <th class="py-3.5 px-3" style="min-width: 200px;">CLIENT / STAKEHOLDER</th>
+                    <th class="py-3.5 px-3" style="min-width: 180px;">DETAILS / ITEMS</th>
+                    <th class="py-3.5 px-3 text-end" style="width: 120px;">TOTAL</th>
+                    <th class="py-3.5 px-3 text-end" style="width: 115px;">PAID</th>
+                    <th class="py-3.5 px-3 text-end" style="width: 115px;">DUE</th>
+                    <th class="py-3.5 px-3 text-center" style="width: 130px;">STATUS</th>
+                    <th class="pe-4 py-3.5 text-center" style="width: 140px;">ACTION</th>
                 </tr>
             </thead>
             <tbody id="accountingTableBody">
@@ -571,9 +608,9 @@
 
     {{-- Pagination Footer --}}
     @if ($paginatedRecords->hasPages())
-        <div class="card-footer bg-white border-top py-3 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2" id="tablePaginationFooter">
+        <div class="card-footer bg-white border-top py-3.5 px-4 d-flex align-items-center justify-content-between flex-wrap gap-2" id="tablePaginationFooter" style="border-top: 1px solid #e2e8f0 !important;">
             <div class="small text-muted">
-                দেখাচ্ছে <strong>{{ $paginatedRecords->firstItem() ?? 0 }}</strong> থেকে <strong>{{ $paginatedRecords->lastItem() ?? 0 }}</strong> (মোট {{ $paginatedRecords->total() }} টি)
+                Showing <strong>{{ $paginatedRecords->firstItem() ?? 0 }}</strong> to <strong>{{ $paginatedRecords->lastItem() ?? 0 }}</strong> of {{ $paginatedRecords->total() }} records
             </div>
             <div>
                 {{ $paginatedRecords->links('pagination::bootstrap-5') }}
@@ -592,8 +629,8 @@
                         <i class="fa-solid fa-hand-holding-dollar fs-6"></i>
                     </span>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="universalQuickPayModalLabel">পেমেন্ট গ্রহণ করুন (Quick Pay)</h5>
-                        <p class="small text-white-50 mb-0" id="quickPayDocSubtitle">ডকুমেন্ট পেমেন্ট জমা</p>
+                        <h5 class="modal-title fw-bold mb-0" id="universalQuickPayModalLabel">Receive Payment</h5>
+                        <span id="quickPayDocSubtitle" class="d-none"></span>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -607,55 +644,55 @@
                 <div class="modal-body p-4">
                     <div class="alert alert-light border rounded-3 p-3 mb-3 d-flex align-items-center justify-content-between">
                         <div>
-                            <span class="small text-muted d-block">গ্রাহক / প্রতিষ্ঠান:</span>
+                            <span class="small text-muted d-block">Client:</span>
                             <strong class="text-dark" id="quickPayCustomerName">—</strong>
                         </div>
                         <div class="text-end">
-                            <span class="small text-muted d-block">বর্তমান বকেয়া:</span>
+                            <span class="small text-muted d-block">Due Amount:</span>
                             <strong class="text-danger font-monospace fs-5" id="quickPayDueText">৳0.00</strong>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">জমার পরিমাণ (৳) *</label>
+                        <label class="form-label small fw-bold text-dark">Payment Amount (৳) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-success text-white fw-bold">৳</span>
                             <input type="number" step="0.01" name="amount" id="quickPayAmountInput" class="form-control fw-bold text-success fs-5 rounded-end-3" placeholder="0.00" min="0.01" required>
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2.5 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট তারিখ *</label>
-                            <input type="date" name="payment_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required>
+                            <label class="form-label small fw-bold text-dark">Payment Date *</label>
+                            <input type="date" name="payment_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মাধ্যম *</label>
-                            <select name="payment_method" class="form-select rounded-3" required>
-                                <option value="Cash">নগদ (Cash)</option>
-                                <option value="bKash">বিকাশ (bKash)</option>
-                                <option value="Nagad">নগদ (Nagad)</option>
-                                <option value="Bank Transfer">ব্যাংক ট্রান্সফার</option>
-                                <option value="Cheque">চেক (Cheque)</option>
+                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
+                                <option value="Cash">Cash</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-muted">ট্রানজেকশন রেফারেন্স / Trx ID (ঐচ্ছিক)</label>
-                        <input type="text" name="transaction_ref" class="form-control rounded-3" placeholder="যেমন: bKash TrxID বা চেক নম্বর...">
+                        <label class="form-label small fw-semibold text-muted">Transaction Reference</label>
+                        <input type="text" name="transaction_ref" class="form-control rounded-3" placeholder="Reference number or TrxID" style="border: 1px solid #cbd5e1;">
                     </div>
 
                     <div class="mb-1">
-                        <label class="form-label small fw-semibold text-muted">মন্তব্য / নোট (ঐচ্ছিক)</label>
-                        <input type="text" name="note" class="form-control rounded-3" placeholder="পেমেন্ট সংক্রান্ত কোনো বিবরণ...">
+                        <label class="form-label small fw-semibold text-muted">Notes</label>
+                        <input type="text" name="note" class="form-control rounded-3" placeholder="Payment notes..." style="border: 1px solid #cbd5e1;">
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm" id="quickPaySubmitBtn">
-                        <i class="fa-solid fa-check me-1"></i> জমা নিশ্চিত করুন
+                        <i class="fa-solid fa-check me-1"></i> Confirm Payment
                     </button>
                 </div>
             </form>
@@ -673,8 +710,7 @@
                         <i class="fa-solid fa-circle-plus fs-6"></i>
                     </span>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="newIncomeModalLabel">নতুন আয় সংরক্ষণ (Record Income)</h5>
-                        <p class="small text-white-50 mb-0">বই বিক্রয়, রয়্যালটি, প্রকাশনা সার্ভিস বা অন্যান্য রাজস্ব আয়</p>
+                        <h5 class="modal-title fw-bold mb-0" id="newIncomeModalLabel">Record Income</h5>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -688,18 +724,18 @@
                     <div class="mb-3.5">
                         <label class="form-label small fw-bold text-dark mb-1.5 d-flex align-items-center gap-1.5">
                             <i class="fa-solid fa-tags text-success"></i>
-                            <span>আয়ের খাত বা উৎস নির্বাচন করুন *</span>
+                            <span>Category *</span>
                         </label>
                         <div class="d-flex flex-wrap gap-1.5 mb-2" id="quickIncomeCategoryChips">
-                            <button type="button" class="category-chip" onclick="selectIncCat('বই বিক্রয় রাজস্ব (Book Sales Revenue)', this)">📚 বই বিক্রয়</button>
-                            <button type="button" class="category-chip" onclick="selectIncCat('পাইকারি বুকসেলার বিক্রয় (Wholesale Book Sales)', this)">🏬 পাইকারি বিক্রয়</button>
-                            <button type="button" class="category-chip" onclick="selectIncCat('ইবুক ও ডিজিটাল সেলস (Ebook & Digital Sales)', this)">📱 ইবুক বিক্রয়</button>
-                            <button type="button" class="category-chip" onclick="selectIncCat('প্রকাশনা সার্ভিস ও মুদ্রণ আয় (Publishing Service & Printing)', this)">✍️ প্রকাশনা সার্ভিস</button>
-                            <button type="button" class="category-chip" onclick="selectIncCat('রয়্যালটি ও লাইসেন্সিং (Royalty & Licensing)', this)">🏷️ রয়্যালটি আয়</button>
-                            <button type="button" class="category-chip" onclick="selectIncCat('বিবিধ আয় (Miscellaneous Income)', this)">💰 বিবিধ আয়</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('Book Sales', this)">Book Sales</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('Wholesale', this)">Wholesale</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('E-Book & Digital', this)">E-Book & Digital</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('Publishing Service', this)">Publishing Service</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('Ad & Sponsor', this)">Ad & Sponsor</button>
+                            <button type="button" class="category-chip" onclick="selectIncCat('Miscellaneous Income', this)">Miscellaneous</button>
                         </div>
-                        <select name="category" id="incCategorySelect" class="form-select rounded-3" required>
-                            <option value="">খাত নির্বাচন করুন (Select Category)...</option>
+                        <select name="category" id="incCategorySelect" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
+                            <option value="">Select Category...</option>
                             @foreach($categories['income'] as $cat)
                                 <option value="{{ $cat }}">{{ $cat }}</option>
                             @endforeach
@@ -708,49 +744,49 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">তারিখ *</label>
-                            <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required>
+                            <label class="form-label small fw-bold text-dark">Date *</label>
+                            <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">গ্রাহক / প্রতিষ্ঠান / উৎস নাম</label>
-                            <input type="text" name="party_name" class="form-control rounded-3" placeholder="যেমন: মিজান লাইব্রেরি / আরিফুল ইসলাম...">
+                            <label class="form-label small fw-bold text-dark">Client / Customer Name</label>
+                            <input type="text" name="party_name" class="form-control rounded-3" placeholder="Client or payer name" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark">আয়ের বিবরণ / শিরোনাম *</label>
-                            <input type="text" name="title" class="form-control rounded-3" placeholder="যেমন: মেলা বুক স্টল বিক্রয় বা সরাসরি ক্যাশ সেলস..." required>
+                            <label class="form-label small fw-bold text-dark">Description *</label>
+                            <input type="text" name="title" class="form-control rounded-3" placeholder="Brief description of income" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">আয়ের পরিমাণ (৳) *</label>
+                            <label class="form-label small fw-bold text-dark">Amount (৳) *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-success text-white fw-bold">৳</span>
-                                <input type="number" step="0.01" name="amount" class="form-control rounded-end-3 fw-bold text-success fs-5" placeholder="0.00" min="0.01" required>
+                                <input type="number" step="0.01" name="amount" class="form-control rounded-end-3 fw-bold text-success fs-5" placeholder="0.00" min="0.01" required style="border: 1px solid #cbd5e1;">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মেথড *</label>
-                            <select name="payment_method" class="form-select rounded-3" required>
-                                <option value="Cash">নগদ / ক্যাশ (Cash)</option>
-                                <option value="bKash">বিকাশ (bKash)</option>
-                                <option value="Nagad">নগদ (Nagad)</option>
-                                <option value="Bank Transfer">ব্যাংক ট্রান্সফার</option>
-                                <option value="Cheque">চেক (Cheque)</option>
+                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
+                                <option value="Cash">Cash</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">রসিদ / মানি রিসিট নং</label>
-                            <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="ঐচ্ছিক রসিদ নং...">
+                            <label class="form-label small fw-semibold text-muted">Receipt / Voucher #</label>
+                            <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="Receipt or voucher number" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">নোট / মন্তব্য</label>
-                            <input type="text" name="notes" class="form-control rounded-3" placeholder="ঐচ্ছিক অতিরিক্ত বিবরণ...">
+                            <label class="form-label small fw-semibold text-muted">Notes</label>
+                            <input type="text" name="notes" class="form-control rounded-3" placeholder="Additional notes..." style="border: 1px solid #cbd5e1;">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-success rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-floppy-disk me-1.5"></i> আয় সংরক্ষণ করুন
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Income
                     </button>
                 </div>
             </form>
@@ -768,8 +804,7 @@
                         <i class="fa-solid fa-cart-shopping fs-6"></i>
                     </span>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="newExpenseModalLabel">নতুন ব্যয় ও কেনাকাটা এন্ট্রি (Record Expense)</h5>
-                        <p class="small text-white-50 mb-0">কাগজ, প্রিন্টিং, বাঁধাই, অফিস খরচ, পরিবহন ও অন্যান্য খরচের হিসাব</p>
+                        <h5 class="modal-title fw-bold mb-0" id="newExpenseModalLabel">Record Expense</h5>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -783,18 +818,18 @@
                     <div class="mb-3.5">
                         <label class="form-label small fw-bold text-dark mb-1.5 d-flex align-items-center gap-1.5">
                             <i class="fa-solid fa-tags text-danger"></i>
-                            <span>ব্যয়ের খাত নির্বাচন করুন *</span>
+                            <span>Category *</span>
                         </label>
                         <div class="d-flex flex-wrap gap-1.5 mb-2" id="quickExpenseCategoryChips">
-                            <button type="button" class="category-chip" onclick="selectExpCat('কাগজ ক্রয় (Paper Purchase)', this)">📄 কাগজ ক্রয়</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('মুদ্রণ ও প্রেস খরচ (Printing & Press)', this)">🖨️ প্রিন্টিং ও প্রেস</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('বাঁধাই ও লেমিনেশন (Binding & Lamination)', this)">📖 বাঁধাই খরচ</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('ডিজাইন ও প্রুফরিডিং (Design & Proofing)', this)">🎨 ডিজাইন ও প্রুফ</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('অফিস ভাড়া ও ইউটিলিটি (Office Rent & Utilities)', this)">🏢 অফিস ভাড়া</button>
-                            <button type="button" class="category-chip" onclick="selectExpCat('পরিবহন ও কুরিয়ার (Transport & Courier)', this)">🚚 পরিবহন ও কুরিয়ার</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Paper Purchase', this)">Paper Purchase</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Printing & Press', this)">Printing & Press</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Binding & Finishing', this)">Binding & Finishing</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Design & Editorial', this)">Design & Editorial</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Office Rent & Utility', this)">Office Rent & Utility</button>
+                            <button type="button" class="category-chip" onclick="selectExpCat('Transport & Courier', this)">Transport & Courier</button>
                         </div>
-                        <select name="category" id="expCategorySelect" class="form-select rounded-3" required>
-                            <option value="">খাত নির্বাচন করুন (Select Category)...</option>
+                        <select name="category" id="expCategorySelect" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
+                            <option value="">Select Category...</option>
                             @foreach($categories['expense'] as $cat)
                                 <option value="{{ $cat }}">{{ $cat }}</option>
                             @endforeach
@@ -803,49 +838,49 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">তারিখ *</label>
-                            <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required>
+                            <label class="form-label small fw-bold text-dark">Date *</label>
+                            <input type="date" name="entry_date" class="form-control rounded-3" value="{{ date('Y-m-d') }}" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">সরবরাহকারী / প্রেস / প্রাপক</label>
-                            <input type="text" name="party_name" class="form-control rounded-3" placeholder="যেমন: কর্ণফুলী পেপার / সোনালী প্রেস...">
+                            <label class="form-label small fw-bold text-dark">Vendor / Payee Name</label>
+                            <input type="text" name="party_name" class="form-control rounded-3" placeholder="Vendor or payee name" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-dark">ব্যয়ের বিবরণ / শিরোনাম *</label>
-                            <input type="text" name="title" class="form-control rounded-3" placeholder="যেমন: ১০০ রিম ৮০ জিএসএম কাগজ ক্রয়..." required>
+                            <label class="form-label small fw-bold text-dark">Description *</label>
+                            <input type="text" name="title" class="form-control rounded-3" placeholder="Brief description of expense" required style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">মোট ব্যয়ের পরিমাণ (৳) *</label>
+                            <label class="form-label small fw-bold text-dark">Amount (৳) *</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-danger text-white fw-bold">৳</span>
-                                <input type="number" step="0.01" name="amount" class="form-control rounded-end-3 fw-bold text-danger fs-5" placeholder="0.00" min="0.01" required>
+                                <input type="number" step="0.01" name="amount" class="form-control rounded-end-3 fw-bold text-danger fs-5" placeholder="0.00" min="0.01" required style="border: 1px solid #cbd5e1;">
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold text-dark">পেমেন্ট মেথড *</label>
-                            <select name="payment_method" class="form-select rounded-3" required>
-                                <option value="Cash">নগদ / ক্যাশ (Cash)</option>
-                                <option value="bKash">বিকাশ (bKash)</option>
-                                <option value="Nagad">নগদ (Nagad)</option>
-                                <option value="Bank Transfer">ব্যাংক ট্রান্সফার</option>
-                                <option value="Cheque">চেক (Cheque)</option>
+                            <label class="form-label small fw-bold text-dark">Payment Method *</label>
+                            <select name="payment_method" class="form-select rounded-3" required style="border: 1px solid #cbd5e1;">
+                                <option value="Cash">Cash</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">ভাউচার / মেমো নং</label>
-                            <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="ঐচ্ছিক ভাউচার নং...">
+                            <label class="form-label small fw-semibold text-muted">Voucher / Bill #</label>
+                            <input type="text" name="voucher_no" class="form-control rounded-3" placeholder="Voucher or bill number" style="border: 1px solid #cbd5e1;">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-muted">নোট / বিবরণ</label>
-                            <input type="text" name="notes" class="form-control rounded-3" placeholder="প্রয়োজনীয় অতিরিক্ত বিবরণ...">
+                            <label class="form-label small fw-semibold text-muted">Notes</label>
+                            <input type="text" name="notes" class="form-control rounded-3" placeholder="Additional notes..." style="border: 1px solid #cbd5e1;">
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light py-2.5 px-4 d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold shadow-sm">
-                        <i class="fa-solid fa-floppy-disk me-1.5"></i> খরচ সংরক্ষণ করুন
+                        <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Expense
                     </button>
                 </div>
             </form>
@@ -862,8 +897,9 @@
 function openUniversalQuickPayModal(targetType, targetId, docNo, dueAmount, customerName) {
     document.getElementById('quickPayTargetType').value = targetType;
     document.getElementById('quickPayTargetId').value = targetId;
-    document.getElementById('quickPayDocSubtitle').textContent = 'ডকুমেন্ট #' + docNo + ' এর বকেয়া পেমেন্ট জমা';
-    document.getElementById('quickPayCustomerName').textContent = customerName || 'সম্মানিত গ্রাহক';
+    const sub = document.getElementById('quickPayDocSubtitle');
+    if (sub) sub.textContent = '#' + docNo;
+    document.getElementById('quickPayCustomerName').textContent = customerName || 'Client';
     document.getElementById('quickPayDueText').textContent = '৳' + Number(dueAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
     const amountInput = document.getElementById('quickPayAmountInput');
@@ -879,7 +915,7 @@ function handleQuickPaySubmit(event) {
     const form = event.target;
     const submitBtn = document.getElementById('quickPaySubmitBtn');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> জমা হচ্ছে...';
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Processing...';
 
     const formData = new FormData(form);
 
@@ -894,27 +930,25 @@ function handleQuickPaySubmit(event) {
     .then(res => res.json())
     .then(data => {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> জমা নিশ্চিত করুন';
+        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Confirm Payment';
 
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('universalQuickPayModal'))?.hide();
-            // Show toast or alert
             if (typeof window.showToast === 'function') {
                 window.showToast(data.message, 'success');
             } else {
                 alert(data.message);
             }
-            // Trigger live search reload
             triggerLiveSearch();
         } else {
-            alert(data.message || 'পেমেন্ট সংরক্ষণে সমস্যা হয়েছে।');
+            alert(data.message || 'Error recording payment.');
         }
     })
     .catch(err => {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> জমা নিশ্চিত করুন';
+        submitBtn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Confirm Payment';
         console.error('Quick pay error:', err);
-        alert('নেটওয়ার্ক বা সার্ভার ত্রুটি। পুনরায় চেষ্টা করুন।');
+        alert('Network or server error. Please try again.');
     });
 }
 
@@ -944,10 +978,8 @@ function triggerLiveSearch() {
     const params = new URLSearchParams(formData);
     const url = form.action + '?' + params.toString();
 
-    // Update browser URL without reload
     window.history.pushState({}, '', url);
 
-    // Fetch via AJAX
     fetch(url, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
@@ -1000,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 labels: trendLabels,
                 datasets: [
                     {
-                        label: 'আয় (Income)',
+                        label: 'Income',
                         data: incomeData,
                         backgroundColor: 'rgba(16, 185, 129, 0.85)',
                         borderColor: '#059669',
@@ -1008,7 +1040,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         borderRadius: 6,
                     },
                     {
-                        label: 'ব্যয় (Expense)',
+                        label: 'Expense',
                         data: expenseData,
                         backgroundColor: 'rgba(244, 63, 94, 0.85)',
                         borderColor: '#e11d48',

@@ -620,6 +620,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/quick-pay-universal', 'quickPayUniversal')->name('quick-pay-universal');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');
         Route::post('/settings', 'updateSettings')->name('settings.update');
+        Route::get('/slip/{type}/{id}', 'billSlip')->name('slip');
 
         // Customer & Party Ledgers (গ্রাহক খতিয়ান ও রানিং স্টেটমেন্ট)
         Route::get('/customer-ledger', 'customerLedger')->name('customer-ledger.index');

@@ -5,35 +5,28 @@
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
     $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
 
-    $monthsMap = [
-        'January' => 'জানুয়ারি', 'February' => 'ফেব্রুয়ারি', 'March' => 'মার্চ',
-        'April' => 'এপ্রিল', 'May' => 'মে', 'June' => 'জুন',
-        'July' => 'জুলাই', 'August' => 'আগস্ট', 'September' => 'সেপ্টেম্বর',
-        'October' => 'অক্টোবর', 'November' => 'নভেম্বর', 'December' => 'ডিসেম্বর',
-    ];
-
-    $monthNameBn = '';
+    $monthNameFormatted = '';
     if (!empty($selectedMonth)) {
         try {
             $dt = \Illuminate\Support\Carbon::parse($selectedMonth . '-01');
-            $monthNameBn = ($monthsMap[$dt->format('F')] ?? $dt->format('F')) . ' ' . $dt->format('Y');
+            $monthNameFormatted = $dt->format('F Y');
         } catch (\Throwable $e) {
-            $monthNameBn = $selectedMonth;
+            $monthNameFormatted = $selectedMonth;
         }
     }
 
-    $pageTitle = $monthNameBn ? "উৎসে কর ও মূসক কর্তন রেজিস্টার — {$monthNameBn}" : "উৎসে কর ও মূসক কর্তন রেজিস্টার ও মাসিক প্রতিবেদন";
+    $pageTitle = $monthNameFormatted ? "TDS & VDS Register — {$monthNameFormatted}" : "TDS & VDS Deductions Register & Monthly Report";
 @endphp
 
 @section('title', $pageTitle)
 @section('heading')
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="fs-5 fw-bold text-dark">
-            <i class="fa-solid fa-scale-balanced text-primary me-2"></i>উৎসে কর ও মূসক কর্তন রেজিস্টার (TDS & VDS Report)
+            <i class="fa-solid fa-scale-balanced text-primary me-2"></i>TDS & VDS Deduction Register
         </span>
-        @if($monthNameBn)
+        @if($monthNameFormatted)
             <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-1 font-monospace">
-                {{ $monthNameBn }}
+                {{ $monthNameFormatted }}
             </span>
         @endif
     </div>
@@ -49,24 +42,24 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
         {{-- Customize % Presets Button --}}
         <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold" data-bs-toggle="modal" data-bs-target="#customPercentPresetsModal">
-            <i class="fa-solid fa-sliders text-warning me-1.5"></i> % প্রিসেট কাস্টমাইজ
+            <i class="fa-solid fa-sliders text-warning me-1.5"></i> Presets (%)
         </button>
 
         {{-- Export Tools Dropdown --}}
         <div class="dropdown">
             <button class="btn btn-white border shadow-2xs btn-sm rounded-pill px-3 fw-semibold dropdown-toggle text-dark" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-file-export me-1 text-primary"></i> এক্সপোর্ট
+                <i class="fa-solid fa-file-export me-1 text-primary"></i> Export
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow rounded-3 border-0 p-2" style="min-width: 220px;">
-                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">এক্সপোর্ট ফরম্যাট:</h6></li>
+                <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted px-2 py-1">Export Formats:</h6></li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="exportDeductionsToCSV('tax-vat-deductions-{{ $selectedMonth ?: date('Y-m') }}.csv')">
-                        <i class="fa-solid fa-file-csv text-success me-2"></i> CSV / Excel ফাইল ডাউনলোড
+                        <i class="fa-solid fa-file-csv text-success me-2"></i> Download CSV / Excel
                     </button>
                 </li>
                 <li>
                     <button type="button" class="dropdown-item rounded-2 py-2 fw-semibold" onclick="copyDeductionsToClipboard()">
-                        <i class="fa-solid fa-copy text-info me-2"></i> ক্লিপবোর্ডে কপি করুন
+                        <i class="fa-solid fa-copy text-info me-2"></i> Copy to Clipboard
                     </button>
                 </li>
             </ul>
@@ -74,15 +67,15 @@
 
         {{-- Print Statement Button --}}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
-            <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট / PDF প্রতিবেদন
+            <i class="fa-solid fa-print me-1.5"></i> Print / PDF Report
         </button>
 
         <a href="{{ route('admin.accounting.invoices.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-file-invoice me-1"></i> ইনভয়েস ড্যাশবোর্ড
+            <i class="fa-solid fa-file-invoice me-1"></i> Invoices
         </a>
 
         <a href="{{ route('admin.accounting.customer-ledger.index') }}" class="btn btn-outline-info text-dark btn-sm rounded-pill px-3 shadow-xs fw-semibold">
-            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> গ্রাহক খতিয়ান
+            <i class="fa-solid fa-book-bookmark me-1 text-primary"></i> Customer Ledger
         </a>
     </div>
 @endsection
@@ -207,15 +200,15 @@
                         <img src="{{ $logoSrc }}" alt="Logo" style="height: 48px; max-width: 140px; object-fit: contain;">
                     @endif
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}</h4>
-                        <div class="small text-muted">{{ $settings['address'] ?? '' }} | ফোন: {{ $settings['phone'] ?? '' }}</div>
+                        <h4 class="fw-bold mb-0 text-dark">{{ $settings['business_name'] ?? 'Idea Prakashan' }}</h4>
+                        <div class="small text-muted">{{ $settings['address'] ?? '' }} | Phone: {{ $settings['phone'] ?? '' }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-4 text-end">
-                <h5 class="fw-bold mb-0 text-dark">উৎসে কর ও মূসক কর্তন রেজিস্টার</h5>
-                <div class="small fw-semibold text-primary">হিসাবকাল: {{ $monthNameBn ?: ($dateFrom ? "{$dateFrom} হতে {$dateTo}" : 'সকল সময়ের সারাংশ') }}</div>
-                <div class="small text-muted">প্রিন্ট তারিখ: {{ date('d/m/Y h:i A') }}</div>
+                <h5 class="fw-bold mb-0 text-dark">TDS & VDS Deduction Register</h5>
+                <div class="small fw-semibold text-primary">Period: {{ $monthNameFormatted ?: ($dateFrom ? "{$dateFrom} to {$dateTo}" : 'All-Time Summary') }}</div>
+                <div class="small text-muted">Print Date: {{ date('d/m/Y h:i A') }}</div>
             </div>
         </div>
     </div>
@@ -226,9 +219,9 @@
             <div class="stat-card-tax">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-muted small fw-semibold">মোট সমন্বিত বিল দাবি</div>
+                        <div class="text-muted small fw-semibold">Total Settled Bill Demand</div>
                         <div class="fs-4 fw-bold text-dark font-monospace mt-1">৳{{ number_format($totalSettledAmount, 2) }}</div>
-                        <div class="text-muted small" style="font-size: 11px;">সর্বমোট {{ $deductions->count() }}টি লেনদেন ({{ $totalClientsCount }} জন গ্রাহক)</div>
+                        <div class="text-muted small" style="font-size: 11px;">Total {{ $deductions->count() }} transactions ({{ $totalClientsCount }} clients)</div>
                     </div>
                     <div class="rounded-circle bg-primary-subtle p-3 text-primary">
                         <i class="fa-solid fa-file-invoice-dollar fs-5"></i>
@@ -241,9 +234,9 @@
             <div class="stat-card-tax border-success-subtle bg-success-subtle bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-success small fw-semibold">নিট নগদ/চেক আদায়</div>
+                        <div class="text-success small fw-semibold">Net Cash / Bank Collection</div>
                         <div class="fs-4 fw-bold text-success font-monospace mt-1">৳{{ number_format($totalNetCollected, 2) }}</div>
-                        <div class="text-success small" style="font-size: 11px;">আদায় হার: {{ $totalSettledAmount > 0 ? round(($totalNetCollected / $totalSettledAmount) * 100, 1) : 0 }}%</div>
+                        <div class="text-success small" style="font-size: 11px;">Collection Rate: {{ $totalSettledAmount > 0 ? round(($totalNetCollected / $totalSettledAmount) * 100, 1) : 0 }}%</div>
                     </div>
                     <div class="rounded-circle bg-success-subtle p-3 text-success">
                         <i class="fa-solid fa-money-bill-wave fs-5"></i>
@@ -256,9 +249,9 @@
             <div class="stat-card-tax border-warning-subtle bg-warning-subtle bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-warning-emphasis small fw-semibold">উৎসে মূসক কর্তন (VDS)</div>
+                        <div class="text-warning-emphasis small fw-semibold">VDS Deduction (VAT)</div>
                         <div class="fs-4 fw-bold text-warning-emphasis font-monospace mt-1">৳{{ number_format($totalVatDeducted, 2) }}</div>
-                        <div class="text-muted small" style="font-size: 11px;">সরকারি কোষাগারে জমাকৃত ভ্যাট</div>
+                        <div class="text-muted small" style="font-size: 11px;">VAT deposited to Govt Treasury</div>
                     </div>
                     <div class="rounded-circle bg-warning-subtle p-3 text-warning-emphasis">
                         <i class="fa-solid fa-receipt fs-5"></i>
@@ -271,9 +264,9 @@
             <div class="stat-card-tax border-danger-subtle bg-danger-subtle bg-opacity-10">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="text-danger small fw-semibold">উৎসে আয়কর কর্তন (TDS/AIT)</div>
+                        <div class="text-danger small fw-semibold">TDS / AIT Deduction (Tax)</div>
                         <div class="fs-4 fw-bold text-danger font-monospace mt-1">৳{{ number_format($totalTaxDeducted, 2) }}</div>
-                        <div class="text-danger small" style="font-size: 11px;">সর্বমোট সরকারি কর্তন: ৳{{ number_format($grandTotalDeductions, 2) }}</div>
+                        <div class="text-danger small" style="font-size: 11px;">Total Govt Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}</div>
                     </div>
                     <div class="rounded-circle bg-danger-subtle p-3 text-danger">
                         <i class="fa-solid fa-scale-balanced fs-5"></i>
@@ -291,42 +284,42 @@
                     {{-- Month Picker --}}
                     <div class="col-md-3 col-sm-6">
                         <label class="form-label small fw-bold text-dark mb-1">
-                            <i class="fa-solid fa-calendar-days text-primary me-1"></i>হিসাব মাস নির্বাচন:
+                            <i class="fa-solid fa-calendar-days text-primary me-1"></i>Select Month:
                         </label>
                         <input type="month" name="month" id="filterMonthInput" class="form-control form-control-sm font-monospace fw-semibold" value="{{ $selectedMonth }}" onchange="document.getElementById('deductionsFilterForm').submit()">
                     </div>
 
                     {{-- Deduction Type Filter --}}
                     <div class="col-md-2 col-sm-6">
-                        <label class="form-label small fw-bold text-dark mb-1">কর্তন ধরন:</label>
+                        <label class="form-label small fw-bold text-dark mb-1">Deduction Type:</label>
                         <select name="type" class="form-select form-select-sm" onchange="document.getElementById('deductionsFilterForm').submit()">
-                            <option value="all" {{ ($deductionType ?? 'all') === 'all' ? 'selected' : '' }}>সকল কর্তন (All)</option>
-                            <option value="vat_only" {{ ($deductionType ?? '') === 'vat_only' ? 'selected' : '' }}>শুধু মূসক/ভ্যাট (VDS)</option>
-                            <option value="tax_only" {{ ($deductionType ?? '') === 'tax_only' ? 'selected' : '' }}>শুধু আয়কর/ট্যাক্স (TDS)</option>
+                            <option value="all" {{ ($deductionType ?? 'all') === 'all' ? 'selected' : '' }}>All Deductions</option>
+                            <option value="vat_only" {{ ($deductionType ?? '') === 'vat_only' ? 'selected' : '' }}>VDS Only (VAT)</option>
+                            <option value="tax_only" {{ ($deductionType ?? '') === 'tax_only' ? 'selected' : '' }}>TDS Only (Tax)</option>
                         </select>
                     </div>
 
                     {{-- Search / Party / Challan --}}
                     <div class="col-md-4 col-sm-8">
-                        <label class="form-label small fw-bold text-dark mb-1">সার্চ (গ্রাহক / বিল নং / ট্রেজারি চালান নং):</label>
+                        <label class="form-label small fw-bold text-dark mb-1">Search (Client / Invoice # / Challan #):</label>
                         <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="গ্রাহকের নাম, মোবাইল, বিল #, চালান #..." value="{{ $search }}">
+                            <input type="text" name="search" class="form-control" placeholder="Client name, mobile, invoice #, challan #..." value="{{ $search }}">
                             <button class="btn btn-primary" type="submit">
-                                <i class="fa-solid fa-magnifying-glass me-1"></i> খুঁজুন
+                                <i class="fa-solid fa-magnifying-glass me-1"></i> Search
                             </button>
                         </div>
                     </div>
 
                     {{-- Quick Filter Presets --}}
                     <div class="col-md-3 col-sm-4 d-flex gap-1.5 justify-content-md-end">
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m')]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m') ? 'active' : '' }}" title="চলতি মাস">
-                            চলতি মাস
+                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m')]) }}" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m') ? 'active' : '' }}" title="Current Month">
+                            Current Month
                         </a>
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m', strtotime('-1 month'))]) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m', strtotime('-1 month')) ? 'active' : '' }}" title="গত মাস">
-                            গত মাস
+                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => date('Y-m', strtotime('-1 month'))]) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-1 {{ $selectedMonth === date('Y-m', strtotime('-1 month')) ? 'active' : '' }}" title="Last Month">
+                            Last Month
                         </a>
-                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['all_time' => 1]) }}" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1 {{ empty($selectedMonth) && empty($dateFrom) ? 'active' : '' }}" title="সকল সময়ের হিসাব">
-                            সকল
+                        <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['all_time' => 1]) }}" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1 {{ empty($selectedMonth) && empty($dateFrom) ? 'active' : '' }}" title="All Time">
+                            All Time
                         </a>
                     </div>
                 </div>
@@ -335,7 +328,7 @@
                 @if($monthlyDeductionSummaries->isNotEmpty())
                     <div class="mt-3 pt-2.5 border-top d-flex align-items-center gap-1.5 flex-wrap">
                         <span class="text-muted small fw-bold me-1" style="font-size: 11px;">
-                            <i class="fa-solid fa-clock-rotate-left me-1"></i>বিগত মাসসমূহ:
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i>Previous Months:
                         </span>
                         @foreach($monthlyDeductionSummaries as $ms)
                             @php
@@ -343,13 +336,13 @@
                                 if (!empty($ms->ym)) {
                                     try {
                                         $mDt = \Illuminate\Support\Carbon::parse($ms->ym . '-01');
-                                        $mLabel = ($monthsMap[$mDt->format('F')] ?? $mDt->format('M')) . ' ' . $mDt->format('y');
+                                        $mLabel = $mDt->format('M y');
                                     } catch (\Throwable $e) {}
                                 }
                             @endphp
                             <a href="{{ route('admin.accounting.tax-vat-deductions.index', ['month' => $ms->ym]) }}" class="month-pill-btn {{ $selectedMonth === $ms->ym ? 'active' : '' }}">
                                 <span>{{ $mLabel }}</span>
-                                <span class="badge-pill-count">{{ $ms->count }}টি (৳{{ number_format($ms->sum_vat + $ms->sum_tax, 0) }})</span>
+                                <span class="badge-pill-count">{{ $ms->count }} (৳{{ number_format($ms->sum_vat + $ms->sum_tax, 0) }})</span>
                             </a>
                         @endforeach
                     </div>
@@ -363,16 +356,16 @@
         <div class="card-header bg-white py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h6 class="fw-bold mb-0 text-dark">
-                    <i class="fa-solid fa-table-list text-primary me-2"></i>উৎসে ভ্যাট ও ট্যাক্স কর্তনের বিস্তারিত তালিকা ({{ $deductions->count() }}টি রেকর্ড)
+                    <i class="fa-solid fa-table-list text-primary me-2"></i>TDS & VDS Deductions Register ({{ $deductions->count() }} records)
                 </h6>
                 <small class="text-muted">
-                    হিসাবকাল: <strong class="text-dark">{{ $monthNameBn ?: ($dateFrom ? "{$dateFrom} হতে {$dateTo}" : 'সকল সময়ের সারাংশ') }}</strong>
+                    Period: <strong class="text-dark">{{ $monthNameFormatted ?: ($dateFrom ? "{$dateFrom} to {$dateTo}" : 'All-Time Summary') }}</strong>
                 </small>
             </div>
 
             <div class="d-flex align-items-center gap-2 no-print">
                 <span class="badge bg-warning-subtle text-dark border font-monospace px-2.5 py-1">
-                    মোট ভ্যাট/ট্যাক্স কর্তন: ৳{{ number_format($grandTotalDeductions, 2) }}
+                    Total Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}
                 </span>
             </div>
         </div>
@@ -381,19 +374,19 @@
             <table class="table table-hover table-bordered table-deductions align-middle mb-0" id="deductionsTable">
                 <thead>
                     <tr>
-                        <th class="text-center" style="width: 40px;">ক্র.</th>
-                        <th style="width: 90px;">জমার তারিখ</th>
-                        <th>গ্রাহক / প্রতিষ্ঠানের নাম</th>
-                        <th>বিল নং ও তারিখ</th>
-                        <th>রসিদ নং</th>
-                        <th class="text-end">মোট সমন্বয় (৳)</th>
-                        <th class="text-end text-success">নিট প্রাপ্তি (৳)</th>
-                        <th class="text-center">মাধ্যম / চেক নং</th>
-                        <th class="text-end text-warning-emphasis">মূসক (VDS)</th>
-                        <th class="text-end text-danger">আয়কর (TDS)</th>
-                        <th class="text-end">অন্যান্য</th>
-                        <th>চালান / প্রত্যয়ন নং</th>
-                        <th class="no-print text-center" style="width: 100px;">অ্যাকশন</th>
+                        <th class="text-center" style="width: 40px;">#</th>
+                        <th style="width: 90px;">Date</th>
+                        <th>Client / Organization</th>
+                        <th>Invoice # & Date</th>
+                        <th>Receipt #</th>
+                        <th class="text-end">Settled (৳)</th>
+                        <th class="text-end text-success">Net Received (৳)</th>
+                        <th class="text-center">Method / Ref</th>
+                        <th class="text-end text-warning-emphasis">VDS (VAT)</th>
+                        <th class="text-end text-danger">TDS (Tax)</th>
+                        <th class="text-end">Other</th>
+                        <th>Challan / Certificate #</th>
+                        <th class="no-print text-center" style="width: 100px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -422,7 +415,7 @@
                                     </a>
                                     <div class="text-muted" style="font-size: 10.5px;">{{ $inv->invoice_date ? $inv->invoice_date->format('d/m/Y') : '' }}</div>
                                 @else
-                                    <span class="badge bg-light text-dark border font-monospace">চলতি খাতা</span>
+                                    <span class="badge bg-light text-dark border font-monospace">Running Ledger</span>
                                 @endif
                             </td>
                             <td>
@@ -471,15 +464,15 @@
                                         <i class="fa-solid fa-file-shield me-1"></i>{{ $d->deduction_challan_no }}
                                     </div>
                                 @else
-                                    <span class="text-muted small">চালান নেই</span>
+                                    <span class="text-muted small">No Challan</span>
                                 @endif
                                 @if($d->deduction_notes)
                                     <div class="text-muted" style="font-size: 10.5px;">{{ $d->deduction_notes }}</div>
                                 @endif
                             </td>
                             <td class="text-center no-print">
-                                <a href="{{ route('admin.accounting.invoices.payments.receipt', $d->id) }}" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-bold shadow-2xs" target="_blank" title="প্রাপ্তিস্বীকারপত্র ও রসিদ দেখুন">
-                                    <i class="fa-solid fa-file-shield me-1"></i>রসিদ
+                                <a href="{{ route('admin.accounting.invoices.payments.receipt', $d->id) }}" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-1 fw-bold shadow-2xs" target="_blank" title="View Payment Receipt">
+                                    <i class="fa-solid fa-file-shield me-1"></i>Receipt
                                 </a>
                             </td>
                         </tr>
@@ -487,7 +480,7 @@
                         <tr>
                             <td colspan="13" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-scale-balanced fs-1 mb-2 d-block text-secondary opacity-50"></i>
-                                এই হিসাবকালে কোনো ভ্যাট বা ট্যাক্স কর্তনযুক্ত লেনদেন পাওয়া যায়নি।
+                                No VAT or Tax deduction transactions found for this period.
                             </td>
                         </tr>
                     @endforelse
@@ -495,14 +488,14 @@
                 @if($deductions->isNotEmpty())
                     <tfoot class="table-light fw-bold">
                         <tr>
-                            <td colspan="5" class="text-end text-dark">সর্বমোট (Total):</td>
+                            <td colspan="5" class="text-end text-dark">Total:</td>
                             <td class="text-end font-monospace text-dark fs-7">৳{{ number_format($totalSettledAmount, 2) }}</td>
                             <td class="text-end font-monospace text-success fs-7">৳{{ number_format($totalNetCollected, 2) }}</td>
                             <td class="text-center">—</td>
                             <td class="text-end font-monospace text-warning-emphasis fs-7">৳{{ number_format($totalVatDeducted, 2) }}</td>
                             <td class="text-end font-monospace text-danger fs-7">৳{{ number_format($totalTaxDeducted, 2) }}</td>
                             <td class="text-end font-monospace text-danger">৳{{ number_format($totalOtherDeducted, 2) }}</td>
-                            <td colspan="2" class="text-dark small">মোট কর্তন: ৳{{ number_format($grandTotalDeductions, 2) }}</td>
+                            <td colspan="2" class="text-dark small">Total Deductions: ৳{{ number_format($grandTotalDeductions, 2) }}</td>
                         </tr>
                     </tfoot>
                 @endif
@@ -515,19 +508,19 @@
         <div class="row text-center pt-4" style="margin-top: 60px;">
             <div class="col-4">
                 <div class="border-top border-dark pt-1 mx-auto" style="width: 170px;">
-                    <div class="fw-bold small text-dark">প্রস্তুতকারী হিসাবরক্ষক</div>
-                    <div class="text-muted" style="font-size: 10.5px;">Prepared By Accounts</div>
+                    <div class="fw-bold small text-dark">Prepared By Accounts</div>
+                    <div class="text-muted" style="font-size: 10.5px;">Accounts Officer</div>
                 </div>
             </div>
             <div class="col-4">
                 <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
-                    <div class="fw-bold small text-dark">অভ্যন্তরীণ নিরীক্ষক / ভ্যাট কর্মকর্তা</div>
-                    <div class="text-muted" style="font-size: 10.5px;">Internal Auditor / VAT Officer</div>
+                    <div class="fw-bold small text-dark">Internal Auditor / VAT Officer</div>
+                    <div class="text-muted" style="font-size: 10.5px;">Audit & Compliance</div>
                 </div>
             </div>
             <div class="col-4">
                 <div class="border-top border-dark pt-1 mx-auto" style="width: 180px;">
-                    <div class="fw-bold small text-dark">অনুমোদনকারী কর্তৃপক্ষ</div>
+                    <div class="fw-bold small text-dark">Authorized Signatory</div>
                     <div class="text-muted" style="font-size: 10.5px;">Managing Authority / CEO</div>
                 </div>
             </div>
@@ -542,30 +535,30 @@
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
             <form action="{{ route('admin.accounting.settings.update') }}" method="POST">
                 @csrf
-                <input type="hidden" name="business_name" value="{{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }}">
+                <input type="hidden" name="business_name" value="{{ $settings['business_name'] ?? 'Idea Prokashon' }}">
                 
                 <div class="modal-header bg-dark text-white py-3">
                     <h5 class="modal-title fw-bold" id="customPercentPresetsModalLabel">
-                        <i class="fa-solid fa-sliders text-warning me-2"></i>ভ্যাট ও ট্যাক্স শতকরা (%) প্রিসেট কাস্টমাইজ
+                        <i class="fa-solid fa-sliders text-warning me-2"></i>Customize VAT & Tax (%) Presets
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-3">
-                        এখানে আপনার প্রতিষ্ঠানের জন্য ডিফল্ট ভ্যাট এবং ট্যাক্স কর্তন শতকরা হার এবং ক্যালকুলেটরের দ্রুত ক্লিকযোগ্য বাটনসমূহ কাস্টমাইজ করতে পারেন:
+                        Configure default deduction percentages and quick-click preset buttons for your organisation:
                     </p>
 
                     <div class="row g-3 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">ডিফল্ট ভ্যাট হার (VDS %):</label>
+                            <label class="form-label small fw-bold text-dark">Default VDS Rate (%):</label>
                             <div class="input-group">
                                 <input type="number" step="0.01" min="0" max="100" name="default_vat_rate" class="form-control font-monospace fw-bold" value="{{ $settings['default_vat_rate'] ?? '7.5' }}">
                                 <span class="input-group-text">%</span>
                             </div>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-dark">ডিফল্ট ট্যাক্স হার (TDS %):</label>
+                            <label class="form-label small fw-bold text-dark">Default TDS Rate (%):</label>
                             <div class="input-group">
                                 <input type="number" step="0.01" min="0" max="100" name="default_tax_rate" class="form-control font-monospace fw-bold" value="{{ $settings['default_tax_rate'] ?? '5.0' }}">
                                 <span class="input-group-text">%</span>
@@ -574,22 +567,22 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ভ্যাট কুইক প্রিসেট বাটনসমূহ (কমা দিয়ে লিখুন):</label>
+                        <label class="form-label small fw-bold text-dark">VDS Quick Preset Buttons (comma-separated):</label>
                         <input type="text" name="vat_presets" class="form-control font-monospace" value="{{ $settings['vat_presets'] ?? '0, 5, 7.5, 10, 15' }}" placeholder="0, 5, 7.5, 10, 15">
-                        <div class="form-text text-muted" style="font-size: 11px;">যেমন: 0, 5, 7.5, 10, 15</div>
+                        <div class="form-text text-muted" style="font-size: 11px;">e.g. 0, 5, 7.5, 10, 15</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ট্যাক্স কুইক প্রিসেট বাটনসমূহ (কমা দিয়ে লিখুন):</label>
+                        <label class="form-label small fw-bold text-dark">TDS Quick Preset Buttons (comma-separated):</label>
                         <input type="text" name="tax_presets" class="form-control font-monospace" value="{{ $settings['tax_presets'] ?? '0, 2, 3, 5, 7, 10' }}" placeholder="0, 2, 3, 5, 7, 10">
-                        <div class="form-text text-muted" style="font-size: 11px;">যেমন: 0, 2, 3, 5, 7, 10</div>
+                        <div class="form-text text-muted" style="font-size: 11px;">e.g. 0, 2, 3, 5, 7, 10</div>
                     </div>
                 </div>
 
                 <div class="modal-footer bg-light p-3">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fa-solid fa-save me-1.5"></i> প্রিসেট সেভ করুন
+                        <i class="fa-solid fa-save me-1.5"></i> Save Presets
                     </button>
                 </div>
             </form>
@@ -649,7 +642,7 @@
         }
 
         navigator.clipboard.writeText(text.join('\n')).then(() => {
-            alert('উৎসে কর ও মূসক কর্তনের টেবিল ক্লিপবোর্ডে কপি হয়েছে! এটি Excel বা Google Sheet-এ পেস্ট করতে পারবেন।');
+            alert('TDS & VDS deductions table copied to clipboard! You can paste it into Excel or Google Sheets.');
         });
     }
 </script>

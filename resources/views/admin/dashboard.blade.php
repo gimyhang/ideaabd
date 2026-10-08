@@ -874,36 +874,44 @@
     {{-- ========================================================================= --}}
     {{-- 5. TOP SELLING BOOKS & CUSTOMER BOOK REQUESTS                             --}}
     {{-- ========================================================================= --}}
-    <div class="row g-3">
+    <div class="row g-3 g-xl-4 mb-4">
         
         <!-- Top Selling Books -->
         <div class="col-12 col-md-6">
-            <div class="adm-card h-100">
-                <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-trophy me-2 text-warning"></i>Top Selling Books</h6>
+            <div class="card border shadow-sm rounded-4 overflow-hidden bg-white h-100" style="border: 1px solid #e2e8f0 !important;">
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9 !important;">
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <span class="badge bg-warning-subtle text-warning p-1.5 rounded-circle fs-6">
+                            <i class="fa-solid fa-trophy"></i>
+                        </span>
+                        <span>Top Selling Books</span>
+                    </h6>
+                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small" style="border: 1px solid #e2e8f0 !important;">Top Sellers</span>
                 </div>
-                <div class="adm-card__body p-0">
+                <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        @forelse($stats['top_books'] ?? [] as $idx => $tb)
-                            <div class="list-group-item d-flex align-items-center justify-content-between p-3">
-                                <div class="d-flex align-items-center gap-2.5">
-                                    <span class="badge bg-light text-dark border rounded-circle" style="width: 28px; height: 28px; display: grid; place-items: center;">
-                                        {{ $idx + 1 }}
-                                    </span>
-                                    <div>
-                                        <div class="fw-semibold text-dark">{{ $tb->title }}</div>
-                                        <small class="text-muted">{{ $tb->author_name ?? 'Idea Prokashon' }}</small>
-                                    </div>
+                        @forelse($stats['top_books'] ?? [] as $tb)
+                            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3 px-4 border-0" 
+                                 style="border-bottom: 1px solid #f1f5f9 !important;">
+                                <div>
+                                    <div class="fw-semibold text-dark fs-6">{{ $tb->title }}</div>
+                                    <small class="text-muted d-flex align-items-center gap-1.5" style="font-size: 12px;">
+                                        <i class="fa-solid fa-user-pen" style="font-size: 10px;"></i>
+                                        {{ $tb->author_name ?? 'Idea Prokashon' }}
+                                    </small>
                                 </div>
-                                <div class="text-end">
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill fw-bold">
+                                <div class="text-end ps-3">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold" style="border-color: #bbf7d0 !important;">
                                         {{ $tb->sales_count ?? 0 }} copies
                                     </span>
-                                    <div class="small fw-bold text-dark mt-0.5">৳{{ number_format($tb->discount_price ?? $tb->price, 2) }}</div>
+                                    <div class="small fw-bold text-dark font-monospace mt-1">৳{{ number_format($tb->discount_price ?? $tb->price, 2) }}</div>
                                 </div>
                             </div>
                         @empty
-                            <div class="p-4 text-center text-muted small">No sales records found</div>
+                            <div class="p-5 text-center text-muted small">
+                                <i class="fa-solid fa-book-open text-muted fs-3 mb-2 d-block opacity-50"></i>
+                                No sales records found
+                            </div>
                         @endforelse
                     </div>
                 </div>
@@ -912,26 +920,38 @@
 
         <!-- Customer Book Requests Live Stream -->
         <div class="col-12 col-md-6">
-            <div class="adm-card h-100">
-                <div class="adm-card__head">
-                    <h6 class="mb-0 fw-bold"><i class="fa-solid fa-bullhorn me-2 text-primary"></i>Book Requests</h6>
-                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-0 px-2.5 small">View All</a>
+            <div class="card border shadow-sm rounded-4 overflow-hidden bg-white h-100" style="border: 1px solid #e2e8f0 !important;">
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-bottom: 1px solid #f1f5f9 !important;">
+                    <h6 class="mb-0 fw-bold text-dark d-flex align-items-center gap-2">
+                        <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </span>
+                        <span>Book Requests</span>
+                    </h6>
+                    <a href="{{ route('admin.book-requests.index') }}" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-3 small fw-semibold" style="border: 1px solid #93c5fd;">View All</a>
                 </div>
-                <div class="adm-card__body p-0">
+                <div class="card-body p-0">
                     <div class="list-group list-group-flush">
                         @forelse($stats['book_requests'] ?? [] as $req)
-                            <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between py-3 px-4 border-0"
+                                 style="border-bottom: 1px solid #f1f5f9 !important;">
                                 <div>
-                                    <div class="fw-semibold text-dark">{{ $req->book_title }}</div>
-                                    <small class="text-muted">{{ $req->customer_name ?? 'Customer' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})</small>
+                                    <div class="fw-semibold text-dark fs-6">{{ $req->book_title }}</div>
+                                    <small class="text-muted d-flex align-items-center gap-1.5" style="font-size: 12px;">
+                                        <i class="fa-regular fa-user" style="font-size: 10px;"></i>
+                                        {{ $req->customer_name ?? 'Customer' }} ({{ $req->customer_phone ?? ($req->phone ?? '—') }})
+                                    </small>
                                 </div>
                                 <a href="{{ route('admin.content.create', 'books') }}?title={{ urlencode($req->book_title) }}" 
-                                   class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1" title="Add to Catalog">
+                                   class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold" title="Add to Catalog" style="border: 1px solid #86efac;">
                                     <i class="fa-solid fa-plus me-1"></i> Add
                                 </a>
                             </div>
                         @empty
-                            <div class="p-4 text-center text-muted small">No pending book requests</div>
+                            <div class="p-5 text-center text-muted small">
+                                <i class="fa-regular fa-message text-muted fs-3 mb-2 d-block opacity-50"></i>
+                                No pending book requests
+                            </div>
                         @endforelse
                     </div>
                 </div>
@@ -957,9 +977,9 @@
         $allEmps = $empStats['all_employees'] ?? collect();
         $chartData = $empStats['chart_data'] ?? ['labels' => [], 'counts' => [], 'payrolls' => [], 'colors' => []];
     @endphp
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+    <div class="card border shadow-sm rounded-4 overflow-hidden bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
         {{-- Executive Header --}}
-        <div class="card-header bg-white py-3.5 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="card-header bg-white py-3.5 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-bottom: 1px solid #f1f5f9 !important;">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
                     <span class="badge bg-gradient text-white rounded-pill px-3 py-1 small fw-bold shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
@@ -978,10 +998,10 @@
                 <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#dashboardQuickAddEmployeeModal">
                     <i class="fa-solid fa-user-plus me-1.5"></i> Add Staff
                 </button>
-                <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold">
+                <a href="{{ route('admin.accounting.employees.index') }}" class="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold" style="border: 1px solid #cbd5e1;">
                     <i class="fa-solid fa-users me-1.5"></i> Directory ({{ $empStats['total_employees'] }})
                 </a>
-                <a href="{{ route('admin.accounting.salary.index') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
+                <a href="{{ route('admin.accounting.salary.index') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold" style="border: 1px solid #86efac;">
                     <i class="fa-solid fa-money-check-dollar me-1.5"></i> Payroll
                 </a>
             </div>
@@ -990,23 +1010,23 @@
         <div class="card-body p-3.5 p-md-4">
             
             {{-- 1. Five Responsive Departmental Cards --}}
-            <div class="row g-3 mb-4">
+            <div class="row g-3 g-xl-3.5 mb-4">
                 
                 {{-- 1. Digital Marketing --}}
                 @php $dm = $empDepts['digital_marketing'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
-                         style="background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%); border-color: #bfdbfe !important; border-top: 4px solid #2563eb !important;">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dbeafe; color: #1d4ed8;">
+                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                         style="background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%); border: 1px solid #bfdbfe !important; border-top: 2px solid #2563eb !important;">
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe;">
                                     <i class="fa-solid fa-bullhorn me-1"></i> Digital Marketing
                                 </span>
-                                <span class="badge bg-white text-primary border rounded-pill small font-monospace">{{ $dm['share_percent'] }}%</span>
+                                <span class="badge bg-white text-primary border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #dbeafe !important;">{{ $dm['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">Marketing</h6>
+                            <h6 class="fw-bold text-dark mb-1">Marketing</h6>
                             
-                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold text-primary font-monospace mb-0">{{ $dm['count'] }}</h4>
                                 <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $dm['active'] }}</strong>)</span>
                             </div>
@@ -1014,8 +1034,8 @@
                                 Payroll: <strong class="text-dark">৳{{ number_format($dm['payroll'], 2) }}</strong>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2 border-top">
-                            <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
+                        <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(37, 99, 235, 0.12) !important;">
+                            <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm btn-outline-primary rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #93c5fd;">
                                 Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
@@ -1025,18 +1045,18 @@
                 {{-- 2. Content & Editorial --}}
                 @php $ce = $empDepts['content_editorial'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
-                         style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border-color: #fef08a !important; border-top: 4px solid #ca8a04 !important;">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #fef08a; color: #854d0e;">
+                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                         style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border: 1px solid #fef08a !important; border-top: 2px solid #ca8a04 !important;">
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #fef08a; color: #854d0e; border: 1px solid #fef08a;">
                                     <i class="fa-solid fa-feather-pointed me-1"></i> Editorial
                                 </span>
-                                <span class="badge bg-white text-dark border rounded-pill small font-monospace">{{ $ce['share_percent'] }}%</span>
+                                <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fef08a !important;">{{ $ce['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">Content & Editorial</h6>
+                            <h6 class="fw-bold text-dark mb-1">Content & Editorial</h6>
                             
-                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ca8a04;">{{ $ce['count'] }}</h4>
                                 <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $ce['active'] }}</strong>)</span>
                             </div>
@@ -1044,8 +1064,8 @@
                                 Payroll: <strong class="text-dark">৳{{ number_format($ce['payroll'], 2) }}</strong>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2 border-top">
-                            <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ca8a04;">
+                        <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(202, 138, 4, 0.15) !important;">
+                            <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #fde047;">
                                 Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
@@ -1055,18 +1075,18 @@
                 {{-- 3. Technical & IT --}}
                 @php $ti = $empDepts['technical_it'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
-                         style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border-color: #bbf7d0 !important; border-top: 4px solid #16a34a !important;">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dcfce7; color: #15803d;">
+                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                         style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 1px solid #bbf7d0 !important; border-top: 2px solid #16a34a !important;">
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">
                                     <i class="fa-solid fa-laptop-code me-1"></i> Tech & IT
                                 </span>
-                                <span class="badge bg-white text-success border rounded-pill small font-monospace">{{ $ti['share_percent'] }}%</span>
+                                <span class="badge bg-white text-success border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #bbf7d0 !important;">{{ $ti['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">Technical & IT</h6>
+                            <h6 class="fw-bold text-dark mb-1">Technical & IT</h6>
                             
-                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold text-success font-monospace mb-0">{{ $ti['count'] }}</h4>
                                 <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $ti['active'] }}</strong>)</span>
                             </div>
@@ -1074,8 +1094,8 @@
                                 Payroll: <strong class="text-dark">৳{{ number_format($ti['payroll'], 2) }}</strong>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2 border-top">
-                            <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
+                        <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(22, 163, 74, 0.15) !important;">
+                            <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm btn-outline-success rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #86efac;">
                                 Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
@@ -1085,18 +1105,18 @@
                 {{-- 4. Operations & Support --}}
                 @php $os = $empDepts['operations_support'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
-                         style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border-color: #fed7aa !important; border-top: 4px solid #ea580c !important;">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #ffedd5; color: #c2410c;">
+                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                         style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 1px solid #fed7aa !important; border-top: 2px solid #ea580c !important;">
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #ffedd5; color: #c2410c; border: 1px solid #fed7aa;">
                                     <i class="fa-solid fa-headset me-1"></i> Operations
                                 </span>
-                                <span class="badge bg-white text-danger border rounded-pill small font-monospace">{{ $os['share_percent'] }}%</span>
+                                <span class="badge bg-white text-danger border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fed7aa !important;">{{ $os['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">Operations & Support</h6>
+                            <h6 class="fw-bold text-dark mb-1">Operations & Support</h6>
                             
-                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ea580c;">{{ $os['count'] }}</h4>
                                 <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $os['active'] }}</strong>)</span>
                             </div>
@@ -1104,8 +1124,8 @@
                                 Payroll: <strong class="text-dark">৳{{ number_format($os['payroll'], 2) }}</strong>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2 border-top">
-                            <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px; border-color: #ea580c;">
+                        <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(234, 88, 12, 0.15) !important;">
+                            <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #fdba74;">
                                 Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
@@ -1115,18 +1135,18 @@
                 {{-- 5. Press & Production Artisans --}}
                 @php $pa = $empDepts['press_artisans'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
-                         style="background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%); border-color: #e9d5ff !important; border-top: 4px solid #9333ea !important;">
-                        <div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #f3e8ff; color: #7e22ce;">
+                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                         style="background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%); border: 1px solid #e9d5ff !important; border-top: 2px solid #9333ea !important;">
+                        <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="badge rounded-pill px-2.5 py-1 small fw-bold" style="background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff;">
                                     <i class="fa-solid fa-book-bookmark me-1"></i> Press & Artisans
                                 </span>
-                                <span class="badge bg-white text-dark border rounded-pill small font-monospace">{{ $pa['share_percent'] }}%</span>
+                                <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #e9d5ff !important;">{{ $pa['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-2">Press & Production</h6>
+                            <h6 class="fw-bold text-dark mb-1">Press & Production</h6>
                             
-                            <div class="d-flex align-items-baseline gap-2 mb-1">
+                            <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #9333ea;">{{ $pa['count'] }}</h4>
                                 <span class="small text-muted">Staff (Active: <strong class="text-success">{{ $pa['active'] }}</strong>)</span>
                             </div>
@@ -1134,8 +1154,8 @@
                                 Payroll: <strong class="text-dark">৳{{ number_format($pa['payroll'], 2) }}</strong>
                             </div>
                         </div>
-                        <div class="mt-2.5 pt-2 border-top">
-                            <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1 fw-semibold w-100" style="font-size: 11px;">
+                        <div class="pt-2.5 mt-auto border-top" style="border-top: 1px solid rgba(147, 51, 234, 0.15) !important;">
+                            <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm btn-outline-secondary rounded-pill px-2 py-1.5 fw-semibold w-100" style="font-size: 11px; border: 1px solid #d8b4fe;">
                                 Filter <i class="fa-solid fa-filter ms-1"></i>
                             </button>
                         </div>
@@ -1145,33 +1165,38 @@
             </div>
 
             {{-- 2. Visual Analytics Row (Interactive Chart + Department Matrix) --}}
-            <div class="row g-3 mb-4">
+            <div class="row g-3 g-xl-4 mb-4">
                 {{-- Left: Department Intelligence Doughnut Chart --}}
                 <div class="col-12 col-lg-5">
-                    <div class="p-3.5 bg-light rounded-4 border h-100 d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-chart-pie me-1.5 text-primary"></i>Department & Payroll</h6>
-                            <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-white border" role="group">
+                    <div class="p-4 bg-white rounded-4 border h-100 d-flex flex-column justify-content-between shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
+                        <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <span class="badge bg-primary-subtle text-primary p-1.5 rounded-circle fs-6">
+                                    <i class="fa-solid fa-chart-pie"></i>
+                                </span>
+                                <span>Department & Payroll</span>
+                            </h6>
+                            <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-light border" role="group" style="border: 1px solid #e2e8f0 !important;">
                                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptHeadcount" onclick="switchDeptChartMetric('headcount')">Headcount</button>
                                 <button type="button" class="btn btn-sm btn-light rounded-pill px-2.5 py-0.5 fw-semibold" id="btnDeptPayroll" onclick="switchDeptChartMetric('payroll')">Payroll (৳)</button>
                             </div>
                         </div>
 
-                        <div class="position-relative" style="height: 220px;">
+                        <div class="position-relative my-auto py-2" style="height: 220px;">
                             <canvas id="deptDistributionChart"></canvas>
                         </div>
 
-                        <div class="mt-3 pt-2.5 border-top d-flex justify-content-around text-center small">
-                            <div>
-                                <span class="text-muted d-block" style="font-size: 11px;">Total Staff</span>
+                        <div class="mt-3 pt-3 border-top d-flex justify-content-around text-center small" style="border-top: 1px solid #f1f5f9 !important;">
+                            <div class="px-2">
+                                <span class="text-muted d-block mb-1" style="font-size: 11px;">Total Staff</span>
                                 <strong class="text-dark font-monospace fs-6">{{ $empStats['total_employees'] }}</strong>
                             </div>
-                            <div class="border-start ps-3">
-                                <span class="text-muted d-block" style="font-size: 11px;">Active Staff</span>
+                            <div class="border-start ps-3 pe-2" style="border-left: 1px solid #f1f5f9 !important;">
+                                <span class="text-muted d-block mb-1" style="font-size: 11px;">Active Staff</span>
                                 <strong class="text-success font-monospace fs-6">{{ $empStats['active_employees'] }}</strong>
                             </div>
-                            <div class="border-start ps-3">
-                                <span class="text-muted d-block" style="font-size: 11px;">Monthly Payroll</span>
+                            <div class="border-start ps-3 px-2" style="border-left: 1px solid #f1f5f9 !important;">
+                                <span class="text-muted d-block mb-1" style="font-size: 11px;">Monthly Payroll</span>
                                 <strong class="text-primary font-monospace fs-6">৳{{ number_format($empStats['total_monthly_payroll'], 0) }}</strong>
                             </div>
                         </div>
@@ -1180,77 +1205,84 @@
 
                 {{-- Right: Executive Department Matrix Table --}}
                 <div class="col-12 col-lg-7">
-                    <div class="p-3.5 bg-light rounded-4 border h-100">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-table-columns me-1.5 text-secondary"></i>Budget & Departments</h6>
-                            <span class="badge bg-white text-muted border small">5 Categories</span>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-borderless align-middle mb-0 small">
-                                <thead>
-                                    <tr class="text-muted border-bottom">
-                                        <th class="ps-2">Department</th>
-                                        <th class="text-center">Headcount</th>
-                                        <th class="text-end">Payroll</th>
-                                        <th>Skills</th>
-                                        <th class="text-end pe-2">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($empDepts as $dKey => $dData)
-                                        <tr class="border-bottom border-light">
-                                            <td class="ps-2">
-                                                <div class="d-flex align-items-center gap-1.5">
-                                                    <span class="badge p-1.5 rounded-circle" style="background-color: {{ $dData['bg_light'] }}; color: {{ $dData['color'] }};">
-                                                        <i class="{{ $dData['icon'] }}" style="font-size: 11px;"></i>
-                                                    </span>
-                                                    <strong class="text-dark">{{ $dData['title_bn'] }}</strong>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge bg-white text-dark border font-monospace">{{ $dData['count'] }}</span>
-                                            </td>
-                                            <td class="text-end font-monospace fw-bold text-dark">
-                                                ৳{{ number_format($dData['payroll'], 2) }}
-                                            </td>
-                                            <td>
-                                                <span class="text-muted" style="font-size: 11px;">{{ implode(', ', array_slice($dData['skills'], 0, 3)) }}</span>
-                                            </td>
-                                            <td class="text-end pe-2">
-                                                <a href="{{ route('admin.accounting.employees.index', ['department' => $dData['filter_slug']]) }}" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2" style="font-size: 10.5px;">
-                                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                                </a>
-                                            </td>
+                    <div class="p-4 bg-white rounded-4 border h-100 d-flex flex-column justify-content-between shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom" style="border-bottom: 1px solid #f1f5f9 !important;">
+                                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                    <span class="badge bg-secondary-subtle text-secondary p-1.5 rounded-circle fs-6">
+                                        <i class="fa-solid fa-table-columns"></i>
+                                    </span>
+                                    <span>Budget & Departments</span>
+                                </h6>
+                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small" style="border: 1px solid #e2e8f0 !important;">5 Categories</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0 small">
+                                    <thead>
+                                        <tr class="text-muted" style="border-bottom: 1px solid #e2e8f0 !important;">
+                                            <th class="ps-3 py-2.5 fw-semibold">Department</th>
+                                            <th class="text-center py-2.5 fw-semibold">Headcount</th>
+                                            <th class="text-end py-2.5 fw-semibold">Payroll</th>
+                                            <th class="py-2.5 px-3 fw-semibold">Skills</th>
+                                            <th class="text-end pe-3 py-2.5 fw-semibold">Action</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($empDepts as $dKey => $dData)
+                                            <tr style="border-bottom: 1px solid #f1f5f9 !important;">
+                                                <td class="ps-3 py-2.5">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge p-1.5 rounded-circle flex-shrink-0" style="background-color: {{ $dData['bg_light'] }}; color: {{ $dData['color'] }}; border: 1px solid {{ $dData['border_color'] ?? '#e2e8f0' }};">
+                                                            <i class="{{ $dData['icon'] }}" style="font-size: 11px;"></i>
+                                                        </span>
+                                                        <strong class="text-dark">{{ $dData['title_bn'] }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center py-2.5">
+                                                    <span class="badge bg-light text-dark border font-monospace px-2.5 py-1 rounded-pill" style="border: 1px solid #e2e8f0 !important;">{{ $dData['count'] }}</span>
+                                                </td>
+                                                <td class="text-end py-2.5 font-monospace fw-bold text-dark">
+                                                    ৳{{ number_format($dData['payroll'], 2) }}
+                                                </td>
+                                                <td class="py-2.5 px-3">
+                                                    <span class="text-muted" style="font-size: 11px;">{{ implode(', ', array_slice($dData['skills'], 0, 3)) }}</span>
+                                                </td>
+                                                <td class="text-end pe-3 py-2.5">
+                                                    <a href="{{ route('admin.accounting.employees.index', ['department' => $dData['filter_slug']]) }}" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2.5" style="font-size: 10.5px; border: 1px solid #cbd5e1;">
+                                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- 3. Live Interactive Staff & Talent Roster --}}
-            <div class="border rounded-4 p-4 bg-white shadow-2xs">
-                <div class="p-3.5 bg-light rounded-4 border mb-4 d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 shadow-2xs">
+            <div class="border rounded-4 p-4 bg-white shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
+                <div class="p-3.5 bg-light rounded-4 border mb-4 d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
                     {{-- Live Filter Tabs --}}
                     <div class="d-flex flex-wrap gap-2" id="dashboardStaffFilterTabs">
                         <button type="button" onclick="filterDashboardStaffTable('all')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-bold btn-dark text-white staff-filter-btn" data-filter="all">
                             <i class="fa-solid fa-users me-1.5"></i> All ({{ $empStats['total_employees'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="digital_marketing">
+                        <button type="button" onclick="filterDashboardStaffTable('digital_marketing')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="digital_marketing" style="border: 1px solid #cbd5e1 !important;">
                             <i class="fa-solid fa-bullhorn me-1.5 text-primary"></i> Digital Marketing ({{ $dm['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="content_editorial">
+                        <button type="button" onclick="filterDashboardStaffTable('content_editorial')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="content_editorial" style="border: 1px solid #cbd5e1 !important;">
                             <i class="fa-solid fa-feather-pointed me-1.5 text-warning"></i> Content & Editorial ({{ $ce['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="technical_it">
+                        <button type="button" onclick="filterDashboardStaffTable('technical_it')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="technical_it" style="border: 1px solid #cbd5e1 !important;">
                             <i class="fa-solid fa-laptop-code me-1.5 text-success"></i> Technical & IT ({{ $ti['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="operations_support">
+                        <button type="button" onclick="filterDashboardStaffTable('operations_support')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="operations_support" style="border: 1px solid #cbd5e1 !important;">
                             <i class="fa-solid fa-headset me-1.5 text-danger"></i> Operations ({{ $os['count'] }})
                         </button>
-                        <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="press_artisans">
+                        <button type="button" onclick="filterDashboardStaffTable('press_artisans')" class="btn btn-sm rounded-pill px-3.5 py-1.5 fw-semibold btn-light bg-white border text-dark staff-filter-btn" data-filter="press_artisans" style="border: 1px solid #cbd5e1 !important;">
                             <i class="fa-solid fa-book-bookmark me-1.5" style="color: #9333ea;"></i> Press & Artisans ({{ $pa['count'] }})
                         </button>
                     </div>
@@ -1258,15 +1290,15 @@
                     {{-- Live Search Box --}}
                     <div class="w-100 w-lg-auto" style="min-width: 270px;">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control bg-white border-start-0 rounded-end-pill py-2 pe-3" placeholder="Search staff, role, phone...">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill ps-3" style="border: 1px solid #cbd5e1; border-right: none;"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" id="dashboardStaffSearchInput" onkeyup="searchDashboardStaffTable()" class="form-control bg-white border-start-0 rounded-end-pill py-2 pe-3" placeholder="Search staff, role, phone..." style="border: 1px solid #cbd5e1; border-left: none;">
                         </div>
                     </div>
                 </div>
 
-                <div class="table-responsive border rounded-4 overflow-hidden shadow-2xs">
+                <div class="table-responsive border rounded-4 overflow-hidden shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
                     <table class="table table-hover align-middle mb-0" id="dashboardStaffTable">
-                        <thead class="table-light text-secondary">
+                        <thead class="table-light text-secondary" style="border-bottom: 1px solid #e2e8f0 !important;">
                             <tr>
                                 <th class="py-3.5 ps-4" style="min-width: 240px;">Staff Name</th>
                                 <th class="py-3.5 px-3" style="min-width: 180px;">Department</th>
@@ -1283,7 +1315,7 @@
                                     $catKey = $emp->bucket_key ?? 'operations_support';
                                     $cfg = $emp->role_cfg ?? $emp->getRoleConfig();
                                 @endphp
-                                <tr class="staff-row" data-bucket="{{ $catKey }}" data-search="{{ mb_strtolower($emp->name . ' ' . $emp->designation . ' ' . $emp->department . ' ' . $emp->phone . ' ' . $emp->email) }}">
+                                <tr class="staff-row" data-bucket="{{ $catKey }}" data-search="{{ mb_strtolower($emp->name . ' ' . $emp->designation . ' ' . $emp->department . ' ' . $emp->phone . ' ' . $emp->email) }}" style="border-bottom: 1px solid #f1f5f9 !important;">
                                     <td class="py-3.5 ps-4">
                                         <div class="d-flex align-items-center gap-2.5">
                                             <div class="rounded-circle fw-bold d-flex align-items-center justify-content-center flex-shrink-0 shadow-2xs" 
