@@ -247,19 +247,27 @@
             max-width: 320px;
         }
         .slip-card.format-pos .slip-header {
+            display: flex;
             flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+        }
+        .slip-card.format-pos .slip-header-brand {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 4px;
+        }
+        .slip-card.format-pos .slip-header-center {
+            order: -1;
         }
         .slip-card.format-pos .slip-header-meta {
-            align-items: flex-start;
-            text-align: left;
+            align-items: center;
+            text-align: center;
         }
-        .slip-card.format-pos .slip-meta-doc {
-            justify-content: flex-start;
-        }
-        .slip-card.format-pos .slip-meta-details {
-            text-align: left;
+        .slip-card.format-pos .slip-meta-line {
+            justify-content: center;
         }
         .slip-card.format-pos .slip-grid {
             grid-template-columns: 1fr !important;
@@ -277,25 +285,25 @@
             padding-top: 6px;
         }
 
-        /* Header & Logo */
+        /* Header & Logo (3 Columns) */
         .slip-header {
-            display: flex;
-            align-items: flex-start;
+            display: grid;
+            grid-template-columns: 1.35fr auto 1.35fr;
+            align-items: start;
             justify-content: space-between;
             padding-bottom: 12px;
             margin-bottom: 14px;
             border-bottom: 1px solid #0f172a;
-            gap: 12px;
+            gap: 10px;
         }
-        .slip-brand-group {
+        .slip-header-brand {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
+            align-items: flex-start;
+            gap: 10px;
         }
         .slip-logo {
             max-height: 38px;
-            max-width: 115px;
+            max-width: 100px;
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
@@ -304,66 +312,64 @@
         .slip-brand-info {
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
         }
         .slip-brand-title {
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 1px 0;
+            margin: 0 0 2px 0;
             letter-spacing: -0.2px;
-            line-height: 1.2;
+            line-height: 1.25;
         }
         .slip-brand-sub {
             font-size: 11px;
             color: #64748b;
             margin: 0;
             font-weight: 500;
+            line-height: 1.35;
         }
-        .slip-header-meta {
-            text-align: right;
+        .slip-header-center {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 3px;
-            flex-shrink: 0;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 1px;
         }
         .slip-badge-outline {
             display: inline-block;
             background: #ffffff;
             color: #0f172a;
             border: 1px solid #0f172a;
-            padding: 3px 8px;
+            padding: 3px 10px;
             border-radius: 5px;
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
             white-space: nowrap;
         }
-        .slip-meta-details {
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.45;
+        .slip-header-meta {
             text-align: right;
-            margin-top: 3px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-start;
+            gap: 3px;
         }
-        .slip-meta-doc {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 13.5px;
-            font-weight: 800;
-            color: #0f172a;
+        .slip-meta-line {
+            font-size: 11.5px; /* Uniform font size across all lines */
+            line-height: 1.4;
+            color: #334155;
             display: inline-flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 5px;
+            gap: 4px;
+            white-space: nowrap;
         }
-        .slip-meta-row {
-            font-size: 11px;
-            color: #475569;
-        }
-        .slip-meta-row strong {
+        .slip-meta-line strong {
+            font-size: 11.5px; /* Same size as text */
             font-weight: 700;
+            color: #0f172a;
         }
 
         /* 2-Column Sender & Recipient */
@@ -664,20 +670,36 @@
                 width: 76mm !important;
                 padding: 2mm 0 !important;
             }
+            .slip-header {
+                display: grid !important;
+                grid-template-columns: 1.35fr auto 1.35fr !important;
+                align-items: start !important;
+                justify-content: space-between !important;
+                border-bottom: 1pt solid #000000 !important;
+                gap: 8px !important;
+            }
             .slip-card.format-pos .slip-header {
+                display: flex !important;
                 flex-direction: column !important;
-                align-items: flex-start !important;
+                align-items: center !important;
+                text-align: center !important;
                 gap: 6px !important;
             }
+            .slip-card.format-pos .slip-header-brand {
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                gap: 4px !important;
+            }
+            .slip-card.format-pos .slip-header-center {
+                order: -1 !important;
+            }
             .slip-card.format-pos .slip-header-meta {
-                align-items: flex-start !important;
-                text-align: left !important;
+                align-items: center !important;
+                text-align: center !important;
             }
-            .slip-card.format-pos .slip-meta-doc {
-                justify-content: flex-start !important;
-            }
-            .slip-card.format-pos .slip-meta-details {
-                text-align: left !important;
+            .slip-card.format-pos .slip-meta-line {
+                justify-content: center !important;
             }
             .slip-card.format-pos .slip-grid {
                 grid-template-columns: 1fr !important;
@@ -700,9 +722,6 @@
             .slip-footer {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-            }
-            .slip-header {
-                border-bottom: 1pt solid #000000 !important;
             }
             .slip-badge-outline,
             .slip-box-recipient,
@@ -736,19 +755,17 @@
                 padding: 12px 10px;
             }
             .slip-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
+                grid-template-columns: 1.2fr auto 1.2fr;
+                gap: 6px;
             }
-            .slip-header-meta {
-                align-items: flex-start;
-                text-align: left;
+            .slip-logo {
+                max-width: 70px;
             }
-            .slip-meta-doc {
-                justify-content: flex-start;
+            .slip-meta-line {
+                font-size: 10.5px;
             }
-            .slip-meta-details {
-                text-align: left;
+            .slip-meta-line strong {
+                font-size: 10.5px;
             }
             .slip-grid {
                 grid-template-columns: 1fr;
@@ -799,31 +816,37 @@
     <!-- Main Slip Container -->
     <div class="slip-card format-{{ $currentFormat }}" id="slipCard">
         
-        <!-- Header & Logo -->
+        <!-- Header & Logo (3 Columns) -->
         <div class="slip-header">
-            <div class="slip-brand-group">
+            <!-- Column 1: Brand Info -->
+            <div class="slip-header-brand">
                 <img src="{{ $logoUrl }}" alt="{{ $senderName }}" class="slip-logo" onerror="this.src='/images/logo.png'; this.onerror=null;">
                 <div class="slip-brand-info">
                     <h1 class="slip-brand-title">{{ $senderName }}</h1>
-                    <p class="slip-brand-sub">{{ $senderWebsite }} • {{ $senderPhone }}</p>
+                    <div class="slip-brand-sub">{{ $senderWebsite }}</div>
+                    <div class="slip-brand-sub">• {{ $senderPhone }}</div>
                 </div>
             </div>
-            <div class="slip-header-meta">
+
+            <!-- Column 2: Center (PARCEL) -->
+            <div class="slip-header-center">
                 <span class="slip-badge-outline">PARCEL</span>
-                <div class="slip-meta-details">
-                    <div class="slip-meta-doc">
-                        <span>#{{ $docNo }}</span>
-                        <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $docNo }}', 'Order No')" title="Copy"></i>
-                    </div>
-                    <div class="slip-meta-row">Date: {{ $docDate }}</div>
-                    <div class="slip-meta-row">
-                        Payment Status: 
-                        @if($paymentStatus === 'paid')
-                            <strong style="color: #16a34a;">PAID</strong>
-                        @else
-                            <strong style="color: #dc2626;">COD (৳ {{ number_format($dueAmount > 0.001 ? $dueAmount : $totalAmount) }})</strong>
-                        @endif
-                    </div>
+            </div>
+
+            <!-- Column 3: Order Metadata (Uniform Font Size) -->
+            <div class="slip-header-meta">
+                <div class="slip-meta-line">
+                    <strong>#{{ $docNo }}</strong>
+                    <i class="fa-regular fa-copy slip-copy-icon" onclick="copyText('{{ $docNo }}', 'Order No')" title="Copy"></i>
+                </div>
+                <div class="slip-meta-line">Date: {{ $docDate }}</div>
+                <div class="slip-meta-line">
+                    Payment Status: 
+                    @if($paymentStatus === 'paid')
+                        <strong style="color: #16a34a;">PAID</strong>
+                    @else
+                        <strong style="color: #dc2626;">COD (৳ {{ number_format($dueAmount > 0.001 ? $dueAmount : $totalAmount) }})</strong>
+                    @endif
                 </div>
             </div>
         </div>
