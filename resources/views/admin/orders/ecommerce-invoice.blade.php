@@ -215,6 +215,7 @@
             line-height: 1.2;
             letter-spacing: 0.5px;
             margin: 0 0 2px 0;
+            white-space: nowrap;
         }
         .inv-brand-address {
             font-size: 11px;
@@ -223,6 +224,7 @@
             line-height: 1.25;
             margin: 0;
             text-transform: uppercase;
+            white-space: nowrap;
         }
         .inv-brand-contact-line {
             font-size: 10.5px;

@@ -287,23 +287,23 @@
 
         /* Header & Logo (3 Columns) */
         .slip-header {
-            display: grid;
-            grid-template-columns: 1.35fr auto 1.35fr;
-            align-items: start;
+            display: flex;
             justify-content: space-between;
+            align-items: flex-start;
             padding-bottom: 12px;
             margin-bottom: 14px;
             border-bottom: 1px solid #0f172a;
-            gap: 10px;
+            gap: 8px;
         }
         .slip-header-brand {
             display: flex;
-            align-items: flex-start;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
         }
         .slip-logo {
             max-height: 38px;
-            max-width: 100px;
+            max-width: 55px;
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
@@ -312,28 +312,31 @@
         .slip-brand-info {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
+            justify-content: center;
         }
         .slip-brand-title {
-            font-size: 14.5px;
+            font-size: 13.5px;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 2px 0;
+            margin: 0 0 1px 0;
             letter-spacing: -0.2px;
-            line-height: 1.25;
+            line-height: 1.2;
+            white-space: nowrap;
         }
         .slip-brand-sub {
-            font-size: 11px;
+            font-size: 10.5px;
             color: #64748b;
             margin: 0;
             font-weight: 500;
-            line-height: 1.35;
+            line-height: 1.3;
+            white-space: nowrap;
         }
         .slip-header-center {
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding-top: 1px;
+            padding-top: 2px;
+            flex-shrink: 0;
         }
         .slip-badge-outline {
             display: inline-block;
@@ -354,11 +357,12 @@
             flex-direction: column;
             align-items: flex-end;
             justify-content: flex-start;
-            gap: 3px;
+            gap: 2px;
+            flex-shrink: 0;
         }
         .slip-meta-line {
-            font-size: 11.5px; /* Uniform font size across all lines */
-            line-height: 1.4;
+            font-size: 11px;
+            line-height: 1.35;
             color: #334155;
             display: inline-flex;
             align-items: center;
@@ -367,7 +371,7 @@
             white-space: nowrap;
         }
         .slip-meta-line strong {
-            font-size: 11.5px; /* Same size as text */
+            font-size: 11px;
             font-weight: 700;
             color: #0f172a;
         }
@@ -755,7 +759,8 @@
                 padding: 12px 10px;
             }
             .slip-header {
-                grid-template-columns: 1.2fr auto 1.2fr;
+                display: flex;
+                justify-content: space-between;
                 gap: 6px;
             }
             .slip-logo {
