@@ -178,8 +178,8 @@
         /* Header: 3 Columns (Left: Brand, Middle: Invoice, Right: Order Meta) */
         .inv-header {
             display: grid;
-            grid-template-columns: 1.4fr 1fr 1.2fr;
-            align-items: center;
+            grid-template-columns: auto 1fr auto;
+            align-items: flex-start;
             gap: 16px;
             padding-bottom: 14px;
             border-bottom: 2px solid #000000;
@@ -188,8 +188,26 @@
         .inv-header-left {
             text-align: left;
         }
+        .inv-brand-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .inv-logo {
+            max-height: 52px;
+            max-width: 75px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+            flex-shrink: 0;
+            filter: grayscale(100%);
+        }
+        .inv-brand-details {
+            display: flex;
+            flex-direction: column;
+        }
         .inv-brand-name {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 800;
             color: #000000;
             line-height: 1.2;
@@ -228,14 +246,20 @@
 
         .inv-header-center {
             text-align: center;
+            padding-top: 2px;
         }
-        .inv-header-center .inv-doc-title {
-            font-size: 24px;
-            font-weight: 800;
+        .inv-doc-shape {
+            display: inline-block;
+            border: 1.5px solid #000000;
             color: #000000;
-            letter-spacing: 2px;
-            margin: 0;
-            line-height: 1.1;
+            background: #ffffff;
+            font-size: 11.5px;
+            font-weight: 800;
+            padding: 3px 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-radius: 4px;
+            line-height: 1.3;
         }
 
         .inv-header-right {
@@ -244,16 +268,17 @@
             flex-direction: column;
             align-items: flex-end;
             gap: 3px;
+            padding-top: 2px;
         }
         .inv-header-right .inv-number {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: 800;
             color: #000000;
             line-height: 1.2;
         }
         .inv-header-right .inv-date {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 600;
             color: #222222;
             line-height: 1.2;
@@ -263,9 +288,9 @@
             border: 1.5px solid #000000;
             color: #000000;
             background: #ffffff;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 800;
-            padding: 2px 10px;
+            padding: 2px 9px;
             letter-spacing: 0.5px;
             border-radius: 3px;
             line-height: 1.2;
@@ -488,8 +513,8 @@
             }
             .inv-header {
                 display: grid !important;
-                grid-template-columns: 1.4fr 1fr 1.2fr !important;
-                align-items: center !important;
+                grid-template-columns: auto 1fr auto !important;
+                align-items: flex-start !important;
             }
             .inv-header, .inv-customer-box, .inv-table, .inv-bottom-grid, .inv-footer, tr {
                 page-break-inside: avoid !important;
@@ -547,22 +572,29 @@
 
         <!-- Header: 3-Column Layout -->
         <div class="inv-header">
-            <!-- Left Column: Brand Info -->
+            <!-- Left Column: Brand Info with Logo on Left -->
             <div class="inv-header-left">
-                <div class="inv-brand-name">IDEA PROKASHON</div>
-                <div class="inv-brand-address">CENTRAL ROAD, RANGPUR-5400</div>
-                <div class="inv-brand-contact">
-                    <span><i class="fa-solid fa-phone"></i> +8801726976982</span>
-                    <span><i class="fa-solid fa-envelope"></i> ideapbd@gmail.com</span>
-                </div>
-                <div class="inv-brand-web">
-                    <i class="fa-solid fa-globe"></i> www.ideaabd.com
+                <div class="inv-brand-wrapper">
+                    @if($siteLogo)
+                        <img src="{{ $siteLogo }}" alt="IDEA" class="inv-logo" onerror="this.style.display='none';">
+                    @endif
+                    <div class="inv-brand-details">
+                        <div class="inv-brand-name">IDEA PROKASHON</div>
+                        <div class="inv-brand-address">CENTRAL ROAD, RANGPUR-5400</div>
+                        <div class="inv-brand-contact">
+                            <span><i class="fa-solid fa-phone"></i> +8801726976982</span>
+                            <span><i class="fa-solid fa-envelope"></i> ideapbd@gmail.com</span>
+                        </div>
+                        <div class="inv-brand-web">
+                            <i class="fa-solid fa-globe"></i> www.ideaabd.com
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Middle Column: Invoice Title -->
+            <!-- Middle Column: Invoice Title (Top, 50% smaller, inside a shape) -->
             <div class="inv-header-center">
-                <h1 class="inv-doc-title">Invoice</h1>
+                <span class="inv-doc-shape">Invoice</span>
             </div>
 
             <!-- Right Column: Order Meta -->
