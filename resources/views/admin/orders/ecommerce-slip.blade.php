@@ -830,7 +830,6 @@
                 <div class="slip-brand-info">
                     <h1 class="slip-brand-title">{{ $senderName }}</h1>
                     <div class="slip-brand-sub">{{ $senderWebsite }}</div>
-                    <div class="slip-brand-sub">• {{ $senderPhone }}</div>
                 </div>
             </div>
 
