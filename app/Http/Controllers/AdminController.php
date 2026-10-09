@@ -3356,6 +3356,7 @@ class AdminController extends Controller
             $validated = $request->validate([
                 'title'                    => 'required|string|max:255',
                 'category_id'              => 'nullable',
+                'category_name'            => 'nullable|string|max:255',
                 'author_name'              => 'nullable|string|max:255',
                 'author_id'                => 'nullable',
                 'publisher_id'             => 'nullable',
@@ -3442,7 +3443,20 @@ class AdminController extends Controller
             $stockStatus = $request->input('stock_status') ?: ($stock <= 0 ? 'out' : ($stock <= 5 ? 'low' : 'in_stock'));
 
             $categoryId = $request->filled('category_id') && is_numeric($request->input('category_id')) ? (int) $request->input('category_id') : null;
+            if (!$categoryId && $request->filled('category_name')) {
+                $catName = trim($request->input('category_name'));
+                $cat = \Modules\Book\Models\Category::firstOrCreate(
+                    ['name' => $catName],
+                    ['slug' => \Illuminate\Support\Str::slug($catName) ?: 'cat-' . time(), 'is_active' => true]
+                );
+                $categoryId = $cat->id;
+            }
             $publisherId = $request->filled('publisher_id') && is_numeric($request->input('publisher_id')) ? (int) $request->input('publisher_id') : null;
+            if (!$publisherId && $request->filled('publisher_name')) {
+                $pubName = trim($request->input('publisher_name'));
+                $pub = \Modules\Publisher\Models\Publisher::firstOrCreate(['name' => $pubName], ['slug' => \Illuminate\Support\Str::slug($pubName) ?: 'pub-' . time()]);
+                $publisherId = $pub->id;
+            }
 
             $book = \Modules\Book\Models\Book::create([
                 'title'                    => $title,

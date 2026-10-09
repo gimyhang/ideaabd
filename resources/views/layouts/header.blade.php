@@ -85,16 +85,18 @@
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 1: ULTRA-COMPACT UTILITY TOPBAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-topbar text-white" style="background: #07192f !important; font-size: 13.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); min-height: 48px; height: 48px; display: flex; align-items: center; padding: 0; box-shadow: none !important;">
+    <div class="site-topbar text-white" style="background: #07192f !important; font-size: 13.5px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); min-height: 48px; height: auto; display: flex; align-items: center; padding: 4px 0; box-shadow: none !important;">
         <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2 gap-md-3">
-            {{-- Left: Hotline & WhatsApp info (English, High-Contrast) --}}
+            {{-- Left: Hotline & WhatsApp info (Clean Padding & Perfect Alignment) --}}
             <div class="d-flex align-items-center gap-2 text-nowrap flex-shrink-0">
-                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="text-white text-decoration-none d-inline-flex align-items-center gap-2.5 hover-warning" title="Contact via WhatsApp or Direct Call">
-                    <span class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 28px; height: 28px; font-size: 15px; box-shadow: none !important;">
+                <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="topbar-hotline-pill text-white text-decoration-none d-inline-flex align-items-center" title="Contact via WhatsApp or Direct Call">
+                    <span class="whatsapp-circle flex-shrink-0">
                         <i class="fa-brands fa-whatsapp"></i>
                     </span>
-                    <strong class="text-warning-emphasis fw-bold" style="font-size: 13px; letter-spacing: 0.5px; color: #fde047 !important;">HOTLINE:</strong>
-                    <span class="text-white fw-bold font-monospace px-2.5 py-1 rounded-pill" style="font-size: clamp(13.5px, 3.4vw, 15.5px); letter-spacing: 0.5px; background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.18); box-shadow: none !important;">+88 01726976982</span>
+                    <span class="hotline-text-wrap d-inline-flex align-items-center gap-1.5">
+                        <strong class="hotline-label fw-bold">HOTLINE:</strong>
+                        <span class="hotline-number font-monospace fw-bold">+88 01726976982</span>
+                    </span>
                 </a>
                 <span class="badge rounded-pill text-light fw-medium ms-1 d-none d-md-inline-flex align-items-center gap-2" style="background: rgba(255, 255, 255, 0.08); font-size: 11.5px; border: 1px solid rgba(255, 255, 255, 0.14); padding: 5px 12px; box-shadow: none !important;">
                     <i class="fa-solid fa-clock text-warning" style="font-size: 11px;"></i>
@@ -102,14 +104,19 @@
                 </span>
             </div>
 
-            {{-- Right: Quick Utility Links & Focused Language Switcher in English --}}
+            {{-- Right: Quick Utility Links, Library Apply & Focused Language Switcher in English --}}
             <div class="d-flex align-items-center gap-2 gap-md-2.5 text-nowrap ms-auto ms-sm-0">
-                <div class="d-flex align-items-center gap-2.5 gap-md-3 overflow-x-auto text-nowrap scrollbar-none">
+                <div class="d-flex align-items-center gap-2 gap-md-2.5 overflow-x-auto text-nowrap scrollbar-none">
+                    <a href="{{ url('/pathagar') }}" class="btn-topbar-library text-decoration-none" title="Library Apply — পাঠাগার বই অনুদান আবেদন">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Library Apply</span>
+                    </a>
+                    <span class="text-white-50 opacity-30 d-none d-sm-inline">|</span>
                     <a href="{{ Route::has('my-account') ? route('my-account') : url('/my-account') }}" class="text-white text-decoration-none d-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold" style="font-size: 13px; box-shadow: none !important;">
                         <i class="fa-solid fa-truck-fast text-info" style="font-size: 13px;"></i>
                         <span>Track Order</span>
                     </a>
-                    <span class="text-white-50 opacity-30 d-none d-sm-inline">|</span>
+                    <span class="text-white-50 opacity-30 d-none d-md-inline">|</span>
                     <a href="{{ url('/hub') }}" class="text-white text-decoration-none d-none d-md-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill hover-bg-light transition-all fw-semibold text-light opacity-90" style="font-size: 13px; box-shadow: none !important;">
                         <i class="fa-solid fa-briefcase text-warning" style="font-size: 13px;"></i>
                         <span>Careers</span>
@@ -182,7 +189,7 @@
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 2: MAIN BRANDING & INSTANT SEARCH BAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-mainbar bg-white border-bottom position-relative" style="padding-top: 25px; padding-bottom: 25px; z-index: 1040; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+    <div class="site-mainbar bg-white border-bottom position-relative" style="padding-top: 50px; padding-bottom: 50px; min-height: 146px; z-index: 1040; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
         <div class="container d-flex align-items-center justify-content-between gap-2 gap-lg-4">
 
             {{-- 1. Brand Logo --}}
@@ -197,7 +204,7 @@
                         <img src="{{ $logoUrl }}" 
                              alt="{{ $siteName }}" 
                              class="site-brand__img img-fluid"
-                             style="max-height: 48px; width: auto; object-fit: contain;"
+                             style="max-height: 52px; width: auto; object-fit: contain;"
                              onerror="this.onerror=null; this.src='{{ asset('images/logo.png') }}';">
                     @else
                         <span class="site-brand__fallback" style="font-size: 1.25rem;">{{ config('brand.lettermark', 'আই') }}</span>
@@ -214,10 +221,10 @@
             {{-- 2. Enhanced Live Search Bar with Scope & Voice Search (Centered) --}}
             <div class="site-search flex-grow-1 mx-auto position-relative" style="max-width: 660px;">
                 <form action="{{ route('search') }}" method="GET" class="site-search__form m-0" id="headerGlobalSearchForm" autocomplete="off">
-                    <div class="input-group search-input-group rounded-pill border overflow-hidden bg-white shadow-2xs transition-all" id="headerSearchGroup">
+                    <div class="input-group search-input-group rounded-pill border overflow-hidden bg-white shadow-2xs transition-all" id="headerSearchGroup" style="min-height: 52px;">
                         {{-- Search Department / Scope Dropdown --}}
                         <div class="search-scope-wrapper position-relative d-none d-md-flex align-items-center bg-light border-end">
-                            <select name="type" id="headerSearchType" class="form-select search-filter-select border-0 bg-transparent text-dark fw-bold py-2 ps-3 pe-4" style="max-width: 135px; font-size: 13px; cursor: pointer;">
+                            <select name="type" id="headerSearchType" class="form-select search-filter-select border-0 bg-transparent text-dark fw-bold py-2.5 ps-3 pe-4" style="max-width: 135px; font-size: 13.5px; cursor: pointer; height: 100%;">
                                 <option value="all" selected>সকল কিছু</option>
                                 <option value="books">বইসমূহ</option>
                                 <option value="authors">লেখক</option>
@@ -232,12 +239,12 @@
                         <input type="search"
                                name="q"
                                id="headerSearchInput"
-                               class="form-control border-0 bg-transparent py-2 ps-3 pe-2 fw-medium text-dark shadow-none"
+                               class="form-control border-0 bg-transparent py-2.5 ps-3 pe-2 fw-medium text-dark shadow-none"
                                placeholder="বইয়ের নাম, লেখক, বিষয় বা প্রকাশনী দিয়ে খুঁজুন..."
                                aria-label="বই অনুসন্ধান"
                                autocomplete="off"
                                value="{{ request('q') ?: request('search') }}"
-                               style="font-size: 13.5px;">
+                               style="font-size: 14px; min-height: 50px;">
 
                         {{-- Quick Clear Button --}}
                         <button type="button" id="headerSearchClearBtn" class="btn btn-link text-muted p-0 pe-2 text-decoration-none d-none" title="ক্লিয়ার করুন" style="font-size: 15px; width: 30px; display: inline-flex; align-items: center; justify-content: center;">
@@ -249,13 +256,9 @@
                             <i class="fa-solid fa-microphone voice-mic-icon"></i>
                         </button>
 
-                        {{-- Keyboard Shortcut Badge (Desktop) --}}
-                        <div class="d-none d-xl-flex align-items-center pe-2 user-select-none">
-                            <kbd class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold font-monospace" style="font-size: 10px;">⌘K</kbd>
-                        </div>
                         
                         {{-- Submit Button --}}
-                        <button class="btn btn-primary px-3.5 py-2 rounded-pill m-1 d-flex align-items-center justify-content-center shadow-xs hover-shadow" type="submit" aria-label="খুঁজুন" style="min-width: 46px;">
+                        <button class="btn btn-primary px-3.5 py-2 rounded-pill m-1 d-flex align-items-center justify-content-center shadow-xs hover-shadow" type="submit" aria-label="খুঁজুন" style="min-width: 48px; height: 44px;">
                             <i class="fa-solid fa-magnifying-glass fs-6"></i>
                         </button>
                     </div>
@@ -474,9 +477,9 @@
          BAR 3: CENTERED PRIMARY NAVIGATION BAR WITH DYNAMIC 'সকল বিষয়' & CLEAN DROPDOWNS
          [সকল বিষয় ▾] [হোম] [ই-বুক] [লেখক ▾] [প্রকাশক] [আইডিয়াপত্র ▾] [ওয়েবজিন] [গবেষণা] [আইডিয়া হাব] [আমাদের সম্পর্কে] [যোগাযোগ]
     ══════════════════════════════════════════════════════════════════ --}}
-    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); z-index: 1065;" aria-label="প্রধান মেনু">
-        <div class="container d-flex align-items-center justify-content-center text-center position-relative" style="overflow: visible;">
-            <ul class="nav align-items-center justify-content-center site-nav__list py-1 my-0 w-100" style="min-height: 42px; overflow: visible;">
+    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); z-index: 1065; min-height: 92px; display: flex; align-items: center;" aria-label="প্রধান মেনু">
+        <div class="container d-flex align-items-center justify-content-center text-center position-relative" style="overflow: visible; min-height: 92px;">
+            <ul class="nav align-items-center justify-content-center site-nav__list py-2 my-0 w-100" style="min-height: 92px; overflow: visible;">
 
                 {{-- 1. [সকল বিষয় ▾] Clean Category & Department Mega Dropdown --}}
                 <li class="nav-item dropdown site-nav__item has-mega position-relative">
@@ -699,152 +702,84 @@
             margin-right: 2px;
         }
 
-        /* Ultra-Dynamic Library Grant Button in Main Header Navigation */
-        .btn-pathagar-nav {
+        /* Clean, Perfectly Padded Topbar Hotline Pill */
+        .topbar-hotline-pill {
             display: inline-flex;
             align-items: center;
-            gap: 6.5px;
-            background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 50px;
+            padding: 3px 12px 3px 4px;
+            transition: all 0.2s ease;
+        }
+        .topbar-hotline-pill:hover {
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+        .topbar-hotline-pill .whatsapp-circle {
+            width: 26px;
+            height: 26px;
+            min-width: 26px;
+            min-height: 26px;
+            border-radius: 50%;
+            background: #25d366;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14.5px;
+            box-shadow: none !important;
+        }
+        .topbar-hotline-pill .whatsapp-circle i {
+            margin: 0 !important;
+            line-height: 1;
+        }
+        .topbar-hotline-pill .hotline-label {
+            font-size: 12.5px;
+            letter-spacing: 0.5px;
+            color: #fde047 !important;
+        }
+        .topbar-hotline-pill .hotline-number {
+            font-size: clamp(13px, 3.2vw, 14.5px);
+            letter-spacing: 0.3px;
             color: #ffffff !important;
-            padding: 5px 13px;
+        }
+
+        /* Topbar Library Apply Button (Crisp Yellow Pill, Clean & Direct) */
+        .btn-topbar-library {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fde047;
+            color: #07192f !important;
+            padding: 3.5px 12px;
             border-radius: 50px;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 700;
             text-decoration: none !important;
-            position: relative;
-            overflow: hidden;
-            border: 1.5px solid rgba(255, 255, 255, 0.45);
-            box-shadow: 0 4px 16px rgba(5, 150, 105, 0.35);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(253, 224, 71, 0.5);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s ease;
             white-space: nowrap;
             letter-spacing: 0.2px;
         }
-        .btn-pathagar-sheen {
-            position: absolute;
-            top: -50%;
-            left: -100%;
-            width: 60%;
-            height: 200%;
-            background: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.38) 50%,
-                rgba(255, 255, 255, 0) 100%
-            );
-            transform: rotate(25deg);
-            animation: sheenSweep 3.6s infinite ease-in-out;
-            pointer-events: none;
+        .btn-topbar-library i {
+            font-size: 11px;
+            color: #07192f !important;
+            margin-right: 0 !important;
         }
-        @keyframes sheenSweep {
-            0%, 20% { left: -100%; }
-            50%, 100% { left: 160%; }
+        .btn-topbar-library:hover {
+            background: #facc15;
+            color: #000000 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(250, 204, 21, 0.35);
         }
-        .btn-pathagar-nav:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 8px 26px rgba(16, 185, 129, 0.55), 0 0 15px rgba(245, 158, 11, 0.4);
-            color: #ffffff !important;
-            border-color: #fde047;
+        .btn-topbar-library:active {
+            transform: translateY(0);
         }
-        .btn-pathagar-nav:active {
-            transform: translateY(0) scale(0.98);
-        }
-        .btn-pathagar-nav.is-live-lighting {
-            animation: liveLightingNeon 2.2s infinite alternate ease-in-out;
-        }
-        @keyframes liveLightingNeon {
-            0% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 14px rgba(5, 150, 105, 0.35);
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 14px 2px rgba(52, 211, 153, 0.7), 0 0 22px rgba(245, 158, 11, 0.6), 0 4px 18px rgba(5, 150, 105, 0.5);
-                border-color: #fde047;
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 4px 14px rgba(5, 150, 105, 0.35);
-                border-color: rgba(255, 255, 255, 0.5);
-            }
-        }
-        .btn-pathagar-icon {
-            font-size: 13.5px;
-            color: #fef08a;
-            display: inline-flex;
-            align-items: center;
-            animation: iconWiggle 3s infinite ease-in-out;
-        }
-        @keyframes iconWiggle {
-            0%, 80%, 100% { transform: rotate(0); }
-            85% { transform: rotate(-12deg) scale(1.1); }
-            90% { transform: rotate(12deg) scale(1.1); }
-            95% { transform: rotate(-6deg); }
-        }
-        .btn-pathagar-text {
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #ffffff;
-            letter-spacing: 0.3px;
-        }
-        .btn-pathagar-pill {
-            font-size: 9.5px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);
-            color: #713f12;
-            padding: 1.5px 7px;
-            border-radius: 12px;
-            font-weight: 800;
-            letter-spacing: 0.6px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-        .pathagar-live-beacon {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: #ffffff;
-            font-size: 8.5px;
-            font-weight: 900;
-            padding: 2px 6px;
-            border-radius: 12px;
-            letter-spacing: 0.6px;
-            margin-left: 2px;
-            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
-        }
-        .beacon-pulse {
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 14px;
-            background: #ef4444;
-            opacity: 0.8;
-            animation: beaconPulseAnim 1.6s infinite ease-out;
-            z-index: 1;
-        }
-        .beacon-dot {
-            width: 4px;
-            height: 4px;
-            background: #ffffff;
-            border-radius: 50%;
-            position: relative;
-            z-index: 2;
-        }
-        .beacon-text {
-            position: relative;
-            z-index: 2;
-        }
-        @keyframes beaconPulseAnim {
-            0% {
-                transform: scale(0.95);
-                opacity: 0.8;
-            }
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
-        }
+
         /* Modern Header Action Buttons */
         .btn-hdr-auth {
             position: relative;

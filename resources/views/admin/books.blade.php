@@ -32,8 +32,8 @@
         <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
             <i class="fa-solid fa-folder-tree me-1"></i> Categories
         </a>
-        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" onclick="openQuickAddBookModal()" title="Fast 10-Second Quick Book Upload">
-            <i class="fa-solid fa-bolt me-1 text-warning"></i> Quick Add Book
+        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" onclick="openQuickAddBookModal()" title="Quick">
+            Quick
         </button>
         <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
             <i class="fa-solid fa-circle-plus me-1"></i> Add Full Book
@@ -950,17 +950,9 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #10b981, #059669);">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="p-2 bg-white bg-opacity-25 rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
-                        <i class="fa-solid fa-bolt text-warning"></i>
-                    </span>
-                    <div>
-                        <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel" style="font-size: 1.05rem;">
-                            <i class="fa-solid fa-bolt me-1 text-warning"></i> Quick Book Add (দ্রুত বই আপলোড)
-                        </h5>
-                        <small class="text-white text-opacity-75" style="font-size: 11.5px;">Book title, category, cover & price — publish in seconds, edit details anytime</small>
-                    </div>
-                </div>
+                <h5 class="modal-title fw-bold text-white mb-0" id="quickAddBookModalLabel" style="font-size: 1.05rem;">
+                    Quick
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
@@ -973,145 +965,162 @@
                     <div id="qaAlertBox"></div>
 
                     <div class="row g-4">
-                        {{-- Left Column: Dynamic Live Auto-Cover Canvas & Options --}}
+                        {{-- Left Column: Cover Preview & Options --}}
                         <div class="col-12 col-md-5 border-end-md text-center">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <label class="form-label small fw-bold text-dark mb-0">
-                                    <i class="fa-solid fa-image text-primary me-1"></i> কভার প্রিভিউ (Live Cover)
-                                </label>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace" style="font-size: 10px;">
-                                    অটো জেনারেটেড
-                                </span>
+                                <label class="form-label small fw-bold text-dark mb-0">Cover</label>
                             </div>
 
                             {{-- Live Rendered Canvas for Auto-Cover --}}
                             <div class="position-relative d-inline-block shadow-sm rounded-3 overflow-hidden mb-2.5 border" style="width: 150px; height: 220px; background: #1e1b4b;">
                                 <canvas id="qaCoverCanvas" width="300" height="440" style="width: 150px; height: 220px; display: block;"></canvas>
-                                <img id="qaCoverFilePreview" src="" alt="Custom Cover" class="d-none w-100 h-100" style="object-fit: cover;">
+                                <img id="qaCoverFilePreview" src="" alt="Cover" class="d-none w-100 h-100" style="object-fit: cover;">
                             </div>
 
-                            {{-- Theme Color Chooser for Auto SVG Cover --}}
+                            {{-- Theme Chooser --}}
                             <div id="qaCoverThemeSection" class="mb-3">
                                 <label class="form-label small fw-semibold text-muted d-block mb-1.5" style="font-size: 11px;">
-                                    কভার থিম সিলেক্ট করুন:
+                                    Theme
                                 </label>
                                 <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap">
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn active" style="width: 22px; height: 22px; background: linear-gradient(135deg, #1e1b4b, #4338ca);" data-theme="indigo" onclick="selectQaCoverTheme('indigo')" title="Royal Indigo"></button>
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #4c0519, #be123c);" data-theme="rose" onclick="selectQaCoverTheme('rose')" title="Sunset Rose"></button>
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #022c22, #047857);" data-theme="emerald" onclick="selectQaCoverTheme('emerald')" title="Emerald Forest"></button>
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #451a03, #b45309);" data-theme="amber" onclick="selectQaCoverTheme('amber')" title="Golden Amber"></button>
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #2e1065, #7e22ce);" data-theme="purple" onclick="selectQaCoverTheme('purple')" title="Royal Purple"></button>
-                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #090d16, #334155);" data-theme="dark" onclick="selectQaCoverTheme('dark')" title="Midnight Slate"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn active" style="width: 22px; height: 22px; background: linear-gradient(135deg, #1e1b4b, #4338ca);" data-theme="indigo" onclick="selectQaCoverTheme('indigo')" title="Indigo"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #4c0519, #be123c);" data-theme="rose" onclick="selectQaCoverTheme('rose')" title="Rose"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #022c22, #047857);" data-theme="emerald" onclick="selectQaCoverTheme('emerald')" title="Emerald"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #451a03, #b45309);" data-theme="amber" onclick="selectQaCoverTheme('amber')" title="Amber"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #2e1065, #7e22ce);" data-theme="purple" onclick="selectQaCoverTheme('purple')" title="Purple"></button>
+                                    <button type="button" class="btn btn-xs rounded-circle border shadow-2xs qa-theme-btn" style="width: 22px; height: 22px; background: linear-gradient(135deg, #090d16, #334155);" data-theme="dark" onclick="selectQaCoverTheme('dark')" title="Dark"></button>
                                 </div>
                             </div>
 
                             {{-- Manual Upload Option --}}
                             <div>
                                 <label for="qaCoverInput" class="btn btn-xs btn-outline-secondary rounded-pill px-3 cursor-pointer">
-                                    <i class="fa-solid fa-cloud-arrow-up me-1 text-primary"></i> Upload Custom Cover
+                                    Upload
                                 </label>
                                 <input type="file" id="qaCoverInput" name="cover_image_file" accept="image/*" class="d-none" onchange="previewQaSelectedCover(this)">
                                 <button type="button" id="qaResetAutoCoverBtn" class="btn btn-xs btn-link text-muted d-none text-decoration-none mt-1" onclick="resetToQaAutoCover()" style="font-size: 11px;">
-                                    <i class="fa-solid fa-rotate-left me-0.5"></i> Reset to Auto Cover
+                                    Reset
                                 </button>
                             </div>
                         </div>
 
-                        {{-- Right Column: Basic Info & Live Commission Calculator --}}
+                        {{-- Right Column: Basic Info & Calculator --}}
                         <div class="col-12 col-md-7">
                             
-                            {{-- 1. Book Title (Bengali / English) --}}
+                            {{-- 1. Title --}}
                             <div class="mb-2.5">
                                 <label class="form-label small fw-bold text-dark mb-1">
-                                    Book Title (বইয়ের নাম) <span class="text-danger">*</span>
+                                    Title <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" id="qaTitle" name="title" class="form-control form-control-sm fw-bold border-primary-subtle" 
-                                       placeholder="e.g. The Art of Thinking / নদীর ওপার আকাশ" required oninput="renderQaAutoCover()">
+                                <input type="text" id="qaTitle" name="title" class="form-control form-control-sm fw-bold border-primary-subtle" required oninput="renderQaAutoCover()">
                             </div>
 
-                            {{-- 2. Category & Author --}}
+                            {{-- 2. Category, Author & Publisher --}}
                             <div class="row g-2 mb-2.5">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">
-                                        Category (ক্যাটাগরি) <span class="text-danger">*</span>
-                                    </label>
-                                    <select id="qaCategoryId" name="category_id" class="form-select form-select-sm fw-semibold">
+                                <div class="col-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                        <label class="form-label small fw-bold text-dark mb-0">
+                                            Category <span class="text-danger">*</span>
+                                        </label>
+                                        <button type="button" class="btn btn-link p-0 text-primary small text-decoration-none fw-semibold" onclick="toggleQaNewCategory()" style="font-size: 11px;">
+                                            + New
+                                        </button>
+                                    </div>
+                                    <select id="qaCategoryId" name="category_id" class="form-select form-select-sm fw-semibold" onchange="onQaCategoryChange(this)">
+                                        @php $currentFilterCat = request('category_id'); @endphp
                                         @foreach($categories as $cId => $cName)
-                                            <option value="{{ $cId }}" @selected($cId == ($bibidhId ?? 0))>{{ $cName }}</option>
+                                            <option value="{{ $cId }}" @selected($currentFilterCat ? ($cId == $currentFilterCat) : ($cId == ($bibidhId ?? 0)))>{{ $cName }}</option>
+                                        @endforeach
+                                        <option value="custom_new">+ New...</option>
+                                    </select>
+                                    <div id="qaNewCatWrapper" class="d-none mt-1.5 p-1.5 bg-light rounded-2 border">
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" id="qaNewCatName" name="category_name" class="form-control form-control-sm" placeholder="" onkeydown="if(event.key==='Enter'){event.preventDefault();quickSaveNewCat();}">
+                                            <button type="button" class="btn btn-primary btn-sm px-2" onclick="quickSaveNewCat()" id="qaSaveNewCatBtn">Add</button>
+                                        </div>
+                                        <div id="qaNewCatErr" class="text-danger small mt-1 d-none" style="font-size: 10px;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        Author
+                                    </label>
+                                    <input type="text" id="qaAuthorName" name="author_name" class="form-control form-control-sm" oninput="renderQaAutoCover()">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small fw-bold text-dark mb-1">
+                                        Publisher
+                                    </label>
+                                    <select id="qaPublisherId" name="publisher_id" class="form-select form-select-sm fw-semibold" onchange="renderQaAutoCover()">
+                                        @foreach($publishers as $pId => $pName)
+                                            <option value="{{ $pId }}" @selected(mb_stripos($pName, 'আইডিয়া') !== false || $pId == 3)>{{ $pName }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">
-                                        Author Name (লেখক)
-                                    </label>
-                                    <input type="text" id="qaAuthorName" name="author_name" class="form-control form-control-sm" 
-                                           placeholder="e.g. শাকিল মাসুদ / Idea Author" value="আইডিয়া প্রকাশন" oninput="renderQaAutoCover()">
-                                </div>
                             </div>
 
-                            {{-- 3. Pricing, Sale Discount & Wholesale Calculator Box --}}
+                            {{-- 3. Pricing Box --}}
                             <div class="p-2.5 bg-light rounded-3 mb-2.5 border">
                                 <div class="row g-2 mb-2">
                                     <div class="col-4">
                                         <label class="form-label small fw-bold text-dark mb-1">
-                                            Printed MRP <span class="text-danger">*</span>
+                                            MRP <span class="text-danger">*</span>
                                         </label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control fw-bold" placeholder="300" required oninput="recalcQaPricingFromMrp()">
+                                            <input type="number" id="qaPrice" name="price" min="0" step="1" class="form-control fw-bold" required oninput="recalcQaPricingFromMrp()">
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">Sale Discount (%)</label>
+                                        <label class="form-label small fw-semibold text-dark mb-1">Discount</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" placeholder="20" oninput="recalcQaSalePriceFromCommission()">
+                                            <input type="number" id="qaSaleCommission" min="0" max="100" step="0.5" class="form-control text-center text-danger fw-bold" oninput="recalcQaSalePriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
                                         </div>
                                     </div>
                                     <div class="col-4">
-                                        <label class="form-label small fw-semibold text-dark mb-1">Sale Price (৳)</label>
+                                        <label class="form-label small fw-semibold text-dark mb-1">Price</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" placeholder="240" oninput="recalcQaSaleCommissionFromPrice()">
+                                            <input type="number" id="qaDiscountPrice" name="discount_price" min="0" step="1" class="form-control text-primary fw-bold" oninput="recalcQaSaleCommissionFromPrice()">
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Wholesale Buy Price --}}
+                                {{-- Wholesale Price --}}
                                 <div class="row g-2 align-items-center pt-2 border-top">
                                     <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale Buy Discount (%):</label>
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale</label>
                                         <div class="input-group input-group-sm">
-                                            <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" placeholder="40" oninput="recalcQaCostPriceFromCommission()">
+                                            <input type="number" id="qaBuyCommission" min="0" max="100" step="0.5" class="form-control text-center text-success fw-semibold" oninput="recalcQaCostPriceFromCommission()">
                                             <span class="input-group-text bg-white">%</span>
                                         </div>
                                     </div>
                                     <div class="col-6">
-                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Wholesale Cost Price (৳):</label>
+                                        <label class="form-label small text-muted mb-0" style="font-size: 11px;">Cost</label>
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-text bg-white">৳</span>
-                                            <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" placeholder="180" oninput="recalcQaBuyCommissionFromPrice()">
+                                            <input type="number" id="qaCostPrice" name="cost_price" min="0" step="1" class="form-control text-success fw-bold" oninput="recalcQaBuyCommissionFromPrice()">
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- 4. Stock & Binding Format --}}
+                            {{-- 4. Stock & Binding --}}
                             <div class="row g-2 align-items-center">
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Initial Stock (pcs)</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Stock</label>
                                     <div class="input-group input-group-sm">
                                         <input type="number" id="qaStockQuantity" name="stock_quantity" min="0" value="10" class="form-control fw-bold">
                                         <span class="input-group-text">pcs</span>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small fw-bold text-dark mb-1">Binding Format</label>
+                                    <label class="form-label small fw-bold text-dark mb-1">Binding</label>
                                     <select id="qaCoverType" name="cover_type" class="form-select form-select-sm">
-                                        <option value="paperback" selected>📖 Paperback (পেপারব্যাক)</option>
-                                        <option value="hardcover">💎 Hardcover (হার্ডকভার)</option>
-                                        <option value="both">📚 Both Formats (উভয়)</option>
+                                        <option value="hardcover" selected>Hardcover</option>
+                                        <option value="paperback">Paperback</option>
+                                        <option value="both">Both</option>
                                     </select>
                                 </div>
                             </div>
@@ -1120,16 +1129,11 @@
                     </div>
                 </div>
 
-                <div class="modal-footer bg-light py-2.5 d-flex align-items-center justify-content-between">
-                    <small class="text-muted" style="font-size: 11px;">
-                        <i class="fa-solid fa-circle-info text-primary me-0.5"></i> Full book summary, look-inside preview and ISBN can be added anytime in full editor.
-                    </small>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" id="qaSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
-                            <i class="fa-solid fa-bolt me-1 text-warning"></i> 1-Click Publish
-                        </button>
-                    </div>
+                <div class="modal-footer bg-light py-2.5 d-flex align-items-center justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="qaSubmitBtn" class="btn btn-sm rounded-pill px-4 fw-bold text-white shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                        Publish
+                    </button>
                 </div>
             </form>
         </div>
@@ -1187,7 +1191,7 @@
                                 </div>
                                 <div class="col-4">
                                     <label class="form-label small fw-bold text-dark mb-1">Edition</label>
-                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm" placeholder="e.g. 1st Edition 2026">
+                                    <input type="text" id="qeEdition" name="edition" class="form-control form-control-sm">
                                 </div>
                             </div>
 
@@ -2374,13 +2378,41 @@ function openQuickAddBookModal() {
     if (form) form.reset();
 
     const authorInput = document.getElementById('qaAuthorName');
-    if (authorInput) authorInput.value = 'আইডিয়া প্রকাশন';
+    if (authorInput) authorInput.value = '';
 
     const stockInput = document.getElementById('qaStockQuantity');
     if (stockInput) stockInput.value = '10';
 
+    const coverTypeInput = document.getElementById('qaCoverType');
+    if (coverTypeInput) coverTypeInput.value = 'hardcover';
+
     const alertBox = document.getElementById('qaAlertBox');
     if (alertBox) alertBox.innerHTML = '';
+
+    // Dynamic pre-selection based on active page filter or URL query
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeCatId = urlParams.get('category_id');
+    const catSelect = document.getElementById('qaCategoryId');
+    if (catSelect && activeCatId) {
+        catSelect.value = activeCatId;
+    }
+
+    const activeAuthorId = urlParams.get('author_id');
+    if (activeAuthorId && authorInput && !authorInput.value) {
+        const authorFilterSelect = document.querySelector('select[name="author_id"]');
+        if (authorFilterSelect && authorFilterSelect.value === activeAuthorId) {
+            authorInput.value = authorFilterSelect.options[authorFilterSelect.selectedIndex]?.text.replace(/^.*?[-—]\s*/, '').trim() || '';
+        }
+    }
+
+    const activePublisherId = urlParams.get('publisher_id');
+    const pubSelect = document.getElementById('qaPublisherId');
+    if (pubSelect && activePublisherId && activePublisherId !== 'registered' && activePublisherId !== 'idea') {
+        pubSelect.value = activePublisherId;
+    }
+
+    const newCatWrap = document.getElementById('qaNewCatWrapper');
+    if (newCatWrap) newCatWrap.classList.add('d-none');
 
     resetToQaAutoCover();
     selectQaCoverTheme('indigo');
@@ -2394,6 +2426,96 @@ function openQuickAddBookModal() {
     setTimeout(() => {
         document.getElementById('qaTitle')?.focus();
     }, 350);
+}
+
+function onQaCategoryChange(select) {
+    if (select.value === 'custom_new') {
+        toggleQaNewCategory(true);
+    } else {
+        toggleQaNewCategory(false);
+    }
+    renderQaAutoCover();
+}
+
+function toggleQaNewCategory(forceShow = null) {
+    const wrap = document.getElementById('qaNewCatWrapper');
+    if (!wrap) return;
+    const isShowing = forceShow !== null ? !forceShow : !wrap.classList.contains('d-none');
+    if (isShowing) {
+        wrap.classList.add('d-none');
+    } else {
+        wrap.classList.remove('d-none');
+        setTimeout(() => document.getElementById('qaNewCatName')?.focus(), 80);
+    }
+}
+
+function quickSaveNewCat() {
+    const input = document.getElementById('qaNewCatName');
+    const errDiv = document.getElementById('qaNewCatErr');
+    const btn = document.getElementById('qaSaveNewCatBtn');
+    const name = input ? input.value.trim() : '';
+
+    if (!name) {
+        if (errDiv) {
+            errDiv.textContent = 'Enter category name';
+            errDiv.classList.remove('d-none');
+        }
+        return;
+    }
+
+    if (errDiv) errDiv.classList.add('d-none');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '...';
+    }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+    fetch("{{ Route::has('admin.quick.category') ? route('admin.quick.category') : url('/admin/quick/category') }}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': token
+        },
+        body: JSON.stringify({ name: name })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Add';
+        }
+        if (data.success && data.item) {
+            const select = document.getElementById('qaCategoryId');
+            if (select) {
+                const opt = document.createElement('option');
+                opt.value = data.item.id;
+                opt.textContent = data.item.name;
+                opt.selected = true;
+                select.insertBefore(opt, select.lastElementChild);
+                select.value = data.item.id;
+            }
+            if (input) input.value = '';
+            toggleQaNewCategory(false);
+            renderQaAutoCover();
+        } else {
+            if (errDiv) {
+                errDiv.textContent = data.message || 'Error saving category';
+                errDiv.classList.remove('d-none');
+            }
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Add';
+        }
+        if (errDiv) {
+            errDiv.textContent = 'Server connection error';
+            errDiv.classList.remove('d-none');
+        }
+    });
 }
 
 function selectQaCoverTheme(theme) {
@@ -2422,9 +2544,9 @@ function renderQaAutoCover() {
     if (!ctx) return;
 
     const pal = QA_PALETTES[currentQaTheme] || QA_PALETTES.indigo;
-    const title = (document.getElementById('qaTitle')?.value || 'বইয়ের বাংলা নাম').trim();
-    const author = (document.getElementById('qaAuthorName')?.value || 'আইডিয়া প্রকাশন').trim();
-    const firstLetter = title ? title.charAt(0) : 'ব';
+    const title = (document.getElementById('qaTitle')?.value || 'Book Title').trim();
+    const author = (document.getElementById('qaAuthorName')?.value || '').trim();
+    const firstLetter = title ? title.charAt(0) : 'B';
 
     const W = canvas.width;  // 300
     const H = canvas.height; // 440
@@ -2462,10 +2584,13 @@ function renderQaAutoCover() {
     ctx.fill();
     ctx.globalAlpha = 1.0;
 
+    const pubSelect = document.getElementById('qaPublisherId');
+    const pubNameText = (pubSelect && pubSelect.selectedIndex >= 0 ? pubSelect.options[pubSelect.selectedIndex].text : 'IDEA PUBLICATION').trim();
+
     ctx.fillStyle = pal.accent;
-    ctx.font = 'bold 10px "Inter", sans-serif';
+    ctx.font = 'bold 10px "Inter", "SolaimanLipi", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('IDEA PUBLICATION', W / 2, 41);
+    ctx.fillText(pubNameText.toUpperCase(), W / 2, 41);
 
     // 5. Stylized Central Letter Monogram
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
@@ -2736,6 +2861,9 @@ window.recalcQaSalePriceFromCommission = recalcQaSalePriceFromCommission;
 window.recalcQaSaleCommissionFromPrice = recalcQaSaleCommissionFromPrice;
 window.recalcQaCostPriceFromCommission = recalcQaCostPriceFromCommission;
 window.recalcQaBuyCommissionFromPrice = recalcQaBuyCommissionFromPrice;
+window.onQaCategoryChange = onQaCategoryChange;
+window.toggleQaNewCategory = toggleQaNewCategory;
+window.quickSaveNewCat = quickSaveNewCat;
 window.openQuickEditModal = openQuickEditModal;
 window.handleQuickBookEditSubmit = handleQuickBookEditSubmit;
 window.onQeCoverTypeChange = onQeCoverTypeChange;

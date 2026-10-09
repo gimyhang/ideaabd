@@ -212,11 +212,30 @@
     border-radius: 8px;
     padding: 6px 10px;
 }
+.btn-xs {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    line-height: 1.35 !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.btn-xs:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
 .quick-disc-btn {
-    font-size: 10.5px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-weight: 600;
+    font-size: 10.5px !important;
+    padding: 3px 8px !important;
+    border-radius: 20px !important;
+    font-weight: 600 !important;
+    transition: all 0.15s ease !important;
+}
+.quick-disc-btn:hover {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border-color: #0f172a !important;
+    transform: translateY(-1px);
 }
 
 /* 3D Realistic Book Mockup */
@@ -506,56 +525,53 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- A4 Sheet Header --}}
         <div class="a4-doc-header">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6">
-                    <i class="fa-solid fa-file-invoice"></i>
-                </span>
                 <div>
-                    <h6 class="fw-bold mb-0 text-dark">Book Specification</h6>
+                    <h6 class="fw-bold mb-0 text-dark">Book</h6>
                 </div>
             </div>
         </div>
 
         {{-- QUICK JUMP SECTION NAVIGATION TABS --}}
         <div class="a4-section-nav" id="a4FormNav">
-            <a href="#sec-general" class="a4-nav-tab active"><i class="fa-solid fa-book-bookmark text-primary"></i> 1. General Specs</a>
-            <a href="#sec-authorship" class="a4-nav-tab"><i class="fa-solid fa-users text-primary"></i> 2. Authors & Credits</a>
-            <a href="#sec-format" class="a4-nav-tab"><i class="fa-solid fa-sliders text-info"></i> 3. Format & Edition</a>
-            <a href="#sec-pricing" class="a4-nav-tab"><i class="fa-solid fa-calculator text-success"></i> 4. Pricing & Margins</a>
-            <a href="#sec-classification" class="a4-nav-tab"><i class="fa-solid fa-shapes text-warning"></i> 5. Classification & IDs</a>
-            <a href="#sec-barcode" class="a4-nav-tab"><i class="fa-solid fa-qrcode text-secondary"></i> 6. Barcode & QR</a>
-            <a href="#sec-summary" class="a4-nav-tab"><i class="fa-solid fa-align-left text-danger"></i> 7. Summary & Flap</a>
+            <a href="#sec-general" class="a4-nav-tab active">General</a>
+            <a href="#sec-authorship" class="a4-nav-tab">Authors</a>
+            <a href="#sec-format" class="a4-nav-tab">Format</a>
+            <a href="#sec-pricing" class="a4-nav-tab">Pricing</a>
+            <a href="#sec-classification" class="a4-nav-tab">Classification</a>
+            <a href="#sec-barcode" class="a4-nav-tab">Barcode</a>
+            <a href="#sec-summary" class="a4-nav-tab">Summary</a>
         </div>
 
         {{-- SECTION 1: GENERAL SPECIFICATIONS --}}
         <div class="a4-doc-section" id="sec-general">
             <div class="a4-doc-section-title">
-                <i class="fa-solid fa-book-bookmark text-primary"></i> 1. General Specifications
+                General
             </div>
 
             <div class="row g-2.5">
                 {{-- Product Type * & Order Status * --}}
                 <div class="col-12 col-md-6">
                     <label for="f-product_type" class="a4-field-label">
-                        <span><i class="fa-solid fa-box text-primary me-1"></i> Product Type <span class="text-danger">*</span></span>
+                        <span>Product <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-product_type" name="product_type" class="form-select form-select-sm fw-semibold @error('product_type') is-invalid @enderror">
-                        <option value="book" @selected($val('product_type', 'book') === 'book')>Book (Printed Edition)</option>
+                        <option value="book" @selected($val('product_type', 'book') === 'book')>Book</option>
                         <option value="stationery" @selected($val('product_type') === 'stationery')>Stationery</option>
-                        <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Gift & Art Item</option>
-                        <option value="other" @selected($val('product_type') === 'other')>Other Item</option>
+                        <option value="islamic_gift" @selected($val('product_type') === 'islamic_gift')>Gift</option>
+                        <option value="other" @selected($val('product_type') === 'other')>Other</option>
                     </select>
                     @error('product_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label for="f-stock_status" class="a4-field-label">
-                        <span><i class="fa-solid fa-dolly text-success me-1"></i> Stock & Order Status <span class="text-danger">*</span></span>
+                        <span>Stock <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-stock_status" name="stock_status" class="form-select form-select-sm fw-semibold @error('stock_status') is-invalid @enderror" onchange="toggleAdminPreOrderFields(this.value)">
                         <option value="in_stock" @selected($val('stock_status', 'in_stock') === 'in_stock')>Buy Now</option>
                         <option value="pre_order" @selected($val('stock_status') === 'pre_order')>Pre-Order</option>
                         <option value="out_of_stock" @selected($val('stock_status') === 'out_of_stock')>Out of Stock</option>
-                        <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming / Coming Soon</option>
+                        <option value="upcoming" @selected($val('stock_status') === 'upcoming')>Upcoming</option>
                     </select>
                     @error('stock_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -566,17 +582,17 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <div class="row g-2">
                             <div class="col-12 col-md-6">
                                 <label for="f-pre_order_release_date" class="a4-field-label">
-                                    <span><i class="fa-solid fa-calendar-day text-warning me-1"></i> Estimated Delivery Start Date</span>
+                                    <span>Delivery</span>
                                 </label>
                                 <input type="date" id="f-pre_order_release_date" name="pre_order_release_date" 
                                        value="{{ $val('pre_order_release_date') }}" class="form-control form-control-sm">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label for="f-pre_order_note" class="a4-field-label">
-                                    <span><i class="fa-solid fa-gift text-warning me-1"></i> Pre-Order Special Offer or Gift</span>
+                                    <span>Offer</span>
                                 </label>
                                 <input type="text" id="f-pre_order_note" name="pre_order_note" 
-                                       value="{{ $val('pre_order_note') }}" class="form-control form-control-sm" placeholder="e.g. Free author autograph & limited bookmark">
+                                       value="{{ $val('pre_order_note') }}" class="form-control form-control-sm">
                             </div>
                         </div>
                     </div>
@@ -585,22 +601,20 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Title (BN) * & Title (EN) --}}
                 <div class="col-12 col-md-6">
                     <label for="f-title" class="a4-field-label">
-                        <span><i class="fa-solid fa-book text-primary me-1"></i> Book Title (Bengali) <span class="text-danger">*</span></span>
+                        <span>Title <span class="text-danger">*</span></span>
                     </label>
                     <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
                            class="form-control form-control-sm fw-semibold @error('title') is-invalid @enderror"
-                           placeholder="বইয়ের নাম (বাংলায়)..."
                            oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
                     @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 col-md-6">
                     <label for="f-title_en" class="a4-field-label">
-                        <span><i class="fa-solid fa-language text-secondary me-1"></i> Book Title (English)</span>
+                        <span>English</span>
                     </label>
                     <input type="text" id="f-title_en" name="title_en" value="{{ old('title_en', $record->title_en ?? '') }}"
                            class="form-control form-control-sm @error('title_en') is-invalid @enderror"
-                           placeholder="Book Title in English (optional)"
                            oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
                     @error('title_en')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -608,11 +622,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Subtitle / Tagline --}}
                 <div class="col-12">
                     <label for="f-subtitle" class="a4-field-label">
-                        <span><i class="fa-solid fa-feather text-secondary me-1"></i> Subtitle / Tagline (Optional)</span>
+                        <span>Subtitle</span>
                     </label>
                     <input type="text" id="f-subtitle" name="subtitle" value="{{ $val('subtitle') }}"
                            class="form-control form-control-sm @error('subtitle') is-invalid @enderror"
-                           placeholder="e.g. An authentic historical adventure novel..."
                            oninput="updateLiveMockupCard(); if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();">
                     @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -624,11 +637,11 @@ body.dark-mode .adm-mobile-sticky-bar {
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5">
                 <div class="d-flex align-items-center gap-2">
                     <div class="a4-doc-section-title mb-0">
-                        <i class="fa-solid fa-users text-primary"></i> 2. Authorship & Contributor Credits
+                        Authors
                     </div>
                     <span id="contributorLiveCountBadge">
                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold">
-                            <i class="fa-solid fa-pen-nib me-1"></i>Primary Author Needed
+                            Author Needed
                         </span>
                     </span>
                 </div>
@@ -637,26 +650,25 @@ body.dark-mode .adm-mobile-sticky-bar {
             {{-- Contributor Action Toolbar --}}
             <div class="contributor-toolbar">
                 <div class="d-flex flex-wrap align-items-center gap-1.5 contributor-role-btns">
-                    <span class="small fw-bold text-dark me-1 d-none d-sm-inline" style="font-size: 11.5px;">+ Add Role:</span>
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addAuthorField()" title="Add author">
-                        <i class="fa-solid fa-pen-nib me-1"></i>+ Author
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addAuthorField()" title="Add author">
+                        + Author
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addTranslatorField()" title="Add translator">
-                        <i class="fa-solid fa-language me-1"></i>+ Translator
+                    <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addTranslatorField()" title="Add translator">
+                        + Translator
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addEditorField()" title="Add editor">
-                        <i class="fa-solid fa-user-pen me-1"></i>+ Editor
+                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addEditorField()" title="Add editor">
+                        + Editor
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addRewriterField()" title="Add adapter">
-                        <i class="fa-solid fa-pen-fancy me-1"></i>+ Adapter
+                    <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addRewriterField()" title="Add adapter">
+                        + Adapter
                     </button>
-                    <button type="button" class="btn btn-xs btn-outline-purple rounded-pill px-2.5 py-1 fw-semibold shadow-2xs" onclick="addCoverArtistField()" title="Add cover artist" style="color: #7e22ce; border-color: #d8b4fe;">
-                        <i class="fa-solid fa-palette me-1"></i>+ Cover Artist
+                    <button type="button" class="btn btn-xs btn-outline-purple rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addCoverArtistField()" title="Add cover artist" style="color: #7e22ce; border-color: #d8b4fe;">
+                        + Artist
                     </button>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-3 py-1 fw-bold shadow-xs w-100" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add new author into directory">
-                        <i class="fa-solid fa-user-plus me-1"></i>+ New Directory Author
+                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-xs w-100" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
+                        + Directory
                     </button>
                 </div>
             </div>
@@ -668,9 +680,9 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <tr>
                             <th style="width: 14%; min-width: 110px;" class="ps-3">Role</th>
                             <th style="width: 28%; min-width: 160px;">Directory</th>
-                            <th style="width: 28%; min-width: 180px;">Name (বাংলা) <span class="text-danger">*</span></th>
-                            <th style="width: 25%; min-width: 160px;">Name (EN)</th>
-                            <th style="width: 5%; min-width: 44px;" class="text-center pe-3"><i class="fa-solid fa-trash-can opacity-50" title="Action"></i></th>
+                            <th style="width: 28%; min-width: 180px;">Name <span class="text-danger">*</span></th>
+                            <th style="width: 25%; min-width: 160px;">English</th>
+                            <th style="width: 5%; min-width: 44px;" class="text-center pe-3">Action</th>
                         </tr>
                     </thead>
                     <tbody id="authorshipCreditsTableBody">
@@ -714,7 +726,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <tr class="author-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
                                     <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
-                                        <i class="fa-solid fa-pen-nib me-1"></i>Author @if($aIdx === 0)<span class="text-danger" title="Primary Author Required">*</span>@endif
+                                        Author @if($aIdx === 0)<span class="text-danger" title="Primary Author Required">*</span>@endif
                                     </span>
                                 </td>
                                 <td class="contributor-col-dir align-middle">
@@ -732,23 +744,23 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     </select>
                                 </td>
                                 <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input @error('author_names') is-invalid @enderror" 
                                            value="{{ $aName }}" placeholder="" oninput="onAuthorNameTyped(this)">
                                 </td>
                                 <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                                     <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
                                            value="{{ $aNameEn }}" placeholder="" oninput="onAuthorNameTyped(this)">
                                 </td>
                                 <td class="contributor-col-action text-center align-middle pe-3">
                                     @if($aIdx === 0 && count($existingAuthors) === 1)
-                                        <button type="button" class="btn btn-sm btn-light p-0 d-inline-flex align-items-center justify-content-center border rounded-3 text-muted opacity-50" style="width: 32px; height: 32px;" title="At least one primary author is required" disabled>
-                                            <i class="fa-solid fa-lock"></i>
+                                        <button type="button" class="btn btn-sm btn-light p-0 d-inline-flex align-items-center justify-content-center border rounded-pill text-muted opacity-50" style="width: 30px; height: 30px;" title="Required" disabled>
+                                            <span style="font-size: 11px;">—</span>
                                         </button>
                                     @else
-                                        <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove contributor">
-                                            <i class="fa-solid fa-trash-can"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove">
+                                            &times;
                                         </button>
                                     @endif
                                 </td>
@@ -770,7 +782,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <tr class="translator-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
                                     <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
-                                        <i class="fa-solid fa-language me-1"></i>Translator
+                                        Translator
                                     </span>
                                 </td>
                                 <td class="contributor-col-dir align-middle">
@@ -783,18 +795,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     </select>
                                 </td>
                                 <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="translator_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                                            value="{{ $tName }}" placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                                     <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                                            placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-action text-center align-middle pe-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove translator">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                                        &times;
                                     </button>
                                 </td>
                             </tr>
@@ -816,7 +828,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <tr class="editor-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
                                     <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
-                                        <i class="fa-solid fa-user-pen me-1"></i>Editor
+                                        Editor
                                     </span>
                                 </td>
                                 <td class="contributor-col-dir align-middle">
@@ -829,18 +841,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     </select>
                                 </td>
                                 <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="editor_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                                            value="{{ $eName }}" placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                                     <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                                            placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-action text-center align-middle pe-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove editor">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                                        &times;
                                     </button>
                                 </td>
                             </tr>
@@ -862,7 +874,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <tr class="rewriter-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
                                     <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
-                                        <i class="fa-solid fa-pen-fancy me-1"></i>Adapter
+                                        Adapter
                                     </span>
                                 </td>
                                 <td class="contributor-col-dir align-middle">
@@ -875,18 +887,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     </select>
                                 </td>
                                 <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="rewriter_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                                            value="{{ $rName }}" placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                                     <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                                            placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-action text-center align-middle pe-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove adapter">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                                        &times;
                                     </button>
                                 </td>
                             </tr>
@@ -908,7 +920,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <tr class="cover-artist-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
                                     <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
-                                        <i class="fa-solid fa-palette me-1"></i>Cover Artist
+                                        Artist
                                     </span>
                                 </td>
                                 <td class="contributor-col-dir align-middle">
@@ -921,18 +933,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                                     </select>
                                 </td>
                                 <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                                     <input type="text" name="cover_artists[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                                            value="{{ $cName }}" placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                                     <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                                            placeholder="" oninput="updateContributorSummary()">
                                 </td>
                                 <td class="contributor-col-action text-center align-middle pe-3">
-                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove cover artist">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)">
+                                        &times;
                                     </button>
                                 </td>
                             </tr>
@@ -945,8 +957,8 @@ body.dark-mode .adm-mobile-sticky-bar {
             {{-- Live Byline Preview Strip --}}
             <div class="contributor-byline-strip d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="small">
-                    <span class="text-primary fw-bold"><i class="fa-solid fa-bullhorn me-1"></i>Live Contributor Byline:</span>
-                    <span id="liveContributorBylineText" class="text-dark fw-semibold ms-1">আইডিয়া প্রকাশন</span>
+                    <span class="text-primary fw-bold">Byline:</span>
+                    <span id="liveContributorBylineText" class="text-dark fw-semibold ms-1">Idea Prakashan</span>
                 </div>
             </div>
 
@@ -962,17 +974,17 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- SECTION 3: FORMAT, BINDING & EDITION --}}
         <div class="a4-doc-section" id="sec-format">
             <div class="a4-doc-section-title">
-                <i class="fa-solid fa-sliders text-primary"></i> 3. Format, Binding & Edition
+                Format
             </div>
 
             <div class="row g-2.5">
                 {{-- Language * & Country --}}
                 <div class="col-12 col-md-6">
                     <label for="f-language" class="a4-field-label">
-                        <span><i class="fa-solid fa-globe text-primary me-1"></i> Language <span class="text-danger">*</span></span>
+                        <span>Language <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-language" name="language" class="form-select form-select-sm @error('language') is-invalid @enderror">
-                        @foreach (['Bengali' => 'বাংলা (Bengali)', 'English' => 'English', 'Arabic' => 'العربية (Arabic)', 'Urdu' => 'اردو (Urdu)', 'Hindi' => 'हिन्दी (Hindi)', 'Persian' => 'فارسی (Persian)', 'Other' => 'Other Language'] as $langKey => $langLabel)
+                        @foreach (['Bengali' => 'Bengali', 'English' => 'English', 'Arabic' => 'Arabic', 'Urdu' => 'Urdu', 'Hindi' => 'Hindi', 'Persian' => 'Persian', 'Other' => 'Other'] as $langKey => $langLabel)
                             <option value="{{ $langKey }}" @selected($val('language', 'Bengali') === $langKey)>{{ $langLabel }}</option>
                         @endforeach
                     </select>
@@ -981,10 +993,10 @@ body.dark-mode .adm-mobile-sticky-bar {
 
                 <div class="col-12 col-md-6">
                     <label for="f-country" class="a4-field-label">
-                        <span><i class="fa-solid fa-flag text-danger me-1"></i> Country of Publication</span>
+                        <span>Country</span>
                     </label>
                     <select id="f-country" name="country" class="form-select form-select-sm @error('country') is-invalid @enderror">
-                        @foreach (['Bangladesh' => 'Bangladesh', 'India' => 'India', 'Saudi Arabia' => 'Saudi Arabia', 'Egypt' => 'Egypt', 'United Kingdom' => 'United Kingdom (UK)', 'United States' => 'United States (USA)', 'Other' => 'Other Country'] as $cKey => $cLabel)
+                        @foreach (['Bangladesh' => 'Bangladesh', 'India' => 'India', 'Saudi Arabia' => 'Saudi Arabia', 'Egypt' => 'Egypt', 'United Kingdom' => 'United Kingdom', 'United States' => 'United States', 'Other' => 'Other'] as $cKey => $cLabel)
                             <option value="{{ $cKey }}" @selected($val('country', 'Bangladesh') === $cKey)>{{ $cLabel }}</option>
                         @endforeach
                     </select>
@@ -994,40 +1006,40 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Binding * / Paper Quality / Edition * --}}
                 <div class="col-12 col-md-4">
                     <label for="f-cover_type" class="a4-field-label">
-                        <span><i class="fa-solid fa-book-bookmark text-primary me-1"></i> Binding / Cover Type <span class="text-danger">*</span></span>
+                        <span>Binding <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-cover_type" name="cover_type" class="form-select form-select-sm @error('cover_type') is-invalid @enderror" onchange="onCoverTypeDropdownChange(this.value)">
-                        <option value="hardcover" @selected($val('cover_type', 'hardcover') === 'hardcover')>Hardcover Edition</option>
-                        <option value="paperback" @selected($val('cover_type', 'hardcover') === 'paperback')>Paperback Edition</option>
+                        <option value="hardcover" @selected($val('cover_type', 'hardcover') === 'hardcover')>Hardcover</option>
+                        <option value="paperback" @selected($val('cover_type', 'hardcover') === 'paperback')>Paperback</option>
                         <option value="board_book" @selected($val('cover_type', 'hardcover') === 'board_book')>Board Book</option>
-                        <option value="spiral" @selected($val('cover_type', 'hardcover') === 'spiral')>Spiral Bound</option>
-                        <option value="both" @selected($val('cover_type', 'hardcover') === 'both')>Both Editions (Paperback & Hardcover)</option>
+                        <option value="spiral" @selected($val('cover_type', 'hardcover') === 'spiral')>Spiral</option>
+                        <option value="both" @selected($val('cover_type', 'hardcover') === 'both')>Both</option>
                     </select>
                     @error('cover_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 col-md-4">
                     <label for="f-paper_type" class="a4-field-label">
-                        <span><i class="fa-solid fa-scroll text-secondary me-1"></i> Paper Quality (GSM)</span>
+                        <span>Paper</span>
                     </label>
                     <select id="f-paper_type" name="paper_type" class="form-select form-select-sm @error('paper_type') is-invalid @enderror">
-                        <optgroup label="── Off-white Paper ──">
+                        <optgroup label="── Off-white ──">
                             <option value="50 GSM Off-white" @selected($val('paper_type') === '50 GSM Off-white' || $val('paper_type') === '50 GSM Offset')>50 GSM Off-white</option>
                             <option value="55 GSM Off-white" @selected($val('paper_type') === '55 GSM Off-white' || $val('paper_type') === '55 GSM Offset')>55 GSM Off-white</option>
                             <option value="60 GSM Off-white" @selected($val('paper_type') === '60 GSM Off-white' || $val('paper_type') === '60 GSM Offset')>60 GSM Off-white</option>
                             <option value="65 GSM Off-white" @selected($val('paper_type') === '65 GSM Off-white' || $val('paper_type') === '65 GSM Offset')>65 GSM Off-white</option>
                             <option value="70 GSM Off-white" @selected($val('paper_type') === '70 GSM Off-white' || $val('paper_type') === '70 GSM Offset')>70 GSM Off-white</option>
-                            <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>80 GSM Off-white (Popular)</option>
+                            <option value="80 GSM Off-white" @selected($val('paper_type', '80 GSM Off-white') === '80 GSM Off-white' || $val('paper_type') === '80 GSM Offset')>80 GSM Off-white</option>
                             <option value="100 GSM Off-white" @selected($val('paper_type') === '100 GSM Off-white' || $val('paper_type') === '100 GSM Offset')>100 GSM Off-white</option>
                             <option value="120 GSM Off-white" @selected($val('paper_type') === '120 GSM Off-white' || $val('paper_type') === '120 GSM Offset')>120 GSM Off-white</option>
                         </optgroup>
-                        <optgroup label="── Newsprint Paper ──">
+                        <optgroup label="── Newsprint ──">
                             <option value="50 GSM Newsprint" @selected($val('paper_type') === '50 GSM Newsprint')>50 GSM Newsprint</option>
                             <option value="55 GSM Newsprint" @selected($val('paper_type') === '55 GSM Newsprint')>55 GSM Newsprint</option>
                             <option value="60 GSM Newsprint" @selected($val('paper_type') === '60 GSM Newsprint')>60 GSM Newsprint</option>
                             <option value="70 GSM Newsprint" @selected($val('paper_type') === '70 GSM Newsprint')>70 GSM Newsprint</option>
                         </optgroup>
-                        <optgroup label="── Art & Glossy Paper ──">
+                        <optgroup label="── Glossy ──">
                             <option value="100 GSM Glossy Paper" @selected($val('paper_type') === '100 GSM Glossy Paper')>100 GSM Glossy</option>
                             <option value="120 GSM Glossy Paper" @selected($val('paper_type') === '120 GSM Glossy Paper')>120 GSM Glossy</option>
                             <option value="130 GSM Glossy Paper" @selected($val('paper_type') === '130 GSM Glossy Paper')>130 GSM Glossy</option>
@@ -1035,11 +1047,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <option value="170 GSM Glossy Paper" @selected($val('paper_type') === '170 GSM Glossy Paper')>170 GSM Glossy</option>
                             <option value="200 GSM Glossy Paper" @selected($val('paper_type') === '200 GSM Glossy Paper')>200 GSM Glossy</option>
                             <option value="250 GSM Glossy Paper" @selected($val('paper_type') === '250 GSM Glossy Paper')>250 GSM Glossy</option>
-                            <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>300 GSM Glossy / Board</option>
+                            <option value="300 GSM Glossy Paper" @selected($val('paper_type') === '300 GSM Glossy Paper')>300 GSM Glossy</option>
                         </optgroup>
-                        <optgroup label="── Other Paper Types ──">
+                        <optgroup label="── Other ──">
                             <option value="100 GSM Cream Paper" @selected($val('paper_type') === '100 GSM Cream Paper')>100 GSM Cream Paper</option>
-                            <option value="Other" @selected($val('paper_type') === 'Other')>Other Custom Paper</option>
+                            <option value="Other" @selected($val('paper_type') === 'Other')>Other</option>
                         </optgroup>
                     </select>
                     @error('paper_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -1047,15 +1059,14 @@ body.dark-mode .adm-mobile-sticky-bar {
 
                 <div class="col-12 col-md-4">
                     <label for="f-edition" class="a4-field-label">
-                        <span><i class="fa-solid fa-tag text-info me-1"></i> Edition</span>
+                        <span>Edition</span>
                     </label>
                     <input type="text" id="f-edition" name="edition" value="{{ $val('edition', '1st Edition ' . date('Y')) }}"
-                           class="form-control form-control-sm @error('edition') is-invalid @enderror"
-                           placeholder="e.g. 1st Edition {{ date('Y') }}">
+                           class="form-control form-control-sm @error('edition') is-invalid @enderror">
                     <div class="d-flex gap-1 mt-1">
-                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = '1st Edition {{ date('Y') }}'">1st Edition</button>
-                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = '2nd Edition {{ date('Y') }}'">2nd Edition</button>
-                        <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 small text-muted" onclick="document.getElementById('f-edition').value = 'Revised Edition {{ date('Y') }}'">Revised</button>
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-2 rounded-pill small text-muted" onclick="document.getElementById('f-edition').value = '1st Edition {{ date('Y') }}'">1st</button>
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-2 rounded-pill small text-muted" onclick="document.getElementById('f-edition').value = '2nd Edition {{ date('Y') }}'">2nd</button>
+                        <button type="button" class="btn btn-xs btn-light border py-0 px-2 rounded-pill small text-muted" onclick="document.getElementById('f-edition').value = 'Revised {{ date('Y') }}'">Revised</button>
                     </div>
                     @error('edition')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
@@ -1066,10 +1077,10 @@ body.dark-mode .adm-mobile-sticky-bar {
         <div class="a4-doc-section" id="sec-pricing">
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <div class="a4-doc-section-title mb-0">
-                    <i class="fa-solid fa-calculator text-primary"></i> 4. Pricing Matrix & Profit Margins
+                    Pricing
                 </div>
                 <span class="badge bg-primary-subtle text-primary border border-primary-subtle small fw-bold px-2.5 py-1 rounded-pill" id="pricingBindingBadge">
-                    {{ $val('cover_type', 'hardcover') === 'both' ? 'Dual Mode (Hard & Paperback)' : ($val('cover_type', 'hardcover') === 'paperback' ? 'Paperback Mode' : 'Hardcover Mode') }}
+                    {{ $val('cover_type', 'hardcover') === 'both' ? 'Both' : ($val('cover_type', 'hardcover') === 'paperback' ? 'Paperback' : 'Hardcover') }}
                 </span>
             </div>
 
@@ -1078,11 +1089,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div id="paperbackPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['paperback', 'both']) ? '' : 'd-none' }}">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
                         <span class="fw-bold text-dark small">
-                            <i class="fa-solid fa-book-open text-primary me-1"></i> Paperback Edition Pricing
+                            Paperback
                         </span>
                         <div class="d-flex align-items-center gap-1">
                             @foreach([15, 20, 25, 30, 35, 40] as $pct)
-                                <button type="button" class="btn btn-xs btn-outline-secondary quick-disc-btn" onclick="applyPaperbackQuickDiscount({{ $pct }})">{{ $pct }}%</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill quick-disc-btn px-2" onclick="applyPaperbackQuickDiscount({{ $pct }})">{{ $pct }}%</button>
                             @endforeach
                         </div>
                     </div>
@@ -1090,49 +1101,49 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <div class="row g-2">
                         <div class="col-12 col-md-3">
                             <label for="f-price" class="a4-field-label">
-                                <span>Printed Price / MRP (৳) <span class="text-danger">*</span></span>
+                                <span>MRP <span class="text-danger">*</span></span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-price" name="price" 
                                        value="{{ $val('price') }}"
                                        class="form-control form-control-sm @error('price') is-invalid @enderror" 
-                                       placeholder="0.00" oninput="onPaperbackPriceChange()">
+                                       oninput="onPaperbackPriceChange()">
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-purchase_discount_percent" class="a4-field-label">
-                                <span>Buy Discount (%)</span>
+                                <span>Buy</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <input type="number" step="0.5" min="0" max="100" id="f-purchase_discount_percent" name="purchase_discount_percent" 
                                        value="{{ $val('purchase_discount_percent') }}"
-                                       class="form-control form-control-sm" placeholder="e.g. 40" oninput="onPaperbackPurchaseDiscountChange()">
+                                       class="form-control form-control-sm" oninput="onPaperbackPurchaseDiscountChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-cost_price" class="a4-field-label">
-                                <span>Purchase Cost (৳)</span>
+                                <span>Cost</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-cost_price" name="cost_price" 
                                        value="{{ $val('cost_price') }}" class="form-control form-control-sm" 
-                                       placeholder="0.00" oninput="onPaperbackCostChange()">
+                                       oninput="onPaperbackCostChange()">
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-sold_percent" class="a4-field-label">
-                                <span>Customer Sale Disc (%)</span>
+                                <span>Sale</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <input type="number" step="0.5" min="0" max="100" id="f-sold_percent" name="sold_percent" 
                                        value="{{ $val('sold_percent') }}"
-                                       class="form-control form-control-sm" placeholder="e.g. 25" oninput="onPaperbackSoldPercentChange()">
+                                       class="form-control form-control-sm" oninput="onPaperbackSoldPercentChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
                         </div>
@@ -1142,15 +1153,15 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
                         <div class="d-flex align-items-center gap-3">
                             <div class="small">
-                                <span class="text-muted">Customer Selling Price:</span>
+                                <span class="text-muted">Price:</span>
                                 <strong class="text-dark fw-bold ms-1 fs-6" id="liveCalculatedOfferPrice">৳{{ number_format((float)$val('discount_price', $val('price', 0)), 2) }}</strong>
                             </div>
                             <div class="small text-muted border-start ps-3 d-none d-sm-block">
-                                Customer Savings: <span class="text-success fw-bold" id="livePaperbackSavings">৳0.00</span>
+                                Savings: <span class="text-success fw-bold" id="livePaperbackSavings">৳0.00</span>
                             </div>
                         </div>
                         <div class="small">
-                            <span class="text-muted">Estimated Profit (Margin):</span>
+                            <span class="text-muted">Profit:</span>
                             <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveCalculatedProfit">৳0.00 (0%)</span>
                         </div>
                     </div>
@@ -1161,11 +1172,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div id="hardcoverPricingPanel" class="a4-pricing-card {{ in_array($val('cover_type', 'hardcover'), ['hardcover', 'both']) ? '' : 'd-none' }}">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom">
                         <span class="fw-bold text-dark small">
-                            <i class="fa-solid fa-book-bookmark text-primary me-1"></i> Hardcover Edition Pricing
+                            Hardcover
                         </span>
                         <div class="d-flex align-items-center gap-1">
                             @foreach([15, 20, 25, 30, 35, 40] as $pct)
-                                <button type="button" class="btn btn-xs btn-outline-secondary quick-disc-btn" onclick="applyHardcoverQuickDiscount({{ $pct }})">{{ $pct }}%</button>
+                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill quick-disc-btn px-2" onclick="applyHardcoverQuickDiscount({{ $pct }})">{{ $pct }}%</button>
                             @endforeach
                         </div>
                     </div>
@@ -1173,49 +1184,49 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <div class="row g-2">
                         <div class="col-12 col-md-3">
                             <label for="f-hardcover_price" class="a4-field-label">
-                                <span>Hardcover MRP (৳) <span class="text-danger">*</span></span>
+                                <span>MRP <span class="text-danger">*</span></span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-hardcover_price" name="hardcover_price" 
                                        value="{{ $val('hardcover_price') }}"
                                        class="form-control form-control-sm @error('hardcover_price') is-invalid @enderror" 
-                                       placeholder="0.00" oninput="onHardcoverPriceChange()">
+                                       oninput="onHardcoverPriceChange()">
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-hardcover_purchase_discount_percent" class="a4-field-label">
-                                <span>Hardcover Buy (%)</span>
+                                <span>Buy</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <input type="number" step="0.5" min="0" max="100" id="f-hardcover_purchase_discount_percent" name="hardcover_purchase_discount_percent" 
                                        value="{{ $val('hardcover_purchase_discount_percent') }}"
-                                       class="form-control form-control-sm" placeholder="e.g. 40" oninput="onHardcoverPurchaseDiscountChange()">
+                                       class="form-control form-control-sm" oninput="onHardcoverPurchaseDiscountChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-hardcover_cost_price" class="a4-field-label">
-                                <span>Hardcover Cost (৳)</span>
+                                <span>Cost</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
-                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="hardcover_cost_price" 
+                                <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="cost_price" 
                                        value="{{ $val('hardcover_cost_price') }}"
-                                       class="form-control form-control-sm" placeholder="0.00" oninput="onHardcoverCostChange()">
+                                       class="form-control form-control-sm" oninput="onHardcoverCostChange()">
                             </div>
                         </div>
 
                         <div class="col-12 col-md-3">
                             <label for="f-hardcover_sold_percent" class="a4-field-label">
-                                <span>Hardcover Sale (%)</span>
+                                <span>Sale</span>
                             </label>
                             <div class="input-group input-group-sm">
                                 <input type="number" step="0.5" min="0" max="100" id="f-hardcover_sold_percent" name="hardcover_sold_percent"
                                        value="{{ $val('hardcover_sold_percent') }}"
-                                       class="form-control form-control-sm" placeholder="e.g. 20" oninput="onHardcoverSoldPercentChange()">
+                                       class="form-control form-control-sm" oninput="onHardcoverSoldPercentChange()">
                                 <span class="input-group-text bg-light text-muted fw-bold">%</span>
                             </div>
                         </div>
@@ -1224,11 +1235,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                     {{-- Hardcover Summary Ribbon --}}
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2.5 p-2 bg-white rounded-3 border">
                         <div class="small">
-                            <span class="text-muted">Hardcover Customer Price:</span>
+                            <span class="text-muted">Price:</span>
                             <strong class="text-dark fw-bold ms-1 fs-6" id="liveHardcoverOfferPrice">৳{{ number_format((float)$val('hardcover_discount_price', $val('hardcover_price', 0)), 2) }}</strong>
                         </div>
                         <div class="small">
-                            <span class="text-muted">Hardcover Profit (Margin):</span>
+                            <span class="text-muted">Profit:</span>
                             <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold ms-1" id="liveHardcoverProfit">৳0.00 (0%)</span>
                         </div>
                     </div>
@@ -1240,7 +1251,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- SECTION 5: CLASSIFICATION & IDENTIFIERS --}}
         <div class="a4-doc-section" id="sec-classification">
             <div class="a4-doc-section-title">
-                <i class="fa-solid fa-shapes text-primary"></i> 5. Classification, Publishing & Identifiers
+                Classification
             </div>
 
             <div class="row g-2.5">
@@ -1248,11 +1259,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div class="col-12 col-md-6">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-category_id" class="a4-field-label mb-0">
-                            <span><i class="fa-solid fa-shapes text-primary me-1"></i> Primary Category <span class="text-danger">*</span></span>
+                            <span>Category <span class="text-danger">*</span></span>
                         </label>
                         <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold shadow-2xs" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                            <i class="fa-solid fa-circle-plus me-0.5"></i>+ New Category
+                            + Category
                         </button>
                     </div>
                     <select id="f-category_id" name="category_id" required 
@@ -1269,11 +1280,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div class="col-12 col-md-6">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-publisher_id" class="a4-field-label mb-0">
-                            <span><i class="fa-solid fa-building text-primary me-1"></i> Publisher <span class="text-danger">*</span></span>
+                            <span>Publisher <span class="text-danger">*</span></span>
                         </label>
                         <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill fw-semibold shadow-2xs" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                            <i class="fa-solid fa-circle-plus me-0.5"></i>+ New Publisher
+                            + Publisher
                         </button>
                     </div>
                     <select id="f-publisher_id" name="publisher_id" class="form-select form-select-sm @error('publisher_id') is-invalid @enderror" onchange="handlePublisherChange(this.value)">
@@ -1288,36 +1299,34 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Pages, Weight, Size, Idea Serial --}}
                 <div class="col-6 col-md-3">
                     <label for="f-page_count" class="a4-field-label">
-                        <span><i class="fa-solid fa-file-lines text-secondary me-1"></i> Page Count</span>
+                        <span>Pages</span>
                     </label>
                     <input type="number" id="f-page_count" name="page_count" value="{{ $val('page_count') }}" min="0"
-                           class="form-control form-control-sm @error('page_count') is-invalid @enderror"
-                           placeholder="e.g. 240">
+                           class="form-control form-control-sm @error('page_count') is-invalid @enderror">
                     @error('page_count')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-6 col-md-3">
                     <label for="f-weight" class="a4-field-label">
-                        <span><i class="fa-solid fa-weight-scale text-secondary me-1"></i> Weight (Grams)</span>
+                        <span>Weight</span>
                     </label>
                     <input type="number" id="f-weight" name="weight" value="{{ $val('weight') }}" min="0"
-                           class="form-control form-control-sm @error('weight') is-invalid @enderror"
-                           placeholder="e.g. 350">
+                           class="form-control form-control-sm @error('weight') is-invalid @enderror">
                     @error('weight')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-6 col-md-3">
                     <label class="a4-field-label">
-                        <span><i class="fa-solid fa-ruler-combined text-secondary me-1"></i> Dimensions (H × W cm)</span>
+                        <span>Dimensions</span>
                     </label>
                     <div class="row g-1">
                         <div class="col-6">
                             <input type="number" step="0.1" min="0" id="f-book_height_cm" name="book_height_cm" 
-                                   value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" placeholder="Height H" oninput="syncBookSizeCombined()">
+                                   value="{{ $val('book_height_cm') }}" class="form-control form-control-sm" oninput="syncBookSizeCombined()">
                         </div>
                         <div class="col-6">
                             <input type="number" step="0.1" min="0" id="f-book_width_cm" name="book_width_cm" 
-                                   value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" placeholder="Width W" oninput="syncBookSizeCombined()">
+                                   value="{{ $val('book_width_cm') }}" class="form-control form-control-sm" oninput="syncBookSizeCombined()">
                         </div>
                     </div>
                     <input type="hidden" id="f-book_size" name="book_size" value="{{ $val('book_size') }}">
@@ -1326,46 +1335,44 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div class="col-6 col-md-3">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-idea_serial_no" class="a4-field-label mb-0">
-                            <span><i class="fa-solid fa-star text-warning me-1"></i> Idea Serial No</span>
+                            <span>Serial</span>
                         </label>
-                        <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-bold shadow-2xs" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea Publication serial number">
-                            <i class="fa-solid fa-magic me-0.5"></i> Auto IP
+                        <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-bold shadow-2xs" onclick="generateAutoIdeaSerialForForm()" style="font-size: 10px;" title="Auto generate Idea serial">
+                            Auto
                         </button>
                     </div>
                     <input type="text" id="f-idea_serial_no" name="idea_serial_no" value="{{ $val('idea_serial_no') }}" 
                            class="form-control form-control-sm font-monospace fw-bold bg-warning-subtle bg-opacity-25 border-warning @error('idea_serial_no') is-invalid @enderror"
-                           placeholder="e.g. IP001" oninput="updateLiveBarcodePreview(this.value)">
+                           oninput="updateLiveBarcodePreview(this.value)">
                     @error('idea_serial_no')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-12 col-md-4">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-sku" class="a4-field-label mb-0">
-                            <span><i class="fa-solid fa-fingerprint text-primary me-1"></i> Catalog SKU</span>
+                            <span>SKU</span>
                         </label>
-                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold shadow-2xs" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate unique Catalog SKU">
-                            <i class="fa-solid fa-wand-magic-sparkles me-0.5"></i> Auto SKU
+                        <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 fw-semibold shadow-2xs" onclick="generateAutoGeneralSkuForForm()" style="font-size: 10px;" title="Auto generate SKU">
+                            Auto
                         </button>
                     </div>
                     <input type="text" id="f-sku" name="sku" value="{{ $val('sku') }}" 
-                           class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror"
-                           placeholder="e.g. BK-00042">
+                           class="form-control form-control-sm font-monospace fw-semibold @error('sku') is-invalid @enderror">
                     @error('sku')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-6 col-md-4">
                     <label for="f-isbn" class="a4-field-label">
-                        <span><i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / EAN-13</span>
+                        <span>ISBN</span>
                     </label>
                     <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
-                           class="form-control form-control-sm @error('isbn') is-invalid @enderror"
-                           placeholder="e.g. 978-984-XXXX-XX-X">
+                           class="form-control form-control-sm @error('isbn') is-invalid @enderror">
                     @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="col-6 col-md-4">
                     <label for="f-published_at" class="a4-field-label">
-                        <span><i class="fa-solid fa-calendar-check text-warning me-1"></i> Publication Date</span>
+                        <span>Date</span>
                     </label>
                     <input type="date" id="f-published_at" name="published_at" value="{{ $val('published_at') ? date('Y-m-d', strtotime((string)$val('published_at'))) : '' }}"
                            class="form-control form-control-sm @error('published_at') is-invalid @enderror">
@@ -1377,7 +1384,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- SECTION 6: BARCODE & QR CODE ENGINE --}}
         <div class="a4-doc-section" id="sec-barcode">
             <div class="a4-doc-section-title">
-                <i class="fa-solid fa-qrcode text-primary"></i> 6. Barcode & QR Code Engine
+                Barcode
             </div>
 
             <div class="p-3 bg-light rounded-3 border">
@@ -1399,7 +1406,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             </div>
                             <div class="small">
                                 <div class="fw-bold text-dark font-monospace" style="font-size: 12px;" id="qrCodeLabel">{{ $val('idea_serial_no') ?: ($val('sku') ?: 'IP001') }}</div>
-                                <div class="text-muted" style="font-size: 11px;">Storefront & POS Quick Scan Ready</div>
+                                <div class="text-muted" style="font-size: 11px;">POS Ready</div>
                             </div>
                         </div>
                     </div>
@@ -1411,21 +1418,19 @@ body.dark-mode .adm-mobile-sticky-bar {
         <div class="a4-doc-section" id="sec-summary">
             <div class="d-flex align-items-center justify-content-between mb-1.5">
                 <div class="a4-doc-section-title mb-0">
-                    <i class="fa-solid fa-align-left text-primary"></i> 7. Book Summary, Flap & Overview
+                    Summary
                 </div>
                 <div class="word-counter-badge safe" id="summaryWordBadge">
-                    <i class="fa-solid fa-font me-1"></i> Words: <span id="summaryWordCount">0</span> / 1000
+                    Words: <span id="summaryWordCount">0</span> / 1000
                 </div>
             </div>
             <textarea id="f-summary" name="summary" rows="4"
                       class="form-control @error('summary') is-invalid @enderror"
-                      placeholder="Enter brief book summary, synopsis or cover flap copy (up to 1,000 words)..."
                       oninput="updateGenericWordCount(this, 1000, 'summaryWordCount', 'summaryWordBadge', 'summaryProgressBar', 'summaryWarning')">{{ $val('summary') }}</textarea>
             <div class="word-counter-progress mt-1.5">
                 <div class="word-counter-progress__bar" id="summaryProgressBar"></div>
             </div>
             <div class="d-flex justify-content-between align-items-center mt-1">
-                <div class="form-text text-muted mb-0" style="font-size: 11px;">Write concise book overview or cover flap introduction.</div>
                 <div id="summaryWarning" class="text-danger small fw-bold d-none"></div>
             </div>
             @error('summary')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -1434,12 +1439,11 @@ body.dark-mode .adm-mobile-sticky-bar {
             <div class="mt-3 pt-2.5 border-top">
                 <div class="d-flex align-items-center justify-content-between mb-1">
                     <label for="f-description" class="a4-field-label mb-0">
-                        <span><i class="fa-solid fa-file-lines text-secondary me-1"></i> Full Description / Table of Contents <span class="text-muted fw-normal">(Optional)</span></span>
+                        <span>Description</span>
                     </label>
                 </div>
                 <textarea id="f-description" name="description" rows="5"
-                          class="form-control form-control-sm @error('description') is-invalid @enderror"
-                          placeholder="Detailed introduction, preface, chapter index, table of contents or index notes...">{{ $val('description') }}</textarea>
+                          class="form-control form-control-sm @error('description') is-invalid @enderror">{{ $val('description') }}</textarea>
                 @error('description')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -1450,7 +1454,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         <div class="form-check mb-0">
             <input class="form-check-input" type="checkbox" id="adminComplianceCheck" name="compliance_agreed" value="1" checked>
             <label class="form-check-label small text-dark fw-bold" for="adminComplianceCheck">
-                <i class="fa-solid fa-shield-halved text-success me-1"></i> Publishing Rights, Translation Approvals & Print Standards Confirmed
+                Confirmed
             </label>
         </div>
     </div>
@@ -1459,16 +1463,14 @@ body.dark-mode .adm-mobile-sticky-bar {
     <div class="a4-doc-sheet p-3 mb-4 shadow-xs">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div>
-                <h6 class="fw-bold mb-0 text-dark">Save & Publish Catalog Entry</h6>
-                <small class="text-muted">Saved changes will instantly reflect on website storefront and inventory system.</small>
+                <h6 class="fw-bold mb-0 text-dark">{{ $editing ? 'Save' : 'Publish' }}</h6>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-3.5 py-2 fw-semibold">
-                    <i class="fa-solid fa-times me-1"></i> Cancel
+                <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                    Cancel
                 </a>
-                <button type="submit" form="contentMainForm" id="btnPublishSaveBook" class="btn btn-success btn-lg rounded-pill px-4 py-2.5 fw-bold shadow-sm d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-circle-check fs-5"></i>
-                    <span>{{ $editing ? 'Save Changes' : 'Publish Book' }}</span>
+                <button type="submit" form="contentMainForm" id="btnPublishSaveBook" class="btn btn-success btn-lg rounded-pill px-5 py-2.5 fw-bold shadow-sm" style="background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                    {{ $editing ? 'Save' : 'Publish' }}
                 </button>
             </div>
         </div>
@@ -1482,9 +1484,9 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- 1. CLASSIFICATIONS & TAXONOMY --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
-                <span class="fw-bold text-dark small"><i class="fa-solid fa-shapes text-primary me-1.5"></i> 1. Classifications & Taxonomy</span>
-                <button type="button" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                    <i class="fa-solid fa-circle-plus me-0.5"></i>+ Add
+                <span class="fw-bold text-dark small">Classification</span>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0.5 px-2.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
+                    + Category
                 </button>
             </div>
 
@@ -1492,10 +1494,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Primary Category --}}
                 <div>
                     <label for="f-category_id_sidebar" class="a4-field-label mb-1">
-                        <span>1. Primary Category <span class="text-danger">*</span></span>
+                        <span>Category <span class="text-danger">*</span></span>
                     </label>
                     <select id="f-category_id_sidebar" class="form-select form-select-sm" onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
-                        <option value="">— Select Category —</option>
+                        <option value="">— Category —</option>
                         @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
                             <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
                         @endforeach
@@ -1505,11 +1507,11 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Sub-Category --}}
                 <div>
                     <label for="f-sub_category_name" class="a4-field-label mb-1">
-                        <span>2. Sub-Category / Specific Topic</span>
+                        <span>Subcategory</span>
                     </label>
                     <input type="text" id="f-sub_category_name" name="sub_category_name" 
                            value="{{ old('sub_category_name', $record->sub_category_name ?? '') }}"
-                           class="form-control form-control-sm" placeholder="e.g. Contemporary Fiction">
+                           class="form-control form-control-sm">
                 </div>
 
                 {{-- Boimela / Event Category --}}
@@ -1525,25 +1527,25 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <div>
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-ekushey_category_select" class="a4-field-label mb-0">
-                            <span>3. Book Fair / Event (Ekushey Boimela)</span>
+                            <span>Event</span>
                         </label>
                         <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="toggleAdminCustomBoimela()">
-                            <i class="fa-solid fa-pen-to-square me-0.5"></i>Custom
+                            Custom
                         </button>
                     </div>
 
                     <select id="f-ekushey_category_select" class="form-select form-select-sm {{ $isCustomBoimela ? 'd-none' : '' }}" onchange="handleAdminBoimelaSelect(this.value)">
-                        <option value="">— Select Event / Year —</option>
-                        <optgroup label="── Amar Ekushey Boimela by Year ──">
+                        <option value="">— Event —</option>
+                        <optgroup label="── Boimela ──">
                             @foreach($boimelaYears as $bYear)
-                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Amar Ekushey Boimela {{ $bYear }}</option>
+                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Boimela {{ $bYear }}</option>
                             @endforeach
                         </optgroup>
-                        <optgroup label="── Pavilion & Past Fairs ──">
-                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion & Special Exhibitions</option>
-                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous Book Fairs</option>
+                        <optgroup label="── Special ──">
+                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion</option>
+                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous</option>
                         </optgroup>
-                        <option value="__custom__" @selected($isCustomBoimela)>+ Custom Event / Other Year...</option>
+                        <option value="__custom__" @selected($isCustomBoimela)>+ Custom...</option>
                     </select>
 
                     <div id="adminCustomBoimelaWrapper" class="{{ $isCustomBoimela ? '' : 'd-none' }} mt-1">
@@ -1551,10 +1553,9 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <input type="text" id="f-ekushey_category_custom" 
                                    value="{{ $isCustomBoimela ? $currentBoimelaVal : '' }}" 
                                    class="form-control form-control-sm" 
-                                   placeholder="e.g. Boimela 2027 / Dhaka Lit Fest"
                                    oninput="document.getElementById('f-ekushey_category').value = this.value.trim()">
-                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="Return to dropdown list">
-                                <i class="fa-solid fa-list"></i>
+                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="List">
+                                List
                             </button>
                         </div>
                     </div>
@@ -1564,35 +1565,35 @@ body.dark-mode .adm-mobile-sticky-bar {
                 {{-- Genre / Theme --}}
                 <div>
                     <label for="f-genre_category" class="a4-field-label mb-1">
-                        <span>4. Genre & Theme</span>
+                        <span>Genre</span>
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm">
-                        <option value="">— Select Genre —</option>
-                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel (উপন্যাস)</option>
-                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Short Stories (ছোটগল্প)</option>
-                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry (কবিতা)</option>
-                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays & Research (প্রবন্ধ ও গবেষণা)</option>
-                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation War (ইতিহাস)</option>
-                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic & Religious (ইসলামিক)</option>
-                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics (কিশোর সাহিত্য)</option>
-                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller (থ্রিলার)</option>
-                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Self-Help & Motivation (আত্মউন্নয়ন)</option>
-                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translated Literature (অনুবাদ)</option>
+                        <option value="">— Genre —</option>
+                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
+                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Stories</option>
+                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
+                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays</option>
+                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History</option>
+                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic</option>
+                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile</option>
+                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Thriller</option>
+                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Motivation</option>
+                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translation</option>
                     </select>
                 </div>
 
                 {{-- Target Audience --}}
                 <div>
                     <label for="f-audience_category" class="a4-field-label mb-1">
-                        <span>5. Target Audience</span>
+                        <span>Audience</span>
                     </label>
                     <select id="f-audience_category" name="audience_category" class="form-select form-select-sm">
-                        <option value="">— Select Target Readers —</option>
-                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General Readers (সর্বসাধারণ)</option>
-                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5–12 Years)</option>
-                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Young Adults (13–18 Years)</option>
-                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult Readers (প্রাপ্তবয়স্ক)</option>
-                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic & Researchers</option>
+                        <option value="">— Audience —</option>
+                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General</option>
+                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children</option>
+                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Youth</option>
+                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult</option>
+                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic</option>
                     </select>
                 </div>
             </div>
@@ -1601,14 +1602,10 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- 2. COVER IMAGE & 3D MOCKUP --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-light-subtle">
-                <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-image text-primary"></i> 2. Book Cover & 3D Mockup <span class="text-danger">*</span>
-                </span>
+                <span class="fw-bold text-dark small">Cover</span>
                 <div class="d-flex align-items-center gap-1">
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3 Ratio</span>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">
-                        <i class="fa-solid fa-bolt me-0.5"></i>Auto .AVIF
-                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">2:3</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle small px-2 py-0.5 rounded-pill" style="font-size: 10px;">Auto</span>
                 </div>
             </div>
             
@@ -1622,10 +1619,9 @@ body.dark-mode .adm-mobile-sticky-bar {
                                 : '';
                         @endphp
                         <img id="mockupCoverImg" src="{{ $currCoverUrl }}" 
-                             alt="Cover Mockup" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
+                             alt="Cover" class="w-100 h-100 object-fit-cover {{ empty($currCoverUrl) ? 'd-none' : '' }}">
                         <div id="mockupCoverPlaceholder" class="w-100 h-100 d-flex flex-column align-items-center justify-content-center p-2 text-muted {{ !empty($currCoverUrl) ? 'd-none' : '' }}" style="background: #f1f5f9;">
-                            <i class="fa-solid fa-book-open text-primary fs-3 mb-1 opacity-75"></i>
-                            <span class="small fw-semibold" style="font-size: 11px;">Cover Preview</span>
+                            <span class="small fw-semibold" style="font-size: 11px;">Preview</span>
                         </div>
                         <span id="mockupDiscountBadge" class="badge bg-danger position-absolute top-0 start-0 m-1 shadow-xs d-none" style="font-size: 10px;">
                             -0%
@@ -1633,10 +1629,10 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                 </div>
                 <div id="mockupTitle" class="fw-bold text-dark text-truncate mb-0.5" style="font-size: 0.95rem;">
-                    {{ $editing ? ($record->title ?? 'Book Title') : 'Book Title' }}
+                    {{ $editing ? ($record->title ?? 'Title') : 'Title' }}
                 </div>
                 <div id="mockupAuthor" class="small text-muted mb-1 text-truncate" style="font-size: 0.8rem;">
-                    {{ $editing ? ($record->author_name ?? 'Author Name') : 'Author Name' }}
+                    {{ $editing ? ($record->author_name ?? 'Author') : 'Author' }}
                 </div>
                 <div class="d-flex align-items-center justify-content-center gap-1.5">
                     <span id="mockupFinalPrice" class="fw-bold text-primary small">৳0.00</span>
@@ -1646,23 +1642,18 @@ body.dark-mode .adm-mobile-sticky-bar {
             {{-- 1-Click Auto-Generate & Palette Bar --}}
             <div class="p-2.5 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 mb-2.5">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small fw-bold text-dark d-flex align-items-center gap-1" style="font-size: 12px;">
-                        <i class="fa-solid fa-wand-magic-sparkles text-primary"></i> Instant Auto Cover Studio
-                    </span>
-                    <span class="badge bg-white text-primary border border-primary-subtle py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 10px;">
-                        1-Click Generator
-                    </span>
+                    <span class="small fw-bold text-dark" style="font-size: 12px;">Studio</span>
+                    <span class="badge bg-white text-primary border border-primary-subtle py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 10px;">Auto</span>
                 </div>
 
                 <div class="d-flex gap-1.5 mb-2">
-                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-1.5 shadow-xs" 
+                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 shadow-xs" 
                             onclick="magicAutoGenerateCover()" style="font-size: 12px;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>✦ Generate Auto Cover</span>
+                        Generate
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-2.5 d-flex align-items-center justify-content-center shadow-xs" 
-                            onclick="generateAutoBookCoverLive(true)" title="Regenerate Cover" style="font-size: 12px;">
-                        <i class="fa-solid fa-rotate"></i>
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-2.5 shadow-xs" 
+                            onclick="generateAutoBookCoverLive(true)" title="Refresh" style="font-size: 12px;">
+                        Refresh
                     </button>
                 </div>
 
@@ -1692,7 +1683,7 @@ body.dark-mode .adm-mobile-sticky-bar {
 
             <div class="text-center my-1.5 position-relative">
                 <hr class="my-0 text-muted opacity-25">
-                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">OR UPLOAD CUSTOM FILE</span>
+                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">UPLOAD</span>
             </div>
 
             {{-- Upload Dropzone --}}
@@ -1703,9 +1694,8 @@ body.dark-mode .adm-mobile-sticky-bar {
                 <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
-                <div class="adm-dropzone__icon"><i class="fa-solid fa-cloud-arrow-up text-primary fs-3"></i></div>
-                <div class="fw-bold text-dark small mt-1">Upload Book Cover Image</div>
-                <div class="text-muted small" style="font-size: 11px;">JPG, PNG, WebP, AVIF (Max 10MB)</div>
+                <div class="fw-bold text-dark small mt-1">Upload</div>
+                <div class="text-muted small" style="font-size: 11px;">Image file</div>
             </div>
 
             {{-- Cover Upload Status --}}
@@ -1714,15 +1704,13 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <img id="preview-img-cover_image" src="" class="rounded border shadow-xs" style="width: 42px; height: 58px; object-fit: cover;">
                     <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                         <div class="d-flex align-items-center gap-1 mb-0.5">
-                            <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: 9.5px;">
-                                <i class="fa-solid fa-check me-0.5"></i> Ready (.AVIF)
-                            </span>
+                            <span class="badge bg-success text-white py-0.5 px-1.5" style="font-size: 9.5px;">Ready</span>
                             <span id="preview-filesize-cover_image" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                         </div>
                         <div id="preview-filename-cover_image" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove cover">
-                        <i class="fa-solid fa-trash-can"></i>
+                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-cover_image', 'preview-container-cover_image', 'mockupCoverImg')" title="Remove">
+                        Remove
                     </button>
                 </div>
             </div>
@@ -1732,18 +1720,18 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- 3. LOOK INSIDE PREVIEW --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-info shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
-                <span class="fw-bold text-dark small"><i class="fa-solid fa-book-open text-info me-1.5"></i> 3. Look Inside & Sample Reading</span>
-                <span class="badge bg-info-subtle text-info small">Sample Pages</span>
+                <span class="fw-bold text-dark small">Sample</span>
+                <span class="badge bg-info-subtle text-info small">Pages</span>
             </div>
 
             {{-- Format Selector --}}
             <div class="mb-2.5">
                 <label for="f-look_inside_type" class="a4-field-label mb-1">
-                    <span>Sample Format</span>
+                    <span>Format</span>
                 </label>
                 <select id="f-look_inside_type" name="look_inside_type" class="form-select form-select-sm" onchange="toggleLookInsideFormat(this.value)">
-                    <option value="pdf" @selected(old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'pdf')>PDF Document</option>
-                    <option value="images" @selected(old('look_inside_type', $record->look_inside_type ?? '') === 'images')>Sample Page Images</option>
+                    <option value="pdf" @selected(old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'pdf')>PDF</option>
+                    <option value="images" @selected(old('look_inside_type', $record->look_inside_type ?? '') === 'images')>Images</option>
                 </select>
             </div>
 
@@ -1756,26 +1744,22 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <input type="file" id="f-sample_pdf_path" name="sample_pdf_path" accept="application/pdf"
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
-                    <div class="adm-dropzone__icon"><i class="fa-solid fa-file-pdf text-danger fs-3"></i></div>
-                    <div class="fw-bold text-dark small mt-1">Upload Sample PDF</div>
-                    <div class="text-muted small" style="font-size: 11px;">PDF Format (Max 10MB)</div>
+                    <div class="fw-bold text-dark small mt-1">Upload</div>
+                    <div class="text-muted small" style="font-size: 11px;">PDF file</div>
                 </div>
 
                 {{-- PDF Upload Report --}}
                 <div id="preview-container-sample_pdf_path" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center gap-2">
-                        <div class="bg-danger-subtle text-danger rounded-2 p-2 text-center shadow-xs" style="width: 40px; height: 44px;">
-                            <i class="fa-solid fa-file-pdf fs-5"></i>
-                        </div>
                         <div class="flex-grow-1 overflow-hidden" style="min-width: 0;">
                             <div class="d-flex align-items-center gap-1 mb-0.5">
-                                <span class="badge bg-danger text-white py-0.5 px-1.5" style="font-size: 9.5px;">PDF Ready</span>
+                                <span class="badge bg-danger text-white py-0.5 px-1.5" style="font-size: 9.5px;">Ready</span>
                                 <span id="preview-filesize-sample_pdf_path" class="text-muted small fw-semibold" style="font-size: 10.5px;"></span>
                             </div>
                             <div id="preview-filename-sample_pdf_path" class="text-dark small fw-bold text-truncate" style="font-size: 11.5px;"></div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-sample_pdf_path', 'preview-container-sample_pdf_path', null)" title="Remove PDF">
-                            <i class="fa-solid fa-trash-can"></i>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-pill shadow-xs" onclick="clearAdminFileInput('f-sample_pdf_path', 'preview-container-sample_pdf_path', null)" title="Remove">
+                            Remove
                         </button>
                     </div>
                 </div>
@@ -1790,16 +1774,15 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <input type="file" id="f-look_inside_images" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
-                    <div class="adm-dropzone__icon"><i class="fa-solid fa-images text-info fs-3"></i></div>
-                    <div class="fw-bold text-dark small mt-1">Upload Sample Page Images</div>
-                    <div class="text-muted small" style="font-size: 11px;">Select multiple page images in reading order</div>
+                    <div class="fw-bold text-dark small mt-1">Upload</div>
+                    <div class="text-muted small" style="font-size: 11px;">Image files</div>
                 </div>
 
                 <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold text-dark"><i class="fa-solid fa-images text-info me-1"></i> <span id="multiImagesCountText">0</span> Pages Ready</span>
+                        <span class="small fw-bold text-dark"><span id="multiImagesCountText">0</span> Ready</span>
                         <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
-                            <i class="fa-solid fa-trash-can me-1"></i> Clear All
+                            Clear
                         </button>
                     </div>
                 </div>
@@ -1809,34 +1792,34 @@ body.dark-mode .adm-mobile-sticky-bar {
 
         {{-- 4. MODERATION & VISIBILITY --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-secondary shadow-xs">
-            <h2 class="h6 fw-bold mb-2 text-dark"><i class="fa-solid fa-circle-check me-1 text-muted"></i> 4. Visibility & Publishing Status</h2>
+            <h2 class="h6 fw-bold mb-2 text-dark">Status</h2>
             <div class="mb-2.5 p-2 bg-success-subtle rounded-3 border border-success-subtle">
                 <div class="form-check form-switch mb-0">
                     <input class="form-check-input" type="checkbox" role="switch" id="f-is_active" name="is_active" value="1" 
                            @checked(old('is_active', $record->is_active ?? true))>
                     <label class="form-check-label small fw-bold text-success" for="f-is_active">
-                        <i class="fa-solid fa-signal me-1"></i> Live on Website (Publicly Visible)
+                        Live
                     </label>
                 </div>
             </div>
             <div class="mb-2.5">
                 <label for="f-mod_status" class="a4-field-label mb-1">
-                    <span>Moderation Status</span>
+                    <span>Moderation</span>
                 </label>
                 <select id="f-mod_status" name="mod_status" class="form-select form-select-sm">
-                    @foreach (['approved' => 'Approved / Live', 'pending' => 'Pending Review', 'rejected' => 'Rejected'] as $value => $text)
+                    @foreach (['approved' => 'Approved', 'pending' => 'Pending', 'rejected' => 'Rejected'] as $value => $text)
                         <option value="{{ $value }}" @selected($val('mod_status', 'approved') === $value)>{{ $text }}</option>
                     @endforeach
                 </select>
             </div>
             <div>
                 <label for="f-slug" class="a4-field-label mb-1">
-                    <span>Custom URL Slug</span>
+                    <span>Slug</span>
                 </label>
                 <div class="input-group input-group-sm">
-                    <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}" placeholder="Leave blank to auto-generate" class="form-control form-control-sm">
-                    <button type="button" class="btn btn-outline-secondary" onclick="autoGenerateSlugFromTitle()" title="Generate slug from title">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <input type="text" id="f-slug" name="slug" value="{{ $val('slug') }}" class="form-control form-control-sm">
+                    <button type="button" class="btn btn-outline-secondary" onclick="autoGenerateSlugFromTitle()" title="Auto">
+                        Auto
                     </button>
                 </div>
             </div>
@@ -1851,8 +1834,7 @@ body.dark-mode .adm-mobile-sticky-bar {
             Cancel
         </a>
         <button type="submit" form="contentMainForm" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-1.5 flex-grow-1 justify-content-center">
-            <i class="fa-solid fa-circle-check"></i>
-            <span>{{ $editing ? 'Save Changes' : 'Publish Book' }}</span>
+            <span>{{ $editing ? 'Save' : 'Publish' }}</span>
         </button>
     </div>
 </div>
@@ -1896,7 +1878,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
                 <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
-                    <i class="fa-solid fa-pen-nib me-1"></i>Author
+                    Author
                 </span>
             </td>
             <td class="contributor-col-dir align-middle">
@@ -1906,18 +1888,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </td>
             <td class="contributor-col-bn align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                 <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input" 
                        placeholder="" oninput="onAuthorNameTyped(this)">
             </td>
             <td class="contributor-col-en align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                 <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
                        placeholder="" oninput="onAuthorNameTyped(this)">
             </td>
             <td class="contributor-col-action text-center align-middle pe-3">
-                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove contributor">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove">
+                    &times;
                 </button>
             </td>
         `;
@@ -1935,7 +1917,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
                 <span class="badge role-badge-translator px-2 py-1 rounded-pill small fw-semibold">
-                    <i class="fa-solid fa-language me-1"></i>Translator
+                    Translator
                 </span>
             </td>
             <td class="contributor-col-dir align-middle">
@@ -1945,18 +1927,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </td>
             <td class="contributor-col-bn align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                 <input type="text" name="translator_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-en align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                 <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-action text-center align-middle pe-3">
-                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                    &times;
                 </button>
             </td>
         `;
@@ -1974,7 +1956,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
                 <span class="badge role-badge-editor px-2 py-1 rounded-pill small fw-semibold">
-                    <i class="fa-solid fa-user-pen me-1"></i>Editor
+                    Editor
                 </span>
             </td>
             <td class="contributor-col-dir align-middle">
@@ -1984,18 +1966,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </td>
             <td class="contributor-col-bn align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                 <input type="text" name="editor_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-en align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                 <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-action text-center align-middle pe-3">
-                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                    &times;
                 </button>
             </td>
         `;
@@ -2013,7 +1995,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
                 <span class="badge role-badge-rewriter px-2 py-1 rounded-pill small fw-semibold">
-                    <i class="fa-solid fa-pen-fancy me-1"></i>Adapter
+                    Adapter
                 </span>
             </td>
             <td class="contributor-col-dir align-middle">
@@ -2023,18 +2005,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </td>
             <td class="contributor-col-bn align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                 <input type="text" name="rewriter_names[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-en align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                 <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-action text-center align-middle pe-3">
-                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                    &times;
                 </button>
             </td>
         `;
@@ -2052,7 +2034,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         tr.innerHTML = `
             <td class="contributor-col-role ps-3 align-middle">
                 <span class="badge role-badge-cover px-2 py-1 rounded-pill small fw-semibold">
-                    <i class="fa-solid fa-palette me-1"></i>Cover Artist
+                    Artist
                 </span>
             </td>
             <td class="contributor-col-dir align-middle">
@@ -2062,18 +2044,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </td>
             <td class="contributor-col-bn align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (বাংলা) <span class="text-danger">*</span></label>
+                <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
                 <input type="text" name="cover_artists[]" class="form-control form-control-sm contributor-input contributor-name-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-en align-middle">
-                <label class="d-md-none small text-muted fw-bold mb-1">Name (EN)</label>
+                <label class="d-md-none small text-muted fw-bold mb-1">English</label>
                 <input type="text" class="form-control form-control-sm contributor-input contributor-name-en-input" 
                        placeholder="" oninput="updateContributorSummary()">
             </td>
             <td class="contributor-col-action text-center align-middle pe-3">
-                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-3" style="width: 32px; height: 32px;" onclick="removeRepeaterRow(this)" title="Remove contributor">
-                    <i class="fa-solid fa-trash-can"></i>
+                <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this)" title="Remove">
+                    &times;
                 </button>
             </td>
         `;
@@ -2157,11 +2139,11 @@ body.dark-mode .adm-mobile-sticky-bar {
         const countBadge = document.getElementById('contributorLiveCountBadge');
         if (countBadge) {
             if (totalCount === 0) {
-                countBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-pen-nib me-1"></i>Primary Author Needed</span>';
+                countBadge.innerHTML = '<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold">Required</span>';
             } else if (totalCount === 1) {
-                countBadge.innerHTML = '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-circle-check me-1"></i>1 Contributor</span>';
+                countBadge.innerHTML = '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill small px-3 py-1 fw-bold">1 Contributor</span>';
             } else {
-                countBadge.innerHTML = `<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle rounded-pill small px-3 py-1 fw-bold"><i class="fa-solid fa-users me-1"></i>${totalCount} Contributors</span>`;
+                countBadge.innerHTML = `<span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle rounded-pill small px-3 py-1 fw-bold">${totalCount} Contributors</span>`;
             }
         }
 
@@ -2824,7 +2806,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (!title && titleEnInput && titleEnInput.value.trim()) {
             title = titleEnInput.value.trim();
         }
-        if (!title) title = 'বইয়ের নাম';
+        if (!title) title = 'Book Title';
 
         let authorName = '';
         const authorInputs = document.querySelectorAll('.author-name-input');
@@ -2839,7 +2821,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                 authorName = firstAuthSel.selectedOptions[0].text;
             }
         }
-        if (!authorName) authorName = 'আইডিয়া প্রকাশন';
+        if (!authorName) authorName = 'Idea Prakashan';
 
         const theme = presets[currentThemeKey] || presets.royal_blue;
         const bgColor = theme.bg;
@@ -2847,7 +2829,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         const authorColor = theme.author;
         const accentColor = theme.accent || '#fbbf24';
         const selectedFont = theme.font || 'Hind Siliguri';
-        const firstLetter = title.charAt(0) || 'ব';
+        const firstLetter = (title.charAt(0) || 'B').toUpperCase();
 
         const canvas = document.createElement('canvas');
         canvas.width = 600;
@@ -2966,9 +2948,11 @@ body.dark-mode .adm-mobile-sticky-bar {
         ctx.fillText(authorName, 300, dividerY + 45);
 
         // Footer
+        const pubSelectEl = document.getElementById('f-publisher_id');
+        const pubNameText = (pubSelectEl && pubSelectEl.selectedIndex > 0 ? pubSelectEl.options[pubSelectEl.selectedIndex].text : 'IDEA PUBLICATION').trim();
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ctx.font = '500 13px "' + selectedFont + '", sans-serif';
-        ctx.fillText('আইডিয়া প্রকাশন • প্রিমিয়াম সংস্করণ', 300, 835);
+        ctx.font = '500 12px "' + selectedFont + '", sans-serif';
+        ctx.fillText(pubNameText.toUpperCase(), 300, 835);
 
         const dataUrl = canvas.toDataURL('image/webp', 0.95);
 

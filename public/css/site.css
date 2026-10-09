@@ -386,6 +386,9 @@ img, svg, video, canvas, audio, iframe {
 .site-navbar {
     position: relative;
     z-index: 1065;
+    min-height: 92px;
+    display: flex;
+    align-items: center;
 }
 
 .site-navbar .container {
@@ -398,6 +401,7 @@ img, svg, video, canvas, audio, iframe {
     padding-right: 0.5rem;
     position: relative;
     overflow: visible !important;
+    min-height: 92px;
 }
 
 .site-nav__list {
@@ -407,7 +411,8 @@ img, svg, video, canvas, audio, iframe {
     gap: .20rem;
     list-style: none;
     margin: 0 auto !important;
-    padding: .32rem 0;
+    padding: .5rem 0;
+    min-height: 92px;
     flex-wrap: nowrap;
     overflow: visible !important;
     max-width: 100%;
@@ -537,10 +542,10 @@ img, svg, video, canvas, audio, iframe {
     .dropdown.site-nav__item .dropdown-menu::before {
         content: '';
         position: absolute;
-        top: -10px;
+        top: -16px;
         left: 0;
         right: 0;
-        height: 10px;
+        height: 16px;
         background: transparent;
     }
 
@@ -763,8 +768,18 @@ img, svg, video, canvas, audio, iframe {
         font-size: 12.5px !important;
     }
     .site-topbar .font-monospace {
-        font-size: 14px !important;
-        padding: 2px 8px !important;
+        font-size: 13px !important;
+    }
+    .site-topbar .topbar-hotline-pill {
+        padding: 2px 9px 2px 3px !important;
+        gap: 6px !important;
+    }
+    .site-topbar .topbar-hotline-pill .hotline-number {
+        padding: 0 !important;
+    }
+    .site-topbar .btn-topbar-library {
+        padding: 2.5px 9px !important;
+        font-size: 11px !important;
     }
     
     /* Brand & Logo scaling */

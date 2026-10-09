@@ -16,7 +16,7 @@
 
 @php
     $editing = $record !== null;
-    $heading = $editing ? "Edit {$spec['label']}" : "New {$spec['label']}";
+    $heading = $spec['key'] === 'books' ? ($editing ? 'Edit' : 'Book') : ($editing ? "Edit {$spec['label']}" : "New {$spec['label']}");
     $action  = $editing
         ? route('admin.content.update', ['type' => $spec['key'], 'id' => $record->getKey()])
         : route('admin.content.store', ['type' => $spec['key']]);
@@ -38,43 +38,43 @@
     <div class="d-flex flex-wrap align-items-center gap-2">
         @if ($spec['key'] === 'blog')
             <button type="submit" form="contentMainForm" name="save_and_approve" value="1" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-circle-check me-1"></i> Approve & Publish
+                Approve
             </button>
             <button type="submit" form="contentMainForm" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-save me-1"></i> Save Draft
+                Draft
             </button>
         @else
-            <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs">
-                <i class="fa-solid fa-circle-check me-1"></i> {{ $editing ? 'Save Changes' : ($spec['key'] === 'books' ? 'Publish Book' : 'Publish & Save') }}
+            <button type="submit" form="contentMainForm" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs">
+                {{ $editing ? 'Save' : 'Publish' }}
             </button>
         @endif
         @if ($editing)
             @if ($spec['key'] === 'webzines')
                 <a href="{{ route('webzine.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-book-open me-1"></i> Reader View
+                    Reader
                 </a>
                 <a href="{{ route('webzine.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
+                    View
                 </a>
             @elseif ($spec['key'] === 'ebooks')
                 <a href="{{ route('ebook.read', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-book-open me-1"></i> Reader View
+                    Reader
                 </a>
                 <a href="{{ route('ebook.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
+                    View
                 </a>
             @elseif ($spec['key'] === 'books')
                 <a href="{{ route('book.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
+                    View
                 </a>
             @elseif ($spec['key'] === 'blog')
                 <a href="{{ route('blog.show', $record->slug ?: $record->id) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View on Site
+                    View
                 </a>
             @endif
         @endif
         <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+            Back
         </a>
     </div>
 @endsection
@@ -1530,7 +1530,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddCatLabel">
-                    <i class="fa-solid fa-folder-plus me-1.5"></i> Create New Category
+                    Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1538,29 +1538,27 @@
                 <div class="modal-body p-3">
                     <div id="quickCatAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Category Name <span class="text-danger">*</span></label>
-                        <input type="text" id="quick_cat_name" name="name" class="form-control form-control-sm" 
-                               placeholder="e.g. Translated Fiction / Science / Poetry" required>
+                        <label class="form-label small fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="quick_cat_name" name="name" class="form-control form-control-sm" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Parent Category (Optional)</label>
+                        <label class="form-label small fw-semibold">Parent</label>
                         <select id="quick_cat_parent_id" name="parent_id" class="form-select form-select-sm">
-                            <option value="">— Primary Category (No Parent) —</option>
+                            <option value="">— Primary —</option>
                             @foreach ($lookups['categories'] ?? [] as $cId => $cName)
                                 <option value="{{ $cId }}">{{ $cName }}</option>
                             @endforeach
                         </select>
-                        <div class="form-text" style="font-size: 11px;">Select a parent category to create a sub-category under it.</div>
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">Description (Optional)</label>
-                        <textarea id="quick_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="Short description..."></textarea>
+                        <label class="form-label small fw-semibold">Description</label>
+                        <textarea id="quick_cat_description" name="description" rows="2" class="form-control form-control-sm"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="quickCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Category
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="quickCatBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold">
+                        Save
                     </button>
                 </div>
             </form>
@@ -1576,7 +1574,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddBlogCatLabel">
-                    <i class="fa-solid fa-shapes me-1.5"></i> Create New Blog Category
+                    Category
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1584,24 +1582,22 @@
                 <div class="modal-body p-3">
                     <div id="quickBlogCatAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Blog Category Name <span class="text-danger">*</span></label>
-                        <input type="text" id="quick_blog_cat_name" name="name" class="form-control form-control-sm" 
-                               placeholder="e.g. Poetry / Short Stories / Essays / History" required>
+                        <label class="form-label small fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="quick_blog_cat_name" name="name" class="form-control form-control-sm" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Icon Class (FontAwesome - Optional)</label>
-                        <input type="text" id="quick_blog_cat_icon" name="icon" class="form-control form-control-sm" 
-                               placeholder="e.g. feather-pointed / book-open-reader / pen-nib" value="feather-pointed">
+                        <label class="form-label small fw-semibold">Icon</label>
+                        <input type="text" id="quick_blog_cat_icon" name="icon" class="form-control form-control-sm" value="feather-pointed">
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">Description (Optional)</label>
-                        <textarea id="quick_blog_cat_description" name="description" rows="2" class="form-control form-control-sm" placeholder="Short description or intro..."></textarea>
+                        <label class="form-label small fw-semibold">Description</label>
+                        <textarea id="quick_blog_cat_description" name="description" rows="2" class="form-control form-control-sm"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="quickBlogCatBtn" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Blog Category
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="quickBlogCatBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold">
+                        Save
                     </button>
                 </div>
             </form>
@@ -1617,7 +1613,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddPubLabel">
-                    <i class="fa-solid fa-building me-1.5"></i> Add New Publisher
+                    Publisher
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1625,23 +1621,22 @@
                 <div class="modal-body p-3">
                     <div id="quickPubAlert"></div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Publisher Name <span class="text-danger">*</span></label>
-                        <input type="text" id="quick_pub_name" name="name" class="form-control form-control-sm" 
-                               placeholder="e.g. Somoy Prokashon / Batighar / Anupam" required>
+                        <label class="form-label small fw-semibold">Name <span class="text-danger">*</span></label>
+                        <input type="text" id="quick_pub_name" name="name" class="form-control form-control-sm" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Phone Number</label>
-                        <input type="text" id="quick_pub_phone" name="phone" class="form-control form-control-sm" placeholder="01XXXXXXXXX">
+                        <label class="form-label small fw-semibold">Phone</label>
+                        <input type="text" id="quick_pub_phone" name="phone" class="form-control form-control-sm">
                     </div>
                     <div>
                         <label class="form-label small fw-semibold">Address</label>
-                        <input type="text" id="quick_pub_address" name="address" class="form-control form-control-sm" placeholder="Banglabazar, Dhaka">
+                        <input type="text" id="quick_pub_address" name="address" class="form-control form-control-sm">
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="quickPubBtn" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Publisher
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="quickPubBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold">
+                        Save
                     </button>
                 </div>
             </form>
@@ -1657,7 +1652,7 @@
         <div class="modal-content rounded-4 border-0 shadow">
             <div class="modal-header bg-primary text-white py-2.5">
                 <h6 class="modal-title fw-bold text-white mb-0" id="quickAddAuthLabel">
-                    <i class="fa-solid fa-pen-nib me-1.5"></i> Add New Author
+                    Author
                 </h6>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1666,29 +1661,27 @@
                     <div id="quickAuthAlert"></div>
                     <div class="row g-2 mb-3">
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold">Author Name (বাংলা নাম) <span class="text-danger">*</span></label>
-                            <input type="text" id="quick_auth_name" name="name" class="form-control form-control-sm" 
-                                   placeholder="যেমন: হুমায়ূন আহমেদ" required>
+                            <label class="form-label small fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" id="quick_auth_name" name="name" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-12 col-md-6">
-                            <label class="form-label small fw-semibold">Author Name (ইংরেজি নাম — ঐচ্ছিক)</label>
-                            <input type="text" id="quick_auth_name_en" name="name_en" class="form-control form-control-sm" 
-                                   placeholder="e.g. Humayun Ahmed">
+                            <label class="form-label small fw-semibold">English</label>
+                            <input type="text" id="quick_auth_name_en" name="name_en" class="form-control form-control-sm">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Phone Number (ফোন নম্বর)</label>
-                        <input type="text" id="quick_auth_phone" name="phone" class="form-control form-control-sm" placeholder="01XXXXXXXXX">
+                        <label class="form-label small fw-semibold">Phone</label>
+                        <input type="text" id="quick_auth_phone" name="phone" class="form-control form-control-sm">
                     </div>
                     <div>
-                        <label class="form-label small fw-semibold">Biography (Bio)</label>
-                        <textarea id="quick_auth_bio" name="bio" rows="2" class="form-control form-control-sm" placeholder="Author short biography..."></textarea>
+                        <label class="form-label small fw-semibold">Biography</label>
+                        <textarea id="quick_auth_bio" name="bio" rows="2" class="form-control form-control-sm"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer bg-light py-2">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="quickAuthBtn" class="btn btn-sm btn-primary">
-                        <i class="fa-solid fa-circle-check me-1"></i> Save Author
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="quickAuthBtn" class="btn btn-sm btn-primary rounded-pill px-4 fw-semibold">
+                        Save
                     </button>
                 </div>
             </form>
