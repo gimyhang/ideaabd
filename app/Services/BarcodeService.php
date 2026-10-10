@@ -260,38 +260,74 @@ class BarcodeService
     }
 
     /**
-     * Generate an inline Data URI / SVG for a QR Code.
+     * Build unified mobile-scannable product URL payload incorporating serial, isbn and product URL.
+     */
+    public static function buildBookQrPayload(?string $slug = null, ?string $serial = null, ?string $isbn = null, $bookId = null): string
+    {
+        $path = $slug ? ('/books/' . $slug) : ($bookId ? ('/books/' . $bookId) : '/books');
+        $params = [];
+        $cleanSerial = trim((string)$serial);
+        $cleanIsbn = trim((string)$isbn);
+        if ($cleanSerial !== '') {
+            $params['serial'] = $cleanSerial;
+        }
+        if ($cleanIsbn !== '') {
+            $params['isbn'] = $cleanIsbn;
+        }
+        $query = !empty($params) ? ('?' . http_build_query($params)) : '';
+        return url($path . $query);
+    }
+
+    /**
+     * Generate an inline Data URI / SVG for a real mobile-scannable QR Code.
      */
     public static function generateQrCodeSvg(string $data, int $size = 120): string
     {
         $safeData = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+
+        try {
+            if (class_exists(\BaconQrCode\Writer::class)) {
+                $renderer = new \BaconQrCode\Renderer\ImageRenderer(
+                    new \BaconQrCode\Renderer\RendererStyle\RendererStyle($size, 1),
+                    new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+                );
+                $writer = new \BaconQrCode\Writer($renderer);
+                $svg = $writer->writeString($data);
+                $svg = preg_replace('/<\?xml[^\>]*\?>/i', '', $svg);
+                $svg = trim($svg);
+
+                return sprintf(
+                    '<div class="idea-qr-container d-inline-block position-relative" data-qr-payload="%s" style="width:%dpx; height:%dpx;">%s</div>',
+                    $safeData,
+                    $size,
+                    $size,
+                    $svg
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("BaconQrCode generation failed: " . $e->getMessage());
+        }
+
         return sprintf(
             '<div class="idea-qr-container d-inline-block position-relative" data-qr-payload="%s" style="width:%dpx; height:%dpx;">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="%d" height="%d" class="idea-qr-svg" style="background:#ffffff; padding:4px; border-radius:6px; border:1px solid #e2e8f0;">
-                    <!-- QR Finder Patterns -->
                     <rect width="100" height="100" fill="#ffffff"/>
-                    <!-- Top-Left Finder -->
                     <rect x="6" y="6" width="28" height="28" fill="#0f172a" rx="4"/>
                     <rect x="10" y="10" width="20" height="20" fill="#ffffff" rx="2"/>
                     <rect x="14" y="14" width="12" height="12" fill="#0f172a" rx="2"/>
-                    <!-- Top-Right Finder -->
                     <rect x="66" y="6" width="28" height="28" fill="#0f172a" rx="4"/>
                     <rect x="70" y="10" width="20" height="20" fill="#ffffff" rx="2"/>
                     <rect x="74" y="14" width="12" height="12" fill="#0f172a" rx="2"/>
-                    <!-- Bottom-Left Finder -->
                     <rect x="6" y="66" width="28" height="28" fill="#0f172a" rx="4"/>
                     <rect x="10" y="70" width="20" height="20" fill="#ffffff" rx="2"/>
                     <rect x="14" y="74" width="12" height="12" fill="#0f172a" rx="2"/>
-                    <!-- Matrix Payload Dots -->
                     <g fill="#0f172a">
                         <rect x="38" y="10" width="4" height="4"/><rect x="46" y="10" width="4" height="4"/><rect x="54" y="10" width="4" height="4"/>
                         <rect x="38" y="18" width="4" height="4"/><rect x="50" y="18" width="4" height="4"/><rect x="58" y="18" width="4" height="4"/>
                         <rect x="38" y="26" width="4" height="4"/><rect x="42" y="26" width="4" height="4"/><rect x="54" y="26" width="4" height="4"/>
-                        <!-- Center Data Matrix -->
                         <rect x="10" y="38" width="4" height="4"/><rect x="18" y="38" width="4" height="4"/><rect x="26" y="38" width="4" height="4"/><rect x="34" y="38" width="4" height="4"/><rect x="42" y="38" width="4" height="4"/><rect x="50" y="38" width="4" height="4"/><rect x="58" y="38" width="4" height="4"/><rect x="66" y="38" width="4" height="4"/><rect x="74" y="38" width="4" height="4"/><rect x="82" y="38" width="4" height="4"/>
                         <rect x="10" y="46" width="4" height="4"/><rect x="22" y="46" width="4" height="4"/><rect x="38" y="46" width="4" height="4"/><rect x="46" y="46" width="4" height="4"/><rect x="62" y="46" width="4" height="4"/><rect x="70" y="46" width="4" height="4"/><rect x="86" y="46" width="4" height="4"/>
                         <rect x="14" y="54" width="4" height="4"/><rect x="30" y="54" width="4" height="4"/><rect x="42" y="54" width="4" height="4"/><rect x="54" y="54" width="4" height="4"/><rect x="66" y="54" width="4" height="4"/><rect x="78" y="54" width="4" height="4"/>
-                        <!-- Bottom-Right Matrix -->
                         <rect x="38" y="66" width="4" height="4"/><rect x="46" y="66" width="4" height="4"/><rect x="58" y="66" width="4" height="4"/><rect x="70" y="66" width="4" height="4"/><rect x="82" y="66" width="4" height="4"/>
                         <rect x="42" y="74" width="4" height="4"/><rect x="54" y="74" width="4" height="4"/><rect x="66" y="74" width="4" height="4"/><rect x="74" y="74" width="4" height="4"/><rect x="86" y="74" width="4" height="4"/>
                         <rect x="38" y="82" width="4" height="4"/><rect x="50" y="82" width="4" height="4"/><rect x="62" y="82" width="4" height="4"/><rect x="78" y="82" width="4" height="4"/><rect x="86" y="82" width="4" height="4"/>

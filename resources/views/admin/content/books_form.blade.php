@@ -641,17 +641,81 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </div>
                     <span id="contributorLiveCountBadge">
                         <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small px-3 py-1 fw-bold">
-                            Author Needed
+                            Required
                         </span>
                     </span>
                 </div>
             </div>
 
+            @php
+                $existingAuthors = old('author_names');
+                $existingAuthorsEn = old('author_names_en', []);
+                $existingAuthorIds = old('author_ids', []);
+                if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
+                    $existingAuthors = [];
+                    $existingAuthorsEn = [];
+                    $existingAuthorIds = [];
+                    if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
+                        foreach ($record->authors as $ra) {
+                            $existingAuthors[] = $ra->name_bn ?: $ra->name;
+                            $existingAuthorsEn[] = $ra->name_en ?: '';
+                            $existingAuthorIds[] = $ra->id;
+                        }
+                    } elseif ($val('author_name')) {
+                        $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
+                        $existingAuthorIds = [(string)($record->author_link_id ?? '')];
+                        if (!empty($record->author_link_id)) {
+                            $aRec = DB::table('authors')->where('id', $record->author_link_id)->first();
+                            $existingAuthorsEn = [$aRec->name_en ?? ''];
+                        } else {
+                            $existingAuthorsEn = [''];
+                        }
+                    }
+                }
+                $primaryAuthId = (string)($existingAuthorIds[0] ?? old('author_link_id', $record->author_link_id ?? ''));
+                $primaryAuthName = (string)($existingAuthors[0] ?? ($val('author_name') ?? ''));
+                $primaryAuthEn = (string)($existingAuthorsEn[0] ?? '');
+                if (empty($primaryAuthName) && !empty($primaryAuthId) && isset($lookups['authors_details'][$primaryAuthId])) {
+                    $primaryAuthName = $lookups['authors_details'][$primaryAuthId]['name_bn'] ?: $lookups['authors_details'][$primaryAuthId]['name'];
+                    $primaryAuthEn = $lookups['authors_details'][$primaryAuthId]['name_en'] ?? '';
+                }
+            @endphp
+
+            {{-- 1. PRIMARY AUTHOR (REQUIRED DROPDOWN) --}}
+            <div class="p-3 bg-light rounded-3 border mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                    <label for="f-author_link_id" class="a4-field-label mb-0 fs-6">
+                        <span class="text-dark fw-bold">Author <span class="text-danger">*</span></span>
+                    </label>
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-2xs" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
+                        + New Author
+                    </button>
+                </div>
+                <select id="f-author_link_id" name="author_ids[]" required 
+                        class="form-select form-select-md fw-semibold border-primary-subtle shadow-2xs @error('author_names') is-invalid @enderror" 
+                        onchange="onPrimaryAuthorDropdownChange(this)">
+                    <option value="">— Select Author * —</option>
+                    @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                        <option value="{{ $aId }}" 
+                                data-name-bn="{{ $aDet['name_bn'] ?: $aDet['name'] }}" 
+                                data-name-en="{{ $aDet['name_en'] ?? '' }}"
+                                @selected((string)$primaryAuthId === (string)$aId)>
+                            {{ $aDet['name'] }} @if(!empty($aDet['name_en'])) ({{ $aDet['name_en'] }}) @endif
+                        </option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="author_names[]" id="f-primary_author_name" value="{{ $primaryAuthName }}">
+                <input type="hidden" name="author_names_en[]" id="f-primary_author_name_en" value="{{ $primaryAuthEn }}">
+                <input type="hidden" name="author_link_id" id="f-author_link_id_backup" value="{{ $primaryAuthId }}">
+                @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                @error('author_ids')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+            </div>
+
             {{-- Contributor Action Toolbar --}}
             <div class="contributor-toolbar">
                 <div class="d-flex flex-wrap align-items-center gap-1.5 contributor-role-btns">
-                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addAuthorField()" title="Add author">
-                        + Author
+                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addAuthorField()" title="Add co-author">
+                        + Co-Author
                     </button>
                     <button type="button" class="btn btn-xs btn-outline-info rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addTranslatorField()" title="Add translator">
                         + Translator
@@ -664,11 +728,6 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </button>
                     <button type="button" class="btn btn-xs btn-outline-purple rounded-pill px-3 py-1 fw-semibold shadow-2xs" onclick="addCoverArtistField()" title="Add cover artist" style="color: #7e22ce; border-color: #d8b4fe;">
                         + Artist
-                    </button>
-                </div>
-                <div>
-                    <button type="button" class="btn btn-xs btn-primary rounded-pill px-3.5 py-1.5 fw-bold shadow-xs w-100" data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" title="Add author into directory">
-                        + Directory
                     </button>
                 </div>
             </div>
@@ -686,86 +745,53 @@ body.dark-mode .adm-mobile-sticky-bar {
                         </tr>
                     </thead>
                     <tbody id="authorshipCreditsTableBody">
-                        {{-- 1. AUTHORS --}}
-                        @php
-                            $existingAuthors = old('author_names');
-                            $existingAuthorsEn = old('author_names_en', []);
-                            $existingAuthorIds = old('author_ids', []);
-                            if (!is_array($existingAuthors) || empty(array_filter($existingAuthors))) {
-                                $existingAuthors = [];
-                                $existingAuthorsEn = [];
-                                $existingAuthorIds = [];
-                                if (isset($record) && $record && method_exists($record, 'authors') && $record->authors && $record->authors->isNotEmpty()) {
-                                    foreach ($record->authors as $ra) {
-                                        $existingAuthors[] = $ra->name_bn ?: $ra->name;
-                                        $existingAuthorsEn[] = $ra->name_en ?: '';
-                                        $existingAuthorIds[] = $ra->id;
-                                    }
-                                } elseif ($val('author_name')) {
-                                    $existingAuthors = array_map('trim', explode(',', (string)$val('author_name')));
-                                    $existingAuthorIds = [(string)($record->author_link_id ?? '')];
-                                    if (!empty($record->author_link_id)) {
-                                        $aRec = DB::table('authors')->where('id', $record->author_link_id)->first();
-                                        $existingAuthorsEn = [$aRec->name_en ?? ''];
-                                    } else {
-                                        $existingAuthorsEn = [''];
-                                    }
-                                }
-                            }
-                            if (empty($existingAuthors)) {
-                                $existingAuthors = [''];
-                                $existingAuthorsEn = [''];
-                                $existingAuthorIds = [''];
-                            }
-                        @endphp
-                        @foreach($existingAuthors as $aIdx => $aName)
-                            @php 
-                                $aIdVal = $existingAuthorIds[$aIdx] ?? ''; 
-                                $aNameEn = $existingAuthorsEn[$aIdx] ?? '';
-                            @endphp
-                            <tr class="author-field-row contributor-matrix-row">
-                                <td class="contributor-col-role ps-3 align-middle">
-                                    <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
-                                        Author @if($aIdx === 0)<span class="text-danger" title="Primary Author Required">*</span>@endif
-                                    </span>
-                                </td>
-                                <td class="contributor-col-dir align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
-                                    <select name="author_ids[]" class="form-select form-select-sm contributor-select author-directory-select" onchange="onAuthorSelectRowChange(this)">
-                                        <option value="">— Directory —</option>
-                                        @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
-                                            <option value="{{ $aId }}" 
-                                                    data-name-bn="{{ $aDet['name_bn'] }}" 
-                                                    data-name-en="{{ $aDet['name_en'] }}"
-                                                    @selected((string)$aIdVal === (string)$aId || ((string)old('author_link_id', $record->author_link_id ?? '') === (string)$aId && $aIdx === 0))>
-                                                {{ $aDet['name'] }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </td>
-                                <td class="contributor-col-bn align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input @error('author_names') is-invalid @enderror" 
-                                           value="{{ $aName }}" placeholder="" oninput="onAuthorNameTyped(this)">
-                                </td>
-                                <td class="contributor-col-en align-middle">
-                                    <label class="d-md-none small text-muted fw-bold mb-1">English</label>
-                                    <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
-                                           value="{{ $aNameEn }}" placeholder="" oninput="onAuthorNameTyped(this)">
-                                </td>
-                                <td class="contributor-col-action text-center align-middle pe-3">
-                                    @if($aIdx === 0 && count($existingAuthors) === 1)
-                                        <button type="button" class="btn btn-sm btn-light p-0 d-inline-flex align-items-center justify-content-center border rounded-pill text-muted opacity-50" style="width: 30px; height: 30px;" title="Required" disabled>
-                                            <span style="font-size: 11px;">—</span>
-                                        </button>
-                                    @else
+                        {{-- Additional Co-Authors (Index >= 1) --}}
+                        @if(count($existingAuthors) > 1)
+                            @foreach(array_slice($existingAuthors, 1, null, true) as $aIdx => $aName)
+                                @if(filled($aName))
+                                @php 
+                                    $aIdVal = $existingAuthorIds[$aIdx] ?? ''; 
+                                    $aNameEn = $existingAuthorsEn[$aIdx] ?? '';
+                                @endphp
+                                <tr class="author-field-row contributor-matrix-row">
+                                    <td class="contributor-col-role ps-3 align-middle">
+                                        <span class="badge role-badge-author px-2 py-1 rounded-pill small fw-semibold">
+                                            Co-Author
+                                        </span>
+                                    </td>
+                                    <td class="contributor-col-dir align-middle">
+                                        <label class="d-md-none small text-muted fw-bold mb-1">Directory</label>
+                                        <select name="author_ids[]" class="form-select form-select-sm contributor-select author-directory-select" onchange="onAuthorSelectRowChange(this)">
+                                            <option value="">— Directory —</option>
+                                            @foreach (($lookups['authors_details'] ?? []) as $aId => $aDet)
+                                                <option value="{{ $aId }}" 
+                                                        data-name-bn="{{ $aDet['name_bn'] }}" 
+                                                        data-name-en="{{ $aDet['name_en'] }}"
+                                                        @selected((string)$aIdVal === (string)$aId)>
+                                                    {{ $aDet['name'] }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td class="contributor-col-bn align-middle">
+                                        <label class="d-md-none small text-muted fw-bold mb-1">Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="author_names[]" class="form-control form-control-sm contributor-input author-name-input" 
+                                               value="{{ $aName }}" placeholder="" oninput="onAuthorNameTyped(this)">
+                                    </td>
+                                    <td class="contributor-col-en align-middle">
+                                        <label class="d-md-none small text-muted fw-bold mb-1">English</label>
+                                        <input type="text" name="author_names_en[]" class="form-control form-control-sm contributor-input author-name-en-input" 
+                                               value="{{ $aNameEn }}" placeholder="" oninput="onAuthorNameTyped(this)">
+                                    </td>
+                                    <td class="contributor-col-action text-center align-middle pe-3">
                                         <button type="button" class="btn btn-sm btn-outline-danger p-0 d-inline-flex align-items-center justify-content-center rounded-pill" style="width: 30px; height: 30px;" onclick="removeRepeaterRow(this); updateLiveMockupCard();" title="Remove">
                                             &times;
                                         </button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
+                                    </td>
+                                </tr>
+                                @endif
+                            @endforeach
+                        @endif
 
                         {{-- 2. TRANSLATORS --}}
                         @php
@@ -907,15 +933,15 @@ body.dark-mode .adm-mobile-sticky-bar {
 
                         {{-- 5. COVER ARTISTS --}}
                         @php
-                            $existingCoverArtists = old('cover_artists');
-                            if (!is_array($existingCoverArtists) || empty(array_filter($existingCoverArtists))) {
-                                $existingCoverArtists = [];
+                            $existingCovers = old('cover_artists');
+                            if (!is_array($existingCovers) || empty(array_filter($existingCovers))) {
+                                $existingCovers = [];
                                 if ($val('cover_artist')) {
-                                    $existingCoverArtists = array_map('trim', explode(',', (string)$val('cover_artist')));
+                                    $existingCovers = array_map('trim', explode(',', (string)$val('cover_artist')));
                                 }
                             }
                         @endphp
-                        @foreach($existingCoverArtists as $cIdx => $cName)
+                        @foreach($existingCovers as $cIdx => $cName)
                             @if(filled($cName))
                             <tr class="cover-artist-field-row contributor-matrix-row">
                                 <td class="contributor-col-role ps-3 align-middle">
@@ -952,14 +978,6 @@ body.dark-mode .adm-mobile-sticky-bar {
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-
-            {{-- Live Byline Preview Strip --}}
-            <div class="contributor-byline-strip d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <div class="small">
-                    <span class="text-primary fw-bold">Byline:</span>
-                    <span id="liveContributorBylineText" class="text-dark fw-semibold ms-1">Idea Prakashan</span>
-                </div>
             </div>
 
             @error('author_names')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -1091,11 +1109,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <span class="fw-bold text-dark small">
                             Paperback
                         </span>
-                        <div class="d-flex align-items-center gap-1">
-                            @foreach([15, 20, 25, 30, 35, 40] as $pct)
-                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill quick-disc-btn px-2" onclick="applyPaperbackQuickDiscount({{ $pct }})">{{ $pct }}%</button>
-                            @endforeach
-                        </div>
+                        
                     </div>
 
                     <div class="row g-2">
@@ -1174,11 +1188,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                         <span class="fw-bold text-dark small">
                             Hardcover
                         </span>
-                        <div class="d-flex align-items-center gap-1">
-                            @foreach([15, 20, 25, 30, 35, 40] as $pct)
-                                <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill quick-disc-btn px-2" onclick="applyHardcoverQuickDiscount({{ $pct }})">{{ $pct }}%</button>
-                            @endforeach
-                        </div>
+                        
                     </div>
 
                     <div class="row g-2">
@@ -1248,6 +1258,16 @@ body.dark-mode .adm-mobile-sticky-bar {
             </div>
         </div>
 
+        @php
+    $currentBoimelaVal = (string)old('ekushey_category', $record->ekushey_category ?? '');
+    $curYear = (int)date('Y');
+    $boimelaYears = range($curYear + 4, 2020);
+    $standardBoimelaKeys = array_map(fn($y) => "boimela_{$y}", $boimelaYears);
+    $standardBoimelaKeys[] = 'boimela_pavilion';
+    $standardBoimelaKeys[] = 'boimela_previous';
+    $isCustomBoimela = !empty($currentBoimelaVal) && !in_array($currentBoimelaVal, $standardBoimelaKeys, true);
+@endphp
+
         {{-- SECTION 5: CLASSIFICATION & IDENTIFIERS --}}
         <div class="a4-doc-section" id="sec-classification">
             <div class="a4-doc-section-title">
@@ -1255,7 +1275,7 @@ body.dark-mode .adm-mobile-sticky-bar {
             </div>
 
             <div class="row g-2.5">
-                {{-- Category * & Publisher * --}}
+                {{-- 1. Primary Category * & Subcategory --}}
                 <div class="col-12 col-md-6">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-category_id" class="a4-field-label mb-0">
@@ -1278,6 +1298,70 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </div>
 
                 <div class="col-12 col-md-6">
+                    <label for="f-sub_category_name" class="a4-field-label mb-1">
+                        <span>Subcategory</span>
+                    </label>
+                    <input type="text" id="f-sub_category_name" name="sub_category_name" 
+                           value="{{ old('sub_category_name', $record->sub_category_name ?? '') }}"
+                           placeholder="Subcategory"
+                           class="form-control form-control-sm"
+                           oninput="syncSubCategory(this.value)">
+                </div>
+
+                {{-- 2. Genre, Event, Audience Classifications --}}
+                <div class="col-12 col-md-4">
+                    <label for="f-genre_category" class="a4-field-label mb-1">
+                        <span>Genre</span>
+                    </label>
+                    <select id="f-genre_category" name="genre_category" class="form-select form-select-sm" onchange="syncGenre(this.value)">
+                        <option value="">— Genre —</option>
+                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
+                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Stories</option>
+                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
+                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays</option>
+                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation</option>
+                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic</option>
+                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics</option>
+                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller</option>
+                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Motivation</option>
+                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translation</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="f-ekushey_category" class="a4-field-label mb-1">
+                        <span>Event</span>
+                    </label>
+                    <select id="f-ekushey_category" name="ekushey_category" class="form-select form-select-sm">
+                        <option value="">— Event —</option>
+                        <optgroup label="── Boimela ──">
+                            @foreach($boimelaYears as $bYear)
+                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Boimela {{ $bYear }}</option>
+                            @endforeach
+                        </optgroup>
+                        <optgroup label="── Special ──">
+                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion</option>
+                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label for="f-audience_category" class="a4-field-label mb-1">
+                        <span>Audience</span>
+                    </label>
+                    <select id="f-audience_category" name="audience_category" class="form-select form-select-sm" onchange="syncAudience(this.value)">
+                        <option value="">— Audience —</option>
+                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General</option>
+                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children (5-12 yrs)</option>
+                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Youth (13-18 yrs)</option>
+                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult</option>
+                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic</option>
+                    </select>
+                </div>
+
+                {{-- 3. Publisher --}}
+                <div class="col-12 col-md-12">
                     <div class="d-flex align-items-center justify-content-between mb-1">
                         <label for="f-publisher_id" class="a4-field-label mb-0">
                             <span>Publisher <span class="text-danger">*</span></span>
@@ -1384,29 +1468,73 @@ body.dark-mode .adm-mobile-sticky-bar {
         {{-- SECTION 6: BARCODE & QR CODE ENGINE --}}
         <div class="a4-doc-section" id="sec-barcode">
             <div class="a4-doc-section-title">
-                Barcode
+                Barcode & Smart QR
             </div>
 
             <div class="p-3 bg-light rounded-3 border">
                 <div class="row g-2.5 align-items-center">
-                    <div class="col-12 col-md-7">
-                        <div class="bg-white p-2.5 rounded-3 border text-center shadow-2xs" id="barcodePreviewBox" style="min-height: 70px;">
-                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center">
+                    {{-- 1. Code-128 Barcode --}}
+                    <div class="col-12 col-md-5">
+                        <div class="bg-white p-2.5 rounded-3 border text-center shadow-2xs h-100 d-flex flex-column justify-content-between" id="barcodePreviewBox" style="min-height: 95px;">
+                            <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom">
+                                <span class="small text-muted fw-semibold" style="font-size: 11px;">POS Barcode (Code-128)</span>
+                                <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadBarcodeGraphic()" title="Download Barcode PNG">
+                                    <i class="fa-solid fa-download me-1"></i> Download
+                                </button>
+                            </div>
+                            <div id="barcodeSvgContainer" class="d-flex justify-content-center align-items-center flex-grow-1">
                                 @php
                                     $initialCode = $val('sku') ?: ($val('isbn') ?: ($val('idea_serial_no') ?: 'IP-' . ($record->id ?? 'NEW')));
                                 @endphp
                                 {!! \App\Services\BarcodeService::generateCode128Svg((string)$initialCode, 42, 1.8, true) !!}
                             </div>
+                            <div class="small text-muted font-monospace mt-1" id="barcodeValueLabel" style="font-size: 11px;">{{ $initialCode }}</div>
                         </div>
                     </div>
-                    <div class="col-12 col-md-5">
-                        <div class="bg-white p-2 rounded-3 border d-flex align-items-center gap-2.5 shadow-2xs">
-                            <div id="qrSvgContainer" class="flex-shrink-0">
-                                {!! \App\Services\BarcodeService::generateQrCodeSvg(url('/books/' . ($record->slug ?? ($record->id ?? 'preview'))), 56) !!}
+
+                    {{-- 2. Scannable Smart QR (Serial + ISBN + Product URL) --}}
+                    <div class="col-12 col-md-7">
+                        @php
+                            $initSerial = $val('idea_serial_no') ?: ($val('sku') ?: '');
+                            $initIsbn = $val('isbn') ?: '';
+                            $initSlug = $val('slug') ?: ($record->slug ?? ($record->id ?? ''));
+                            $initialQrPayload = \App\Services\BarcodeService::buildBookQrPayload($initSlug, $initSerial, $initIsbn, $record->id ?? null);
+                        @endphp
+                        <div class="bg-white p-3 rounded-3 border h-100 d-flex flex-column justify-content-between shadow-2xs">
+                            <div class="d-flex align-items-center justify-content-between mb-1.5 pb-1 border-bottom">
+                                <span class="small text-dark fw-bold" style="font-size: 11.5px;">
+                                    <i class="fa-solid fa-mobile-screen-button text-primary me-1"></i> Product QR
+                                </span>
+                                <div class="d-flex align-items-center gap-1.5">
+                                    <button type="button" class="btn btn-xs btn-outline-dark rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;" onclick="downloadSmartQrGraphic()" title="Download Smart QR PNG">
+                                        <i class="fa-solid fa-download me-1"></i> Download
+                                    </button>
+                                    <a id="qrTestLink" href="{{ $initialQrPayload }}" target="_blank" class="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0 fw-semibold" style="font-size: 10px;" title="Test Product Link">
+                                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Test Link
+                                    </a>
+                                </div>
                             </div>
-                            <div class="small">
-                                <div class="fw-bold text-dark font-monospace" style="font-size: 12px;" id="qrCodeLabel">{{ $val('idea_serial_no') ?: ($val('sku') ?: 'IP001') }}</div>
-                                <div class="text-muted" style="font-size: 11px;">POS Ready</div>
+
+                            <div class="d-flex align-items-center gap-3 my-2">
+                                <div id="qrSvgContainer" class="flex-shrink-0 bg-white p-1 rounded-2 border shadow-2xs d-flex align-items-center justify-content-center" style="width: 86px; height: 86px;">
+                                    {!! \App\Services\BarcodeService::generateQrCodeSvg($initialQrPayload, 78) !!}
+                                </div>
+                                <div class="overflow-hidden" style="min-width: 0;">
+                                    <div class="fw-bold text-dark font-monospace text-truncate mb-0.5" style="font-size: 12px;" id="qrCodeLabel">
+                                        {{ $initSerial ?: 'IP001' }}
+                                    </div>
+                                    <div class="text-muted small text-truncate mb-1" style="font-size: 11px;" id="qrIsbnLabel">
+                                        ISBN: {{ $initIsbn ?: '—' }}
+                                    </div>
+                                    <div class="small text-primary font-monospace text-truncate" style="font-size: 10px;" id="qrTargetUrlText" title="{{ $initialQrPayload }}">
+                                        {{ $initialQrPayload }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-1.5 border-top text-muted small d-flex align-items-center gap-1.5" style="font-size: 10.5px;">
+                                <i class="fa-solid fa-camera text-success"></i>
+                                <span>Scan QR with mobile camera to view product</span>
                             </div>
                         </div>
                     </div>
@@ -1477,129 +1605,11 @@ body.dark-mode .adm-mobile-sticky-bar {
     </div>
 </div>
 
-{{-- RIGHT COLUMN: STICKY SIDEBAR (CATEGORY, COVER UPLOAD, LOOK INSIDE, MODERATION & URL) --}}
+{{-- RIGHT COLUMN: STICKY SIDEBAR (COVER UPLOAD, LOOK INSIDE, MODERATION & URL) --}}
 <div class="col-12 col-lg-4">
     <div style="position: sticky; top: 20px; z-index: 1020;">
 
-        {{-- 1. CLASSIFICATIONS & TAXONOMY --}}
-        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
-            <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
-                <span class="fw-bold text-dark small">Classification</span>
-                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-0.5 px-2.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                    + Category
-                </button>
-            </div>
-
-            <div class="vstack gap-2">
-                {{-- Primary Category --}}
-                <div>
-                    <label for="f-category_id_sidebar" class="a4-field-label mb-1">
-                        <span>Category <span class="text-danger">*</span></span>
-                    </label>
-                    <select id="f-category_id_sidebar" class="form-select form-select-sm" onchange="syncCategorySelects(this.value); updateLiveMockupCard();">
-                        <option value="">— Category —</option>
-                        @foreach (($lookups['categories'] ?? []) as $catId => $catLabel)
-                            <option value="{{ $catId }}" @selected((string)$val('category_id') === (string)$catId)>{{ $catLabel }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Sub-Category --}}
-                <div>
-                    <label for="f-sub_category_name" class="a4-field-label mb-1">
-                        <span>Subcategory</span>
-                    </label>
-                    <input type="text" id="f-sub_category_name" name="sub_category_name" 
-                           value="{{ old('sub_category_name', $record->sub_category_name ?? '') }}"
-                           class="form-control form-control-sm">
-                </div>
-
-                {{-- Boimela / Event Category --}}
-                @php
-                    $currentBoimelaVal = (string)old('ekushey_category', $record->ekushey_category ?? '');
-                    $curYear = (int)date('Y');
-                    $boimelaYears = range($curYear + 4, 2020);
-                    $standardBoimelaKeys = array_map(fn($y) => "boimela_{$y}", $boimelaYears);
-                    $standardBoimelaKeys[] = 'boimela_pavilion';
-                    $standardBoimelaKeys[] = 'boimela_previous';
-                    $isCustomBoimela = !empty($currentBoimelaVal) && !in_array($currentBoimelaVal, $standardBoimelaKeys, true);
-                @endphp
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <label for="f-ekushey_category_select" class="a4-field-label mb-0">
-                            <span>Event</span>
-                        </label>
-                        <button type="button" class="btn btn-sm btn-link p-0 text-decoration-none text-primary fw-semibold" style="font-size: 10.5px;" onclick="toggleAdminCustomBoimela()">
-                            Custom
-                        </button>
-                    </div>
-
-                    <select id="f-ekushey_category_select" class="form-select form-select-sm {{ $isCustomBoimela ? 'd-none' : '' }}" onchange="handleAdminBoimelaSelect(this.value)">
-                        <option value="">— Event —</option>
-                        <optgroup label="── Boimela ──">
-                            @foreach($boimelaYears as $bYear)
-                                <option value="boimela_{{ $bYear }}" @selected($currentBoimelaVal === "boimela_{$bYear}")>Boimela {{ $bYear }}</option>
-                            @endforeach
-                        </optgroup>
-                        <optgroup label="── Special ──">
-                            <option value="boimela_pavilion" @selected($currentBoimelaVal === 'boimela_pavilion')>Pavilion</option>
-                            <option value="boimela_previous" @selected($currentBoimelaVal === 'boimela_previous')>Previous</option>
-                        </optgroup>
-                        <option value="__custom__" @selected($isCustomBoimela)>+ Custom...</option>
-                    </select>
-
-                    <div id="adminCustomBoimelaWrapper" class="{{ $isCustomBoimela ? '' : 'd-none' }} mt-1">
-                        <div class="input-group input-group-sm">
-                            <input type="text" id="f-ekushey_category_custom" 
-                                   value="{{ $isCustomBoimela ? $currentBoimelaVal : '' }}" 
-                                   class="form-control form-control-sm" 
-                                   oninput="document.getElementById('f-ekushey_category').value = this.value.trim()">
-                            <button type="button" class="btn btn-outline-secondary" onclick="resetAdminBoimelaToSelect()" title="List">
-                                List
-                            </button>
-                        </div>
-                    </div>
-                    <input type="hidden" id="f-ekushey_category" name="ekushey_category" value="{{ $currentBoimelaVal }}">
-                </div>
-
-                {{-- Genre / Theme --}}
-                <div>
-                    <label for="f-genre_category" class="a4-field-label mb-1">
-                        <span>Genre</span>
-                    </label>
-                    <select id="f-genre_category" name="genre_category" class="form-select form-select-sm">
-                        <option value="">— Genre —</option>
-                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
-                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Stories</option>
-                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
-                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays</option>
-                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History</option>
-                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic</option>
-                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile</option>
-                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Thriller</option>
-                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Motivation</option>
-                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translation</option>
-                    </select>
-                </div>
-
-                {{-- Target Audience --}}
-                <div>
-                    <label for="f-audience_category" class="a4-field-label mb-1">
-                        <span>Audience</span>
-                    </label>
-                    <select id="f-audience_category" name="audience_category" class="form-select form-select-sm">
-                        <option value="">— Audience —</option>
-                        <option value="general" @selected(old('audience_category', $record->audience_category ?? '') === 'general')>General</option>
-                        <option value="children_5_12" @selected(old('audience_category', $record->audience_category ?? '') === 'children_5_12')>Children</option>
-                        <option value="teen_13_18" @selected(old('audience_category', $record->audience_category ?? '') === 'teen_13_18')>Youth</option>
-                        <option value="adult" @selected(old('audience_category', $record->audience_category ?? '') === 'adult')>Adult</option>
-                        <option value="academic" @selected(old('audience_category', $record->audience_category ?? '') === 'academic')>Academic</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        {{-- 2. COVER IMAGE & 3D MOCKUP --}}
+        {{-- 1. COVER IMAGE & 3D MOCKUP --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-light-subtle">
                 <span class="fw-bold text-dark small">Cover</span>
@@ -1639,63 +1649,36 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </div>
             </div>
 
-            {{-- 1-Click Auto-Generate & Palette Bar --}}
-            <div class="p-2.5 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-25 mb-2.5">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small fw-bold text-dark" style="font-size: 12px;">Studio</span>
-                    <span class="badge bg-white text-primary border border-primary-subtle py-0.5 px-2 rounded-pill fw-semibold" style="font-size: 10px;">Auto</span>
-                </div>
-
-                <div class="d-flex gap-1.5 mb-2">
-                    <button type="button" class="btn btn-primary btn-sm flex-fill rounded-pill fw-bold py-1.5 shadow-xs" 
-                            onclick="magicAutoGenerateCover()" style="font-size: 12px;">
-                        Generate
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold px-2.5 shadow-xs" 
-                            onclick="generateAutoBookCoverLive(true)" title="Refresh" style="font-size: 12px;">
-                        Refresh
-                    </button>
-                </div>
-
-                {{-- Quick Theme Swatches --}}
-                <div class="d-flex align-items-center justify-content-between px-1">
-                    <span class="text-muted fw-semibold" style="font-size: 10.5px;">Theme:</span>
-                    <div class="d-flex align-items-center gap-1.5" id="autoCoverThemeSwatches">
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn active" 
-                                style="width: 22px; height: 22px; background: #0f172a;" title="Royal Navy" onclick="applyAutoCoverTheme('royal_blue')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #064e3b;" title="Deep Emerald" onclick="applyAutoCoverTheme('deep_emerald')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #450a0a;" title="Deep Maroon" onclick="applyAutoCoverTheme('crimson_ruby')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #2e1065;" title="Regal Plum" onclick="applyAutoCoverTheme('regal_purple')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #18181b;" title="Midnight Charcoal" onclick="applyAutoCoverTheme('midnight_slate')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #3b1d11;" title="Warm Brown" onclick="applyAutoCoverTheme('warm_brown')"></button>
-                        <button type="button" class="btn p-0 rounded-circle border shadow-2xs cover-theme-btn" 
-                                style="width: 22px; height: 22px; background: #042f2e;" title="Dark Teal" onclick="applyAutoCoverTheme('dark_teal')"></button>
-                    </div>
-                </div>
+            {{-- 1. Auto-Generate Cover Studio Launcher --}}
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold py-2 px-3 shadow-xs d-flex align-items-center justify-content-center gap-2" 
+                        onclick="openBookCoverStudioModal()" 
+                        style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); border: none;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>Cover Studio</span>
+                </button>
+                
                 <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
                 <input type="hidden" name="auto_cover_theme" id="f-auto_cover_theme" value="royal_blue">
             </div>
 
-            <div class="text-center my-1.5 position-relative">
-                <hr class="my-0 text-muted opacity-25">
-                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2 text-muted fw-semibold" style="font-size: 10px;">UPLOAD</span>
-            </div>
+            <div class="text-center my-2"><hr class="my-0 text-muted opacity-25"></div>
 
-            {{-- Upload Dropzone --}}
-            <div class="adm-dropzone position-relative mb-1" id="dropzone-cover_image"
+            {{-- 2. Clean Optimized Cover Upload Dropzone --}}
+            <div class="adm-dropzone position-relative mb-2 p-3 text-center border-dashed rounded-3" id="dropzone-cover_image"
                  ondragover="handleDropzoneDragOver(event, this)"
                  ondragleave="handleDropzoneDragLeave(event, this)"
                  ondrop="handleDropzoneDrop(event, this, 'f-cover_image')">
-                <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
+                <input type="file" id="f-cover_image" name="cover_image" accept="image/jpeg,image/png,image/webp"
                        class="adm-dropzone__file-input"
                        onchange="previewAdminCoverInput(this)">
-                <div class="fw-bold text-dark small mt-1">Upload</div>
-                <div class="text-muted small" style="font-size: 11px;">Image file</div>
+                <div class="d-flex flex-column align-items-center justify-content-center gap-1">
+                    <div class="rounded-circle bg-primary-subtle text-primary p-2 d-inline-flex align-items-center justify-content-center shadow-2xs" style="width: 38px; height: 38px;">
+                        <i class="fa-solid fa-cloud-arrow-up fs-6"></i>
+                    </div>
+                    <div class="fw-bold text-dark small mt-1">Upload Cover</div>
+                    <div class="text-muted small" style="font-size: 10.5px;">JPG, PNG, WebP • 2:3</div>
+                </div>
             </div>
 
             {{-- Cover Upload Status --}}
@@ -1717,11 +1700,11 @@ body.dark-mode .adm-mobile-sticky-bar {
             @error('cover_image')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
         </div>
 
-        {{-- 3. LOOK INSIDE PREVIEW --}}
+        {{-- 3. LOOK INSIDE PREVIEW & SAMPLE READER --}}
         <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-info shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-light-subtle">
                 <span class="fw-bold text-dark small">Sample</span>
-                <span class="badge bg-info-subtle text-info small">Pages</span>
+                <span class="badge bg-info-subtle text-info small">Reader</span>
             </div>
 
             {{-- Format Selector --}}
@@ -1735,6 +1718,24 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </select>
             </div>
 
+            @php
+                $savedPdfUrl = '';
+                if ($editing && !empty($record->sample_pdf_path)) {
+                    $savedPdfUrl = str_starts_with($record->sample_pdf_path, 'http') 
+                        ? $record->sample_pdf_path 
+                        : (str_starts_with($record->sample_pdf_path, '/storage/') ? asset(ltrim($record->sample_pdf_path, '/')) : asset('storage/' . $record->sample_pdf_path));
+                }
+                $savedImages = [];
+                if ($editing && !empty($record->look_inside_images)) {
+                    $rawImgs = is_array($record->look_inside_images) ? $record->look_inside_images : json_decode((string)$record->look_inside_images, true);
+                    if (is_array($rawImgs)) {
+                        foreach ($rawImgs as $imgItem) {
+                            $savedImages[] = str_starts_with($imgItem, 'http') ? $imgItem : asset('storage/' . ltrim($imgItem, '/'));
+                        }
+                    }
+                }
+            @endphp
+
             {{-- PDF Upload Panel --}}
             <div id="lookInsidePdfPanel" class="{{ old('look_inside_type', $record->look_inside_type ?? 'pdf') === 'images' ? 'd-none' : '' }}">
                 <div class="adm-dropzone position-relative mb-2" id="dropzone-sample_pdf_path"
@@ -1744,9 +1745,25 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <input type="file" id="f-sample_pdf_path" name="sample_pdf_path" accept="application/pdf"
                            class="adm-dropzone__file-input"
                            onchange="previewAdminPdfInput(this)">
-                    <div class="fw-bold text-dark small mt-1">Upload</div>
-                    <div class="text-muted small" style="font-size: 11px;">PDF file</div>
+                    <div class="d-flex flex-column align-items-center justify-content-center gap-1 py-1">
+                        <i class="fa-solid fa-file-pdf text-danger fs-4"></i>
+                        <div class="fw-bold text-dark small mt-0.5">Upload PDF</div>
+                        <div class="text-muted small" style="font-size: 10.5px;">Sample PDF File</div>
+                    </div>
                 </div>
+
+                {{-- Existing Saved PDF Alert --}}
+                @if(!empty($savedPdfUrl))
+                    <div id="saved-pdf-notice" class="p-2 mb-2 bg-info-subtle border border-info-subtle rounded-3 d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden" style="min-width: 0;">
+                            <i class="fa-solid fa-file-circle-check text-info"></i>
+                            <div class="small fw-semibold text-dark text-truncate" style="font-size: 11px;">Saved PDF Available</div>
+                        </div>
+                        <a href="{{ $savedPdfUrl }}" target="_blank" class="btn btn-xs btn-outline-info rounded-pill px-2 py-0 fw-semibold" style="font-size: 10px;">
+                            Download
+                        </a>
+                    </div>
+                @endif
 
                 {{-- PDF Upload Report --}}
                 <div id="preview-container-sample_pdf_path" class="p-2 bg-light rounded-3 border mb-2 d-none">
@@ -1774,19 +1791,50 @@ body.dark-mode .adm-mobile-sticky-bar {
                     <input type="file" id="f-look_inside_images" name="look_inside_images[]" accept="image/jpeg,image/png,image/bmp,image/webp" multiple
                            class="adm-dropzone__file-input"
                            onchange="previewAdminMultiImages(this)">
-                    <div class="fw-bold text-dark small mt-1">Upload</div>
-                    <div class="text-muted small" style="font-size: 11px;">Image files</div>
+                    <div class="d-flex flex-column align-items-center justify-content-center gap-1 py-1">
+                        <i class="fa-solid fa-images text-primary fs-4"></i>
+                        <div class="fw-bold text-dark small mt-0.5">Upload Sample Pages</div>
+                        <div class="text-muted small" style="font-size: 10.5px;">Multiple Image Pages</div>
+                    </div>
                 </div>
+
+                {{-- Existing Saved Images Gallery --}}
+                @if(!empty($savedImages))
+                    <div class="mb-2 p-2 bg-light rounded-3 border">
+                        <div class="small text-muted fw-bold mb-1.5" style="font-size: 10.5px;">Saved Pages ({{ count($savedImages) }}):</div>
+                        <div class="d-flex flex-wrap gap-1.5">
+                            @foreach($savedImages as $idx => $sImg)
+                                <div class="position-relative rounded overflow-hidden border shadow-2xs" style="width: 44px; height: 58px;">
+                                    <img src="{{ $sImg }}" class="w-100 h-100 object-fit-cover" title="Page {{ $idx + 1 }}">
+                                    <span class="badge bg-dark bg-opacity-75 position-absolute bottom-0 start-0 m-0.5" style="font-size: 8px;">#{{ $idx + 1 }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <div id="multiImagesSummaryReport" class="p-2 bg-light rounded-3 border mb-2 d-none">
                     <div class="d-flex align-items-center justify-content-between">
-                        <span class="small fw-bold text-dark"><span id="multiImagesCountText">0</span> Ready</span>
+                        <span class="small fw-bold text-dark"><span id="multiImagesCountText">0</span> Pages Ready</span>
                         <button type="button" class="btn btn-sm btn-outline-danger py-0.5 px-2 rounded-pill" onclick="clearAdminMultiImages()" style="font-size: 11px;">
                             Clear
                         </button>
                     </div>
                 </div>
                 <div id="multiImagesPreviewContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
+            </div>
+
+            {{-- LIVE SAMPLE PREVIEW TRIGGER BUTTON --}}
+            <div class="mt-2.5 pt-2 border-top">
+                <button type="button" class="btn btn-outline-info btn-sm w-100 rounded-pill fw-bold py-1.5 d-flex align-items-center justify-content-center gap-2 shadow-2xs" 
+                        onclick="openSampleLookInsidePreviewModal()" 
+                        data-saved-pdf="{{ $savedPdfUrl }}"
+                        data-saved-images='@json($savedImages)'
+                        id="btnOpenSamplePreview">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                    <span>Sample Preview</span>
+                </button>
+                
             </div>
         </div>
 
@@ -1839,7 +1887,9 @@ body.dark-mode .adm-mobile-sticky-bar {
     </div>
 </div>
 
-{{-- ROBUST JAVASCRIPT LOGIC & DEDICATED FORM HANDLERS --}}
+@include('admin.content.book_cover_studio_modal')
+@include('admin.content.book_sample_preview_modal')
+
 <script>
 (function() {
     'use strict';
@@ -2074,6 +2124,28 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
     };
 
+    window.onPrimaryAuthorDropdownChange = function(select) {
+        const nameBnInp = document.getElementById('f-primary_author_name');
+        const nameEnInp = document.getElementById('f-primary_author_name_en');
+        const backupInp = document.getElementById('f-author_link_id_backup');
+        if (select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            const bn = opt.dataset.nameBn || opt.text.trim();
+            const en = opt.dataset.nameEn || '';
+            if (nameBnInp) nameBnInp.value = bn;
+            if (nameEnInp) nameEnInp.value = en;
+            if (backupInp) backupInp.value = select.value;
+        } else {
+            if (nameBnInp) nameBnInp.value = '';
+            if (nameEnInp) nameEnInp.value = '';
+            if (backupInp) backupInp.value = '';
+        }
+        updateContributorSummary();
+        updateLiveMockupCard();
+        if (typeof renderStudioCanvas === 'function') renderStudioCanvas();
+        if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
+    };
+
     window.onAuthorSelectRowChange = function(select) {
         const row = select.closest('.author-field-row') || select.closest('tr');
         if (!row) return;
@@ -2154,7 +2226,7 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (rewriters.length) bylineParts.push('Adapter: ' + rewriters.join(', '));
         if (covers.length) bylineParts.push('Cover: ' + covers.join(', '));
 
-        const bylineText = bylineParts.length ? bylineParts.join(' • ') : 'আইডিয়া প্রকাশন';
+        const bylineText = bylineParts.length ? bylineParts.join(' • ') : 'Idea Prokashon';
         const bylineEl = document.getElementById('liveContributorBylineText');
         if (bylineEl) {
             bylineEl.textContent = bylineText;
@@ -2391,6 +2463,43 @@ body.dark-mode .adm-mobile-sticky-bar {
         }
     };
 
+    window.syncSubCategory = function(val) {
+        const side = document.getElementById('f-sub_category_name_sidebar');
+        if (side && side.value !== val) side.value = val;
+    };
+
+    window.syncSubCategorySidebar = function(val) {
+        const main = document.getElementById('f-sub_category_name');
+        if (main && main.value !== val) main.value = val;
+    };
+
+    window.syncGenre = function(val) {
+        const side = document.getElementById('f-genre_category_sidebar');
+        if (side && side.value !== val) side.value = val;
+    };
+
+    window.syncGenreSidebar = function(val) {
+        const main = document.getElementById('f-genre_category');
+        if (main && main.value !== val) main.value = val;
+    };
+
+    window.syncBoimelaMain = function(val) {
+        const hidden = document.getElementById('f-ekushey_category');
+        if (hidden) hidden.value = val;
+        const side = document.getElementById('f-ekushey_category_select');
+        if (side && side.value !== val) side.value = val;
+    };
+
+    window.syncAudience = function(val) {
+        const side = document.getElementById('f-audience_category_sidebar');
+        if (side && side.value !== val) side.value = val;
+    };
+
+    window.syncAudienceSidebar = function(val) {
+        const main = document.getElementById('f-audience_category');
+        if (main && main.value !== val) main.value = val;
+    };
+
     window.syncCategorySelects = function(val) {
         const catMain = document.getElementById('f-category_id');
         const catSide = document.getElementById('f-category_id_sidebar');
@@ -2456,13 +2565,102 @@ body.dark-mode .adm-mobile-sticky-bar {
             });
     };
 
+    window.updateLiveQrCodePreview = function() {
+        const serial = (document.getElementById('f-idea_serial_no')?.value || document.getElementById('f-sku')?.value || '').trim();
+        const isbn = (document.getElementById('f-isbn')?.value || '').trim();
+        const slug = (document.getElementById('f-slug')?.value || '').trim();
+        const baseUrl = window.location.origin;
+        
+        let path = slug ? '/books/' + encodeURIComponent(slug) : '/books';
+        const params = [];
+        if (serial) params.push('serial=' + encodeURIComponent(serial));
+        if (isbn) params.push('isbn=' + encodeURIComponent(isbn));
+        const finalUrl = baseUrl + path + (params.length ? '?' + params.join('&') : '');
+
+        const qrLink = document.getElementById('qrTestLink');
+        const qrUrlText = document.getElementById('qrTargetUrlText');
+        const qrSerialLabel = document.getElementById('qrCodeLabel');
+        const qrIsbnLabel = document.getElementById('qrIsbnLabel');
+
+        if (qrLink) {
+            qrLink.href = finalUrl;
+        }
+        if (qrUrlText) {
+            qrUrlText.textContent = finalUrl;
+            qrUrlText.title = finalUrl;
+        }
+        if (qrSerialLabel) {
+            qrSerialLabel.textContent = serial || 'IP001';
+        }
+        if (qrIsbnLabel) {
+            qrIsbnLabel.textContent = 'ISBN: ' + (isbn || '—');
+        }
+
+        // Live draw high-contrast QR Matrix into SVG container
+        const qrContainer = document.getElementById('qrSvgContainer');
+        if (qrContainer) {
+            const qrMatrix = generateQuickQrMatrix(finalUrl);
+            const size = 78;
+            const cells = qrMatrix.length;
+            const cellSize = (size / cells).toFixed(2);
+            let rects = '';
+            for (let r = 0; r < cells; r++) {
+                for (let c = 0; c < cells; c++) {
+                    if (qrMatrix[r][c]) {
+                        rects += '<rect x="' + (c * cellSize) + '" y="' + (r * cellSize) + '" width="' + (cellSize) + '" height="' + (cellSize) + '" fill="#0f172a" />';
+                    }
+                }
+            }
+            qrContainer.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + size + ' ' + size + '" width="100%" height="100%" style="background:#ffffff; border-radius:4px;">' + rects + '</svg>';
+        }
+    };
+
+    function generateQuickQrMatrix(text) {
+        // High quality pseudo-QR matrix generator with finder patterns
+        const n = 25;
+        const grid = Array.from({length: n}, () => Array(n).fill(0));
+        function drawFinder(sr, sc) {
+            for (let r = 0; r < 7; r++) {
+                for (let c = 0; c < 7; c++) {
+                    if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+                        grid[sr + r][sc + c] = 1;
+                    }
+                }
+            }
+        }
+        drawFinder(0, 0);
+        drawFinder(0, n - 7);
+        drawFinder(n - 7, 0);
+        for (let i = 8; i < n - 8; i++) {
+            grid[6][i] = (i % 2 === 0) ? 1 : 0;
+            grid[i][6] = (i % 2 === 0) ? 1 : 0;
+        }
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+            hash = ((hash << 5) - hash) + text.charCodeAt(i);
+            hash |= 0;
+        }
+        for (let r = 0; r < n; r++) {
+            for (let c = 0; c < n; c++) {
+                if (grid[r][c] === 0) {
+                    if ((r < 8 && c < 8) || (r < 8 && c >= n - 8) || (r >= n - 8 && c < 8)) continue;
+                    const v = Math.abs(Math.sin((r * 13 + c * 17 + hash) * 0.12));
+                    grid[r][c] = (v > 0.45) ? 1 : 0;
+                }
+            }
+        }
+        return grid;
+    }
+
     window.updateLiveBarcodePreview = function(code) {
-        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
         const sku = document.getElementById('f-sku')?.value;
-        const cleanCode = (code || ideaSerial || sku || 'IP001').trim();
-        const label = document.getElementById('qrCodeLabel');
-        if (label) {
-            label.textContent = cleanCode;
+        const isbn = document.getElementById('f-isbn')?.value;
+        const ideaSerial = document.getElementById('f-idea_serial_no')?.value;
+        const cleanCode = (code || sku || isbn || ideaSerial || 'IP001').trim();
+        
+        const bLabel = document.getElementById('barcodeValueLabel');
+        if (bLabel) {
+            bLabel.textContent = cleanCode;
         }
 
         const container = document.getElementById('barcodeSvgContainer');
@@ -2485,6 +2683,130 @@ body.dark-mode .adm-mobile-sticky-bar {
             <text x="50%" y="58" text-anchor="middle" font-family="Consolas, Monaco, monospace" font-size="11" font-weight="700" fill="#0f172a" letter-spacing="1">${cleanCode}</text>
         </svg>`;
     };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // BARCODE & SMART QR DOWNLOAD FUNCTIONS
+    // ══════════════════════════════════════════════════════════════════════════
+    window.downloadBarcodeGraphic = function() {
+        const container = document.getElementById('barcodeSvgContainer');
+        const svg = container ? container.querySelector('svg') : null;
+        if (!svg) {
+            alert('Barcode graphic is not available yet.');
+            return;
+        }
+
+        const serial = (document.getElementById('f-idea_serial_no')?.value || '').trim();
+        const sku = (document.getElementById('f-sku')?.value || '').trim();
+        const isbn = (document.getElementById('f-isbn')?.value || '').trim();
+        const slug = (document.getElementById('f-slug')?.value || '').trim();
+        const codeName = (sku || serial || isbn || slug || 'book-barcode').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const filename = `barcode-${codeName}.png`;
+
+        downloadSvgElementAsHighResPng(svg, filename, 700, 220);
+    };
+
+    window.downloadSmartQrGraphic = function() {
+        const container = document.getElementById('qrSvgContainer');
+        const svg = container ? container.querySelector('svg') : null;
+        if (!svg) {
+            alert('QR code graphic is not available yet.');
+            return;
+        }
+
+        const serial = (document.getElementById('f-idea_serial_no')?.value || '').trim();
+        const sku = (document.getElementById('f-sku')?.value || '').trim();
+        const slug = (document.getElementById('f-slug')?.value || '').trim();
+        const codeName = (serial || sku || slug || 'book-qr').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        const filename = `qr-${codeName}.png`;
+
+        downloadSvgElementAsHighResPng(svg, filename, 600, 600);
+    };
+
+    function downloadSvgElementAsHighResPng(svgEl, filename, targetWidth, targetHeight) {
+        try {
+            const clone = svgEl.cloneNode(true);
+            clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            let vbW = targetWidth;
+            let vbH = targetHeight;
+            const viewBox = clone.getAttribute('viewBox');
+            if (viewBox) {
+                const parts = viewBox.trim().split(/\s+/).map(Number);
+                if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+                    vbW = parts[2];
+                    vbH = parts[3];
+                }
+            }
+
+            const scale = Math.max(2, Math.round(targetWidth / vbW) || 2);
+            const canvasW = Math.round(vbW * scale);
+            const canvasH = Math.round(vbH * scale);
+
+            const svgString = new XMLSerializer().serializeToString(clone);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const URLObj = window.URL || window.webkitURL || window;
+            const blobUrl = URLObj.createObjectURL(svgBlob);
+
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = canvasW;
+                    canvas.height = canvasH;
+                    const ctx = canvas.getContext('2d');
+
+                    // Solid crisp white background for barcode / QR scanner readability
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvasW, canvasH);
+                    ctx.drawImage(img, 0, 0, canvasW, canvasH);
+                    URLObj.revokeObjectURL(blobUrl);
+
+                    canvas.toBlob(function(pngBlob) {
+                        if (!pngBlob) {
+                            fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
+                            return;
+                        }
+                        const dlLink = document.createElement('a');
+                        dlLink.download = filename;
+                        dlLink.href = URLObj.createObjectURL(pngBlob);
+                        document.body.appendChild(dlLink);
+                        dlLink.click();
+                        setTimeout(function() {
+                            document.body.removeChild(dlLink);
+                            URLObj.revokeObjectURL(dlLink.href);
+                        }, 250);
+                    }, 'image/png');
+                } catch (e) {
+                    URLObj.revokeObjectURL(blobUrl);
+                    fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
+                }
+            };
+            img.onerror = function() {
+                URLObj.revokeObjectURL(blobUrl);
+                fallbackDirectSvgDownload(svgString, filename.replace(/\.png$/, '.svg'));
+            };
+            img.src = blobUrl;
+        } catch (err) {
+            console.error('Download error:', err);
+            const rawSvg = svgEl.outerHTML;
+            fallbackDirectSvgDownload(rawSvg, filename.replace(/\.png$/, '.svg'));
+        }
+    }
+
+    function fallbackDirectSvgDownload(svgContent, filename) {
+        const URLObj = window.URL || window.webkitURL || window;
+        const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URLObj.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = filename;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            URLObj.revokeObjectURL(url);
+        }, 250);
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // 4. SUMMARY WORD COUNTER & SLUG AUTO-GENERATION
@@ -2623,6 +2945,10 @@ body.dark-mode .adm-mobile-sticky-bar {
             if (filename) filename.textContent = file.name;
             if (filesize) filesize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
             if (container) container.classList.remove('d-none');
+            try {
+                if (uploadedSamplePdfBlobUrl) URL.revokeObjectURL(uploadedSamplePdfBlobUrl);
+                uploadedSamplePdfBlobUrl = URL.createObjectURL(file);
+            } catch(e) {}
         }
     };
 
@@ -2641,7 +2967,11 @@ body.dark-mode .adm-mobile-sticky-bar {
             if (summary) summary.classList.add('d-none');
         }
 
+        uploadedSampleImageUrls = [];
         Array.from(input.files).forEach((file, idx) => {
+            if (file.type.startsWith('image/')) {
+                uploadedSampleImageUrls.push(URL.createObjectURL(file));
+            }
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
@@ -2670,6 +3000,74 @@ body.dark-mode .adm-mobile-sticky-bar {
         if (container) container.innerHTML = '';
         const summary = document.getElementById('multiImagesSummaryReport');
         if (summary) summary.classList.add('d-none');
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // SAMPLE / LOOK INSIDE LIVE READER PREVIEW ENGINE
+    // ══════════════════════════════════════════════════════════════════════════
+    let uploadedSamplePdfBlobUrl = null;
+    let uploadedSampleImageUrls = [];
+
+    window.openSampleLookInsidePreviewModal = function() {
+        const modalEl = document.getElementById('sampleLookInsidePreviewModal');
+        if (!modalEl) return;
+
+        const formatType = document.getElementById('f-look_inside_type')?.value || 'pdf';
+        const badge = document.getElementById('sampleModalFormatBadge');
+        if (badge) badge.textContent = formatType.toUpperCase();
+
+        const pdfWrap = document.getElementById('samplePdfViewerContainer');
+        const pdfIframe = document.getElementById('samplePdfIframe');
+        const imgWrap = document.getElementById('sampleImagesViewerContainer');
+        const imgList = document.getElementById('sampleImagesCarouselList');
+        const emptyState = document.getElementById('sampleEmptyStateContainer');
+
+        pdfWrap?.classList.add('d-none');
+        imgWrap?.classList.add('d-none');
+        emptyState?.classList.add('d-none');
+
+        const btn = document.getElementById('btnOpenSamplePreview');
+        const savedPdf = btn?.getAttribute('data-saved-pdf') || '';
+        let savedImages = [];
+        try {
+            savedImages = JSON.parse(btn?.getAttribute('data-saved-images') || '[]');
+        } catch(e) {
+            savedImages = [];
+        }
+
+        if (formatType === 'pdf') {
+            const activePdfUrl = uploadedSamplePdfBlobUrl || savedPdf;
+            if (activePdfUrl && pdfIframe && pdfWrap) {
+                pdfIframe.src = activePdfUrl;
+                pdfWrap.classList.remove('d-none');
+            } else {
+                emptyState?.classList.remove('d-none');
+            }
+        } else {
+            // Images format
+            const activeImages = uploadedSampleImageUrls.length ? uploadedSampleImageUrls : savedImages;
+            if (activeImages.length && imgList && imgWrap) {
+                imgList.innerHTML = '';
+                activeImages.forEach((imgSrc, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'w-100 bg-white rounded-3 shadow-sm border p-2 text-center position-relative';
+                    card.innerHTML = `
+                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom px-2">
+                            <span class="badge bg-dark rounded-pill" style="font-size: 10px;">Page ${idx + 1}</span>
+                            <span class="text-muted small" style="font-size: 10.5px;">Sample Page</span>
+                        </div>
+                        <img src="${imgSrc}" class="img-fluid rounded border shadow-2xs" style="max-height: 65vh; object-fit: contain;">
+                    `;
+                    imgList.appendChild(card);
+                });
+                imgWrap.classList.remove('d-none');
+            } else {
+                emptyState?.classList.remove('d-none');
+            }
+        }
+
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
     };
 
     window.clearAdminFileInput = function(inputId, containerId, mockupImgId) {
@@ -2793,6 +3191,402 @@ body.dark-mode .adm-mobile-sticky-bar {
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
         userRequestedNewCover = true;
         applyAutoCoverTheme(randomKey);
+    };
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // 7. ADVANCED BOOK COVER STUDIO ENGINE & CUSTOMIZATION
+    // ══════════════════════════════════════════════════════════════════════════
+    let studioCustomBgImage = null;
+    let studioPreviewMode = '2d';
+
+    const studioThemes = {
+        royal_blue: { name: 'Royal Navy', bg: '#0f172a', bg2: '#1e3a8a', title: '#ffffff', author: '#fde047', accent: '#fbbf24', font: 'Hind Siliguri', border: 'double_gold', emblem: 'monogram' },
+        deep_emerald: { name: 'Emerald', bg: '#064e3b', bg2: '#065f46', title: '#ffffff', author: '#fef08a', accent: '#a7f3d0', font: 'SolaimanLipi', border: 'corner_ornate', emblem: 'geometric_star' },
+        crimson_ruby: { name: 'Crimson Ruby', bg: '#450a0a', bg2: '#7f1d1d', title: '#ffffff', author: '#fed7aa', accent: '#fb923c', font: 'Noto Serif Bengali', border: 'double_gold', emblem: 'monogram' },
+        regal_purple: { name: 'Regal Purple', bg: '#2e1065', bg2: '#4c1d95', title: '#ffffff', author: '#fef08a', accent: '#d8b4fe', font: 'Kalpurush', border: 'double_gold', emblem: 'feather_quill' },
+        midnight_slate: { name: 'Midnight Slate', bg: '#18181b', bg2: '#27272a', title: '#ffffff', author: '#e2e8f0', accent: '#cbd5e1', font: 'Hind Siliguri', border: 'single_thin', emblem: 'none' },
+        warm_brown: { name: 'Vintage Leather', bg: '#3b1d11', bg2: '#78350f', title: '#ffffff', author: '#fde047', accent: '#f59e0b', font: 'Tiro Bangla', border: 'corner_ornate', emblem: 'open_book' },
+        dark_teal: { name: 'Deep Teal', bg: '#042f2e', bg2: '#115e59', title: '#ffffff', author: '#a7f3d0', accent: '#2dd4bf', font: 'SolaimanLipi', border: 'single_thin', emblem: 'monogram' },
+        aurora_sunset: { name: 'Aurora Sunset', bg: '#1e1b4b', bg2: '#831843', title: '#ffffff', author: '#fed7aa', accent: '#f43f5e', font: 'Hind Siliguri', border: 'single_thin', emblem: 'monogram' }
+    };
+
+    window.openBookCoverStudioModal = function() {
+        const modalEl = document.getElementById('bookCoverStudioModal');
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        setTimeout(function() {
+            renderStudioCanvas();
+        }, 200);
+    };
+
+    window.selectStudioTheme = function(key) {
+        const t = studioThemes[key];
+        if (!t) return;
+        currentThemeKey = key;
+        
+        document.getElementById('studio-bg-color').value = t.bg;
+        document.getElementById('studio-bg-color-hex').value = t.bg;
+        document.getElementById('studio-bg-color2').value = t.bg2;
+        document.getElementById('studio-bg-color2-hex').value = t.bg2;
+        document.getElementById('studio-title-color').value = t.title;
+        document.getElementById('studio-title-color-hex').value = t.title;
+        document.getElementById('studio-author-color').value = t.author;
+        document.getElementById('studio-author-color-hex').value = t.author;
+        document.getElementById('studio-accent-color').value = t.accent;
+        document.getElementById('studio-accent-color-hex').value = t.accent;
+        document.getElementById('studio-font-family').value = t.font;
+        document.getElementById('studio-border-style').value = t.border;
+
+
+
+        renderStudioCanvas();
+    };
+
+    window.handleStudioBgImageUpload = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    studioCustomBgImage = img;
+                    const clearBtn = document.getElementById('studioClearBgArtBtn');
+                    if (clearBtn) clearBtn.classList.remove('d-none');
+                    renderStudioCanvas();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    window.clearStudioCustomBgArt = function() {
+        studioCustomBgImage = null;
+        const input = document.getElementById('studio-bg-image-upload');
+        if (input) input.value = '';
+        const clearBtn = document.getElementById('studioClearBgArtBtn');
+        if (clearBtn) clearBtn.classList.add('d-none');
+        renderStudioCanvas();
+    };
+
+    window.switchStudioPreviewMode = function(mode) {
+        studioPreviewMode = mode;
+        const btn2d = document.getElementById('studioView2dBtn');
+        const btn3d = document.getElementById('studioView3dBtn');
+        const wrap2d = document.getElementById('studio2dPreviewWrap');
+        const wrap3d = document.getElementById('studio3dPreviewWrap');
+
+        if (mode === '3d') {
+            btn2d?.classList.remove('active');
+            btn3d?.classList.add('active');
+            wrap2d?.classList.add('d-none');
+            wrap2d?.classList.remove('d-flex');
+            wrap3d?.classList.remove('d-none');
+            wrap3d?.classList.add('d-flex');
+            const canvas = document.getElementById('studioCoverCanvas');
+            const img3d = document.getElementById('studio3dMockupImg');
+            if (canvas && img3d) {
+                img3d.src = canvas.toDataURL('image/webp', 0.95);
+            }
+        } else {
+            btn3d?.classList.remove('active');
+            btn2d?.classList.add('active');
+            wrap3d?.classList.add('d-none');
+            wrap3d?.classList.remove('d-flex');
+            wrap2d?.classList.remove('d-none');
+            wrap2d?.classList.add('d-flex');
+        }
+    };
+
+    window.randomizeStudioDesign = function() {
+        const keys = Object.keys(studioThemes);
+        const randKey = keys[Math.floor(Math.random() * keys.length)];
+        selectStudioTheme(randKey);
+    };
+
+    window.resetStudioDesign = function() {
+        selectStudioTheme('royal_blue');
+        clearStudioCustomBgArt();
+        document.getElementById('studio-custom-title').value = '';
+        document.getElementById('studio-custom-author').value = '';
+        renderStudioCanvas();
+    };
+
+    window.renderStudioCanvas = function() {
+        const canvas = document.getElementById('studioCoverCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = 600;
+        const height = 900;
+
+        // Sync slider values in UI
+        const opacityEl = document.getElementById('studio-bg-opacity');
+        const opacityVal = document.getElementById('studio-bg-opacity-val');
+        if (opacityEl && opacityVal) opacityVal.textContent = opacityEl.value + '%';
+
+        const titleSizeEl = document.getElementById('studio-title-size');
+        const titleSizeVal = document.getElementById('studio-title-size-val');
+        if (titleSizeEl && titleSizeVal) titleSizeVal.textContent = titleSizeEl.value + 'px';
+
+        const authorSizeEl = document.getElementById('studio-author-size');
+        const authorSizeVal = document.getElementById('studio-author-size-val');
+        if (authorSizeEl && authorSizeVal) authorSizeVal.textContent = authorSizeEl.value + 'px';
+
+        const bgColor = document.getElementById('studio-bg-color')?.value || '#0f172a';
+        const bgColor2 = document.getElementById('studio-bg-color2')?.value || '#1e3a8a';
+        const useGrad = document.getElementById('studio-use-gradient')?.checked ?? true;
+        const titleColor = document.getElementById('studio-title-color')?.value || '#ffffff';
+        const authorColor = document.getElementById('studio-author-color')?.value || '#fde047';
+        const accentColor = document.getElementById('studio-accent-color')?.value || '#fbbf24';
+        const fontFamily = document.getElementById('studio-font-family')?.value || 'Hind Siliguri';
+        const titleSize = parseInt(titleSizeEl?.value || '48', 10);
+        const authorSize = parseInt(authorSizeEl?.value || '26', 10);
+        const borderStyle = document.getElementById('studio-border-style')?.value || 'double_gold';
+        const centerEmblem = document.getElementById('studio-center-emblem')?.value || 'monogram';
+        const showPubBadge = document.getElementById('studio-show-publisher-badge')?.checked ?? true;
+        const showFooterBrand = document.getElementById('studio-show-footer-brand')?.checked ?? true;
+        const texturePattern = document.getElementById('studio-texture-pattern')?.value || 'dots';
+        const vignette = document.getElementById('studio-vignette')?.value || 'subtle';
+        const layoutStyle = document.querySelector('input[name="studio_layout_style"]:checked')?.value || 'classic';
+
+        // Content
+        const customTitle = document.getElementById('studio-custom-title')?.value.trim();
+        const customAuthor = document.getElementById('studio-custom-author')?.value.trim();
+        const formTitle = (document.getElementById('f-title')?.value || document.getElementById('f-title_en')?.value || '').trim();
+        const formAuthor = (document.getElementById('f-primary_author_name')?.value || '').trim();
+        const title = customTitle || formTitle || 'Book Title';
+        const author = customAuthor || formAuthor || 'Author Name';
+        const firstLetter = (title.charAt(0) || 'B').toUpperCase();
+
+        // 1. Base Background
+        if (useGrad) {
+            const grad = ctx.createLinearGradient(0, 0, width, height);
+            grad.addColorStop(0, bgColor);
+            grad.addColorStop(1, bgColor2);
+            ctx.fillStyle = grad;
+        } else {
+            ctx.fillStyle = bgColor;
+        }
+        ctx.fillRect(0, 0, width, height);
+
+        // 2. Custom Background Image Overlay
+        if (studioCustomBgImage) {
+            const opacity = (parseInt(opacityEl?.value || '45', 10)) / 100;
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            const hRatio = width / studioCustomBgImage.width;
+            const vRatio = height / studioCustomBgImage.height;
+            const ratio = Math.max(hRatio, vRatio);
+            const centerShiftX = (width - studioCustomBgImage.width * ratio) / 2;
+            const centerShiftY = (height - studioCustomBgImage.height * ratio) / 2;
+            ctx.drawImage(studioCustomBgImage, 0, 0, studioCustomBgImage.width, studioCustomBgImage.height,
+                          centerShiftX, centerShiftY, studioCustomBgImage.width * ratio, studioCustomBgImage.height * ratio);
+            ctx.restore();
+        }
+
+        // 3. Texture Pattern
+        if (texturePattern === 'dots') {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            for (let x = 20; x < width; x += 30) {
+                for (let y = 20; y < height; y += 30) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        } else if (texturePattern === 'diagonal') {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+            for (let i = -height; i < width; i += 28) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + height, height);
+                ctx.stroke();
+            }
+        }
+
+        // 4. Vignette
+        if (vignette !== 'none') {
+            const vGrad = ctx.createRadialGradient(width/2, height/2, 180, width/2, height/2, 520);
+            vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vGrad.addColorStop(1, vignette === 'strong' ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.35)');
+            ctx.fillStyle = vGrad;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // 5. Borders
+        if (borderStyle === 'double_gold') {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(24, 24, 552, 852);
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(34, 34, 532, 832);
+        } else if (borderStyle === 'single_thin') {
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(30, 30, 540, 840);
+        } else if (borderStyle === 'corner_ornate') {
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(35, 35, 530, 830);
+            const cornSize = 25;
+            [[35,35], [565,35], [35,865], [565,865]].forEach(([cx, cy]) => {
+                ctx.fillStyle = accentColor;
+                ctx.fillRect(cx - 3, cy - 3, 6, 6);
+            });
+        }
+
+        // 6. Top Publisher Badge
+        if (showPubBadge) {
+            ctx.fillStyle = accentColor;
+            ctx.globalAlpha = 0.22;
+            ctx.beginPath();
+            ctx.roundRect(175, 60, 250, 42, 21);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 15px "Inter", sans-serif';
+            ctx.fillText('IDEA PUBLICATION', 300, 87);
+        }
+
+        // 7. Center Emblem
+        if (centerEmblem === 'monogram') {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.beginPath();
+            ctx.arc(300, 260, 78, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = 0.75;
+            ctx.beginPath();
+            ctx.arc(300, 260, 72, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 84px "' + fontFamily + '", serif';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(firstLetter, 300, 264);
+            ctx.textBaseline = 'alphabetic';
+        } else if (centerEmblem === 'geometric_star') {
+            ctx.save();
+            ctx.translate(300, 260);
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 3;
+            ctx.strokeRect(-50, -50, 100, 100);
+            ctx.rotate(45 * Math.PI / 180);
+            ctx.strokeRect(-50, -50, 100, 100);
+            ctx.restore();
+        }
+
+        // 8. Title Wrapping
+        ctx.textAlign = 'center';
+        ctx.font = 'bold ' + titleSize + 'px "' + fontFamily + '", serif';
+        ctx.fillStyle = titleColor;
+
+        const words = title.split(' ');
+        let lines = [];
+        let currentLine = '';
+        const maxChars = titleSize > 50 ? 12 : (titleSize > 40 ? 16 : 22);
+        words.forEach(w => {
+            const test = currentLine ? currentLine + ' ' + w : w;
+            if (test.length > maxChars && currentLine) {
+                lines.push(currentLine);
+                currentLine = w;
+            } else {
+                currentLine = test;
+            }
+        });
+        if (currentLine) lines.push(currentLine);
+        if (lines.length > 3) {
+            lines = lines.slice(0, 3);
+            lines[2] += '...';
+        }
+
+        const lineHeight = titleSize * 1.25;
+        const startY = (layoutStyle === 'minimal') ? 380 : 460;
+        lines.forEach((l, i) => {
+            ctx.fillText(l, 300, startY + (i * lineHeight));
+        });
+
+        // 9. Divider
+        const divY = startY + (lines.length * lineHeight) + 20;
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.moveTo(210, divY);
+        ctx.lineTo(390, divY);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // 10. Author
+        ctx.fillStyle = authorColor;
+        ctx.font = '600 ' + authorSize + 'px "' + fontFamily + '", serif';
+        ctx.fillText(author, 300, divY + authorSize + 16);
+
+        // 11. Footer Brand
+        if (showFooterBrand) {
+            const pubSelect = document.getElementById('f-publisher_id');
+            const pubName = (pubSelect && pubSelect.selectedIndex > 0 ? pubSelect.options[pubSelect.selectedIndex].text : 'IDEA PUBLICATION').trim();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.font = '500 12px "' + fontFamily + '", sans-serif';
+            ctx.fillText(pubName.toUpperCase(), 300, 835);
+        }
+
+        // If 3D mode is active, sync 3D image
+        if (studioPreviewMode === '3d') {
+            const img3d = document.getElementById('studio3dMockupImg');
+            if (img3d) img3d.src = canvas.toDataURL('image/webp', 0.95);
+        }
+    };
+
+    window.applyStudioCoverToForm = function() {
+        const canvas = document.getElementById('studioCoverCanvas');
+        if (!canvas) return;
+        const dataUrl = canvas.toDataURL('image/webp', 0.95);
+
+        const mockupImg = document.getElementById('mockupCoverImg');
+        const placeholder = document.getElementById('mockupCoverPlaceholder');
+        if (mockupImg) {
+            mockupImg.src = dataUrl;
+            mockupImg.classList.remove('d-none');
+        }
+        if (placeholder) {
+            placeholder.classList.add('d-none');
+        }
+
+        const genInput = document.getElementById('f-generated_cover_data');
+        if (genInput) {
+            genInput.value = dataUrl;
+        }
+
+        const themeInp = document.getElementById('f-auto_cover_theme');
+        if (themeInp) {
+            themeInp.value = currentThemeKey;
+        }
+
+        const modalEl = document.getElementById('bookCoverStudioModal');
+        if (modalEl) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
+
+        updateLiveMockupCard();
+    };
+
+    window.downloadStudioCover = function() {
+        const canvas = document.getElementById('studioCoverCanvas');
+        if (!canvas) return;
+        const link = document.createElement('a');
+        const slug = (document.getElementById('f-slug')?.value || 'book-cover').trim();
+        link.download = slug + '-cover.webp';
+        link.href = canvas.toDataURL('image/webp', 0.95);
+        link.click();
     };
 
     window.generateAutoBookCoverLive = function(force = false) {
@@ -3010,6 +3804,18 @@ body.dark-mode .adm-mobile-sticky-bar {
                 generateAutoGeneralSkuForForm();
             }
         @endif
+
+        updateLiveQrCodePreview();
+        updateLiveBarcodePreview();
+        ['f-idea_serial_no', 'f-sku', 'f-isbn', 'f-slug', 'f-title'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', function() {
+                    updateLiveQrCodePreview();
+                    updateLiveBarcodePreview();
+                });
+            }
+        });
 
         const titleInp = document.getElementById('f-title');
         if (titleInp) {

@@ -234,7 +234,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Shop Routes (Redirect 301 permanently to /books to prevent duplicate URL canonical issues in Search Console)
 Route::prefix('shop')->group(function () {
-    Route::get('/', fn() => redirect('/books', 301))->name('shop.index');
+    Route::get('/', function (\Illuminate\Http\Request $request) {
+        $query = $request->getQueryString();
+        return redirect('/books' . ($query ? '?' . $query : ''), 301);
+    })->name('shop.index');
+    Route::get('/category/{slug}', function (string $slug) {
+        return redirect('/books?category=' . urlencode($slug), 301);
+    });
     Route::get('/{slug}', fn($slug) => redirect('/books/' . $slug, 301))->name('shop.show');
     Route::get('/{slug}/preview', fn($slug) => redirect('/books/' . $slug . '/preview', 301))->name('shop.preview');
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('shop.quick-view');
@@ -243,10 +249,18 @@ Route::prefix('shop')->group(function () {
 // Books Routes (Canonical Primary Shop)
 Route::prefix('books')->name('book.')->group(function () {
     Route::get('/', [BookController::class, 'index'])->name('index');
+    Route::get('/category/{slug}', function (string $slug) {
+        return redirect('/books?category=' . urlencode($slug), 301);
+    })->name('category');
     Route::get('/{slug}', [BookController::class, 'show'])->name('show');
     Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('preview');
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
 });
+
+// Category Friendly Canonical Routes
+Route::get('/category/{slug}', function (string $slug) {
+    return redirect('/books?category=' . urlencode($slug), 301);
+})->name('category.show');
 
 Route::post('/book-requests', [\App\Http\Controllers\BookRequestController::class, 'store'])->name('book-requests.store');
 Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store'])->name('orders.store');

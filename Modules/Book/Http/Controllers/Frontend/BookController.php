@@ -544,6 +544,25 @@ class BookController extends Controller
                 ->first();
         }
 
+        // QR Code instant lookup fallback via Serial or ISBN query parameters
+        if (!$book && ($request->filled('serial') || $request->filled('isbn'))) {
+            $serialVal = $request->string('serial')->trim()->value();
+            $isbnVal = $request->string('isbn')->trim()->value();
+            $book = Book::query()
+                ->with(['category', 'authors', 'publisher', 'reviews.user'])
+                ->withAvg('reviews', 'rating')
+                ->withCount('reviews')
+                ->where(function ($q) use ($serialVal, $isbnVal) {
+                    if (!empty($serialVal)) {
+                        $q->where('idea_serial_no', $serialVal)->orWhere('sku', $serialVal);
+                    }
+                    if (!empty($isbnVal)) {
+                        $q->orWhere('isbn', $isbnVal);
+                    }
+                })
+                ->first();
+        }
+
         if (!$book) {
             abort(404, 'অনুরোধকৃত বইটি পাওয়া যায়নি।');
         }
