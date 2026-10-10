@@ -238,32 +238,31 @@
     transform: translateY(-1px);
 }
 
-/* 3D Realistic Book Mockup */
+/* Clean Modern Book Mockup */
 .book-mockup-3d-wrap {
-    perspective: 800px;
+    perspective: none !important;
 }
 .book-mockup-3d {
     width: 142px;
     height: 213px;
-    background: #e2e8f0;
-    border-radius: 3px 6px 6px 3px;
-    box-shadow: -4px 6px 16px rgba(0, 0, 0, 0.22), -1px 2px 4px rgba(0,0,0,0.12);
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
     position: relative;
-    border-left: 6px solid #1e293b;
-    transform: rotateY(-7deg) rotateX(3deg);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transform: none !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     overflow: hidden;
 }
 .book-mockup-3d:hover {
-    transform: rotateY(0deg) rotateX(0deg) scale(1.03);
-    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.25);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12) !important;
 }
+.book-mockup-3d::before,
 .book-mockup-3d::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 12%, rgba(0,0,0,0.06) 90%, rgba(0,0,0,0.18) 100%);
-    pointer-events: none;
+    display: none !important;
+    content: none !important;
+    width: 0 !important;
 }
 
 /* Word Counter */
@@ -1610,7 +1609,7 @@ body.dark-mode .adm-mobile-sticky-bar {
     <div style="position: sticky; top: 20px; z-index: 1020;">
 
         {{-- 1. COVER IMAGE & 3D MOCKUP --}}
-        <div class="a4-doc-sheet p-3 mb-3 border-start border-4 border-primary shadow-xs">
+        <div class="a4-doc-sheet p-3 mb-3 border rounded-3 shadow-xs">
             <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom border-light-subtle">
                 <span class="fw-bold text-dark small">Cover</span>
                 <div class="d-flex align-items-center gap-1">
@@ -3635,9 +3634,9 @@ body.dark-mode .adm-mobile-sticky-bar {
         ctx.fillRect(0, 0, 600, 900);
 
         const grad = ctx.createLinearGradient(0, 0, 600, 900);
-        grad.addColorStop(0, 'rgba(255,255,255,0.08)');
-        grad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.45)');
+        grad.addColorStop(0, 'rgba(255,255,255,0.06)');
+        grad.addColorStop(0.7, 'rgba(255,255,255,0)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.12)');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 600, 900);
 

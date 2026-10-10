@@ -2317,34 +2317,26 @@ body.dark-mode .word-counter-progress {
 
 /* Book 3D-Effect Realistic Mockup */
 .book-mockup-3d-wrap {
-    perspective: 900px;
+    perspective: none;
     display: inline-block;
 }
 
 .book-mockup-3d {
     position: relative;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
-    transform-style: preserve-3d;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: -6px 8px 20px rgba(0, 0, 0, 0.16), 0 2px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
 .book-mockup-3d:hover {
-    transform: rotateY(-8deg) rotateX(3deg) translateY(-3px);
-    box-shadow: -10px 16px 30px rgba(0, 0, 0, 0.22);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .book-mockup-3d::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 10px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.22) 100%);
-    z-index: 5;
-    pointer-events: none;
+    display: none !important;
+    content: none !important;
 }
 
 /* Clean Table Thumbnails & Action Columns */
