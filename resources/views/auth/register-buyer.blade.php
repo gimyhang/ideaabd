@@ -138,8 +138,8 @@
                                     <option value="+254">🇰🇪 +254</option>
                                 </select>
 
-                                <input type="tel" name="phone" id="buyerPhoneInput" class="form-control @error('phone') is-invalid @enderror"
-                                       value="{{ old('phone') }}" required placeholder="01XXXXXXXXX"
+                                <input type="tel" name="phone" id="buyerPhoneInput" class="form-control font-monospace @error('phone') is-invalid @enderror"
+                                       value="{{ old('phone') }}" required placeholder="01XXXXXXXXX" maxlength="11"
                                        style="border: 1px solid #cbd5e1; font-size: 0.95rem; transition: border-color 0.2s ease;"
                                        oninput="resetPhoneExistsAlert()">
 
@@ -350,6 +350,7 @@ function togglePasswordVisibility(inputId, btn) {
 function resetPhoneExistsAlert() {
     const alertBox = document.getElementById('phoneExistsAlert');
     const phoneInput = document.getElementById('buyerPhoneInput');
+    const countryCodeSelect = document.getElementById('countryCodeSelect');
     const statusBadge = document.getElementById('otpStatusBadge');
 
     if (alertBox && !alertBox.classList.contains('d-none')) {
@@ -357,6 +358,20 @@ function resetPhoneExistsAlert() {
     }
     if (phoneInput) {
         phoneInput.style.borderColor = '#cbd5e1';
+        const code = countryCodeSelect ? countryCodeSelect.value : '+880';
+        if (code === '+880') {
+            let val = normalizeDigits(phoneInput.value);
+            if (val.startsWith('880')) {
+                val = val.substring(3);
+            } else if (val.startsWith('88') && val.length === 12 && val.charAt(2) === '1') {
+                val = val.substring(2);
+            }
+            if (val.length === 10 && val.startsWith('1')) {
+                val = '0' + val;
+            }
+            if (val.length > 11) val = val.substring(0, 11);
+            if (phoneInput.value !== val) phoneInput.value = val;
+        }
     }
     if (statusBadge && statusBadge.textContent.includes('Registered')) {
         statusBadge.className = 'badge bg-secondary-subtle text-secondary border px-2 py-0.5';

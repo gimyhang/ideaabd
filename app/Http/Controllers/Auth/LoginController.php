@@ -247,6 +247,8 @@ class LoginController extends Controller
                 'showCaptcha'             => $requiresCaptcha,
                 'recaptchaSiteKey'        => RecaptchaService::getSiteKey(),
                 'recaptchaEnabled'        => RecaptchaService::isEnabled(),
+                'isEmailVerificationEnabled' => \App\Support\SiteSetting::isEmailVerificationEnabled(),
+                'isPhoneVerificationEnabled' => \App\Support\SiteSetting::isPhoneVerificationEnabled(),
             ])
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache')
@@ -438,52 +440,84 @@ class LoginController extends Controller
             $cleanLower = strtolower($normalizedInput);
             $rawDigitsOnly = preg_replace('/[^\d]/', '', $normalizedInput);
 
-            // Find user candidates matching email, phone (flexible formats), name, or admin role with index priority
-            $candidates = \App\Models\User::where(function ($query) use ($loginInput, $normalizedInput, $cleanLower, $rawDigitsOnly) {
-                // 1. Exact Email matching (indexed)
-                $query->where('email', $cleanLower)
-                    ->orWhere('email', $normalizedInput)
-                    ->orWhere('email', $loginInput);
-
-                // 2. Mobile Phone matching (indexed)
-                $query->orWhere('phone', $normalizedInput)
-                    ->orWhere('phone', $loginInput);
-
-                if (!empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 8) {
-                    $last10 = substr($rawDigitsOnly, -10);
-                    $query->orWhere('phone', '0' . $last10)
-                        ->orWhere('phone', '+880' . $last10)
-                        ->orWhere('phone', '880' . $last10);
-                }
-
-                // 3. Username / Full Name matching
-                $query->orWhere('name', $loginInput)
-                    ->orWhere('name', $normalizedInput);
-
-                // 4. Admin identifier fallback
-                $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
-                $adminEmails = ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com', strtolower(env('ADMIN_EMAIL', ''))];
-                $adminPhones = ['01726976982', '01728976982', '1726976982', '1728976982', preg_replace('/[^\d]/', '', env('ADMIN_PHONE', ''))];
-                if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true)) {
-                    $query->orWhere('role', \App\Models\User::ROLE_ADMIN)
-                          ->orWhere('id', 1);
-                }
-            })
-            ->orderByRaw("CASE 
-                WHEN LOWER(email) = ? THEN 1 
-                WHEN phone = ? THEN 2 
-                WHEN role = 'admin' THEN 3 
-                ELSE 4 
-            END", [$cleanLower, $normalizedInput])
-            ->orderByDesc('is_active')
-            ->limit(3)
-            ->get();
-
             $matchedUser = null;
-            foreach ($candidates as $candidate) {
-                if (Hash::check($password, $candidate->password)) {
-                    $matchedUser = $candidate;
-                    break;
+
+            // Fast Path 1: Direct indexed lookup by email
+            if (filter_var($cleanLower, FILTER_VALIDATE_EMAIL)) {
+                $directUser = \App\Models\User::where('email', $cleanLower)->first();
+                if ($directUser && Hash::check($password, $directUser->password)) {
+                    $matchedUser = $directUser;
+                }
+            }
+
+            // Fast Path 2: Direct indexed lookup by phone
+            if (!$matchedUser && !empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 10) {
+                $last10 = substr($rawDigitsOnly, -10);
+                $directUser = \App\Models\User::whereIn('phone', [$normalizedInput, '0' . $last10, '+880' . $last10, '880' . $last10])->first();
+                if ($directUser && Hash::check($password, $directUser->password)) {
+                    $matchedUser = $directUser;
+                }
+            }
+
+            // Fast Path 3: Direct Admin credentials check
+            $adminUsername = strtolower(env('ADMIN_USERNAME', 'admin'));
+            $adminEmails = ['ideapbd@gmail.com', 'adideabd@gmail.com', 'admin@ideaabd.com', strtolower(env('ADMIN_EMAIL', ''))];
+            $adminPhones = ['01726976982', '01728976982', '1726976982', '1728976982', preg_replace('/[^\d]/', '', env('ADMIN_PHONE', ''))];
+
+            if (!$matchedUser && ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true))) {
+                $adminCandidates = \App\Models\User::where('role', \App\Models\User::ROLE_ADMIN)->orWhere('id', 1)->get();
+                foreach ($adminCandidates as $cand) {
+                    if (Hash::check($password, $cand->password)) {
+                        $matchedUser = $cand;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback Path: Flexible multi-format candidate query if fast paths did not match
+            if (!$matchedUser) {
+                $candidates = \App\Models\User::where(function ($query) use ($loginInput, $normalizedInput, $cleanLower, $rawDigitsOnly, $adminUsername, $adminEmails, $adminPhones) {
+                    // 1. Exact Email matching (indexed)
+                    $query->where('email', $cleanLower)
+                        ->orWhere('email', $normalizedInput)
+                        ->orWhere('email', $loginInput);
+
+                    // 2. Mobile Phone matching (indexed)
+                    $query->orWhere('phone', $normalizedInput)
+                        ->orWhere('phone', $loginInput);
+
+                    if (!empty($rawDigitsOnly) && strlen($rawDigitsOnly) >= 8) {
+                        $last10 = substr($rawDigitsOnly, -10);
+                        $query->orWhere('phone', '0' . $last10)
+                            ->orWhere('phone', '+880' . $last10)
+                            ->orWhere('phone', '880' . $last10);
+                    }
+
+                    // 3. Username / Full Name matching
+                    $query->orWhere('name', $loginInput)
+                        ->orWhere('name', $normalizedInput);
+
+                    // 4. Admin identifier fallback
+                    if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true)) {
+                        $query->orWhere('role', \App\Models\User::ROLE_ADMIN)
+                              ->orWhere('id', 1);
+                    }
+                })
+                ->orderByRaw("CASE 
+                    WHEN LOWER(email) = ? THEN 1 
+                    WHEN phone = ? THEN 2 
+                    WHEN role = 'admin' THEN 3 
+                    ELSE 4 
+                END", [$cleanLower, $normalizedInput])
+                ->orderByDesc('is_active')
+                ->limit(3)
+                ->get();
+
+                foreach ($candidates as $candidate) {
+                    if (Hash::check($password, $candidate->password)) {
+                        $matchedUser = $candidate;
+                        break;
+                    }
                 }
             }
 

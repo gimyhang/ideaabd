@@ -147,7 +147,17 @@ class PublicEventRegistrationController extends Controller
             return view('frontend.events.library_register', compact('campaign', 'user'));
         }
 
-        return view('frontend.events.register', compact('campaign', 'user'));
+        $existingRegistration = null;
+        if ($user) {
+            $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
+                ->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('phone', $user->phone);
+                })
+                ->first();
+        }
+        $previewRegNumber = $existingRegistration ? $existingRegistration->registration_number : EventRegistration::generateRegNumber($campaign->slug, $campaign->id);
+        return view('frontend.events.register', compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
     }
 
     /**
@@ -247,23 +257,13 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        // Normalize Phone & Country Code (Supports Bengali & English numerals, and international country codes)
-        $countryCode = trim($request->input('country_code', '+880'));
-        $rawPhone = $this->normalizeBnToEn(trim($validated['phone']));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
-
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
-            }
-            $cleanDigits = ltrim($cleanDigits, '0');
-            $formattedPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $formattedPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $formattedPhone;
-        }
+        // Normalize Phone & Country Code using universal PhoneNormalizer
+        $pInfo = \App\Support\PhoneNormalizer::normalize($validated['phone'], $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
+        $countryCode = $pInfo['country_code'];
 
         $email = !empty($validated['email']) ? strtolower(trim($validated['email'])) : null;
 
@@ -273,11 +273,15 @@ class PublicEventRegistrationController extends Controller
             $user = auth()->user();
         } else {
             try {
-                $user = User::where('phone', $formattedPhone)
-                    ->orWhere('phone', $localPhone)
-                    ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
-                    ->when($email, fn($q) => $q->orWhere('email', $email))
-                    ->first();
+                $user = User::where(function ($q) use ($queryPhones, $pInfo, $email) {
+                    $q->whereIn('phone', $queryPhones);
+                    if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                        $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
+                    }
+                    if ($email) {
+                        $q->orWhere('email', $email);
+                    }
+                })->first();
 
                 if ($user) {
                     $updateFields = [];
@@ -292,6 +296,9 @@ class PublicEventRegistrationController extends Controller
                     }
                     if (!empty($validated['password']) && (empty($user->password) || $user->password === '')) {
                         $updateFields['password'] = Hash::make($validated['password']);
+                    }
+                    if ($user->phone !== $localPhone && $pInfo['is_bd']) {
+                        $updateFields['phone'] = $localPhone;
                     }
                     if (!empty($updateFields)) {
                         $user->update($updateFields);
@@ -335,9 +342,8 @@ class PublicEventRegistrationController extends Controller
 
         // Check duplicate
         $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
-            ->where(function ($q) use ($formattedPhone, $localPhone, $user) {
-                $q->where('phone', $localPhone)
-                  ->orWhere('phone', $formattedPhone);
+            ->where(function ($q) use ($queryPhones, $user) {
+                $q->whereIn('phone', $queryPhones);
                 if ($user) {
                     $q->orWhere('user_id', $user->id);
                 }
@@ -413,8 +419,13 @@ class PublicEventRegistrationController extends Controller
         foreach ($extendedInputKeys as $key) {
             if ($request->has($key)) {
                 $val = $request->input($key);
-                if (is_string($val) && (str_contains($key, 'phone') || str_contains($key, 'roll') || str_contains($key, 'year') || str_contains($key, 'count'))) {
-                    $val = $this->normalizeBnToEn($val);
+                if (is_string($val)) {
+                    if (str_contains($key, 'phone')) {
+                        $pNorm = \App\Support\PhoneNormalizer::normalize($val);
+                        $val = $pNorm['local_phone'];
+                    } elseif (str_contains($key, 'roll') || str_contains($key, 'year') || str_contains($key, 'count')) {
+                        $val = $this->normalizeBnToEn($val);
+                    }
                 }
                 $customFieldAnswers[$key] = $val;
             }

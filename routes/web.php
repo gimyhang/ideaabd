@@ -740,6 +740,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/registrations/{registration}', 'destroyRegistration')->name('registrations.destroy');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-scholarship', 'toggleScholarship')->name('registrations.toggle-scholarship');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-approval', 'toggleApproval')->name('registrations.toggle-approval');
+        Route::post('/registrations/{registration}/sync-user-phone', 'syncUserPhone')->name('registrations.sync-user-phone');
         Route::post('/registrations/{registration}/viva-evaluation', 'updateVivaEvaluation')->name('registrations.viva-evaluation');
         Route::get('/registrations/{registration}/print', 'printRegistration')->name('registrations.print');
         Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
@@ -866,6 +867,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/integrity-check', 'integrityCheck')->name('integrity');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
+        Route::post('/cleanup-storage', 'cleanupStorage')->name('cleanup-storage');
         Route::get('/inspect/{filename}', 'inspect')->name('inspect');
         Route::get('/diff/{filename}', 'diff')->name('diff');
         Route::post('/dry-run/{filename}', 'dryRun')->name('dry-run');

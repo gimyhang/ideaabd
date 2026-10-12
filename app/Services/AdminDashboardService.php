@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\VisitorLog;
 use App\Support\Bn;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Book\Models\Book;
@@ -198,181 +199,185 @@ class AdminDashboardService
      */
     public function filteredStats(?string $from = null, ?string $to = null, string $period = 'all'): array
     {
-        $today = now()->startOfDay();
-        $thisMonth = now()->startOfMonth();
-        $thisYear = now()->startOfYear();
+        $cacheKey = 'admin_dash_filtered_stats_' . md5(($from ?? '') . '_' . ($to ?? '') . '_' . $period);
 
-        // Determine filter boundaries
-        [$startDate, $endDate, $filterLabel] = $this->resolveDateRange($from, $to, $period);
+        return Cache::remember($cacheKey, 60, function () use ($from, $to, $period) {
+            $today = now()->startOfDay();
+            $thisMonth = now()->startOfMonth();
+            $thisYear = now()->startOfYear();
 
-        // 1. E-Commerce Orders Analytics
-        $orderQuery = Order::query();
-        if ($startDate && $endDate) {
-            $orderQuery->whereBetween('created_at', [$startDate, $endDate]);
-        }
+            // Determine filter boundaries
+            [$startDate, $endDate, $filterLabel] = $this->resolveDateRange($from, $to, $period);
 
-        $filteredOrdersCount = (int) $this->safe(fn () => (clone $orderQuery)->count(), 0);
-        $filteredRevenue = (float) $this->safe(fn () => (clone $orderQuery)->sum('total_amount'), 0.0);
-        $paidRevenue = (float) $this->safe(fn () => (clone $orderQuery)->where('payment_status', 'paid')->sum('total_amount'), 0.0);
-        $pendingOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'pending')->count(), 0);
-        $processingOrders = (int) $this->safe(fn () => (clone $orderQuery)->whereIn('status', ['processing', 'shipped'])->count(), 0);
-        $deliveredOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'delivered')->count(), 0);
+            // 1. E-Commerce Orders Analytics
+            $orderQuery = Order::query();
+            if ($startDate && $endDate) {
+                $orderQuery->whereBetween('created_at', [$startDate, $endDate]);
+            }
 
-        // 2. Today's Pulse
-        $todayOrders = (int) $this->safe(fn () => Order::where('created_at', '>=', $today)->count(), 0);
-        $todayRevenue = (float) $this->safe(fn () => Order::where('created_at', '>=', $today)->sum('total_amount'), 0.0);
-        $yesterdayRevenue = (float) $this->safe(fn () => Order::whereBetween('created_at', [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()])->sum('total_amount'), 0.0);
-        
-        $revenueGrowth = $yesterdayRevenue > 0 
-            ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
-            : ($todayRevenue > 0 ? 100 : 0);
+            $filteredOrdersCount = (int) $this->safe(fn () => (clone $orderQuery)->count(), 0);
+            $filteredRevenue = (float) $this->safe(fn () => (clone $orderQuery)->sum('total_amount'), 0.0);
+            $paidRevenue = (float) $this->safe(fn () => (clone $orderQuery)->where('payment_status', 'paid')->sum('total_amount'), 0.0);
+            $pendingOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'pending')->count(), 0);
+            $processingOrders = (int) $this->safe(fn () => (clone $orderQuery)->whereIn('status', ['processing', 'shipped'])->count(), 0);
+            $deliveredOrders = (int) $this->safe(fn () => (clone $orderQuery)->where('status', 'delivered')->count(), 0);
 
-        // 3. Visitor Traffic Analytics (Daily, Monthly, Yearly & Filtered)
-        $hasVisitorTable = Schema::hasTable('visitor_logs');
-        $visitorStats = [
-            'today_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->count(), 0) : 0,
-            'today_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'), 0) : 0,
-            'month_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->count(), 0) : 0,
-            'month_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->distinct('ip_address')->count('ip_address'), 0) : 0,
-            'year_views'      => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->count(), 0) : 0,
-            'year_uniques'    => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->distinct('ip_address')->count('ip_address'), 0) : 0,
-            'total_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::count(), 0) : 0,
-            'total_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::distinct('ip_address')->count('ip_address'), 0) : 0,
-            'filtered_views'  => 0,
-            'filtered_uniques'=> 0,
-        ];
+            // 2. Today's Pulse
+            $todayOrders = (int) $this->safe(fn () => Order::where('created_at', '>=', $today)->count(), 0);
+            $todayRevenue = (float) $this->safe(fn () => Order::where('created_at', '>=', $today)->sum('total_amount'), 0.0);
+            $yesterdayRevenue = (float) $this->safe(fn () => Order::whereBetween('created_at', [now()->subDay()->startOfDay(), now()->subDay()->endOfDay()])->sum('total_amount'), 0.0);
+            
+            $revenueGrowth = $yesterdayRevenue > 0 
+                ? round((($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100, 1) 
+                : ($todayRevenue > 0 ? 100 : 0);
 
-        if ($hasVisitorTable && $startDate && $endDate) {
-            $visitorStats['filtered_views'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->count(), 0);
-            $visitorStats['filtered_uniques'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->distinct('ip_address')->count('ip_address'), 0);
-        } else {
-            $visitorStats['filtered_views'] = $visitorStats['total_views'];
-            $visitorStats['filtered_uniques'] = $visitorStats['total_uniques'];
-        }
+            // 3. Visitor Traffic Analytics (Daily, Monthly, Yearly & Filtered)
+            $hasVisitorTable = Schema::hasTable('visitor_logs');
+            $visitorStats = [
+                'today_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->count(), 0) : 0,
+                'today_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'), 0) : 0,
+                'month_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->count(), 0) : 0,
+                'month_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisMonth)->distinct('ip_address')->count('ip_address'), 0) : 0,
+                'year_views'      => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->count(), 0) : 0,
+                'year_uniques'    => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $thisYear)->distinct('ip_address')->count('ip_address'), 0) : 0,
+                'total_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::count(), 0) : 0,
+                'total_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::distinct('ip_address')->count('ip_address'), 0) : 0,
+                'filtered_views'  => 0,
+                'filtered_uniques'=> 0,
+            ];
 
-        // 4. Inventory Health (Low Stock & Out of Stock)
-        $lowStockBooks = collect();
-        $outOfStockCount = 0;
-        if (Schema::hasTable('books') && Schema::hasColumn('books', 'stock_quantity')) {
-            $lowStockBooks = $this->safe(fn () => Book::where('stock_quantity', '<=', 5)
-                ->whereNull('deleted_at')
-                ->orderBy('stock_quantity', 'asc')
-                ->limit(8)
-                ->get(), collect());
+            if ($hasVisitorTable && $startDate && $endDate) {
+                $visitorStats['filtered_views'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->count(), 0);
+                $visitorStats['filtered_uniques'] = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$startDate, $endDate])->distinct('ip_address')->count('ip_address'), 0);
+            } else {
+                $visitorStats['filtered_views'] = $visitorStats['total_views'];
+                $visitorStats['filtered_uniques'] = $visitorStats['total_uniques'];
+            }
 
-            $outOfStockCount = (int) $this->safe(fn () => Book::where('stock_quantity', '<=', 0)->count(), 0);
-        }
+            // 4. Inventory Health (Low Stock & Out of Stock)
+            $lowStockBooks = collect();
+            $outOfStockCount = 0;
+            if (Schema::hasTable('books') && Schema::hasColumn('books', 'stock_quantity')) {
+                $lowStockBooks = $this->safe(fn () => Book::where('stock_quantity', '<=', 5)
+                    ->whereNull('deleted_at')
+                    ->orderBy('stock_quantity', 'asc')
+                    ->limit(8)
+                    ->get(), collect());
 
-        // 5. Payment Gateway Split
-        $paymentSplit = [
-            'bkash'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bkash')->sum('total_amount'), 0.0),
-            'nagad'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'nagad')->sum('total_amount'), 0.0),
-            'rocket' => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'rocket')->sum('total_amount'), 0.0),
-            'cod'    => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'cod')->sum('total_amount'), 0.0),
-            'bank'   => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bank')->sum('total_amount'), 0.0),
-        ];
+                $outOfStockCount = (int) $this->safe(fn () => Book::where('stock_quantity', '<=', 0)->count(), 0);
+            }
 
-        // 6. Top Selling Books
-        $topBooks = collect();
-        if (Schema::hasTable('books')) {
-            $topBooks = $this->safe(fn () => Book::whereNull('deleted_at')
-                ->orderByDesc('sales_count')
-                ->limit(5)
-                ->get(), collect());
-        }
+            // 5. Payment Gateway Split
+            $paymentSplit = [
+                'bkash'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bkash')->sum('total_amount'), 0.0),
+                'nagad'  => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'nagad')->sum('total_amount'), 0.0),
+                'rocket' => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'rocket')->sum('total_amount'), 0.0),
+                'cod'    => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'cod')->sum('total_amount'), 0.0),
+                'bank'   => (float) $this->safe(fn () => (clone $orderQuery)->where('payment_method', 'bank')->sum('total_amount'), 0.0),
+            ];
 
-        // 7. Recent Customer Book Requests
-        $bookRequests = collect();
-        if (Schema::hasTable('book_requests')) {
-            $bookRequests = $this->safe(fn () => DB::table('book_requests')->latest()->limit(5)->get(), collect());
-        }
+            // 6. Top Selling Books
+            $topBooks = collect();
+            if (Schema::hasTable('books')) {
+                $topBooks = $this->safe(fn () => Book::whereNull('deleted_at')
+                    ->orderByDesc('sales_count')
+                    ->limit(5)
+                    ->get(), collect());
+            }
 
-        // 8. Worldwide Multi-Currency Conversions
-        $currencyService = app(\App\Services\CurrencyService::class);
-        $revenueUsd = $currencyService->convertFromBdt($filteredRevenue, 'USD');
-        $revenueEur = $currencyService->convertFromBdt($filteredRevenue, 'EUR');
-        $todayRevenueUsd = $currencyService->convertFromBdt($todayRevenue, 'USD');
+            // 7. Recent Customer Book Requests
+            $bookRequests = collect();
+            if (Schema::hasTable('book_requests')) {
+                $bookRequests = $this->safe(fn () => DB::table('book_requests')->latest()->limit(5)->get(), collect());
+            }
 
-        // 9. Boi Mela Stall POS Stats
-        $posStats = [
-            'today_sales' => Schema::hasTable('pos_sales') ? (float) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->sum('total'), 0.0) : 0.0,
-            'today_count' => Schema::hasTable('pos_sales') ? (int) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->count(), 0) : 0,
-        ];
+            // 8. Worldwide Multi-Currency Conversions
+            $currencyService = app(\App\Services\CurrencyService::class);
+            $revenueUsd = $currencyService->convertFromBdt($filteredRevenue, 'USD');
+            $revenueEur = $currencyService->convertFromBdt($filteredRevenue, 'EUR');
+            $todayRevenueUsd = $currencyService->convertFromBdt($todayRevenue, 'USD');
 
-        // 10. Subscriptions (Kindle Unlimited Model)
-        $subStats = [
-            'active_count' => Schema::hasTable('user_subscriptions') ? (int) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->where('expires_at', '>=', now())->count(), 0) : 0,
-            'total_revenue' => Schema::hasTable('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0,
-        ];
+            // 9. Boi Mela Stall POS Stats
+            $posStats = [
+                'today_sales' => Schema::hasTable('pos_sales') ? (float) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->sum('total'), 0.0) : 0.0,
+                'today_count' => Schema::hasTable('pos_sales') ? (int) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->count(), 0) : 0,
+            ];
 
-        // 11. Affiliates & Influencers
-        $affiliateStats = [
-            'total_partners' => Schema::hasTable('affiliates') ? (int) $this->safe(fn () => DB::table('affiliates')->count(), 0) : 0,
-            'unpaid_balance' => Schema::hasTable('affiliates') ? (float) $this->safe(fn () => DB::table('affiliates')->sum('balance'), 0.0) : 0.0,
-        ];
+            // 10. Subscriptions (Kindle Unlimited Model)
+            $subStats = [
+                'active_count' => Schema::hasTable('user_subscriptions') ? (int) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->where('expires_at', '>=', now())->count(), 0) : 0,
+                'total_revenue' => Schema::hasTable('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0,
+            ];
 
-        // 12. Worldwide Country Geo-Traffic Breakdown
-        $countryTraffic = [
-            ['country' => 'Bangladesh', 'code' => 'BD', 'visitors' => 1420, 'share' => '68%'],
-            ['country' => 'United States', 'code' => 'US', 'visitors' => 310, 'share' => '15%'],
-            ['country' => 'United Kingdom', 'code' => 'GB', 'visitors' => 145, 'share' => '7%'],
-            ['country' => 'Saudi Arabia', 'code' => 'SA', 'visitors' => 95, 'share' => '5%'],
-            ['country' => 'United Arab Emirates', 'code' => 'AE', 'visitors' => 60, 'share' => '3%'],
-            ['country' => 'Canada / India / Others', 'code' => 'OTHER', 'visitors' => 45, 'share' => '2%'],
-        ];
+            // 11. Affiliates & Influencers
+            $affiliateStats = [
+                'total_partners' => Schema::hasTable('affiliates') ? (int) $this->safe(fn () => DB::table('affiliates')->count(), 0) : 0,
+                'unpaid_balance' => Schema::hasTable('affiliates') ? (float) $this->safe(fn () => DB::table('affiliates')->sum('balance'), 0.0) : 0.0,
+            ];
 
-        return [
-            'filter_label'        => $filterLabel,
-            'start_date'          => $startDate?->format('Y-m-d'),
-            'end_date'            => $endDate?->format('Y-m-d'),
-            'filtered_orders'     => $filteredOrdersCount,
-            'filtered_revenue'    => $filteredRevenue,
-            'revenue_usd'         => $revenueUsd,
-            'revenue_eur'         => $revenueEur,
-            'paid_revenue'        => $paidRevenue,
-            'pending_orders'      => $pendingOrders,
-            'processing_orders'   => $processingOrders,
-            'delivered_orders'    => $deliveredOrders,
-            'today_orders'        => $todayOrders,
-            'today_revenue'       => $todayRevenue,
-            'today_revenue_usd'   => $todayRevenueUsd,
-            'revenue_growth'      => $revenueGrowth,
-            'visitor'             => $visitorStats,
-            'low_stock_books'     => $lowStockBooks,
-            'out_of_stock_count'  => $outOfStockCount,
-            'payment_split'       => $paymentSplit,
-            'top_books'           => $topBooks,
-            // 13. Real-Time Live Sales & Transactions Pulse Stream (Web Orders + POS Bills + E-Books)
-            'live_feed'           => $this->getLiveTransactionsFeed(),
+            // 12. Worldwide Country Geo-Traffic Breakdown
+            $countryTraffic = [
+                ['country' => 'Bangladesh', 'code' => 'BD', 'visitors' => 1420, 'share' => '68%'],
+                ['country' => 'United States', 'code' => 'US', 'visitors' => 310, 'share' => '15%'],
+                ['country' => 'United Kingdom', 'code' => 'GB', 'visitors' => 145, 'share' => '7%'],
+                ['country' => 'Saudi Arabia', 'code' => 'SA', 'visitors' => 95, 'share' => '5%'],
+                ['country' => 'United Arab Emirates', 'code' => 'AE', 'visitors' => 60, 'share' => '3%'],
+                ['country' => 'Canada / India / Others', 'code' => 'OTHER', 'visitors' => 45, 'share' => '2%'],
+            ];
 
-            // 14. Multi-Channel Revenue Split (E-Commerce vs POS vs E-Books vs B2B)
-            'channel_split'       => $this->getMultiChannelRevenueSplit($filteredRevenue),
+            return [
+                'filter_label'        => $filterLabel,
+                'start_date'          => $startDate?->format('Y-m-d'),
+                'end_date'            => $endDate?->format('Y-m-d'),
+                'filtered_orders'     => $filteredOrdersCount,
+                'filtered_revenue'    => $filteredRevenue,
+                'revenue_usd'         => $revenueUsd,
+                'revenue_eur'         => $revenueEur,
+                'paid_revenue'        => $paidRevenue,
+                'pending_orders'      => $pendingOrders,
+                'processing_orders'   => $processingOrders,
+                'delivered_orders'    => $deliveredOrders,
+                'today_orders'        => $todayOrders,
+                'today_revenue'       => $todayRevenue,
+                'today_revenue_usd'   => $todayRevenueUsd,
+                'revenue_growth'      => $revenueGrowth,
+                'visitor'             => $visitorStats,
+                'low_stock_books'     => $lowStockBooks,
+                'out_of_stock_count'  => $outOfStockCount,
+                'payment_split'       => $paymentSplit,
+                'top_books'           => $topBooks,
+                // 13. Real-Time Live Sales & Transactions Pulse Stream (Web Orders + POS Bills + E-Books)
+                'live_feed'           => $this->getLiveTransactionsFeed(),
 
-            // 15. Server Infrastructure & System Health Metrics
-            'system_health'       => $this->getSystemHealthMetrics(),
+                // 14. Multi-Channel Revenue Split (E-Commerce vs POS vs E-Books vs B2B)
+                'channel_split'       => $this->getMultiChannelRevenueSplit($filteredRevenue),
 
-            // 16. Author Royalties & Financial Pipeline
-            'royalties_pipeline'  => $this->getRoyaltiesPipeline(),
+                // 15. Server Infrastructure & System Health Metrics
+                'system_health'       => $this->getSystemHealthMetrics(),
 
-            // 17. Daily & Monthly Sales Target Progress
-            'target_progress'     => $this->getSalesTargetProgress($todayRevenue),
+                // 16. Author Royalties & Financial Pipeline
+                'royalties_pipeline'  => $this->getRoyaltiesPipeline(),
 
-            // 18. CEO Executive Departmental Staff & HR Metrics (Digital Marketing, Content & Editorial, Technical & IT, Operations & Support)
-            'employee_departments'=> $this->getDepartmentalEmployeeStats(),
+                // 17. Daily & Monthly Sales Target Progress
+                'target_progress'     => $this->getSalesTargetProgress($todayRevenue),
 
-            // 19. Global Traffic & Live Geo Intelligence
-            'global_traffic'      => $globalTraffic = $this->getGlobalTrafficData(),
-            'country_traffic'     => $globalTraffic['country_traffic'] ?? [],
+                // 18. CEO Executive Departmental Staff & HR Metrics (Digital Marketing, Content & Editorial, Technical & IT, Operations & Support)
+                'employee_departments'=> $this->getDepartmentalEmployeeStats(),
 
-            'total_books'         => $this->count('books'),
-            'total_ebooks'        => $this->count('ebooks'),
-            'total_authors'       => $this->count('authors'),
-            'total_publishers'    => $this->count('publishers'),
-            'total_users'         => $this->safe(fn () => User::count(), 0),
-            'total_customers'     => $this->safe(fn () => User::whereIn('role', ['customer', 'buyer'])->count(), 0),
-            'pending_regs'        => $this->pendingRegistrations(),
-            'pending_alerts'      => $this->getPendingAlerts(),
-        ];
+                // 19. Global Traffic & Live Geo Intelligence
+                'global_traffic'      => $globalTraffic = $this->getGlobalTrafficData(),
+                'country_traffic'     => $globalTraffic['country_traffic'] ?? [],
+
+                'total_books'         => $this->count('books'),
+                'total_ebooks'        => $this->count('ebooks'),
+                'total_authors'       => $this->count('authors'),
+                'total_publishers'    => $this->count('publishers'),
+                'total_users'         => $this->safe(fn () => User::count(), 0),
+                'total_customers'     => $this->safe(fn () => User::whereIn('role', ['customer', 'buyer'])->count(), 0),
+                'pending_regs'        => $this->pendingRegistrations(),
+                'pending_alerts'      => $this->getPendingAlerts(),
+            ];
+        });
     }
 
     /**
@@ -531,64 +536,68 @@ class AdminDashboardService
      */
     public function salesSeries(string $period = 'monthly', ?string $from = null, ?string $to = null): array
     {
-        $labels = [];
-        $revenue = [];
-        $orders = [];
+        $cacheKey = 'admin_dash_sales_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        if ($period === 'daily') {
-            // Last 14 days or custom range
-            $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
-            $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
-            $days = (int) $start->diffInDays($end) + 1;
-            if ($days > 31) $days = 31; // cap daily granularity
+        return Cache::remember($cacheKey, 120, function () use ($period, $from, $to) {
+            $labels = [];
+            $revenue = [];
+            $orders = [];
 
-            for ($i = 0; $i < $days; $i++) {
-                $day = $start->copy()->addDays($i);
-                $dayStart = $day->copy()->startOfDay();
-                $dayEnd = $day->copy()->endOfDay();
-                $key = $day->format('d M');
+            if ($period === 'daily') {
+                // Last 14 days or custom range
+                $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
+                $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
+                $days = (int) $start->diffInDays($end) + 1;
+                if ($days > 31) $days = 31; // cap daily granularity
 
-                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_amount'), 0.0);
-                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->count(), 0);
+                for ($i = 0; $i < $days; $i++) {
+                    $day = $start->copy()->addDays($i);
+                    $dayStart = $day->copy()->startOfDay();
+                    $dayEnd = $day->copy()->endOfDay();
+                    $key = $day->format('d M');
 
-                $labels[] = Bn::date($day);
-                $revenue[] = round($rev, 2);
-                $orders[] = $cnt;
+                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_amount'), 0.0);
+                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->count(), 0);
+
+                    $labels[] = Bn::date($day);
+                    $revenue[] = round($rev, 2);
+                    $orders[] = $cnt;
+                }
+            } elseif ($period === 'yearly') {
+                // Last 5 years
+                $startYear = now()->subYears(4)->year;
+                $endYear = now()->year;
+
+                for ($yr = $startYear; $yr <= $endYear; $yr++) {
+                    $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
+                    $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
+
+                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->sum('total_amount'), 0.0);
+                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->count(), 0);
+
+                    $labels[] = Bn::num($yr) . ' সাল';
+                    $revenue[] = round($rev, 2);
+                    $orders[] = $cnt;
+                }
+            } else {
+                // Last 12 months (Default)
+                $start = now()->startOfMonth()->subMonths(11);
+                for ($i = 0; $i < 12; $i++) {
+                    $month = $start->copy()->addMonths($i);
+                    $mStart = $month->copy()->startOfMonth();
+                    $mEnd = $month->copy()->endOfMonth();
+
+                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->sum('total_amount'), 0.0);
+                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->count(), 0);
+
+                    $labels[] = Bn::date($mStart);
+                    $revenue[] = round($rev, 2);
+                    $orders[] = $cnt;
+                }
             }
-        } elseif ($period === 'yearly') {
-            // Last 5 years
-            $startYear = now()->subYears(4)->year;
-            $endYear = now()->year;
 
-            for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
-                $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
-
-                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->sum('total_amount'), 0.0);
-                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->count(), 0);
-
-                $labels[] = Bn::num($yr) . ' সাল';
-                $revenue[] = round($rev, 2);
-                $orders[] = $cnt;
-            }
-        } else {
-            // Last 12 months (Default)
-            $start = now()->startOfMonth()->subMonths(11);
-            for ($i = 0; $i < 12; $i++) {
-                $month = $start->copy()->addMonths($i);
-                $mStart = $month->copy()->startOfMonth();
-                $mEnd = $month->copy()->endOfMonth();
-
-                $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->sum('total_amount'), 0.0);
-                $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->count(), 0);
-
-                $labels[] = Bn::date($mStart);
-                $revenue[] = round($rev, 2);
-                $orders[] = $cnt;
-            }
-        }
-
-        return ['labels' => $labels, 'revenue' => $revenue, 'orders' => $orders];
+            return ['labels' => $labels, 'revenue' => $revenue, 'orders' => $orders];
+        });
     }
 
     /**
@@ -596,67 +605,71 @@ class AdminDashboardService
      */
     public function visitorSeries(string $period = 'daily', ?string $from = null, ?string $to = null): array
     {
-        $labels = [];
-        $views = [];
-        $uniques = [];
+        $cacheKey = 'admin_dash_visitor_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        if (!Schema::hasTable('visitor_logs')) {
-            return ['labels' => ['আজকে'], 'views' => [0], 'uniques' => [0]];
-        }
+        return Cache::remember($cacheKey, 120, function () use ($period, $from, $to) {
+            $labels = [];
+            $views = [];
+            $uniques = [];
 
-        if ($period === 'monthly') {
-            // Last 12 months
-            $start = now()->startOfMonth()->subMonths(11);
-            for ($i = 0; $i < 12; $i++) {
-                $m = $start->copy()->addMonths($i);
-                $mStart = $m->copy()->startOfMonth();
-                $mEnd = $m->copy()->endOfMonth();
-
-                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->count(), 0);
-                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->distinct('ip_address')->count('ip_address'), 0);
-
-                $labels[] = Bn::date($mStart);
-                $views[] = $v;
-                $uniques[] = $u;
+            if (!Schema::hasTable('visitor_logs')) {
+                return ['labels' => ['আজকে'], 'views' => [0], 'uniques' => [0]];
             }
-        } elseif ($period === 'yearly') {
-            // Last 5 years
-            $startYear = now()->subYears(4)->year;
-            $endYear = now()->year;
 
-            for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
-                $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
+            if ($period === 'monthly') {
+                // Last 12 months
+                $start = now()->startOfMonth()->subMonths(11);
+                for ($i = 0; $i < 12; $i++) {
+                    $m = $start->copy()->addMonths($i);
+                    $mStart = $m->copy()->startOfMonth();
+                    $mEnd = $m->copy()->endOfMonth();
 
-                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->count(), 0);
-                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->distinct('ip_address')->count('ip_address'), 0);
+                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->count(), 0);
+                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->distinct('ip_address')->count('ip_address'), 0);
 
-                $labels[] = Bn::num($yr) . ' সাল';
-                $views[] = $v;
-                $uniques[] = $u;
+                    $labels[] = Bn::date($mStart);
+                    $views[] = $v;
+                    $uniques[] = $u;
+                }
+            } elseif ($period === 'yearly') {
+                // Last 5 years
+                $startYear = now()->subYears(4)->year;
+                $endYear = now()->year;
+
+                for ($yr = $startYear; $yr <= $endYear; $yr++) {
+                    $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
+                    $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
+
+                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->count(), 0);
+                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->distinct('ip_address')->count('ip_address'), 0);
+
+                    $labels[] = Bn::num($yr) . ' সাল';
+                    $views[] = $v;
+                    $uniques[] = $u;
+                }
+            } else {
+                // Last 14 days (Daily)
+                $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
+                $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
+                $days = (int) $start->diffInDays($end) + 1;
+                if ($days > 31) $days = 31;
+
+                for ($i = 0; $i < $days; $i++) {
+                    $d = $start->copy()->addDays($i);
+                    $dStart = $d->copy()->startOfDay();
+                    $dEnd = $d->copy()->endOfDay();
+
+                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->count(), 0);
+                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->distinct('ip_address')->count('ip_address'), 0);
+
+                    $labels[] = Bn::date($d);
+                    $views[] = $v;
+                    $uniques[] = $u;
+                }
             }
-        } else {
-            // Last 14 days (Daily)
-            $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
-            $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
-            $days = (int) $start->diffInDays($end) + 1;
-            if ($days > 31) $days = 31;
 
-            for ($i = 0; $i < $days; $i++) {
-                $d = $start->copy()->addDays($i);
-                $dStart = $d->copy()->startOfDay();
-                $dEnd = $d->copy()->endOfDay();
-
-                $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->count(), 0);
-                $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->distinct('ip_address')->count('ip_address'), 0);
-
-                $labels[] = Bn::date($d);
-                $views[] = $v;
-                $uniques[] = $u;
-            }
-        }
-
-        return ['labels' => $labels, 'views' => $views, 'uniques' => $uniques];
+            return ['labels' => $labels, 'views' => $views, 'uniques' => $uniques];
+        });
     }
 
     /**
@@ -707,7 +720,8 @@ class AdminDashboardService
      */
     public function sellersSummary(int $limit = 6): array
     {
-        return $this->safe(function () use ($limit) {
+        return Cache::remember('admin_dash_sellers_summary_' . $limit, 120, function () use ($limit) {
+            return $this->safe(function () use ($limit) {
             $totalSellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])->count();
             $totalBills = Bill::count();
             $totalSales = (float) Bill::sum('total');
@@ -750,6 +764,7 @@ class AdminDashboardService
             'this_month_sales'  => 0.0,
             'sellers_breakdown' => collect(),
         ]);
+        });
     }
 
     /**

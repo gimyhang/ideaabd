@@ -52,6 +52,14 @@ class RegistrationController extends Controller
     // Send Email verification OTP for registration
     public function sendEmailOtp(Request $request)
     {
+        if (!SiteSetting::isEmailVerificationEnabled()) {
+            return response()->json([
+                'success'  => true,
+                'bypassed' => true,
+                'message'  => 'Email verification is currently disabled in site settings.',
+            ]);
+        }
+
         $request->validate([
             'email' => ['required', 'email', 'max:255'],
         ]);
@@ -118,6 +126,14 @@ class RegistrationController extends Controller
     // Verify Email OTP for registration
     public function verifyEmailOtp(Request $request)
     {
+        if (!SiteSetting::isEmailVerificationEnabled()) {
+            return response()->json([
+                'success'  => true,
+                'bypassed' => true,
+                'message'  => 'Email verification is currently disabled.',
+            ]);
+        }
+
         $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'otp'   => ['required', 'string', 'min:4', 'max:10'],
@@ -178,31 +194,18 @@ class RegistrationController extends Controller
             'role'         => ['nullable', 'string', 'max:50'],
         ]);
 
-        $countryCode = trim($request->input('country_code', '+880'));
-        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $queryPhones = $pInfo['query_phones'];
         $category = $request->input('category') ?: $request->input('role');
 
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
+        $existing = User::where(function ($q) use ($queryPhones, $pInfo) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
             }
-            $cleanDigits = ltrim($cleanDigits, '0');
-            $fullPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $fullPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $fullPhone;
-        }
-
-        $existing = User::where('phone', $fullPhone)
-            ->orWhere('phone', $localPhone)
-            ->orWhere('phone', $rawPhone)
-            ->orWhere('phone', '+88' . $localPhone)
-            ->orWhere('phone', '88' . $localPhone)
-            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
-            ->first();
+        })->first();
 
         if ($existing) {
             $hasPassword = !empty($existing->password);
@@ -266,34 +269,22 @@ class RegistrationController extends Controller
             'category'       => ['nullable', 'string', 'max:50'],
         ]);
 
-        $countryCode = trim($request->input('country_code', '+880'));
-        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $fullPhone = $formattedPhone;
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
         $category = $request->input('category');
         $purpose = $request->input('purpose');
 
-        // Normalize phone with country code (handles both 10-digit '17XXXXXXXX' and 11-digit '017XXXXXXXX')
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
+        // Check if user already exists across all potential formats
+        $existing = User::where(function ($q) use ($queryPhones, $pInfo) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
             }
-            $cleanDigits = ltrim($cleanDigits, '0');
-            $fullPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $fullPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $fullPhone;
-        }
-
-        // Check if user already exists
-        $existing = User::where('phone', $fullPhone)
-            ->orWhere('phone', $localPhone)
-            ->orWhere('phone', $rawPhone)
-            ->orWhere('phone', '+88' . $localPhone)
-            ->orWhere('phone', '88' . $localPhone)
-            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
-            ->first();
+        })->first();
 
         $isRoleRegistration = in_array($category, ['author', 'publisher', 'seller'], true) 
             || in_array($purpose, ['author', 'publisher', 'seller', 'library', 'upgrade', 'event_registration', 'auth_gate'], true);
@@ -429,24 +420,14 @@ class RegistrationController extends Controller
             'auto_login'   => ['nullable', 'boolean'],
         ]);
 
-        $countryCode = trim($request->input('country_code', '+880'));
-        $rawPhone = $this->normalizeBnToEn(trim($request->input('phone')));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
+        $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $fullPhone = $formattedPhone;
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
         $rawOtp = $this->normalizeBnToEn(trim($request->input('otp')));
         $cleanOtp = preg_replace('/[^\d]/', '', $rawOtp);
-
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
-            }
-            $cleanDigits = ltrim($cleanDigits, '0');
-            $fullPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $fullPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $fullPhone;
-        }
 
         $failCountKey = 'reg_otp_fails_' . md5($fullPhone);
         $fails = (int) Cache::get($failCountKey, 0);
@@ -491,10 +472,12 @@ class RegistrationController extends Controller
         ]);
 
         // Check if existing user and auto-login if requested or available
-        $existing = User::where('phone', $fullPhone)
-            ->orWhere('phone', $localPhone)
-            ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10))
-            ->first();
+        $existing = User::where(function ($q) use ($queryPhones, $pInfo) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
+            }
+        })->first();
 
         $isLoggedIn = false;
         $userData = null;
@@ -560,24 +543,13 @@ class RegistrationController extends Controller
             'captcha_proof_token'   => ['nullable', 'string'],
         ])->validate();
 
-        $countryCode = $request->input('country_code', '+880');
-        $rawPhone = trim($request->input('phone'));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
-
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
-            }
-            if (str_starts_with($cleanDigits, '0')) {
-                $cleanDigits = substr($cleanDigits, 1);
-            }
-            $fullPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $fullPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $fullPhone;
-        }
+        $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $fullPhone = $formattedPhone;
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
+        $countryCode = $pInfo['country_code'];
 
         $email = trim(strtolower($request->input('email')));
         $category = $request->input('category', 'buyer');
@@ -588,7 +560,7 @@ class RegistrationController extends Controller
             $captchaOk = app(CaptchaService::class)->validateProofToken($captchaToken, $request->ip());
             if (!$captchaOk && !app()->environment('local', 'testing')) {
                 RegistrationAuditLog::recordEvent('completed', false, [
-                    'phone' => $fullPhone, 'email' => $email, 'category' => $category,
+                    'phone' => $fullPhone ?? $localPhone, 'email' => $email, 'category' => $category,
                     'error_message' => 'CAPTCHA token expired or invalid',
                 ]);
                 return response()->json([
@@ -600,10 +572,15 @@ class RegistrationController extends Controller
         }
 
         // 2. Uniqueness & Existing Account Check — Allow Verified Upgrades
-        $existing = User::where('phone', $fullPhone)
-            ->orWhere('phone', $localPhone)
-            ->orWhere('email', $email)
-            ->first();
+        $existing = User::where(function ($q) use ($queryPhones, $pInfo, $email) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
+            }
+            if ($email) {
+                $q->orWhere('email', $email);
+            }
+        })->first();
 
         // 3. Strict Phone OTP Enforcement
         $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
@@ -759,6 +736,9 @@ class RegistrationController extends Controller
                 'reg_data'   => $mergedRegData,
                 'is_active'  => true,
             ];
+            if (empty($user->phone) || $user->phone !== $localPhone) {
+                $updateData['phone'] = $localPhone;
+            }
             if (!empty($displayName)) {
                 $updateData['name'] = $displayName;
             }
@@ -779,7 +759,7 @@ class RegistrationController extends Controller
             $user = User::create([
                 'name'              => $displayName,
                 'email'             => $email,
-                'phone'             => $fullPhone,
+                'phone'             => $localPhone,
                 'password'          => Hash::make($request->input('password')),
                 'role'              => 'customer', // All users register as customer first until admin approval
                 'reg_type'          => $category, // Desired role to be approved by admin
@@ -1225,21 +1205,12 @@ class RegistrationController extends Controller
             'password' => ['required', 'string', 'min:6', 'max:100'],
         ]);
 
-        $rawPhone = trim($request->input('phone'));
-        $countryCode = trim($request->input('country_code', '+880'));
-        $cleanDigits = preg_replace('/[^0-9]/', '', $this->normalizeBnToEn($rawPhone));
-        if (str_starts_with($countryCode, '+880') || $countryCode === '880') {
-            if (str_starts_with($cleanDigits, '880')) {
-                $cleanDigits = substr($cleanDigits, 3);
-            }
-            $cleanDigits = ltrim($cleanDigits, '0');
-            $fullPhone = '+880' . $cleanDigits;
-            $localPhone = '0' . $cleanDigits;
-        } else {
-            $prefix = str_starts_with($countryCode, '+') ? $countryCode : '+' . $countryCode;
-            $fullPhone = $prefix . ltrim($cleanDigits, '0');
-            $localPhone = $fullPhone;
-        }
+        $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $fullPhone = $formattedPhone;
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
         $email = $request->filled('email') ? strtolower(trim($request->input('email'))) : null;
 
         $phoneVerifiedSession = session('phone_verified_' . md5($fullPhone))
@@ -1249,10 +1220,11 @@ class RegistrationController extends Controller
             || session('otp_verified_phone') === $fullPhone;
 
         // Check for existing phone or email
-        $existing = User::where(function ($q) use ($localPhone, $cleanDigits, $email, $fullPhone) {
-            $q->where('phone', $localPhone)
-              ->orWhere('phone', $fullPhone)
-              ->orWhere('phone', 'LIKE', '%' . substr($cleanDigits, -10));
+        $existing = User::where(function ($q) use ($queryPhones, $pInfo, $email) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
+            }
             if ($email) {
                 $q->orWhere('email', $email);
             }

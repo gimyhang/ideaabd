@@ -257,6 +257,28 @@ class EventCampaignAdminController extends Controller
             $regQuery->latest();
         }
 
+        // Fetch all registrations to prepare Geo Database, Little Magazine Directory and Conflict Metrics
+        $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
+
+        // Phone conflict & deduplication metrics
+        $allPhones = $allCampaignRegistrations->pluck('phone')->filter()->toArray();
+        $phoneFreqs = array_count_values($allPhones);
+        $duplicatePhoneMap = array_filter($phoneFreqs, fn($count) => $count > 1);
+
+        $conflictRegIds = [];
+        foreach ($allCampaignRegistrations as $r) {
+            $hasDup = isset($duplicatePhoneMap[$r->phone]);
+            $hasUserMismatch = ($r->user && $r->user->phone && $r->user->phone !== $r->phone);
+            if ($hasDup || $hasUserMismatch) {
+                $conflictRegIds[] = $r->id;
+            }
+        }
+        $phoneConflictCount = count($conflictRegIds);
+
+        if ($request->boolean('has_conflict')) {
+            $regQuery->whereIn('id', !empty($conflictRegIds) ? $conflictRegIds : [-1]);
+        }
+
         $perPage = (int) $request->input('per_page', $campaign->table_settings['per_page'] ?? 25);
         if (!in_array($perPage, [10, 25, 50, 100, 250], true)) {
             $perPage = 25;
@@ -266,9 +288,6 @@ class EventCampaignAdminController extends Controller
         $totalRegistrations = $campaign->registrations()->count();
         $totalCollected = $campaign->registrations()->where('payment_status', 'verified')->sum('amount_paid');
         $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
-
-        // Fetch all registrations to prepare Geo Database and Little Magazine Directory
-        $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
 
         $geoDatabase = [];
         $divisionStats = [];
@@ -344,6 +363,8 @@ class EventCampaignAdminController extends Controller
             'totalLittleMagCount',
             'totalGeoDivisions',
             'totalGeoDistricts',
+            'duplicatePhoneMap',
+            'phoneConflictCount',
             'sort'
         ));
     }
@@ -576,12 +597,23 @@ class EventCampaignAdminController extends Controller
         $validated = $request->validate([
             'name'                 => 'required|string|max:255',
             'phone'                => 'required|string|max:30',
+            'country_code'         => 'nullable|string|max:10',
             'email'                => 'nullable|email|max:255',
+            'division'             => 'nullable|string|max:100',
             'district'             => 'nullable|string|max:100',
             'thana'                => 'nullable|string|max:100',
+            'post_office'          => 'nullable|string|max:100',
             'address'              => 'nullable|string|max:500',
             'institution_or_org'   => 'nullable|string|max:255',
             'designation_or_class' => 'nullable|string|max:255',
+            'author_category'      => 'nullable|string|max:255',
+            'author_categories'    => 'nullable|array',
+            'art_medium'           => 'nullable|string|max:255',
+            'organization_name'    => 'nullable|string|max:255',
+            'published_books_count'=> 'nullable|string|max:255',
+            'notable_books'        => 'nullable|string|max:500',
+            'magazine_name'        => 'nullable|string|max:255',
+            'magazine_issue_count' => 'nullable|string|max:100',
             'amount_paid'          => 'nullable|numeric|min:0',
             'payment_method'       => 'nullable|string|max:50',
             'payment_status'       => 'nullable|string|in:pending,verified,waived,refunded,free',
@@ -589,29 +621,29 @@ class EventCampaignAdminController extends Controller
             'status'               => 'nullable|string|in:confirmed,pending,rejected,attended,selected',
             'admin_notes'          => 'nullable|string|max:2000',
             'photo'                => 'nullable|file|mimes:jpeg,png,jpg,webp,avif|max:10240',
+            'cropped_photo_data'   => 'nullable|string',
+            'optimized_photo_data' => 'nullable|string',
             'form_data'            => 'nullable|array',
             'genres'               => 'nullable|array',
             'pen_name'             => 'nullable|string|max:255',
             'published_book_count' => 'nullable|integer|min:0',
         ]);
 
-        // Clean & Format Phone
-        $rawPhone = trim($validated['phone']);
-        $cleanDigits = preg_replace('/[^0-9]/', '', $rawPhone);
-        if (str_starts_with($cleanDigits, '880')) {
-            $cleanDigits = substr($cleanDigits, 3);
-        }
-        if (str_starts_with($cleanDigits, '0')) {
-            $cleanDigits = substr($cleanDigits, 1);
-        }
-        $formattedPhone = '+880' . $cleanDigits;
-        $localPhone = '0' . $cleanDigits;
+        // Clean & Format Phone using universal PhoneNormalizer
+        $countryCode = $request->input('country_code', '+880');
+        $pInfo = \App\Support\PhoneNormalizer::normalize($validated['phone'], $countryCode);
+        $localPhone = $pInfo['local_phone'];
+        $formattedPhone = $pInfo['formatted_phone'];
+        $cleanDigits = $pInfo['core'];
+        $queryPhones = $pInfo['query_phones'];
 
         // Auto Create or Find User
-        $user = User::where('phone', $formattedPhone)
-            ->orWhere('phone', $localPhone)
-            ->orWhere('phone', $rawPhone)
-            ->first();
+        $user = User::where(function ($q) use ($queryPhones, $pInfo) {
+            $q->whereIn('phone', $queryPhones);
+            if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
+                $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
+            }
+        })->first();
 
         if (!$user && !empty($validated['email'])) {
             $user = User::where('email', strtolower(trim($validated['email'])))->first();
@@ -624,7 +656,7 @@ class EventCampaignAdminController extends Controller
             }
             $user = User::create([
                 'name'              => $validated['name'],
-                'phone'             => $formattedPhone,
+                'phone'             => $localPhone,
                 'email'             => $email,
                 'password'          => \Illuminate\Support\Facades\Hash::make(Str::random(12)),
                 'role'              => 'customer',
@@ -650,8 +682,46 @@ class EventCampaignAdminController extends Controller
             $formData['published_book_count'] = $validated['published_book_count'];
         }
 
-        // Photo Upload Handling
-        if ($request->hasFile('photo')) {
+        // Direct keys from registration form
+        $directKeys = [
+            'author_category', 'author_categories', 'art_medium', 'organization_name', 
+            'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
+            'division', 'post_office', 'resident_type', 'country_name'
+        ];
+        foreach ($directKeys as $dk) {
+            if ($request->filled($dk)) {
+                $formData[$dk] = $request->input($dk);
+            }
+        }
+
+        if ($request->filled('author_category')) {
+            $catSingle = trim($request->input('author_category'));
+            $formData['author_category'] = $catSingle;
+            $formData['author_categories'] = [$catSingle];
+        }
+
+        if ($request->filled('division')) {
+            $formData['perm_division'] = $request->input('division');
+        }
+        if ($request->filled('post_office')) {
+            $formData['perm_post_office'] = $request->input('post_office');
+        }
+
+        // Photo Upload & Cropped / Optimized Base64 Handling
+        if ($request->filled('cropped_photo_data') || $request->filled('optimized_photo_data')) {
+            $rawBase64 = $request->input('cropped_photo_data') ?: $request->input('optimized_photo_data');
+            if (preg_match('/^data:image\/(\w+);base64,/', $rawBase64, $type)) {
+                $rawBase64 = substr($rawBase64, strpos($rawBase64, ',') + 1);
+                $ext = strtolower($type[1]);
+                $imageContent = base64_decode($rawBase64);
+                if ($imageContent) {
+                    $fileName = 'campaigns/participants/' . Str::random(24) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageContent);
+                    $formData['author_photo'] = $fileName;
+                    $formData['student_photo'] = $fileName;
+                }
+            }
+        } elseif ($request->hasFile('photo')) {
             $photoPath = $request->file('photo')->store('campaigns/participants', 'public');
             $formData['author_photo'] = $photoPath;
             $formData['student_photo'] = $photoPath;
@@ -663,6 +733,28 @@ class EventCampaignAdminController extends Controller
         $regStatus = $validated['status'] ?? 'confirmed';
         $payStatus = $validated['payment_status'] ?? ($campaign->has_fee_or_donation ? 'pending' : 'free');
 
+        // Composite full address if needed
+        $addressVal = $validated['address'] ?? null;
+        if (empty($addressVal) && ($request->filled('division') || $request->filled('district') || $request->filled('thana'))) {
+            $parts = array_filter([
+                $request->input('post_office') ? 'পোস্ট: ' . $request->input('post_office') : null,
+                $request->input('thana'),
+                $request->input('district'),
+                $request->input('division')
+            ]);
+            $addressVal = implode(', ', $parts);
+        }
+
+        $designationVal = $validated['designation_or_class'] ?? null;
+        if (empty($designationVal) && $request->filled('author_category')) {
+            $designationVal = $request->input('author_category');
+        }
+
+        $institutionVal = $validated['institution_or_org'] ?? null;
+        if (empty($institutionVal) && $request->filled('organization_name')) {
+            $institutionVal = $request->input('organization_name');
+        }
+
         $registration = EventRegistration::create([
             'event_campaign_id'    => $campaign->id,
             'user_id'              => $user->id,
@@ -672,9 +764,9 @@ class EventCampaignAdminController extends Controller
             'email'                => $validated['email'] ?? ($user->email ?: null),
             'district'             => $validated['district'] ?? null,
             'thana'                => $validated['thana'] ?? null,
-            'address'              => $validated['address'] ?? null,
-            'institution_or_org'   => $validated['institution_or_org'] ?? null,
-            'designation_or_class' => $validated['designation_or_class'] ?? null,
+            'address'              => $addressVal,
+            'institution_or_org'   => $institutionVal,
+            'designation_or_class' => $designationVal,
             'amount_paid'          => floatval($validated['amount_paid'] ?? 0),
             'payment_method'       => $validated['payment_method'] ?? 'cash_or_admin',
             'payment_status'       => $payStatus,
@@ -813,10 +905,18 @@ class EventCampaignAdminController extends Controller
             'payment_method', 'payment_status', 'transaction_id', 'status', 'admin_notes'
         ]), ARRAY_FILTER_USE_KEY);
 
+        if (!empty($updateData['phone'])) {
+            $updateData['phone'] = \App\Support\PhoneNormalizer::toLocal($updateData['phone']);
+        }
+
         $oldStatus = $registration->status;
         $updateData['form_data'] = $formData;
 
         $registration->update($updateData);
+
+        if ($request->boolean('sync_user_phone') && $registration->user && !empty($updateData['phone'])) {
+            $registration->user->update(['phone' => $updateData['phone']]);
+        }
 
         if (!in_array($oldStatus, ['confirmed', 'selected', 'approved'], true) && in_array($registration->status, ['confirmed', 'selected'], true)) {
             try {
@@ -864,6 +964,46 @@ class EventCampaignAdminController extends Controller
         }
 
         return back()->with('success', "Participant #{$regNumber} ({$name}) has been deleted successfully.");
+    }
+
+    /**
+     * Synchronize or resolve phone conflict between registration and linked user account.
+     */
+    public function syncUserPhone(Request $request, EventRegistration $registration)
+    {
+        $direction = $request->input('direction', 'to_reg'); // 'to_reg' or 'to_user'
+        $user = $registration->user;
+
+        if (!$user && !empty($registration->phone)) {
+            $foundUser = \App\Models\User::where('phone', $registration->phone)->first();
+            if ($foundUser) {
+                $registration->update(['user_id' => $foundUser->id]);
+                return response()->json([
+                    'success' => true,
+                    'message' => "নিবন্ধনটি ইউজার #{$foundUser->id} ({$foundUser->name})-এর সাথে সফলভাবে লিংক করা হয়েছে।",
+                ]);
+            }
+        }
+
+        if ($user) {
+            if ($direction === 'to_user') {
+                $user->update(['phone' => $registration->phone]);
+                $msg = "ইউজার #{$user->id}-এর ফোন নম্বর পরিবর্তন করে {$registration->phone} করা হয়েছে।";
+            } else {
+                $registration->update(['phone' => $user->phone]);
+                $msg = "নিবন্ধনের ফোন নম্বর পরিবর্তন করে ইউজারের ফোন নম্বর ({$user->phone}) অনুযায়ী সিঙ্ক করা হয়েছে।";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'কোনো ইউজার অ্যাকাউন্ট পাওয়া যায়নি।',
+        ], 404);
     }
 
     /**

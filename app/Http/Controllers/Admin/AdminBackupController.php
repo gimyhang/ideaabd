@@ -158,14 +158,42 @@ class AdminBackupController extends Controller
         $formattedTotalBackupSize = $this->formatBytes($totalBackupSizeBytes);
         $latestBackup = !empty($backups) ? $backups[0] : null;
 
-        // Retention policy & automated settings
-        $retentionLimit = (int) config('idea.backup_retention', 10);
+        // 2GB Hosting Quota Monitor & Calculations
+        $hostingQuotaBytes = 2 * 1024 * 1024 * 1024; // 2.0 GB = 2,147,483,648 bytes
+        $backupUsageBytes = $totalBackupSizeBytes;
+        $backupUsagePct = min(100, round(($backupUsageBytes / $hostingQuotaBytes) * 100, 1));
+        $remainingQuotaBytes = max(0, $hostingQuotaBytes - $backupUsageBytes);
+        
+        $hostingStatus = match(true) {
+            $backupUsagePct >= 50 => 'critical',
+            $backupUsagePct >= 25 => 'warning',
+            default               => 'safe',
+        };
+
+        $hostingQuota = [
+            'total_bytes'        => $hostingQuotaBytes,
+            'total_formatted'    => '2.00 GB',
+            'backup_bytes'       => $backupUsageBytes,
+            'backup_formatted'   => $formattedTotalBackupSize,
+            'backup_pct'         => $backupUsagePct,
+            'db_bytes'           => $totalDbSizeBytes,
+            'db_formatted'       => $formattedDbSize,
+            'remaining_bytes'    => $remainingQuotaBytes,
+            'remaining_formatted'=> $this->formatBytes($remainingQuotaBytes),
+            'status'             => $hostingStatus,
+        ];
+
+        // Retention policy & automated settings (safe default of 3 for 2GB hosting)
         $settings = [];
         if (Schema::hasTable('admin_dashboard_settings')) {
             $settingRow = \App\Models\AdminDashboardSetting::where('key', 'backup_settings')->first();
             if ($settingRow) {
                 $settings = is_array($settingRow->value) ? $settingRow->value : (json_decode((string)$settingRow->value, true) ?: []);
             }
+        }
+        $retentionLimit = (int) ($settings['retention_days'] ?? config('idea.backup_retention', 3));
+        if ($retentionLimit > 5) {
+            $retentionLimit = 5; // Capped at safe threshold for 2GB hosting
         }
 
         // 1. Smart Disaster Recovery Health Score Engine (0 - 100)
@@ -176,7 +204,7 @@ class AdminBackupController extends Controller
 
         if (empty($backups)) {
             $healthScore = 35;
-            $healthIssues[] = 'No backup archives found. Take a 1-click backup now!';
+            $healthIssues[] = 'No backup archives found. Take a 1-click database backup now!';
             $isOverdue = true;
         } else {
             $lastMtime = $latestBackup['created_at']->timestamp;
@@ -192,10 +220,15 @@ class AdminBackupController extends Controller
             }
         }
 
-        $freeDiskBytes = @disk_free_space($this->backupDir) ?: 10737418240; // 10GB default
-        if ($freeDiskBytes < 524288000) { // < 500 MB
+        if ($backupUsagePct > 40) {
+            $healthScore -= 20;
+            $healthIssues[] = "Backups occupy {$backupUsagePct}% of your 2GB hosting quota ({$formattedTotalBackupSize}). Clean up recommended.";
+        }
+
+        $freeDiskBytes = $remainingQuotaBytes;
+        if ($freeDiskBytes < 314572800) { // < 300 MB safe threshold
             $healthScore -= 25;
-            $healthIssues[] = 'Low disk storage available for new backups';
+            $healthIssues[] = 'Low disk storage available on 2GB hosting quota';
         }
 
         $autoEnabled = !empty($settings['auto_backup_enabled']);
@@ -227,9 +260,10 @@ class AdminBackupController extends Controller
             'last_backup_hours'    => $lastBackupHours,
             'last_backup_human'    => !empty($latestBackup) ? $latestBackup['created_at']->diffForHumans() : 'Never',
             'issues'               => $healthIssues,
-            'free_disk'            => $freeDiskBytes > 0 ? $this->formatBytes((float)$freeDiskBytes) : 'Adequate',
-            'free_disk_bytes'      => $freeDiskBytes,
-            'free_disk_formatted'  => $freeDiskBytes > 0 ? $this->formatBytes((float)$freeDiskBytes) : 'Adequate',
+            'free_disk'            => $this->formatBytes($remainingQuotaBytes),
+            'free_disk_bytes'      => $remainingQuotaBytes,
+            'free_disk_formatted'  => $this->formatBytes($remainingQuotaBytes),
+            'hosting_quota'        => $hostingQuota,
             'auto_enabled'         => $autoEnabled,
             'frequency'            => $settings['backup_frequency'] ?? 'daily',
             'next_run'             => $autoEnabled ? 'Tonight at 00:00 UTC' : 'Automated Cron Disabled',
@@ -293,6 +327,7 @@ class AdminBackupController extends Controller
             'settings',
             'categoryCounts',
             'healthAudit',
+            'hostingQuota',
             'storageTimeline'
         ));
     }
@@ -309,6 +344,13 @@ class AdminBackupController extends Controller
         $includeMedia = ($mode !== 'db_only');
 
         try {
+            // Safety guard for 2GB hosting: if existing backups exceed 600MB, auto-prune first
+            $existingFiles = File::files($this->backupDir);
+            $totalExistingSize = array_sum(array_map(fn($f) => $f->getSize(), $existingFiles));
+            if ($totalExistingSize > 629145600) { // > 600 MB
+                $this->pruneOldBackups(2);
+            }
+
             $dbDriver = config('database.default', 'mysql');
             $dbName = config("database.connections.{$dbDriver}.database", 'ideaabd');
             $timestamp = date('Y-m-d_H-i-s');
@@ -319,13 +361,22 @@ class AdminBackupController extends Controller
                 default       => 'idea_db_backup_',
             };
 
-            $zipFilename = $prefix . $timestamp . ($includeMedia ? '.zip' : '.sql');
-            $zipPath = $this->backupDir . '/' . $zipFilename;
-
             $sqlContent = $this->generateSqlDump();
             $mediaCount = 0;
 
-            if ($includeMedia && class_exists(ZipArchive::class)) {
+            if ($mode === 'db_only') {
+                // Highly compressed pure SQL for 2GB hosting (saves ~80-90% space)
+                if (function_exists('gzencode')) {
+                    $zipFilename = $prefix . $timestamp . '.sql.gz';
+                    File::put($this->backupDir . '/' . $zipFilename, gzencode($sqlContent, 9));
+                } else {
+                    $zipFilename = $prefix . $timestamp . '.sql';
+                    File::put($this->backupDir . '/' . $zipFilename, $sqlContent);
+                }
+            } elseif ($includeMedia && class_exists(ZipArchive::class)) {
+                $zipFilename = $prefix . $timestamp . '.zip';
+                $zipPath = $this->backupDir . '/' . $zipFilename;
+
                 $zip = new ZipArchive();
                 if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
                     
@@ -382,23 +433,22 @@ class AdminBackupController extends Controller
                     $zip->close();
                 } else {
                     // Fallback to pure SQL if ZIP failed
-                    $sqlFilename = $prefix . $timestamp . '.sql';
-                    File::put($this->backupDir . '/' . $sqlFilename, $sqlContent);
-                    $zipFilename = $sqlFilename;
+                    $zipFilename = $prefix . $timestamp . '.sql';
+                    File::put($this->backupDir . '/' . $zipFilename, $sqlContent);
                 }
             } else {
-                // Pure SQL Backup
-                $sqlFilename = $prefix . $timestamp . '.sql';
-                File::put($this->backupDir . '/' . $sqlFilename, $sqlContent);
-                $zipFilename = $sqlFilename;
+                $zipFilename = $prefix . $timestamp . '.sql';
+                File::put($this->backupDir . '/' . $zipFilename, $sqlContent);
             }
 
-            // Auto-prune older backups per retention limit
+            // Auto-prune older backups per retention limit (default 3 for 2GB hosting)
             $this->pruneOldBackups();
 
-            $msg = ($mode === 'data_media') 
-                ? "Complete Database & Media Backup '{$zipFilename}' created successfully!" 
-                : "System Backup '{$zipFilename}' created successfully!";
+            $msg = match($mode) {
+                'db_only'     => "Database Backup '{$zipFilename}' created successfully (Ultra-lightweight & Safe for 2GB Hosting)!",
+                'data_media'  => "Complete Database & Media Backup '{$zipFilename}' created successfully!",
+                default       => "Full System Backup '{$zipFilename}' created successfully!",
+            };
 
             $this->logAction('create_backup', $msg);
 
@@ -1174,19 +1224,37 @@ class AdminBackupController extends Controller
     }
 
     /**
-     * Auto-prune old backups to maintain retention limit.
+     * Auto-prune old backups to maintain retention limit and protect 2GB hosting.
      */
-    private function pruneOldBackups(int $limit = 10): void
+    private function pruneOldBackups(int $limit = 3): void
     {
         try {
             $files = File::files($this->backupDir);
+            if (empty($files)) return;
+
+            // Sort oldest first
+            usort($files, fn ($a, $b) => $a->getMTime() <=> $b->getMTime());
+
+            // 1. File Count Retention Limit (Safe default for 2GB hosting is 3)
             if (count($files) > $limit) {
-                // Sort oldest first
-                usort($files, fn ($a, $b) => $a->getMTime() <=> $b->getMTime());
                 $toDelete = array_slice($files, 0, count($files) - $limit);
                 foreach ($toDelete as $f) {
                     if (!str_starts_with($f->getFilename(), 'pre_restore_')) {
                         File::delete($f->getPathname());
+                    }
+                }
+            }
+
+            // 2. Total Size Guard for 2GB Hosting: Maximum 800MB total backup storage
+            $files = File::files($this->backupDir);
+            $totalSize = array_sum(array_map(fn($f) => $f->getSize(), $files));
+            if ($totalSize > 838860800 && count($files) > 1) { // > 800 MB
+                usort($files, fn ($a, $b) => $a->getMTime() <=> $b->getMTime());
+                while ($totalSize > 838860800 && count($files) > 1) {
+                    $oldest = array_shift($files);
+                    if (!str_starts_with($oldest->getFilename(), 'pre_restore_')) {
+                        $totalSize -= $oldest->getSize();
+                        File::delete($oldest->getPathname());
                     }
                 }
             }
@@ -1407,6 +1475,23 @@ class AdminBackupController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => $message, 'deleted_count' => $deletedCount]);
+        }
+
+        return redirect()->route('admin.backup.index')->with('success', $message);
+    }
+
+    /**
+     * 1-Click Optimize & Clean Backup Storage on 2GB Hosting.
+     */
+    public function cleanupStorage(Request $request): JsonResponse|RedirectResponse
+    {
+        $this->pruneOldBackups(2);
+        $message = "2GB Hosting storage optimized! Older backups pruned, maintaining up to 2 latest archives.";
+
+        $this->logAction('backup_cleanup_storage', $message);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => $message]);
         }
 
         return redirect()->route('admin.backup.index')->with('success', $message);

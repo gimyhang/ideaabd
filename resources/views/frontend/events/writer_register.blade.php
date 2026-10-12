@@ -1051,13 +1051,13 @@
             </colgroup>
             <tr>
                 <td class="grid-section-header" colspan="4">
-                    ১. পরিচিতি
+                    পরিচিতি
                 </td>
             </tr>
             <tr>
                 <td class="c-label">নাম <span class="text-danger">*</span></td>
                 <td class="c-val" {{ $photoReqMode === 'hidden' ? 'colspan=3' : 'colspan=2' }}>
-                    <input type="text" name="name" id="writerName" class="c-input text-uppercase fw-bold" placeholder="লেখকের পূর্ণ নাম" value="{{ old('name', $existingRegistration?->name ?? $user?->name) }}" required oninput="handleNameInput(this)">
+                    <input type="text" name="name" id="writerName" class="c-input text-uppercase fw-bold" placeholder="নাম" value="{{ old('name', $existingRegistration?->name ?? $user?->name) }}" required oninput="handleNameInput(this)">
                 </td>
                 @if($photoReqMode !== 'hidden')
                 <td rowspan="4" class="text-center photo-cell-desktop" style="width: 32%; vertical-align: middle; background: #fafafa;">
@@ -1096,12 +1096,12 @@
                             'কথাসাহিত্যিক',
                             'প্রাবন্ধিক',
                             'গবেষক',
-                            'লিটিলম্যাগাজিন সম্পাদক',
+                            'সম্পাদক',
                             'প্রকাশক',
                             'নাট্যকার',
-                            'শিল্পী / সংস্কৃতিকর্মী',
-                            'বই প্রতিনিধি ও সংগঠক',
-                            'অন্যান্য / প্রতিনিধি'
+                            'শিল্পী',
+                            'সংগঠক',
+                            'অন্যান্য'
                         ];
                         $activeCats = !empty($campaign->form_settings['categories']) && is_array($campaign->form_settings['categories']) && count($campaign->form_settings['categories']) > 0
                             ? $campaign->form_settings['categories']
@@ -1134,14 +1134,14 @@
                             <option value="+60">🇲🇾 +60</option>
                             <option value="+65">🇸🇬 +65</option>
                         </select>
-                        <input type="tel" name="phone" id="writerPhone" class="c-input font-monospace fw-bold" placeholder="017XXXXXXXX" value="{{ old('phone', $existingRegistration?->phone ?? $user?->phone) }}" required oninput="handlePhoneInput(this)">
+                        <input type="tel" name="phone" id="writerPhone" class="c-input font-monospace fw-bold" placeholder="মোবাইল" value="{{ old('phone', $existingRegistration?->phone ?? $user?->phone) }}" required oninput="handlePhoneInput(this)">
                     </div>
                 </td>
             </tr>
             <tr>
                 <td class="c-label">ইমেইল</td>
                 <td class="c-val" {{ $photoReqMode === 'hidden' ? 'colspan=3' : 'colspan=2' }}>
-                    <input type="email" name="email" id="writerEmail" class="c-input" placeholder="ইমেইল (ঐচ্ছিক)" value="{{ old('email', $existingRegistration?->email ?? $user?->email) }}">
+                    <input type="email" name="email" id="writerEmail" class="c-input" placeholder="ইমেইল" value="{{ old('email', $existingRegistration?->email ?? $user?->email) }}">
                 </td>
             </tr>
 
@@ -1149,27 +1149,27 @@
                  ক্যাটাগরি ভিত্তিক স্বয়ংক্রিয় তথ্য সারি (Dynamic Category-Specific Rows)
                  ========================================================================= --}}
             
-            {{-- ১. শিল্পী / সংস্কৃতিকর্মী --}}
+            {{-- ১. শিল্পী --}}
             <tr id="catRowArtist" style="display: none;">
                 <td class="c-label">শিল্পমাধ্যম <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="art_medium" id="writerArtMedium" class="c-input" placeholder="সংগীত, আবৃত্তি, নাটক, চিত্র ইত্যাদি" value="{{ old('art_medium', $existingRegistration?->form_data['art_medium'] ?? '') }}">
+                    <input type="text" name="art_medium" id="writerArtMedium" class="c-input" placeholder="শিল্পমাধ্যম" value="{{ old('art_medium', $existingRegistration?->form_data['art_medium'] ?? '') }}">
                 </td>
                 <td class="c-label" style="width: 18%;">সংগঠন</td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="institution_or_org" id="writerArtistOrg" class="c-input" placeholder="সংগঠন / দল / নাট্যদল" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
+                    <input type="text" name="institution_or_org" id="writerArtistOrg" class="c-input" placeholder="সংগঠন" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
                 </td>
             </tr>
 
-            {{-- ২. বই প্রতিনিধি ও সংগঠক --}}
+            {{-- ২. সংগঠক --}}
             <tr id="catRowOrganizer" style="display: none;">
-                <td class="c-label">সংগঠন / প্রতিষ্ঠান <span class="text-danger">*</span></td>
+                <td class="c-label">সংগঠন <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="institution_or_org" id="writerOrgName" class="c-input" placeholder="প্রতিষ্ঠান / সংগঠনের নাম" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
+                    <input type="text" name="institution_or_org" id="writerOrgName" class="c-input" placeholder="প্রতিষ্ঠান" value="{{ old('institution_or_org', $existingRegistration?->form_data['institution_or_org'] ?? ($existingRegistration?->form_data['organization_name'] ?? '')) }}">
                 </td>
-                <td class="c-label" style="width: 18%;">দায়িত্ব / পদবি</td>
+                <td class="c-label" style="width: 18%;">পদবি</td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="designation_or_class" id="writerOrgDesignation" class="c-input" placeholder="যেমন: প্রতিনিধি / সমন্বয়ক" value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? '')) }}">
+                    <input type="text" name="designation_or_class" id="writerOrgDesignation" class="c-input" placeholder="পদবি" value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? '')) }}">
                 </td>
             </tr>
 
@@ -1178,11 +1178,11 @@
             <tr id="catRowMag">
                 <td class="c-label" id="labelMagName">ছোটকাগজ</td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="magazine_name" id="magazineName" class="c-input" placeholder="লিটিলম্যাগাজিন / পত্রিকার নাম" value="{{ old('magazine_name', $existingRegistration?->form_data['magazine_name'] ?? '') }}">
+                    <input type="text" name="magazine_name" id="magazineName" class="c-input" placeholder="ছোটকাগজ" value="{{ old('magazine_name', $existingRegistration?->form_data['magazine_name'] ?? '') }}">
                 </td>
                 <td class="c-label" id="labelMagIssue" style="width: 18%;">সংখ্যা</td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="magazine_issue_count" id="magazineIssueCount" class="c-input" placeholder="যেমন: ৫টি সংখ্যা" value="{{ old('magazine_issue_count', $existingRegistration?->form_data['magazine_issue_count'] ?? '') }}">
+                    <input type="text" name="magazine_issue_count" id="magazineIssueCount" class="c-input" placeholder="সংখ্যা" value="{{ old('magazine_issue_count', $existingRegistration?->form_data['magazine_issue_count'] ?? '') }}">
                 </td>
             </tr>
             @endif
@@ -1190,9 +1190,9 @@
             {{-- ৪. সাহিত্যকর্ম ও বইসংখ্যা সারি --}}
             @if($enableLiterary)
             <tr id="catRowLiterary">
-                <td class="c-label" id="labelGenreOrOrg">শাখা / মাধ্যম</td>
+                <td class="c-label" id="labelGenreOrOrg">শাখা</td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="designation_or_class" id="writerDesignationInput" class="c-input" placeholder="কবিতা, কথাসাহিত্য, প্রবন্ধ..." value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? 'কবিতা')) }}">
+                    <input type="text" name="designation_or_class" id="writerDesignationInput" class="c-input" placeholder="শাখা" value="{{ old('designation_or_class', $existingRegistration?->designation_or_class ?? ($existingRegistration?->form_data['designation_or_class'] ?? 'কবিতা')) }}">
                 </td>
                 <td class="c-label" id="labelBooksCount" style="width: 18%;">বইসংখ্যা</td>
                 <td class="c-val" style="width: 32%;">
@@ -1215,24 +1215,24 @@
             <tr id="catRowBooks">
                 <td class="c-label" id="labelNotableBooks">গ্রন্থসমূহ</td>
                 <td colspan="3" class="c-val">
-                    <input type="text" name="notable_books" id="notableBooks" class="c-input text-uppercase" placeholder="উল্লেখযোগ্য প্রকাশিত বইয়ের নাম..." value="{{ old('notable_books', $existingRegistration?->form_data['notable_books'] ?? '') }}">
+                    <input type="text" name="notable_books" id="notableBooks" class="c-input text-uppercase" placeholder="গ্রন্থসমূহ" value="{{ old('notable_books', $existingRegistration?->form_data['notable_books'] ?? '') }}">
                 </td>
             </tr>
             @endif
         </table>
 
         {{-- =========================================================================
-             ২. ঠিকানা (Address Details) — এক ক্লিকে টগল ও স্বয়ংক্রিয় ড্রপডাউন
+             ঠিকানা (Address Details)
              ========================================================================= --}}
         <div class="d-flex align-items-center justify-content-between my-2">
-            <span class="fw-bold" style="font-size: 13px;"><i class="fa-solid fa-location-dot me-1 text-danger"></i> ২. ঠিকানা</span>
+            <span class="fw-bold" style="font-size: 13px;"><i class="fa-solid fa-location-dot me-1 text-danger"></i> ঠিকানা</span>
             @if($enableIntlAddress)
             <div class="res-type-pill-group">
                 <input type="radio" name="resident_type" id="resTypeBd" value="domestic" checked onchange="toggleResidentAddress('domestic')">
                 <label for="resTypeBd"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</label>
 
                 <input type="radio" name="resident_type" id="resTypeIntl" value="international" onchange="toggleResidentAddress('international')">
-                <label for="resTypeIntl"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / বিদেশী</label>
+                <label for="resTypeIntl"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী</label>
             </div>
             @endif
         </div>
@@ -1240,8 +1240,11 @@
         {{-- Hidden Full Address --}}
         <input type="hidden" name="address" id="fullWriterAddress" value="{{ old('address') }}">
 
-        {{-- ২.A বাংলাদেশ ঠিকানা গ্রিড --}}
+        {{-- বাংলাদেশ ঠিকানা গ্রিড --}}
         <table class="clean-grid-table" id="bdAddressTable">
+            <tr>
+                <td class="grid-section-header" colspan="4">ঠিকানা</td>
+            </tr>
             <tr>
                 <td class="c-label">বিভাগ <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
@@ -1257,7 +1260,7 @@
                 <td class="c-val">
                     <select name="thana" id="writerUpazila" class="c-select" required></select>
                 </td>
-                <td class="c-label">ডাকঘর</td>
+                <td class="c-label">পোস্টকোড</td>
                 <td class="c-val">
                     <select name="perm_post_office" id="writerPostOffice" class="c-select"></select>
                 </td>
@@ -1265,13 +1268,16 @@
             <tr>
                 <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
                 <td colspan="3" class="c-val">
-                    <input type="text" name="perm_village" id="writerVillage" class="c-input text-uppercase" placeholder="গ্রাম / মহল্লা / সড়ক নম্বর" required oninput="formatWriterAddress()">
+                    <input type="text" name="perm_village" id="writerVillage" class="c-input text-uppercase" placeholder="ঠিকানা" required oninput="formatWriterAddress()">
                 </td>
             </tr>
         </table>
 
-        {{-- ২.B প্রবাসী / বিদেশি ঠিকানা গ্রিড --}}
+        {{-- প্রবাসী / বিদেশি ঠিকানা গ্রিড --}}
         <table class="clean-grid-table" id="intlAddressTable" style="display: none;">
+            <tr>
+                <td class="grid-section-header" colspan="4">ঠিকানা</td>
+            </tr>
             <tr>
                 <td class="c-label">দেশ <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
@@ -1295,39 +1301,39 @@
                 </td>
                 <td class="c-label">শহর / রাজ্য <span class="text-danger">*</span></td>
                 <td class="c-val" style="width: 32%;">
-                    <input type="text" name="state_or_city" id="writerForeignCity" class="c-input text-uppercase" placeholder="Kolkata, London, New York..." oninput="formatWriterAddress()">
+                    <input type="text" name="state_or_city" id="writerForeignCity" class="c-input text-uppercase" placeholder="শহর" oninput="formatWriterAddress()">
                 </td>
             </tr>
             <tr id="customCountryRow" style="display: none;">
                 <td class="c-label">দেশ <span class="text-danger">*</span></td>
                 <td colspan="3" class="c-val">
-                    <input type="text" name="custom_country" id="writerCustomCountry" class="c-input" placeholder="দেশের নাম লিখুন" oninput="formatWriterAddress()">
+                    <input type="text" name="custom_country" id="writerCustomCountry" class="c-input" placeholder="দেশ" oninput="formatWriterAddress()">
                 </td>
             </tr>
             <tr>
                 <td class="c-label">পোস্টকোড</td>
                 <td class="c-val">
-                    <input type="text" name="zip_code" id="writerForeignZip" class="c-input font-monospace" placeholder="700001, 10001, E1 6AN..." oninput="formatWriterAddress()">
+                    <input type="text" name="zip_code" id="writerForeignZip" class="c-input font-monospace" placeholder="পোস্টকোড" oninput="formatWriterAddress()">
                 </td>
                 <td class="c-label">ঠিকানা <span class="text-danger">*</span></td>
                 <td class="c-val">
-                    <input type="text" name="foreign_address" id="writerForeignStreet" class="c-input" placeholder="বাড়ি ও পূর্ণ আন্তর্জাতিক সড়ক ঠিকানা" oninput="formatWriterAddress()">
+                    <input type="text" name="foreign_address" id="writerForeignStreet" class="c-input" placeholder="ঠিকানা" oninput="formatWriterAddress()">
                 </td>
             </tr>
         </table>
 
         {{-- ঠিকানা প্রিভিউ বার --}}
         <div id="fullAddressBadgeWrap" style="display: none;">
-            <i class="fa-solid fa-location-arrow text-danger me-1"></i> <strong>পূর্ণ ঠিকানা:</strong> <span id="fullAddressText"></span>
+            <i class="fa-solid fa-location-arrow text-danger me-1"></i> <strong>ঠিকানা:</strong> <span id="fullAddressText"></span>
         </div>
 
         {{-- =========================================================================
-             ৩. পেমেন্ট বিবরণী (যদি ফি প্রযোজ্য হয়)
+             পেমেন্ট (যদি ফি প্রযোজ্য হয়)
              ========================================================================= --}}
         @if($campaign->has_fee_or_donation)
             <table class="clean-grid-table mt-2">
                 <tr>
-                    <td class="grid-section-header" colspan="4">৩. পেমেন্ট বিবরণী</td>
+                    <td class="grid-section-header" colspan="4">পেমেন্ট</td>
                 </tr>
                 <tr>
                     <td class="c-label">ফি</td>
@@ -1337,7 +1343,7 @@
                     </td>
                     <td class="c-label">ট্রানজেকশন <span class="text-danger">*</span></td>
                     <td class="c-val">
-                        <input type="text" name="transaction_id" class="c-input font-monospace" placeholder="বিকাশ/নগদ TrxID" value="{{ old('transaction_id') }}" required>
+                        <input type="text" name="transaction_id" class="c-input font-monospace" placeholder="ট্রানজেকশন" value="{{ old('transaction_id') }}" required>
                     </td>
                 </tr>
             </table>
@@ -1351,7 +1357,7 @@
                     {{ old('name', $user?->name) }}
                 </div>
                 <div style="border-top: 1.5px solid #0f172a; padding-top: 4px; font-size: 12px; font-weight: 700; color: #0f172a;">
-                    লেখকের স্বাক্ষর
+                    স্বাক্ষর
                 </div>
             </div>
         </div>
@@ -1566,7 +1572,7 @@ function handleNameInput(input) {
     }
 }
 
-// ক্যাটাগরি অনুযায়ী স্বয়ংক্রিয় শাখা/মাধ্যম নির্ধারণ
+// ক্যাটাগরি অনুযায়ী স্বয়ংক্রিয় শাখা নির্ধারণ
 function getAutoGenreForCategory(cat) {
     if (!cat) return 'কবিতা';
     var c = cat.trim();
@@ -1578,10 +1584,10 @@ function getAutoGenreForCategory(cat) {
     if (c === 'প্রাবন্ধিক' || c.indexOf('প্রবন্ধ') !== -1) return 'প্রবন্ধ';
     if (c === 'গবেষক' || c.indexOf('গবেষ') !== -1) return 'গবেষণা';
     if (c === 'নাট্যকার' || c.indexOf('নাটক') !== -1 || c.indexOf('নাট্য') !== -1) return 'নাটক';
-    if (c.indexOf('লিটিলম্যাগ') !== -1 || c.indexOf('ছোটকাগজ') !== -1) return 'লিটিলম্যাগাজিন সম্পাদনা';
-    if (c.indexOf('প্রকাশক') !== -1 || c.indexOf('প্রকাশনা') !== -1) return 'পুস্তক প্রকাশনা';
-    if (c.indexOf('শিল্পী') !== -1 || c.indexOf('সংস্কৃতি') !== -1) return 'সংগীত ও সংস্কৃতি';
-    if (c.indexOf('সংগঠক') !== -1 || c.indexOf('প্রতিনিধি') !== -1) return 'সংগঠক ও প্রতিনিধি';
+    if (c.indexOf('লিটিলম্যাগ') !== -1 || c.indexOf('ছোটকাগজ') !== -1 || c.indexOf('সম্পাদক') !== -1) return 'সম্পাদনা';
+    if (c.indexOf('প্রকাশক') !== -1 || c.indexOf('প্রকাশনা') !== -1) return 'প্রকাশনা';
+    if (c.indexOf('শিল্পী') !== -1 || c.indexOf('সংস্কৃতি') !== -1) return 'সংস্কৃতি';
+    if (c.indexOf('সংগঠক') !== -1 || c.indexOf('প্রতিনিধি') !== -1) return 'সংগঠন';
     return c;
 }
 
@@ -1648,14 +1654,14 @@ function handleSingleCategoryChange(val, isUserAction) {
     if (orgName) orgName.required = false;
     if (publishedBooks) publishedBooks.required = false;
 
-    var isArtist = (val === 'শিল্পী / সংস্কৃতিকর্মী' || val.indexOf('শিল্পী') !== -1);
-    var isOrganizer = (val === 'বই প্রতিনিধি ও সংগঠক' || val.indexOf('সংগঠক') !== -1);
-    var isMagEditor = (val === 'লিটিলম্যাগাজিন সম্পাদক' || val.indexOf('লিটিলম্যাগ') !== -1);
+    var isArtist = (val === 'শিল্পী' || val.indexOf('শিল্পী') !== -1);
+    var isOrganizer = (val === 'সংগঠক' || val.indexOf('সংগঠক') !== -1);
+    var isMagEditor = (val === 'সম্পাদক' || val.indexOf('সম্পাদক') !== -1 || val.indexOf('লিটিলম্যাগ') !== -1);
     var isPublisher = (val === 'প্রকাশক' || val.indexOf('প্রকাশক') !== -1);
-    var writerGroup = ['কবি', 'অনুবাদক', 'ছড়াকার', 'গল্পকার', 'কথাসাহিত্যিক', 'প্রাবন্ধিক', 'গবেষক', 'নাট্যকার', 'অন্যান্য / প্রতিনিধি'];
+    var writerGroup = ['কবি', 'অনুবাদক', 'ছড়াকার', 'গল্পকার', 'কথাসাহিত্যিক', 'প্রাবন্ধিক', 'গবেষক', 'নাট্যকার', 'অন্যান্য'];
     var isWriter = (writerGroup.indexOf(val) !== -1);
 
-    // ১. শাখা / মাধ্যম অটো-ফিল (Auto-populate Genre/Medium)
+    // ১. শাখা অটো-ফিল (Auto-populate Genre)
     var autoGenre = getAutoGenreForCategory(val);
     if (designationInput && autoGenre) {
         if (isUserAction === true || !designationInput.value || designationInput.value === 'কবিতা ও কথাসাহিত্য') {
@@ -1677,7 +1683,7 @@ function handleSingleCategoryChange(val, isUserAction) {
         if (artMedium) {
             artMedium.required = true;
             if (isUserAction === true || !artMedium.value) {
-                artMedium.value = 'সংগীত ও সংস্কৃতি';
+                artMedium.value = 'সংগীত';
             }
         }
     }
@@ -1688,7 +1694,7 @@ function handleSingleCategoryChange(val, isUserAction) {
         if (orgDesignation) {
             orgDesignation.disabled = false;
             if (isUserAction === true || !orgDesignation.value) {
-                orgDesignation.value = 'সংগঠক ও প্রতিনিধি';
+                orgDesignation.value = 'সংগঠক';
             }
         }
         if (designationInput) {
@@ -1703,9 +1709,9 @@ function handleSingleCategoryChange(val, isUserAction) {
         if (rowMag) {
             rowMag.style.display = '';
             var lMag = document.getElementById('labelMagName');
-            if (lMag) lMag.textContent = isPublisher ? 'ছোটকাগজ / প্রকাশনা' : 'ছোটকাগজ';
+            if (lMag) lMag.textContent = 'ছোটকাগজ';
             var lIssue = document.getElementById('labelMagIssue');
-            if (lIssue) lIssue.textContent = isPublisher ? 'সংখ্যা / বইসংখ্যা' : 'সংখ্যা';
+            if (lIssue) lIssue.textContent = 'সংখ্যা';
         }
     }
 
@@ -1713,7 +1719,7 @@ function handleSingleCategoryChange(val, isUserAction) {
         if (rowLiterary) {
             rowLiterary.style.display = '';
             var lGenre = document.getElementById('labelGenreOrOrg');
-            if (lGenre) lGenre.textContent = 'শাখা / মাধ্যম';
+            if (lGenre) lGenre.textContent = 'শাখা';
             if (publishedBooks) publishedBooks.required = true;
         }
         if (rowBooks) rowBooks.style.display = '';
@@ -1815,8 +1821,8 @@ function formatWriterAddress() {
 
         var parts2 = [];
         if (vil) parts2.push(vil);
-        if (po) parts2.push('ডাকঘর: ' + po);
-        if (upz) parts2.push('উপজেলা/থানা: ' + upz);
+        if (po) parts2.push('পোস্টকোড: ' + po);
+        if (upz) parts2.push('উপজেলা: ' + upz);
         if (dist) parts2.push('জেলা: ' + dist);
         if (div) parts2.push('বিভাগ: ' + div);
 
@@ -1844,11 +1850,17 @@ function handlePhoneInput(input) {
     for (var i = 0; i < bn.length; i++) {
         raw = raw.split(bn[i]).join(en[i]);
     }
-    var val = raw.replace(/[^0-9+]/g, '');
-    if (val.indexOf('+880') === 0) {
-        val = '0' + val.substring(4);
-    } else if (val.indexOf('880') === 0) {
-        val = '0' + val.substring(3);
+    var val = raw.replace(/[^0-9]/g, '');
+    if (val.indexOf('880') === 0) {
+        val = val.substring(3);
+    } else if (val.indexOf('88') === 0 && val.length === 12 && val.charAt(2) === '1') {
+        val = val.substring(2);
+    }
+    if (val.length === 10 && val.indexOf('1') === 0) {
+        val = '0' + val;
+    }
+    if (val.length > 11) {
+        val = val.substring(0, 11);
     }
     input.value = val;
 }

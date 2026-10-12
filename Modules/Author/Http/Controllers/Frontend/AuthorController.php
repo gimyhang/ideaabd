@@ -82,24 +82,10 @@ class AuthorController extends Controller
 
         $validated = $request->validate($rules, $messages);
 
-        // 3. Clean and Merge Phone Number with Country Code
-        $countryCode = trim((string) ($validated['country_code'] ?? '+880'));
-        if (!str_starts_with($countryCode, '+')) {
-            $countryCode = '+' . ltrim($countryCode, '+');
-        }
-        $rawPhone = trim((string) $validated['phone']);
-        
-        // If phone already starts with +, use directly; otherwise normalize with selected country dial code
-        if (str_starts_with($rawPhone, '+')) {
-            $fullPhone = preg_replace('/[^\d+]/', '', $rawPhone);
-        } else {
-            $digitsOnly = preg_replace('/\D/', '', $rawPhone);
-            // If Bangladesh and starts with 0 (e.g. 017xxxxxxxx), strip leading 0
-            if ($countryCode === '+880' && str_starts_with($digitsOnly, '0')) {
-                $digitsOnly = substr($digitsOnly, 1);
-            }
-            $fullPhone = $countryCode . $digitsOnly;
-        }
+        // 3. Clean and Merge Phone Number using universal PhoneNormalizer
+        $pInfo = \App\Support\PhoneNormalizer::normalize($validated['phone'], $validated['country_code'] ?? '+880');
+        $fullPhone = $pInfo['local_phone'];
+        $countryCode = $pInfo['country_code'];
 
         // 4. Handle Avatar Upload
         $avatarPath = null;

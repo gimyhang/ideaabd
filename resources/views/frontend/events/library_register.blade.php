@@ -275,14 +275,14 @@
                                         <select name="country_code" id="gateCountryCodeSelect" class="form-select border-0 flex-shrink-0" style="width: auto; min-width: 105px; max-width: 130px; border-radius: 0; font-weight: 600; font-size: 0.88rem; background-color: #f1f5f9; border-right: 1px solid #cbd5e1 !important; box-shadow: none;" onchange="onGateCountryCodeChange();">
                                             @include('partials.country-code-options')
                                         </select>
-                                        <input type="tel" name="phone" id="gateRegPhone" class="lib-input font-monospace flex-grow-1 border-0" placeholder="17XXXXXXXX" required maxlength="10" autocomplete="tel" style="border-radius: 0; box-shadow: none;">
+                                        <input type="tel" name="phone" id="gateRegPhone" class="lib-input font-monospace flex-grow-1 border-0" placeholder="017XXXXXXXX" required maxlength="11" autocomplete="tel" style="border-radius: 0; box-shadow: none;">
                                         <button type="button" class="btn btn-success fw-bold px-3 flex-shrink-0 rounded-0" id="sendOtpBtn" onclick="handleSendOtp()" style="font-size: 0.85rem; height: 42px;">
                                             <span class="spinner-border spinner-border-sm d-none" id="otpSpinner" role="status"></span>
                                             <span id="sendOtpText"><i class="fa-solid fa-paper-plane me-1"></i> কোড পাঠান</span>
                                         </button>
                                     </div>
                                     <div id="gatePhoneFormatHint" class="small text-muted mt-1" style="font-size: 11px;">
-                                        <i class="fa-solid fa-circle-info text-success me-1"></i> কান্ট্রিকোড +880 নির্বাচিত থাকায় ১০-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: <strong>17XXXXXXXX</strong>, শুরুতে ০ ছাড়া)
+                                        <i class="fa-solid fa-circle-info text-success me-1"></i> ১১ সংখ্যার সঠিক মোবাইল নম্বর লিখুন (যেমন: <strong>017XXXXXXXX</strong>)
                                     </div>
                                     {{-- লাইভ কনফ্লিক্ট নোটিশ বক্স --}}
                                     <div id="phoneConflictAlert" class="d-none mt-2"></div>
@@ -979,15 +979,21 @@
 
             const code = countryCodeSelect.value;
             if (code === '+880') {
-                phoneInput.placeholder = '17XXXXXXXX';
-                phoneInput.maxLength = 10;
+                phoneInput.placeholder = '017XXXXXXXX';
+                phoneInput.maxLength = 11;
                 if (hint) {
-                    hint.innerHTML = '<i class="fa-solid fa-circle-info text-success me-1"></i> কান্ট্রিকোড +880 নির্বাচিত থাকায় ১০-ডিজিটের মোবাইল নম্বর লিখুন (যেমন: <strong>17XXXXXXXX</strong>, শুরুতে ০ ছাড়া)';
+                    hint.innerHTML = '<i class="fa-solid fa-circle-info text-success me-1"></i> ১১ সংখ্যার সঠিক মোবাইল নম্বর লিখুন (যেমন: <strong>017XXXXXXXX</strong>)';
                 }
                 let val = normalizeBnToEn(phoneInput.value).replace(/[^\d]/g, '');
-                if (val.startsWith('880')) val = val.substring(3);
-                while (val.startsWith('0')) val = val.substring(1);
-                phoneInput.value = val.slice(0, 10);
+                if (val.startsWith('880')) {
+                    val = val.substring(3);
+                } else if (val.startsWith('88') && val.length === 12 && val.charAt(2) === '1') {
+                    val = val.substring(2);
+                }
+                if (val.length === 10 && val.startsWith('1')) {
+                    val = '0' + val;
+                }
+                phoneInput.value = val.slice(0, 11);
             } else {
                 phoneInput.placeholder = 'XXXXXXXXXX';
                 phoneInput.maxLength = 15;
@@ -1005,9 +1011,15 @@
             let enVal = normalizeBnToEn(regPhoneInput.value).replace(/[^\d]/g, '');
 
             if (countryCode === '+880') {
-                if (enVal.startsWith('880')) enVal = enVal.substring(3);
-                while (enVal.startsWith('0')) enVal = enVal.substring(1);
-                enVal = enVal.slice(0, 10);
+                if (enVal.startsWith('880')) {
+                    enVal = enVal.substring(3);
+                } else if (enVal.startsWith('88') && enVal.length === 12 && enVal.charAt(2) === '1') {
+                    enVal = enVal.substring(2);
+                }
+                if (enVal.length === 10 && enVal.startsWith('1')) {
+                    enVal = '0' + enVal;
+                }
+                enVal = enVal.slice(0, 11);
             }
             regPhoneInput.value = enVal;
 
@@ -1120,16 +1132,16 @@
             let phone = normalizeBnToEn(phoneInput.value.trim()).replace(/[^\d]/g, '');
             if (countryCode === '+880') {
                 if (phone.startsWith('880')) phone = phone.substring(3);
-                while (phone.startsWith('0')) phone = phone.substring(1);
-                phone = phone.slice(0, 10);
+                if (phone.length === 10 && phone.startsWith('1')) phone = '0' + phone;
+                phone = phone.slice(0, 11);
                 phoneInput.value = phone;
             }
 
-            const minLen = (countryCode === '+880') ? 10 : 6;
+            const minLen = (countryCode === '+880') ? 11 : 6;
             if (!phone || phone.length < minLen) {
                 if (conflictBox) {
                     conflictBox.className = 'alert alert-danger py-2 px-3 rounded-3 small d-flex align-items-center gap-2 mt-2';
-                    conflictBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger"></i> <div>অনুগ্রহ করে ' + (countryCode === '+880' ? '১০-ডিজিটের সঠিক মোবাইল নম্বর লিখুন (যেমন: 17XXXXXXXX)।' : 'সঠিক মোবাইল নম্বর লিখুন।') + '</div>';
+                    conflictBox.innerHTML = '<i class="fa-solid fa-circle-exclamation text-danger"></i> <div>অনুগ্রহ করে ' + (countryCode === '+880' ? '১১ সংখ্যার সঠিক মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)।' : 'সঠিক মোবাইল নম্বর লিখুন।') + '</div>';
                 }
                 phoneInput.focus();
                 return;
@@ -1392,7 +1404,11 @@
                 const phoneInput = document.querySelector('#dynamicLibraryForm input[name="phone"]');
                 const emailInput = document.querySelector('#dynamicLibraryForm input[name="email"]');
                 if (nameInput && user.name && !nameInput.value) nameInput.value = user.name;
-                if (phoneInput && user.phone && !phoneInput.value) phoneInput.value = user.phone;
+                if (phoneInput && user.phone && !phoneInput.value) {
+                    let uPhone = normalizeBnToEn(user.phone).replace(/[^\d]/g, '');
+                    if (uPhone.length === 10 && uPhone.startsWith('1')) uPhone = '0' + uPhone;
+                    phoneInput.value = uPhone;
+                }
                 if (emailInput && user.email && !emailInput.value) emailInput.value = user.email;
             }
         }
@@ -1522,11 +1538,17 @@
                     const code = select ? select.value : '+880';
                     let val = normalizeBnToEn(input.value).replace(/[^\d]/g, '');
                     if (code === '+880') {
-                        input.placeholder = '17XXXXXXXX';
-                        input.maxLength = 10;
-                        if (val.startsWith('880')) val = val.substring(3);
-                        while (val.startsWith('0')) val = val.substring(1);
-                        val = val.slice(0, 10);
+                        input.placeholder = '01XXXXXXXXX';
+                        input.maxLength = 11;
+                        if (val.startsWith('880')) {
+                            val = val.substring(3);
+                        } else if (val.startsWith('88') && val.length === 12 && val.charAt(2) === '1') {
+                            val = val.substring(2);
+                        }
+                        if (val.length === 10 && val.startsWith('1')) {
+                            val = '0' + val;
+                        }
+                        val = val.slice(0, 11);
                     } else {
                         input.placeholder = 'XXXXXXXXXX';
                         input.maxLength = 15;

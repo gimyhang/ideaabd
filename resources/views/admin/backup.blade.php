@@ -10,6 +10,13 @@
 
 @section('actions')
     <div class="d-flex flex-wrap align-items-center gap-2 header-actions-wrapper">
+        {{-- Recommended for 2GB Hosting: 1-Click Compressed Database Backup --}}
+        <button type="button" class="btn-backup-gradient btn-gradient-cyan" onclick="triggerLiveBackup('db_only', 'Database Master Dump (.SQL.GZ)')" title="Recommended for 2GB Hosting (~1-2 MB): Ultra-lightweight compressed database dump without consuming server storage">
+            <i class="fa-solid fa-database"></i>
+            <span>1-Click DB Backup (.GZ)</span>
+            <span class="badge bg-white text-dark ms-1 py-0 px-1 font-monospace" style="font-size: 10px;">~1.5MB</span>
+        </button>
+
         {{-- 1. Upload Backup Button (Rose Gradient) --}}
         <button type="button" class="btn-backup-gradient btn-gradient-rose" onclick="document.getElementById('backupFileInput').click()" title="Upload external backup archive">
             <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -101,6 +108,140 @@
 
     <!-- Dynamic Toast Notification Container -->
     <div id="dynamicAlertContainer"></div>
+
+    <!-- 2GB Shared Hosting Quota & Storage Monitor -->
+    <div class="quota-monitor-card mb-1">
+        <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 mb-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace px-2.5 py-1 small">
+                        <i class="fa-solid fa-server me-1"></i> 2.0 GB Shared Hosting Plan
+                    </span>
+                    @if(($hostingQuota['status'] ?? 'safe') === 'safe')
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace px-2.5 py-1 small">
+                            <i class="fa-solid fa-circle-check me-1"></i> Storage Safe & Healthy ({{ $hostingQuota['backup_pct'] ?? 0 }}% Backups)
+                        </span>
+                    @elseif(($hostingQuota['status'] ?? '') === 'warning')
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill font-monospace px-2.5 py-1 small">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Space Warning ({{ $hostingQuota['backup_pct'] ?? 0 }}% Backups)
+                        </span>
+                    @else
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill font-monospace px-2.5 py-1 small">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i> Storage Critical ({{ $hostingQuota['backup_pct'] ?? 0 }}% Backups)
+                        </span>
+                    @endif
+                </div>
+                <h5 class="fw-bold text-dark mb-0 font-monospace" style="font-size: 1.15rem;">
+                    হোস্টিং স্টোরেজ মনিটর ও কোটা সুরক্ষা (2.00 GB Max Quota)
+                </h5>
+                <small class="text-muted font-monospace" style="font-size: 11px;">
+                    সার্ভার ডিস্ক ফুল হওয়া রোধে স্বয়ংক্রিয় ব্যাকআপ সুরক্ষা ও প্রুনিং ব্যবস্থা সক্রিয় রয়েছে
+                </small>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center gap-2 ms-lg-auto">
+                {{-- Quick DB Backup --}}
+                <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1.5 fw-bold font-monospace" onclick="triggerLiveBackup('db_only', 'Database Master Dump (.SQL.GZ)')" title="Take lightweight database backup (~1.5 MB)">
+                    <i class="fa-solid fa-database text-info me-1"></i> Quick DB Backup (.GZ)
+                </button>
+                {{-- Quick Prune / Optimize Storage --}}
+                <form action="{{ route('admin.backup.cleanup-storage') }}" method="POST" class="m-0 d-inline-block"
+                      data-confirm="Are you sure you want to prune older backups and keep only the latest 2 archives to free disk space?"
+                      data-confirm-title="Clean Up 2GB Storage"
+                      data-confirm-icon="warning"
+                      data-confirm-btn="<i class='fa-solid fa-broom me-1'></i> Clean & Optimize Now">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-bold font-monospace" title="Prune older backups to free 2GB hosting storage">
+                        <i class="fa-solid fa-broom me-1"></i> Clean Old Backups
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Multi-Segment Progress Bar --}}
+        @php
+            $totalQuota = $hostingQuota['total_bytes'] ?? (2 * 1024 * 1024 * 1024);
+            $totalQuota = $totalQuota > 0 ? $totalQuota : (2 * 1024 * 1024 * 1024);
+            $dbPct = round((($hostingQuota['db_bytes'] ?? 0) / $totalQuota) * 100, 2);
+            $backupPct = floatval($hostingQuota['backup_pct'] ?? 0);
+            $backupBarPct = max(0.5, min(100 - $dbPct, $backupPct));
+        @endphp
+        <div class="quota-multi-progress mb-3">
+            <div class="progress-segment bg-primary" style="width: {{ max(0.5, $dbPct) }}%;" title="Live Database: {{ $hostingQuota['db_formatted'] ?? '6 MB' }} ({{ $dbPct }}%)"></div>
+            <div class="progress-segment {{ $backupPct > 40 ? 'bg-danger' : ($backupPct > 25 ? 'bg-warning' : 'bg-info') }}" style="width: {{ $backupBarPct }}%;" title="Backups Storage: {{ $hostingQuota['backup_formatted'] ?? '0 B' }} ({{ $backupPct }}%)"></div>
+        </div>
+
+        {{-- Statistics Breakdown Pills --}}
+        <div class="row row-cols-2 row-cols-md-4 g-2 mb-3">
+            <div class="col">
+                <div class="quota-pill-stat">
+                    <div class="quota-legend-dot bg-secondary"></div>
+                    <div>
+                        <span class="text-muted text-uppercase d-block font-monospace" style="font-size: 10px;">Total Hosting</span>
+                        <strong class="text-dark font-monospace" style="font-size: 0.92rem;">{{ $hostingQuota['total_formatted'] ?? '2.00 GB' }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="quota-pill-stat">
+                    <div class="quota-legend-dot bg-primary"></div>
+                    <div>
+                        <span class="text-muted text-uppercase d-block font-monospace" style="font-size: 10px;">Live DB Size</span>
+                        <strong class="text-primary font-monospace" style="font-size: 0.92rem;">{{ $hostingQuota['db_formatted'] ?? '6.09 MB' }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="quota-pill-stat">
+                    <div class="quota-legend-dot {{ $backupPct > 40 ? 'bg-danger' : ($backupPct > 25 ? 'bg-warning' : 'bg-info') }}"></div>
+                    <div>
+                        <span class="text-muted text-uppercase d-block font-monospace" style="font-size: 10px;">Backups Used</span>
+                        <strong class="text-dark font-monospace" style="font-size: 0.92rem;">{{ $hostingQuota['backup_formatted'] ?? '0 B' }} ({{ $backupPct }}%)</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="quota-pill-stat">
+                    <div class="quota-legend-dot bg-success"></div>
+                    <div>
+                        <span class="text-muted text-uppercase d-block font-monospace" style="font-size: 10px;">Safe Space Left</span>
+                        <strong class="text-success font-monospace" style="font-size: 0.92rem;">{{ $hostingQuota['remaining_formatted'] ?? '1.98 GB' }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 3 Golden Best Practices for 2GB Hosting --}}
+        <div class="row g-2 pt-2 border-top">
+            <div class="col-12 col-md-4">
+                <div class="quota-rule-badge">
+                    <i class="fa-solid fa-circle-check text-success fs-6 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="text-dark d-block">১. দৈনিক ডাটাবেজ ব্যাকআপ (.sql.gz)</strong>
+                        <span class="text-muted">লাইভ ডাটাবেজ মাত্র ~৬ এমবি, কম্প্রেসড ফাইল মাত্র ১–২ এমবি। এটি ২জিবি হোস্টিংয়ে কোনো জায়গা নষ্ট করে না।</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="quota-rule-badge">
+                    <i class="fa-solid fa-cloud-arrow-down text-primary fs-6 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="text-dark d-block">২. ফুল ব্যাকআপ (.zip) নিয়ম</strong>
+                        <span class="text-muted">মিডিয়াসহ ফুল জিপ ব্যাকআপ নিলে তা সাথে সাথে আপনার কম্পিউটারে ডাউনলোড করে সার্ভার থেকে ডিলিট করে দিন।</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="quota-rule-badge">
+                    <i class="fa-solid fa-shield-halved text-info fs-6 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="text-dark d-block">৩. অটো-প্রুনিং সুরক্ষা সক্রিয়</strong>
+                        <span class="text-muted">হোস্টিং নিরাপদ রাখতে সর্বোচ্চ ৩টি ফাইল সংরক্ষিত থাকে এবং ব্যাকআপ ৮০০ এমবি অতিক্রম করলে স্বয়ংক্রিয় প্রুন হয়।</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 0. Disaster Recovery Health Audit & Storage Timeline Hero Section -->
     <div class="row g-3">
@@ -476,7 +617,13 @@
                                                 {{ $b['filename'] }}
                                             </span>
                                             <small class="text-muted font-monospace" style="font-size: 11px;">
-                                                {{ $b['is_master_zip'] ? 'Full System Master ZIP (DB + Media)' : 'Standard SQL Database Dump' }}
+                                                @if($b['is_master_zip'])
+                                                    Full System Master ZIP (DB + Media)
+                                                @elseif($b['extension'] === 'gz')
+                                                    Lightweight Compressed SQL Dump (Safe for 2GB Hosting)
+                                                @else
+                                                    Standard SQL Database Dump
+                                                @endif
                                             </small>
                                         </div>
                                     </div>
@@ -485,6 +632,10 @@
                                     @if($b['is_master_zip'])
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.70rem;">
                                             <i class="fa-solid fa-box-archive me-1"></i> MASTER .ZIP
+                                        </span>
+                                    @elseif($b['extension'] === 'gz')
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.70rem;">
+                                            <i class="fa-solid fa-file-zipper me-1"></i> .SQL.GZ (Light)
                                         </span>
                                     @else
                                         <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.70rem;">
@@ -594,9 +745,13 @@
                                             <i class="fa-solid fa-file-code"></i>
                                         @endif
                                     </div>
-                                    <span class="badge {{ $b['is_master_zip'] ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-dark border' }} rounded-pill font-monospace" style="font-size: 0.68rem;">
-                                        {{ $b['is_master_zip'] ? 'MASTER .ZIP' : strtoupper($b['extension']) }}
-                                    </span>
+                                    @if($b['is_master_zip'])
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace" style="font-size: 0.68rem;">MASTER .ZIP</span>
+                                    @elseif($b['extension'] === 'gz')
+                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill font-monospace" style="font-size: 0.68rem;">.SQL.GZ (Light)</span>
+                                    @else
+                                        <span class="badge bg-light text-dark border rounded-pill font-monospace" style="font-size: 0.68rem;">{{ strtoupper($b['extension']) }}</span>
+                                    @endif
                                 </div>
                                 <span class="fw-bold text-dark font-monospace" style="font-size: 0.88rem;">{{ $b['size'] }}</span>
                             </div>
@@ -915,7 +1070,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold text-dark">Retention Limit (Max archives to keep):</label>
-                                    <input type="number" name="retention_days" class="form-control form-control-sm font-monospace fw-bold" min="1" max="100" value="{{ $settings['retention_days'] ?? $retentionLimit }}">
+                                    <input type="number" name="retention_days" class="form-control form-control-sm font-monospace fw-bold" min="1" max="5" value="{{ $settings['retention_days'] ?? $retentionLimit }}">
+                                    <small class="text-muted font-monospace d-block mt-1" style="font-size: 11px;"><i class="fa-solid fa-shield-halved text-success me-1"></i> ২জিবি হোস্টিং সুরক্ষা: সর্বোচ্চ ২-৩টি ব্যাকআপ (ম্যাক্স ৫)</small>
                                 </div>
                             </div>
 

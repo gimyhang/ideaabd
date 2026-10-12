@@ -1241,30 +1241,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 
                 // Manage parent section containers
-                const headerGroup = document.getElementById('liveTopHeaderGroup');
+                const headerGroup = document.getElementById('liveTextHeadingsGroup') || document.getElementById('liveHeadingsWrap') || document.getElementById('liveTopHeaderGroup');
                 const badgeGroup = document.getElementById('liveBadgeWrap');
                 const topSec = document.getElementById('liveTopSection');
-                if (topSec && headerGroup && badgeGroup) {
-                    const hasHeader = headerGroup.style.display !== 'none';
-                    const hasBadge = badgeGroup.style.display !== 'none';
+                if (topSec) {
+                    const hasHeader = headerGroup ? (headerGroup.style.display !== 'none') : false;
+                    const hasBadge = badgeGroup ? (badgeGroup.style.display !== 'none') : false;
                     topSec.style.display = (hasHeader || hasBadge) ? '' : 'none';
                 }
 
                 const photoFrame = document.getElementById('livePhotoFrame');
                 const namePlate = document.getElementById('liveNamePlate');
                 const midSec = document.getElementById('liveMiddleSection');
-                if (midSec && photoFrame && namePlate) {
-                    const hasPhoto = photoFrame.style.display !== 'none';
-                    const hasPlate = namePlate.style.display !== 'none';
+                if (midSec) {
+                    const hasPhoto = photoFrame ? (photoFrame.style.display !== 'none') : false;
+                    const hasPlate = namePlate ? (namePlate.style.display !== 'none') : false;
                     midSec.style.display = (hasPhoto || hasPlate) ? '' : 'none';
                 }
 
                 const quoteEl = document.getElementById('liveQuoteText');
                 const artEl = document.getElementById('liveArtworkWrap');
                 const msgSec = document.getElementById('liveMessageSection');
-                if (msgSec && quoteEl && artEl) {
-                    const hasQuote = quoteEl.style.display !== 'none';
-                    const hasArt = artEl.style.display !== 'none';
+                if (msgSec) {
+                    const hasQuote = quoteEl ? (quoteEl.style.display !== 'none') : false;
+                    const hasArt = artEl ? (artEl.style.display !== 'none') : false;
                     msgSec.style.display = (hasQuote || hasArt) ? '' : 'none';
                 }
             });
@@ -1691,6 +1691,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
         [photoBrightnessSlider, photoContrastSlider, photoGrayscaleSlider, photoSepiaSlider].forEach(slider => {
             if (slider) slider.addEventListener('input', updatePhotoFilters);
+        });
+
+        // Sample Face Photo Preview Toggle
+        const toggleSamplePhoto = document.getElementById('toggleSamplePhotoPreview');
+        const cardPhotoImg = document.getElementById('liveCardAuthorPhotoImg');
+        const cardPhotoPlaceholder = document.getElementById('liveCardAuthorPhotoPlaceholder');
+        if (toggleSamplePhoto && cardPhotoImg && cardPhotoPlaceholder) {
+            toggleSamplePhoto.addEventListener('change', function () {
+                if (this.checked) {
+                    cardPhotoImg.style.display = 'block';
+                    cardPhotoPlaceholder.style.display = 'none';
+                } else {
+                    cardPhotoImg.style.display = 'none';
+                    cardPhotoPlaceholder.style.display = 'flex';
+                }
+            });
+        }
+
+        // Quick Photo Filter Presets
+        document.querySelectorAll('.btn-preset-filter').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const b = parseInt(this.getAttribute('data-brightness') || 100);
+                const c = parseInt(this.getAttribute('data-contrast') || 100);
+                const g = parseInt(this.getAttribute('data-grayscale') || 0);
+                const s = parseInt(this.getAttribute('data-sepia') || 0);
+                if (photoBrightnessSlider) photoBrightnessSlider.value = b;
+                if (photoContrastSlider) photoContrastSlider.value = c;
+                if (photoGrayscaleSlider) photoGrayscaleSlider.value = g;
+                if (photoSepiaSlider) photoSepiaSlider.value = s;
+                updatePhotoFilters();
+                if (toggleSamplePhoto && !toggleSamplePhoto.checked) {
+                    toggleSamplePhoto.checked = true;
+                    if (cardPhotoImg) cardPhotoImg.style.display = 'block';
+                    if (cardPhotoPlaceholder) cardPhotoPlaceholder.style.display = 'none';
+                }
+            });
         });
 
         // H. Typography & Color Pickers Suite

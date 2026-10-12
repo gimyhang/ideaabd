@@ -19,19 +19,7 @@ class SmsService
      */
     public static function normalizePhone(string $recipient): string
     {
-        $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
-        $en = ['0','1','2','3','4','5','6','7','8','9'];
-        $cleanPhone = preg_replace('/[^\d]/', '', str_replace($bn, $en, trim($recipient)));
-
-        if (str_starts_with($cleanPhone, '880') && strlen($cleanPhone) === 13) {
-            return $cleanPhone;
-        } elseif (strlen($cleanPhone) === 11 && str_starts_with($cleanPhone, '01')) {
-            return '88' . $cleanPhone;
-        } elseif (strlen($cleanPhone) === 10 && str_starts_with($cleanPhone, '1')) {
-            return '880' . $cleanPhone;
-        }
-
-        return $cleanPhone;
+        return \App\Support\PhoneNormalizer::toE164($recipient);
     }
 
     /**
@@ -376,39 +364,46 @@ class SmsService
     /**
      * Check SMS account balance with BulkSMSBD API.
      * Supports both POST (recommended by BulkSMSBD) and GET requests.
+     * Uses caching (10 minutes) with a 3s timeout to avoid slowing down dashboard page loads.
      */
-    public static function checkBalance(): array
+    public static function checkBalance(bool $forceRefresh = false): array
     {
-        $creds  = self::getCredentials();
-        $apiKey = $creds['api_key'] ?: self::DEFAULT_API_KEY;
-        $url    = self::DEFAULT_BAL_URL;
+        if ($forceRefresh) {
+            \Illuminate\Support\Facades\Cache::forget('sms_gateway_balance_info');
+        }
 
-        try {
-            // First try POST as per BulkSMSBD API documentation
-            $response = Http::timeout(8)->asForm()->post($url, [
-                'api_key' => $apiKey,
-            ]);
+        return \Illuminate\Support\Facades\Cache::remember('sms_gateway_balance_info', 600, function () {
+            $creds  = self::getCredentials();
+            $apiKey = $creds['api_key'] ?: self::DEFAULT_API_KEY;
+            $url    = self::DEFAULT_BAL_URL;
 
-            if (!$response->successful()) {
-                // Fallback to GET
-                $response = Http::timeout(8)->get($url, [
+            try {
+                // First try POST as per BulkSMSBD API documentation with quick 3s timeout
+                $response = Http::timeout(3)->asForm()->post($url, [
                     'api_key' => $apiKey,
                 ]);
+
+                if (!$response->successful()) {
+                    // Fallback to GET with 2s timeout
+                    $response = Http::timeout(2)->get($url, [
+                        'api_key' => $apiKey,
+                    ]);
+                }
+
+                $json = $response->json();
+                $balance = $json['balance'] ?? ($json['balance_sms'] ?? null);
+
+                return [
+                    'success'       => $response->successful() && ($response->status() >= 200 && $response->status() < 300),
+                    'status'        => $response->status(),
+                    'balance'       => $balance,
+                    'response_code' => $json['response_code'] ?? null,
+                    'data'          => $json ?: $response->body(),
+                ];
+            } catch (\Throwable $e) {
+                return ['success' => false, 'error' => $e->getMessage(), 'balance' => 'N/A'];
             }
-
-            $json = $response->json();
-            $balance = $json['balance'] ?? ($json['balance_sms'] ?? null);
-
-            return [
-                'success'       => $response->successful() && ($response->status() >= 200 && $response->status() < 300),
-                'status'        => $response->status(),
-                'balance'       => $balance,
-                'response_code' => $json['response_code'] ?? null,
-                'data'          => $json ?: $response->body(),
-            ];
-        } catch (\Throwable $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        }
+        });
     }
 
     /**

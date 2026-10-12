@@ -18,6 +18,19 @@
             align-items: center;
             justify-content: center;
         }
+
+        .aec-hero-card {
+            overflow: visible !important;
+            position: relative !important;
+            z-index: 30 !important;
+        }
+        .aec-hero-card .dropdown {
+            position: relative;
+            z-index: 35;
+        }
+        .aec-hero-card .dropdown-menu {
+            z-index: 1060 !important;
+        }
     </style>
 @endpush
 
@@ -152,7 +165,7 @@
                     <i class="fa-solid fa-sliders me-1"></i> ফরম ডিজাইন ও লোগো
                 </button>
                 <button type="button" class="btn btn-light rounded-pill px-3 py-2 small fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#cardDesignModal">
-                    <i class="fa-solid fa-palette me-1"></i> Card Design
+                    <i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর
                 </button>
                 <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold">
                     <i class="fa-solid fa-gear me-1"></i> All Settings
@@ -500,12 +513,16 @@
                         <th style="width: 40px;" class="ps-3 col-select {{ in_array('select', $visibleCols) ? '' : 'd-none' }}">
                             <input class="form-check-input" type="checkbox" id="selectAllParticipants" title="Select All">
                         </th>
-                        <th class="col-reg_no {{ in_array('reg_no', $visibleCols) ? '' : 'd-none' }}">Reg #</th>
-                        <th class="col-participant {{ in_array('participant', $visibleCols) ? '' : 'd-none' }}">Participant</th>
-                        <th class="col-contact {{ in_array('contact', $visibleCols) ? '' : 'd-none' }}">Contact</th>
-                        <th class="col-location {{ in_array('location', $visibleCols) ? '' : 'd-none' }}">Location</th>
+                        <th class="col-reg_no {{ in_array('reg_no', $visibleCols) ? '' : 'd-none' }}">আইডি</th>
+                        <th class="col-participant {{ in_array('participant', $visibleCols) ? '' : 'd-none' }}">অংশগ্রহণকারী</th>
+                        <th class="col-contact {{ in_array('contact', $visibleCols) ? '' : 'd-none' }}">যোগাযোগ</th>
+                        <th class="col-location {{ in_array('location', $visibleCols) ? '' : 'd-none' }}">ঠিকানা</th>
+                        <th class="col-fee {{ in_array('fee', $visibleCols) ? '' : 'd-none' }}">ফি</th>
+                        <th class="col-payment {{ in_array('payment', $visibleCols) ? '' : 'd-none' }}">পেমেন্ট</th>
+                        <th class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}">স্ট্যাটাস</th>
+                        <th class="col-date {{ in_array('date', $visibleCols) ? '' : 'd-none' }}">তারিখ</th>
                         <th class="col-institution {{ in_array('institution', $visibleCols) ? '' : 'd-none' }}">
-                            {{ $isWriter ? 'Literary Info / Genre' : ($isScholarship ? 'Class / Institution' : ($isLibrary ? 'Library Type / Books' : 'Institution / Org')) }}
+                            {{ $isWriter ? 'প্রতিষ্ঠান / তথ্য' : ($isScholarship ? 'শ্রেণি / প্রতিষ্ঠান' : ($isLibrary ? 'লাইব্রেরি টাইপ' : 'প্রতিষ্ঠান')) }}
                         </th>
                         
                         {{-- Custom Dynamic Columns --}}
@@ -515,12 +532,7 @@
                                 {{ $cf['label'] ?? ucfirst($cf['name'] ?? 'Custom') }}
                             </th>
                         @endforeach
-
-                        <th class="col-fee {{ in_array('fee', $visibleCols) ? '' : 'd-none' }}">Payment</th>
-                        <th class="col-payment {{ in_array('payment', $visibleCols) ? '' : 'd-none' }}">Pay Status</th>
-                        <th class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}">Status</th>
-                        <th class="col-date {{ in_array('date', $visibleCols) ? '' : 'd-none' }}">Date</th>
-                        <th class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}" style="min-width: 170px;">Action</th>
+                        <th class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}" style="min-width: 170px;">অ্যাকশন</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -611,57 +623,6 @@
                                 @endif
                             </td>
 
-                            {{-- Institution / Literary info --}}
-                            <td class="col-institution {{ in_array('institution', $visibleCols) ? '' : 'd-none' }}">
-                                @if($isWriter)
-                                    @if(!empty($reg->form_data['genres']))
-                                        <div class="d-flex flex-wrap gap-1">
-                                            @foreach((array)$reg->form_data['genres'] as $g)
-                                                <span class="badge bg-light text-dark border" style="font-size: 10px;">{{ $g }}</span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if(!empty($reg->form_data['published_book_count']))
-                                        <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-book me-1"></i>বই: {{ $reg->form_data['published_book_count'] }} টি</small>
-                                    @endif
-                                @elseif($isLibrary)
-                                    <div class="fw-medium text-dark">
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style="font-size: 11px;">
-                                            {{ $reg->form_data['library_type'] ?? ($reg->institution_or_org ?: 'General Library') }}
-                                        </span>
-                                    </div>
-                                    @if(!empty($reg->form_data['reader_count']))
-                                        <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-users me-1"></i>Readers: {{ $reg->form_data['reader_count'] }}</small>
-                                    @endif
-                                    @if(!empty($reg->form_data['books_allocated']) || !empty($reg->form_data['allocated_books_count']))
-                                        @php $bCount = $reg->form_data['allocated_books_count'] ?? (is_array($reg->form_data['books_allocated']) ? count($reg->form_data['books_allocated']) : $reg->form_data['books_allocated']); @endphp
-                                        <small class="text-success fw-bold d-block mt-0.5">
-                                            <i class="fa-solid fa-box-open me-1"></i>Allocated: {{ $bCount }} Books
-                                        </small>
-                                    @endif
-                                @else
-                                    <div class="fw-medium text-dark">{{ $reg->institution_or_org ?: '-' }}</div>
-                                    @if($reg->designation_or_class)
-                                        <small class="text-muted d-block">{{ $reg->designation_or_class }}</small>
-                                    @endif
-                                @endif
-                            </td>
-
-                            {{-- Custom dynamic columns --}}
-                            @foreach($customFields as $cf)
-                                @php
-                                    $cfKey = 'custom_' . ($cf['name'] ?? $loop->iteration);
-                                    $cVal = $reg->form_data[$cf['name']] ?? null;
-                                @endphp
-                                <td class="col-{{ $cfKey }} {{ in_array($cfKey, $visibleCols) ? '' : 'd-none' }}">
-                                    @if($cVal !== null)
-                                        {{ is_array($cVal) ? implode(', ', $cVal) : $cVal }}
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                            @endforeach
-
                             {{-- Payment Fee --}}
                             <td class="col-fee {{ in_array('fee', $visibleCols) ? '' : 'd-none' }}">
                                 @if($campaign->has_fee_or_donation)
@@ -717,6 +678,57 @@
                                 <span class="text-muted small">{{ $reg->created_at->format('d M, Y') }}</span>
                                 <small class="text-muted d-block" style="font-size: 10.5px;">{{ $reg->created_at->format('h:i A') }}</small>
                             </td>
+
+                            {{-- Institution / Literary info --}}
+                            <td class="col-institution {{ in_array('institution', $visibleCols) ? '' : 'd-none' }}">
+                                @if($isWriter)
+                                    @if(!empty($reg->form_data['genres']))
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach((array)$reg->form_data['genres'] as $g)
+                                                <span class="badge bg-light text-dark border" style="font-size: 10px;">{{ $g }}</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if(!empty($reg->form_data['published_book_count']))
+                                        <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-book me-1"></i>বই: {{ $reg->form_data['published_book_count'] }} টি</small>
+                                    @endif
+                                @elseif($isLibrary)
+                                    <div class="fw-medium text-dark">
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5" style="font-size: 11px;">
+                                            {{ $reg->form_data['library_type'] ?? ($reg->institution_or_org ?: 'General Library') }}
+                                        </span>
+                                    </div>
+                                    @if(!empty($reg->form_data['reader_count']))
+                                        <small class="text-muted d-block mt-0.5"><i class="fa-solid fa-users me-1"></i>Readers: {{ $reg->form_data['reader_count'] }}</small>
+                                    @endif
+                                    @if(!empty($reg->form_data['books_allocated']) || !empty($reg->form_data['allocated_books_count']))
+                                        @php $bCount = $reg->form_data['allocated_books_count'] ?? (is_array($reg->form_data['books_allocated']) ? count($reg->form_data['books_allocated']) : $reg->form_data['books_allocated']); @endphp
+                                        <small class="text-success fw-bold d-block mt-0.5">
+                                            <i class="fa-solid fa-box-open me-1"></i>Allocated: {{ $bCount }} Books
+                                        </small>
+                                    @endif
+                                @else
+                                    <div class="fw-medium text-dark">{{ $reg->institution_or_org ?: '-' }}</div>
+                                    @if($reg->designation_or_class)
+                                        <small class="text-muted d-block">{{ $reg->designation_or_class }}</small>
+                                    @endif
+                                @endif
+                            </td>
+
+                            {{-- Custom dynamic columns --}}
+                            @foreach($customFields as $cf)
+                                @php
+                                    $cfKey = 'custom_' . ($cf['name'] ?? $loop->iteration);
+                                    $cVal = $reg->form_data[$cf['name']] ?? null;
+                                @endphp
+                                <td class="col-{{ $cfKey }} {{ in_array($cfKey, $visibleCols) ? '' : 'd-none' }}">
+                                    @if($cVal !== null)
+                                        {{ is_array($cVal) ? implode(', ', $cVal) : $cVal }}
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                            @endforeach
 
                             {{-- Actions --}}
                             <td class="pe-3 text-end col-actions {{ in_array('actions', $visibleCols) ? '' : 'd-none' }}" style="min-width: 170px;">
@@ -2440,6 +2452,50 @@
                                         </div>
                                     </div>
 
+                                    {{-- Sample Photo Preview Toggle --}}
+                                    <div class="d-flex align-items-center justify-content-between p-2.5 bg-light rounded-3 border mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fa-solid fa-camera-retro text-primary fa-lg"></i>
+                                            <div>
+                                                <div class="small fw-bold text-dark">নমুনা পোর্ট্রেট প্রিভিউ</div>
+                                                <small class="text-muted" style="font-size: 10.5px;">প্রকৃত মুখের ছবিতে ফিল্টার ও ফ্রেম পরীক্ষা করুন</small>
+                                            </div>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input" type="checkbox" id="toggleSamplePhotoPreview" style="width: 2.3em; height: 1.2em;">
+                                        </div>
+                                    </div>
+
+                                    {{-- Quick Filter Presets --}}
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                            <label class="form-label small fw-bold text-dark mb-0">কুইক ফটো ফিল্টার</label>
+                                            <span class="text-muted small" style="font-size: 10.5px;">১-ক্লিকে টোন</span>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6 col-md-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-filter" data-brightness="100" data-contrast="100" data-grayscale="0" data-sepia="0" style="font-size: 11px;">
+                                                    স্বাভাবিক
+                                                </button>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-filter" data-brightness="95" data-contrast="105" data-grayscale="0" data-sepia="75" style="font-size: 11px;">
+                                                    ভিন্টেজ সেপিয়া
+                                                </button>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-filter" data-brightness="105" data-contrast="125" data-grayscale="100" data-sepia="0" style="font-size: 11px;">
+                                                    সাদাকালো
+                                                </button>
+                                            </div>
+                                            <div class="col-6 col-md-3">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-filter" data-brightness="112" data-contrast="110" data-grayscale="0" data-sepia="0" style="font-size: 11px;">
+                                                    উজ্জ্বল
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {{-- Photo Studio Filters (Brightness, Contrast, Grayscale, Sepia) --}}
                                     <div class="range-slider-box p-3 bg-light rounded-3 border">
                                         <div class="fw-bold small text-dark mb-2.5">
@@ -2981,33 +3037,18 @@
                                 {{-- 4. SIZE CONTROLS TAB (সাইজ) --}}
                                 <div class="tab-pane fade" id="tab-size-pane" role="tabpanel">
                                     
-                                    {{-- Photo Size Slider Box --}}
-                                    <div class="range-slider-box mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                            <label class="form-label fw-bold text-dark small mb-0">
-                                                <i class="fa-solid fa-circle-user text-info me-1"></i> ছবি ব্যাস
-                                            </label>
-                                            <span class="slider-val-badge" id="photoSizeBadge">{{ $cPhotoSize }} px</span>
+                                    {{-- Photo Size Quick Link (Redirects to Photo Tab) --}}
+                                    <div class="p-2.5 bg-light rounded-3 border mb-3 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fa-solid fa-circle-user text-info fa-lg"></i>
+                                            <div>
+                                                <div class="small fw-bold text-dark">লেখকের ছবির আকার ও ফ্রেম</div>
+                                                <small class="text-muted" style="font-size: 10.5px;">ফটো সাইজ, জুম ও পজিশন ফটো এডিটর ট্যাবে রয়েছে</small>
+                                            </div>
                                         </div>
-                                        <input type="range" class="custom-range-slider mb-2.5" id="photoSizeSlider" name="photo_size" min="50" max="130" step="2" value="{{ $cPhotoSize }}">
-                                        
-                                        <div class="row g-2">
-                                            @php
-                                                $photoSizes = [
-                                                    60  => 'কমপ্যাক্ট (60px)',
-                                                    82  => 'স্ট্যান্ডার্ড (82px)',
-                                                    100 => 'বড় (100px)',
-                                                    120 => 'হিরো (120px)',
-                                                ];
-                                            @endphp
-                                            @foreach($photoSizes as $pPx => $pLabel)
-                                                <div class="col-6 col-md-3">
-                                                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 py-1 rounded-3 btn-preset-photo" data-size="{{ $pPx }}" style="font-size: 11px;">
-                                                        {{ $pLabel }}
-                                                    </button>
-                                                </div>
-                                            @endforeach
-                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold" onclick="document.getElementById('tab-photo-btn').click()" style="font-size: 11px;">
+                                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> ফটো এডিটর
+                                        </button>
                                     </div>
 
                                     {{-- Name Font Size Slider Box --}}
@@ -3278,8 +3319,9 @@
                                         {{-- 2. MIDDLE SECTION: PHOTO & NAME PLATE --}}
                                         <div class="card-middle-section" id="liveMiddleSection" style="{{ ($cShowPhoto || $cShowNamePlate) ? '' : 'display: none;' }}">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
-                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: -8px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
-                                                <div class="photo-placeholder">
+                                                 style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: -8px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; overflow: hidden; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
+                                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Sample Portrait" id="liveCardAuthorPhotoImg" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                                <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>
                                             </div>
@@ -3337,6 +3379,14 @@
         </div>
     </div>
 </div>
+
+{{-- ADMIN MANUAL REGISTRATION MODAL --}}
+<div class="modal fade" id="adminAddParticipantModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg text-start">
+        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+            <form action="{{ route('admin.event-campaigns.registrations.store', $campaign->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
 
 {{-- ADMIN MANUAL REGISTRATION MODAL --}}
 <div class="modal fade" id="adminAddParticipantModal" tabindex="-1" aria-hidden="true">

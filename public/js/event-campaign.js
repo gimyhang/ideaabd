@@ -132,8 +132,17 @@ function formatBdPhone(input) {
         raw = raw.replaceAll(bn[i], en[i]);
     }
     let val = raw.replace(/[^0-9]/g, '');
-    if (val.startsWith('880')) val = val.substring(3);
-    if (val.length > 11) val = val.substring(0, 11);
+    if (val.startsWith('880')) {
+        val = val.substring(3);
+    } else if (val.startsWith('88') && val.length === 12 && val.charAt(2) === '1') {
+        val = val.substring(2);
+    }
+    if (val.length === 10 && val.startsWith('1')) {
+        val = '0' + val;
+    }
+    if (val.length > 11) {
+        val = val.substring(0, 11);
+    }
     input.value = val;
 
     const badge = input.parentElement.querySelector('.phone-operator-badge');

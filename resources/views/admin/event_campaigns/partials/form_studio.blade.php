@@ -40,12 +40,12 @@
         'কথাসাহিত্যিক',
         'প্রাবন্ধিক',
         'গবেষক',
-        'লিটিলম্যাগাজিন সম্পাদক',
+        'সম্পাদক',
         'প্রকাশক',
         'নাট্যকার',
-        'শিল্পী / সংস্কৃতিকর্মী',
-        'বই প্রতিনিধি ও সংগঠক',
-        'অন্যান্য / প্রতিনিধি'
+        'শিল্পী',
+        'সংগঠক',
+        'অন্যান্য'
     ];
     $studioCategories = !empty($campaign->form_settings['categories']) && is_array($campaign->form_settings['categories']) && count($campaign->form_settings['categories']) > 0
         ? $campaign->form_settings['categories']
@@ -616,7 +616,7 @@
 
                                 <div>
                                     <label class="form-label small fw-semibold text-dark mb-1">পেমেন্ট নির্দেশনা (Instructions)</label>
-                                    <textarea name="payment_instructions" id="studioPaymentInstructionsInput" rows="2" class="form-control form-control-sm" placeholder="যেমন: বিকাশ/নগদ মার্চেন্ট নম্বর...">{{ $campaign->payment_instructions }}</textarea>
+                                    <textarea name="payment_instructions" id="studioPaymentInstructionsInput" rows="2" class="form-control form-control-sm" placeholder="বিকাশ/নগদ মার্চেন্ট নম্বর বা নির্দেশনা...">{{ $campaign->payment_instructions }}</textarea>
                                 </div>
 
                             </div>
@@ -758,12 +758,12 @@
                         <col style="width: 30%;">
                     </colgroup>
                     <tr>
-                        <td class="grid-section-header" colspan="4">১. পরিচিতি</td>
+                        <td class="grid-section-header" colspan="4">পরিচিতি</td>
                     </tr>
                     <tr>
                         <td class="c-label">নাম *</td>
                         <td colspan="2" class="c-val">
-                            <span class="text-uppercase fw-bold text-dark small">সাকিল আহমেদ</span>
+                            <span class="text-uppercase fw-bold text-dark small"></span>
                         </td>
                         <td rowspan="4" class="text-center" id="prevPhotoCell" style="vertical-align: middle; background: #fafafa; {{ $studioPhotoReq === 'hidden' ? 'display: none;' : '' }}">
                             <div class="border rounded p-2 text-center" style="width: 90px; height: 105px; margin: 0 auto; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -780,74 +780,87 @@
                         <td colspan="2" class="c-val">
                             <div class="d-flex flex-wrap gap-1" id="prevCategoriesWrap">
                                 @foreach($studioCategories as $idx => $cat)
-                                    <span class="cat-pill {{ $idx === 0 ? 'active' : '' }}"><i class="fa-regular {{ $idx === 0 ? 'fa-circle-dot text-danger' : 'fa-circle text-muted' }} me-1 small"></i> {{ $cat }}</span>
+                                    <span class="cat-pill"><i class="fa-regular fa-square me-1 small text-muted"></i> {{ $cat }}</span>
                                 @endforeach
                             </div>
                         </td>
                     </tr>
                     <tr>
                         <td class="c-label">মোবাইল *</td>
-                        <td colspan="2" class="c-val font-monospace fw-bold text-dark small">
-                            <span class="badge bg-dark text-white me-1">🇧🇩 +880</span> 01712345678
+                        <td colspan="2" class="c-val">
                         </td>
                     </tr>
                     <tr>
                         <td class="c-label">ইমেইল</td>
-                        <td colspan="2" class="c-val text-muted small">author@example.com</td>
+                        <td colspan="2" class="c-val"></td>
                     </tr>
 
                     {{-- ডায়নামিক ফিল্ড সারি --}}
                     <tr id="prevMagRow" style="{{ $studioEnableMagazine ? '' : 'display: none;' }}">
                         <td class="c-label">ছোটকাগজ</td>
-                        <td class="c-val text-muted small">লিটিলম্যাগাজিন নাম</td>
+                        <td class="c-val"></td>
                         <td class="c-label">সংখ্যা</td>
-                        <td class="c-val text-muted small">৫টি সংখ্যা</td>
+                        <td class="c-val"></td>
                     </tr>
                     <tr id="prevLitRow" style="{{ $studioEnableLiterary ? '' : 'display: none;' }}">
                         <td class="c-label">শাখা / মাধ্যম</td>
-                        <td class="c-val text-muted small">কবিতা ও কথাসাহিত্য</td>
+                        <td class="c-val"></td>
                         <td class="c-label">বইসংখ্যা</td>
-                        <td class="c-val text-muted small">২-৫টি গ্রন্থ</td>
+                        <td class="c-val"></td>
                     </tr>
                     <tr id="prevBooksRow" style="{{ $studioEnableNotableBooks ? '' : 'display: none;' }}">
                         <td class="c-label">গ্রন্থসমূহ</td>
-                        <td colspan="3" class="c-val text-muted small">উল্লেখযোগ্য প্রকাশিত বইয়ের নাম</td>
+                        <td colspan="3" class="c-val"></td>
                     </tr>
                 </table>
 
-                {{-- ঠিকানা হেডার ও সুইচার --}}
-                <div class="d-flex align-items-center justify-content-between my-2">
-                    <span class="fw-bold small"><i class="fa-solid fa-location-dot me-1 text-danger"></i> ২. ঠিকানা</span>
-                    <div id="prevIntlToggle" class="d-flex align-items-center gap-1 border rounded p-1" style="{{ $studioEnableIntl ? '' : 'display: none;' }}">
-                        <span class="badge bg-dark text-white px-2 py-0.5" style="font-size: 10px;">বাংলাদেশ</span>
-                        <span class="badge bg-light text-dark px-2 py-0.5" style="font-size: 10px;">প্রবাসী / বিদেশী</span>
-                    </div>
-                </div>
-
                 {{-- টেবিল প্রিভিউ ২: ঠিকানা --}}
                 <table>
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                    </colgroup>
+                    <tr>
+                        <td class="grid-section-header" colspan="4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span>ঠিকানা</span>
+                                <div id="prevIntlToggle" class="d-flex align-items-center gap-1" style="{{ $studioEnableIntl ? '' : 'display: none;' }}">
+                                    <span class="badge bg-light text-dark px-2 py-0.5" style="font-size: 9.5px;">বাংলাদেশ</span>
+                                    <span class="badge bg-white bg-opacity-25 text-white px-2 py-0.5" style="font-size: 9.5px;">প্রবাসী</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
                     <tr>
                         <td class="c-label">বিভাগ *</td>
-                        <td class="c-val text-muted small">রংপুর</td>
+                        <td class="c-val"></td>
                         <td class="c-label">জেলা *</td>
-                        <td class="c-val text-muted small">রংপুর</td>
+                        <td class="c-val"></td>
                     </tr>
                     <tr>
                         <td class="c-label">উপজেলা *</td>
-                        <td class="c-val text-muted small">রংপুর সদর</td>
+                        <td class="c-val"></td>
                         <td class="c-label">ডাকঘর</td>
-                        <td class="c-val text-muted small">রংপুর জিপিও</td>
+                        <td class="c-val"></td>
                     </tr>
                     <tr>
                         <td class="c-label">ঠিকানা *</td>
-                        <td colspan="3" class="c-val text-muted small">রোড নং ৪, সেনপাড়া, রংপুর</td>
+                        <td colspan="3" class="c-val"></td>
                     </tr>
                 </table>
 
                 {{-- টেবিল প্রিভিউ ৩: পেমেন্ট (যদি ফি চালু থাকে) --}}
                 <table id="prevPaymentTable" style="{{ $campaign->has_fee_or_donation ? '' : 'display: none;' }}">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                        <col style="width: 20%;">
+                        <col style="width: 30%;">
+                    </colgroup>
                     <tr>
-                        <td class="grid-section-header" colspan="4">৩. পেমেন্ট বিবরণী</td>
+                        <td class="grid-section-header" colspan="4">পেমেন্ট</td>
                     </tr>
                     <tr>
                         <td class="c-label">ফি</td>
@@ -855,15 +868,14 @@
                             ৳<span id="prevFeeDisplay">{{ number_format($campaign->fee_amount ?: 0) }}</span>
                         </td>
                         <td class="c-label">ট্রানজেকশন *</td>
-                        <td class="c-val text-muted small font-monospace">TrxID: 9X8Y7Z6W</td>
+                        <td class="c-val"></td>
                     </tr>
                 </table>
 
-                {{-- লেখকের স্বাক্ষর --}}
+                {{-- স্বাক্ষর --}}
                 <div id="prevSigWrap" style="display: flex; justify-content: flex-end; margin-top: 25px; margin-bottom: 15px; {{ $studioEnableSignature ? '' : 'display: none;' }}">
                     <div style="text-align: center; min-width: 170px;">
-                        <div class="text-uppercase fw-bold font-monospace small" style="color: #0f172a; min-height: 16px;">সাকিল আহমেদ</div>
-                        <div style="border-top: 1.5px solid var(--preview-border); padding-top: 3px; font-size: 11px; font-weight: 700;">লেখকের স্বাক্ষর</div>
+                        <div style="border-top: 1.5px solid var(--preview-border); padding-top: 3px; font-size: 11px; font-weight: 700;">স্বাক্ষর</div>
                     </div>
                 </div>
 

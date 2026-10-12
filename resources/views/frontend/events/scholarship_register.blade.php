@@ -673,7 +673,16 @@
         for (let i = 0; i < bn.length; i++) {
             val = val.replaceAll(bn[i], en[i]);
         }
-        input.value = val.replace(/[^0-9]/g, '').slice(0, 11);
+        let digits = val.replace(/[^0-9]/g, '');
+        if (digits.startsWith('880')) {
+            digits = digits.substring(3);
+        } else if (digits.startsWith('88') && digits.length === 12 && digits.charAt(2) === '1') {
+            digits = digits.substring(2);
+        }
+        if (digits.length === 10 && digits.startsWith('1')) {
+            digits = '0' + digits;
+        }
+        input.value = digits.slice(0, 11);
     }
 
     // Prevent double submission

@@ -24,8 +24,6 @@
     <!-- Google reCAPTCHA v2 Script -->
     <script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit" async defer></script>
 
-    <!-- Kalpurush Bangla Font -->
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
 
     <!-- Bangladesh Geodata (Districts & Upazilas) -->
     <script src="{{ asset('js/bd-geo-data.js') }}"></script>
@@ -887,6 +885,10 @@
     {{-- 2. Main Box Card --}}
     <div class="auth-box">
 
+        @php
+            $isEmailVerActive = !empty($isEmailVerificationEnabled) || \App\Support\SiteSetting::isEmailVerificationEnabled();
+            $isPhoneVerActive = !empty($isPhoneVerificationEnabled) || \App\Support\SiteSetting::isPhoneVerificationEnabled();
+        @endphp
         {{-- Multi-Step Registration Stepper --}}
         <div class="reg-stepper {{ request('mode') === 'register' ? '' : 'd-none' }}" id="regProgressStepper">
             <div class="step-node active" id="stepNode1" data-step="1" onclick="onStepNodeClick(1)" title="Step 1: Info">
@@ -898,19 +900,19 @@
                 <div class="step-circle">2</div>
                 <span class="step-text">Security</span>
             </div>
-            <div class="step-line" id="stepLine2"></div>
-            <div class="step-node" id="stepNode3" data-step="3" onclick="onStepNodeClick(3)" title="Step 3: Email">
+            <div class="step-line {{ $isEmailVerActive ? '' : 'd-none' }}" id="stepLine2"></div>
+            <div class="step-node {{ $isEmailVerActive ? '' : 'd-none' }}" id="stepNode3" data-step="3" onclick="onStepNodeClick(3)" title="Step 3: Email">
                 <div class="step-circle">3</div>
                 <span class="step-text">Email</span>
             </div>
             <div class="step-line" id="stepLine3"></div>
             <div class="step-node" id="stepNode4" data-step="4" onclick="onStepNodeClick(4)" title="Step 4: Mobile">
-                <div class="step-circle">4</div>
+                <div class="step-circle">{{ $isEmailVerActive ? '4' : '3' }}</div>
                 <span class="step-text">Mobile</span>
             </div>
             <div class="step-line" id="stepLine4"></div>
             <div class="step-node" id="stepNode5" data-step="5" onclick="onStepNodeClick(5)" title="Step 5: Profile">
-                <div class="step-circle">5</div>
+                <div class="step-circle">{{ $isEmailVerActive ? '5' : '4' }}</div>
                 <span class="step-text">Profile</span>
             </div>
         </div>
@@ -1178,9 +1180,15 @@
                             <option value="+977">NP +977</option>
                             <option value="+94">LK +94</option>
                         </select>
-                        <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1" placeholder="17XXXXXXXX (10 digits)" maxlength="10" required>
+                        <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1 font-monospace" placeholder="017XXXXXXXX" maxlength="11" required>
                     </div>
-                    <small id="regPhoneHint" class="text-muted" style="font-size: 11.5px; display: block; margin-top: 3px; font-family: 'Kalpurush', sans-serif;">+880 কান্ট্রিকোডে ০ ছাড়া ১০ সংখ্যার নম্বর লিখুন (যেমন: 17XXXXXXXX)</small>
+                    <small id="regPhoneHint" class="text-muted" style="font-size: 11.5px; display: block; margin-top: 3px; font-family: 'Kalpurush', sans-serif;">১১ সংখ্যার সঠিক মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)</small>
+                    <div id="phoneConflictNoticeBox" class="d-none mt-2 alert alert-warning py-2 px-3 rounded-2 small">
+                        <div id="phoneConflictMsg" class="mb-1.5 fw-semibold text-dark"></div>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold rounded-pill px-3 py-1" onclick="switchAuthModeWithPhone(regData.phone || document.getElementById('regPhoneInput')?.value)">
+                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> সরাসরি লগইন করুন
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group-item">
@@ -1641,6 +1649,8 @@
 </div>
 
 <script>
+window.isEmailVerificationEnabled = {{ (!empty($isEmailVerificationEnabled) || \App\Support\SiteSetting::isEmailVerificationEnabled()) ? 'true' : 'false' }};
+window.isPhoneVerificationEnabled = {{ (!empty($isPhoneVerificationEnabled) || \App\Support\SiteSetting::isPhoneVerificationEnabled()) ? 'true' : 'false' }};
 let recaptchaWidgetId = null;
 let isRecaptchaReady = false;
 let recaptchaSiteKey = '{{ $recaptchaSiteKey ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" }}';
@@ -1714,10 +1724,22 @@ function restoreRegState() {
 function updateRegStepper(stepNum) {
     const stepper = document.getElementById('regProgressStepper');
     if (!stepper) return;
+
+    const emailNode = document.getElementById('stepNode3');
+    const emailLine = document.getElementById('stepLine2');
+    if (!window.isEmailVerificationEnabled) {
+        if (emailNode) emailNode.classList.add('d-none');
+        if (emailLine) emailLine.classList.add('d-none');
+    }
+
     for (let i = 1; i <= 5; i++) {
         const node = document.getElementById('stepNode' + i);
         const line = document.getElementById('stepLine' + (i - 1));
         if (node) {
+            if (i === 3 && !window.isEmailVerificationEnabled) {
+                node.classList.add('d-none');
+                continue;
+            }
             node.classList.remove('active', 'completed');
             if (i < stepNum) {
                 node.classList.add('completed');
@@ -1726,13 +1748,23 @@ function updateRegStepper(stepNum) {
             } else if (i === stepNum) {
                 node.classList.add('active');
                 const circle = node.querySelector('.step-circle');
-                if (circle) circle.textContent = i;
+                if (circle) {
+                    const displayNum = (i > 3 && !window.isEmailVerificationEnabled) ? (i - 1) : i;
+                    circle.textContent = displayNum;
+                }
             } else {
                 const circle = node.querySelector('.step-circle');
-                if (circle) circle.textContent = i;
+                if (circle) {
+                    const displayNum = (i > 3 && !window.isEmailVerificationEnabled) ? (i - 1) : i;
+                    circle.textContent = displayNum;
+                }
             }
         }
         if (line) {
+            if (i === 3 && !window.isEmailVerificationEnabled) {
+                line.classList.add('d-none');
+                continue;
+            }
             line.classList.toggle('completed', i <= stepNum);
         }
     }
@@ -1740,6 +1772,22 @@ function updateRegStepper(stepNum) {
 
 function goToStep(stepNum) {
     hideAlert();
+
+    // Bypass Email OTP step if disabled
+    if (stepNum === 3 && !window.isEmailVerificationEnabled) {
+        if (window.isPhoneVerificationEnabled) {
+            stepNum = 4;
+        } else {
+            const cat = regData.category || 'buyer';
+            if (['author', 'publisher', 'seller'].includes(cat)) {
+                stepNum = 5;
+            } else {
+                submitUnifiedRegistration();
+                return;
+            }
+        }
+    }
+
     document.querySelectorAll('.auth-flow-panel').forEach(p => p.classList.remove('active'));
 
     if (stepNum === 1) {
@@ -2140,8 +2188,29 @@ function refreshCaptchaChallenge() {
     loadCaptchaChallenge(true);
 }
 
-function proceedToCaptchaChallenge() {
+function showPhoneConflictAction(phone, msg) {
+    const box = document.getElementById('phoneConflictNoticeBox');
+    const msgEl = document.getElementById('phoneConflictMsg');
+    if (box && msgEl) {
+        msgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-warning me-1.5"></i> ' + (msg || 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট নিবন্ধিত রয়েছে।');
+        box.classList.remove('d-none');
+    }
+}
+
+function switchAuthModeWithPhone(phone) {
+    switchAuthMode('signin');
+    const loginEmailInput = document.getElementById('loginEmailInput');
+    if (loginEmailInput && phone) {
+        loginEmailInput.value = phone;
+        setTimeout(() => document.getElementById('loginPasswordInput')?.focus(), 150);
+    }
+}
+
+async function proceedToCaptchaChallenge() {
     hideAlert();
+    const box = document.getElementById('phoneConflictNoticeBox');
+    if (box) box.classList.add('d-none');
+
     const name = document.getElementById('regNameInput') ? document.getElementById('regNameInput').value.trim() : '';
     let phone = document.getElementById('regPhoneInput') ? document.getElementById('regPhoneInput').value.trim() : '';
     const countryCode = document.getElementById('regCountryCodeSelect') ? document.getElementById('regCountryCodeSelect').value : '+880';
@@ -2165,11 +2234,19 @@ function proceedToCaptchaChallenge() {
 
     if (countryCode === '+880') {
         phone = phone.replace(/\D/g, '');
-        if (phone.startsWith('880')) phone = phone.substring(3);
-        phone = phone.replace(/^0+/, '');
-        if (phone.length !== 10) {
-            showAlert('Please enter a valid 10-digit mobile number (e.g. 17XXXXXXXX).');
-            const phoneInput = document.getElementById('regPhoneInput');
+        if (phone.startsWith('880')) {
+            phone = phone.substring(3);
+        } else if (phone.startsWith('88') && phone.length === 12 && phone.charAt(2) === '1') {
+            phone = phone.substring(2);
+        }
+        if (phone.length === 10 && phone.startsWith('1')) {
+            phone = '0' + phone;
+        }
+        const phoneInput = document.getElementById('regPhoneInput');
+        if (phoneInput) phoneInput.value = phone;
+
+        if (phone.length !== 11 || !phone.startsWith('01')) {
+            showAlert('দয়া করে সঠিক ১১ সংখ্যার মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)।');
             if (phoneInput) phoneInput.focus();
             return;
         }
@@ -2217,14 +2294,51 @@ function proceedToCaptchaChallenge() {
         return;
     }
 
+    const catDropdown = document.getElementById('regCategoryDropdown');
+    const category = catDropdown ? catDropdown.value : (regData.category || 'buyer');
+
+    const btnContinue = document.getElementById('btnContinueReg');
+    const origBtnHtml = btnContinue ? btnContinue.innerHTML : '';
+    if (btnContinue) {
+        btnContinue.disabled = true;
+        btnContinue.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই করা হচ্ছে...';
+    }
+
+    try {
+        const checkRes = await fetchWithCsrfRetry('{{ route("register.check-phone") }}', {
+            method: 'POST',
+            body: JSON.stringify({
+                phone: phone,
+                country_code: countryCode,
+                role: category
+            })
+        });
+        const checkData = await checkRes.json();
+        if (checkData.exists && !checkData.can_upgrade) {
+            showAlert(checkData.message || 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে সাইন-ইন করুন।');
+            showPhoneConflictAction(phone, checkData.message);
+            if (btnContinue) {
+                btnContinue.disabled = false;
+                btnContinue.innerHTML = origBtnHtml;
+            }
+            return;
+        }
+    } catch (e) {
+        console.warn('Phone conflict pre-check error, continuing to captcha:', e);
+    } finally {
+        if (btnContinue) {
+            btnContinue.disabled = false;
+            btnContinue.innerHTML = origBtnHtml;
+        }
+    }
+
     regData.name = name;
     regData.phone = phone;
     regData.countryCode = countryCode;
     regData.email = email;
     regData.identifier = email;
     regData.password = pwd;
-    const catDropdown = document.getElementById('regCategoryDropdown');
-    regData.category = catDropdown ? catDropdown.value : (regData.category || 'buyer');
+    regData.category = category;
     saveRegState();
 
     goToStep(2);
@@ -2274,9 +2388,31 @@ async function verifyCaptchaSolution() {
             saveRegState();
             hideAlert();
 
-            // Transition to Step 3 (Email OTP verification)
-            goToStep(3);
-            sendEmailVerificationCode();
+            if (window.isEmailVerificationEnabled) {
+                // Transition to Step 3 (Email OTP verification)
+                goToStep(3);
+                sendEmailVerificationCode();
+            } else if (window.isPhoneVerificationEnabled) {
+                // Skip email, transition to Step 4 (Mobile OTP verification)
+                goToStep(4);
+                const displayTarget = document.getElementById('displayMobileTarget');
+                if (displayTarget) {
+                    displayTarget.textContent = (regData.countryCode || '+880') + ' ' + regData.phone;
+                }
+                const mobileInput = document.getElementById('mobileNumberInput');
+                if (mobileInput) mobileInput.value = regData.phone;
+                const mobileCode = document.getElementById('mobileCountryCode');
+                if (mobileCode && regData.countryCode) mobileCode.value = regData.countryCode;
+
+                sendMobileVerificationOtp();
+            } else {
+                const cat = regData.category || 'buyer';
+                if (['author', 'publisher', 'seller'].includes(cat)) {
+                    goToStep(5);
+                } else {
+                    submitUnifiedRegistration();
+                }
+            }
             return;
         }
 
@@ -2544,11 +2680,17 @@ async function updateMobileNumberAndResend() {
     const newCode = codeSelect ? codeSelect.value : '+880';
     if (newCode === '+880') {
         newNum = newNum.replace(/\D/g, '');
-        if (newNum.startsWith('880')) newNum = newNum.substring(3);
-        newNum = newNum.replace(/^0+/, '');
+        if (newNum.startsWith('880')) {
+            newNum = newNum.substring(3);
+        } else if (newNum.startsWith('88') && newNum.length === 12 && newNum.charAt(2) === '1') {
+            newNum = newNum.substring(2);
+        }
+        if (newNum.length === 10 && newNum.startsWith('1')) {
+            newNum = '0' + newNum;
+        }
     }
-    if (!newNum || (newCode === '+880' ? newNum.length !== 10 : newNum.length < 6)) {
-        showAlert(newCode === '+880' ? 'Please enter a valid 10-digit mobile number without leading 0.' : 'Please enter a valid mobile number.');
+    if (!newNum || (newCode === '+880' ? (newNum.length !== 11 || !newNum.startsWith('01')) : newNum.length < 6)) {
+        showAlert(newCode === '+880' ? 'দয়া করে সঠিক ১১ সংখ্যার মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)।' : 'Please enter a valid mobile number.');
         return;
     }
     regData.phone = newNum;
@@ -3118,19 +3260,58 @@ function initPhoneInputMasks() {
         const clean = () => {
             const code = codeEl ? codeEl.value : '+880';
             if (code === '+880') {
-                inputEl.maxLength = 10;
-                inputEl.placeholder = '17XXXXXXXX (10 digits)';
+                inputEl.maxLength = 11;
+                inputEl.placeholder = '017XXXXXXXX';
                 let val = inputEl.value.replace(/\D/g, '');
-                if (val.startsWith('880')) val = val.substring(3);
-                val = val.replace(/^0+/, '');
-                if (val.length > 10) val = val.substring(0, 10);
+                if (val.startsWith('880')) {
+                    val = val.substring(3);
+                } else if (val.startsWith('88') && val.length === 12 && val.charAt(2) === '1') {
+                    val = val.substring(2);
+                }
+                if (val.length === 10 && val.startsWith('1')) {
+                    val = '0' + val;
+                }
+                if (val.length > 11) val = val.substring(0, 11);
                 if (inputEl.value !== val) inputEl.value = val;
             } else {
                 inputEl.removeAttribute('maxLength');
                 inputEl.placeholder = 'Mobile number';
             }
+        let checkDebounceTimer = null;
+        const onInputHandler = () => {
+            clean();
+            if (inputEl.id === 'regPhoneInput') {
+                const box = document.getElementById('phoneConflictNoticeBox');
+                if (checkDebounceTimer) clearTimeout(checkDebounceTimer);
+                const code = codeEl ? codeEl.value : '+880';
+                const curVal = inputEl.value;
+                if ((code === '+880' && curVal.length === 11) || (code !== '+880' && curVal.length >= 7)) {
+                    checkDebounceTimer = setTimeout(async () => {
+                        try {
+                            const catDropdown = document.getElementById('regCategoryDropdown');
+                            const res = await fetchWithCsrfRetry('{{ route("register.check-phone") }}', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    phone: curVal,
+                                    country_code: code,
+                                    role: catDropdown ? catDropdown.value : 'buyer'
+                                })
+                            });
+                            const data = await res.json();
+                            if (data.exists && !data.can_upgrade) {
+                                showPhoneConflictAction(curVal, data.message);
+                            } else if (box) {
+                                box.classList.add('d-none');
+                            }
+                        } catch(e) {}
+                    }, 400);
+                } else if (box) {
+                    box.classList.add('d-none');
+                }
+            }
         };
-        inputEl.addEventListener('input', clean);
+
+        inputEl.addEventListener('input', onInputHandler);
         if (codeEl) codeEl.addEventListener('change', clean);
         clean();
     }
@@ -3160,9 +3341,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (initialMode === 'register') {
         switchAuthMode('register');
-    } else {
-        // Pre-fetch CAPTCHA in idle time so there is 0ms delay when switching to register
-        setTimeout(() => loadCaptchaChallenge(), 1000);
+        loadCaptchaChallenge();
     }
     if (initialCategory) {
         if (typeof selectUnifiedRole === 'function') {

@@ -627,7 +627,11 @@ function triggerLiveBackup(mode, modeLabel) {
 
     // Step 2 timer animation
     setTimeout(() => {
-        if (statusText) statusText.textContent = 'Packaging media files, book covers & documents...';
+        if (statusText) {
+            statusText.textContent = (mode === 'db_only')
+                ? 'Compressing database dump with high-ratio GZIP (.sql.gz)...'
+                : 'Packaging media files, book covers & documents...';
+        }
         if (progressBar) progressBar.style.width = '65%';
     }, 1200);
 

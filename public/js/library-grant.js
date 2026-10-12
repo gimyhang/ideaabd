@@ -335,14 +335,33 @@ function initPhoneFormatter() {
 
     phoneInputs.forEach(input => {
         input.addEventListener('input', function () {
-            this.value = normalizeDigits(this.value).slice(0, 15);
-            if (this.value.length >= 6) {
+            let val = normalizeDigits(this.value);
+            if (val.startsWith('880')) {
+                val = val.substring(3);
+            }
+            if (val.length === 10 && val.startsWith('1')) {
+                val = '0' + val;
+            }
+            this.value = val.slice(0, 15);
+            if (this.value.length >= 11 && this.value.startsWith('01')) {
                 this.classList.remove('is-invalid');
                 this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
+            } else if (this.value.length >= 6) {
+                this.classList.remove('is-invalid');
             }
             updateFormProgress();
+        });
+
+        input.addEventListener('blur', function () {
+            let val = normalizeDigits(this.value);
+            if (val.startsWith('880')) val = val.substring(3);
+            if (val.length === 10 && val.startsWith('1')) {
+                this.value = '0' + val;
+            }
+            if (this.value.length === 11 && this.value.startsWith('01')) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
         });
     });
 }
@@ -431,13 +450,36 @@ function initFormValidation() {
     if (!form || !submitBtn) return;
 
     form.addEventListener('submit', function (e) {
+        // Auto-normalize all phone numbers before submit
+        const telNames = ['phone', 'guardian_phone', 'president_phone', 'secretary_phone'];
+        telNames.forEach(name => {
+            const el = document.querySelector(`#dynamicLibraryForm input[name="${name}"]`);
+            if (el && el.value) {
+                let v = normalizeDigits(el.value);
+                if (v.startsWith('880')) v = v.substring(3);
+                if (v.length === 10 && v.startsWith('1')) {
+                    v = '0' + v;
+                }
+                el.value = v;
+                el.classList.remove('is-invalid');
+            }
+        });
+
         const phone = document.getElementById('libPhone');
-        if (phone && phone.value.length < 11) {
-            e.preventDefault();
-            phone.classList.add('is-invalid');
-            phone.focus();
-            alert('অনুগ্রহ করে সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)');
-            return;
+        if (phone) {
+            let pVal = normalizeDigits(phone.value);
+            if (pVal.startsWith('880')) pVal = pVal.substring(3);
+            if (pVal.length === 10 && pVal.startsWith('1')) {
+                pVal = '0' + pVal;
+                phone.value = pVal;
+            }
+            if (pVal.length < 11 || !pVal.startsWith('01')) {
+                e.preventDefault();
+                phone.classList.add('is-invalid');
+                phone.focus();
+                alert('অনুগ্রহ করে প্রতিনিধির সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)');
+                return;
+            }
         }
 
         const reason = document.getElementById('reasonText');
