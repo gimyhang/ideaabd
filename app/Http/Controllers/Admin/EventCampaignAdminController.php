@@ -1283,32 +1283,49 @@ class EventCampaignAdminController extends Controller
             $cardDesign['photo_contrast']      = intval($request->input('photo_contrast', $cardDesign['photo_contrast'] ?? 100));
             $cardDesign['photo_grayscale']     = intval($request->input('photo_grayscale', $cardDesign['photo_grayscale'] ?? 0));
             $cardDesign['photo_sepia']         = intval($request->input('photo_sepia', $cardDesign['photo_sepia'] ?? 0));
+            $cardDesign['photo_name_gap']      = intval($request->input('photo_name_gap', $cardDesign['photo_name_gap'] ?? 10));
             
-            // 6. Name Plate & Font Size & Line Spacing
-            $cardDesign['show_name_plate']   = $request->has('show_name_plate');
-            $cardDesign['name_font_size']    = intval($request->input('name_font_size', 16));
-            $cardDesign['name_line_height']  = floatval($request->input('name_line_height', $cardDesign['name_line_height'] ?? 1.25));
-            $cardDesign['name_spacing']      = intval($request->input('name_spacing', $cardDesign['name_spacing'] ?? 2));
-            $cardDesign['plate_padding']     = intval($request->input('plate_padding', $cardDesign['plate_padding'] ?? 14));
+            // 6. Name Plate, Typography & Background Shade (নাম, পদবি ও জেলা সাইজ এবং সাদা শেড আলাদা করা)
+            $cardDesign['show_name_plate']       = $request->has('show_name_plate');
+            $cardDesign['name_font_size']        = intval($request->input('name_font_size', 16));
+            $cardDesign['designation_font_size'] = intval($request->input('designation_font_size', $cardDesign['designation_font_size'] ?? 10));
+            $cardDesign['location_font_size']    = intval($request->input('location_font_size', $cardDesign['location_font_size'] ?? 9));
+            $cardDesign['name_line_height']      = floatval($request->input('name_line_height', $cardDesign['name_line_height'] ?? 1.25));
+            $cardDesign['name_spacing']          = intval($request->input('name_spacing', $cardDesign['name_spacing'] ?? 2));
+            $cardDesign['plate_padding']         = intval($request->input('plate_padding', $cardDesign['plate_padding'] ?? 14));
+
+            // Nameplate Background Shade & Separation Controls
+            $cardDesign['show_plate_bg']         = $request->has('show_plate_bg');
+            $cardDesign['plate_bg_opacity']      = intval($request->input('plate_bg_opacity', $cardDesign['plate_bg_opacity'] ?? 100));
+            $cardDesign['plate_border_width']    = intval($request->input('plate_border_width', $cardDesign['plate_border_width'] ?? 1));
+            $cardDesign['plate_border_color']    = $request->input('plate_border_color', $cardDesign['plate_border_color'] ?? '#d8be92');
+            $cardDesign['plate_border_radius']   = intval($request->input('plate_border_radius', $cardDesign['plate_border_radius'] ?? 12));
+            $cardDesign['designation_color']     = $request->input('designation_color', $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#334155'));
+            $cardDesign['location_color']        = $request->input('location_color', $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#475569'));
             
             // 7. Quotation & Artwork
             $cardDesign['show_quote']        = $request->has('show_quote');
             $cardDesign['quote_text']        = $request->input('quote_text', "সাহিত্য উৎসব ও লিটিলম্যাগমেলায়\nআপনার উপস্থিতি ও অংশগ্রহণ\nআমাদের সম্মানিত করবে ।");
             $cardDesign['show_artwork']      = $request->has('show_artwork');
             
-            // 8. Organizers 3 Columns
-            $cardDesign['show_organizers']   = $request->has('show_organizers');
-            $cardDesign['org_1_name']        = $request->input('org_1_name', 'সাকিল মাসুদ');
-            $cardDesign['org_1_role']        = $request->input('org_1_role', "সদস্যসচিব, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাধারণ সম্পাদক, ফিরেদেখা");
-            $cardDesign['org_1_phone']       = $request->input('org_1_phone', '০১৭২৬৯৭৬৯৮২');
+            // 8. Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
+            $cardDesign['show_qr_code']      = $request->has('show_qr_code') || $request->has('show_organizers');
+            $cardDesign['show_organizers']   = $cardDesign['show_qr_code'];
+            $cardDesign['qr_code_size']      = intval($request->input('qr_code_size', $cardDesign['qr_code_size'] ?? 78));
+            $cardDesign['qr_caption_text']   = $request->input('qr_caption_text', $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড');
+            $cardDesign['qr_subtext']        = $request->input('qr_subtext', $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে');
             
-            $cardDesign['org_2_name']        = $request->input('org_2_name', 'বাবুল সরকার');
-            $cardDesign['org_2_role']        = $request->input('org_2_role', "আহ্বায়ক, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাহিত্য সম্পাদক, ফিরেদেখা");
-            $cardDesign['org_2_phone']       = $request->input('org_2_phone', '01763170342');
+            $cardDesign['org_1_name']        = $request->input('org_1_name', $cardDesign['org_1_name'] ?? 'সাকিল মাসুদ');
+            $cardDesign['org_1_role']        = $request->input('org_1_role', $cardDesign['org_1_role'] ?? "সদস্যসচিব, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাধারণ সম্পাদক, ফিরেদেখা");
+            $cardDesign['org_1_phone']       = $request->input('org_1_phone', $cardDesign['org_1_phone'] ?? '০১৭২৬৯৭৬৯৮২');
             
-            $cardDesign['org_3_name']        = $request->input('org_3_name', 'তাপস মাহমুদ');
-            $cardDesign['org_3_role']        = $request->input('org_3_role', "সভাপতি,\nফিরেদেখা");
-            $cardDesign['org_3_phone']       = $request->input('org_3_phone', '01820-547307');
+            $cardDesign['org_2_name']        = $request->input('org_2_name', $cardDesign['org_2_name'] ?? 'বাবুল সরকার');
+            $cardDesign['org_2_role']        = $request->input('org_2_role', $cardDesign['org_2_role'] ?? "আহ্বায়ক, প্রতিষ্ঠাবার্ষিকী আয়োজক কমিটি ২০২৬\nও সাহিত্য সম্পাদক, ফিরেদেখা");
+            $cardDesign['org_2_phone']       = $request->input('org_2_phone', $cardDesign['org_2_phone'] ?? '01763170342');
+            
+            $cardDesign['org_3_name']        = $request->input('org_3_name', $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ');
+            $cardDesign['org_3_role']        = $request->input('org_3_role', $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা");
+            $cardDesign['org_3_phone']       = $request->input('org_3_phone', $cardDesign['org_3_phone'] ?? '01820-547307');
 
             // 9. Custom Floating Objects (Stickers, Stamps, Badges, Watermarks)
             if ($request->has('custom_objects_json')) {

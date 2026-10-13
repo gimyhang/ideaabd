@@ -353,6 +353,33 @@ document.addEventListener('DOMContentLoaded', function () {
         let uploadedBgUrl = null;
         let originalBgStyle = adminLiveCard.style.background;
 
+        const dropzoneBox = document.getElementById('dropzoneBox');
+        if (dropzoneBox && bgInput) {
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzoneBox.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzoneBox.style.borderColor = '#0284c7';
+                    dropzoneBox.style.background = '#f0f9ff';
+                }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzoneBox.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropzoneBox.style.borderColor = '';
+                    dropzoneBox.style.background = '';
+                }, false);
+            });
+            dropzoneBox.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length) {
+                    bgInput.files = dt.files;
+                    bgInput.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
         if (bgInput) {
             bgInput.addEventListener('change', async function () {
                 if (this.files && this.files[0]) {
@@ -1210,9 +1237,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (bgColorText) {
             bgColorText.addEventListener('input', function () {
-                if (bgColorInput) bgColorInput.value = this.value;
-                if (!uploadedBgUrl && (!removeBgCheck || removeBgCheck.checked || !originalBgStyle.includes('url('))) {
-                    adminLiveCard.style.background = `${this.value} linear-gradient(145deg, ${this.value} 0%, #1e1b4b 100%)`;
+                let val = this.value.trim();
+                if (val && !val.startsWith('#')) val = '#' + val;
+                this.value = val.toUpperCase();
+                if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                    if (bgColorInput) bgColorInput.value = val;
+                    if (!uploadedBgUrl && (!removeBgCheck || removeBgCheck.checked || !originalBgStyle.includes('url('))) {
+                        adminLiveCard.style.background = `${val} linear-gradient(145deg, ${val} 0%, #1e1b4b 100%)`;
+                    }
                 }
             });
         }
@@ -1225,8 +1257,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (plateColorText && liveNamePlate) {
             plateColorText.addEventListener('input', function () {
-                if (plateColorInput) plateColorInput.value = this.value;
-                liveNamePlate.style.background = this.value;
+                let val = this.value.trim();
+                if (val && !val.startsWith('#')) val = '#' + val;
+                this.value = val.toUpperCase();
+                if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                    if (plateColorInput) plateColorInput.value = val;
+                    liveNamePlate.style.background = val;
+                }
             });
         }
 
@@ -1388,9 +1425,12 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
+        // E.0 Name Font Size Controls
         const nameSlider = document.getElementById('nameSizeSlider');
         const nameBadge = document.getElementById('nameSizeBadge');
         const authorName = document.getElementById('liveAuthorName');
+        const btnNameSizeInc = document.getElementById('btnNameSizeInc');
+        const btnNameSizeDec = document.getElementById('btnNameSizeDec');
 
         if (nameSlider && authorName) {
             nameSlider.addEventListener('input', function () {
@@ -1399,7 +1439,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 authorName.style.fontSize = val + 'px';
             });
         }
-
+        if (btnNameSizeInc && nameSlider) {
+            btnNameSizeInc.addEventListener('click', function () {
+                const cur = parseFloat(nameSlider.value) || 16;
+                nameSlider.value = Math.min(30, cur + 1);
+                nameSlider.dispatchEvent(new Event('input'));
+            });
+        }
+        if (btnNameSizeDec && nameSlider) {
+            btnNameSizeDec.addEventListener('click', function () {
+                const cur = parseFloat(nameSlider.value) || 16;
+                nameSlider.value = Math.max(11, cur - 1);
+                nameSlider.dispatchEvent(new Event('input'));
+            });
+        }
         document.querySelectorAll('.btn-preset-name').forEach(btn => {
             btn.addEventListener('click', function () {
                 const size = this.getAttribute('data-size');
@@ -1407,6 +1460,237 @@ document.addEventListener('DOMContentLoaded', function () {
                     nameSlider.value = size;
                     nameSlider.dispatchEvent(new Event('input'));
                 }
+            });
+        });
+
+        // E.0.1 Designation Font Size Controls (পদবির আকার)
+        const designationSlider = document.getElementById('designationSizeSlider');
+        const designationBadge = document.getElementById('designationSizeBadge');
+        const authorDesignation = document.getElementById('liveAuthorDesignation');
+        const btnDesigSizeInc = document.getElementById('btnDesigSizeInc');
+        const btnDesigSizeDec = document.getElementById('btnDesigSizeDec');
+
+        if (designationSlider && authorDesignation) {
+            designationSlider.addEventListener('input', function () {
+                const val = this.value;
+                if (designationBadge) designationBadge.textContent = val + ' px';
+                authorDesignation.style.fontSize = val + 'px';
+            });
+        }
+        if (btnDesigSizeInc && designationSlider) {
+            btnDesigSizeInc.addEventListener('click', function () {
+                const cur = parseFloat(designationSlider.value) || 10;
+                designationSlider.value = Math.min(22, cur + 0.5);
+                designationSlider.dispatchEvent(new Event('input'));
+            });
+        }
+        if (btnDesigSizeDec && designationSlider) {
+            btnDesigSizeDec.addEventListener('click', function () {
+                const cur = parseFloat(designationSlider.value) || 10;
+                designationSlider.value = Math.max(7, cur - 0.5);
+                designationSlider.dispatchEvent(new Event('input'));
+            });
+        }
+        document.querySelectorAll('.btn-preset-desig').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const size = this.getAttribute('data-size');
+                if (designationSlider) {
+                    designationSlider.value = size;
+                    designationSlider.dispatchEvent(new Event('input'));
+                }
+            });
+        });
+
+        // E.0.2 Location Font Size Controls (জেলার আকার)
+        const locationSlider = document.getElementById('locationSizeSlider');
+        const locationBadge = document.getElementById('locationSizeBadge');
+        const authorLocation = document.getElementById('liveAuthorLocation');
+        const btnLocSizeInc = document.getElementById('btnLocSizeInc');
+        const btnLocSizeDec = document.getElementById('btnLocSizeDec');
+
+        if (locationSlider && authorLocation) {
+            locationSlider.addEventListener('input', function () {
+                const val = this.value;
+                if (locationBadge) locationBadge.textContent = val + ' px';
+                authorLocation.style.fontSize = val + 'px';
+            });
+        }
+        if (btnLocSizeInc && locationSlider) {
+            btnLocSizeInc.addEventListener('click', function () {
+                const cur = parseFloat(locationSlider.value) || 9;
+                locationSlider.value = Math.min(20, cur + 0.5);
+                locationSlider.dispatchEvent(new Event('input'));
+            });
+        }
+        if (btnLocSizeDec && locationSlider) {
+            btnLocSizeDec.addEventListener('click', function () {
+                const cur = parseFloat(locationSlider.value) || 9;
+                locationSlider.value = Math.max(6, cur - 0.5);
+                locationSlider.dispatchEvent(new Event('input'));
+            });
+        }
+        document.querySelectorAll('.btn-preset-loc').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const size = this.getAttribute('data-size');
+                if (locationSlider) {
+                    locationSlider.value = size;
+                    locationSlider.dispatchEvent(new Event('input'));
+                }
+            });
+        });
+
+        // E.0.3 White Background Shade & Separation Controls (সাদা ব্যাকগ্রাউন্ড শেড আলাদা করা)
+        const toggleShowPlateBg = document.getElementById('toggleShowPlateBg');
+        const plateBgControlsWrapper = document.getElementById('plateBgControlsWrapper');
+        const inputPlateBgColor = document.getElementById('liveInputPlateBgColor');
+        const inputPlateBgColorText = document.getElementById('liveInputPlateBgColorText');
+        const plateBgOpacitySlider = document.getElementById('plateBgOpacitySlider');
+        const plateBgOpacityBadge = document.getElementById('plateBgOpacityBadge');
+        const plateBorderWidthSlider = document.getElementById('plateBorderWidthSlider');
+        const plateBorderWidthBadge = document.getElementById('plateBorderWidthBadge');
+        const inputPlateBorderColor = document.getElementById('liveInputPlateBorderColor');
+        const inputPlateBorderColorText = document.getElementById('liveInputPlateBorderColorText');
+        const plateBorderRadiusSlider = document.getElementById('plateBorderRadiusSlider');
+        const plateBorderRadiusBadge = document.getElementById('plateBorderRadiusBadge');
+
+        function hexToRgb(hex) {
+            hex = (hex || '#ffffff').replace('#', '');
+            if (hex.length === 3) {
+                return {
+                    r: parseInt(hex[0] + hex[0], 16),
+                    g: parseInt(hex[1] + hex[1], 16),
+                    b: parseInt(hex[2] + hex[2], 16)
+                };
+            }
+            if (hex.length >= 6) {
+                return {
+                    r: parseInt(hex.substring(0, 2), 16),
+                    g: parseInt(hex.substring(2, 4), 16),
+                    b: parseInt(hex.substring(4, 6), 16)
+                };
+            }
+            return { r: 255, g: 255, b: 255 };
+        }
+
+        function updateLivePlateStyling() {
+            if (!liveNamePlate) return;
+            const showBg = toggleShowPlateBg ? toggleShowPlateBg.checked : true;
+
+            if (!showBg) {
+                // Completely separate text from white background box (No Box / Transparent)
+                liveNamePlate.style.background = 'transparent';
+                liveNamePlate.style.border = 'none';
+                liveNamePlate.style.boxShadow = 'none';
+                if (authorName) authorName.style.textShadow = '0 1px 3px rgba(0, 0, 0, 0.55)';
+                if (authorDesignation) authorDesignation.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.45)';
+                if (authorLocation) authorLocation.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.45)';
+                if (plateBgControlsWrapper) plateBgControlsWrapper.style.display = 'none';
+            } else {
+                if (plateBgControlsWrapper) plateBgControlsWrapper.style.display = '';
+                const colorHex = inputPlateBgColor ? inputPlateBgColor.value : '#ecd8b4';
+                const opacityVal = plateBgOpacitySlider ? (parseInt(plateBgOpacitySlider.value, 10) / 100) : 1;
+                const rgb = hexToRgb(colorHex);
+                liveNamePlate.style.background = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacityVal})`;
+
+                const borderWidth = plateBorderWidthSlider ? parseFloat(plateBorderWidthSlider.value) : 1;
+                const borderColor = inputPlateBorderColor ? inputPlateBorderColor.value : '#d8be92';
+                liveNamePlate.style.border = borderWidth > 0 ? `${borderWidth}px solid ${borderColor}` : 'none';
+
+                const borderRadius = plateBorderRadiusSlider ? parseInt(plateBorderRadiusSlider.value, 10) : 12;
+                liveNamePlate.style.borderRadius = `${borderRadius}px`;
+                liveNamePlate.style.boxShadow = '0 3px 10px rgba(0, 0, 0, 0.12)';
+
+                if (authorName) authorName.style.textShadow = 'none';
+                if (authorDesignation) authorDesignation.style.textShadow = 'none';
+                if (authorLocation) authorLocation.style.textShadow = 'none';
+            }
+        }
+
+        if (toggleShowPlateBg) {
+            toggleShowPlateBg.addEventListener('change', updateLivePlateStyling);
+        }
+        if (inputPlateBgColor) {
+            inputPlateBgColor.addEventListener('input', function () {
+                if (inputPlateBgColorText) inputPlateBgColorText.value = this.value;
+                updateLivePlateStyling();
+            });
+        }
+        if (inputPlateBgColorText) {
+            inputPlateBgColorText.addEventListener('input', function () {
+                if (inputPlateBgColor && this.value.startsWith('#') && this.value.length === 7) {
+                    inputPlateBgColor.value = this.value;
+                    updateLivePlateStyling();
+                }
+            });
+        }
+        if (plateBgOpacitySlider) {
+            plateBgOpacitySlider.addEventListener('input', function () {
+                if (plateBgOpacityBadge) plateBgOpacityBadge.textContent = this.value + '%';
+                updateLivePlateStyling();
+            });
+        }
+        if (plateBorderWidthSlider) {
+            plateBorderWidthSlider.addEventListener('input', function () {
+                if (plateBorderWidthBadge) plateBorderWidthBadge.textContent = this.value + ' px';
+                updateLivePlateStyling();
+            });
+        }
+        if (inputPlateBorderColor) {
+            inputPlateBorderColor.addEventListener('input', function () {
+                if (inputPlateBorderColorText) inputPlateBorderColorText.value = this.value;
+                updateLivePlateStyling();
+            });
+        }
+        if (inputPlateBorderColorText) {
+            inputPlateBorderColorText.addEventListener('input', function () {
+                if (inputPlateBorderColor && this.value.startsWith('#') && this.value.length === 7) {
+                    inputPlateBorderColor.value = this.value;
+                    updateLivePlateStyling();
+                }
+            });
+        }
+        if (plateBorderRadiusSlider) {
+            plateBorderRadiusSlider.addEventListener('input', function () {
+                if (plateBorderRadiusBadge) plateBorderRadiusBadge.textContent = this.value + ' px';
+                updateLivePlateStyling();
+            });
+        }
+
+        // Preset buttons for Nameplate background style
+        document.querySelectorAll('.btn-preset-plate-style').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const bg = this.getAttribute('data-bg');
+                const opacity = this.getAttribute('data-opacity');
+                const border = this.getAttribute('data-border');
+                const borderColor = this.getAttribute('data-border-color');
+                const radius = this.getAttribute('data-radius');
+
+                if (bg === 'transparent' || opacity === '0') {
+                    if (toggleShowPlateBg) toggleShowPlateBg.checked = false;
+                } else {
+                    if (toggleShowPlateBg) toggleShowPlateBg.checked = true;
+                    if (inputPlateBgColor && bg) {
+                        inputPlateBgColor.value = bg;
+                        if (inputPlateBgColorText) inputPlateBgColorText.value = bg;
+                    }
+                    if (plateBgOpacitySlider && opacity) {
+                        plateBgOpacitySlider.value = opacity;
+                        if (plateBgOpacityBadge) plateBgOpacityBadge.textContent = opacity + '%';
+                    }
+                    if (plateBorderWidthSlider && border) {
+                        plateBorderWidthSlider.value = border;
+                        if (plateBorderWidthBadge) plateBorderWidthBadge.textContent = border + ' px';
+                    }
+                    if (inputPlateBorderColor && borderColor && borderColor.startsWith('#')) {
+                        inputPlateBorderColor.value = borderColor;
+                        if (inputPlateBorderColorText) inputPlateBorderColorText.value = borderColor;
+                    }
+                    if (plateBorderRadiusSlider && radius) {
+                        plateBorderRadiusSlider.value = radius;
+                        if (plateBorderRadiusBadge) plateBorderRadiusBadge.textContent = radius + ' px';
+                    }
+                }
+                updateLivePlateStyling();
             });
         });
 
@@ -1439,11 +1723,75 @@ document.addEventListener('DOMContentLoaded', function () {
             platePaddingSlider.addEventListener('input', function () {
                 const val = parseInt(this.value, 10);
                 if (platePaddingBadge) platePaddingBadge.textContent = val + ' px';
-                const hasPhoto = photoFrame && photoFrame.style.display !== 'none';
-                const topPad = hasPhoto ? (val + 8) : val;
-                liveNamePlate.style.padding = `${topPad}px 8px ${val}px 8px`;
+                liveNamePlate.style.padding = `${val}px 10px`;
             });
         }
+
+        // E.3.0 Photo-Nameplate Gap Slider (ছবি থেকে নিচের নামের সেড আলাদা করার দূরত্ব)
+        const photoNameGapSlider = document.getElementById('photoNameGapSlider');
+        const photoNameGapBadge = document.getElementById('photoNameGapBadge');
+        const photoNameGapSliderSize = document.getElementById('photoNameGapSliderSize');
+        const photoNameGapBadgeSize = document.getElementById('photoNameGapBadgeSize');
+
+        function updatePhotoNameGap(val) {
+            val = parseInt(val, 10);
+            if (photoNameGapBadge) photoNameGapBadge.textContent = val + ' px';
+            if (photoNameGapBadgeSize) photoNameGapBadgeSize.textContent = val + ' px';
+            if (photoNameGapSlider && photoNameGapSlider.value != val) photoNameGapSlider.value = val;
+            if (photoNameGapSliderSize && photoNameGapSliderSize.value != val) photoNameGapSliderSize.value = val;
+            if (photoFrame) {
+                photoFrame.style.marginBottom = val + 'px';
+            }
+        }
+
+        if (photoNameGapSlider) {
+            photoNameGapSlider.addEventListener('input', function () {
+                updatePhotoNameGap(this.value);
+            });
+        }
+        if (photoNameGapSliderSize) {
+            photoNameGapSliderSize.addEventListener('input', function () {
+                updatePhotoNameGap(this.value);
+            });
+        }
+
+        // Layout Enable All helper
+        const btnEnableAllCardNodes = document.getElementById('btnEnableAllCardNodes');
+        if (btnEnableAllCardNodes) {
+            btnEnableAllCardNodes.addEventListener('click', function () {
+                document.querySelectorAll('#tab-toggle-pane .live-toggle-input').forEach(input => {
+                    if (!input.checked) {
+                        input.checked = true;
+                        input.dispatchEvent(new Event('change'));
+                    }
+                });
+                if (typeof window.showToast === 'function') {
+                    window.showToast('<i class="fa-solid fa-check-double me-1 text-success"></i> কার্ডের সকল উপাদান সক্রিয় করা হয়েছে।');
+                }
+            });
+        }
+
+        // E.3.1 Verification QR Code Size Slider
+        const qrCodeSizeSlider = document.getElementById('qrCodeSizeSlider');
+        const qrCodeSizeBadge = document.getElementById('qrCodeSizeBadge');
+        const liveQrCodeBox = document.getElementById('liveQrCodeBox');
+        if (qrCodeSizeSlider && liveQrCodeBox) {
+            qrCodeSizeSlider.addEventListener('input', function () {
+                const val = this.value;
+                if (qrCodeSizeBadge) qrCodeSizeBadge.textContent = val + ' px';
+                liveQrCodeBox.style.width = val + 'px';
+                liveQrCodeBox.style.height = val + 'px';
+            });
+        }
+        document.querySelectorAll('.btn-preset-qr').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const size = this.getAttribute('data-size');
+                if (qrCodeSizeSlider) {
+                    qrCodeSizeSlider.value = size;
+                    qrCodeSizeSlider.dispatchEvent(new Event('input'));
+                }
+            });
+        });
 
         // E.4 Direct Click-to-Edit & Floating Quick-Action Toolbar on Card Nodes
         let currentSelectedNode = null;
@@ -1452,12 +1800,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const nodeControlsMap = {
             'photo': { sliderId: 'photoSizeSlider', toggleId: 'toggleShowPhoto', step: 4, name: 'ছবি' },
             'nameplate': { sliderId: 'nameSizeSlider', toggleId: 'toggleShowNamePlate', step: 2, name: 'নেমপ্লেট' },
-            'logo': { sliderId: 'logoSizeSlider', toggleId: 'toggleShowLogo', step: 4, name: 'লোগো' },
+            'logo': { sliderId: 'logoSizeSlider', toggleId: 'toggleShowLogo', step: 4, name: 'প্রতিষ্ঠান লোগো' },
+            'event-logo': { sliderId: 'eventLogoSizeSlider', toggleId: 'toggleShowEventLogo', step: 4, name: 'ইভেন্ট লোগো' },
             'badge': { toggleId: 'toggleShowBadge', name: 'আমন্ত্রণ ব্যাজ' },
             'header': { toggleId: 'toggleShowHeader', name: 'শিরোনাম' },
             'quote': { toggleId: 'toggleShowQuote', name: 'উক্তি' },
             'artwork': { toggleId: 'toggleShowArtwork', name: 'বই আর্টওয়ার্ক' },
-            'organizers': { toggleId: 'toggleShowOrganizers', name: 'আয়োজকবৃন্দ' }
+            'qr': { sliderId: 'qrCodeSizeSlider', toggleId: 'toggleShowQrCode', step: 4, name: 'ভেরিফাই QR কোড' },
+            'organizers': { toggleId: 'toggleShowOrganizers', name: 'ভেরিফাই QR কোড' }
         };
 
         function removeActiveNodeSelection() {
@@ -1824,6 +2174,10 @@ document.addEventListener('DOMContentLoaded', function () {
         bindFormText('liveInputOrg3Name', 'liveOrg3Name');
         bindFormText('liveInputOrg3Role', 'liveOrg3Role', true);
         bindFormText('liveInputOrg3Phone', 'liveOrg3Phone', false, true);
+
+        // QR Code Text Live Sync
+        bindFormText('liveInputQrCaption', 'liveQrTitleText');
+        bindFormText('liveInputQrSubtext', 'liveQrSubText');
 
         // J. Instant High-Resolution Card Downloader (PNG Export)
         const downloadBtn = document.getElementById('btnDownloadCardPng');

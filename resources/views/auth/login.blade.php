@@ -1895,22 +1895,24 @@ function switchAuthMode(mode) {
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    const icon = btn.querySelector('i');
+    const button = btn || input.closest('.pwd-field-wrap')?.querySelector('.pwd-eye-btn');
+    const icon = button ? button.querySelector('i') : null;
 
     if (input.type === 'password') {
         input.type = 'text';
         if (icon) {
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
+            icon.className = 'fa-solid fa-eye-slash';
         }
+        if (button) button.setAttribute('title', 'Hide password');
     } else {
         input.type = 'password';
         if (icon) {
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
+            icon.className = 'fa-regular fa-eye';
         }
+        if (button) button.setAttribute('title', 'Show password');
     }
 }
+window.togglePasswordVisibility = togglePasswordVisibility;
 
 /**
  * Real-Time Password Strength Evaluator
@@ -3277,6 +3279,8 @@ function initPhoneInputMasks() {
                 inputEl.removeAttribute('maxLength');
                 inputEl.placeholder = 'Mobile number';
             }
+        };
+
         let checkDebounceTimer = null;
         const onInputHandler = () => {
             clean();

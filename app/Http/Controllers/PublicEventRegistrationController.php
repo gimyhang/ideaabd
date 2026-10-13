@@ -865,4 +865,80 @@ class PublicEventRegistrationController extends Controller
 
         return view('frontend.events.library_token_print', compact('registration'));
     }
+
+    /**
+     * Scan QR or Click URL to Verify & Confirm Event Attendance (উপস্থিতি নিশ্চিতকরণ).
+     */
+    public function verifyAttendance(Request $request, string $registrationNumber)
+    {
+        $cleanRegNum = trim($registrationNumber);
+        $registration = EventRegistration::with('campaign', 'user')
+            ->where('registration_number', $cleanRegNum)
+            ->orWhere('registration_number', '#' . $cleanRegNum)
+            ->orWhere('registration_number', ltrim($cleanRegNum, '#'))
+            ->first();
+
+        if (!$registration) {
+            $registration = EventRegistration::with('campaign', 'user')
+                ->where('registration_number', 'LIKE', '%' . $cleanRegNum . '%')
+                ->first();
+        }
+
+        if (!$registration) {
+            abort(404, 'নিবন্ধন নম্বরটি সিস্টেমে পাওয়া যায়নি।');
+        }
+
+        $campaign = $registration->campaign;
+        $alreadyAttended = ($registration->status === 'attended');
+        $formData = $registration->form_data ?? [];
+        $attendanceTime = null;
+
+        $sigToken = null;
+        if (!$alreadyAttended) {
+            $attendanceTime = now()->toDateTimeString();
+            $sigToken = 'SIG-' . strtoupper(substr(md5($cleanRegNum . $attendanceTime), 0, 10));
+            $formData['attended_at'] = $attendanceTime;
+            $formData['attendance_ip'] = $request->ip();
+            $formData['attendance_user_agent'] = substr($request->userAgent() ?? '', 0, 150);
+            $formData['attendance_verified_via'] = 'qr_scan_or_click';
+            $formData['attendance_signature_token'] = $sigToken;
+            $formData['is_attendance_signed'] = true;
+
+            $registration->status = 'attended';
+            $registration->form_data = $formData;
+            $registration->save();
+        } else {
+            $attendanceTime = $formData['attended_at'] ?? $registration->updated_at->toDateTimeString();
+            $sigToken = $formData['attendance_signature_token'] ?? ('SIG-' . strtoupper(substr(md5($cleanRegNum . $attendanceTime), 0, 10)));
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'          => true,
+                'already_attended' => $alreadyAttended,
+                'status'           => 'attended',
+                'attended_at'      => $attendanceTime,
+                'signature_token'  => $sigToken,
+                'participant'      => [
+                    'name'         => $registration->name,
+                    'reg_no'       => $registration->registration_number,
+                    'designation'  => $registration->designation_or_class,
+                    'institution'  => $registration->institution_or_org,
+                    'phone'        => $registration->phone,
+                ],
+                'campaign_title'   => $campaign ? $campaign->title : '',
+                'message'          => $alreadyAttended 
+                    ? 'উপস্থিতি ও স্বাক্ষর ইতিপূর্বেই নিশ্চিত করা হয়েছে।' 
+                    : 'অনুষ্ঠানে উপস্থিতি ও ডিজিটাল স্বাক্ষর সফলভাবে নিশ্চিত হয়েছে!',
+            ]);
+        }
+
+        return view('frontend.events.attendance_confirmed', [
+            'registration'    => $registration,
+            'campaign'        => $campaign,
+            'alreadyAttended' => $alreadyAttended,
+            'attendanceTime'  => $attendanceTime,
+            'signatureToken'  => $sigToken,
+        ]);
+    }
 }

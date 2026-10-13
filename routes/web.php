@@ -1025,6 +1025,12 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
     Route::get('/event/registration/pdf/{registrationNumber}', 'downloadPdf');
     Route::get('/rsu/pdf/{registrationNumber}', 'downloadPdf');
 
+    // Event Attendance Verification & Check-in (Scan QR Code or Click Link)
+    Route::get('/event/verify/{registrationNumber}', 'verifyAttendance')->name('event.attendance.verify');
+    Route::get('/event/attend/{registrationNumber}', 'verifyAttendance')->name('event.attendance.confirm');
+    Route::get('/rsu/verify/{registrationNumber}', 'verifyAttendance');
+    Route::get('/v/{registrationNumber}', 'verifyAttendance')->name('event.attendance.short');
+
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');

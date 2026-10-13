@@ -40,11 +40,40 @@
     $photoContrast      = intval($cardDesign['photo_contrast'] ?? 100);
     $photoGrayscale     = intval($cardDesign['photo_grayscale'] ?? 0);
     $photoSepia         = intval($cardDesign['photo_sepia'] ?? 0);
+    $photoNameGap       = intval($cardDesign['photo_name_gap'] ?? 10);
 
     $nameFontSize       = intval($cardDesign['name_font_size'] ?? 16);
+    $designationFontSize = intval($cardDesign['designation_font_size'] ?? 10);
+    $locationFontSize    = intval($cardDesign['location_font_size'] ?? 9);
     $nameLineHeight     = floatval($cardDesign['name_line_height'] ?? 1.25);
     $nameSpacing        = intval($cardDesign['name_spacing'] ?? 2);
     $platePadding       = intval($cardDesign['plate_padding'] ?? 14);
+    $showPlateBg        = isset($cardDesign['show_plate_bg']) ? !empty($cardDesign['show_plate_bg']) : true;
+    $plateBgOpacity     = intval($cardDesign['plate_bg_opacity'] ?? 100);
+    $plateBorderWidth   = intval($cardDesign['plate_border_width'] ?? 1);
+    $plateBorderColor   = $cardDesign['plate_border_color'] ?? '#d8be92';
+    $plateBorderRadius  = intval($cardDesign['plate_border_radius'] ?? 14);
+    $designationColor   = $cardDesign['designation_color'] ?? ($cardDesign['meta_color'] ?? '#334155');
+    $locationColor      = $cardDesign['location_color'] ?? ($cardDesign['meta_color'] ?? '#475569');
+
+    // Calculate RGBA for plate background
+    $plateAlpha = ($plateBgOpacity / 100);
+    $hexClean = ltrim($cardDesign['plate_bg_color'] ?? '#ecd8b4', '#');
+    if (strlen($hexClean) === 3) {
+        $pRed = hexdec(substr($hexClean, 0, 1) . substr($hexClean, 0, 1));
+        $pGreen = hexdec(substr($hexClean, 1, 1) . substr($hexClean, 1, 1));
+        $pBlue = hexdec(substr($hexClean, 2, 1) . substr($hexClean, 2, 1));
+    } elseif (strlen($hexClean) >= 6) {
+        $pRed = hexdec(substr($hexClean, 0, 2));
+        $pGreen = hexdec(substr($hexClean, 2, 2));
+        $pBlue = hexdec(substr($hexClean, 4, 2));
+    } else {
+        $pRed = 236; $pGreen = 216; $pBlue = 180;
+    }
+    $effectivePlateBg = $showPlateBg ? "rgba({$pRed}, {$pGreen}, {$pBlue}, {$plateAlpha})" : 'transparent';
+    $effectivePlateBorder = ($showPlateBg && $plateBorderWidth > 0) ? "{$plateBorderWidth}px solid {$plateBorderColor}" : 'none';
+    $effectivePlateShadow = $showPlateBg ? '0 4px 14px rgba(0, 0, 0, 0.12)' : 'none';
+
     $logoSize           = intval($cardDesign['logo_size'] ?? 58);
     $logoOffsetX        = intval($cardDesign['logo_offset_x'] ?? 0);
     $logoOffsetY        = intval($cardDesign['logo_offset_y'] ?? 0);
@@ -82,6 +111,14 @@
     $org3Name  = $cardDesign['org_3_name'] ?? 'তাপস মাহমুদ';
     $org3Role  = $cardDesign['org_3_role'] ?? "সভাপতি,\nফিরেদেখা";
     $org3Phone = $cardDesign['org_3_phone'] ?? '01820-547307';
+
+    // 5. Verification QR Code & Attendance Settings (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
+    $showQrCode     = $cardDesign['show_qr_code'] ?? ($cardDesign['show_organizers'] ?? true);
+    $qrCodeSize     = intval($cardDesign['qr_code_size'] ?? 78);
+    $qrCaptionText  = $cardDesign['qr_caption_text'] ?? 'উপস্থিতি যাচাই ও নিশ্চিতকরণ QR কোড';
+    $qrSubtext      = $cardDesign['qr_subtext'] ?? 'ক্লিক বা স্ক্যান করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে';
+    $verifyUrl      = route('event.attendance.verify', $registration->registration_number);
+    $qrApiUrl       = 'https://api.qrserver.com/v1/create-qr-code/?size=' . ($qrCodeSize * 2) . 'x' . ($qrCodeSize * 2) . '&data=' . urlencode($verifyUrl);
 
     // Photo path resolution
     $photoPath = $formData['student_photo'] ?? ($formData['author_photo'] ?? null);
@@ -429,7 +466,7 @@
             filter: brightness({{ $photoBrightness }}%) contrast({{ $photoContrast }}%) grayscale({{ $photoGrayscale }}%) sepia({{ $photoSepia }}%);
             background: #f8fafc;
             overflow: hidden;
-            margin-bottom: -8px; /* shifted 10px upwards from -18px */
+            margin-bottom: {{ $photoNameGap }}px; /* Cleanly separated from name plate shade */
             transform: translate({{ $photoOffsetX }}px, {{ $photoOffsetY }}px) scale({{ $photoScale / 100 }});
             position: relative;
             z-index: 4;
@@ -451,17 +488,18 @@
             font-size: 32px;
         }
 
-        /* Cream Author Name Plate */
+        /* Author Name Plate & Separated Text Styling */
         .author-name-plate {
             width: 92%;
-            background: {{ $plateBgColor }};
-            border-radius: 14px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-            padding: {{ $showPhoto ? ($platePadding + 2) : $platePadding }}px 12px {{ $platePadding }}px 12px;
+            background: {{ $effectivePlateBg }};
+            border-radius: {{ $plateBorderRadius }}px;
+            box-shadow: {{ $effectivePlateShadow }};
+            padding: {{ $platePadding }}px 12px;
             text-align: center;
-            border: 1px solid #d8be92;
+            border: {{ $effectivePlateBorder }};
             position: relative;
             z-index: 3;
+            transition: all 0.2s ease;
         }
         .author-name-plate .author-name {
             font-family: '{{ $fontFamily }}', 'Noto Serif Bengali', 'Hind Siliguri', serif;
@@ -470,20 +508,29 @@
             color: {{ $nameColor }};
             line-height: {{ $nameLineHeight }};
             margin-bottom: {{ $nameSpacing }}px;
+            @if(!$showPlateBg)
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+            @endif
         }
         .author-name-plate .author-designation {
-            font-size: 10px;
+            font-size: {{ $designationFontSize }}px;
             font-weight: 700;
-            color: {{ $metaColor }};
+            color: {{ $designationColor }};
             line-height: 1.25;
-            margin-bottom: 1px;
+            margin-bottom: 2px;
+            @if(!$showPlateBg)
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+            @endif
         }
         .author-name-plate .author-location {
-            font-size: 9.5px;
+            font-size: {{ $locationFontSize }}px;
             font-weight: 600;
-            color: {{ $metaColor }};
-            opacity: 0.85;
+            color: {{ $locationColor }};
+            opacity: 0.9;
             line-height: 1.2;
+            @if(!$showPlateBg)
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+            @endif
         }
 
         /* ==========================================================================
@@ -508,60 +555,92 @@
         }
 
         /* ==========================================================================
-           BOTTOM ORGANIZERS & SIGNATORIES SECTION (3 Columns - Centered & Clean)
+           BOTTOM DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড)
            ========================================================================== */
-        .card-organizers-section {
+        .card-verify-qr-section {
             position: relative;
             z-index: 2;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
             border-top: 1.5px solid rgba(255, 255, 255, 0.45);
-            padding-top: 6px;
+            padding-top: 5px;
             margin-top: 4px;
-            gap: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             text-align: center;
         }
-        .org-col {
-            color: {{ $orgColor }};
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+        .verify-qr-anchor {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 5px 12px 5px 6px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+            transition: all 0.2s ease;
+            max-width: 96%;
+        }
+        .verify-qr-anchor:hover {
+            transform: translateY(-1px) scale(1.02);
+            background: rgba(0, 0, 0, 0.45);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+        .qr-code-box {
+            background: #ffffff;
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .qr-info-box {
+            text-align: left;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+        }
+        .qr-verify-badge {
+            display: inline-flex;
             align-items: center;
-            justify-content: flex-start;
-            text-align: center;
+            gap: 4px;
+            font-size: 8px;
+            font-weight: 800;
+            background: #10b981;
+            color: #ffffff;
+            padding: 1.5px 7px;
+            border-radius: 20px;
+            width: fit-content;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
         }
-        .org-col:not(:last-child) {
-            border-right: 1px solid rgba(255, 255, 255, 0.35);
-            padding-right: 4px;
-        }
-        .org-col .org-name {
+        .qr-title {
+            color: #ffffff;
             font-size: 10px;
             font-weight: 800;
             line-height: 1.25;
-            margin-bottom: 2px;
-            color: {{ $orgColor }};
-            text-align: center;
-            width: 100%;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
-        .org-col .org-role {
-            font-size: 7.2px;
-            line-height: 1.35;
-            color: rgba(255, 255, 255, 0.95);
-            margin-bottom: 3px;
-            text-align: center;
-            width: 100%;
-            flex-grow: 1;
-        }
-        .org-col .org-phone {
+        .qr-subtitle {
+            color: rgba(255, 255, 255, 0.92);
             font-size: 7.8px;
+            font-weight: 600;
+            line-height: 1.3;
+            margin-top: 1px;
+        }
+        .qr-url-text {
+            color: #fef08a;
+            font-size: 7.5px;
+            font-family: monospace;
             font-weight: 700;
-            color: {{ $orgColor }};
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            margin-top: 1.5px;
+            opacity: 0.95;
+            letter-spacing: 0.2px;
         }
     </style>
 </head>
@@ -671,37 +750,28 @@
                 </div>
             @endif
 
-            {{-- 4. BOTTOM ORGANIZERS SECTION (3 COLUMNS - Centered & Clean) --}}
-            @if($showOrganizers)
-                <div class="card-organizers-section">
-                    
-                    {{-- Col 1 --}}
-                    <div class="org-col">
-                        <div class="org-name">{{ $org1Name }}</div>
-                        <div class="org-role">{!! nl2br(e($org1Role)) !!}</div>
-                        <div class="org-phone">
-                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org1Phone }}
+            {{-- 4. BOTTOM DYNAMIC VERIFICATION QR CODE SECTION (স্বাক্ষর বাদ হয়ে অটোমেটিক ভেরিফাই কিউ আর কোড ইউআরএলসহ) --}}
+            @if($showQrCode)
+                <div class="card-verify-qr-section">
+                    <a href="{{ $verifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই অনুষ্ঠানে উপস্থিতি নিশ্চিত হবে">
+                        <div class="qr-code-box" style="width: {{ $qrCodeSize }}px; height: {{ $qrCodeSize }}px;">
+                            <img src="{{ $qrApiUrl }}" alt="Verify QR Code" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
                         </div>
-                    </div>
-
-                    {{-- Col 2 --}}
-                    <div class="org-col">
-                        <div class="org-name">{{ $org2Name }}</div>
-                        <div class="org-role">{!! nl2br(e($org2Role)) !!}</div>
-                        <div class="org-phone">
-                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org2Phone }}
+                        <div class="qr-info-box">
+                            <div class="qr-verify-badge">
+                                <i class="fa-solid fa-circle-check" style="font-size: 7px;"></i> LIVE VERIFIED
+                            </div>
+                            <div class="qr-title">
+                                {{ $qrCaptionText }}
+                            </div>
+                            <div class="qr-subtitle">
+                                <i class="fa-solid fa-arrow-pointer" style="font-size: 6.5px; color: #facc15; margin-right: 2px;"></i> {{ $qrSubtext }}
+                            </div>
+                            <div class="qr-url-text">
+                                {{ url('/v/' . $registration->registration_number) }}
+                            </div>
                         </div>
-                    </div>
-
-                    {{-- Col 3 --}}
-                    <div class="org-col">
-                        <div class="org-name">{{ $org3Name }}</div>
-                        <div class="org-role">{!! nl2br(e($org3Role)) !!}</div>
-                        <div class="org-phone">
-                            <i class="fa-solid fa-phone" style="font-size: 6px;"></i> {{ $org3Phone }}
-                        </div>
-                    </div>
-
+                    </a>
                 </div>
             @endif
 

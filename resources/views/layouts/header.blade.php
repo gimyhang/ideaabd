@@ -189,7 +189,7 @@
     {{-- ══════════════════════════════════════════════════════════════════
          BAR 2: MAIN BRANDING & INSTANT SEARCH BAR
     ══════════════════════════════════════════════════════════════════ --}}
-    <div class="site-mainbar bg-white border-bottom position-relative" style="padding-top: 50px; padding-bottom: 50px; min-height: 146px; z-index: 1040; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+    <div class="site-mainbar bg-white border-bottom position-relative" style="padding-top: 14px; padding-bottom: 14px; min-height: 74px; z-index: 1080; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
         <div class="container d-flex align-items-center justify-content-between gap-2 gap-lg-4">
 
             {{-- 1. Brand Logo --}}
@@ -305,7 +305,7 @@
                     @php
                         $userAvatarUrl = $me->avatar_url;
                     @endphp
-                    <div class="dropdown user-header-dropdown">
+                    <div class="dropdown user-header-dropdown position-relative" style="z-index: 1090;">
                         <button class="btn btn-outline-light text-dark border p-1 pe-2.5 rounded-pill d-flex align-items-center gap-2 shadow-2xs hover-primary transition-all" 
                                 type="button" 
                                 id="userAccountDropdownBtn" 
@@ -313,30 +313,17 @@
                                 data-bs-display="static"
                                 aria-expanded="false"
                                 style="min-height: 44px; background: #ffffff;">
-                            @if ($userAvatarUrl)
-                                <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs" style="width: 34px; height: 34px; border: 2px solid #0284c7;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
-                                <span class="rounded-circle text-white fw-bold shadow-xs align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 13px; background: linear-gradient(135deg, #0284c7, #0369a1); display: none;">
-                                    {{ mb_substr($me->name, 0, 1) }}
-                                </span>
-                            @else
-                                <span class="rounded-circle text-white fw-bold shadow-xs d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 13px; background: linear-gradient(135deg, #0284c7, #0369a1);">
-                                    {{ mb_substr($me->name, 0, 1) }}
-                                </span>
-                            @endif
+                            <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs" style="width: 34px; height: 34px; border: 2px solid #0284c7;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($me->name) }}&background=0284c7&color=ffffff&size=128&bold=true';">
                             <div class="text-start d-none d-md-block lh-1 pe-1">
                                 <small class="text-muted d-block" style="font-size: 10px;">স্বাগতম,</small>
                                 <span class="fw-bold text-dark" style="font-size: 12.5px;">{{ Str::limit($me->name, 12) }}</span>
                             </div>
                         </button>
 
-                        <ul class="dropdown-menu dropdown-menu-end site-drop border-0 shadow-2xl p-2" style="width: 260px; border-radius: 16px;">
+                        <ul class="dropdown-menu dropdown-menu-end site-drop border-0 shadow-2xl p-2" style="width: 270px; border-radius: 16px; z-index: 2500 !important; position: absolute !important; right: 0 !important; top: 100% !important; margin-top: 8px !important;">
                             <li class="px-3 py-3 border-bottom mb-2 text-center bg-light" style="margin: -0.5rem -0.5rem 0.5rem -0.5rem; border-top-left-radius: 16px; border-top-right-radius: 16px;">
-                                <div class="mx-auto mb-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 50px; height: 50px; background: #e2e8f0;">
-                                    @if ($userAvatarUrl)
-                                        <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="w-100 h-100 object-fit-cover">
-                                    @else
-                                        <span class="fw-bold text-primary fs-5">{{ mb_substr($me->name, 0, 1) }}</span>
-                                    @endif
+                                <div class="mx-auto mb-2 shadow-sm rounded-circle d-flex align-items-center justify-content-center overflow-hidden" style="width: 52px; height: 52px; background: #e2e8f0; border: 2px solid #0284c7;">
+                                    <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($me->name) }}&background=0284c7&color=ffffff&size=128&bold=true';">
                                 </div>
                                 <div class="fw-bold text-dark fs-6">{{ $me->name }}</div>
                                 <div class="text-muted small text-truncate">{{ $me->email }}</div>
@@ -477,9 +464,9 @@
          BAR 3: CENTERED PRIMARY NAVIGATION BAR WITH DYNAMIC 'সকল বিষয়' & CLEAN DROPDOWNS
          [সকল বিষয় ▾] [হোম] [ই-বুক] [লেখক ▾] [প্রকাশক] [আইডিয়াপত্র ▾] [ওয়েবজিন] [গবেষণা] [আইডিয়া হাব] [আমাদের সম্পর্কে] [যোগাযোগ]
     ══════════════════════════════════════════════════════════════════ --}}
-    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); z-index: 1065; min-height: 92px; display: flex; align-items: center;" aria-label="প্রধান মেনু">
-        <div class="container d-flex align-items-center justify-content-center text-center position-relative" style="overflow: visible; min-height: 92px;">
-            <ul class="nav align-items-center justify-content-center site-nav__list py-2 my-0 w-100" style="min-height: 92px; overflow: visible;">
+    <nav class="site-navbar bg-white border-bottom d-none d-lg-block position-relative" style="border-top: 1px solid #f1f5f9; border-bottom: 1px solid #e2e8f0; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); z-index: 1065; min-height: 52px; display: flex; align-items: center;" aria-label="প্রধান মেনু">
+        <div class="container d-flex align-items-center justify-content-center text-center position-relative" style="overflow: visible; min-height: 52px;">
+            <ul class="nav align-items-center justify-content-center site-nav__list py-1 my-0 w-100" style="min-height: 52px; overflow: visible;">
 
                 {{-- 1. [সকল বিষয় ▾] Clean Category & Department Mega Dropdown --}}
                 <li class="nav-item dropdown site-nav__item has-mega position-relative">

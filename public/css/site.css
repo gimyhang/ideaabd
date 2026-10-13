@@ -383,10 +383,15 @@ img, svg, video, canvas, audio, iframe {
     z-index: 1060;
 }
 
+.site-mainbar {
+    position: relative;
+    z-index: 1080;
+}
+
 .site-navbar {
     position: relative;
     z-index: 1065;
-    min-height: 92px;
+    min-height: 52px;
     display: flex;
     align-items: center;
 }
@@ -610,7 +615,16 @@ img, svg, video, canvas, audio, iframe {
     margin-top: .4rem;
     min-width: 240px;
     background: #fff;
-    z-index: 1050;
+    z-index: 2500 !important;
+}
+
+.user-header-dropdown {
+    position: relative;
+    z-index: 1090;
+}
+
+.user-header-dropdown .dropdown-menu {
+    z-index: 2500 !important;
 }
 
 .site-drop .dropdown-item {

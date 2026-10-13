@@ -449,29 +449,53 @@ class User extends Authenticatable
             ?? ($this->reg_data['profile_photo'] ?? null);
 
         if (empty($avatar)) {
-            return null;
+            try {
+                $author = $this->getAuthorRecord();
+                if ($author && !empty($author->avatar)) {
+                    $avatar = $author->avatar;
+                }
+            } catch (\Throwable $e) {}
         }
 
-        $avatar = trim((string) $avatar);
-        $avatar = str_replace('\\', '/', $avatar);
-
-        if (str_starts_with($avatar, 'data:image')) {
-            return $avatar;
+        if (empty($avatar)) {
+            try {
+                $emp = \App\Models\IdeaEmployee::where('email', $this->email)
+                    ->orWhere('phone', $this->phone)
+                    ->orWhere('name', $this->name)
+                    ->first();
+                if ($emp && !empty($emp->avatar)) {
+                    $avatar = $emp->avatar;
+                } elseif ($emp && !empty($emp->photo)) {
+                    $avatar = $emp->photo;
+                }
+            } catch (\Throwable $e) {}
         }
 
-        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
-            return $avatar;
+        if (!empty($avatar)) {
+            $avatar = trim((string) $avatar);
+            $avatar = str_replace('\\', '/', $avatar);
+
+            if (str_starts_with($avatar, 'data:image')) {
+                return $avatar;
+            }
+
+            if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+                return $avatar;
+            }
+
+            $cleanPath = ltrim($avatar, '/');
+            if (str_starts_with($cleanPath, 'storage/')) {
+                return asset($cleanPath);
+            }
+            if (str_starts_with($cleanPath, 'public/')) {
+                return asset('storage/' . substr($cleanPath, 7));
+            }
+
+            return asset('storage/' . $cleanPath);
         }
 
-        $cleanPath = ltrim($avatar, '/');
-        if (str_starts_with($cleanPath, 'storage/')) {
-            return asset($cleanPath);
-        }
-        if (str_starts_with($cleanPath, 'public/')) {
-            return asset('storage/' . substr($cleanPath, 7));
-        }
-
-        return asset('storage/' . $cleanPath);
+        $cleanName = urlencode($this->name ?: 'User');
+        return "https://ui-avatars.com/api/?name={$cleanName}&background=0284c7&color=ffffff&size=128&bold=true";
     }
 
     /**

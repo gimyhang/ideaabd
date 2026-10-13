@@ -1,36 +1,28 @@
 /**
  * ══════════════════════════════════════════════════════════════════════════
- * IDEA PROKASHON — ideaabd "YOUR ACCOUNT" DYNAMIC CONTROLLER
+ * IDEA PROKASHON — USER ACCOUNT DASHBOARD DYNAMIC CONTROLLER
  * ══════════════════════════════════════════════════════════════════════════
  */
 
 const SECTION_TITLES = {
-    'hub': { title: 'Your Account Hub', icon: 'fa-house' },
-    'orders': { title: 'Your Orders', icon: 'fa-box-archive' },
-    'loginSecurity': { title: 'Login & security', icon: 'fa-shield-halved' },
-    'addresses': { title: 'Your Addresses', icon: 'fa-location-dot' },
-    'payments': { title: 'Your Payments', icon: 'fa-credit-card' },
-    'prime': { title: 'Prime Membership', icon: 'fa-crown' },
-    'giftcards': { title: 'Gift cards & Balance', icon: 'fa-gift' },
-    'digitalServices': { title: 'Digital Library & E-Books', icon: 'fa-book-open-reader' },
-    'kyc': { title: 'KYC & Verification', icon: 'fa-id-card' },
-    'libraryGrant': { title: 'পাঠাগার ও বই অনুদান', icon: 'fa-book-open-reader' },
-    'royalties': { title: 'Royalties & Payouts', icon: 'fa-sack-dollar' },
-    'authorHub': { title: 'Author Studio Hub', icon: 'fa-feather-pointed' },
-    'blog': { title: 'Author Articles & Blog', icon: 'fa-pen-nib' },
-    'memberships': { title: 'Memberships & Subscriptions', icon: 'fa-user-group' },
-    'preferences': { title: 'Language & Preferences', icon: 'fa-globe' },
-    'customerService': { title: 'Customer Service & Help', icon: 'fa-headset' },
+    'hub': { title: 'অ্যাকাউন্ট ড্যাশবোর্ড' },
+    'orders': { title: 'অর্ডার ও ট্র্যাকিং' },
+    'digitalServices': { title: 'ই-বুক ও লাইব্রেরি' },
+    'wishlist': { title: 'পছন্দের তালিকা' },
+    'addresses': { title: 'ডেলিভারি ঠিকানা' },
+    'loginSecurity': { title: 'লগইন ও নিরাপত্তা' },
+    'kyc': { title: 'কেওয়াইসি ও ভেরিফিকেশন' },
+    'payments': { title: 'ওয়ালেট ও রয়্যালটি' },
+    'libraryGrant': { title: 'পাঠাগার ও বই অনুদান' },
+    'customerService': { title: 'গ্রাহক সেবা ও সহায়তা' }
 };
 
 function syncNavDropdown(panelKey) {
     const key = panelKey || 'hub';
-    const info = SECTION_TITLES[key] || { title: 'Your Account Hub', icon: 'fa-house' };
+    const info = SECTION_TITLES[key] || { title: 'অ্যাকাউন্ট ড্যাশবোর্ড' };
 
     const labelEl = document.getElementById('currentAccountNavLabel');
-    const iconEl = document.getElementById('currentAccountNavIcon');
     if (labelEl) labelEl.textContent = info.title;
-    if (iconEl) iconEl.className = 'fa-solid ' + info.icon + ' text-primary';
 
     document.querySelectorAll('.amz-nav-menu .dropdown-item[data-panel]').forEach(function (item) {
         if (item.getAttribute('data-panel') === key) {
@@ -48,7 +40,10 @@ function openSectionPanel(panelKey) {
     }
 
     const hub = document.getElementById('mainAccountHubView');
-    if (hub) hub.style.display = 'none';
+    if (hub) {
+        hub.style.display = 'none';
+        hub.classList.add('d-none');
+    }
 
     document.querySelectorAll('.amz-subpage-panel, .amz-section-panel').forEach(function (panel) {
         panel.classList.remove('active');
@@ -81,6 +76,7 @@ function closeAllPanels() {
     const hub = document.getElementById('mainAccountHubView');
     if (hub) {
         hub.style.display = 'block';
+        hub.classList.remove('d-none');
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -173,4 +169,3 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleKycRoleFields(kycRoleSelect.value);
     }
 });
-

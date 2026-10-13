@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Account')
+@section('title', 'My Account')
 
 @push('head')
 <link rel="stylesheet" href="{{ asset('css/my-account.css') }}?v={{ @filemtime(public_path('css/my-account.css')) ?: time() }}">
@@ -14,14 +14,14 @@
 
         {{-- Flash Alert Notifications --}}
         @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show rounded-3 p-3 mb-3 border-0 shadow-xs" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981 !important;">
-                <i class="fa-solid fa-circle-check me-2 text-success"></i> {{ session('success') }}
+            <div class="alert alert-success alert-dismissible fade show rounded-3 p-3 mb-3 border-0" style="background: #ecfdf5; color: #065f46; border-left: 4px solid #10b981 !important;">
+                {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show rounded-3 p-3 mb-3 border-0 shadow-xs" style="background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444 !important;">
-                <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i> {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show rounded-3 p-3 mb-3 border-0" style="background: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444 !important;">
+                {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
@@ -37,26 +37,20 @@
             $isPending = !$isApproved && ($user->reg_status === 'pending' || !empty($regData['kyc_submitted_at']));
         @endphp
 
-        {{-- Pending Approval Alert for Author / Publisher / Seller Accounts --}}
+        {{-- Pending Approval Alert for Special Roles --}}
         @if(($isAuthor || $isPublisher || $isSeller) && !$isApproved)
-            <div class="alert alert-warning border-0 rounded-4 p-3.5 mb-4 shadow-sm d-flex align-items-start gap-3" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
-                <div class="rounded-circle bg-warning text-white p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
-                    <i class="fa-solid fa-hourglass-half fs-5 text-dark"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <h5 class="fw-bold mb-1 text-dark" style="font-size: 15.5px;">
-                        আপনার {{ $isAuthor ? 'লেখক (Author)' : ($isPublisher ? 'প্রকাশক (Publisher)' : 'সেলার (Seller)') }} অ্যাকাউন্টটি অনুমোদনের অপেক্ষায় রয়েছে (Pending Approval)
-                    </h5>
-                    <p class="mb-0 text-muted small lh-base" style="font-size: 13px;">
-                        আপনার আবেদনটি এডমিন টিম কর্তৃক পর্যালোচনায় রয়েছে। অনুমোদন সম্পন্ন হলে আপনার বিশেষায়িত ড্যাশবোর্ড ও ম্যানেজমেন্ট পোর্টাল স্বয়ংক্রিয়ভাবে সক্রিয় হবে। 
-                        <strong class="text-dark">বর্তমানে আপনি সাধারণ গ্রাহক হিসেবে বই ব্রাউজিং, শপিং কার্ট, কেনাকাটা, অর্ডার ট্র্যাকিং এবং ব্যক্তিগত অ্যাকাউন্ট সুবিধা ব্যবহার করতে পারছেন।</strong>
-                    </p>
-                </div>
+            <div class="alert alert-warning border-0 rounded-3 p-3 mb-4" style="background: #fffbeb; border-left: 4px solid #f59e0b !important;">
+                <h5 class="fw-bold mb-1 text-dark" style="font-size: 14.5px;">
+                    আপনার {{ $isAuthor ? 'লেখক' : ($isPublisher ? 'প্রকাশক' : 'সেলার') }} অ্যাকাউন্টটি অনুমোদনের অপেক্ষায় রয়েছে
+                </h5>
+                <p class="mb-0 text-muted small lh-base" style="font-size: 13px;">
+                    আপনার আবেদনটি অ্যাডমিন টিম কর্তৃক পর্যালোচনায় রয়েছে। অনুমোদন সম্পন্ন হলে আপনার বিশেষায়িত পোর্টাল সক্রিয় হবে। বর্তমানে আপনি সাধারণ পাঠক হিসেবে বই ব্রাউজিং, অর্ডার ও ট্র্যাকিং সুবিধা ব্যবহার করতে পারছেন।
+                </p>
             </div>
         @endif
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- MY ACCOUNT QUICK-JUMP DROPDOWN NAVIGATION BAR                         --}}
+        {{-- USER NAVIGATION & QUICK-JUMP BAR                                      --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
         <div class="amz-account-nav-bar">
             <div class="amz-nav-user-badge">
@@ -68,142 +62,108 @@
                     @endif
                 </div>
                 <div>
-                    <div class="fw-bold text-dark lh-1" style="font-size: 14px;">স্বাগতম, {{ $user->name }}</div>
-                    <div class="text-muted small" style="font-size: 11px;">
+                    <div class="fw-semibold text-dark lh-sm" style="font-size: 14.5px;">{{ $user->name }}</div>
+                    <div class="text-muted" style="font-size: 12px;">
                         @if($isAdmin)
-                            <span class="badge bg-danger px-2 py-0.5 rounded-pill">👑 অ্যাডমিন</span>
+                            <span class="badge bg-danger px-2 py-0.5 rounded-pill">অ্যাডমিন</span>
                         @elseif($isAuthor)
                             <span class="badge {{ $isApproved ? 'bg-primary' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
-                                ✍️ লেখক {{ $isApproved ? 'Studio' : '(অপেক্ষমাণ)' }}
+                                লেখক {{ $isApproved ? 'Studio' : '(অপেক্ষমাণ)' }}
                             </span>
                         @elseif($isPublisher)
                             <span class="badge {{ $isApproved ? 'bg-success' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
-                                🏢 প্রকাশক {{ $isApproved ? 'Portal' : '(অপেক্ষমাণ)' }}
+                                প্রকাশক {{ $isApproved ? 'Portal' : '(অপেক্ষমাণ)' }}
                             </span>
                         @elseif($isSeller)
                             <span class="badge {{ $isApproved ? 'bg-info text-dark' : 'bg-warning text-dark' }} px-2 py-0.5 rounded-pill">
-                                💼 সেলার {{ $isApproved ? 'Panel' : '(অপেক্ষমাণ)' }}
+                                সেলার {{ $isApproved ? 'Panel' : '(অপেক্ষমাণ)' }}
                             </span>
                         @else
-                            <span class="badge bg-secondary px-2 py-0.5 rounded-pill">👤 কাস্টমার একাউন্ট</span>
+                            <span class="badge bg-light text-secondary border px-2 py-0.5 rounded-pill">গ্রাহক অ্যাকাউন্ট</span>
                         @endif
                     </div>
                 </div>
             </div>
 
-            {{-- Responsive Dropdown Navigation Controller --}}
+            {{-- Clean Quick-Jump Dropdown --}}
             <div class="dropdown">
-                <button class="amz-nav-dropdown-btn dropdown-toggle" type="button" id="myAccountInternalNavDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" title="My Account Menu Options">
-                    <i class="fa-solid fa-house text-primary" id="currentAccountNavIcon"></i>
-                    <span id="currentAccountNavLabel">Your Account Hub</span>
+                <button class="amz-nav-dropdown-btn dropdown-toggle" type="button" id="myAccountInternalNavDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span id="currentAccountNavLabel">অ্যাকাউন্ট ড্যাশবোর্ড</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end amz-nav-menu shadow-2xl" aria-labelledby="myAccountInternalNavDropdownBtn">
-                    <li class="dropdown-header">Primary Hub</li>
+                <ul class="dropdown-menu dropdown-menu-end amz-nav-menu" aria-labelledby="myAccountInternalNavDropdownBtn">
+                    <li class="dropdown-header">প্রধান ড্যাশবোর্ড</li>
                     <li>
                         <a class="dropdown-item active" href="javascript:void(0)" data-panel="hub" onclick="closeAllPanels()">
-                            <i class="fa-solid fa-house text-primary" style="width: 18px;"></i>
-                            <span>Your Account Hub</span>
+                            অ্যাকাউন্ট ড্যাশবোর্ড
                         </a>
                     </li>
-                    <li class="dropdown-header mt-1">Orders & Shopping</li>
+                    <li class="dropdown-header mt-1">অর্ডার ও বই</li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" data-panel="orders" onclick="openSectionPanel('orders')">
-                            <i class="fa-solid fa-box-archive text-info" style="width: 18px;"></i>
-                            <span>Your Orders</span>
+                            অর্ডার ও ট্র্যাকিং
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" data-panel="digitalServices" onclick="openSectionPanel('digitalServices')">
-                            <i class="fa-solid fa-book-open-reader text-success" style="width: 18px;"></i>
-                            <span>Digital Library & E-Books</span>
+                            ই-বুক ও লাইব্রেরি
                         </a>
                     </li>
-                    <li class="dropdown-header mt-1">Account & Security</li>
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0)" data-panel="loginSecurity" onclick="openSectionPanel('loginSecurity')">
-                            <i class="fa-solid fa-shield-halved text-success" style="width: 18px;"></i>
-                            <span>Login & Security</span>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="wishlist" onclick="openSectionPanel('wishlist')">
+                            পছন্দের তালিকা
                         </a>
                     </li>
+                    <li class="dropdown-header mt-1">প্রোফাইল ও সেটিংস</li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" data-panel="addresses" onclick="openSectionPanel('addresses')">
-                            <i class="fa-solid fa-location-dot text-danger" style="width: 18px;"></i>
-                            <span>Your Addresses</span>
+                            ডেলিভারি ঠিকানা
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="javascript:void(0)" data-panel="payments" onclick="openSectionPanel('payments')">
-                            <i class="fa-solid fa-credit-card text-purple" style="width: 18px; color: #8b5cf6;"></i>
-                            <span>Your Payments</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0)" data-panel="prime" onclick="openSectionPanel('prime')">
-                            <i class="fa-solid fa-crown text-warning" style="width: 18px;"></i>
-                            <span>Prime Membership</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0)" data-panel="giftcards" onclick="openSectionPanel('giftcards')">
-                            <i class="fa-solid fa-gift text-danger" style="width: 18px;"></i>
-                            <span>Gift Cards & Balance</span>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="loginSecurity" onclick="openSectionPanel('loginSecurity')">
+                            লগইন ও নিরাপত্তা
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" data-panel="kyc" onclick="openSectionPanel('kyc')">
-                            <i class="fa-solid fa-id-card text-secondary" style="width: 18px;"></i>
-                            <span>KYC & Verification</span>
+                            কেওয়াইসি ও ভেরিফিকেশন
                         </a>
                     </li>
-                    @if($isAuthor)
-                        <li class="dropdown-header mt-1">Author Services</li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0)" data-panel="royalties" onclick="openSectionPanel('royalties')">
-                                <i class="fa-solid fa-sack-dollar text-warning" style="width: 18px;"></i>
-                                <span>Royalties & Payouts</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="javascript:void(0)" data-panel="blog" onclick="openSectionPanel('blog')">
-                                <i class="fa-solid fa-pen-nib text-primary" style="width: 18px;"></i>
-                                <span>Author Articles & Blog</span>
-                            </a>
-                        </li>
-                    @endif
-                    <li class="dropdown-header mt-1">Support & Settings</li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="payments" onclick="openSectionPanel('payments')">
+                            ওয়ালেট ও রয়্যালটি
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="javascript:void(0)" data-panel="libraryGrant" onclick="openSectionPanel('libraryGrant')">
+                            পাঠাগার ও বই অনুদান
+                        </a>
+                    </li>
                     <li>
                         <a class="dropdown-item" href="javascript:void(0)" data-panel="customerService" onclick="openSectionPanel('customerService')">
-                            <i class="fa-solid fa-headset text-success" style="width: 18px;"></i>
-                            <span>Customer Service & Help</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0)" data-panel="preferences" onclick="openSectionPanel('preferences')">
-                            <i class="fa-solid fa-globe text-muted" style="width: 18px;"></i>
-                            <span>Language & Preferences</span>
+                            গ্রাহক সেবা ও সহায়তা
                         </a>
                     </li>
                     @if(($isAuthor && $isApproved) || ($isPublisher && $isApproved) || ($isSeller && $isApproved) || $isAdmin)
                         <li><hr class="dropdown-divider my-1"></li>
-                        <li class="dropdown-header">Special Portals</li>
+                        <li class="dropdown-header">বিশেষ পোর্টাল</li>
                         @if($isAdmin)
-                            <li><a class="dropdown-item fw-bold text-danger" href="{{ url('/admin') }}"><i class="fa-solid fa-shield-halved" style="width: 18px;"></i> Admin Panel</a></li>
+                            <li><a class="dropdown-item fw-semibold text-danger" href="{{ url('/admin') }}">Admin Panel</a></li>
                         @endif
                         @if($isAuthor && $isApproved)
-                            <li><a class="dropdown-item fw-bold text-primary" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed" style="width: 18px;"></i> Author Studio</a></li>
+                            <li><a class="dropdown-item fw-semibold text-primary" href="{{ route('author.dashboard') }}">Author Studio</a></li>
                         @endif
                         @if($isPublisher && $isApproved)
-                            <li><a class="dropdown-item fw-bold text-success" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building" style="width: 18px;"></i> Publisher Portal</a></li>
+                            <li><a class="dropdown-item fw-semibold text-success" href="{{ route('publisher.dashboard') }}">Publisher Portal</a></li>
                         @endif
                         @if($isSeller && $isApproved)
-                            <li><a class="dropdown-item fw-bold text-warning" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store" style="width: 18px;"></i> Seller Panel</a></li>
+                            <li><a class="dropdown-item fw-semibold text-warning" href="{{ route('subadmin.dashboard') }}">Seller Panel</a></li>
                         @endif
                     @endif
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>
-                        <a class="dropdown-item text-danger fw-bold" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('amzLogoutForm').submit();">
-                            <i class="fa-solid fa-power-off text-danger" style="width: 18px;"></i>
-                            <span>Sign Out</span>
+                        <a class="dropdown-item text-danger fw-semibold" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('amzLogoutForm').submit();">
+                            সাইন আউট
                         </a>
                     </li>
                 </ul>
@@ -211,298 +171,208 @@
         </div>
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- VIEW 1: AUTHENTIC ideaabd "YOUR ACCOUNT" HOME HUB                      --}}
+        {{-- VIEW 1: MAIN ACCOUNT HUB                                              --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
         <div id="mainAccountHubView" style="{{ $activeTab ? 'display: none !important;' : 'display: block !important;' }}">
             
-            {{-- ideaabd Main Header --}}
-            <div class="amz-header-row border-0 mb-4 pb-0">
+            {{-- Clean Header --}}
+            <div class="amz-header-row">
                 <div>
-                    <h1 class="amz-main-title" style="font-size: 28px; font-weight: 500;">Your Account</h1>
+                    <h1 class="amz-main-title">আমার অ্যাকাউন্ট</h1>
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     @if($isAdmin)
-                        <a href="{{ url('/admin') }}" class="amz-btn-silver" title="Admin Panel">
-                            <i class="fa-solid fa-shield-halved me-1 text-danger"></i> Admin Panel
-                        </a>
+                        <a href="{{ url('/admin') }}" class="amz-btn-silver">Admin Panel</a>
                     @endif
                     @if($isAuthor && $isApproved && Route::has('author.dashboard'))
-                        <a href="{{ route('author.dashboard') }}" class="amz-btn-silver" title="Author Studio">
-                            <i class="fa-solid fa-feather-pointed me-1 text-primary"></i> Author Studio
-                        </a>
+                        <a href="{{ route('author.dashboard') }}" class="amz-btn-silver">Author Studio</a>
                     @endif
                     @if($isPublisher && $isApproved && Route::has('publisher.dashboard'))
-                        <a href="{{ route('publisher.dashboard') }}" class="amz-btn-silver" title="Publisher Portal">
-                            <i class="fa-solid fa-building me-1 text-success"></i> Publisher Portal
-                        </a>
+                        <a href="{{ route('publisher.dashboard') }}" class="amz-btn-silver">Publisher Portal</a>
                     @endif
                     @if(($isSeller || $user->isSeller() || $user->isSubAdmin()) && $isApproved && Route::has('subadmin.dashboard'))
-                        <a href="{{ route('subadmin.dashboard') }}" class="amz-btn-silver" title="Seller Dashboard">
-                            <i class="fa-solid fa-store me-1 text-warning"></i> Seller Dashboard
-                        </a>
+                        <a href="{{ route('subadmin.dashboard') }}" class="amz-btn-silver">Seller Dashboard</a>
                     @endif
                     <a href="{{ route('logout') }}" class="amz-btn-silver" onclick="event.preventDefault(); document.getElementById('amzLogoutForm').submit();">
-                        <i class="fa-solid fa-power-off me-1 text-muted"></i> Sign Out
+                        সাইন আউট
                     </a>
                     <form id="amzLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
                 </div>
             </div>
 
-            {{-- Dynamic KYC & Profile Enhancement Banner --}}
-            <div class="card border-0 rounded-4 p-3.5 mb-4 shadow-sm" 
-                 style="background: linear-gradient(135deg, #07192f 0%, #0c3547 50%, #004d40 100%); color: #ffffff;">
+            {{-- Minimalist Quick Stats Strip --}}
+            <div class="amz-stats-strip">
+                <div class="amz-stat-card" role="button" onclick="openSectionPanel('orders')">
+                    <div class="amz-stat-value">{{ $totalOrdersCount ?? $myOrders->total() ?? 0 }}</div>
+                    <div class="amz-stat-label">মোট অর্ডার</div>
+                </div>
+                <div class="amz-stat-card" role="button" onclick="openSectionPanel('digitalServices')">
+                    <div class="amz-stat-value">{{ $myEbooks->count() }}</div>
+                    <div class="amz-stat-label">ই-বুক সংগ্রহ</div>
+                </div>
+                <div class="amz-stat-card" role="button" onclick="openSectionPanel('wishlist')">
+                    <div class="amz-stat-value">{{ $wishlistItems->count() }}</div>
+                    <div class="amz-stat-label">পছন্দের বই</div>
+                </div>
+                <div class="amz-stat-card" role="button" onclick="openSectionPanel('payments')">
+                    <div class="amz-stat-value">৳{{ number_format($walletBalance, 0) }}</div>
+                    <div class="amz-stat-label">ওয়ালেট ও রয়্যালটি</div>
+                </div>
+            </div>
+
+            {{-- Minimalist KYC Status Card --}}
+            <div class="card p-3 p-md-4 mb-4" style="background: #ffffff;">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="position-relative d-flex align-items-center justify-content-center" style="width: 58px; height: 58px; flex-shrink: 0;">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold font-monospace" 
-                                 style="width: 54px; height: 54px; background: rgba(255,255,255,0.12); border: 2.5px solid {{ $kycPercent >= 80 ? '#10b981' : '#f59e0b' }}; font-size: 15px; color: #ffffff;">
-                                {{ $kycPercent }}%
-                            </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h5 class="fw-semibold mb-0 text-dark" style="font-size: 15.5px;">কেওয়াইসি ও প্রোফাইল ভেরিফিকেশন</h5>
+                            @if($kycPercent >= 100)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-0.5" style="font-size: 11px;">সম্পন্ন</span>
+                            @else
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-0.5" style="font-size: 11px;">{{ $kycPercent }}% সম্পন্ন</span>
+                            @endif
                         </div>
-                        <div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                                <h5 class="fw-bold mb-0 text-white" style="font-size: 17px;">
-                                    কেওয়াইসি (KYC) ও প্রোফাইল ভেরিফিকেশন
-                                </h5>
-                                @if($kycPercent >= 100)
-                                    <span class="badge bg-success rounded-pill px-2.5 py-1 text-white" style="font-size: 11px;">
-                                        <i class="fa-solid fa-circle-check me-1"></i> সম্পন্ন
-                                    </span>
-                                @else
-                                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                        <i class="fa-solid fa-clock-rotate-left me-1"></i> {{ $kycPercent }}% সম্পন্ন
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="mb-0 text-white-50 small" style="font-size: 13px; line-height: 1.45;">
-                                @if($kycPercent >= 100)
-                                    আপনার অ্যাকাউন্ট কেওয়াইসি তথ্য সম্পূর্ণ রয়েছে। যে কোনো সময় তথ্য পরিবর্তন বা উন্নত করতে পারেন।
-                                @else
-                                    কেওয়াইসি ও ভূমিকা তথ্য উন্নত করলে ভেরিফাইড ব্যাজ, রয়্যালটি পেমেন্ট এবং লেখক/প্রকাশক সুবিধা দ্রুত কার্যকর হবে।
-                                @endif
-                            </p>
+                        <p class="mb-2 text-muted small" style="font-size: 13px;">
+                            @if($kycPercent >= 100)
+                                আপনার অ্যাকাউন্ট প্রোফাইল তথ্য সম্পূর্ণ রয়েছে। প্রয়োজন অনুসারে যে কোনো সময় আপডেট করতে পারেন।
+                            @else
+                                তথ্য ও ভূমিকা আপডেট করলে ভেরিফায়েড সুবিধা, রয়্যালটি উত্তোলন এবং লেখক/প্রকাশক পোর্টাল কার্যকর হবে।
+                            @endif
+                        </p>
+                        {{-- Minimalist Progress Bar --}}
+                        <div class="progress" style="height: 6px; background-color: #f1f5f9; border-radius: 4px; max-width: 380px;">
+                            <div class="progress-bar {{ $kycPercent >= 80 ? 'bg-success' : 'bg-warning' }}" role="progressbar" style="width: {{ $kycPercent }}%;" aria-valuenow="{{ $kycPercent }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                        <button type="button" class="btn btn-warning text-dark fw-bold rounded-pill px-4 py-2 d-inline-flex align-items-center gap-2 shadow-sm" onclick="openSectionPanel('kyc')" style="font-size: 13.5px;">
-                            <i class="fa-solid fa-id-card"></i>
-                            <span>কেওয়াইসি উন্নত / আপডেট করুন</span>
-                            <i class="fa-solid fa-arrow-right small"></i>
+                    <div>
+                        <button type="button" class="amz-btn-silver" onclick="openSectionPanel('kyc')">
+                            কেওয়াইসি আপডেট করুন
                         </button>
                     </div>
                 </div>
-
-                {{-- Interactive KYC Mini Progress Checklist --}}
-                <div class="mt-3 pt-2.5 border-top d-flex flex-wrap gap-2 gap-md-3" style="border-color: rgba(255,255,255,0.15) !important; font-size: 12px;">
-                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['photo'] ? 'text-white' : 'text-white-50' }}">
-                        <i class="fa-solid {{ $kycItems['photo'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
-                        <span>প্রোফাইল ছবি</span>
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['name'] ? 'text-white' : 'text-white-50' }}">
-                        <i class="fa-solid {{ $kycItems['name'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
-                        <span>পূর্ণাঙ্গ নাম</span>
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['bio'] ? 'text-white' : 'text-white-50' }}">
-                        <i class="fa-solid {{ $kycItems['bio'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
-                        <span>পরিচিতি / বায়ো</span>
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['nid'] ? 'text-white' : 'text-white-50' }}">
-                        <i class="fa-solid {{ $kycItems['nid'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
-                        <span>এনআইডি / লাইসেন্স</span>
-                    </span>
-                    <span class="d-inline-flex align-items-center gap-1.5 {{ $kycItems['address'] ? 'text-white' : 'text-white-50' }}">
-                        <i class="fa-solid {{ $kycItems['address'] ? 'fa-circle-check text-success' : 'fa-circle-dot opacity-50' }}"></i>
-                        <span>ডেলিভারি ঠিকানা</span>
-                    </span>
-                </div>
             </div>
 
             {{-- ───────────────────────────────────────────────────────────────── --}}
-            {{-- THE SIGNATURE ideaabd 3-COLUMN SERVICE CARDS GRID (12 CARDS)        --}}
+            {{-- CLEAN & FUNCTIONAL FEATURE CARDS GRID (9 CLEAN CARDS)             --}}
             {{-- ───────────────────────────────────────────────────────────────── --}}
             <div class="amz-cards-grid">
                 
-                <!-- CARD: KYC & Verification -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('kyc')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('kyc')">
-                    <div class="amz-icon-holder ic-security" style="background: #e0f2fe; color: #0284c7;">
-                        <i class="fa-solid fa-id-card" style="font-size: 26px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline d-flex align-items-center justify-content-between">
-                            <span>KYC & Verification</span>
-                            <span class="badge {{ $kycPercent >= 80 ? 'bg-success' : 'bg-warning text-dark' }} rounded-pill" style="font-size: 11px;">{{ $kycPercent }}%</span>
-                        </div>
-                        <p class="amz-card-summary">Update identity, author/publisher/seller details, NID, and payout methods</p>
-                    </div>
-                </div>
-
-                <!-- CARD: Library -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('libraryGrant')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('libraryGrant')">
-                    <div class="amz-icon-holder" style="background: #ecfdf5; color: #047857;">
-                        <i class="fa-solid fa-book-open-reader" style="font-size: 26px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline d-flex align-items-center justify-content-between">
-                            <span>পাঠাগার ও বই অনুদান</span>
-                            @if(isset($myLibraryRegistrations) && $myLibraryRegistrations->isNotEmpty())
-                                <span class="badge bg-success rounded-pill" style="font-size: 11px;">{{ $myLibraryRegistrations->count() }} টি</span>
-                            @else
-                                <span class="badge bg-warning text-dark rounded-pill" style="font-size: 10px;">Apply Live</span>
-                            @endif
-                        </div>
-                        <p class="amz-card-summary">বিনামূল্যে বই বিতরণ কর্মসূচি, বরাদ্দ ও প্রাপ্তিস্বীকার এন্ট্রি</p>
-                    </div>
-                </div>
-
                 <!-- CARD 1: Your Orders -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('orders')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('orders')">
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('orders')">
                     <div class="amz-icon-holder ic-orders">
-                        <i class="fa-solid fa-box-archive" style="font-size: 26px;"></i>
+                        <i class="fa-solid fa-box-archive"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Orders</div>
-                        <p class="amz-card-summary">Track, return, cancel an order, download invoice or buy again</p>
+                        <div class="amz-card-headline">অর্ডার ও ট্র্যাকিং</div>
+                        <p class="amz-card-summary">অর্ডার হিস্ট্রি, পার্সেল ট্র্যাকিং ও চালান ডাউনলোড</p>
                     </div>
                 </div>
 
-                <!-- CARD 2: Login & security -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('loginSecurity')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('loginSecurity')">
-                    <div class="amz-icon-holder ic-security">
-                        <i class="fa-solid fa-shield-halved" style="font-size: 26px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Login & security</div>
-                        <p class="amz-card-summary">Edit login, name, and mobile number</p>
-                    </div>
-                </div>
-
-                <!-- CARD 3: Prime -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('prime')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('prime')">
-                    <div class="amz-icon-holder ic-prime">
-                        <span style="font-weight: 800; font-size: 21px; color: #00a8e1; font-family: sans-serif; letter-spacing: -0.5px;">prime</span>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Prime</div>
-                        <p class="amz-card-summary">Manage your membership, view benefits, and payment settings</p>
-                    </div>
-                </div>
-
-                <!-- CARD 4: Your Addresses -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('addresses')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('addresses')">
-                    <div class="amz-icon-holder ic-address">
-                        <i class="fa-solid fa-house" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Addresses</div>
-                        <p class="amz-card-summary">Edit, remove or set default address</p>
-                    </div>
-                </div>
-
-                <!-- CARD 5: Your business account -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('business')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('business')">
-                    <div class="amz-icon-holder ic-business">
-                        <i class="fa-solid fa-briefcase" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Your business account</div>
-                        <p class="amz-card-summary">Sign up to save with business-exclusive pricing, schedule fast deliveries during business-hours, and more</p>
-                    </div>
-                </div>
-
-                <!-- CARD 6: Gift cards -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('giftcards')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('giftcards')">
-                    <div class="amz-icon-holder ic-giftcard">
-                        <i class="fa-solid fa-gift" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Gift cards</div>
-                        <p class="amz-card-summary">View balance or redeem a card, and purchase a new Gift Card</p>
-                    </div>
-                </div>
-
-                <!-- CARD 7: Your Payments -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('payments')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('payments')">
-                    <div class="amz-icon-holder ic-payment">
-                        <i class="fa-solid fa-wallet" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Payments</div>
-                        <p class="amz-card-summary">View all transactions, manage payment methods and settings</p>
-                    </div>
-                </div>
-
-                <!-- CARD 8: Your ideaabd Family -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('family')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('family')">
-                    <div class="amz-icon-holder ic-family">
-                        <i class="fa-solid fa-users" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Your ideaabd Family</div>
-                        <p class="amz-card-summary">Manage profiles, sharing, and permissions in one place</p>
-                    </div>
-                </div>
-
-                <!-- CARD 9: Digital Services and Device Support -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('digitalServices')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('digitalServices')">
+                <!-- CARD 2: Digital Library & E-Books -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('digitalServices')">
                     <div class="amz-icon-holder ic-digital">
-                        <i class="fa-solid fa-display" style="font-size: 24px;"></i>
+                        <i class="fa-solid fa-book-open"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">Digital Services and Device Support</div>
-                        <p class="amz-card-summary">Troubleshoot device issues, manage or cancel digital subscriptions</p>
+                        <div class="amz-card-headline">ই-বুক ও লাইব্রেরি</div>
+                        <p class="amz-card-summary">সংগৃহীত ডিজিটাল বই পড়ুন ও লাইব্রেরি অ্যাক্সেস করুন</p>
                     </div>
                 </div>
 
-                <!-- CARD 10: Your Lists -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('wishlist')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('wishlist')">
+                <!-- CARD 3: Wishlist / Saved Books -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('wishlist')">
                     <div class="amz-icon-holder ic-lists">
-                        <i class="fa-solid fa-list-check" style="font-size: 24px;"></i>
+                        <i class="fa-solid fa-heart"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Lists</div>
-                        <p class="amz-card-summary">View, modify, and share your lists, or create new ones</p>
+                        <div class="amz-card-headline">পছন্দের তালিকা</div>
+                        <p class="amz-card-summary">সংরক্ষণ করা বই ও পরবর্তীতে কেনার তালিকা</p>
                     </div>
                 </div>
 
-                <!-- CARD 11: Customer Service -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('customerService')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('customerService')">
+                <!-- CARD 4: Addresses -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('addresses')">
+                    <div class="amz-icon-holder ic-address">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline">ডেলিভারি ঠিকানা</div>
+                        <p class="amz-card-summary">বই ডেলিভারির ঠিকানা যোগ ও পরিবর্তন করুন</p>
+                    </div>
+                </div>
+
+                <!-- CARD 5: Login & Security -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('loginSecurity')">
+                    <div class="amz-icon-holder ic-security">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline">লগইন ও নিরাপত্তা</div>
+                        <p class="amz-card-summary">নাম, মোবাইল নম্বর, ইমেইল ও পাসওয়ার্ড পরিবর্তন</p>
+                    </div>
+                </div>
+
+                <!-- CARD 6: KYC & Verification -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('kyc')">
+                    <div class="amz-icon-holder ic-kyc">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline">কেওয়াইসি ও ভেরিফিকেশন</div>
+                        <p class="amz-card-summary">পরিচয়, ভূমিকা (লেখক/প্রকাশক/সেলার) ও এনআইডি যাচাই</p>
+                    </div>
+                </div>
+
+                <!-- CARD 7: Wallet & Royalties -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('payments')">
+                    <div class="amz-icon-holder ic-payment">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline">ওয়ালেট ও রয়্যালটি</div>
+                        <p class="amz-card-summary">রয়্যালটি আয়, ওয়ালেট ব্যালেন্স ও পেমেন্ট হিস্ট্রি</p>
+                    </div>
+                </div>
+
+                <!-- CARD 8: Library Grant -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('libraryGrant')">
+                    <div class="amz-icon-holder ic-library">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div class="amz-card-text">
+                        <div class="amz-card-headline">পাঠাগার ও বই অনুদান</div>
+                        <p class="amz-card-summary">বিনামূল্যে বই বিতরণ কর্মসূচি ও প্রাপ্তিস্বীকার এন্ট্রি</p>
+                    </div>
+                </div>
+
+                <!-- CARD 9: Customer Service -->
+                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('customerService')">
                     <div class="amz-icon-holder ic-contact">
-                        <i class="fa-solid fa-headset" style="font-size: 24px;"></i>
+                        <i class="fa-solid fa-headset"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">Customer Service</div>
-                        <p class="amz-card-summary">Browse self service options, help articles or contact us</p>
-                    </div>
-                </div>
-
-                <!-- CARD 12: Your Messages -->
-                <div class="amz-service-card" role="button" tabindex="0" onclick="openSectionPanel('messages')" onkeydown="if(event.key==='Enter'||event.key===' ')openSectionPanel('messages')">
-                    <div class="amz-icon-holder ic-messages">
-                        <i class="fa-solid fa-envelope" style="font-size: 24px;"></i>
-                    </div>
-                    <div class="amz-card-text">
-                        <div class="amz-card-headline">Your Messages</div>
-                        <p class="amz-card-summary">View or respond to messages from ideaabd, Sellers and Buyers</p>
+                        <div class="amz-card-headline">গ্রাহক সেবা ও সহায়তা</div>
+                        <p class="amz-card-summary">সরাসরি ফোন কল, হোয়াটসঅ্যাপ ও হেল্পলাইন সাপোর্ট</p>
                     </div>
                 </div>
 
             </div>
 
-
+        </div> {{-- END mainAccountHubView --}}
 
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
-        {{-- VIEW 2: DEDICATED SUB-PAGE PANELS                                     --}}
+        {{-- VIEW 2: SUB-PAGE PANELS                                               --}}
         {{-- ═════════════════════════════════════════════════════════════════════ --}}
 
         <!-- PANEL 1: Your Orders -->
         <div class="amz-subpage-panel {{ $activeTab === 'orders' ? 'active' : '' }}" id="panel_orders" style="{{ $activeTab === 'orders' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
             <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2 flex-wrap gap-2">
                 <div>
-                    <h2 class="amz-main-title" style="font-size: 24px;">Your Orders</h2>
-                    <small class="text-muted">Track, return, cancel an order, download invoice or buy again</small>
+                    <h2 class="amz-main-title">অর্ডার ও ট্র্যাকিং</h2>
+                    <small class="text-muted">আপনার অর্ডারের বিবরণ, পার্সেল ট্র্যাকিং ও চালান</small>
                 </div>
-                <span class="badge bg-light text-dark border px-3 py-1.5 font-monospace">Total Orders: {{ $myOrders->total() ?? 0 }}</span>
+                <span class="badge bg-light text-dark border px-3 py-1.5 font-monospace">মোট অর্ডার: {{ $myOrders->total() ?? 0 }}</span>
             </div>
 
             @if($myOrders->count() > 0)
@@ -511,19 +381,19 @@
                         <div class="amz-order-card">
                             <div class="amz-order-header">
                                 <div>
-                                    <span>ORDER PLACED</span>
+                                    <span>অর্ডারের তারিখ</span>
                                     <strong>{{ $order->created_at->format('d M, Y') }}</strong>
                                 </div>
                                 <div>
-                                    <span>TOTAL</span>
+                                    <span>মোট মূল্য</span>
                                     <strong>৳{{ number_format($order->total_amount ?? 0) }}</strong>
                                 </div>
                                 <div>
-                                    <span>SHIP TO</span>
+                                    <span>প্রাপক</span>
                                     <strong>{{ $order->customer_name ?: $user->name }}</strong>
                                 </div>
                                 <div class="text-end">
-                                    <span>ORDER # {{ $order->order_number ?? $order->id }}</span>
+                                    <span>অর্ডার নম্বর: {{ $order->order_number ?? $order->id }}</span>
                                     <span class="badge bg-{{ $order->status === 'delivered' ? 'success' : ($order->status === 'cancelled' ? 'danger' : 'warning text-dark') }} ms-2">
                                         {{ ucfirst($order->status) }}
                                     </span>
@@ -531,7 +401,7 @@
                             </div>
                             <div class="amz-order-body">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div style="width: 58px; height: 78px; background: #e2e8f0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                                    <div style="width: 58px; height: 78px; background: #f1f5f9; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
                                         @if($order->book && $order->book->cover_image)
                                             <img src="{{ str_starts_with($order->book->cover_image, 'http') ? $order->book->cover_image : asset('storage/' . ltrim($order->book->cover_image, '/')) }}" alt="{{ $order->book->title }}" class="w-100 h-100 object-fit-cover">
                                         @else
@@ -539,18 +409,18 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <h4 class="fw-bold text-dark mb-1" style="font-size: 15px;">{{ $order->book ? $order->book->title : 'Book Order #' . ($order->order_number ?? $order->id) }}</h4>
-                                        <p class="text-secondary small mb-0">Quantity: {{ $order->quantity ?? 1 }} copy • Method: {{ ucfirst($order->payment_method ?? 'Cash On Delivery') }}</p>
-                                        <p class="text-secondary small mb-0"><i class="fa-solid fa-location-dot me-1"></i> {{ $order->customer_address ?? $user->address }}</p>
+                                        <h4 class="fw-semibold text-dark mb-1" style="font-size: 14.5px;">{{ $order->book ? $order->book->title : 'বই অর্ডার #' . ($order->order_number ?? $order->id) }}</h4>
+                                        <p class="text-secondary small mb-0">পরিমাণ: {{ $order->quantity ?? 1 }} কপি • মাধ্যম: {{ ucfirst($order->payment_method ?? 'Cash On Delivery') }}</p>
+                                        <p class="text-secondary small mb-0">{{ $order->customer_address ?? $user->address }}</p>
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column gap-2 text-end">
                                     <a href="{{ route('track-order', ['tracking_id' => $order->tracking_id ?? $order->order_number]) }}" class="amz-btn-gold">
-                                        Track package
+                                        ট্র্যাক পার্সেল
                                     </a>
                                     @if($order->book)
                                         <a href="{{ route('book.show', $order->book->slug) }}" class="amz-btn-silver">
-                                            Buy it again
+                                            আবার কিনুন
                                         </a>
                                     @endif
                                 </div>
@@ -564,12 +434,11 @@
                 </div>
             @else
                 <div class="card p-5 text-center bg-white border rounded-3">
-                    <i class="fa-solid fa-box-open fs-1 text-muted mb-3 opacity-50"></i>
-                    <h5 class="fw-bold text-dark">No orders found</h5>
-                    <p class="text-secondary small mb-3">You have not placed any book orders yet.</p>
+                    <h5 class="fw-semibold text-dark mb-1">কোনো অর্ডার পাওয়া যায়নি</h5>
+                    <p class="text-muted small mb-3">আপনি এখনও কোনো বই অর্ডার করেননি।</p>
                     <div>
                         <a href="{{ route('book.index') }}" class="amz-btn-gold">
-                            <i class="fa-solid fa-bag-shopping me-1"></i> Browse Books
+                            বই ব্রাউজ করুন
                         </a>
                     </div>
                 </div>
@@ -578,333 +447,227 @@
 
         <!-- PANEL 2: Login & Security -->
         <div class="amz-subpage-panel {{ $activeTab === 'loginSecurity' ? 'active' : '' }}" id="panel_loginSecurity" style="{{ $activeTab === 'loginSecurity' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Login & Security</h2>
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <h2 class="amz-main-title mb-3">লগইন ও নিরাপত্তা</h2>
             
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                
-                {{-- Row 1: Name --}}
+            <div class="card p-4 border rounded-3 bg-white" style="max-width: 760px;">
                 <div class="amz-security-row">
                     <div>
-                        <div class="amz-security-label">Name:</div>
+                        <div class="amz-security-label">নাম:</div>
                         <div class="amz-security-value">{{ $user->name }}</div>
                     </div>
                     <div>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">Edit</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">সম্পাদনা</button>
                     </div>
                 </div>
 
-                {{-- Row 2: Email --}}
                 <div class="amz-security-row">
                     <div>
-                        <div class="amz-security-label">Email:</div>
-                        <div class="amz-security-value">{{ str_contains($user->email ?? '', '@buyer.ideaabd.com') ? 'No email linked' : $user->email }}</div>
+                        <div class="amz-security-label">ইমেইল:</div>
+                        <div class="amz-security-value">{{ str_contains($user->email ?? '', '@buyer.ideaabd.com') ? 'ইমেইল যুক্ত নেই' : $user->email }}</div>
                     </div>
                     <div>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">Edit</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">সম্পাদনা</button>
                     </div>
                 </div>
 
-                {{-- Row 3: Phone --}}
                 <div class="amz-security-row">
                     <div>
-                        <div class="amz-security-label">Mobile Phone Number:</div>
+                        <div class="amz-security-label">মোবাইল নম্বর:</div>
                         <div class="amz-security-value">{{ $user->phone }}</div>
                     </div>
                     <div>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">Edit</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='block'">সম্পাদনা</button>
                     </div>
                 </div>
 
-                {{-- Row 4: Password --}}
                 <div class="amz-security-row">
                     <div>
-                        <div class="amz-security-label">Password:</div>
+                        <div class="amz-security-label">পাসওয়ার্ড:</div>
                         <div class="amz-security-value">••••••••••••</div>
                     </div>
                     <div>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editPasswordBox').style.display='block'">Edit</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editPasswordBox').style.display='block'">পরিবর্তন</button>
                     </div>
                 </div>
-
             </div>
 
-            {{-- Inline Edit Forms --}}
-            <div id="editProfileBox" class="card p-4 border rounded-3 bg-white mt-3" style="display: none; max-width: 780px;">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Update Name, Email & Phone</h5>
-                <form action="{{ route('my-account.profile.update') }}" method="POST">
+            {{-- Inline Edit Profile Box --}}
+            <div id="editProfileBox" class="card p-4 border rounded-3 bg-white mt-3" style="display: none; max-width: 760px;">
+                <h5 class="fw-semibold text-dark mb-3 border-bottom pb-2">নাম, ইমেইল ও ফোন নম্বর আপডেট</h5>
+                <form action="{{ route('my-account.profile.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Full Name *</label>
+                        <label class="form-label fw-semibold small text-dark">প্রোফাইল ছবি</label>
+                        <input type="file" name="avatar" class="form-control" accept="image/*">
+                        <small class="text-muted" style="font-size: 11px;">JPG, PNG, WebP ফরম্যাটে ছবি নির্বাচন করুন</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-dark">পূর্ণ নাম *</label>
                         <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Mobile Phone Number *</label>
+                        <label class="form-label fw-semibold small text-dark">মোবাইল ফোন নম্বর *</label>
                         <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Email Address</label>
+                        <label class="form-label fw-semibold small text-dark">ইমেইল ঠিকানা</label>
                         <input type="email" name="email" class="form-control" value="{{ old('email', str_contains($user->email ?? '', '@buyer.ideaabd.com') ? '' : $user->email) }}">
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="amz-btn-gold">Save Changes</button>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='none'">Cancel</button>
+                        <button type="submit" class="amz-btn-gold">সংরক্ষণ করুন</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editProfileBox').style.display='none'">বাতিল</button>
                     </div>
                 </form>
             </div>
 
-            <div id="editPasswordBox" class="card p-4 border rounded-3 bg-white mt-3" style="display: none; max-width: 780px;">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Change Password</h5>
+            {{-- Inline Change Password Box --}}
+            <div id="editPasswordBox" class="card p-4 border rounded-3 bg-white mt-3" style="display: none; max-width: 760px;">
+                <h5 class="fw-semibold text-dark mb-3 border-bottom pb-2">পাসওয়ার্ড পরিবর্তন</h5>
                 <form action="{{ route('my-account.password.update') }}" method="POST">
                     @csrf
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Current Password *</label>
+                        <label class="form-label fw-semibold small text-dark">বর্তমান পাসওয়ার্ড *</label>
                         <input type="password" name="current_password" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">New Password *</label>
+                        <label class="form-label fw-semibold small text-dark">নতুন পাসওয়ার্ড *</label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Confirm New Password *</label>
+                        <label class="form-label fw-semibold small text-dark">নতুন পাসওয়ার্ড নিশ্চিত করুন *</label>
                         <input type="password" name="password_confirmation" class="form-control" required>
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="amz-btn-gold">Update Password</button>
-                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editPasswordBox').style.display='none'">Cancel</button>
+                        <button type="submit" class="amz-btn-gold">পাসওয়ার্ড পরিবর্তন করুন</button>
+                        <button type="button" class="amz-btn-silver" onclick="document.getElementById('editPasswordBox').style.display='none'">বাতিল</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- PANEL 3: Prime -->
-        <div class="amz-subpage-panel {{ $activeTab === 'prime' ? 'active' : '' }}" id="panel_prime" style="{{ $activeTab === 'prime' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Prime Membership</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="rounded-circle bg-primary-subtle text-primary p-3 fs-3">
-                        <i class="fa-solid fa-crown"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold text-dark mb-0">Idea Prime Membership</h5>
-                        <small class="text-muted">Manage your membership, view benefits, and payment settings</small>
-                    </div>
-                </div>
-                <div class="p-3 bg-light rounded-3 border mb-3">
-                    <span class="badge bg-success text-white mb-2">Active Benefits</span>
-                    <ul class="mb-0 small text-secondary">
-                        <li>Exclusive book discounts and seasonal promotions</li>
-                        <li>Unlimited webzine access and author articles</li>
-                        <li>Priority book delivery across Bangladesh</li>
-                    </ul>
-                </div>
-                <a href="{{ route('book.index') }}" class="amz-btn-gold">Browse Prime Books</a>
-            </div>
-        </div>
-
-        <!-- PANEL 4: Your Addresses -->
+        <!-- PANEL 3: Delivery Addresses -->
         <div class="amz-subpage-panel {{ $activeTab === 'addresses' ? 'active' : '' }}" id="panel_addresses" style="{{ $activeTab === 'addresses' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your Addresses</h2>
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <h2 class="amz-main-title mb-3">ডেলিভারি ঠিকানা</h2>
 
             <div class="amz-address-grid mb-4">
-                
-                <!-- Add Address Tile -->
+                <!-- Add Address Card -->
                 <div class="amz-add-address-card" onclick="toggleAddressForm()">
-                    <i class="fa-solid fa-plus fs-1 mb-2 text-secondary"></i>
-                    <h5 class="fw-bold text-dark mb-0">Add Address</h5>
+                    <h5 class="fw-semibold text-dark mb-1" style="font-size: 15px;">নতুন ঠিকানা যোগ করুন</h5>
+                    <span class="text-muted small">ক্লিক করে নতুন ডেলিভারি ঠিকানা যুক্ত করুন</span>
                 </div>
 
-                <!-- Default Address Tile -->
+                <!-- Default Address Card -->
                 <div class="amz-address-card">
-                    <span class="badge bg-light text-secondary border position-absolute top-0 end-0 m-2 font-monospace">Default</span>
+                    <span class="badge bg-light text-secondary border position-absolute top-0 end-0 m-3">ডিফল্ট</span>
                     <strong class="text-dark fs-6 d-block mb-1">{{ $defaultAddress['name'] ?? $user->name }}</strong>
                     <div class="text-secondary small mb-2">
-                        {{ $defaultAddress['address'] ?: 'No street address provided' }}<br>
+                        {{ $defaultAddress['address'] ?: 'কোনো সড়ক ঠিকানা দেওয়া নেই' }}<br>
                         {{ $defaultAddress['thana'] ? $defaultAddress['thana'].', ' : '' }}{{ $defaultAddress['district'] }}<br>
-                        Phone: {{ $defaultAddress['phone'] ?? $user->phone }}
+                        ফোন: {{ $defaultAddress['phone'] ?? $user->phone }}
                     </div>
-                    <div class="mt-auto pt-2 border-top d-flex gap-3">
-                        <a href="javascript:void(0)" class="small text-decoration-none" style="color: #007185;" onclick="toggleAddressForm()">Edit</a>
+                    <div class="mt-auto pt-2 border-top">
+                        <a href="javascript:void(0)" class="small text-decoration-none fw-semibold text-primary" onclick="toggleAddressForm()">সম্পাদনা</a>
                     </div>
                 </div>
-
             </div>
 
-            <!-- Add/Edit Address Form Box -->
+            <!-- Address Form Box -->
             <div id="amzAddressFormBox" class="card p-4 border rounded-3 bg-white d-none" style="max-width: 700px;">
-                <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Add New Delivery Address</h5>
+                <h5 class="fw-semibold text-dark mb-3 border-bottom pb-2">ডেলিভারি ঠিকানা আপডেট</h5>
                 <form action="{{ route('my-account.address.update') }}" method="POST">
                     @csrf
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-dark">Full Name *</label>
+                            <label class="form-label fw-semibold small text-dark">পূর্ণ নাম *</label>
                             <input type="text" name="name" class="form-control" value="{{ old('name', $defaultAddress['name'] ?? $user->name) }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-dark">Phone Number *</label>
+                            <label class="form-label fw-semibold small text-dark">ফোন নম্বর *</label>
                             <input type="text" name="phone" class="form-control" value="{{ old('phone', $defaultAddress['phone'] ?? $user->phone) }}" required>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-dark">District / City *</label>
-                            <input type="text" name="district" class="form-control" placeholder="e.g. Dhaka or Rangpur" value="{{ old('district', $defaultAddress['district'] ?? '') }}" required>
+                            <label class="form-label fw-semibold small text-dark">জেলা *</label>
+                            <input type="text" name="district" class="form-control" placeholder="যেমন: ঢাকা বা রংপুর" value="{{ old('district', $defaultAddress['district'] ?? '') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold small text-dark">Thana / Upazila</label>
-                            <input type="text" name="thana" class="form-control" placeholder="e.g. Dhanmondi or Rangpur City" value="{{ old('thana', $defaultAddress['thana'] ?? '') }}">
+                            <label class="form-label fw-semibold small text-dark">থানা / উপজেলা</label>
+                            <input type="text" name="thana" class="form-control" placeholder="যেমন: ধানমন্ডি" value="{{ old('thana', $defaultAddress['thana'] ?? '') }}">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark">Street Address *</label>
-                        <textarea name="address" class="form-control" rows="3" placeholder="House/Flat No, Road Name, Area..." required>{{ old('address', $defaultAddress['address'] ?? '') }}</textarea>
+                        <label class="form-label fw-semibold small text-dark">বিস্তারিত ঠিকানা *</label>
+                        <textarea name="address" class="form-control" rows="3" placeholder="বাড়ি/ফ্ল্যাট নং, রোড নাম, এলাকা..." required>{{ old('address', $defaultAddress['address'] ?? '') }}</textarea>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="amz-btn-gold">Save Address</button>
-                        <button type="button" class="amz-btn-silver" onclick="toggleAddressForm()">Cancel</button>
+                        <button type="submit" class="amz-btn-gold">ঠিকানা সংরক্ষণ করুন</button>
+                        <button type="button" class="amz-btn-silver" onclick="toggleAddressForm()">বাতিল</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- PANEL 7: Your Payments -->
-        <div class="amz-subpage-panel {{ $activeTab === 'payments' ? 'active' : '' }}" id="panel_payments" style="{{ $activeTab === 'payments' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your Payments</h2>
-            
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
-                    <div>
-                        <h4 class="fw-bold mb-0 text-dark">Wallet & Royalty Balance</h4>
-                        <small class="text-muted">Available balance & payout accounts</small>
-                    </div>
-                    <span class="badge bg-success text-white px-3 py-1.5 rounded-pill fs-6 font-monospace">৳{{ number_format($walletBalance, 2) }}</span>
+        <!-- PANEL 4: Digital Services & E-Books -->
+        <div class="amz-subpage-panel {{ $activeTab === 'digitalServices' ? 'active' : '' }}" id="panel_digitalServices" style="{{ $activeTab === 'digitalServices' ? 'display: block !important;' : 'display: none !important;' }}">
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2 flex-wrap gap-2">
+                <div>
+                    <h2 class="amz-main-title">ই-বুক ও ডিজিটাল লাইব্রেরি</h2>
+                    <small class="text-muted">আপনার সংগৃহীত ও আনলক করা ই-বুকসমূহ</small>
                 </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded-3 border">
-                            <small class="text-muted d-block">Payout Method</small>
-                            <strong class="text-dark fs-6">{{ strtoupper($regData['payout_type'] ?? 'bKash') }}</strong>
-                            <div class="text-secondary small">{{ $regData['payout_details'] ?? 'No payout account set' }}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="p-3 bg-light rounded-3 border">
-                            <small class="text-muted d-block">This Month's Royalties</small>
-                            <strong class="text-success fs-6">৳{{ number_format($monthlyRoyalty, 2) }}</strong>
-                            <div class="text-secondary small">{{ now()->format('F Y') }} Earnings</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="button" class="amz-btn-gold" onclick="openSectionPanel('kyc')">
-                        Update Payment Settings
-                    </button>
-                    @if(Route::has('author.royalties'))
-                        <a href="{{ route('author.royalties') }}" class="amz-btn-silver">
-                            View Royalty Statement
-                        </a>
-                    @endif
-                </div>
+                <a href="{{ route('ebook.index') }}" class="amz-btn-gold">
+                    ই-বুক ক্যাটালগ
+                </a>
             </div>
+
+            @if($myEbooks->count() > 0)
+                <div class="row g-3">
+                    @foreach($myEbooks as $item)
+                        @if($item->ebook)
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card p-3 border rounded-3 bg-white h-100">
+                                    <div class="d-flex gap-3">
+                                        <div style="width: 68px; height: 92px; background: #f1f5f9; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
+                                            @if($item->ebook->cover_image)
+                                                <img src="{{ str_starts_with($item->ebook->cover_image, 'http') ? $item->ebook->cover_image : asset('storage/' . ltrim($item->ebook->cover_image, '/')) }}" alt="{{ $item->ebook->title }}" class="w-100 h-100 object-fit-cover">
+                                            @else
+                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-book"></i></div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-grow-1 min-w-0">
+                                            <h4 class="fw-semibold text-dark mb-1 text-truncate" style="font-size: 14.5px;">{{ $item->ebook->title }}</h4>
+                                            <small class="text-muted d-block mb-2">{{ $item->ebook->author_name ?? $item->ebook->author?->name ?? 'আইডিয়া প্রকাশন' }}</small>
+                                            <a href="{{ route('ebook.read', $item->ebook->slug ?? $item->ebook->id) }}" class="amz-btn-gold">
+                                                অনলাইনে পড়ুন
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
+            @else
+                <div class="card p-5 text-center bg-white border rounded-3">
+                    <h5 class="fw-semibold text-dark mb-1">কোনো ই-বুক পাওয়া যায়নি</h5>
+                    <p class="text-muted small mb-3">আপনার অ্যাকাউন্টে এখনও কোনো ই-বুক যুক্ত করা হয়নি।</p>
+                    <div>
+                        <a href="{{ route('ebook.index') }}" class="amz-btn-gold">ই-বুক স্টোর দেখুন</a>
+                    </div>
+                </div>
+            @endif
         </div>
 
-        <!-- PANEL 5: Your business account -->
-        <div class="amz-subpage-panel {{ $activeTab === 'business' ? 'active' : '' }}" id="panel_business" style="{{ $activeTab === 'business' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your Business Account</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="rounded-circle bg-dark text-white p-3 fs-3 d-flex align-items-center justify-content-center" style="width: 54px; height: 54px;">
-                        <i class="fa-solid fa-briefcase"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold text-dark mb-0">Idea Business & Publishing Solutions</h5>
-                        <small class="text-muted">Sign up to save with business-exclusive pricing and publisher perks</small>
-                    </div>
-                </div>
-                <div class="p-3 bg-light rounded-3 border mb-3">
-                    <span class="badge bg-primary text-white mb-2">Business Features</span>
-                    <ul class="mb-0 small text-secondary">
-                        <li>Bulk book purchasing with wholesale institutional discounts</li>
-                        <li>Author & publisher royalty management and manuscript direct submission</li>
-                        <li>Automated tax invoices and dedicated business billing support</li>
-                    </ul>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="amz-btn-gold" onclick="openSectionPanel('kyc')">
-                        Complete Business / Author KYC
-                    </button>
-                    <a href="{{ route('contact') }}" class="amz-btn-silver">
-                        Contact Business Support
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANEL 6: Gift cards -->
-        <div class="amz-subpage-panel {{ $activeTab === 'giftcards' ? 'active' : '' }}" id="panel_giftcards" style="{{ $activeTab === 'giftcards' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Gift Cards</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="rounded-circle bg-warning-subtle text-warning p-3 fs-3">
-                        <i class="fa-solid fa-gift"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold text-dark mb-0">Redeem Gift Card or Voucher</h5>
-                        <small class="text-muted">View balance or redeem a card, and purchase a new Gift Card</small>
-                    </div>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-md-8">
-                        <input type="text" class="form-control" placeholder="Enter claim code (e.g. IDEA-GIFT-XXXX)">
-                    </div>
-                    <div class="col-md-4">
-                        <button type="button" class="amz-btn-gold w-100">Apply to your balance</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANEL 8: Your ideaabd Family -->
-        <div class="amz-subpage-panel {{ $activeTab === 'family' ? 'active' : '' }}" id="panel_family" style="{{ $activeTab === 'family' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Your ideaabd Family & Profiles</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 780px;">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="rounded-circle bg-info-subtle text-info p-3 fs-3">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold text-dark mb-0">Family Profiles & Shared Reading Library</h5>
-                        <small class="text-muted">Manage profiles, sharing, and reading permissions in one place</small>
-                    </div>
-                </div>
-                <div class="p-3 bg-light rounded-3 border mb-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <strong class="text-dark">{{ $user->name }} (Primary Account)</strong>
-                            <div class="small text-muted">Full account & billing administrator</div>
-                        </div>
-                        <span class="badge bg-success">Active</span>
-                    </div>
-                </div>
-                <a href="{{ route('ebook.index') }}" class="amz-btn-silver">Browse Family eBook Library</a>
-            </div>
-        </div>
-
-        <!-- PANEL 10: Your Lists -->
+        <!-- PANEL 5: Wishlist / Saved Books -->
         <div class="amz-subpage-panel {{ $activeTab === 'wishlist' ? 'active' : '' }}" id="panel_wishlist" style="{{ $activeTab === 'wishlist' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3 border-bottom pb-2" style="font-size: 24px;">Your Lists & Wishlist</h2>
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <h2 class="amz-main-title mb-3 border-bottom pb-2">পছন্দের তালিকা ও উইশলিস্ট</h2>
             
             @if($wishlistItems->count() > 0)
                 <div class="row g-3">
@@ -913,7 +676,7 @@
                             <div class="col-md-6 col-lg-4">
                                 <div class="card h-100 border rounded-3 p-3 bg-white">
                                     <div class="d-flex gap-3">
-                                        <div style="width: 68px; height: 92px; background: #e2e8f0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                                        <div style="width: 68px; height: 92px; background: #f1f5f9; border-radius: 6px; overflow: hidden; flex-shrink: 0;">
                                             @if($item->book->cover_image)
                                                 <img src="{{ str_starts_with($item->book->cover_image, 'http') ? $item->book->cover_image : asset('storage/' . ltrim($item->book->cover_image, '/')) }}" alt="{{ $item->book->title }}" class="w-100 h-100 object-fit-cover">
                                             @else
@@ -921,14 +684,14 @@
                                             @endif
                                         </div>
                                         <div class="flex-grow-1 min-w-0">
-                                            <h4 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 14.5px;">{{ $item->book->title }}</h4>
-                                            <small class="text-secondary d-block mb-1">{{ $item->book->author_name ?? 'Idea Prokashon' }}</small>
-                                            <div class="fw-bold text-primary mb-2">৳{{ number_format($item->book->discount_price ?: $item->book->price) }}</div>
+                                            <h4 class="fw-semibold text-dark mb-1 text-truncate" style="font-size: 14.5px;">{{ $item->book->title }}</h4>
+                                            <small class="text-muted d-block mb-1">{{ $item->book->author_name ?? 'আইডিয়া প্রকাশন' }}</small>
+                                            <div class="fw-bold text-dark mb-2">৳{{ number_format($item->book->discount_price ?: $item->book->price) }}</div>
                                             <div class="d-flex gap-2">
-                                                <a href="{{ route('book.show', $item->book->slug) }}" class="amz-btn-gold">View</a>
+                                                <a href="{{ route('book.show', $item->book->slug) }}" class="amz-btn-gold">বিস্তারিত</a>
                                                 <form action="{{ route('my-account.wishlist.remove', $item->id) }}" method="POST">
                                                     @csrf
-                                                    <button type="submit" class="amz-btn-silver" title="Remove"><i class="fa-solid fa-trash"></i></button>
+                                                    <button type="submit" class="amz-btn-silver" title="তালিকা থেকে বাদ দিন">বাদ দিন</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -940,361 +703,238 @@
                 </div>
             @else
                 <div class="card p-5 text-center bg-white border rounded-3">
-                    <i class="fa-solid fa-heart-crack fs-1 text-muted mb-3 opacity-50"></i>
-                    <h5 class="fw-bold text-dark">Your list is empty</h5>
-                    <p class="text-secondary small mb-3">Explore and save items you'd like to read later.</p>
-                    <div><a href="{{ route('book.index') }}" class="amz-btn-gold">Explore Books</a></div>
+                    <h5 class="fw-semibold text-dark mb-1">আপনার পছন্দের তালিকা খালি</h5>
+                    <p class="text-muted small mb-3">পছন্দের বইগুলো তালিকায় সংরক্ষণ করে রাখুন।</p>
+                    <div><a href="{{ route('book.index') }}" class="amz-btn-gold">বই ব্রাউজ করুন</a></div>
                 </div>
             @endif
         </div>
 
-        <!-- PANEL 11: Customer Service -->
-        <div class="amz-subpage-panel {{ $activeTab === 'customerService' ? 'active' : '' }}" id="panel_customerService" style="{{ $activeTab === 'customerService' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3 border-bottom pb-2" style="font-size: 24px;">Customer Service & Support</h2>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
-                        <i class="fa-solid fa-headset fs-1 text-primary mb-2"></i>
-                        <h6 class="fw-bold mb-1 text-dark">Direct Phone Support</h6>
-                        <small class="text-muted d-block mb-3">Speak with customer care specialist</small>
-                        <a href="tel:+8801558712810" class="amz-btn-silver mt-auto">+8801558712810</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
-                        <i class="fa-brands fa-whatsapp fs-1 text-success mb-2"></i>
-                        <h6 class="fw-bold mb-1 text-dark">WhatsApp Support</h6>
-                        <small class="text-muted d-block mb-3">Fast instant messaging help</small>
-                        <a href="https://api.whatsapp.com/send?phone=8801558712810" target="_blank" class="amz-btn-gold mt-auto">Open WhatsApp</a>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
-                        <i class="fa-solid fa-envelope fs-1 text-info mb-2"></i>
-                        <h6 class="fw-bold mb-1 text-dark">Email Helpdesk</h6>
-                        <small class="text-muted d-block mb-3">Submit a support request</small>
-                        <a href="{{ route('contact') }}" class="amz-btn-silver mt-auto">Contact Form</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANEL 12: Your Messages -->
-        <div class="amz-subpage-panel {{ $activeTab === 'messages' ? 'active' : '' }}" id="panel_messages" style="{{ $activeTab === 'messages' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3 border-bottom pb-2" style="font-size: 24px;">Your Messages & Notifications</h2>
-            <div class="card p-4 border rounded-3 bg-white">
-                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-2 border">
-                    <i class="fa-solid fa-circle-check text-success fs-4"></i>
+        <!-- PANEL 6: Payments & Royalties -->
+        <div class="amz-subpage-panel {{ $activeTab === 'payments' ? 'active' : '' }}" id="panel_payments" style="{{ $activeTab === 'payments' ? 'display: block !important;' : 'display: none !important;' }}">
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <h2 class="amz-main-title mb-3">ওয়ালেট ও রয়্যালটি</h2>
+            
+            <div class="card p-4 border rounded-3 bg-white" style="max-width: 760px;">
+                <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <strong class="text-dark">Order Shipment Update</strong>
-                        <p class="text-secondary small mb-0">Your book order package has been dispatched with courier tracking.</p>
+                        <h4 class="fw-semibold mb-0 text-dark" style="font-size: 16px;">ওয়ালেট ব্যালেন্স</h4>
+                        <small class="text-muted">উত্তোলনযোগ্য ব্যালেন্স ও রয়্যালটি হিসাব</small>
                     </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill fs-6 font-monospace">৳{{ number_format($walletBalance, 2) }}</span>
                 </div>
-                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-2 border">
-                    <i class="fa-solid fa-sack-dollar text-primary fs-4"></i>
-                    <div>
-                        <strong class="text-dark">Monthly Royalty Statement Updated</strong>
-                        <p class="text-secondary small mb-0">Author royalties for the current cycle have been posted to your wallet.</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 border">
-                    <i class="fa-solid fa-feather text-info fs-4"></i>
-                    <div>
-                        <strong class="text-dark">Manuscript Review Notification</strong>
-                        <p class="text-secondary small mb-0">Our editorial team has received your submission for publication review.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- PANEL 9: Digital Services and Device Support -->
-        <div class="amz-subpage-panel {{ $activeTab === 'digitalServices' ? 'active' : '' }}" id="panel_digitalServices" style="{{ $activeTab === 'digitalServices' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2 flex-wrap gap-2">
-                <div>
-                    <h2 class="amz-main-title" style="font-size: 24px;">Digital Services and Device Support</h2>
-                    <small class="text-muted">Manage purchased eBooks, content library, and digital readers</small>
-                </div>
-                <a href="{{ route('ebook.index') }}" class="amz-btn-gold">
-                    Browse eBook Store
-                </a>
-            </div>
-
-            @if($myEbooks->count() > 0)
-                <div class="row g-3">
-                    @foreach($myEbooks as $item)
-                        @if($item->ebook)
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card p-3 border rounded-3 bg-white h-100">
-                                    <div class="d-flex gap-3">
-                                        <div style="width: 68px; height: 92px; background: #e2e8f0; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
-                                            @if($item->ebook->cover_image)
-                                                <img src="{{ str_starts_with($item->ebook->cover_image, 'http') ? $item->ebook->cover_image : asset('storage/' . ltrim($item->ebook->cover_image, '/')) }}" alt="{{ $item->ebook->title }}" class="w-100 h-100 object-fit-cover">
-                                            @else
-                                                <div class="w-100 h-100 d-flex align-items-center justify-content-center text-muted"><i class="fa-solid fa-book"></i></div>
-                                            @endif
-                                        </div>
-                                        <div class="flex-grow-1 min-w-0">
-                                            <h4 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 14.5px;">{{ $item->ebook->title }}</h4>
-                                            <small class="text-muted d-block mb-1">{{ $item->ebook->author_name ?? $item->ebook->author?->name ?? 'Idea Prokashon' }}</small>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small mb-2 d-inline-block">
-                                                <i class="fa-solid fa-circle-check me-1"></i> Unlocked
-                                            </span>
-                                            <div>
-                                                <a href="{{ route('ebook.read', $item->ebook->slug ?? $item->ebook->id) }}" class="amz-btn-gold">
-                                                    Read Now
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @endforeach
-                </div>
-            @else
-                <div class="card p-5 text-center bg-white border rounded-3">
-                    <i class="fa-solid fa-book-open-reader fs-1 text-muted mb-3 opacity-50"></i>
-                    <h5 class="fw-bold text-dark">No eBooks in Library</h5>
-                    <p class="text-secondary small mb-3">You have not purchased or unlocked any eBooks yet.</p>
-                    <div>
-                        <a href="{{ route('ebook.index') }}" class="amz-btn-gold">Browse eBook Store</a>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        <!-- PANEL: Preferences -->
-        <div class="amz-subpage-panel {{ $activeTab === 'preferences' ? 'active' : '' }}" id="panel_preferences" style="{{ $activeTab === 'preferences' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Shopping & Communication Preferences</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 700px;">
-                <h6 class="fw-bold text-dark mb-3">Notifications & Alerts</h6>
-                <div class="d-flex flex-column gap-3">
-                    <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-light">
-                        <div>
-                            <div class="fw-bold text-dark small">Order Status SMS & WhatsApp Alerts</div>
-                            <small class="text-muted">Receive live courier and delivery notifications on mobile</small>
-                        </div>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input" type="checkbox" role="switch" checked>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block">পেমেন্ট মেথড</small>
+                            <strong class="text-dark fs-6">{{ strtoupper($regData['payout_type'] ?? 'bKash') }}</strong>
+                            <div class="text-secondary small">{{ $regData['payout_details'] ?? 'কোনো অ্যাকাউন্ট যুক্ত নেই' }}</div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between p-3 border rounded-3 bg-light">
-                        <div>
-                            <div class="fw-bold text-dark small">New Releases & Literature Newsletter</div>
-                            <small class="text-muted">Monthly digest of new book releases and discounts</small>
-                        </div>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input" type="checkbox" role="switch" checked>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border">
+                            <small class="text-muted d-block">চলতি মাসের রয়্যালটি</small>
+                            <strong class="text-success fs-6">৳{{ number_format($monthlyRoyalty, 2) }}</strong>
+                            <div class="text-secondary small">{{ now()->format('F Y') }} এর হিসাব</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- PANEL: Memberships -->
-        <div class="amz-subpage-panel {{ $activeTab === 'memberships' ? 'active' : '' }}" id="panel_memberships" style="{{ $activeTab === 'memberships' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <h2 class="amz-main-title mb-3" style="font-size: 24px;">Memberships & Subscriptions</h2>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 700px;">
-                <div class="p-3 border rounded-3 bg-light d-flex align-items-center justify-content-between">
-                    <div>
-                        <strong class="text-dark">Idea Standard Reader Account</strong>
-                        <div class="text-muted small">Standard membership • Lifetime active</div>
-                    </div>
-                    <span class="badge bg-success text-white px-3 py-1.5 rounded-pill">Active</span>
+                <div class="d-flex gap-2">
+                    <button type="button" class="amz-btn-gold" onclick="openSectionPanel('kyc')">
+                        পেমেন্ট তথ্য আপডেট করুন
+                    </button>
+                    @if(Route::has('author.royalties'))
+                        <a href="{{ route('author.royalties') }}" class="amz-btn-silver">
+                            রয়্যালটি বিবরণী
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
 
-        <!-- PANEL: KYC Verification -->
+        <!-- PANEL 7: KYC Verification -->
         <div class="amz-subpage-panel {{ $activeTab === 'kyc' ? 'active' : '' }}" id="panel_kyc" style="{{ $activeTab === 'kyc' ? 'display: block !important;' : 'display: none !important;' }}">
-            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-chevron-left me-1"></i> Your Account</span>
-            <div class="card p-4 border rounded-3 bg-white" style="max-width: 840px;">
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <div class="card p-4 border rounded-3 bg-white" style="max-width: 820px;">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-3 flex-wrap gap-2">
                     <div>
-                        <h4 class="fw-bold mb-0 text-dark">Identity & KYC Verification (কেওয়াইসি ও ভেরিফিকেশন)</h4>
-                        <small class="text-muted">আপনার পরিচয়, ভূমিকা ও যোগাযোগের তথ্য আপডেট করে অ্যাকাউন্ট উন্নত করুন</small>
+                        <h4 class="fw-semibold mb-0 text-dark" style="font-size: 17px;">কেওয়াইসি ও ভেরিফিকেশন</h4>
+                        <small class="text-muted">আপনার পরিচয়, ভূমিকা ও যোগাযোগের তথ্য আপডেট করুন</small>
                     </div>
                     @if($isApproved)
-                        <span class="badge bg-success text-white px-3 py-1.5 rounded-pill"><i class="fa-solid fa-shield-check me-1"></i> Verified Account</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill">ভেরিফায়েড অ্যাকাউন্ট</span>
                     @elseif($isPending)
-                        <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill"><i class="fa-solid fa-clock-rotate-left me-1"></i> Under Review</span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1.5 rounded-pill">পর্যালোচনায় রয়েছে</span>
                     @else
-                        <span class="badge bg-secondary text-white px-3 py-1.5 rounded-pill"><i class="fa-solid fa-circle-info me-1"></i> Incomplete ({{ $kycPercent }}%)</span>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1.5 rounded-pill">অসম্পূর্ণ ({{ $kycPercent }}%)</span>
                     @endif
                 </div>
 
                 <form action="{{ route('my-account.kyc.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
-                    {{-- Role Selection & Desired Responsibility --}}
+                    {{-- Role Selection --}}
                     @php
                         $currentRole = $user->reg_type ?: ($user->role ?: 'buyer');
                         if ($currentRole === 'customer') $currentRole = 'buyer';
                     @endphp
                     <div class="p-3 bg-light rounded-3 border mb-4">
-                        <label class="form-label fw-bold text-dark small mb-1" for="kycRequestedRoleSelect">
-                            আপনার ভূমিকা / কাঙ্ক্ষিত একাউন্ট ক্যাটাগরি (Account Role) <span class="text-danger">*</span>
+                        <label class="form-label fw-semibold text-dark small mb-1" for="kycRequestedRoleSelect">
+                            আপনার ভূমিকা / কাঙ্ক্ষিত অ্যাকাউন্ট ক্যাটাগরি *
                         </label>
                         <select name="requested_role" id="kycRequestedRoleSelect" class="form-select fw-semibold" onchange="toggleKycRoleFields(this.value)">
-                            <option value="buyer" @selected($currentRole === 'buyer')>🛍️ ১. সাধারণ পাঠক / ক্রেতা (Customer / Reader)</option>
-                            <option value="author" @selected($currentRole === 'author')>✍️ ২. লেখক ও গবেষক (Author & Researcher)</option>
-                            <option value="publisher" @selected($currentRole === 'publisher')>🏢 ৩. প্রকাশক ও প্রকাশনী (Publisher)</option>
-                            <option value="seller" @selected($currentRole === 'seller')>🏪 ৪. সেলার / বুকশপ বিক্রেতা (Seller / Bookshop)</option>
+                            <option value="buyer" @selected($currentRole === 'buyer')>১. সাধারণ পাঠক / ক্রেতা (Customer / Reader)</option>
+                            <option value="author" @selected($currentRole === 'author')>২. লেখক ও গবেষক (Author & Researcher)</option>
+                            <option value="publisher" @selected($currentRole === 'publisher')>৩. প্রকাশক ও প্রকাশনী (Publisher)</option>
+                            <option value="seller" @selected($currentRole === 'seller')>৪. সেলার / বুকশপ বিক্রেতা (Seller / Bookshop)</option>
                         </select>
-                        <small class="text-muted d-block mt-1.5" style="font-size: 11.5px; line-height: 1.4;">
-                            <i class="fa-solid fa-circle-info text-primary me-1"></i>
-                            সাধারণ পাঠক হিসেবে কেনাকাটা করার পাশাপাশি লেখক, প্রকাশক বা সেলার হিসেবে দায়িত্ব পেতে চাইলে এখান থেকে ভূমিকা নির্বাচন করে প্রয়োজনীয় তথ্য সাবমিট করুন। অ্যাডমিন অনুমোদনের পর বিশেষ ফিচারগুলো সক্রিয় হবে।
+                        <small class="text-muted d-block mt-1.5" style="font-size: 12px;">
+                            সাধারণ পাঠক হিসেবে কেনাকাটা ছাড়াও লেখক, প্রকাশক বা সেলার হিসেবে যুক্ত হতে চাইলে ভূমিকা নির্বাচন করে তথ্য জমা দিন।
                         </small>
                     </div>
 
-                    {{-- 1. Profile Photo --}}
+                    {{-- Profile Photo --}}
                     <div class="mb-4 d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
-                        <div style="width: 74px; height: 74px; border-radius: 50%; overflow: hidden; background: #e0f2fe; border: 2px solid #007185; flex-shrink: 0;" class="d-flex align-items-center justify-content-center">
+                        <div style="width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #e2e8f0; border: 1.5px solid #cbd5e1; flex-shrink: 0;" class="d-flex align-items-center justify-content-center">
                             @if($user->avatar)
                                 <img src="{{ str_starts_with($user->avatar, 'http') ? $user->avatar : asset('storage/' . ltrim($user->avatar, '/')) }}" alt="{{ $user->name }}" id="kycAvatarPreview" class="w-100 h-100 object-fit-cover">
                             @else
                                 <img id="kycAvatarPreview" class="w-100 h-100 object-fit-cover d-none" alt="Preview">
-                                <span id="kycAvatarPlaceholder" class="fs-2 text-primary fw-bold">{{ mb_substr($user->name, 0, 1) }}</span>
+                                <span id="kycAvatarPlaceholder" class="fs-4 text-secondary fw-semibold">{{ mb_substr($user->name, 0, 1) }}</span>
                             @endif
                         </div>
                         <div class="flex-grow-1">
-                            <label class="form-label fw-bold text-dark small mb-1">প্রোফাইল ছবি / অফিসিয়াল ফটো</label>
+                            <label class="form-label fw-semibold text-dark small mb-1">প্রোফাইল ছবি</label>
                             <input type="file" name="avatar" class="form-control form-control-sm" accept="image/*" onchange="previewKycPhoto(this)">
                             <small class="text-muted" style="font-size: 11px;">JPG, PNG, WebP ফরম্যাটে সর্বোচ্চ ৫MB</small>
                         </div>
                     </div>
 
-                    {{-- 2. Basic Identification & Names --}}
+                    {{-- Names --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">পুরো নাম (বাংলায়)</label>
+                            <label class="form-label fw-semibold text-dark small">পুরো নাম (বাংলায়)</label>
                             <input type="text" name="name_bn" class="form-control" placeholder="যেমন: শাকিল মাসুদ" value="{{ old('name_bn', $regData['name_bn'] ?? $user->name) }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">Full Name (English)</label>
+                            <label class="form-label fw-semibold text-dark small">Full Name (English)</label>
                             <input type="text" name="name_en" class="form-control" placeholder="e.g. Shakil Masud" value="{{ old('name_en', $regData['name_en'] ?? '') }}">
                         </div>
                     </div>
 
-                    {{-- 3. Dynamic Author Specific Group --}}
-                    <div id="kycAuthorFields" class="{{ $currentRole === 'author' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #f0fdf4; border-color: #86efac !important;">
-                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
-                            <i class="fa-solid fa-feather-pointed text-success fs-5"></i>
+                    {{-- Author Fields --}}
+                    <div id="kycAuthorFields" class="{{ $currentRole === 'author' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border bg-light">
+                        <div class="mb-2 pb-1 border-bottom">
                             <strong class="text-dark small">লেখক প্রোফাইল ও সাহিত্য পরিচিতি</strong>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small">কলমনাম / ছদ্মনাম (যদি থাকে)</label>
-                            <input type="text" name="pen_name" class="form-control" placeholder="যেমন: যাযাবর, বনফুল (ঐচ্ছিক)" value="{{ old('pen_name', $regData['pen_name'] ?? '') }}">
+                            <label class="form-label fw-semibold text-dark small">কলমনাম / ছদ্মনাম (ঐচ্ছিক)</label>
+                            <input type="text" name="pen_name" class="form-control" placeholder="যেমন: বনফুল" value="{{ old('pen_name', $regData['pen_name'] ?? '') }}">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold text-dark small">সাহিত্য শাখা (Genres / Topics)</label>
-                            <input type="text" name="genres[]" class="form-control" placeholder="যেমন: কবিতা, কথাসাহিত্য, ইতিহাস, উপন্যাস..." value="{{ old('genres', is_array($regData['genres'] ?? null) ? implode(', ', $regData['genres']) : ($regData['genres'] ?? '')) }}">
+                            <label class="form-label fw-semibold text-dark small">সাহিত্য শাখা (Genres)</label>
+                            <input type="text" name="genres[]" class="form-control" placeholder="যেমন: কবিতা, কথাসাহিত্য, ইতিহাস..." value="{{ old('genres', is_array($regData['genres'] ?? null) ? implode(', ', $regData['genres']) : ($regData['genres'] ?? '')) }}">
                         </div>
                         <div class="mb-1">
-                            <label class="form-label fw-bold text-dark small">সংক্ষিপ্ত লেখক পরিচিতি / সাহিত্যিক বায়ো</label>
-                            <textarea name="bio" class="form-control" rows="3" placeholder="আপনার প্রকাশিত গ্রন্থ, সাহিত্যকর্ম ও সাহিত্যচর্চার সংক্ষিপ্ত পরিচিতি লিখুন...">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
+                            <label class="form-label fw-semibold text-dark small">লেখক পরিচিতি / বায়ো</label>
+                            <textarea name="bio" class="form-control" rows="3" placeholder="আপনার সাহিত্যচর্চা ও প্রকাশিত গ্রন্থের বিবরণ...">{{ old('bio', $regData['bio'] ?? '') }}</textarea>
                         </div>
                     </div>
 
-                    {{-- 4. Dynamic Publisher Specific Group --}}
-                    <div id="kycPublisherFields" class="{{ $currentRole === 'publisher' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #fdf2f8; border-color: #fbcfe8 !important;">
-                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
-                            <i class="fa-solid fa-building text-danger fs-5"></i>
+                    {{-- Publisher Fields --}}
+                    <div id="kycPublisherFields" class="{{ $currentRole === 'publisher' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border bg-light">
+                        <div class="mb-2 pb-1 border-bottom">
                             <strong class="text-dark small">প্রকাশক ও প্রকাশনা প্রতিষ্ঠানের বিবরণ</strong>
                         </div>
                         <div class="row g-3 mb-2">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-dark small">প্রকাশনীর নাম (Publishing House)</label>
+                                <label class="form-label fw-semibold text-dark small">প্রকাশনীর নাম</label>
                                 <input type="text" name="publisher_name" class="form-control" placeholder="যেমন: আইডিয়া প্রকাশন" value="{{ old('publisher_name', $regData['publisher_name'] ?? ($regData['publishing_house_name'] ?? '')) }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-dark small">প্রতিষ্ঠার সাল (Established Year)</label>
+                                <label class="form-label fw-semibold text-dark small">প্রতিষ্ঠার সাল</label>
                                 <input type="text" name="established" class="form-control" placeholder="যেমন: 2015" value="{{ old('established', $regData['established'] ?? '') }}">
                             </div>
                         </div>
                         <div class="mb-1">
-                            <label class="form-label fw-bold text-dark small">ট্রেড লাইসেন্স বা প্রকাশনা নিবন্ধন নম্বর</label>
-                            <input type="text" name="trade_license" class="form-control" placeholder="e.g. TRAD/DNCC/12345" value="{{ old('trade_license', $regData['trade_license'] ?? '') }}">
+                            <label class="form-label fw-semibold text-dark small">ট্রেড লাইসেন্স বা নিবন্ধন নম্বর</label>
+                            <input type="text" name="trade_license" class="form-control" placeholder="e.g. TRAD/12345" value="{{ old('trade_license', $regData['trade_license'] ?? '') }}">
                         </div>
                     </div>
 
-                    {{-- 5. Dynamic Seller Specific Group --}}
-                    <div id="kycSellerFields" class="{{ $currentRole === 'seller' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border" style="background: #eff6ff; border-color: #bfdbfe !important;">
-                        <div class="d-flex align-items-center gap-2 mb-2 pb-1 border-bottom" style="border-color: rgba(0,0,0,0.08) !important;">
-                            <i class="fa-solid fa-store text-primary fs-5"></i>
+                    {{-- Seller Fields --}}
+                    <div id="kycSellerFields" class="{{ $currentRole === 'seller' ? '' : 'd-none' }} p-3 rounded-3 mb-3 border bg-light">
+                        <div class="mb-2 pb-1 border-bottom">
                             <strong class="text-dark small">বুকশপ ও বিক্রেতা বিবরণ</strong>
                         </div>
                         <div class="row g-3 mb-2">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-dark small">দোকান / বুকশপের নাম (Shop Name)</label>
+                                <label class="form-label fw-semibold text-dark small">দোকান / বুকশপের নাম</label>
                                 <input type="text" name="shop_name" class="form-control" placeholder="যেমন: আল-মদিনা বুক সেন্টার" value="{{ old('shop_name', $regData['shop_name'] ?? '') }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-dark small">দোকানের ট্রেড লাইসেন্স নম্বর</label>
+                                <label class="form-label fw-semibold text-dark small">ট্রেড লাইসেন্স নম্বর</label>
                                 <input type="text" name="trade_license" class="form-control" placeholder="e.g. TRAD/XYZ/12345" value="{{ old('trade_license', $regData['trade_license'] ?? '') }}">
                             </div>
                         </div>
                     </div>
 
-                    {{-- 6. Address Information (For Delivery & Business Location) --}}
+                    {{-- Delivery & Business Location Address --}}
                     <div class="mb-3">
-                        <div class="fw-bold text-dark small mb-2"><i class="fa-solid fa-location-dot me-1 text-danger"></i> যোগাযোগের সম্পূর্ণ ঠিকানা</div>
+                        <div class="fw-semibold text-dark small mb-2">যোগাযোগের ঠিকানা</div>
                         <div class="row g-2 mb-2">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-muted">জেলা (District)</label>
-                                <input type="text" name="district" class="form-control" placeholder="যেমন: ঢাকা, রংপুর..." value="{{ old('district', $regData['district'] ?? ($defaultAddress['district'] ?? '')) }}">
+                                <label class="form-label small text-muted">জেলা</label>
+                                <input type="text" name="district" class="form-control" placeholder="যেমন: ঢাকা" value="{{ old('district', $regData['district'] ?? ($defaultAddress['district'] ?? '')) }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold small text-muted">থানা / উপজেলা (Thana)</label>
-                                <input type="text" name="thana" class="form-control" placeholder="যেমন: ধানমন্ডি, কোতোয়ালি..." value="{{ old('thana', $regData['thana'] ?? ($defaultAddress['thana'] ?? '')) }}">
+                                <label class="form-label small text-muted">থানা / উপজেলা</label>
+                                <input type="text" name="thana" class="form-control" placeholder="যেমন: ধানমন্ডি" value="{{ old('thana', $regData['thana'] ?? ($defaultAddress['thana'] ?? '')) }}">
                             </div>
                         </div>
                         <div>
-                            <label class="form-label fw-semibold small text-muted">বিস্তারিত সড়ক / হাউজ ঠিকানা (Street Address)</label>
-                            <textarea name="address" class="form-control" rows="2" placeholder="বাড়ি নং, রোড নং, এরিয়া...">{{ old('address', $regData['address'] ?? ($defaultAddress['address'] ?? '')) }}</textarea>
+                            <label class="form-label small text-muted">বিস্তারিত সড়ক ঠিকানা</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="বাড়ি নং, রোড নং, এলাকা...">{{ old('address', $regData['address'] ?? ($defaultAddress['address'] ?? '')) }}</textarea>
                         </div>
                     </div>
 
-                    {{-- 7. National ID (NID) Verification --}}
+                    {{-- National ID Verification --}}
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">জাতীয় পরিচয়পত্র (NID) নম্বর</label>
-                            <input type="text" name="nid" class="form-control" placeholder="১০ বা ১৭ ডিজিটের NID নম্বর" value="{{ old('nid', $regData['nid'] ?? '') }}">
+                            <label class="form-label fw-semibold text-dark small">জাতীয় পরিচয়পত্র (NID) নম্বর</label>
+                            <input type="text" name="nid" class="form-control" placeholder="১০ বা ১৭ ডিজিটের নম্বর" value="{{ old('nid', $regData['nid'] ?? '') }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-dark small">NID কার্ডের স্ক্যান কপি (PDF/Image)</label>
+                            <label class="form-label fw-semibold text-dark small">NID কার্ডের ফাইল (PDF/Image)</label>
                             <input type="file" name="nid_file" class="form-control" accept="image/*,.pdf">
                             @if(!empty($regData['nid_file']))
-                                <small class="text-success d-block mt-1"><i class="fa-solid fa-circle-check"></i> ডকুমেন্ট পূর্বে আপলোড করা হয়েছে</small>
+                                <small class="text-success d-block mt-1">ডকুমেন্ট পূর্বে আপলোড করা হয়েছে</small>
                             @endif
                         </div>
                     </div>
 
-                    {{-- 8. Payout & Royalty Settlement Settings --}}
+                    {{-- Payout Settings --}}
                     <div class="row g-3 mb-4">
                         <div class="col-md-5">
-                            <label class="form-label fw-bold text-dark small">রয়্যালটি / পেমেন্ট গ্রহণের মাধ্যম</label>
+                            <label class="form-label fw-semibold text-dark small">রয়্যালটি গ্রহণের মাধ্যম</label>
                             <select name="payout_account_type" class="form-select">
-                                <option value="bkash" {{ ($regData['payout_type'] ?? '') === 'bkash' ? 'selected' : '' }}>বিকাশ (bKash Personal/Merchant)</option>
+                                <option value="bkash" {{ ($regData['payout_type'] ?? '') === 'bkash' ? 'selected' : '' }}>বিকাশ (bKash)</option>
                                 <option value="nagad" {{ ($regData['payout_type'] ?? '') === 'nagad' ? 'selected' : '' }}>নগদ (Nagad)</option>
                                 <option value="rocket" {{ ($regData['payout_type'] ?? '') === 'rocket' ? 'selected' : '' }}>রকেট (Rocket)</option>
-                                <option value="bank" {{ ($regData['payout_type'] ?? '') === 'bank' ? 'selected' : '' }}>ব্যাংক অ্যাকাউন্ট (Bank Account)</option>
+                                <option value="bank" {{ ($regData['payout_type'] ?? '') === 'bank' ? 'selected' : '' }}>ব্যাংক অ্যাকাউন্ট (Bank)</option>
                             </select>
                         </div>
                         <div class="col-md-7">
-                            <label class="form-label fw-bold text-dark small">অ্যাকাউন্ট নম্বর ও ব্যাংকের বিস্তারিত</label>
-                            <input type="text" name="payout_account_details" class="form-control" placeholder="যেমন: 017XXXXXXXX বা ব্যাংক নাম, শাখা ও A/C No" value="{{ old('payout_account_details', $regData['payout_details'] ?? '') }}">
+                            <label class="form-label fw-semibold text-dark small">অ্যাকাউন্ট নম্বর ও বিবরণ</label>
+                            <input type="text" name="payout_account_details" class="form-control" placeholder="যেমন: 017XXXXXXXX বা ব্যাংক ও অ্যাকাউন্ট নং" value="{{ old('payout_account_details', $regData['payout_details'] ?? '') }}">
                         </div>
                     </div>
 
                     <div class="d-flex align-items-center gap-2">
                         <button type="submit" class="amz-btn-gold">
-                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> কেওয়াইসি তথ্য সংরক্ষণ ও জমা দিন
+                            কেওয়াইসি তথ্য সংরক্ষণ করুন
                         </button>
                         <button type="button" class="amz-btn-silver" onclick="closeAllPanels()">
                             বাতিল
@@ -1304,18 +944,15 @@
             </div>
         </div>
 
-        <!-- SECTION PANEL: পাঠাগার ও বই অনুদান (Library Grants & Receipt Acknowledgment) -->
+        <!-- PANEL 8: Library Grant -->
         <div id="panel-libraryGrant" class="amz-section-panel d-none">
-            <div class="amz-panel-header">
-                <button type="button" class="amz-back-btn" onclick="closeAllPanels()">
-                    <i class="fa-solid fa-arrow-left"></i> Your Account
-                </button>
-                <h2 class="amz-panel-title">
-                    <i class="fa-solid fa-book-open-reader text-success me-2"></i> পাঠাগার ও বাৎসরিক বই অনুদান
-                </h2>
-                <p class="text-muted small mb-0">আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির বিবরণ ও প্রাপ্তিস্বীকার।</p>
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <div class="border-bottom pb-2 mb-3">
+                <h2 class="amz-main-title">পাঠাগার ও বাৎসরিক বই অনুদান</h2>
+                <p class="text-muted small mb-0">আইডিয়া প্রকাশনের বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি ও প্রাপ্তিস্বীকার</p>
             </div>
-            <div class="amz-panel-body p-4">
+
+            <div class="p-0">
                 @if(isset($myLibraryRegistrations) && $myLibraryRegistrations->isNotEmpty())
                     <div class="d-flex flex-column gap-3">
                         @foreach($myLibraryRegistrations as $reg)
@@ -1328,31 +965,23 @@
                                 $isAck = $reg->isAcknowledged();
                                 $libName = $reg->institution_or_org ?: ($fd['library_name'] ?? 'পাঠাগার');
                             @endphp
-                            <div class="card border rounded-4 shadow-sm p-4 bg-white">
+                            <div class="card border rounded-3 p-4 bg-white">
                                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                                     <div>
-                                        <h5 class="fw-bold mb-1 text-dark">{{ $libName }}</h5>
+                                        <h5 class="fw-semibold mb-1 text-dark" style="font-size: 16px;">{{ $libName }}</h5>
                                         <div class="d-flex align-items-center gap-2 flex-wrap small">
                                             <span class="badge bg-light text-secondary border">#{{ $reg->registration_number }}</span>
                                             <span class="text-muted">{{ $reg->district ?? '' }}{{ $reg->thana ? ', ' . $reg->thana : '' }}</span>
-                                            @php
-                                                $hasPrev = ($fd['has_previous_books'] ?? '') === 'হ্যাঁ' || ($fd['has_previous_books'] ?? '') === 'yes' || (!empty($reg->has_previous_books) && $reg->has_previous_books !== 'না');
-                                            @endphp
-                                            @if($hasPrev)
-                                                <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                                    ইতোপূর্বে বই প্রাপ্ত: {{ $fd['previous_books_count'] ?? ($reg->previous_books_count ?? '') }} টি ({{ $fd['previous_books_year'] ?? ($reg->previous_books_year ?? '') }})
-                                                </span>
-                                            @endif
                                         </div>
                                     </div>
                                     <div>
                                         @if(in_array($reg->status, ['confirmed', 'selected', 'approved']))
-                                            <span class="badge bg-success-subtle text-success border px-3 py-1.5 rounded-pill fw-bold">
-                                                <i class="fa-solid fa-circle-check me-1"></i> অনুমোদিত (Approved)
+                                            <span class="badge bg-success-subtle text-success border px-3 py-1.5 rounded-pill fw-semibold">
+                                                অনুমোদিত
                                             </span>
                                         @else
-                                            <span class="badge bg-warning-subtle text-warning border px-3 py-1.5 rounded-pill fw-bold">
-                                                <i class="fa-solid fa-hourglass-half me-1"></i> অপেক্ষমাণ (Pending)
+                                            <span class="badge bg-warning-subtle text-warning-emphasis border px-3 py-1.5 rounded-pill fw-semibold">
+                                                অপেক্ষমাণ
                                             </span>
                                         @endif
                                     </div>
@@ -1361,16 +990,16 @@
                                 <div class="row g-3 p-3 rounded-3 bg-light mb-3">
                                     <div class="col-6 col-md-3">
                                         <span class="text-muted small d-block">বরাদ্দকৃত বই</span>
-                                        <strong class="text-success fs-6">{{ $allocated > 0 ? $allocated . ' টি বই' : 'যাচাইাধীন' }}</strong>
+                                        <strong class="text-success fs-6">{{ $allocated > 0 ? $allocated . ' টি' : 'যাচাইাধীন' }}</strong>
                                     </div>
                                     <div class="col-6 col-md-3">
                                         <span class="text-muted small d-block">বিতরণের তারিখ</span>
                                         <strong class="text-dark">{{ $dispatchedDate ? date('d M, Y', strtotime($dispatchedDate)) : '—' }}</strong>
                                     </div>
                                     <div class="col-6 col-md-3">
-                                        <span class="text-muted small d-block">প্রাপ্তিস্বীকার স্ট্যাটাস</span>
+                                        <span class="text-muted small d-block">প্রাপ্তিস্বীকার</span>
                                         @if($isAck)
-                                            <span class="badge bg-success text-white">প্রাপ্তি নিশ্চিত ({{ $receivedCount ?: $allocated }} টি)</span>
+                                            <span class="badge bg-success text-white">নিশ্চিত ({{ $receivedCount ?: $allocated }} টি)</span>
                                         @elseif($allocated > 0)
                                             <span class="badge bg-warning text-dark">প্রেরিত (প্রাপ্তিস্বীকার দিন)</span>
                                         @else
@@ -1378,55 +1007,81 @@
                                         @endif
                                     </div>
                                     <div class="col-6 col-md-3 text-md-end">
-                                        <a href="{{ route('event.registration.print', $reg->registration_number) }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
-                                            <i class="fa-solid fa-print me-1"></i> স্লিপ ডাউনলোড / প্রিন্ট
+                                        <a href="{{ route('event.registration.print', $reg->registration_number) }}" target="_blank" class="amz-btn-silver">
+                                            স্লিপ ডাউনলোড
                                         </a>
                                     </div>
                                 </div>
 
-                                {{-- Acknowledgment Form inside Panel if not acknowledged --}}
                                 @if(!$isAck)
                                     <div class="border-top pt-3 mt-2">
-                                        <h6 class="fw-bold text-success mb-2"><i class="fa-solid fa-signature me-1"></i> বই বুঝে পেয়েছেন? প্রাপ্তিস্বীকার দিন:</h6>
+                                        <h6 class="fw-semibold text-dark mb-2">বই প্রাপ্তিস্বীকার নিশ্চিতকরণ</h6>
                                         <form action="{{ url('/pathagar/acknowledgment/' . $reg->registration_number) }}" method="POST" class="row g-2 align-items-center">
                                             @csrf
                                             <div class="col-md-3">
-                                                <input type="number" name="received_books_count" class="form-control form-control-sm rounded-3" placeholder="প্রাপ্ত বই সংখ্যা" value="{{ $allocated > 0 ? $allocated : '' }}" required min="1">
+                                                <input type="number" name="received_books_count" class="form-control form-control-sm" placeholder="প্রাপ্ত বই সংখ্যা" value="{{ $allocated > 0 ? $allocated : '' }}" required min="1">
                                             </div>
                                             <div class="col-md-3">
-                                                <input type="date" name="received_date" class="form-control form-control-sm rounded-3" value="{{ date('Y-m-d') }}" required>
+                                                <input type="date" name="received_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" required>
                                             </div>
                                             <div class="col-md-4">
-                                                <input type="text" name="acknowledgment_notes" class="form-control form-control-sm rounded-3" placeholder="মন্তব্য (যেমন: সঠিক অবস্থায় পেয়েছি)">
+                                                <input type="text" name="acknowledgment_notes" class="form-control form-control-sm" placeholder="মন্তব্য (ঐচ্ছিক)">
                                             </div>
                                             <div class="col-md-2">
-                                                <button type="submit" class="btn btn-sm btn-success rounded-pill w-100 fw-semibold">
-                                                    প্রাপ্তিস্বীকার জমা
+                                                <button type="submit" class="amz-btn-gold w-100">
+                                                    জমা দিন
                                                 </button>
                                             </div>
                                         </form>
                                     </div>
                                 @else
-                                    <div class="alert alert-success rounded-3 p-2.5 small mb-0 d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <i class="fa-solid fa-circle-check text-success me-1"></i>
-                                            <strong>{{ $receivedDate ? date('d M, Y', strtotime($receivedDate)) : '' }}</strong> তারিখে <strong>{{ $receivedCount ?: $allocated }} টি বই</strong> প্রাপ্তিস্বীকার নিশ্চিত করা হয়েছে।
-                                        </div>
+                                    <div class="alert alert-success rounded-3 p-2.5 small mb-0">
+                                        {{ $receivedDate ? date('d M, Y', strtotime($receivedDate)) : '' }} তারিখে <strong>{{ $receivedCount ?: $allocated }} টি বই</strong> প্রাপ্তিস্বীকার নিশ্চিত করা হয়েছে।
                                     </div>
                                 @endif
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <div class="text-center py-5">
-                        <i class="fa-solid fa-book-open-reader fs-1 text-success opacity-50 mb-3 d-block"></i>
-                        <h5 class="fw-bold text-dark">কোনো পাঠাগার নিবন্ধন পাওয়া যায়নি</h5>
-                        <p class="text-muted small mb-3">আপনার পাঠাগার বা শিক্ষা প্রতিষ্ঠানের জন্য বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে আবেদন করুন।</p>
-                        <a href="{{ url('/pathagar') }}" target="_blank" class="btn btn-success rounded-pill px-4 fw-semibold">
-                            <i class="fa-solid fa-plus me-1"></i> এখনই পাঠাগার আবেদন করুন
-                        </a>
+                    <div class="card p-5 text-center bg-white border rounded-3">
+                        <h5 class="fw-semibold text-dark mb-1">কোনো পাঠাগার আবেদন পাওয়া যায়নি</h5>
+                        <p class="text-muted small mb-3">আপনার পাঠাগারের জন্য বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে আবেদন করতে পারেন।</p>
+                        <div>
+                            <a href="{{ url('/pathagar') }}" target="_blank" class="amz-btn-gold">
+                                পাঠাগার আবেদন করুন
+                            </a>
+                        </div>
                     </div>
                 @endif
+            </div>
+        </div>
+
+        <!-- PANEL 9: Customer Service -->
+        <div class="amz-subpage-panel {{ $activeTab === 'customerService' ? 'active' : '' }}" id="panel_customerService" style="{{ $activeTab === 'customerService' ? 'display: block !important;' : 'display: none !important;' }}">
+            <span class="amz-back-link" onclick="closeAllPanels()"><i class="fa-solid fa-arrow-left me-1"></i> অ্যাকাউন্ট ড্যাশবোর্ড</span>
+            <h2 class="amz-main-title mb-3 border-bottom pb-2">গ্রাহক সেবা ও সহায়তা</h2>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
+                        <h6 class="fw-semibold mb-1 text-dark">সরাসরি ফোন কল</h6>
+                        <small class="text-muted d-block mb-3">কাস্টমার কেয়ার প্রতিনিধির সাথে কথা বলুন</small>
+                        <a href="tel:+8801558712810" class="amz-btn-silver mt-auto">+8801558712810</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
+                        <h6 class="fw-semibold mb-1 text-dark">হোয়াটসঅ্যাপ সাপোর্ট</h6>
+                        <small class="text-muted d-block mb-3">দ্রুত মেসেজে সাহায্য পেতে মেসেজ দিন</small>
+                        <a href="https://api.whatsapp.com/send?phone=8801558712810" target="_blank" class="amz-btn-gold mt-auto">WhatsApp মেসেজ</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-4 border rounded-3 text-center bg-white h-100">
+                        <h6 class="fw-semibold mb-1 text-dark">ইমেইল ও মেসেজ হেল্পডেস্ক</h6>
+                        <small class="text-muted d-block mb-3">অনলাইন ফর্মের মাধ্যমে বিস্তারিত অনুরোধ পাঠান</small>
+                        <a href="{{ route('contact') }}" class="amz-btn-silver mt-auto">যোগাযোগ ফর্ম</a>
+                    </div>
+                </div>
             </div>
         </div>
 
