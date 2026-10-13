@@ -13,13 +13,13 @@
     $bgColor        = $cardDesign['bg_color'] ?? '#c98c21';
     
     // 2. Element Visibility Toggles (বাদ দেওয়ার / প্রদর্শন করার সেটিংস)
-    $showHeader     = !empty($cardDesign['show_header']);
+    $showHeader     = false; // উৎসবের ৩-স্তরের মূল শিরোনাম ডিলিট করা হয়েছে
     $showLogo       = !empty($cardDesign['show_logo']);
     $showEventLogo    = !empty($cardDesign['show_event_logo']);
     $eventLogoSize    = intval($cardDesign['event_logo_size'] ?? 64);
     $eventLogoOffsetX = intval($cardDesign['event_logo_offset_x'] ?? 0);
     $eventLogoOffsetY = intval($cardDesign['event_logo_offset_y'] ?? 0);
-    $showBadge      = !empty($cardDesign['show_badge']);
+    $showBadge      = false; // আমন্ত্রণ ব্যাজ ও কার্ড নম্বর ডিলিট করা হয়েছে
     $showPhoto      = $cardDesign['show_photo'] ?? true;
     $showNamePlate  = $cardDesign['show_name_plate'] ?? true;
     $showQuote      = $cardDesign['show_quote'] ?? true;
@@ -688,29 +688,17 @@
                     @endif
                 </div>
 
-                {{-- Center: Event Logo & Title --}}
+                {{-- Center: Event Logo --}}
                 <div class="festival-text-wrap" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
                     @if($showEventLogo && !empty($eventLogoImage))
-                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; margin-bottom: {{ $showHeader ? '2px' : '0' }}; transform: translate({{ $eventLogoOffsetX }}px, {{ $eventLogoOffsetY }}px);">
+                        <div class="event-header-logo-wrap" style="display: flex; justify-content: center; align-items: center; transform: translate({{ $eventLogoOffsetX }}px, {{ $eventLogoOffsetY }}px);">
                             <img src="{{ asset('storage/' . $eventLogoImage) }}" alt="Event Logo" style="max-height: {{ $eventLogoSize }}px; max-width: 100%; object-fit: contain;" crossorigin="anonymous">
                         </div>
                     @endif
-                    @if($showHeader)
-                        <div class="festival-anniversary">{{ $anniversaryText }}</div>
-                        <div class="festival-main-title">{{ $titleText }}</div>
-                        <div class="festival-subtitle">{{ $subtitleText }}</div>
-                    @endif
                 </div>
 
-                {{-- Right: Badge / Symmetrical Spacer --}}
-                <div class="header-right-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-end;">
-                    @if($showBadge)
-                        <div class="card-badge-wrap">
-                            <div class="vertical-invite-ribbon">{{ $badgeText }}</div>
-                            <div class="card-number-pill">কার্ড নং- {{ $cardNo }}</div>
-                        </div>
-                    @endif
-                </div>
+                {{-- Right: Symmetrical Spacer --}}
+                <div class="header-right-col" style="min-width: {{ $logoSize }}px; display: flex; align-items: center; justify-content: flex-end;"></div>
 
             </div>
 

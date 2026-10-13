@@ -171,6 +171,7 @@ class RoleMiddleware
         'admin.event-campaigns.registrations.destroy' => 'users.manage',
         'admin.event-campaigns.registrations.toggle-scholarship' => 'users.manage',
         'admin.event-campaigns.registrations.toggle-approval' => 'users.manage',
+        'admin.event-campaigns.registrations.quick-status'    => 'users.manage',
         'admin.event-campaigns.registrations.viva-evaluation' => 'users.manage',
         'admin.event-campaigns.registrations.print' => 'users.view',
         'admin.event-campaigns.registrations.pdf'   => 'users.view',

@@ -740,6 +740,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/registrations/{registration}', 'destroyRegistration')->name('registrations.destroy');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-scholarship', 'toggleScholarship')->name('registrations.toggle-scholarship');
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-approval', 'toggleApproval')->name('registrations.toggle-approval');
+        Route::match(['post', 'patch'], '/registrations/{registration}/quick-status', 'toggleApproval')->name('registrations.quick-status');
         Route::post('/registrations/{registration}/sync-user-phone', 'syncUserPhone')->name('registrations.sync-user-phone');
         Route::post('/registrations/{registration}/viva-evaluation', 'updateVivaEvaluation')->name('registrations.viva-evaluation');
         Route::get('/registrations/{registration}/print', 'printRegistration')->name('registrations.print');

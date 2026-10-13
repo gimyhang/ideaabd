@@ -1040,18 +1040,23 @@ class EventCampaignAdminController extends Controller
     }
 
     /**
-     * One-click Toggle Approval for Event/Writer Delegate Registrations (অনুমোদন বাটন).
+     * One-click Status Update (Approve, Reject, Pending) for Event/Writer Delegate Registrations.
      */
     public function toggleApproval(Request $request, EventRegistration $registration)
     {
-        $isApproved = ($registration->status === 'confirmed' || $registration->status === 'selected' || $registration->status === 'approved');
-        $newStatus = $isApproved ? 'pending' : 'confirmed';
+        $requestedStatus = $request->input('status');
+        if ($requestedStatus && in_array($requestedStatus, ['confirmed', 'rejected', 'pending', 'selected', 'attended'])) {
+            $newStatus = $requestedStatus;
+        } else {
+            $isApproved = ($registration->status === 'confirmed' || $registration->status === 'selected' || $registration->status === 'approved');
+            $newStatus = $isApproved ? 'pending' : 'confirmed';
+        }
 
         $registration->update([
             'status' => $newStatus,
         ]);
 
-        if ($newStatus === 'confirmed') {
+        if ($newStatus === 'confirmed' || $newStatus === 'selected') {
             // Optional SMS on approval
             try {
                 $downloadUrl = url('/event-registration/print/' . $registration->registration_number);
@@ -1061,12 +1066,12 @@ class EventCampaignAdminController extends Controller
                 Log::warning("Approval SMS error: " . $e->getMessage());
             }
 
-            $msg = "Participant #{$registration->registration_number} ({$registration->name}) has been APPROVED! Delegate pass is now downloadable.";
+            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে এপ্রুভ (Approved) করা হয়েছে!";
             
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'success'  => true,
-                    'status'   => 'confirmed',
+                    'status'   => $newStatus,
                     'approved' => true,
                     'message'  => $msg,
                 ]);
@@ -1075,7 +1080,22 @@ class EventCampaignAdminController extends Controller
             return back()->with('success', $msg);
         }
 
-        $msg = "Participant #{$registration->registration_number} ({$registration->name}) marked as PENDING.";
+        if ($newStatus === 'rejected') {
+            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে বাতিল (Rejected) করা হয়েছে!";
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success'  => true,
+                    'status'   => 'rejected',
+                    'approved' => false,
+                    'message'  => $msg,
+                ]);
+            }
+
+            return back()->with('warning', $msg);
+        }
+
+        $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) স্ট্যাটাস পেন্ডিং (Pending) করা হয়েছে।";
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -1256,18 +1276,18 @@ class EventCampaignAdminController extends Controller
             $cardDesign['bg_blur']           = intval($request->input('bg_blur', $cardDesign['bg_blur'] ?? 0));
             
             // 3. Header Texts & Logo Sizing
-            $cardDesign['show_header']       = $request->has('show_header');
+            $cardDesign['show_header']       = false; // উৎসবের ৩-স্তরের মূল শিরোনাম ডিলিট করা হয়েছে
             $cardDesign['show_logo']         = $request->has('show_logo');
             $cardDesign['logo_size']         = intval($request->input('logo_size', $cardDesign['logo_size'] ?? 58));
             $cardDesign['logo_offset_x']     = intval($request->input('logo_offset_x', $cardDesign['logo_offset_x'] ?? 0));
             $cardDesign['logo_offset_y']     = intval($request->input('logo_offset_y', $cardDesign['logo_offset_y'] ?? 0));
-            $cardDesign['anniversary_text']  = $request->input('anniversary_text', '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে');
-            $cardDesign['title_text']        = $request->input('title_text', 'রংপুর সাহিত্য উৎসব');
-            $cardDesign['subtitle_text']     = $request->input('subtitle_text', 'ও ৩য় লিটিলম্যাগ মেলা');
+            $cardDesign['anniversary_text']  = $request->input('anniversary_text', '');
+            $cardDesign['title_text']        = $request->input('title_text', '');
+            $cardDesign['subtitle_text']     = $request->input('subtitle_text', '');
             
             // 4. Badge & Card No
-            $cardDesign['show_badge']        = $request->has('show_badge');
-            $cardDesign['badge_text']        = $request->input('card_badge_text', 'আমন্ত্রণ কার্ড');
+            $cardDesign['show_badge']        = false; // আমন্ত্রণ ব্যাজ ও কার্ড নম্বর ডিলিট করা হয়েছে
+            $cardDesign['badge_text']        = $request->input('card_badge_text', '');
             
             // 5. Author Photo, Shape & Studio Filters (ফটো এডিটর স্যুট)
             $cardDesign['show_photo']          = $request->has('show_photo');

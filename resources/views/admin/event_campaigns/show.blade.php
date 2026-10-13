@@ -627,7 +627,14 @@
                                 $reg->transaction_id,
                                 json_encode($reg->form_data ?? [])
                             ])));
-                            $authorPhoto = $reg->form_data['student_photo'] ?? ($reg->form_data['author_photo'] ?? null);
+                            $rawPhoto = $reg->form_data['student_photo'] ?? ($reg->form_data['photo'] ?? ($reg->form_data['author_photo'] ?? ($reg->photo ?? null)));
+                            $photoSrc = null;
+                            if (!empty($rawPhoto)) {
+                                $photoSrc = \Illuminate\Support\Str::startsWith($rawPhoto, ['http://', 'https://'])
+                                    ? $rawPhoto
+                                    : asset('storage/' . ltrim($rawPhoto, '/'));
+                            }
+                            $authorPhoto = $rawPhoto;
                         @endphp
                         <tr class="participant-row" data-search-text="{{ $searchPayload }}">
                             {{-- Checkbox --}}
@@ -836,19 +843,38 @@
                                             <i class="fa-solid fa-clipboard-check me-1"></i> {{ $vTotal !== null ? "Viva: {$vTotal}/50" : 'Viva' }}
                                         </button>
                                     @else
-                                        {{-- Toggle Approval Button --}}
-                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @if($reg->status === 'confirmed' || $reg->status === 'approved' || $reg->status === 'selected')
-                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Approved (Click to mark Pending)">
-                                                    <i class="fa-solid fa-circle-check me-1"></i> Approved
-                                                </button>
-                                            @else
-                                                <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Click to Approve Participant">
-                                                    <i class="fa-solid fa-check me-1"></i> Approve
-                                                </button>
-                                            @endif
-                                        </form>
+                                        {{-- Quick Approval & Reject Buttons in Table Row --}}
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            {{-- Quick Approve Button --}}
+                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                @csrf
+                                                <input type="hidden" name="status" value="{{ in_array($reg->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
+                                                @if(in_array($reg->status, ['confirmed', 'approved', 'selected']))
+                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="Approved (ক্লিক করে পেন্ডিং করুন)">
+                                                        <i class="fa-solid fa-circle-check me-1"></i> Approved
+                                                    </button>
+                                                @else
+                                                    <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="অবিলম্বে এপ্রুভ করুন">
+                                                        <i class="fa-solid fa-check me-1"></i> Approve
+                                                    </button>
+                                                @endif
+                                            </form>
+
+                                            {{-- Quick Reject / Cancel Button --}}
+                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                @csrf
+                                                <input type="hidden" name="status" value="{{ $reg->status === 'rejected' ? 'pending' : 'rejected' }}">
+                                                @if($reg->status === 'rejected')
+                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="Rejected (ক্লিক করে পেন্ডিং করুন)">
+                                                        <i class="fa-solid fa-circle-xmark me-1"></i> Rejected
+                                                    </button>
+                                                @else
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs" style="font-size: 11px;" title="আবেদন অবিলম্বে বাতিল করুন">
+                                                        <i class="fa-solid fa-xmark me-1"></i> বাতিল
+                                                    </button>
+                                                @endif
+                                            </form>
+                                        </div>
                                     @endif
 
                                     @if($isLibrary)
@@ -886,12 +912,14 @@
 
                                 {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
                                 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-xl text-start" style="max-width: 980px;">
+                                    <div class="modal-dialog modal-dialog-centered modal-xl text-start" style="max-width: 1080px;">
                                         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
                                             {{-- Header --}}
                                             <div class="modal-header py-3 px-4" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: #ffffff;">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    @if($authorPhoto)
+                                                    @if($photoSrc)
+                                                        <img src="{{ $photoSrc }}" alt="{{ $reg->name }}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer;" onclick="openParticipantLightbox('{{ $photoSrc }}', '{{ addslashes($reg->name) }}', '{{ $reg->registration_number }}')" title="ক্লিক করে বড়ো জুম দেখুন">
+                                                    @elseif($authorPhoto)
                                                         <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
                                                     @else
                                                         <div class="aec-avatar-placeholder" style="width: 52px; height: 52px; font-size: 20px;">
@@ -901,7 +929,7 @@
                                                     <div>
                                                         <div class="d-flex align-items-center gap-2 flex-wrap">
                                                             <h5 class="modal-title fw-bold mb-0 text-white">{{ $reg->name }}</h5>
-                                                            <span class="badge {{ in_array($reg->status, ['confirmed', 'selected']) ? 'bg-success' : ($reg->status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">
+                                                            <span class="badge {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'bg-success' : ($reg->status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }} modal-status-badge-{{ $reg->id }}">
                                                                 {{ ucfirst($reg->status) }}
                                                             </span>
                                                             @if($reg->payment_status === 'verified')
@@ -916,7 +944,7 @@
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
 
-                                            {{-- Navigation Tabs --}}
+                                            {{-- Navigation Tabs & Quick Status Bar --}}
                                             <div class="bg-light border-bottom px-4 py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                                 <ul class="nav nav-pills" id="detailTab{{ $reg->id }}" role="tablist">
                                                     <li class="nav-item" role="presentation">
@@ -931,7 +959,39 @@
                                                     </li>
                                                 </ul>
 
-                                                <div class="d-flex gap-2">
+                                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                    {{-- Quick Status Buttons Toolbar --}}
+                                                    <div class="btn-group btn-group-sm rounded-pill overflow-hidden border p-0.5 bg-white shadow-xs" role="group">
+                                                        {{-- Quick Approve --}}
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="confirmed">
+                                                            <button type="submit" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
+                                                                <i class="fa-solid fa-circle-check me-1"></i> {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'এপ্রুভড' : 'এপ্রুভ করুন' }}
+                                                            </button>
+                                                        </form>
+
+                                                        {{-- Quick Reject --}}
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="rejected">
+                                                            <button type="submit" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে বাতিল করুন">
+                                                                <i class="fa-solid fa-circle-xmark me-1"></i> {{ $reg->status === 'rejected' ? 'বাতিলকৃত' : 'বাতিল করুন' }}
+                                                            </button>
+                                                        </form>
+
+                                                        {{-- Reset to Pending if confirmed or rejected --}}
+                                                        @if($reg->status !== 'pending')
+                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                                @csrf
+                                                                <input type="hidden" name="status" value="pending">
+                                                                <button type="submit" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill" title="পেন্ডিংয়ে ফেরত নিন">
+                                                                    <i class="fa-solid fa-clock-rotate-left me-0.5"></i> পেন্ডিং
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
+
                                                     <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 shadow-none">
                                                         <i class="fa-solid fa-print me-1"></i> প্রিন্ট
                                                     </a>
@@ -951,106 +1011,165 @@
                                                     <div class="tab-pane fade show active" id="view-tab-content-{{ $reg->id }}" role="tabpanel">
                                                         <div class="row g-3">
                                                             
-                                                            {{-- ১. প্রাথমিক ও ব্যক্তিগত তথ্য --}}
-                                                            <div class="col-12 col-md-6">
-                                                                <div class="p-3 bg-light rounded-3 border h-100">
-                                                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
-                                                                        <i class="fa-solid fa-user text-primary me-1.5"></i> ১. ব্যক্তিগত ও যোগাযোগের তথ্য
-                                                                    </h6>
-                                                                    <div class="table-responsive">
-                                                                        <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
-                                                                            <tr>
-                                                                                <th class="text-muted w-35 py-1">পূর্ণ নাম:</th>
-                                                                                <td class="fw-bold text-dark py-1">{{ $reg->name }}</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <th class="text-muted py-1">মোবাইল:</th>
-                                                                                <td class="py-1"><a href="tel:{{ $reg->phone }}" class="font-monospace fw-bold text-primary">{{ $reg->phone }}</a></td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <th class="text-muted py-1">ইমেইল:</th>
-                                                                                <td class="py-1">{{ $reg->email ?: 'N/A' }}</td>
-                                                                            </tr>
-                                                                            @if($reg->institution_or_org || !empty($reg->form_data['organization_name']))
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">প্রতিষ্ঠান/সংগঠন:</th>
-                                                                                    <td class="py-1">{{ $reg->institution_or_org ?: ($reg->form_data['organization_name'] ?? 'N/A') }}</td>
-                                                                                </tr>
+                                                            {{-- ৪০০ পিক্সেল প্রোফাইল ফটো ও জুম কার্ড (যেন স্পষ্টভাবে চেনা যায়) --}}
+                                                            <div class="col-12 col-lg-5 text-center">
+                                                                <div class="p-3 bg-white rounded-3 border h-100 d-flex flex-column justify-content-between shadow-xs">
+                                                                    <div>
+                                                                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2.5">
+                                                                            <span class="fw-bold text-dark" style="font-size: 13.5px;">
+                                                                                <i class="fa-solid fa-id-badge text-primary me-1.5"></i> আবেদনকারীর ছবি (Photo ID)
+                                                                            </span>
+                                                                            <span class="badge bg-secondary-subtle text-secondary" style="font-size: 11px;">৪০০×৪০০px ভিউ</span>
+                                                                        </div>
+
+                                                                        {{-- 400px Image Box --}}
+                                                                        <div class="position-relative mx-auto rounded-3 overflow-hidden shadow-sm d-flex align-items-center justify-content-center participant-photo-frame" 
+                                                                             style="width: 100%; max-width: 400px; height: 380px; max-height: 400px; background: #0f172a; border: 2px solid #cbd5e1; cursor: pointer;"
+                                                                             @if($photoSrc) onclick="openParticipantLightbox('{{ $photoSrc }}', '{{ addslashes($reg->name) }}', '{{ $reg->registration_number }}')" @endif
+                                                                             title="{{ $photoSrc ? 'ক্লিক করে জুম বড়ো করে দেখুন (যেন চেনা যায়)' : 'ছবি সংযুক্ত করা নেই' }}">
+                                                                            @if($photoSrc)
+                                                                                <img src="{{ $photoSrc }}" 
+                                                                                     alt="{{ $reg->name }}" 
+                                                                                     class="participant-img-400" 
+                                                                                     style="width: 100%; height: 100%; object-fit: contain; object-position: center; transition: transform 0.25s ease;"
+                                                                                     onmouseover="this.style.transform='scale(1.03)'"
+                                                                                     onmouseout="this.style.transform='scale(1)'">
+                                                                                
+                                                                                <div class="position-absolute bottom-0 start-0 end-0 p-2 text-center text-white" 
+                                                                                     style="background: linear-gradient(to top, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.6) 60%, transparent 100%); pointer-events: none;">
+                                                                                    <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill shadow-sm fw-bold" style="font-size: 12px;">
+                                                                                        <i class="fa-solid fa-magnifying-glass-plus me-1"></i> ছবিতে ক্লিক করুন — বড়ো জুম দেখুন
+                                                                                    </span>
+                                                                                </div>
+                                                                            @else
+                                                                                <div class="text-center text-white-50 p-4">
+                                                                                    <div class="aec-avatar-placeholder mx-auto mb-3" style="width: 90px; height: 90px; font-size: 38px; border: 3px solid rgba(255,255,255,0.2);">
+                                                                                        {{ mb_substr($reg->name, 0, 1) }}
+                                                                                    </div>
+                                                                                    <div class="fw-bold text-white fs-6 mb-1">{{ $reg->name }}</div>
+                                                                                    <small class="text-white-50 d-block mb-3">কোনো ছবি আপলোড করা হয়নি</small>
+                                                                                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
+                                                                                        <i class="fa-solid fa-upload me-1"></i> ছবি যোগ করুন
+                                                                                    </button>
+                                                                                </div>
                                                                             @endif
-                                                                            @if($reg->designation_or_class)
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">পদবি / শাখা:</th>
-                                                                                    <td class="py-1">{{ $reg->designation_or_class }}</td>
-                                                                                </tr>
-                                                                            @endif
-                                                                        </table>
+                                                                        </div>
                                                                     </div>
+
+                                                                    @if($photoSrc)
+                                                                        <div class="mt-2.5 pt-2 border-top w-100 d-flex justify-content-between align-items-center gap-2">
+                                                                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 shadow-none flex-grow-1" onclick="openParticipantLightbox('{{ $photoSrc }}', '{{ addslashes($reg->name) }}', '{{ $reg->registration_number }}')">
+                                                                                <i class="fa-solid fa-up-right-and-down-left-from-center me-1"></i> ফুল স্ক্রিন জুম ভিউ (Zoom)
+                                                                            </button>
+                                                                            <a href="{{ $photoSrc }}" target="_blank" download="photo_{{ $reg->registration_number }}.jpg" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 shadow-none" title="আসল ছবি ডাউনলোড">
+                                                                                <i class="fa-solid fa-download"></i>
+                                                                            </a>
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             </div>
 
-                                                            {{-- ২. ঠিকানা বিবরণী --}}
-                                                            @php
-                                                                $isForeign = ($reg->form_data['resident_type'] ?? '') === 'international';
-                                                            @endphp
-                                                            <div class="col-12 col-md-6">
-                                                                <div class="p-3 bg-light rounded-3 border h-100">
-                                                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
-                                                                            <i class="fa-solid fa-location-dot text-danger me-1.5"></i> ২. ঠিকানা বিবরণী
+                                                            {{-- ১. প্রাথমিক ও ব্যক্তিগত তথ্য & ২. ঠিকানা বিবরণী --}}
+                                                            <div class="col-12 col-lg-7">
+                                                                <div class="d-flex flex-column gap-3 h-100">
+                                                                    {{-- ১. প্রাথমিক ও ব্যক্তিগত তথ্য --}}
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
+                                                                            <i class="fa-solid fa-user text-primary me-1.5"></i> ১. ব্যক্তিগত ও যোগাযোগের তথ্য
                                                                         </h6>
-                                                                        @if($isForeign)
-                                                                            <span class="badge bg-primary-subtle text-primary"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / আন্তর্জাতিক</span>
-                                                                        @else
-                                                                            <span class="badge bg-success-subtle text-success"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</span>
-                                                                        @endif
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
+                                                                                <tr>
+                                                                                    <th class="text-muted w-35 py-1">পূর্ণ নাম:</th>
+                                                                                    <td class="fw-bold text-dark py-1">{{ $reg->name }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">মোবাইল:</th>
+                                                                                    <td class="py-1"><a href="tel:{{ $reg->phone }}" class="font-monospace fw-bold text-primary">{{ $reg->phone }}</a></td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <th class="text-muted py-1">ইমেইল:</th>
+                                                                                    <td class="py-1">{{ $reg->email ?: 'N/A' }}</td>
+                                                                                </tr>
+                                                                                @if($reg->institution_or_org || !empty($reg->form_data['organization_name']))
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">প্রতিষ্ঠান/সংগঠন:</th>
+                                                                                        <td class="py-1">{{ $reg->institution_or_org ?: ($reg->form_data['organization_name'] ?? 'N/A') }}</td>
+                                                                                    </tr>
+                                                                                @endif
+                                                                                @if($reg->designation_or_class)
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">পদবি / শাখা:</th>
+                                                                                        <td class="py-1">{{ $reg->designation_or_class }}</td>
+                                                                                    </tr>
+                                                                                @endif
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
 
-                                                                    <div class="table-responsive">
-                                                                        <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
+                                                                    {{-- ২. ঠিকানা বিবরণী --}}
+                                                                    @php
+                                                                        $isForeign = ($reg->form_data['resident_type'] ?? '') === 'international';
+                                                                    @endphp
+                                                                    <div class="p-3 bg-light rounded-3 border">
+                                                                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                                                            <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
+                                                                                <i class="fa-solid fa-location-dot text-danger me-1.5"></i> ২. ঠিকানা বিবরণী
+                                                                            </h6>
                                                                             @if($isForeign)
-                                                                                <tr>
-                                                                                    <th class="text-muted w-35 py-1">দেশ (Country):</th>
-                                                                                    <td class="fw-bold text-dark py-1">{{ $reg->form_data['country_name'] ?? 'Foreign' }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">শহর / রাজ্য:</th>
-                                                                                    <td class="py-1">{{ $reg->form_data['state_or_city'] ?? 'N/A' }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">পোস্টকোড:</th>
-                                                                                    <td class="py-1 font-monospace">{{ $reg->form_data['zip_code'] ?? 'N/A' }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">সড়ক ঠিকানা:</th>
-                                                                                    <td class="py-1">{{ $reg->form_data['foreign_address'] ?? ($reg->address ?: 'N/A') }}</td>
-                                                                                </tr>
+                                                                                <span class="badge bg-primary-subtle text-primary"><i class="fa-solid fa-earth-americas me-1"></i> প্রবাসী / আন্তর্জাতিক</span>
                                                                             @else
-                                                                                <tr>
-                                                                                    <th class="text-muted w-35 py-1">বিভাগ:</th>
-                                                                                    <td class="py-1">{{ $reg->form_data['perm_division'] ?? ($reg->division ?: 'N/A') }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">জেলা:</th>
-                                                                                    <td class="fw-bold text-dark py-1">{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? 'N/A') }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">উপজেলা / থানা:</th>
-                                                                                    <td class="py-1">{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? 'N/A') }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">ডাকঘর:</th>
-                                                                                    <td class="py-1">{{ $reg->form_data['perm_post_office'] ?? 'N/A' }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">গ্রাম / সড়ক:</th>
-                                                                                    <td class="py-1">{{ $reg->form_data['perm_village'] ?? 'N/A' }}</td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <th class="text-muted py-1">পূর্ণ ঠিকানা:</th>
-                                                                                    <td class="py-1 text-dark">{{ $reg->address ?: 'N/A' }}</td>
-                                                                                </tr>
+                                                                                <span class="badge bg-success-subtle text-success"><i class="fa-solid fa-flag me-1"></i> বাংলাদেশ</span>
                                                                             @endif
-                                                                        </table>
+                                                                        </div>
+
+                                                                        <div class="table-responsive">
+                                                                            <table class="table table-sm table-borderless mb-0" style="font-size: 13px;">
+                                                                                @if($isForeign)
+                                                                                    <tr>
+                                                                                        <th class="text-muted w-35 py-1">দেশ (Country):</th>
+                                                                                        <td class="fw-bold text-dark py-1">{{ $reg->form_data['country_name'] ?? 'Foreign' }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">শহর / রাজ্য:</th>
+                                                                                        <td class="py-1">{{ $reg->form_data['state_or_city'] ?? 'N/A' }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">পোস্টকোড:</th>
+                                                                                        <td class="py-1 font-monospace">{{ $reg->form_data['zip_code'] ?? 'N/A' }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">সড়ক ঠিকানা:</th>
+                                                                                        <td class="py-1">{{ $reg->form_data['foreign_address'] ?? ($reg->address ?: 'N/A') }}</td>
+                                                                                    </tr>
+                                                                                @else
+                                                                                    <tr>
+                                                                                        <th class="text-muted w-35 py-1">বিভাগ:</th>
+                                                                                        <td class="py-1">{{ $reg->form_data['perm_division'] ?? ($reg->division ?: 'N/A') }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">জেলা:</th>
+                                                                                        <td class="fw-bold text-dark py-1">{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? 'N/A') }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">উপজেলা / থানা:</th>
+                                                                                        <td class="py-1">{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? 'N/A') }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">ডাকঘর:</th>
+                                                                                        <td class="py-1">{{ $reg->form_data['perm_post_office'] ?? 'N/A' }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">গ্রাম / সড়ক:</th>
+                                                                                        <td class="py-1">{{ $reg->form_data['perm_village'] ?? 'N/A' }}</td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <th class="text-muted py-1">পূর্ণ ঠিকানা:</th>
+                                                                                        <td class="py-1 text-dark">{{ $reg->address ?: 'N/A' }}</td>
+                                                                                    </tr>
+                                                                                @endif
+                                                                            </table>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1126,13 +1245,34 @@
                                                             {{-- ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন নোট --}}
                                                             <div class="col-12">
                                                                 <div class="p-3 bg-light rounded-3 border">
-                                                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-2" style="font-size: 13.5px;">
-                                                                        <i class="fa-solid fa-money-check-dollar text-success me-1.5"></i> ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
-                                                                    </h6>
+                                                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2 flex-wrap gap-2">
+                                                                        <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
+                                                                            <i class="fa-solid fa-money-check-dollar text-success me-1.5"></i> ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
+                                                                        </h6>
+                                                                        <div class="d-flex align-items-center gap-1.5">
+                                                                            <span class="small text-muted fw-bold">দ্রুত স্ট্যাটাস পরিবর্তন:</span>
+                                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                                                @csrf
+                                                                                <input type="hidden" name="status" value="confirmed">
+                                                                                <button type="submit" class="btn btn-xs btn-success rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
+                                                                                    <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ করুন
+                                                                                </button>
+                                                                            </form>
+                                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                                                @csrf
+                                                                                <input type="hidden" name="status" value="rejected">
+                                                                                <button type="submit" class="btn btn-xs btn-danger rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
+                                                                                    <i class="fa-solid fa-circle-xmark me-1"></i> বাতিল করুন
+                                                                                </button>
+                                                                            </form>
+                                                                        </div>
+                                                                    </div>
                                                                     <div class="row g-2" style="font-size: 13px;">
                                                                         <div class="col-6 col-sm-3">
                                                                             <span class="text-muted d-block small">নিবন্ধন স্ট্যাটাস:</span>
-                                                                            <span class="badge bg-primary-subtle text-primary fs-7">{{ ucfirst($reg->status) }}</span>
+                                                                            <span class="badge {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'bg-success' : ($reg->status === 'rejected' ? 'bg-danger' : 'bg-warning text-dark') }} fs-7 modal-status-badge-{{ $reg->id }}">
+                                                                                {{ ucfirst($reg->status) }}
+                                                                            </span>
                                                                         </div>
                                                                         <div class="col-6 col-sm-3">
                                                                             <span class="text-muted d-block small">পেমেন্ট স্ট্যাটাস:</span>
@@ -1159,11 +1299,30 @@
                                                         </div>
 
                                                         {{-- Footer Action Bar for Tab 1 --}}
-                                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
-                                                                <i class="fa-solid fa-pen-to-square me-1"></i> এই তথ্য এডিট করুন (Edit Form)
-                                                            </button>
-                                                            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                                    @csrf
+                                                                    <input type="hidden" name="status" value="confirmed">
+                                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs">
+                                                                        <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ করুন (Approve)
+                                                                    </button>
+                                                                </form>
+                                                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                                    @csrf
+                                                                    <input type="hidden" name="status" value="rejected">
+                                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold shadow-xs">
+                                                                        <i class="fa-solid fa-circle-xmark me-1"></i> বাতিল করুন (Reject)
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
+                                                                    <i class="fa-solid fa-pen-to-square me-1"></i> এই তথ্য এডিট করুন (Edit Form)
+                                                                </button>
+                                                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                                                            </div>
                                                         </div>
                                                     </div>
 
@@ -2137,11 +2296,11 @@
     $cTheme          = $cCardDesign['theme_color'] ?? ($campaign->theme_color ?: '#7f1d1d');
     $cBadge          = $cCardDesign['badge_text'] ?? ($campaign->badge_text ?: 'আমন্ত্রণ কার্ড');
     
-    // Toggles
-    $cShowHeader     = !empty($cCardDesign['show_header']);
+    // Toggles (হেডার টেক্সট ও আমন্ত্রণ ব্যাজ ডিলিট করা হয়েছে)
+    $cShowHeader     = false;
     $cShowLogo       = !empty($cCardDesign['show_logo']);
     $cShowEventLogo  = !empty($cCardDesign['show_event_logo']);
-    $cShowBadge      = !empty($cCardDesign['show_badge']);
+    $cShowBadge      = false;
     $cShowPhoto      = $cCardDesign['show_photo'] ?? true;
     $cShowNamePlate  = $cCardDesign['show_name_plate'] ?? true;
     $cShowQuote      = $cCardDesign['show_quote'] ?? true;
@@ -3126,47 +3285,9 @@
                                             </div>
                                         </div>
 
-                                        {{-- 3. Header & Title Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-primary-subtle text-primary" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-heading"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">হেডার টেক্সট</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">উৎসবের ৩-স্তরের মূল শিরোনাম</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 text-muted rounded-pill" onclick="document.getElementById('tab-text-btn').click()" title="হেডার টেক্সট এডিট" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </button>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input live-toggle-input" type="checkbox" name="show_header" id="toggleShowHeader" value="1" {{ $cShowHeader ? 'checked' : '' }} data-target="liveTextHeadingsGroup" style="width: 2.3em; height: 1.2em;">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- 4. Badge & Card No Toggle --}}
-                                        <div class="toggle-card-item py-2 px-2.5">
-                                            <div class="toggle-card-info">
-                                                <div class="toggle-card-icon bg-warning-subtle text-warning" style="width: 32px; height: 32px; font-size: 13px;">
-                                                    <i class="fa-solid fa-ribbon"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="toggle-card-title small fw-bold">আমন্ত্রণ ব্যাজ</div>
-                                                    <small class="text-muted" style="font-size: 10.5px;">খাড়া ফিতা ব্যাজ ও কার্ড নম্বর</small>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" class="btn btn-xs btn-light border py-0 px-1.5 text-muted rounded-pill" onclick="document.getElementById('tab-text-btn').click()" title="ব্যাজ টেক্সট এডিট" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </button>
-                                                <div class="form-check form-switch m-0">
-                                                    <input class="form-check-input live-toggle-input" type="checkbox" name="show_badge" id="toggleShowBadge" value="1" {{ $cShowBadge ? 'checked' : '' }} data-target="liveBadgeWrap" style="width: 2.3em; height: 1.2em;">
-                                                </div>
-                                            </div>
-                                        </div>
+                                        {{-- Header Text & Badge Permanently Removed as Requested --}}
+                                        <input type="hidden" name="show_header" id="toggleShowHeader" value="0">
+                                        <input type="hidden" name="show_badge" id="toggleShowBadge" value="0">
 
                                         {{-- 5. Author Photo Toggle --}}
                                         <div class="toggle-card-item py-2 px-2.5">
@@ -3541,24 +3662,10 @@
                                     {{-- Text Inputs --}}
                                     <div class="row g-2.5 mb-3">
                                         <div class="col-md-12">
-                                            <label class="form-label small fw-bold text-dark mb-1">প্রতিষ্ঠাবার্ষিকী</label>
-                                            <input type="text" name="anniversary_text" id="liveInputAnniversary" class="form-control form-control-sm" value="{{ $cAnniv }}" placeholder="প্রতিষ্ঠাবার্ষিকী ট্যাগলাইন">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">শিরোনাম</label>
-                                            <input type="text" name="title_text" id="liveInputTitle" class="form-control form-control-sm" value="{{ $cTitle }}" placeholder="মূল উৎসবের নাম">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">উপ-শিরোনাম</label>
-                                            <input type="text" name="subtitle_text" id="liveInputSubtitle" class="form-control form-control-sm" value="{{ $cSub }}" placeholder="মেলার সাব-টাইটেল">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">ব্যাজ</label>
-                                            <input type="text" name="card_badge_text" id="liveInputBadge" class="form-control form-control-sm" value="{{ $cBadge }}" placeholder="আমন্ত্রণ কার্ড">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold text-dark mb-1">উক্তি</label>
-                                            <textarea name="quote_text" id="liveInputQuote" rows="2" class="form-control form-control-sm" placeholder="শুভেচ্ছা বার্তা">{{ $cQuote }}</textarea>
+                                            <label class="form-label small fw-bold text-dark mb-1">
+                                                <i class="fa-solid fa-quote-left text-warning me-1"></i> উক্তি / শুভেচ্ছা বার্তা
+                                            </label>
+                                            <textarea name="quote_text" id="liveInputQuote" rows="3" class="form-control form-control-sm" placeholder="শুভেচ্ছা বার্তা">{{ $cQuote }}</textarea>
                                         </div>
                                     </div>
 
@@ -3568,20 +3675,6 @@
                                             <i class="fa-solid fa-droplet text-danger me-1"></i> লেখার রঙ
                                         </div>
                                         <div class="row g-2.5">
-                                            <div class="col-6 col-md-4">
-                                                <label class="form-label small text-muted mb-1" style="font-size: 11px;">শিরোনাম</label>
-                                                <div class="d-flex align-items-center gap-1.5">
-                                                    <input type="color" name="title_color" id="liveInputTitleColor" class="form-control form-control-color" value="{{ $cTitleColor }}" style="width: 38px; height: 32px;">
-                                                    <input type="text" id="liveInputTitleColorText" class="form-control form-control-sm font-monospace" value="{{ $cTitleColor }}" style="font-size: 11px;">
-                                                </div>
-                                            </div>
-                                            <div class="col-6 col-md-4">
-                                                <label class="form-label small text-muted mb-1" style="font-size: 11px;">উপশিরোনাম</label>
-                                                <div class="d-flex align-items-center gap-1.5">
-                                                    <input type="color" name="subtitle_color" id="liveInputSubtitleColor" class="form-control form-control-color" value="{{ $cSubtitleColor }}" style="width: 38px; height: 32px;">
-                                                    <input type="text" id="liveInputSubtitleColorText" class="form-control form-control-sm font-monospace" value="{{ $cSubtitleColor }}" style="font-size: 11px;">
-                                                </div>
-                                            </div>
                                             <div class="col-6 col-md-4">
                                                 <label class="form-label small text-muted mb-1" style="font-size: 11px;">নাম</label>
                                                 <div class="d-flex align-items-center gap-1.5">
@@ -3746,25 +3839,15 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Center: Event Logo & Title Headings --}}
+                                            {{-- Center: Event Logo --}}
                                             <div class="festival-text-wrap card-interactive-node" id="liveHeadingsWrap" data-node="header" data-tab="tab-text-pane" style="flex-grow: 1; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
-                                                <div class="event-header-logo-wrap card-interactive-node" id="liveEventLogoWrap" data-node="event-logo" data-tab="tab-logo-pane" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; margin-bottom: {{ $cShowHeader ? '2px' : '0' }}; transform: translate({{ $cEventLogoOffsetX }}px, {{ $cEventLogoOffsetY }}px); transition: transform 0.1s ease-out;">
+                                                <div class="event-header-logo-wrap card-interactive-node" id="liveEventLogoWrap" data-node="event-logo" data-tab="tab-logo-pane" style="{{ ($cShowEventLogo && $cEventLogoImg) ? 'display: flex;' : 'display: none;' }} justify-content: center; align-items: center; transform: translate({{ $cEventLogoOffsetX }}px, {{ $cEventLogoOffsetY }}px); transition: transform 0.1s ease-out;">
                                                     <img src="{{ $cEventLogoImg ? asset('storage/' . $cEventLogoImg) : '' }}" alt="Event Logo" id="liveCustomEventLogoImg" style="max-height: {{ $cEventLogoSize }}px; max-width: 100%; object-fit: contain;">
-                                                </div>
-                                                <div id="liveTextHeadingsGroup" style="{{ $cShowHeader ? '' : 'display: none !important;' }}">
-                                                    <div class="festival-anniversary live-editable-text" id="liveAnniversaryText" contenteditable="true" data-bind="liveInputAnniversary" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cAnnivColor }};">{{ $cAnniv }}</div>
-                                                    <div class="festival-main-title live-editable-text" id="liveTitleText" contenteditable="true" data-bind="liveInputTitle" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cTitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cTitle }}</div>
-                                                    <div class="festival-subtitle live-editable-text" id="liveSubtitleText" contenteditable="true" data-bind="liveInputSubtitle" title="ক্লিক করে সরাসরি এডিট করুন" style="color: {{ $cSubtitleColor }}; font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cSub }}</div>
                                                 </div>
                                             </div>
 
-                                            {{-- Right: Badge / Symmetrical Spacer --}}
-                                            <div class="header-right-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-end;">
-                                                <div class="card-badge-wrap card-interactive-node" id="liveBadgeWrap" data-node="badge" data-tab="tab-text-pane" style="{{ $cShowBadge ? '' : 'display: none !important;' }}">
-                                                    <div class="vertical-invite-ribbon live-editable-text" id="liveRibbonText" contenteditable="true" data-bind="liveInputBadge" title="ক্লিক করে সরাসরি এডিট করুন" style="font-family: '{{ $cFontFamily }}', 'Noto Serif Bengali', serif;">{{ $cBadge }}</div>
-                                                    <div class="card-number-pill" id="liveCardNo">কার্ড নং- ০১</div>
-                                                </div>
-                                            </div>
+                                            {{-- Right: Symmetrical Spacer --}}
+                                            <div class="header-right-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-end;"></div>
                                         </div>
 
                                         {{-- 2. MIDDLE SECTION: PHOTO & NAME PLATE --}}
@@ -4059,6 +4142,52 @@
                 <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="applyParticipantPhotoCrop()">
                     <i class="fa-solid fa-check me-1"></i> এডজাস্ট ও ক্রপ সম্পন্ন করুন
                 </button>
+            </div>
+        </div>
+    </div>
+{{-- PARTICIPANT PHOTO LIGHTBOX & ZOOM MODAL (বড়ো জুম করে দেখার জন্য যেন চেনা যায়) --}}
+<div class="modal fade" id="participantPhotoLightboxModal" tabindex="-1" aria-hidden="true" style="backdrop-filter: blur(10px); background: rgba(15, 23, 42, 0.88); z-index: 1000000;">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 96vw; margin: auto;">
+        <div class="modal-content bg-transparent border-0 shadow-none text-white">
+            <div class="d-flex justify-content-between align-items-center px-4 py-2 bg-dark bg-opacity-90 rounded-pill mb-3 mx-auto shadow-lg" style="max-width: 760px; width: 100%; border: 1px solid rgba(255,255,255,0.2);">
+                <div class="d-flex align-items-center gap-2.5 overflow-hidden me-2">
+                    <i class="fa-solid fa-circle-user text-warning fs-4 flex-shrink-0"></i>
+                    <div class="text-truncate">
+                        <div class="fw-bold text-white fs-6 text-truncate" id="lightboxParticipantName">অংশগ্রহণকারী নাম</div>
+                        <small class="text-white-50 font-monospace" style="font-size: 11px;" id="lightboxParticipantReg">রেজি নং: -</small>
+                    </div>
+                </div>
+                
+                {{-- Zoom & Action Controls --}}
+                <div class="d-flex align-items-center gap-1.5 flex-shrink-0">
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="zoomLightboxImage(0.25)" title="জুম ইন (+)">
+                        <i class="fa-solid fa-magnifying-glass-plus me-1"></i> জুম +
+                    </button>
+                    <span class="badge bg-secondary font-monospace" id="lightboxZoomLevel" style="font-size: 12px; min-width: 48px;">100%</span>
+                    <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-2.5 py-1" onclick="zoomLightboxImage(-0.25)" title="জুম আউট (-)">
+                        <i class="fa-solid fa-magnifying-glass-minus me-1"></i> জুম -
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-2.5 py-1" onclick="resetLightboxZoom()" title="স্বাভাবিক সাইজ (১:১)">
+                        <i class="fa-solid fa-rotate-left me-1"></i> ১:১
+                    </button>
+                    <a href="#" id="lightboxDownloadBtn" download class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-1" title="ছবি ডাউনলোড করুন">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-danger rounded-circle ms-1.5 d-flex align-items-center justify-content-center" data-bs-dismiss="modal" style="width: 32px; height: 32px;" title="বন্ধ করুন">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body text-center p-0 position-relative d-flex align-items-center justify-content-center" style="min-height: 70vh; max-height: 82vh; overflow: auto;">
+                <img id="lightboxTargetImage" src="" alt="Participant Photo" class="img-fluid rounded-4 shadow-lg" 
+                     style="max-height: 80vh; max-width: 92vw; object-fit: contain; transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1); cursor: zoom-in; user-select: none;"
+                     onclick="toggleLightboxZoomClick()"
+                     title="ছবিতে ক্লিক করে বড়-ছোট করুন">
+            </div>
+            
+            <div class="text-center text-white-50 small mt-2">
+                <i class="fa-solid fa-circle-info me-1 text-warning"></i> ছবিতে ক্লিক করে অথবা উপরের বাটন দিয়ে জুম বড়ো করে মুখমণ্ডল স্পষ্ট দেখুন।
             </div>
         </div>
     </div>
@@ -4462,6 +4591,145 @@
                 bootstrap.Tab.getOrCreateInstance(targetTab).show();
             }
         }
+
+        // ==========================================
+        // PARTICIPANT PHOTO LIGHTBOX & ZOOM SYSTEM (চেনার সুবিধার্থে ফুল জুম)
+        // ==========================================
+        let currentLightboxScale = 1;
+
+        window.openParticipantLightbox = function(photoUrl, name, regNo) {
+            if (!photoUrl) return;
+            const imgEl = document.getElementById('lightboxTargetImage');
+            const nameEl = document.getElementById('lightboxParticipantName');
+            const regEl = document.getElementById('lightboxParticipantReg');
+            const dlBtn = document.getElementById('lightboxDownloadBtn');
+            
+            if (imgEl) {
+                imgEl.src = photoUrl;
+                currentLightboxScale = 1;
+                imgEl.style.transform = `scale(1)`;
+                updateZoomLevelDisplay();
+            }
+            if (nameEl) nameEl.textContent = name || 'অংশগ্রহণকারী';
+            if (regEl) regEl.textContent = regNo ? `রেজি নং: ${regNo}` : '';
+            if (dlBtn) {
+                dlBtn.href = photoUrl;
+                dlBtn.download = (regNo ? regNo : 'participant') + '_photo.jpg';
+            }
+
+            const modalEl = document.getElementById('participantPhotoLightboxModal');
+            if (modalEl && typeof bootstrap !== 'undefined') {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl, { backdrop: true });
+                modal.show();
+            }
+        };
+
+        window.zoomLightboxImage = function(delta) {
+            currentLightboxScale = Math.max(0.5, Math.min(3.5, currentLightboxScale + delta));
+            const imgEl = document.getElementById('lightboxTargetImage');
+            if (imgEl) {
+                imgEl.style.transform = `scale(${currentLightboxScale})`;
+            }
+            updateZoomLevelDisplay();
+        };
+
+        window.resetLightboxZoom = function() {
+            currentLightboxScale = 1;
+            const imgEl = document.getElementById('lightboxTargetImage');
+            if (imgEl) {
+                imgEl.style.transform = `scale(1)`;
+            }
+            updateZoomLevelDisplay();
+        };
+
+        window.toggleLightboxZoomClick = function() {
+            currentLightboxScale = (currentLightboxScale === 1 ? 1.8 : 1);
+            const imgEl = document.getElementById('lightboxTargetImage');
+            if (imgEl) {
+                imgEl.style.transform = `scale(${currentLightboxScale})`;
+            }
+            updateZoomLevelDisplay();
+        };
+
+        function updateZoomLevelDisplay() {
+            const badge = document.getElementById('lightboxZoomLevel');
+            if (badge) {
+                badge.textContent = Math.round(currentLightboxScale * 100) + '%';
+            }
+        }
+
+        // ==========================================
+        // QUICK STATUS (APPROVE / REJECT) AJAX HANDLER
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.quick-status-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const origHtml = submitBtn ? submitBtn.innerHTML : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                    }
+
+                    const formData = new FormData(form);
+                    const actionUrl = form.getAttribute('action');
+
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = origHtml;
+                        }
+                        if (data.success) {
+                            const regId = form.getAttribute('data-reg-id');
+                            const newStatus = data.status || 'pending';
+                            
+                            // Live update modal status badges if present
+                            if (regId) {
+                                document.querySelectorAll('.modal-status-badge-' + regId).forEach(function(b) {
+                                    b.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                                    b.className = 'badge modal-status-badge-' + regId + ' ' + 
+                                        (newStatus === 'confirmed' || newStatus === 'selected' || newStatus === 'approved' ? 'bg-success' : 
+                                        (newStatus === 'rejected' ? 'bg-danger' : 'bg-warning text-dark'));
+                                });
+                            }
+
+                            // Show toast feedback
+                            if (window.showToast) {
+                                window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'স্ট্যাটাস সফলভাবে আপডেট হয়েছে!'));
+                            } else {
+                                const toastEl = document.getElementById('liveToast');
+                                const toastMsg = document.getElementById('toastMessage');
+                                if (toastEl && toastMsg && typeof bootstrap !== 'undefined') {
+                                    toastMsg.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'স্ট্যাটাস আপডেট হয়েছে!');
+                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                                }
+                            }
+
+                            // Auto-reload to keep participant counter and full pagination state in sync
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 500);
+                        } else {
+                            alert(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Quick status submit error:', err);
+                        form.submit();
+                    });
+                });
+            });
+        });
     </script>
 @endpush
 @endsection
