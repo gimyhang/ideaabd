@@ -459,6 +459,10 @@
                         Verified Paid
                     </a>
                 @endif
+                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?has_conflict=1" class="aec-tab-btn {{ request()->boolean('has_conflict') ? 'conflict-active' : (isset($phoneConflictCount) && $phoneConflictCount > 0 ? 'text-danger fw-bold' : '') }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল নম্বর বা একাউন্ট ফোন অমিল রয়েছে">
+                    <i class="fa-solid fa-triangle-exclamation me-1 {{ request()->boolean('has_conflict') ? 'text-white' : 'text-danger' }}"></i> কনফ্লিক্ট / ডুপ্লিকেট
+                    <span class="badge {{ request()->boolean('has_conflict') ? 'bg-white text-danger' : (isset($phoneConflictCount) && $phoneConflictCount > 0 ? 'bg-danger text-white' : 'bg-secondary') }}">{{ $phoneConflictCount ?? 0 }}</span>
+                </a>
             </div>
 
             {{-- Table Customizer Button --}}
@@ -558,7 +562,7 @@
                 <button type="submit" class="btn btn-primary rounded-pill px-3 fw-semibold" title="Apply Filter">
                     <i class="fa-solid fa-filter"></i>
                 </button>
-                @if(request()->hasAny(['search', 'status', 'payment_status', 'division', 'district', 'sort', 'is_littlemag', 'per_page']))
+                @if(request()->hasAny(['search', 'status', 'payment_status', 'division', 'district', 'sort', 'is_littlemag', 'per_page', 'has_conflict']))
                     <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn btn-outline-secondary rounded-pill px-2.5" title="Reset Filters">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
@@ -571,14 +575,17 @@
     <div class="aec-table-card">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="d-flex align-items-center gap-2">
-                <h6 class="fw-bold mb-0 text-dark">
-                    <i class="fa-solid fa-users-line text-primary me-1"></i> Registered Participants ({{ $registrations->total() }})
+                <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-users-line text-primary"></i> Registered Participants ({{ $registrations->total() }})
                 </h6>
-                <span class="badge bg-light text-muted border font-monospace">{{ $perPage }} / page</span>
+                <span class="badge bg-light text-secondary border font-monospace">{{ $perPage }} / page</span>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="window.print()">
-                    Print Table
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল এন্ট্রি এক কমান্ডে প্রিন্ট করুন">
+                    <i class="fa-solid fa-print me-1.5"></i> এক কমান্ডে সকল এন্ট্রি প্রিন্ট (Print All)
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" onclick="window.print()" title="বর্তমান পেজ প্রিন্ট">
+                    <i class="fa-solid fa-file-invoice me-1"></i> পেজ প্রিন্ট
                 </button>
             </div>
         </div>
@@ -635,8 +642,9 @@
                                     : asset('storage/' . ltrim($rawPhoto, '/'));
                             }
                             $authorPhoto = $rawPhoto;
+                            $cItem = $conflictMap[$reg->id] ?? null;
                         @endphp
-                        <tr class="participant-row" data-search-text="{{ $searchPayload }}">
+                        <tr class="participant-row {{ $cItem ? 'aec-conflict-row' : '' }}" data-search-text="{{ $searchPayload }}">
                             {{-- Checkbox --}}
                             <td class="ps-3 col-select {{ in_array('select', $visibleCols) ? '' : 'd-none' }}">
                                 <input class="form-check-input participant-select-check" type="checkbox" value="{{ $reg->id }}">
@@ -692,6 +700,29 @@
                                 </div>
                                 @if($reg->email)
                                     <small class="text-muted d-block">{{ $reg->email }}</small>
+                                @endif
+
+                                @if($cItem)
+                                    <div class="mt-1 d-flex flex-column gap-1">
+                                        @if(!empty($cItem['duplicate_phone']))
+                                            @php
+                                                $otherLabels = collect($cItem['other_regs_with_phone'])->map(fn($o) => '#' . $o['reg_no'] . ' (' . $o['name'] . ')')->implode(', ');
+                                            @endphp
+                                            <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?search={{ urlencode($reg->phone) }}" class="aec-badge-conflict aec-badge-conflict-phone" title="ডুপ্লিকেট ফোন: এই নম্বরটি আরও {{ count($cItem['other_regs_with_phone']) }}টি এন্ট্রিতে ব্যবহৃত হয়েছে [{{ $otherLabels }}] (ক্লিক করে সব খুঁজুন)">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> ডুপ্লিকেট ফোন ({{ count($cItem['other_regs_with_phone']) + 1 }})
+                                            </a>
+                                        @endif
+                                        @if(!empty($cItem['user_mismatch']))
+                                            <span class="aec-badge-conflict aec-badge-conflict-user" title="অ্যাকাউন্ট ফোন ({{ $cItem['user_phone'] }}) ও রেজিস্ট্রেশন ফোন ({{ $reg->phone }}) অমিল">
+                                                <i class="fa-solid fa-user-xmark"></i> অ্যাকাউন্ট অমিল
+                                            </span>
+                                        @endif
+                                        @if(!empty($cItem['duplicate_email']))
+                                            <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?search={{ urlencode($reg->email) }}" class="aec-badge-conflict aec-badge-conflict-email" title="ডুপ্লিকেট ইমেইল: একাধিক এন্ট্রিতে ব্যবহৃত">
+                                                <i class="fa-solid fa-envelope-open-text"></i> ডুপ্লিকেট ইমেইল
+                                            </a>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
 
@@ -885,30 +916,38 @@
                                     @endif
 
                                     {{-- Print Form / Pass Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon" title="Print Application Form / Pass">
+                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="আমন্ত্রণপত্র / কার্ড প্রিন্ট">
                                         <i class="fa-solid fa-print"></i>
                                     </a>
 
                                     {{-- Download PDF Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon text-danger" title="Download PDF Form">
+                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="PDF ফরম ডাউনলোড">
                                         <i class="fa-solid fa-file-pdf"></i>
                                     </a>
 
                                     {{-- Details Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon text-primary" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="View Full Details">
+                                    <button type="button" class="btn-action-icon btn-action-preview" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="পূর্ণ বিবরণ প্রিভিউ">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
 
                                     {{-- Edit Participant Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon text-warning" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="Edit Participant Details">
+                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="অংশগ্রহণকারী সম্পাদনা">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
 
+                                    {{-- Send SMS Trigger --}}
+                                    <button type="button" class="btn-action-icon btn-action-sms" data-bs-toggle="modal" data-bs-target="#smsModal{{ $reg->id }}" title="মেসেজ পাঠান (কার্ড ডাউনলোড লিংক / নোটিশ)">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                    </button>
+
                                     {{-- Delete Participant Button --}}
-                                    <button type="button" class="btn-action-icon text-danger btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="Delete Participant">
+                                    <button type="button" class="btn-action-icon btn-action-delete btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="নিবন্ধন ডিলিট">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
+
+                                {{-- SMS Modal for Participant --}}
+                                @include('admin.event_campaigns.partials.sms_modal', ['item' => $reg, 'prefix' => ''])
 
                                 {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
                                 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
@@ -1009,6 +1048,34 @@
                                                          TAB 1: STRUCTURED APPLICATION FORM VIEW
                                                          ========================================== --}}
                                                     <div class="tab-pane fade show active" id="view-tab-content-{{ $reg->id }}" role="tabpanel">
+                                                        @if($cItem)
+                                                            <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger-emphasis d-flex align-items-start gap-2.5 p-3 rounded-3 mb-3">
+                                                                <i class="fa-solid fa-triangle-exclamation fs-4 flex-shrink-0 mt-0.5"></i>
+                                                                <div>
+                                                                    <div class="fw-bold mb-1 fs-6">সতর্কতা: তথ্যের ডুপ্লিকেট বা কনফ্লিক্ট শনাক্ত হয়েছে!</div>
+                                                                    @if(!empty($cItem['duplicate_phone']))
+                                                                        <div class="small mb-1">
+                                                                            &bull; <strong>ডুপ্লিকেট মোবাইল নম্বর:</strong> এই ফোন নম্বরটি (<strong>{{ $reg->phone }}</strong>) ক্যাম্পেইনের আরও <strong>{{ count($cItem['other_regs_with_phone']) }}টি</strong> আবেদনে ব্যবহৃত হয়েছে:
+                                                                            <ul class="mb-0 ps-3 mt-1 font-monospace">
+                                                                                @foreach($cItem['other_regs_with_phone'] as $other)
+                                                                                    <li>রেজি নং: <strong>{{ $other['reg_no'] }}</strong> — {{ $other['name'] }}</li>
+                                                                                @endforeach
+                                                                            </ul>
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(!empty($cItem['user_mismatch']))
+                                                                        <div class="small mb-1">
+                                                                            &bull; <strong>আইডিয়া অ্যাকাউন্ট ফোন অমিল:</strong> আবেদন ফরমের ফোন নম্বর <strong>{{ $reg->phone }}</strong> কিন্তু আবেদনকারী ইউজারের প্রধান আইডিয়া অ্যাকাউন্ট ফোন নম্বর <strong>{{ $cItem['user_phone'] }}</strong>।
+                                                                        </div>
+                                                                    @endif
+                                                                    @if(!empty($cItem['duplicate_email']))
+                                                                        <div class="small">
+                                                                            &bull; <strong>ডুপ্লিকেট ইমেইল:</strong> এই ইমেইলটি (<strong>{{ $reg->email }}</strong>) একাধিক আবেদনে ব্যবহৃত হয়েছে।
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @endif
                                                         <div class="row g-3">
                                                             
                                                             {{-- ৪০০ পিক্সেল প্রোফাইল ফটো ও জুম কার্ড (যেন স্পষ্টভাবে চেনা যায়) --}}
@@ -1468,8 +1535,8 @@
                                                                                     $availCats = !empty($campaign->form_settings['categories']) && is_array($campaign->form_settings['categories']) && count($campaign->form_settings['categories']) > 0
                                                                                         ? $campaign->form_settings['categories']
                                                                                         : [
-                                                                                            'কবি', 'অনুবাদক', 'ছড়াকার', 'গল্পকার', 'কথাসাহিত্যিক',
-                                                                                            'প্রাবন্ধিক', 'গবেষক', 'লিটিলম্যাগাজিন সম্পাদক', 'প্রকাশক',
+                                                                                            'লেখক', 'কবি', 'কথাসাহিত্যিক', 'গল্পকার', 'ছড়াকার', 'প্রাবন্ধিক',
+                                                                                            'গবেষক', 'অনুবাদক', 'লিটিলম্যাগাজিন সম্পাদক', 'সম্পাদক', 'প্রকাশক',
                                                                                             'নাট্যকার', 'শিল্পী / সংস্কৃতিকর্মী', 'বই প্রতিনিধি ও সংগঠক', 'অন্যান্য / প্রতিনিধি'
                                                                                         ];
                                                                                 @endphp
@@ -1723,6 +1790,26 @@
                                                                 </div>
                                                                 @if($isWriter)
                                                                     <div class="col-12 col-sm-6">
+                                                                        <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক ক্যাটাগরি</label>
+                                                                        @php
+                                                                            $curRegCat = $reg->form_data['author_category'] ?? ($reg->form_data['author_categories'][0] ?? 'লেখক');
+                                                                            $editCatsList = [
+                                                                                'লেখক', 'কবি', 'কথাসাহিত্যিক', 'গল্পকার', 'ছড়াকার', 'প্রাবন্ধিক',
+                                                                                'গবেষক', 'অনুবাদক', 'লিটিলম্যাগাজিন সম্পাদক', 'সম্পাদক', 'প্রকাশক',
+                                                                                'নাট্যকার', 'শিল্পী / সংস্কৃতিকর্মী', 'অন্যান্য / প্রতিনিধি'
+                                                                            ];
+                                                                        @endphp
+                                                                        <select name="author_category" class="form-select form-select-sm fw-semibold">
+                                                                            @foreach($editCatsList as $ecOpt)
+                                                                                <option value="{{ $ecOpt }}" {{ $curRegCat === $ecOpt ? 'selected' : '' }}>{{ $ecOpt }}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-12 col-sm-6">
+                                                                        <label class="form-label small fw-bold text-dark mb-1">পত্রিকা / লিটিলম্যাগ নাম</label>
+                                                                        <input type="text" name="magazine_name" class="form-control form-control-sm" value="{{ $reg->form_data['magazine_name'] ?? '' }}" placeholder="পত্রিকা নাম (লেখক হলে খালি রাখুন)">
+                                                                    </div>
+                                                                    <div class="col-12 col-sm-6">
                                                                         <label class="form-label small fw-bold text-dark mb-1">কলমী নাম (Pen Name)</label>
                                                                         <input type="text" name="pen_name" class="form-control form-control-sm" value="{{ $reg->form_data['pen_name'] ?? '' }}">
                                                                     </div>
@@ -1730,7 +1817,7 @@
                                                                         <label class="form-label small fw-bold text-dark mb-1">প্রকাশিত বই সংখ্যা</label>
                                                                         <input type="number" name="published_book_count" class="form-control form-control-sm font-monospace" min="0" value="{{ $reg->form_data['published_book_count'] ?? '' }}">
                                                                     </div>
-                                                                    <div class="col-12 col-sm-6">
+                                                                    <div class="col-12">
                                                                         <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক শাখা (Genres)</label>
                                                                         @php
                                                                             $genresVal = is_array($reg->form_data['genres'] ?? null) ? implode(', ', $reg->form_data['genres']) : ($reg->form_data['genres'] ?? '');
@@ -4727,6 +4814,89 @@
                         console.error('Quick status submit error:', err);
                         form.submit();
                     });
+                });
+            });
+
+            // SMS Modal Helpers
+            window.applySmsTemplate = function(selectElem, targetTextareaId) {
+                const textarea = document.getElementById(targetTextareaId);
+                if (textarea && selectElem) {
+                    textarea.value = selectElem.value;
+                    const counterId = targetTextareaId.replace('smsTextarea_', 'smsCounter_');
+                    window.updateSmsCharCount(textarea, counterId);
+                }
+            };
+
+            window.updateSmsCharCount = function(textarea, counterId) {
+                const counterEl = document.getElementById(counterId);
+                if (!counterEl || !textarea) return;
+                const text = textarea.value || '';
+                const len = text.length;
+                const isUnicode = /[^\u0000-\u00ff]/.test(text);
+                let smsCount = 1;
+                if (isUnicode) {
+                    smsCount = len <= 70 ? 1 : Math.ceil(len / 67);
+                } else {
+                    smsCount = len <= 160 ? 1 : Math.ceil(len / 153);
+                }
+                const charSpan = counterEl.querySelector('.sms-char-count');
+                const msgSpan = counterEl.querySelector('.sms-msg-count');
+                if (charSpan) charSpan.textContent = len;
+                if (msgSpan) msgSpan.textContent = smsCount;
+            };
+
+            // SMS Form Submission via AJAX
+            document.addEventListener('submit', function(e) {
+                const form = e.target.closest('.participant-sms-form');
+                if (!form) return;
+                e.preventDefault();
+
+                const submitBtn = form.querySelector('.btn-send-sms');
+                const origHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> প্রেরণ হচ্ছে...';
+                }
+
+                const formData = new FormData(form);
+                const actionUrl = form.getAttribute('action');
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    if (data.success) {
+                        const modalEl = form.closest('.modal');
+                        if (modalEl && typeof bootstrap !== 'undefined') {
+                            const mInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (mInstance) mInstance.hide();
+                        }
+                        if (window.showToast) {
+                            window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'এসএমএস সফলভাবে প্রেরিত হয়েছে!'));
+                        } else {
+                            alert(data.message || 'এসএমএস সফলভাবে প্রেরিত হয়েছে!');
+                        }
+                    } else {
+                        alert(data.message || 'এসএমএস প্রেরণ ব্যর্থ হয়েছে।');
+                    }
+                })
+                .catch(err => {
+                    console.error('SMS send error:', err);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    alert('সার্ভার সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
                 });
             });
         });

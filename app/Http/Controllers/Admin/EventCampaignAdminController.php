@@ -260,20 +260,81 @@ class EventCampaignAdminController extends Controller
         // Fetch all registrations to prepare Geo Database, Little Magazine Directory and Conflict Metrics
         $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
 
-        // Phone conflict & deduplication metrics
-        $allPhones = $allCampaignRegistrations->pluck('phone')->filter()->toArray();
-        $phoneFreqs = array_count_values($allPhones);
-        $duplicatePhoneMap = array_filter($phoneFreqs, fn($count) => $count > 1);
+        // Comprehensive Phone & Registration Conflict & Deduplication Analysis
+        $normPhoneFn = function ($phone) {
+            if (!$phone) return '';
+            $digits = preg_replace('/[^0-9]/', '', (string)$phone);
+            if (str_starts_with($digits, '880') && strlen($digits) === 13) {
+                $digits = substr($digits, 2);
+            }
+            return $digits;
+        };
 
-        $conflictRegIds = [];
+        $phoneGroups = [];
+        $emailGroups = [];
+
         foreach ($allCampaignRegistrations as $r) {
-            $hasDup = isset($duplicatePhoneMap[$r->phone]);
-            $hasUserMismatch = ($r->user && $r->user->phone && $r->user->phone !== $r->phone);
-            if ($hasDup || $hasUserMismatch) {
-                $conflictRegIds[] = $r->id;
+            $pNorm = $normPhoneFn($r->phone);
+            if (!empty($pNorm)) {
+                $phoneGroups[$pNorm][] = [
+                    'id'     => $r->id,
+                    'reg_no' => $r->registration_number,
+                    'name'   => $r->name,
+                    'phone'  => $r->phone,
+                ];
+            }
+
+            if (!empty($r->email)) {
+                $eNorm = strtolower(trim($r->email));
+                $emailGroups[$eNorm][] = [
+                    'id'     => $r->id,
+                    'reg_no' => $r->registration_number,
+                    'name'   => $r->name,
+                    'email'  => $r->email,
+                ];
             }
         }
-        $phoneConflictCount = count($conflictRegIds);
+
+        $conflictMap = [];
+        $conflictRegIds = [];
+        $duplicatePhoneMap = [];
+
+        foreach ($phoneGroups as $pNorm => $group) {
+            if (count($group) > 1) {
+                $duplicatePhoneMap[$pNorm] = count($group);
+            }
+        }
+
+        foreach ($allCampaignRegistrations as $r) {
+            $pNorm = $normPhoneFn($r->phone);
+            $hasDupPhone = !empty($pNorm) && isset($phoneGroups[$pNorm]) && count($phoneGroups[$pNorm]) > 1;
+            $otherPhoneRegs = $hasDupPhone 
+                ? array_values(array_filter($phoneGroups[$pNorm], fn($item) => $item['id'] !== $r->id))
+                : [];
+
+            $userPhoneNorm = $r->user ? $normPhoneFn($r->user->phone) : '';
+            $hasUserMismatch = ($r->user && !empty($userPhoneNorm) && !empty($pNorm) && $userPhoneNorm !== $pNorm);
+
+            $eNorm = !empty($r->email) ? strtolower(trim($r->email)) : '';
+            $hasDupEmail = !empty($eNorm) && isset($emailGroups[$eNorm]) && count($emailGroups[$eNorm]) > 1;
+            $otherEmailRegs = $hasDupEmail 
+                ? array_values(array_filter($emailGroups[$eNorm], fn($item) => $item['id'] !== $r->id))
+                : [];
+
+            if ($hasDupPhone || $hasUserMismatch || $hasDupEmail) {
+                $conflictRegIds[] = $r->id;
+                $conflictMap[$r->id] = [
+                    'has_conflict'          => true,
+                    'duplicate_phone'       => $hasDupPhone,
+                    'other_regs_with_phone' => $otherPhoneRegs,
+                    'user_mismatch'         => $hasUserMismatch,
+                    'user_phone'            => $r->user?->phone,
+                    'duplicate_email'       => $hasDupEmail,
+                    'other_regs_with_email' => $otherEmailRegs,
+                ];
+            }
+        }
+        $phoneConflictCount = count(array_unique($conflictRegIds));
 
         if ($request->boolean('has_conflict')) {
             $regQuery->whereIn('id', !empty($conflictRegIds) ? $conflictRegIds : [-1]);
@@ -365,6 +426,7 @@ class EventCampaignAdminController extends Controller
             'totalGeoDistricts',
             'duplicatePhoneMap',
             'phoneConflictCount',
+            'conflictMap',
             'sort'
         ));
     }
@@ -850,6 +912,18 @@ class EventCampaignAdminController extends Controller
             if ($catSingle !== '') {
                 $formData['author_category'] = $catSingle;
                 $formData['author_categories'] = [$catSingle];
+
+                // If moving away from editor to writer (লেখক, কবি ইত্যাদি)
+                $isEditor = (mb_strpos($catSingle, 'সম্পাদক') !== false || mb_strpos($catSingle, 'লিটিলম্যাগ') !== false);
+                if (!$isEditor) {
+                    if ($request->boolean('clear_magazine') || !$request->filled('magazine_name')) {
+                        unset($formData['magazine_name']);
+                        unset($formData['magazine_issue_count']);
+                    }
+                    if ($registration->designation_or_class === 'সম্পাদক' || mb_strpos((string)$registration->designation_or_class, 'সম্পাদক') !== false) {
+                        $updateData['designation_or_class'] = $catSingle;
+                    }
+                }
             }
         } elseif ($request->has('author_categories') && is_array($request->input('author_categories'))) {
             $catList = array_values(array_filter($request->input('author_categories')));
@@ -899,11 +973,11 @@ class EventCampaignAdminController extends Controller
             $formData['student_photo'] = $newPhoto;
         }
 
-        $updateData = array_filter($validated, fn($k) => in_array($k, [
+        $updateData = array_merge($updateData, array_filter($validated, fn($k) => in_array($k, [
             'name', 'phone', 'email', 'district', 'thana', 'address',
             'institution_or_org', 'designation_or_class', 'amount_paid',
             'payment_method', 'payment_status', 'transaction_id', 'status', 'admin_notes'
-        ]), ARRAY_FILTER_USE_KEY);
+        ]), ARRAY_FILTER_USE_KEY));
 
         if (!empty($updateData['phone'])) {
             $updateData['phone'] = \App\Support\PhoneNormalizer::toLocal($updateData['phone']);
@@ -918,13 +992,21 @@ class EventCampaignAdminController extends Controller
             $registration->user->update(['phone' => $updateData['phone']]);
         }
 
+        // SMS notification on status transitions
         if (!in_array($oldStatus, ['confirmed', 'selected', 'approved'], true) && in_array($registration->status, ['confirmed', 'selected'], true)) {
             try {
-                $downloadUrl = url('/event-registration/print/' . $registration->registration_number);
-                $smsText = "অভিনন্দন! '{$registration->campaign->title}'-এ আপনার নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                $downloadUrl = url('/card/' . $registration->registration_number);
+                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
                 \App\Services\SmsService::send($registration->phone, $smsText);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning("Update Registration Approval SMS error: " . $e->getMessage());
+            }
+        } elseif ($oldStatus !== 'rejected' && $registration->status === 'rejected') {
+            try {
+                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+                \App\Services\SmsService::send($registration->phone, $smsText);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Update Registration Rejection SMS error: " . $e->getMessage());
             }
         }
 
@@ -1057,16 +1139,16 @@ class EventCampaignAdminController extends Controller
         ]);
 
         if ($newStatus === 'confirmed' || $newStatus === 'selected') {
-            // Optional SMS on approval
+            // SMS on approval
             try {
-                $downloadUrl = url('/event-registration/print/' . $registration->registration_number);
-                $smsText = "অভিনন্দন! '{$registration->campaign->title}'-এ আপনার ডেলিগেট নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                $downloadUrl = url('/card/' . $registration->registration_number);
+                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
                 \App\Services\SmsService::send($registration->phone, $smsText);
             } catch (\Throwable $e) {
                 Log::warning("Approval SMS error: " . $e->getMessage());
             }
 
-            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে এপ্রুভ (Approved) করা হয়েছে!";
+            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে এপ্রুভ (Approved) করা হয়েছে এবং স্বাগত ও কার্ড ডাউনলোড লিংক পাঠানো হয়েছে!";
             
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -1081,7 +1163,15 @@ class EventCampaignAdminController extends Controller
         }
 
         if ($newStatus === 'rejected') {
-            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে বাতিল (Rejected) করা হয়েছে!";
+            // SMS on rejection / cancellation
+            try {
+                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+                \App\Services\SmsService::send($registration->phone, $smsText);
+            } catch (\Throwable $e) {
+                Log::warning("Rejection SMS error: " . $e->getMessage());
+            }
+
+            $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name}) সফলভাবে বাতিল (Rejected) করা হয়েছে এবং নোটিশ পাঠানো হয়েছে!";
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
@@ -1131,14 +1221,28 @@ class EventCampaignAdminController extends Controller
                 foreach ($regs as $r) {
                     $r->update(['status' => 'confirmed']);
                     try {
-                        $downloadUrl = url('/event-registration/print/' . $r->registration_number);
-                        $smsText = "অভিনন্দন! '{$r->campaign->title}'-এ আপনার ডেলিগেট নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
+                        $downloadUrl = url('/card/' . $r->registration_number);
+                        $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
                         \App\Services\SmsService::send($r->phone, $smsText);
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning("Bulk Approval SMS error: " . $e->getMessage());
                     }
                 }
-                $msg = "{$count} participant(s) approved and notified via SMS successfully.";
+                $msg = "{$count} participant(s) approved and notified via SMS with card download link.";
+                break;
+
+            case 'reject':
+                $regs = $query->with('campaign')->get();
+                foreach ($regs as $r) {
+                    $r->update(['status' => 'rejected']);
+                    try {
+                        $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+                        \App\Services\SmsService::send($r->phone, $smsText);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Bulk Rejection SMS error: " . $e->getMessage());
+                    }
+                }
+                $msg = "{$count} participant(s) rejected and notified via SMS.";
                 break;
 
             case 'select_scholarship':
@@ -2196,6 +2300,171 @@ class EventCampaignAdminController extends Controller
     public function updateLogoSettings(Request $request, EventCampaign $campaign)
     {
         return $this->updateFormCustomizer($request, $campaign);
+    }
+
+    /**
+     * One-command clean printing for all registered participants.
+     */
+    public function printAll(Request $request, EventCampaign $campaign)
+    {
+        $campaign->loadCount('registrations');
+        $query = $campaign->registrations();
+
+        // Apply filters if passed via query
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+        if ($request->filled('division')) {
+            $rawDiv = trim($request->division);
+            $canonicalDiv = \App\Support\BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divVariants = \App\Support\BangladeshGeo::getVariants($canonicalDiv);
+            $query->where(function ($q) use ($divVariants) {
+                foreach ($divVariants as $v) {
+                    $q->orWhere('form_data->perm_division', 'like', "%{$v}%")
+                      ->orWhere('form_data->division', 'like', "%{$v}%");
+                }
+            });
+        }
+        if ($request->filled('district')) {
+            $rawDst = trim($request->district);
+            $canonicalDst = \App\Support\BangladeshGeo::normalizeDistrict($rawDst) ?: $rawDst;
+            $dstVariants = \App\Support\BangladeshGeo::getVariants($canonicalDst);
+            $query->where(function ($q) use ($dstVariants) {
+                $q->whereIn('district', $dstVariants)
+                  ->orWhere(function ($sq) use ($dstVariants) {
+                      foreach ($dstVariants as $v) {
+                          $sq->orWhere('district', 'like', "%{$v}%")
+                             ->orWhere('form_data->district', 'like', "%{$v}%");
+                      }
+                  });
+            });
+        }
+        if ($request->boolean('is_littlemag') || $request->input('type') === 'littlemag') {
+            $query->where(function ($q) {
+                $q->where(function ($sq) {
+                    $sq->whereNotNull('form_data->magazine_name')
+                       ->where('form_data->magazine_name', '!=', '');
+                })
+                ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+            });
+        }
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('registration_number', 'like', "%{$s}%")
+                  ->orWhere('district', 'like', "%{$s}%")
+                  ->orWhere('thana', 'like', "%{$s}%")
+                  ->orWhere('form_data->magazine_name', 'like', "%{$s}%");
+            });
+        }
+
+        $sort = $request->input('sort', 'latest');
+        if ($sort === 'alpha' || $sort === 'name') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sort === 'alpha_desc') {
+            $query->orderBy('name', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('id', 'asc');
+        } elseif ($sort === 'reg_no') {
+            $query->orderBy('registration_number', 'asc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $allRegistrations = $query->get();
+        $totalCount = $allRegistrations->count();
+        $isLittleMagOnly = $request->boolean('is_littlemag') || $request->input('type') === 'littlemag';
+
+        return view('admin.event_campaigns.print_all', compact(
+            'campaign',
+            'allRegistrations',
+            'totalCount',
+            'isLittleMagOnly'
+        ));
+    }
+
+    /**
+     * Send direct custom SMS to a participant.
+     */
+    public function sendCustomSms(Request $request, EventRegistration $registration)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $phone = $registration->phone;
+        if (empty($phone)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'অংশগ্রহণকারীর কোনো মোবাইল নম্বর পাওয়া যায়নি।',
+            ], 422);
+        }
+
+        try {
+            $res = \App\Services\SmsService::send($phone, $validated['message']);
+            if (!empty($res['success'])) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "এসএমএস সফলভাবে {$phone} নম্বরে পাঠানো হয়েছে।",
+                ]);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'এসএমএস গেটওয়ে রেসপন্স: ' . ($res['message'] ?? 'ব্যর্থ'),
+            ], 500);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'এসএমএস পাঠানোতে সমস্যা: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * One-click conversion from Little Magazine Editor to Writer (লেখক).
+     */
+    public function convertToWriter(Request $request, EventRegistration $registration)
+    {
+        $formData = $registration->form_data ?? [];
+        $targetCategory = $request->input('category', 'লেখক');
+        
+        $formData['author_category'] = $targetCategory;
+        $formData['author_categories'] = [$targetCategory];
+        
+        // Remove magazine flags
+        unset($formData['magazine_name']);
+        unset($formData['magazine_issue_count']);
+
+        $updateData = [
+            'form_data' => $formData,
+        ];
+
+        if ($registration->designation_or_class === 'সম্পাদক' || mb_strpos((string)$registration->designation_or_class, 'সম্পাদক') !== false) {
+            $updateData['designation_or_class'] = $targetCategory;
+        }
+
+        $registration->update($updateData);
+
+        $msg = "অংশগ্রহণকারী #{$registration->registration_number} ({$registration->name})-কে সফলভাবে '{$targetCategory}' ক্যাটাগরিতে স্থানান্তর করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'      => true,
+                'message'      => $msg,
+                'registration' => $registration,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 }
 

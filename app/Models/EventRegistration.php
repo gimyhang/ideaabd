@@ -178,20 +178,30 @@ class EventRegistration extends Model
      */
     public function isLittleMagEditor(): bool
     {
-        if (!empty($this->form_data['magazine_name'])) {
-            return true;
-        }
-
+        $singleCat = (string) ($this->form_data['author_category'] ?? '');
         $cats = (array) ($this->form_data['author_categories'] ?? []);
-        foreach ($cats as $cat) {
+        $allCats = array_filter(array_merge([$singleCat], $cats));
+
+        // Check if explicitly has editor category
+        $hasEditorCategory = false;
+        foreach ($allCats as $cat) {
             $catStr = (string) $cat;
             if (mb_strpos($catStr, 'লিটিলম্যাগ') !== false || mb_strpos($catStr, 'সম্পাদক') !== false) {
-                return true;
+                $hasEditorCategory = true;
+                break;
             }
         }
 
-        $singleCat = (string) ($this->form_data['author_category'] ?? '');
-        if (mb_strpos($singleCat, 'লিটিলম্যাগ') !== false) {
+        // If author category is explicitly defined as non-editor (e.g. লেখক, কবি, কথাসাহিত্যিক etc.)
+        if (!empty($singleCat) && !$hasEditorCategory) {
+            return false;
+        }
+
+        if ($hasEditorCategory) {
+            return true;
+        }
+
+        if (!empty($this->form_data['magazine_name'])) {
             return true;
         }
 

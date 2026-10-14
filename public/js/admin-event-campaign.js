@@ -2486,3 +2486,34 @@ async function executeBulkAction(actionType) {
         bulkForm.submit();
     }
 }
+
+// Quick filter table rows by conflict on client-side
+window.toggleConflictRowsClient = function (onlyConflicts = true) {
+    const rows = document.querySelectorAll('#participantsTable tbody tr.participant-row');
+    let visibleCount = 0;
+    rows.forEach(r => {
+        const hasConflict = r.classList.contains('aec-conflict-row');
+        if (!onlyConflicts || hasConflict) {
+            r.style.display = '';
+            visibleCount++;
+        } else {
+            r.style.display = 'none';
+        }
+    });
+
+    const matchBadge = document.getElementById('liveMatchCount');
+    if (matchBadge) {
+        matchBadge.textContent = visibleCount + ' conflict(s)';
+        matchBadge.style.display = onlyConflicts ? 'inline-block' : 'none';
+    }
+};
+
+// Filter by specific phone number into instant live search
+window.filterByPhoneConflict = function (phone) {
+    const input = document.getElementById('tableLiveSearch');
+    if (input) {
+        input.value = phone;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+};
