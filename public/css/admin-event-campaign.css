@@ -1842,3 +1842,104 @@
     color: #ffffff !important;
     box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
 }
+
+/* ==========================================================================
+   Smooth Status Update Animations & Transitions (No Page Shaking / Reload)
+   ========================================================================== */
+
+@keyframes aecStatusPulseSuccess {
+    0% { background-color: rgba(16, 185, 129, 0.35); transform: scale(1.002); }
+    50% { background-color: rgba(16, 185, 129, 0.15); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+@keyframes aecStatusPulseWarning {
+    0% { background-color: rgba(245, 158, 11, 0.35); transform: scale(1.002); }
+    50% { background-color: rgba(245, 158, 11, 0.15); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+@keyframes aecStatusPulseDanger {
+    0% { background-color: rgba(239, 68, 68, 0.35); transform: scale(1.002); }
+    50% { background-color: rgba(239, 68, 68, 0.15); }
+    100% { background-color: transparent; transform: scale(1); }
+}
+
+.aec-row-updated-success {
+    animation: aecStatusPulseSuccess 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.aec-row-updated-warning {
+    animation: aecStatusPulseWarning 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.aec-row-updated-danger {
+    animation: aecStatusPulseDanger 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-quick-status {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 80px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dynamic Interactive Button Lift Effect */
+.aec-btn-hover-lift {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.aec-btn-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.2) !important;
+}
+.aec-btn-hover-lift:active {
+    transform: translateY(0);
+}
+
+/* Modern Floating Bulk Action Bar */
+.aec-bulk-bar {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(140px);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 50px;
+    padding: 10px 24px;
+    z-index: 1050;
+    max-width: 920px;
+    width: calc(100% - 32px);
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.28), 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+    pointer-events: none;
+}
+.aec-bulk-bar.active,
+.aec-bulk-bar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Dark mode compatibility for Floating Bulk Bar */
+.dark-mode .aec-bulk-bar {
+    background: rgba(30, 41, 59, 0.96);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+}
+.dark-mode .aec-bulk-bar .text-dark {
+    color: #f1f5f9 !important;
+}
+
+/* Copied toast animation on copy buttons */
+.copy-btn.copied, .copy-slug-btn.copied {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    border-color: #10b981 !important;
+    transform: scale(1.05);
+}
+
+

@@ -278,9 +278,7 @@
 
             <a href="{{ route('admin.sms.index') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold shadow-xs">
                 <i class="fa-solid fa-comment-sms me-1 text-primary"></i>Bulk SMS
-                @if(isset($smsInfo['balance']) && $smsInfo['balance'] !== null)
-                    <span class="badge bg-primary text-white rounded-pill ms-1 font-monospace">{{ number_format((float)$smsInfo['balance']) }}</span>
-                @endif
+                <span class="badge bg-primary text-white rounded-pill ms-1 font-monospace" id="admDashboardSmsBalanceBadge" style="{{ isset($smsInfo['balance']) && $smsInfo['balance'] !== null ? '' : 'display:none;' }}">{{ isset($smsInfo['balance']) && $smsInfo['balance'] !== null ? number_format((float)$smsInfo['balance']) : '' }}</span>
             </a>
             <a href="{{ route('admin.pos.index') }}" class="btn btn-sm btn-outline-warning text-dark rounded-pill px-3 fw-semibold">
                 <i class="fa-solid fa-cash-register me-1"></i>POS
@@ -3637,6 +3635,22 @@ function toggleVerificationSetting(type, isChecked, toggleEl) {
         if (toggleEl) toggleEl.disabled = false;
     });
 }
+
+// Non-blocking background SMS balance fetcher
+document.addEventListener('DOMContentLoaded', function() {
+    const smsBadge = document.getElementById('admDashboardSmsBalanceBadge');
+    if (smsBadge && (!smsBadge.textContent || smsBadge.textContent.trim() === '')) {
+        fetch("{{ route('admin.sms.balance') }}")
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.balance !== null && data.balance !== undefined && !isNaN(data.balance)) {
+                    smsBadge.textContent = Number(data.balance).toLocaleString();
+                    smsBadge.style.display = 'inline-block';
+                }
+            })
+            .catch(() => {});
+    }
+});
 </script>
 @endpush
 

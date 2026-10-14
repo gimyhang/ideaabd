@@ -174,6 +174,18 @@ class EventCampaignAdminController extends Controller
             $regQuery->where('payment_status', $request->payment_status);
         }
 
+        // Division & District conflict safeguard
+        if ($request->filled('division') && $request->filled('district')) {
+            $rawDiv = trim($request->division);
+            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
+            $divDistricts = BangladeshGeo::DIVISIONS[$canonicalDiv] ?? [];
+            $canonicalDst = BangladeshGeo::normalizeDistrict(trim($request->district));
+            if (!empty($divDistricts) && !empty($canonicalDst) && !in_array($canonicalDst, $divDistricts, true)) {
+                // If selected district does not belong to the selected division, unset district so all division results show
+                $request->offsetUnset('district');
+            }
+        }
+
         // Division filter (handles both Bengali & English variants)
         if ($request->filled('division')) {
             $rawDiv = trim($request->division);
@@ -200,7 +212,7 @@ class EventCampaignAdminController extends Controller
                 if (!empty($allDistVariants)) {
                     $q->orWhereIn('district', $allDistVariants)
                       ->orWhere(function ($sq) use ($allDistVariants) {
-                          foreach (array_slice($allDistVariants, 0, 40) as $dv) {
+                          foreach ($allDistVariants as $dv) {
                               $sq->orWhere('form_data->district', $dv)
                                  ->orWhere('form_data->perm_district', $dv);
                           }
@@ -229,8 +241,29 @@ class EventCampaignAdminController extends Controller
             });
         }
 
-        // Little Magazine filter
-        if ($request->boolean('is_littlemag') || $request->input('category') === 'littlemag') {
+        // Category / Author Category & Little Magazine filter
+        if ($request->filled('category')) {
+            $cat = trim($request->category);
+            if ($cat === 'littlemag' || $cat === 'লিটিলম্যাগ' || $cat === 'লিটিলম্যাগাজিন' || $cat === 'লিটিলম্যাগ সম্পাদক' || $cat === 'ছোটকাগজ') {
+                $regQuery->where(function ($q) {
+                    $q->where(function ($sq) {
+                        $sq->whereNotNull('form_data->magazine_name')
+                           ->where('form_data->magazine_name', '!=', '');
+                    })
+                    ->orWhere('form_data->author_categories', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('form_data->author_category', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%লিটিলম্যাগ%')
+                    ->orWhere('designation_or_class', 'like', '%সম্পাদক%');
+                });
+            } else {
+                $regQuery->where(function ($q) use ($cat) {
+                    $q->where('form_data->author_category', 'like', "%{$cat}%")
+                      ->orWhere('form_data->author_categories', 'like', "%{$cat}%")
+                      ->orWhere('designation_or_class', 'like', "%{$cat}%")
+                      ->orWhere('form_data->genres', 'like', "%{$cat}%");
+                });
+            }
+        } elseif ($request->boolean('is_littlemag')) {
             $regQuery->where(function ($q) {
                 $q->where(function ($sq) {
                     $sq->whereNotNull('form_data->magazine_name')
@@ -375,7 +408,27 @@ class EventCampaignAdminController extends Controller
             if ($reg->isLittleMagEditor()) {
                 $littleMagList->push($reg);
             }
+
+            // Extract all author categories & roles
+            $cats = [];
+            if (!empty($reg->form_data['author_categories']) && is_array($reg->form_data['author_categories'])) {
+                $cats = array_merge($cats, $reg->form_data['author_categories']);
+            } elseif (!empty($reg->form_data['author_category'])) {
+                $parts = array_map('trim', explode(',', $reg->form_data['author_category']));
+                $cats = array_merge($cats, $parts);
+            }
+            if (!empty($reg->designation_or_class) && !in_array($reg->designation_or_class, $cats, true)) {
+                $cats[] = trim($reg->designation_or_class);
+            }
+            if ($reg->isLittleMagEditor()) {
+                $cats[] = 'লিটিলম্যাগ সম্পাদক';
+            }
+            $cats = array_unique(array_filter($cats));
+            foreach ($cats as $cName) {
+                $categoryStats[$cName] = ($categoryStats[$cName] ?? 0) + 1;
+            }
         }
+        arsort($categoryStats);
 
         // Sort Divisions alphabetically (Bengali Unicode collation)
         uksort($geoDatabase, function ($a, $b) {
@@ -420,6 +473,7 @@ class EventCampaignAdminController extends Controller
             'geoDatabase',
             'divisionStats',
             'districtStats',
+            'categoryStats',
             'littleMagList',
             'totalLittleMagCount',
             'totalGeoDivisions',
@@ -1138,6 +1192,10 @@ class EventCampaignAdminController extends Controller
             'status' => $newStatus,
         ]);
 
+        $campaign = $registration->campaign;
+        $pendingCount = $campaign ? $campaign->registrations()->where('status', 'pending')->count() : 0;
+        $confirmedCount = $campaign ? $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved'])->count() : 0;
+
         if ($newStatus === 'confirmed' || $newStatus === 'selected') {
             // SMS on approval
             try {
@@ -1152,10 +1210,14 @@ class EventCampaignAdminController extends Controller
             
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
-                    'success'  => true,
-                    'status'   => $newStatus,
-                    'approved' => true,
-                    'message'  => $msg,
+                    'success'         => true,
+                    'status'          => $newStatus,
+                    'status_label'    => $newStatus === 'selected' ? 'Selected' : 'Confirmed',
+                    'approved'        => true,
+                    'message'         => $msg,
+                    'registration_id' => $registration->id,
+                    'pending_count'   => $pendingCount,
+                    'confirmed_count' => $confirmedCount,
                 ]);
             }
 
@@ -1175,10 +1237,14 @@ class EventCampaignAdminController extends Controller
 
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
-                    'success'  => true,
-                    'status'   => 'rejected',
-                    'approved' => false,
-                    'message'  => $msg,
+                    'success'         => true,
+                    'status'          => 'rejected',
+                    'status_label'    => 'Rejected',
+                    'approved'        => false,
+                    'message'         => $msg,
+                    'registration_id' => $registration->id,
+                    'pending_count'   => $pendingCount,
+                    'confirmed_count' => $confirmedCount,
                 ]);
             }
 
@@ -1189,10 +1255,14 @@ class EventCampaignAdminController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success'  => true,
-                'status'   => 'pending',
-                'approved' => false,
-                'message'  => $msg,
+                'success'         => true,
+                'status'          => 'pending',
+                'status_label'    => 'Pending',
+                'approved'        => false,
+                'message'         => $msg,
+                'registration_id' => $registration->id,
+                'pending_count'   => $pendingCount,
+                'confirmed_count' => $confirmedCount,
             ]);
         }
 
@@ -1209,6 +1279,9 @@ class EventCampaignAdminController extends Controller
         $ids = is_array($rawIds) ? $rawIds : json_decode($rawIds, true);
 
         if (empty($ids) || !is_array($ids)) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'কোনো অংশগ্রহণকারী নির্বাচন করা হয়নি।'], 422);
+            }
             return back()->with('error', 'No participants selected for bulk action.');
         }
 
@@ -1284,7 +1357,19 @@ class EventCampaignAdminController extends Controller
                 break;
 
             default:
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Invalid bulk action specified.'], 400);
+                }
                 return back()->with('error', 'Invalid bulk action specified.');
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'count'   => $count,
+                'action'  => $action,
+                'message' => $msg,
+            ]);
         }
 
         return back()->with('success', $msg);

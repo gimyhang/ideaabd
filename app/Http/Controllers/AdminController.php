@@ -118,13 +118,8 @@ class AdminController extends Controller
             ];
         }
 
-        $smsInfo = ['balance' => 'N/A', 'status' => 'unknown'];
-        try {
-            $smsService = app(\App\Services\SmsService::class);
-            if (method_exists($smsService, 'getBalance')) {
-                $smsInfo = $smsService->getBalance();
-            }
-        } catch (\Throwable) {}
+        // Retrieve SMS balance non-blockingly from cache to avoid delaying page load
+        $smsInfo = \Illuminate\Support\Facades\Cache::get('sms_gateway_balance_info', ['balance' => null, 'status' => 'unknown']);
 
         return view('admin.dashboard', [
             'stats'          => $stats,
@@ -386,6 +381,11 @@ class AdminController extends Controller
                     }
                     break;
             }
+
+            // Clear cached pending alerts to return fresh data
+            \Illuminate\Support\Facades\Cache::forget('admin_pending_registrations_count');
+            \Illuminate\Support\Facades\Cache::forget('admin_dash_pending_alerts');
+            \Illuminate\Support\Facades\Cache::forget('admin_sidebar_pending_badges');
 
             // Fresh counts
             $newAlerts = $this->dashboard->getPendingAlerts();

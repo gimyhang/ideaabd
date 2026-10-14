@@ -29,9 +29,11 @@ class AdminDashboardService
     /** Count of seller/publisher/author signups still awaiting a decision. */
     public function pendingRegistrations(): int
     {
-        return $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
-            ->where('reg_status', User::STATUS_PENDING)
-            ->count(), 0);
+        return Cache::remember('admin_pending_registrations_count', 60, function () {
+            return $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+                ->where('reg_status', User::STATUS_PENDING)
+                ->count(), 0);
+        });
     }
 
     /**
@@ -39,62 +41,64 @@ class AdminDashboardService
      */
     public function getPendingAlerts(): array
     {
-        $pendingOrders = (int) $this->safe(fn () => Order::where('status', 'pending')->count(), 0);
-        $pendingRegistrations = (int) $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
-            ->where('reg_status', User::STATUS_PENDING)
-            ->count(), 0);
-        
-        $pendingBooks = 0;
-        if (Schema::hasTable('books')) {
-            $pendingBooks = (int) $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')->count(), 0);
-        }
+        return Cache::remember('admin_dash_pending_alerts', 60, function () {
+            $pendingOrders = (int) $this->safe(fn () => Order::where('status', 'pending')->count(), 0);
+            $pendingRegistrations = (int) $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
+                ->where('reg_status', User::STATUS_PENDING)
+                ->count(), 0);
+            
+            $pendingBooks = 0;
+            if ($this->hasTable('books')) {
+                $pendingBooks = (int) $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')->count(), 0);
+            }
 
-        $pendingEbooks = 0;
-        if (Schema::hasTable('ebooks')) {
-            $pendingEbooks = (int) $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')->count(), 0);
-        }
+            $pendingEbooks = 0;
+            if ($this->hasTable('ebooks')) {
+                $pendingEbooks = (int) $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')->count(), 0);
+            }
 
-        $pendingBlogs = 0;
-        if (Schema::hasTable('blog_posts')) {
-            $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
-                $q->where('status', 'pending')
-                  ->orWhere('mod_status', 'pending')
-                  ->orWhere('edit_request_status', 'pending');
-            })->count(), 0);
-        }
+            $pendingBlogs = 0;
+            if ($this->hasTable('blog_posts')) {
+                $pendingBlogs = (int) $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
+                    $q->where('status', 'pending')
+                      ->orWhere('mod_status', 'pending')
+                      ->orWhere('edit_request_status', 'pending');
+                })->count(), 0);
+            }
 
-        $pendingBookRequests = 0;
-        if (Schema::hasTable('book_requests')) {
-            $pendingBookRequests = (int) $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')->count(), 0);
-        }
+            $pendingBookRequests = 0;
+            if ($this->hasTable('book_requests')) {
+                $pendingBookRequests = (int) $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')->count(), 0);
+            }
 
-        $pendingSubmissions = 0;
-        if (Schema::hasTable('author_submissions')) {
-            $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
-        }
+            $pendingSubmissions = 0;
+            if ($this->hasTable('author_submissions')) {
+                $pendingSubmissions = (int) $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')->count(), 0);
+            }
 
-        $authorUpdates = (int) $this->safe(fn () => User::where('role', 'author')
-            ->where(function ($q) {
-                $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
-                  ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
-            })->count(), 0);
+            $authorUpdates = (int) $this->safe(fn () => User::where('role', 'author')
+                ->where(function ($q) {
+                    $q->where('reg_data', 'like', '%"profile_update_status":"updated"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status":"pending"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status": "updated"%')
+                      ->orWhere('reg_data', 'like', '%"profile_update_status": "pending"%');
+                })->count(), 0);
 
-        $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions + $authorUpdates;
+            $totalCount = $pendingOrders + $pendingRegistrations + $pendingBooks + $pendingEbooks + $pendingBlogs + $pendingBookRequests + $pendingSubmissions + $authorUpdates;
 
-        return [
-            'total_count'          => $totalCount,
-            'has_alerts'           => $totalCount > 0,
-            'orders'               => $pendingOrders,
-            'registrations'        => $pendingRegistrations,
-            'author_updates'       => $authorUpdates,
-            'books'                => $pendingBooks,
-            'ebooks'               => $pendingEbooks,
-            'blogs'                => $pendingBlogs,
-            'book_requests'        => $pendingBookRequests,
-            'submissions'          => $pendingSubmissions,
-        ];
+            return [
+                'total_count'          => $totalCount,
+                'has_alerts'           => $totalCount > 0,
+                'orders'               => $pendingOrders,
+                'registrations'        => $pendingRegistrations,
+                'author_updates'       => $authorUpdates,
+                'books'                => $pendingBooks,
+                'ebooks'               => $pendingEbooks,
+                'blogs'                => $pendingBlogs,
+                'book_requests'        => $pendingBookRequests,
+                'submissions'          => $pendingSubmissions,
+            ];
+        });
     }
 
     /**
@@ -550,49 +554,60 @@ class AdminDashboardService
                 $days = (int) $start->diffInDays($end) + 1;
                 if ($days > 31) $days = 31; // cap daily granularity
 
+                // Single aggregated query instead of 28 separate queries
+                $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$start, $end])
+                    ->selectRaw("DATE(created_at) as dt, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->groupBy('dt')
+                    ->get()
+                    ->keyBy('dt'), collect());
+
                 for ($i = 0; $i < $days; $i++) {
                     $day = $start->copy()->addDays($i);
-                    $dayStart = $day->copy()->startOfDay();
-                    $dayEnd = $day->copy()->endOfDay();
-                    $key = $day->format('d M');
-
-                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->sum('total_amount'), 0.0);
-                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$dayStart, $dayEnd])->count(), 0);
+                    $key = $day->format('Y-m-d');
+                    $row = $aggregates->get($key);
 
                     $labels[] = Bn::date($day);
-                    $revenue[] = round($rev, 2);
-                    $orders[] = $cnt;
+                    $revenue[] = round((float) ($row->total_rev ?? 0), 2);
+                    $orders[] = (int) ($row->total_cnt ?? 0);
                 }
             } elseif ($period === 'yearly') {
                 // Last 5 years
                 $startYear = now()->subYears(4)->year;
                 $endYear = now()->year;
+                $yrStart = Carbon::createFromDate($startYear, 1, 1)->startOfDay();
+                $yrEnd = Carbon::createFromDate($endYear, 12, 31)->endOfDay();
+
+                $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])
+                    ->selectRaw("YEAR(created_at) as yr, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->groupBy('yr')
+                    ->get()
+                    ->keyBy('yr'), collect());
 
                 for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                    $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
-                    $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
-
-                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->sum('total_amount'), 0.0);
-                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$yrStart, $yrEnd])->count(), 0);
-
+                    $row = $aggregates->get($yr);
                     $labels[] = Bn::num($yr) . ' সাল';
-                    $revenue[] = round($rev, 2);
-                    $orders[] = $cnt;
+                    $revenue[] = round((float) ($row->total_rev ?? 0), 2);
+                    $orders[] = (int) ($row->total_cnt ?? 0);
                 }
             } else {
-                // Last 12 months (Default)
+                // Last 12 months (Default) - Single query instead of 24 queries
                 $start = now()->startOfMonth()->subMonths(11);
+                $end = now()->endOfMonth();
+
+                $aggregates = $this->safe(fn () => Order::whereBetween('created_at', [$start, $end])
+                    ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(total_amount) as total_rev, COUNT(*) as total_cnt")
+                    ->groupBy('ym')
+                    ->get()
+                    ->keyBy('ym'), collect());
+
                 for ($i = 0; $i < 12; $i++) {
                     $month = $start->copy()->addMonths($i);
-                    $mStart = $month->copy()->startOfMonth();
-                    $mEnd = $month->copy()->endOfMonth();
+                    $key = $month->format('Y-m');
+                    $row = $aggregates->get($key);
 
-                    $rev = (float) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->sum('total_amount'), 0.0);
-                    $cnt = (int) $this->safe(fn () => Order::whereBetween('created_at', [$mStart, $mEnd])->count(), 0);
-
-                    $labels[] = Bn::date($mStart);
-                    $revenue[] = round($rev, 2);
-                    $orders[] = $cnt;
+                    $labels[] = Bn::date($month);
+                    $revenue[] = round((float) ($row->total_rev ?? 0), 2);
+                    $orders[] = (int) ($row->total_cnt ?? 0);
                 }
             }
 
@@ -612,59 +627,70 @@ class AdminDashboardService
             $views = [];
             $uniques = [];
 
-            if (!Schema::hasTable('visitor_logs')) {
+            if (!$this->hasTable('visitor_logs')) {
                 return ['labels' => ['আজকে'], 'views' => [0], 'uniques' => [0]];
             }
 
             if ($period === 'monthly') {
-                // Last 12 months
+                // Last 12 months - Single query instead of 24
                 $start = now()->startOfMonth()->subMonths(11);
+                $end = now()->endOfMonth();
+
+                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
+                    ->selectRaw("DATE_FORMAT(visited_at, '%Y-%m') as ym, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->groupBy('ym')
+                    ->get()
+                    ->keyBy('ym'), collect());
+
                 for ($i = 0; $i < 12; $i++) {
                     $m = $start->copy()->addMonths($i);
-                    $mStart = $m->copy()->startOfMonth();
-                    $mEnd = $m->copy()->endOfMonth();
+                    $key = $m->format('Y-m');
+                    $row = $visitorAggregates->get($key);
 
-                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->count(), 0);
-                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$mStart, $mEnd])->distinct('ip_address')->count('ip_address'), 0);
-
-                    $labels[] = Bn::date($mStart);
-                    $views[] = $v;
-                    $uniques[] = $u;
+                    $labels[] = Bn::date($m);
+                    $views[] = (int) ($row->views ?? 0);
+                    $uniques[] = (int) ($row->uniques ?? 0);
                 }
             } elseif ($period === 'yearly') {
-                // Last 5 years
+                // Last 5 years - Single query
                 $startYear = now()->subYears(4)->year;
                 $endYear = now()->year;
+                $yrStart = Carbon::createFromDate($startYear, 1, 1)->startOfDay();
+                $yrEnd = Carbon::createFromDate($endYear, 12, 31)->endOfDay();
+
+                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])
+                    ->selectRaw("YEAR(visited_at) as yr, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->groupBy('yr')
+                    ->get()
+                    ->keyBy('yr'), collect());
 
                 for ($yr = $startYear; $yr <= $endYear; $yr++) {
-                    $yrStart = Carbon::createFromDate($yr, 1, 1)->startOfDay();
-                    $yrEnd = Carbon::createFromDate($yr, 12, 31)->endOfDay();
-
-                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->count(), 0);
-                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$yrStart, $yrEnd])->distinct('ip_address')->count('ip_address'), 0);
-
+                    $row = $visitorAggregates->get($yr);
                     $labels[] = Bn::num($yr) . ' সাল';
-                    $views[] = $v;
-                    $uniques[] = $u;
+                    $views[] = (int) ($row->views ?? 0);
+                    $uniques[] = (int) ($row->uniques ?? 0);
                 }
             } else {
-                // Last 14 days (Daily)
+                // Last 14 days (Daily) - Single query instead of 28
                 $start = $from ? Carbon::parse($from)->startOfDay() : now()->subDays(13)->startOfDay();
                 $end = $to ? Carbon::parse($to)->endOfDay() : now()->endOfDay();
                 $days = (int) $start->diffInDays($end) + 1;
                 if ($days > 31) $days = 31;
 
+                $visitorAggregates = $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$start, $end])
+                    ->selectRaw("DATE(visited_at) as dt, COUNT(*) as views, COUNT(DISTINCT ip_address) as uniques")
+                    ->groupBy('dt')
+                    ->get()
+                    ->keyBy('dt'), collect());
+
                 for ($i = 0; $i < $days; $i++) {
                     $d = $start->copy()->addDays($i);
-                    $dStart = $d->copy()->startOfDay();
-                    $dEnd = $d->copy()->endOfDay();
-
-                    $v = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->count(), 0);
-                    $u = (int) $this->safe(fn () => VisitorLog::whereBetween('visited_at', [$dStart, $dEnd])->distinct('ip_address')->count('ip_address'), 0);
+                    $key = $d->format('Y-m-d');
+                    $row = $visitorAggregates->get($key);
 
                     $labels[] = Bn::date($d);
-                    $views[] = $v;
-                    $uniques[] = $u;
+                    $views[] = (int) ($row->views ?? 0);
+                    $uniques[] = (int) ($row->uniques ?? 0);
                 }
             }
 
@@ -922,10 +948,9 @@ class AdminDashboardService
                 $chartColors[] = $data['color'];
             }
 
-            $allEmployees = \App\Models\IdeaEmployee::query()
-                ->whereNull('deleted_at')
-                ->latest('id')
-                ->get()
+            $allEmployees = $employees
+                ->sortByDesc('id')
+                ->values()
                 ->map(function ($emp) {
                     $cat = $emp->getRoleCategory();
                     $cfg = $emp->getRoleConfig();
@@ -1051,6 +1076,8 @@ class AdminDashboardService
         ];
     }
  
+    private static array $tableCache = [];
+
     private function count(string $table): ?int
     {
         if (! $this->hasTable($table)) {
@@ -1062,7 +1089,11 @@ class AdminDashboardService
 
     private function hasTable(string $table): bool
     {
-        return $this->safe(fn () => Schema::hasTable($table), false);
+        if (isset(self::$tableCache[$table])) {
+            return self::$tableCache[$table];
+        }
+
+        return self::$tableCache[$table] = $this->safe(fn () => Schema::hasTable($table), false);
     }
 
     private function safe(callable $query, mixed $fallback = null): mixed

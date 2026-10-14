@@ -3,25 +3,26 @@
      * Dynamic & Smart Accordion Nav tree for the admin panel.
      * Includes spotlight search filter, quick favorites strip, and auto-scroll.
      */
-    $pending = $adminPendingRegistrations ?? (\Illuminate\Support\Facades\Schema::hasTable('users') ? \App\Models\User::where('reg_status', 'pending')->count() : 0);
-    $pendingAuthors = \Illuminate\Support\Facades\Schema::hasTable('users')
-        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'))->count()
-        : 0;
-    $pendingPublishers = \Illuminate\Support\Facades\Schema::hasTable('users')
-        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'publisher')->orWhere('reg_type', 'publisher'))->count()
-        : 0;
-    $pendingSellers = \Illuminate\Support\Facades\Schema::hasTable('users')
-        ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'seller')->orWhere('reg_type', 'seller'))->count()
-        : 0;
-    $pendingPayouts = \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests')
-        ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count()
-        : 0;
-    $pendingHonorariums = \Illuminate\Support\Facades\Schema::hasTable('author_honorariums')
-        ? \App\Models\AuthorHonorarium::where('payment_status', 'pending')->count()
-        : 0;
-    $pendingPasswordRequests = \Illuminate\Support\Facades\Schema::hasTable('password_reset_requests')
-        ? \App\Models\PasswordResetRequest::where('status', 'pending')->count()
-        : 0;
+    $sidebarBadges = \Illuminate\Support\Facades\Cache::remember('admin_sidebar_pending_badges', 60, function () use ($adminPendingRegistrations) {
+        $hasUsers = \Illuminate\Support\Facades\Schema::hasTable('users');
+        return [
+            'pending' => $adminPendingRegistrations ?? ($hasUsers ? \App\Models\User::where('reg_status', 'pending')->count() : 0),
+            'authors' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'author')->orWhere('reg_type', 'author'))->count() : 0,
+            'publishers' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'publisher')->orWhere('reg_type', 'publisher'))->count() : 0,
+            'sellers' => $hasUsers ? \App\Models\User::where('reg_status', 'pending')->where(fn($q) => $q->where('role', 'seller')->orWhere('reg_type', 'seller'))->count() : 0,
+            'payouts' => \Illuminate\Support\Facades\Schema::hasTable('author_payout_requests') ? \App\Models\AuthorPayoutRequest::where('status', 'pending')->count() : 0,
+            'honorariums' => \Illuminate\Support\Facades\Schema::hasTable('author_honorariums') ? \App\Models\AuthorHonorarium::where('payment_status', 'pending')->count() : 0,
+            'password_requests' => \Illuminate\Support\Facades\Schema::hasTable('password_reset_requests') ? \App\Models\PasswordResetRequest::where('status', 'pending')->count() : 0,
+        ];
+    });
+
+    $pending = $sidebarBadges['pending'] ?? 0;
+    $pendingAuthors = $sidebarBadges['authors'] ?? 0;
+    $pendingPublishers = $sidebarBadges['publishers'] ?? 0;
+    $pendingSellers = $sidebarBadges['sellers'] ?? 0;
+    $pendingPayouts = $sidebarBadges['payouts'] ?? 0;
+    $pendingHonorariums = $sidebarBadges['honorariums'] ?? 0;
+    $pendingPasswordRequests = $sidebarBadges['password_requests'] ?? 0;
 
     $menu = [
         null => [

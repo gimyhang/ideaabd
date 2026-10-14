@@ -160,15 +160,17 @@
                             <i class="fa-solid fa-tag"></i> {{ $campaign->badge_text }}
                         </span>
                     @endif
-                    @if($campaign->is_active)
-                        <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1.5 px-2.5 py-1">
-                            <span class="pulse-dot"></span> Active Campaign
-                        </span>
-                    @else
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1">
-                            <i class="fa-solid fa-circle-pause me-1"></i> Inactive
-                        </span>
-                    @endif
+                    <span id="campaignStatusHeroBadgeWrap">
+                        @if($campaign->is_active)
+                            <span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-pill shadow-sm">
+                                <span class="status-pulse-dot bg-success"></span> Active Campaign
+                            </span>
+                        @else
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill shadow-sm">
+                                <span class="status-pulse-dot bg-secondary"></span> Inactive / Paused
+                            </span>
+                        @endif
+                    </span>
                 </div>
 
                 <div class="d-flex align-items-center gap-3 mb-2">
@@ -204,18 +206,20 @@
                     <div class="aec-url-box">
                         <i class="fa-solid fa-link text-info"></i>
                         <span class="font-monospace text-light" id="publicUrlText">{{ $campaign->public_url }}</span>
-                        <button type="button" class="btn btn-sm btn-outline-light border-0 p-1 ms-1 copy-slug-btn" data-url="{{ $campaign->public_url }}" title="Copy Public URL">
+                        <button type="button" class="btn btn-sm btn-outline-light border-0 p-1 ms-1 copy-slug-btn aec-btn-hover-lift" data-url="{{ $campaign->public_url }}" title="Copy Public URL">
                             <i class="fa-regular fa-copy"></i>
                         </button>
-                        <a href="{{ $campaign->public_url }}" target="_blank" class="btn btn-sm btn-outline-light border-0 p-1" title="Open in new tab" id="publicUrlLink">
+                        <a href="{{ $campaign->public_url }}" target="_blank" class="btn btn-sm btn-outline-light border-0 p-1 aec-btn-hover-lift" title="Open in new tab" id="publicUrlLink">
                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
                     </div>
-                    <button type="button" class="btn btn-sm aec-btn-quick-edit" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
-                        কুইক এডিট
+                    <button type="button" class="btn btn-sm aec-btn-quick-edit aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>কুইক এডিট</span>
                     </button>
-                    <button type="button" class="btn btn-sm aec-btn-qr-code" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
-                        কিউ আর কোড
+                    <button type="button" class="btn btn-sm aec-btn-qr-code aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>কিউ আর কোড</span>
                     </button>
                 </div>
             </div>
@@ -223,35 +227,41 @@
             {{-- Right Top Action Buttons Group --}}
             <div class="d-flex flex-wrap align-items-center gap-2">
                 @if($isLibrary)
-                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold">
-                        Main Library Dashboard
+                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center gap-1.5">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Library Dashboard</span>
                     </a>
                 @endif
-                <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
-                    {{ $isLibrary ? 'নতুন পাঠাগার এন্ট্রি' : 'নতুন নিবন্ধন' }}
+                <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>{{ $isLibrary ? 'নতুন পাঠাগার' : 'নতুন নিবন্ধন' }}</span>
                 </button>
-                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm">
-                    {{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}
+                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning border-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" title="{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}">
+                    <i class="fa-solid {{ $campaign->is_active ? 'fa-pause' : 'fa-play' }}" id="campaignStatusBtnIcon"></i>
+                    <span id="campaignStatusBtnText">{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}</span>
                 </button>
                 <div class="dropdown">
-                    <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Export Data
+                    <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Export Data</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
-                        <li><a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'excel']) }}">বিভাগ ও জেলা ভিত্তিক এক্সেল শিট (.xls)</a></li>
-                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'csv']) }}">বিভাগ ও জেলা ভিত্তিক সিএসভি (.csv)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold text-success d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'excel']) }}"><i class="fa-solid fa-file-excel text-success"></i> বিভাগ ও জেলা ভিত্তিক এক্সেল (.xls)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'geo', 'format' => 'csv']) }}"><i class="fa-solid fa-file-csv text-primary"></i> বিভাগ ও জেলা ভিত্তিক সিএসভি (.csv)</a></li>
                         <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', $campaign->id) }}">All Participants (সকল অংশগ্রহণকারী)</a></li>
-                        <li><a class="dropdown-item py-2 fw-semibold" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'sort' => 'alpha']) }}">বর্ণানুক্রমিক তালিকা (A-Z / ক-হ)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', $campaign->id) }}"><i class="fa-solid fa-users text-primary"></i> All Participants (সকল অংশগ্রহণকারী)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'sort' => 'alpha']) }}"><i class="fa-solid fa-arrow-down-a-z text-info"></i> বর্ণানুক্রমিক তালিকা (A-Z / ক-হ)</a></li>
                         <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}">লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}"><i class="fa-solid fa-book-open text-warning"></i> লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn aec-btn-card-design" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
-                    কার্ড ডিজাইন
+                <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
+                    <i class="fa-solid fa-id-card-clip"></i>
+                    <span>কার্ড ডিজাইন</span>
                 </button>
-                <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold">
-                    All Settings
+                <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>All Settings</span>
                 </a>
             </div>
         </div>
@@ -576,16 +586,17 @@
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="d-flex align-items-center gap-2">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-users-line text-primary"></i> Registered Participants ({{ $registrations->total() }})
+                    <i class="fa-solid fa-users-line text-primary"></i> <span>অংশগ্রহণকারী</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace px-2.5 py-0.5">{{ $registrations->total() }}</span>
                 </h6>
                 <span class="badge bg-light text-secondary border font-monospace">{{ $perPage }} / page</span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল এন্ট্রি এক কমান্ডে প্রিন্ট করুন">
-                    <i class="fa-solid fa-print me-1.5"></i> এক কমান্ডে সকল এন্ট্রি প্রিন্ট (Print All)
+                    <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট
                 </a>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5" onclick="window.print()" title="বর্তমান পেজ প্রিন্ট">
-                    <i class="fa-solid fa-file-invoice me-1"></i> পেজ প্রিন্ট
+                    <i class="fa-solid fa-file-invoice me-1"></i> পেজ
                 </button>
             </div>
         </div>
@@ -606,7 +617,7 @@
                         <th class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}">স্ট্যাটাস</th>
                         <th class="col-date {{ in_array('date', $visibleCols) ? '' : 'd-none' }}">তারিখ</th>
                         <th class="col-institution {{ in_array('institution', $visibleCols) ? '' : 'd-none' }}">
-                            {{ $isWriter ? 'প্রতিষ্ঠান / তথ্য' : ($isScholarship ? 'শ্রেণি / প্রতিষ্ঠান' : ($isLibrary ? 'লাইব্রেরি টাইপ' : 'প্রতিষ্ঠান')) }}
+                            {{ $isLibrary ? 'পাঠাগার' : 'প্রতিষ্ঠান' }}
                         </th>
                         
                         {{-- Custom Dynamic Columns --}}
@@ -1312,27 +1323,10 @@
                                                             {{-- ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন নোট --}}
                                                             <div class="col-12">
                                                                 <div class="p-3 bg-light rounded-3 border">
-                                                                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2 flex-wrap gap-2">
+                                                                    <div class="border-bottom pb-2 mb-2">
                                                                         <h6 class="fw-bold text-dark mb-0" style="font-size: 13.5px;">
                                                                             <i class="fa-solid fa-money-check-dollar text-success me-1.5"></i> ৪. স্ট্যাটাস, পেমেন্ট ও এডমিন মন্তব্য
                                                                         </h6>
-                                                                        <div class="d-flex align-items-center gap-1.5">
-                                                                            <span class="small text-muted fw-bold">দ্রুত স্ট্যাটাস পরিবর্তন:</span>
-                                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
-                                                                                @csrf
-                                                                                <input type="hidden" name="status" value="confirmed">
-                                                                                <button type="submit" class="btn btn-xs btn-success rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
-                                                                                    <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ করুন
-                                                                                </button>
-                                                                            </form>
-                                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
-                                                                                @csrf
-                                                                                <input type="hidden" name="status" value="rejected">
-                                                                                <button type="submit" class="btn btn-xs btn-danger rounded-pill px-2.5 py-0.5 fw-bold" style="font-size: 11px;">
-                                                                                    <i class="fa-solid fa-circle-xmark me-1"></i> বাতিল করুন
-                                                                                </button>
-                                                                            </form>
-                                                                        </div>
                                                                     </div>
                                                                     <div class="row g-2" style="font-size: 13px;">
                                                                         <div class="col-6 col-sm-3">
@@ -1366,30 +1360,11 @@
                                                         </div>
 
                                                         {{-- Footer Action Bar for Tab 1 --}}
-                                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
-                                                                    @csrf
-                                                                    <input type="hidden" name="status" value="confirmed">
-                                                                    <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-xs">
-                                                                        <i class="fa-solid fa-circle-check me-1"></i> এপ্রুভ করুন (Approve)
-                                                                    </button>
-                                                                </form>
-                                                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
-                                                                    @csrf
-                                                                    <input type="hidden" name="status" value="rejected">
-                                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold shadow-xs">
-                                                                        <i class="fa-solid fa-circle-xmark me-1"></i> বাতিল করুন (Reject)
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
-                                                                    <i class="fa-solid fa-pen-to-square me-1"></i> এই তথ্য এডিট করুন (Edit Form)
-                                                                </button>
-                                                                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
-                                                            </div>
+                                                        <div class="mt-4 pt-3 border-top d-flex justify-content-end align-items-center gap-2">
+                                                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-none" onclick="document.getElementById('edit-tab-btn-{{ $reg->id }}').click()">
+                                                                <i class="fa-solid fa-pen-to-square me-1"></i> এডিট
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
                                                         </div>
                                                     </div>
 

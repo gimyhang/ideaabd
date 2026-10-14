@@ -188,6 +188,98 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // 4.1 Execute Bulk Action via AJAX
+    window.executeBulkAction = async function (action) {
+        const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
+        if (!selected.length) {
+            window.showToast('কোনো অংশগ্রহণকারী নির্বাচন করা হয়নি', true);
+            return;
+        }
+
+        let confirmMsg = 'নির্বাচিত ' + selected.length + 'টি নিবন্ধনে এই অ্যাকশনটি প্রয়োগ করতে চান?';
+        if (action === 'delete') {
+            confirmMsg = 'সতর্কতা: নির্বাচিত ' + selected.length + 'টি নিবন্ধন মুছে ফেলতে চান? এটি পুনরুদ্ধার করা যাবে না!';
+        } else if (action === 'reject') {
+            confirmMsg = 'নির্বাচিত ' + selected.length + 'টি আবেদন বাতিল করতে চান?';
+        }
+
+        if (!confirm(confirmMsg)) return;
+
+        const form = document.getElementById('bulkActionHiddenForm');
+        const bulkUrl = form ? form.action : (window.location.pathname.replace(/\/+$/, '') + '/bulk-action');
+
+        try {
+            const res = await fetchWithCsrf(bulkUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: action,
+                    registration_ids: selected,
+                    selected_ids: selected
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'বাল্ক অ্যাকশন সম্পন্ন হয়েছে'));
+                setTimeout(() => location.reload(), 600);
+            } else {
+                window.showToast(data.message || 'অপারেশন ব্যর্থ হয়েছে', true);
+            }
+        } catch (err) {
+            console.error(err);
+            window.showToast('সার্ভার সংযোগে ত্রুটি হয়েছে', true);
+        }
+    };
+
+    // 4.2 Single Registration Delete (.btn-delete-reg)
+    document.querySelectorAll('.btn-delete-reg').forEach(btn => {
+        btn.addEventListener('click', async function (e) {
+            e.preventDefault();
+            const name = this.getAttribute('data-name') || 'অংশগ্রহণকারী';
+            const url = this.getAttribute('data-url');
+            if (!url) return;
+
+            if (!confirm('আপনি কি নিশ্চিত যে "' + name + '" এর নিবন্ধন মুছে ফেলতে চান?')) return;
+
+            const origHtml = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+            try {
+                const res = await fetchWithCsrf(url, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    const modal = btn.closest('.modal');
+                    if (modal && typeof bootstrap !== 'undefined') {
+                        const mInstance = bootstrap.Modal.getInstance(modal);
+                        if (mInstance) mInstance.hide();
+                    }
+                    const regId = btn.getAttribute('data-id');
+                    const row = btn.closest('tr') || document.querySelector('.participant-select-check[value="' + regId + '"]')?.closest('tr');
+                    if (row) {
+                        row.style.transition = 'all 0.35s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(30px)';
+                        setTimeout(() => {
+                            row.remove();
+                            updateBulkBar();
+                        }, 350);
+                    }
+                    window.showToast('<i class="fa-solid fa-trash text-success me-1"></i> ' + (data.message || 'নিবন্ধন মুছে ফেলা হয়েছে'));
+                } else {
+                    this.disabled = false;
+                    this.innerHTML = origHtml;
+                    window.showToast(data.message || 'ডিলিট ব্যর্থ হয়েছে', true);
+                }
+            } catch (err) {
+                this.disabled = false;
+                this.innerHTML = origHtml;
+                console.error(err);
+                window.showToast('সার্ভার সংযোগে ত্রুটি হয়েছে', true);
+            }
+        });
+    });
+
     // 5. AJAX Toggle Active Status for Campaign
     const toggleStatusBtn = document.getElementById('btnToggleCampaignStatus');
     if (toggleStatusBtn) {
@@ -195,7 +287,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const url = this.getAttribute('data-url');
             if (!url) return;
 
+            const origHtml = this.innerHTML;
             this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> পরিবর্তন হচ্ছে...';
             try {
                 const res = await fetchWithCsrf(url, {
                     method: 'POST',
@@ -204,13 +298,36 @@ document.addEventListener('DOMContentLoaded', function () {
                 const data = await res.json();
                 toggleStatusBtn.disabled = false;
                 if (data.success) {
-                    window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + data.message);
-                    setTimeout(() => location.reload(), 600);
+                    const isActive = data.is_active;
+                    const iconEl = document.getElementById('campaignStatusBtnIcon');
+                    const textEl = document.getElementById('campaignStatusBtnText');
+                    const badgeWrap = document.getElementById('campaignStatusHeroBadgeWrap');
+
+                    if (isActive) {
+                        toggleStatusBtn.className = 'btn btn-outline-warning border-warning rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5';
+                        toggleStatusBtn.title = 'Pause Registration';
+                        if (iconEl) iconEl.className = 'fa-solid fa-pause';
+                        if (textEl) textEl.textContent = 'Pause Registration';
+                        if (badgeWrap) {
+                            badgeWrap.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center gap-1.5 px-3 py-1 rounded-pill shadow-sm"><span class="status-pulse-dot bg-success"></span> Active Campaign</span>';
+                        }
+                    } else {
+                        toggleStatusBtn.className = 'btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5';
+                        toggleStatusBtn.title = 'Activate Form';
+                        if (iconEl) iconEl.className = 'fa-solid fa-play';
+                        if (textEl) textEl.textContent = 'Activate Form';
+                        if (badgeWrap) {
+                            badgeWrap.innerHTML = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1 rounded-pill shadow-sm"><span class="status-pulse-dot bg-secondary"></span> Inactive / Paused</span>';
+                        }
+                    }
+                    window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'স্ট্যাটাস আপডেট হয়েছে'));
                 } else {
+                    toggleStatusBtn.innerHTML = origHtml;
                     window.showToast(data.message || 'Status update failed', true);
                 }
             } catch (err) {
                 toggleStatusBtn.disabled = false;
+                toggleStatusBtn.innerHTML = origHtml;
                 console.error(err);
                 window.showToast('Network error updating status', true);
             }
