@@ -10,7 +10,7 @@
     $authorBgColor = $authorRecord ? $authorRecord->avatar_bg_color : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)';
     $authorUrl = $authorRecord ? route('authors.show', $authorRecord->slug ?: $authorRecord->id) : route('authors.index') . '?search=' . urlencode($authorName);
 
-    $ogCover = $post->cover_url ?: ($post->featured_image ? (str_starts_with($post->featured_image, 'http') ? $post->featured_image : asset('storage/' . ltrim($post->featured_image, '/'))) : asset('images/logo.svg'));
+    $ogCover = $post->og_image_url;
     $rawPostContent = html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $cleanPlainText = trim(strip_tags($rawPostContent));
     $ogDesc = !empty($post->subtitle) ? $post->subtitle : (!empty($post->excerpt) ? $post->excerpt : Str::limit($cleanPlainText, 180));

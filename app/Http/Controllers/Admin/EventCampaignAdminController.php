@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\BangladeshGeo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -183,6 +184,7 @@ class EventCampaignAdminController extends Controller
             if (!empty($divDistricts) && !empty($canonicalDst) && !in_array($canonicalDst, $divDistricts, true)) {
                 // If selected district does not belong to the selected division, unset district so all division results show
                 $request->offsetUnset('district');
+                $request->query->remove('district');
             }
         }
 
@@ -211,12 +213,9 @@ class EventCampaignAdminController extends Controller
                 });
                 if (!empty($allDistVariants)) {
                     $q->orWhereIn('district', $allDistVariants)
-                      ->orWhere(function ($sq) use ($allDistVariants) {
-                          foreach ($allDistVariants as $dv) {
-                              $sq->orWhere('form_data->district', $dv)
-                                 ->orWhere('form_data->perm_district', $dv);
-                          }
-                      });
+                      ->orWhereIn('form_data->district', $allDistVariants)
+                      ->orWhereIn('form_data->perm_district', $allDistVariants)
+                      ->orWhereIn('form_data->permanent_district', $allDistVariants);
                 }
             });
         }
@@ -229,13 +228,15 @@ class EventCampaignAdminController extends Controller
 
             $regQuery->where(function ($q) use ($dstVariants) {
                 $q->whereIn('district', $dstVariants)
+                  ->orWhereIn('form_data->district', $dstVariants)
+                  ->orWhereIn('form_data->perm_district', $dstVariants)
+                  ->orWhereIn('form_data->permanent_district', $dstVariants)
                   ->orWhere(function ($sq) use ($dstVariants) {
                       foreach ($dstVariants as $v) {
                           $sq->orWhere('district', 'like', "%{$v}%")
-                             ->orWhere('form_data->district', $v)
-                             ->orWhere('form_data->perm_district', $v)
                              ->orWhere('form_data->district', 'like', "%{$v}%")
-                             ->orWhere('form_data->perm_district', 'like', "%{$v}%");
+                             ->orWhere('form_data->perm_district', 'like', "%{$v}%")
+                             ->orWhere('form_data->permanent_district', 'like', "%{$v}%");
                       }
                   });
             });
@@ -290,87 +291,270 @@ class EventCampaignAdminController extends Controller
             $regQuery->latest();
         }
 
-        // Fetch all registrations to prepare Geo Database, Little Magazine Directory and Conflict Metrics
-        $allCampaignRegistrations = $campaign->registrations()->with('user')->get();
+        // Smart Auto-Invalidating Conflict Analysis & Campaign Metrics Cache
+        $regCount = $campaign->registrations_count ?? $campaign->registrations()->count();
+        $maxUpdated = $campaign->registrations()->max('updated_at') ?? '0';
+        $analysisCacheKey = "camp_{$campaign->id}_analysis_v_{$regCount}_{$maxUpdated}";
 
-        // Comprehensive Phone & Registration Conflict & Deduplication Analysis
-        $normPhoneFn = function ($phone) {
-            if (!$phone) return '';
-            $digits = preg_replace('/[^0-9]/', '', (string)$phone);
-            if (str_starts_with($digits, '880') && strlen($digits) === 13) {
-                $digits = substr($digits, 2);
+        $analysis = Cache::remember($analysisCacheKey, 300, function () use ($campaign) {
+            $normPhoneFn = function ($phone) {
+                if (!$phone) return '';
+                $digits = preg_replace('/[^0-9]/', '', (string)$phone);
+                if (str_starts_with($digits, '880') && strlen($digits) === 13) {
+                    $digits = substr($digits, 2);
+                }
+                return $digits;
+            };
+
+            // Query only lightweight columns needed for analysis to minimize memory and DB I/O
+            $allCampaignRegistrations = $campaign->registrations()
+                ->select([
+                    'id', 'event_campaign_id', 'user_id', 'registration_number',
+                    'name', 'phone', 'email', 'district', 'designation_or_class',
+                    'status', 'payment_status', 'amount_paid', 'form_data', 'created_at'
+                ])
+                ->with(['user:id,phone'])
+                ->get();
+
+            $phoneGroups = [];
+            $emailGroups = [];
+
+            foreach ($allCampaignRegistrations as $r) {
+                $pNorm = $normPhoneFn($r->phone);
+                if (!empty($pNorm)) {
+                    $phoneGroups[$pNorm][] = [
+                        'id'     => $r->id,
+                        'reg_no' => $r->registration_number,
+                        'name'   => $r->name,
+                        'phone'  => $r->phone,
+                    ];
+                }
+
+                if (!empty($r->email)) {
+                    $eNorm = strtolower(trim($r->email));
+                    $emailGroups[$eNorm][] = [
+                        'id'     => $r->id,
+                        'reg_no' => $r->registration_number,
+                        'name'   => $r->name,
+                        'email'  => $r->email,
+                    ];
+                }
             }
-            return $digits;
-        };
 
-        $phoneGroups = [];
-        $emailGroups = [];
+            $conflictMap = [];
+            $conflictRegIds = [];
+            $duplicatePhoneMap = [];
 
-        foreach ($allCampaignRegistrations as $r) {
-            $pNorm = $normPhoneFn($r->phone);
-            if (!empty($pNorm)) {
-                $phoneGroups[$pNorm][] = [
-                    'id'     => $r->id,
-                    'reg_no' => $r->registration_number,
-                    'name'   => $r->name,
-                    'phone'  => $r->phone,
-                ];
+            foreach ($phoneGroups as $pNorm => $group) {
+                if (count($group) > 1) {
+                    $duplicatePhoneMap[$pNorm] = count($group);
+                }
             }
 
-            if (!empty($r->email)) {
-                $eNorm = strtolower(trim($r->email));
-                $emailGroups[$eNorm][] = [
-                    'id'     => $r->id,
-                    'reg_no' => $r->registration_number,
-                    'name'   => $r->name,
-                    'email'  => $r->email,
-                ];
+            $geoConflictRegIds = [];
+            $phoneConflictRegIds = [];
+
+            foreach ($allCampaignRegistrations as $r) {
+                $pNorm = $normPhoneFn($r->phone);
+                $hasDupPhone = !empty($pNorm) && isset($phoneGroups[$pNorm]) && count($phoneGroups[$pNorm]) > 1;
+                $otherPhoneRegs = $hasDupPhone 
+                    ? array_values(array_filter($phoneGroups[$pNorm], fn($item) => $item['id'] !== $r->id))
+                    : [];
+
+                $userPhoneNorm = $r->user ? $normPhoneFn($r->user->phone) : '';
+                $hasUserMismatch = ($r->user && !empty($userPhoneNorm) && !empty($pNorm) && $userPhoneNorm !== $pNorm);
+
+                $eNorm = !empty($r->email) ? strtolower(trim($r->email)) : '';
+                $hasDupEmail = !empty($eNorm) && isset($emailGroups[$eNorm]) && count($emailGroups[$eNorm]) > 1;
+                $otherEmailRegs = $hasDupEmail 
+                    ? array_values(array_filter($emailGroups[$eNorm], fn($item) => $item['id'] !== $r->id))
+                    : [];
+
+                // Division & District Geo Conflict Checking
+                $rawDiv = $r->form_data['perm_division'] ?? ($r->form_data['division'] ?? null);
+                $rawDist = $r->district ?: ($r->form_data['perm_district'] ?? ($r->form_data['permanent_district'] ?? ($r->form_data['district'] ?? null)));
+                $normDiv = BangladeshGeo::normalizeDivision($rawDiv);
+                $normDist = BangladeshGeo::normalizeDistrict($rawDist);
+                $expectedDivForDist = BangladeshGeo::getDivisionForDistrict($normDist);
+
+                $hasGeoConflict = false;
+                $geoConflictDetails = null;
+
+                if (!empty($normDiv) && !empty($expectedDivForDist) && $normDiv !== $expectedDivForDist) {
+                    $hasGeoConflict = true;
+                    $geoConflictDetails = "বিভাগ অমিল: জেলা '{$normDist}' মূলত {$expectedDivForDist} বিভাগের অন্তর্ভুক্ত, কিন্তু বিভাগে '{$normDiv}' দেওয়া রয়েছে।";
+                } elseif (!empty($rawDist) && ($normDist === 'অনির্ধারিত জেলা' || !in_array($normDist, array_merge(...array_values(BangladeshGeo::DIVISIONS)), true))) {
+                    $hasGeoConflict = true;
+                    $geoConflictDetails = "অজ্ঞাত জেলা: '{$rawDist}' বাংলাদেশের ৬৪ জেলার তালিকায় পাওয়া যায়নি।";
+                }
+
+                if ($hasDupPhone || $hasUserMismatch || $hasDupEmail || $hasGeoConflict) {
+                    $conflictRegIds[] = $r->id;
+                    if ($hasGeoConflict) {
+                        $geoConflictRegIds[] = $r->id;
+                    }
+                    if ($hasDupPhone || $hasUserMismatch || $hasDupEmail) {
+                        $phoneConflictRegIds[] = $r->id;
+                    }
+
+                    $conflictMap[$r->id] = [
+                        'has_conflict'          => true,
+                        'duplicate_phone'       => $hasDupPhone,
+                        'other_regs_with_phone' => $otherPhoneRegs,
+                        'user_mismatch'         => $hasUserMismatch,
+                        'user_phone'            => $r->user?->phone,
+                        'duplicate_email'       => $hasDupEmail,
+                        'other_regs_with_email' => $otherEmailRegs,
+                        'geo_conflict'          => $hasGeoConflict,
+                        'geo_conflict_details'  => $geoConflictDetails,
+                        'norm_div'              => $normDiv,
+                        'norm_dist'             => $normDist,
+                        'expected_div'          => $expectedDivForDist,
+                    ];
+                }
             }
-        }
 
-        $conflictMap = [];
-        $conflictRegIds = [];
-        $duplicatePhoneMap = [];
+            $totalConflictCount = count(array_unique($conflictRegIds));
+            $phoneConflictCount = count(array_unique($phoneConflictRegIds));
+            $geoConflictCount   = count(array_unique($geoConflictRegIds));
 
-        foreach ($phoneGroups as $pNorm => $group) {
-            if (count($group) > 1) {
-                $duplicatePhoneMap[$pNorm] = count($group);
+            $totalRegistrations = $allCampaignRegistrations->count();
+            $totalCollected = $allCampaignRegistrations->where('payment_status', 'verified')->sum('amount_paid');
+            $pendingCount = $allCampaignRegistrations->where('status', 'pending')->count();
+
+            $geoDatabase = [];
+            $divisionStats = [];
+            $districtStats = [];
+            $littleMagList = collect();
+            $categoryStats = [];
+
+            foreach ($allCampaignRegistrations as $reg) {
+                $dist = $reg->resolved_district;
+                $div = $reg->resolved_division;
+
+                if (!isset($geoDatabase[$div])) {
+                    $geoDatabase[$div] = [];
+                    $divisionStats[$div] = 0;
+                }
+                if (!isset($geoDatabase[$div][$dist])) {
+                    $geoDatabase[$div][$dist] = collect();
+                    $districtStats[$dist] = 0;
+                }
+
+                $geoDatabase[$div][$dist]->push($reg);
+                $divisionStats[$div]++;
+                $districtStats[$dist]++;
+
+                if ($reg->isLittleMagEditor()) {
+                    $littleMagList->push($reg);
+                }
+
+                // Extract all author categories & roles
+                $cats = [];
+                if (!empty($reg->form_data['author_categories']) && is_array($reg->form_data['author_categories'])) {
+                    $cats = array_merge($cats, $reg->form_data['author_categories']);
+                } elseif (!empty($reg->form_data['author_category'])) {
+                    $parts = array_map('trim', explode(',', $reg->form_data['author_category']));
+                    $cats = array_merge($cats, $parts);
+                }
+                if (!empty($reg->designation_or_class) && !in_array($reg->designation_or_class, $cats, true)) {
+                    $cats[] = trim($reg->designation_or_class);
+                }
+                if ($reg->isLittleMagEditor()) {
+                    $cats[] = 'লিটিলম্যাগ সম্পাদক';
+                }
+                $cats = array_unique(array_filter($cats));
+                foreach ($cats as $cName) {
+                    $categoryStats[$cName] = ($categoryStats[$cName] ?? 0) + 1;
+                }
             }
-        }
+            arsort($categoryStats);
 
-        foreach ($allCampaignRegistrations as $r) {
-            $pNorm = $normPhoneFn($r->phone);
-            $hasDupPhone = !empty($pNorm) && isset($phoneGroups[$pNorm]) && count($phoneGroups[$pNorm]) > 1;
-            $otherPhoneRegs = $hasDupPhone 
-                ? array_values(array_filter($phoneGroups[$pNorm], fn($item) => $item['id'] !== $r->id))
-                : [];
+            // Sort Divisions alphabetically (Bengali Unicode collation)
+            uksort($geoDatabase, function ($a, $b) {
+                if ($a === 'অনির্ধারিত বিভাগ') return 1;
+                if ($b === 'অনির্ধারিত বিভাগ') return -1;
+                return strcmp($a, $b);
+            });
 
-            $userPhoneNorm = $r->user ? $normPhoneFn($r->user->phone) : '';
-            $hasUserMismatch = ($r->user && !empty($userPhoneNorm) && !empty($pNorm) && $userPhoneNorm !== $pNorm);
+            // Within each Division, sort Districts alphabetically and participants alphabetically
+            foreach ($geoDatabase as $divName => $dists) {
+                uksort($geoDatabase[$divName], function ($a, $b) {
+                    if ($a === 'অনির্ধারিত জেলা') return 1;
+                    if ($b === 'অনির্ধারিত জেলা') return -1;
+                    return strcmp($a, $b);
+                });
 
-            $eNorm = !empty($r->email) ? strtolower(trim($r->email)) : '';
-            $hasDupEmail = !empty($eNorm) && isset($emailGroups[$eNorm]) && count($emailGroups[$eNorm]) > 1;
-            $otherEmailRegs = $hasDupEmail 
-                ? array_values(array_filter($emailGroups[$eNorm], fn($item) => $item['id'] !== $r->id))
-                : [];
-
-            if ($hasDupPhone || $hasUserMismatch || $hasDupEmail) {
-                $conflictRegIds[] = $r->id;
-                $conflictMap[$r->id] = [
-                    'has_conflict'          => true,
-                    'duplicate_phone'       => $hasDupPhone,
-                    'other_regs_with_phone' => $otherPhoneRegs,
-                    'user_mismatch'         => $hasUserMismatch,
-                    'user_phone'            => $r->user?->phone,
-                    'duplicate_email'       => $hasDupEmail,
-                    'other_regs_with_email' => $otherEmailRegs,
-                ];
+                foreach ($geoDatabase[$divName] as $dName => $pList) {
+                    $geoDatabase[$divName][$dName] = $pList->sort(function ($a, $b) {
+                        return strcmp($a->name, $b->name);
+                    })->values();
+                }
             }
-        }
-        $phoneConflictCount = count(array_unique($conflictRegIds));
 
+            // Sort Little Magazine List alphabetically (by Magazine Name, then Editor Name)
+            $littleMagList = $littleMagList->sort(function ($a, $b) {
+                $magA = $a->magazine_name ?: $a->name;
+                $magB = $b->magazine_name ?: $b->name;
+                return strcmp($magA, $magB);
+            })->values();
+
+            $totalLittleMagCount = $littleMagList->count();
+            $totalGeoDivisions = count(array_filter(array_keys($geoDatabase), fn($d) => $d !== 'অনির্ধারিত বিভাগ'));
+            $totalGeoDistricts = count(array_filter(array_keys($districtStats), fn($d) => $d !== 'অনির্ধারিত জেলা'));
+
+            return [
+                'totalRegistrations'   => $totalRegistrations,
+                'totalCollected'       => $totalCollected,
+                'pendingCount'         => $pendingCount,
+                'duplicatePhoneMap'    => $duplicatePhoneMap,
+                'phoneConflictCount'   => $phoneConflictCount,
+                'geoConflictCount'     => $geoConflictCount,
+                'totalConflictCount'   => $totalConflictCount,
+                'conflictRegIds'       => array_values(array_unique($conflictRegIds)),
+                'geoConflictRegIds'    => array_values(array_unique($geoConflictRegIds)),
+                'phoneConflictRegIds'  => array_values(array_unique($phoneConflictRegIds)),
+                'conflictMap'          => $conflictMap,
+                'geoDatabase'          => $geoDatabase,
+                'divisionStats'        => $divisionStats,
+                'districtStats'        => $districtStats,
+                'categoryStats'        => $categoryStats,
+                'littleMagList'        => $littleMagList,
+                'totalLittleMagCount'  => $totalLittleMagCount,
+                'totalGeoDivisions'    => $totalGeoDivisions,
+                'totalGeoDistricts'    => $totalGeoDistricts,
+            ];
+        });
+
+        // Unpack cached analysis instantly without re-querying
+        $totalRegistrations  = $analysis['totalRegistrations'];
+        $totalCollected      = $analysis['totalCollected'];
+        $pendingCount        = $analysis['pendingCount'];
+        $duplicatePhoneMap   = $analysis['duplicatePhoneMap'];
+        $phoneConflictCount  = $analysis['phoneConflictCount'];
+        $geoConflictCount    = $analysis['geoConflictCount'];
+        $totalConflictCount  = $analysis['totalConflictCount'];
+        $conflictMap         = $analysis['conflictMap'];
+        $geoDatabase         = $analysis['geoDatabase'];
+        $divisionStats       = $analysis['divisionStats'];
+        $districtStats       = $analysis['districtStats'];
+        $categoryStats       = $analysis['categoryStats'];
+        $littleMagList       = $analysis['littleMagList'];
+        $totalLittleMagCount = $analysis['totalLittleMagCount'];
+        $totalGeoDivisions   = $analysis['totalGeoDivisions'];
+        $totalGeoDistricts   = $analysis['totalGeoDistricts'];
+
+        // Fast Conflict Filtering
         if ($request->boolean('has_conflict')) {
-            $regQuery->whereIn('id', !empty($conflictRegIds) ? $conflictRegIds : [-1]);
+            $conflictType = $request->input('conflict_type');
+            if ($conflictType === 'geo') {
+                $targetIds = $analysis['geoConflictRegIds'];
+            } elseif ($conflictType === 'phone') {
+                $targetIds = $analysis['phoneConflictRegIds'];
+            } else {
+                $targetIds = $analysis['conflictRegIds'];
+            }
+            $regQuery->whereIn('id', !empty($targetIds) ? $targetIds : [-1]);
         }
 
         $perPage = (int) $request->input('per_page', $campaign->table_settings['per_page'] ?? 25);
@@ -379,89 +563,6 @@ class EventCampaignAdminController extends Controller
         }
 
         $registrations = $regQuery->paginate($perPage)->withQueryString();
-        $totalRegistrations = $campaign->registrations()->count();
-        $totalCollected = $campaign->registrations()->where('payment_status', 'verified')->sum('amount_paid');
-        $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
-
-        $geoDatabase = [];
-        $divisionStats = [];
-        $districtStats = [];
-        $littleMagList = collect();
-
-        foreach ($allCampaignRegistrations as $reg) {
-            $dist = $reg->resolved_district;
-            $div = $reg->resolved_division;
-
-            if (!isset($geoDatabase[$div])) {
-                $geoDatabase[$div] = [];
-                $divisionStats[$div] = 0;
-            }
-            if (!isset($geoDatabase[$div][$dist])) {
-                $geoDatabase[$div][$dist] = collect();
-                $districtStats[$dist] = 0;
-            }
-
-            $geoDatabase[$div][$dist]->push($reg);
-            $divisionStats[$div]++;
-            $districtStats[$dist]++;
-
-            if ($reg->isLittleMagEditor()) {
-                $littleMagList->push($reg);
-            }
-
-            // Extract all author categories & roles
-            $cats = [];
-            if (!empty($reg->form_data['author_categories']) && is_array($reg->form_data['author_categories'])) {
-                $cats = array_merge($cats, $reg->form_data['author_categories']);
-            } elseif (!empty($reg->form_data['author_category'])) {
-                $parts = array_map('trim', explode(',', $reg->form_data['author_category']));
-                $cats = array_merge($cats, $parts);
-            }
-            if (!empty($reg->designation_or_class) && !in_array($reg->designation_or_class, $cats, true)) {
-                $cats[] = trim($reg->designation_or_class);
-            }
-            if ($reg->isLittleMagEditor()) {
-                $cats[] = 'লিটিলম্যাগ সম্পাদক';
-            }
-            $cats = array_unique(array_filter($cats));
-            foreach ($cats as $cName) {
-                $categoryStats[$cName] = ($categoryStats[$cName] ?? 0) + 1;
-            }
-        }
-        arsort($categoryStats);
-
-        // Sort Divisions alphabetically (Bengali Unicode collation)
-        uksort($geoDatabase, function ($a, $b) {
-            if ($a === 'অনির্ধারিত বিভাগ') return 1;
-            if ($b === 'অনির্ধারিত বিভাগ') return -1;
-            return strcmp($a, $b);
-        });
-
-        // Within each Division, sort Districts alphabetically and participants alphabetically
-        foreach ($geoDatabase as $divName => $dists) {
-            uksort($geoDatabase[$divName], function ($a, $b) {
-                if ($a === 'অনির্ধারিত জেলা') return 1;
-                if ($b === 'অনির্ধারিত জেলা') return -1;
-                return strcmp($a, $b);
-            });
-
-            foreach ($geoDatabase[$divName] as $dName => $pList) {
-                $geoDatabase[$divName][$dName] = $pList->sort(function ($a, $b) {
-                    return strcmp($a->name, $b->name);
-                })->values();
-            }
-        }
-
-        // Sort Little Magazine List alphabetically (by Magazine Name, then Editor Name)
-        $littleMagList = $littleMagList->sort(function ($a, $b) {
-            $magA = $a->magazine_name ?: $a->name;
-            $magB = $b->magazine_name ?: $b->name;
-            return strcmp($magA, $magB);
-        })->values();
-
-        $totalLittleMagCount = $littleMagList->count();
-        $totalGeoDivisions = count(array_filter(array_keys($geoDatabase), fn($d) => $d !== 'অনির্ধারিত বিভাগ'));
-        $totalGeoDistricts = count(array_filter(array_keys($districtStats), fn($d) => $d !== 'অনির্ধারিত জেলা'));
 
         return view('admin.event_campaigns.show', compact(
             'campaign',
@@ -480,6 +581,8 @@ class EventCampaignAdminController extends Controller
             'totalGeoDistricts',
             'duplicatePhoneMap',
             'phoneConflictCount',
+            'geoConflictCount',
+            'totalConflictCount',
             'conflictMap',
             'sort'
         ));
@@ -818,6 +921,11 @@ class EventCampaignAdminController extends Controller
 
         if ($request->filled('division')) {
             $formData['perm_division'] = $request->input('division');
+        } elseif (!empty($validated['district'])) {
+            $inferredDiv = BangladeshGeo::getDivisionForDistrict($validated['district']);
+            if ($inferredDiv) {
+                $formData['perm_division'] = $inferredDiv;
+            }
         }
         if ($request->filled('post_office')) {
             $formData['perm_post_office'] = $request->input('post_office');
@@ -932,6 +1040,7 @@ class EventCampaignAdminController extends Controller
         ]);
 
         $formData = $registration->form_data ?? [];
+        $updateData = [];
 
         if (isset($validated['pen_name'])) {
             $formData['pen_name'] = $validated['pen_name'];
@@ -958,6 +1067,17 @@ class EventCampaignAdminController extends Controller
         foreach ($directKeys as $dk) {
             if ($request->has($dk)) {
                 $formData[$dk] = $request->input($dk);
+            }
+        }
+
+        if ($request->filled('perm_division')) {
+            $formData['perm_division'] = $request->input('perm_division');
+        } elseif ($request->filled('division')) {
+            $formData['perm_division'] = $request->input('division');
+        } elseif (!empty($validated['district']) && empty($formData['perm_division'])) {
+            $inferredDiv = BangladeshGeo::getDivisionForDistrict($validated['district']);
+            if ($inferredDiv) {
+                $formData['perm_division'] = $inferredDiv;
             }
         }
 
@@ -1363,12 +1483,18 @@ class EventCampaignAdminController extends Controller
                 return back()->with('error', 'Invalid bulk action specified.');
         }
 
+        $pendingCount = $campaign->registrations()->where('status', 'pending')->count();
+        $confirmedCount = $campaign->registrations()->whereIn('status', ['confirmed', 'selected', 'approved'])->count();
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
-                'success' => true,
-                'count'   => $count,
-                'action'  => $action,
-                'message' => $msg,
+                'success'         => true,
+                'count'           => $count,
+                'action'          => $action,
+                'message'         => $msg,
+                'selected_ids'    => $ids,
+                'pending_count'   => $pendingCount,
+                'confirmed_count' => $confirmedCount,
             ]);
         }
 
@@ -2550,6 +2676,142 @@ class EventCampaignAdminController extends Controller
         }
 
         return back()->with('success', $msg);
+    }
+
+    /**
+     * Broadcast bulk dynamic update SMS to participants (Filtered, Selected, or All).
+     */
+    public function broadcastSms(Request $request, EventCampaign $campaign)
+    {
+        $validated = $request->validate([
+            'message'               => 'required|string|max:1000',
+            'target_group'          => 'required|string|in:all,confirmed,pending,selected,filtered,custom_ids',
+            'selected_ids'          => 'nullable|string',
+            'division'              => 'nullable|string',
+            'district'              => 'nullable|string',
+            'avoid_duplicate_phone' => 'nullable|boolean',
+        ]);
+
+        $query = $campaign->registrations();
+
+        // Target group filter
+        switch ($validated['target_group']) {
+            case 'confirmed':
+                $query->whereIn('status', ['confirmed', 'selected', 'approved']);
+                break;
+            case 'pending':
+                $query->where('status', 'pending');
+                break;
+            case 'selected':
+                $query->where('status', 'selected');
+                break;
+            case 'custom_ids':
+                $ids = json_decode($validated['selected_ids'] ?? '[]', true) ?: [];
+                if (!empty($ids) && is_array($ids)) {
+                    $query->whereIn('id', $ids);
+                } else {
+                    return response()->json(['success' => false, 'message' => 'কোনো অংশগ্রহণকারী নির্বাচন করা হয়নি।'], 422);
+                }
+                break;
+            case 'filtered':
+                if (!empty($validated['division'])) {
+                    $div = trim($validated['division']);
+                    $query->where(function($q) use ($div) {
+                        $q->where('form_data->perm_division', $div)
+                          ->orWhere('form_data->division', $div)
+                          ->orWhere('form_data->perm_division', 'like', "%{$div}%");
+                    });
+                }
+                if (!empty($validated['district'])) {
+                    $dst = trim($validated['district']);
+                    $query->where(function($q) use ($dst) {
+                        $q->where('district', $dst)
+                          ->orWhere('form_data->district', $dst)
+                          ->orWhere('form_data->perm_district', $dst);
+                    });
+                }
+                break;
+            case 'all':
+            default:
+                // All participants of this campaign
+                break;
+        }
+
+        $registrations = $query->with('campaign')->get();
+
+        if ($registrations->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'নির্বাচিত ফিল্টারে কোনো অংশগ্রহণকারী পাওয়া যায়নি।',
+            ], 422);
+        }
+
+        $rawMessage = $validated['message'];
+        $venue = $campaign->form_settings['form_venue'] ?? 'রংপুর';
+        $eventDate = $campaign->form_settings['form_date'] ?? ($campaign->starts_at ? $campaign->starts_at->format('d M Y') : '২০ অক্টোবর ২০২৬');
+        $eventTitle = $campaign->title;
+
+        $sentCount = 0;
+        $failedCount = 0;
+        $seenPhones = [];
+        $avoidDup = $request->boolean('avoid_duplicate_phone', true);
+
+        foreach ($registrations as $r) {
+            $phone = trim($r->phone ?? '');
+            if (empty($phone)) {
+                $failedCount++;
+                continue;
+            }
+
+            $normPhone = \App\Support\PhoneNormalizer::toE164($phone);
+            if (empty($normPhone)) {
+                $failedCount++;
+                continue;
+            }
+
+            if ($avoidDup && isset($seenPhones[$normPhone])) {
+                continue; // Skip duplicate phone number
+            }
+            $seenPhones[$normPhone] = true;
+
+            // Replace dynamic placeholders
+            $cardUrl = url('/card/' . $r->registration_number);
+            $msg = str_replace([
+                '{name}',
+                '{reg_no}',
+                '{card_url}',
+                '{event_title}',
+                '{venue}',
+                '{date}',
+            ], [
+                $r->name,
+                $r->registration_number,
+                $cardUrl,
+                $eventTitle,
+                $venue,
+                $eventDate,
+            ], $rawMessage);
+
+            try {
+                $res = \App\Services\SmsService::send($normPhone, $msg);
+                if (!empty($res['success'])) {
+                    $sentCount++;
+                } else {
+                    $failedCount++;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Broadcast SMS error for {$r->id} ({$normPhone}): " . $e->getMessage());
+                $failedCount++;
+            }
+        }
+
+        return response()->json([
+            'success'      => true,
+            'message'      => "{$sentCount} জন অংশগ্রহণকারীকে সফলভাবে ইভেন্ট আপডেট বার্তা পাঠানো হয়েছে!" . ($failedCount > 0 ? " ({$failedCount}টি নম্বর ব্যর্থ/অনুপলব্ধ)" : ''),
+            'sent_count'   => $sentCount,
+            'failed_count' => $failedCount,
+            'total_target' => $registrations->count(),
+        ]);
     }
 }
 

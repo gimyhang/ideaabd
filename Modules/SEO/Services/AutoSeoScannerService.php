@@ -194,7 +194,7 @@ class AutoSeoScannerService
                 $metaKeywords = array_filter(array_unique($keywordsList));
                 
                 $canonicalUrl = \Illuminate\Support\Facades\Route::has('blog.show') ? route('blog.show', $model->slug ?? $model->id) : url('/blog/' . ($model->slug ?? $model->id));
-                $ogImage = SiteSetting::resolveImageUrl($model->featured_image, 'images/blog-placeholder.jpg');
+                $ogImage = \Modules\Blog\Services\BlogPostOgImageService::resolveOgImageUrl($model);
                 $ogType = 'article';
                 $schemaType = 'BlogPosting';
                 $contentText = ($model->content ?? '') . ' ' . ($model->excerpt ?? '');

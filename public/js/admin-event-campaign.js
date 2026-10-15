@@ -220,8 +220,40 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             const data = await res.json();
             if (data.success) {
+                const affectedIds = data.selected_ids || selected;
+                const counts = {
+                    pending_count: data.pending_count,
+                    confirmed_count: data.confirmed_count
+                };
+
+                if (action === 'delete') {
+                    affectedIds.forEach(id => {
+                        const row = document.getElementById('regRow_' + id) || 
+                                    document.getElementById('lmRow' + id) || 
+                                    document.querySelector('.participant-select-check[value="' + id + '"]')?.closest('tr');
+                        if (row) {
+                            row.style.transition = 'all 0.35s ease';
+                            row.style.opacity = '0';
+                            row.style.transform = 'translateX(30px)';
+                            setTimeout(() => row.remove(), 350);
+                        }
+                    });
+                } else {
+                    const targetStatus = (action === 'approve') ? 'confirmed' : ((action === 'reject') ? 'rejected' : (action === 'mark_pending' ? 'pending' : null));
+                    if (targetStatus && window.updateParticipantRowStatus) {
+                        affectedIds.forEach(id => {
+                            window.updateParticipantRowStatus(id, targetStatus, counts, null);
+                        });
+                    }
+                }
+
+                // Reset selection & hide bulk bar smoothly
+                document.querySelectorAll('.participant-select-check:checked').forEach(c => c.checked = false);
+                const selectAll = document.getElementById('selectAllParticipants');
+                if (selectAll) selectAll.checked = false;
+                if (typeof updateBulkBar === 'function') updateBulkBar();
+
                 window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'বাল্ক অ্যাকশন সম্পন্ন হয়েছে'));
-                setTimeout(() => location.reload(), 600);
             } else {
                 window.showToast(data.message || 'অপারেশন ব্যর্থ হয়েছে', true);
             }

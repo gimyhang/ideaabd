@@ -320,4 +320,12 @@ class BlogPost extends Model
         }
         return asset('storage/' . ltrim($img, '/'));
     }
+
+    /**
+     * Get guaranteed high-resolution absolute HTTPS Open Graph image URL for WhatsApp / Facebook preview cards.
+     */
+    public function getOgImageUrlAttribute(): string
+    {
+        return \Modules\Blog\Services\BlogPostOgImageService::resolveOgImageUrl($this);
+    }
 }

@@ -750,6 +750,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/registrations/{registration}/send-sms', 'sendCustomSms')->name('registrations.send-sms');
         Route::post('/registrations/{registration}/convert-to-writer', 'convertToWriter')->name('registrations.convert-to-writer');
         Route::post('/{campaign}/bulk-action', 'bulkAction')->name('bulk-action');
+        Route::post('/{campaign}/broadcast-sms', 'broadcastSms')->name('broadcast-sms');
     });
 
     // Library & Book Grant Management (Admin Dedicated Dashboard)

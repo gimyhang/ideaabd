@@ -37,10 +37,24 @@
     @php
         $defaultSiteName = \App\Support\SiteSetting::name() ?: 'আইডিয়া প্রকাশন';
         $defaultSiteTagline = \App\Support\SiteSetting::tagline() ?: 'অনলাইন বই ও প্রকাশনা প্ল্যাটফর্ম';
-        $defaultBanner = \App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
-        if (!str_starts_with($defaultBanner, 'http')) {
-            $defaultBanner = url($defaultBanner);
+        
+        // Canonical Domain resolution
+        $canonicalDomain = rtrim(config('app.url', 'https://www.ideaabd.com'), '/');
+        if (str_contains($canonicalDomain, 'localhost') || str_contains($canonicalDomain, '127.0.0.1')) {
+            $canonicalDomain = 'https://www.ideaabd.com';
         }
+        $canonicalDomain = preg_replace('/^http:\/\//i', 'https://', $canonicalDomain);
+
+        $defaultBanner = \App\Support\SiteSetting::blogOgBannerUrl() ?: asset('images/og-banner.jpg');
+        if (!str_starts_with($defaultBanner, 'http://') && !str_starts_with($defaultBanner, 'https://')) {
+            $defaultBanner = $canonicalDomain . '/' . ltrim($defaultBanner, '/');
+        } else {
+            $parsedBanner = parse_url($defaultBanner);
+            if (($parsedBanner['host'] ?? '') === '127.0.0.1' || ($parsedBanner['host'] ?? '') === 'localhost') {
+                $defaultBanner = $canonicalDomain . ($parsedBanner['path'] ?? '/');
+            }
+        }
+        $defaultBanner = preg_replace('/^http:\/\//i', 'https://', $defaultBanner);
 
         $currentReqPath = '/' . ltrim(request()->path(), '/');
         $dbSeo = null;
@@ -56,15 +70,24 @@
         if (empty($candidateImage) || str_ends_with(strtolower($candidateImage), '.svg') || str_starts_with($candidateImage, 'data:')) {
             $metaPageImage = $defaultBanner;
         } else {
-            $metaPageImage = str_starts_with($candidateImage, 'http') ? $candidateImage : url($candidateImage);
+            $metaPageImage = $candidateImage;
         }
+
+        // Standardize absolute HTTPS URL for Open Graph image
+        if (!str_starts_with($metaPageImage, 'http://') && !str_starts_with($metaPageImage, 'https://')) {
+            $metaPageImage = $canonicalDomain . '/' . ltrim($metaPageImage, '/');
+        } else {
+            $parsedImg = parse_url($metaPageImage);
+            $imgHost = $parsedImg['host'] ?? '';
+            if ($imgHost === '127.0.0.1' || $imgHost === 'localhost' || str_contains($imgHost, '127.0.0.1')) {
+                $imgPath = $parsedImg['path'] ?? '/';
+                $imgQuery = isset($parsedImg['query']) ? '?' . $parsedImg['query'] : '';
+                $metaPageImage = $canonicalDomain . $imgPath . $imgQuery;
+            }
+        }
+        $metaPageImage = preg_replace('/^http:\/\//i', 'https://', $metaPageImage);
 
         // Canonical URL resolution (Google Search Console 'Duplicate without user-selected canonical' fix)
-        $canonicalDomain = rtrim(config('app.url', 'https://www.ideaabd.com'), '/');
-        if (str_contains($canonicalDomain, 'localhost') || str_contains($canonicalDomain, '127.0.0.1')) {
-            $canonicalDomain = 'https://www.ideaabd.com';
-        }
-
         if (View::hasSection('canonical')) {
             $rawCanonical = trim(View::getSection('canonical'));
         } elseif (View::hasSection('og_url')) {
@@ -79,7 +102,6 @@
             }
         }
 
-        // Standardize HTTPS and canonical domain
         if (!str_starts_with($rawCanonical, 'http')) {
             $rawCanonical = $canonicalDomain . '/' . ltrim($rawCanonical, '/');
         } else {
@@ -92,12 +114,38 @@
             }
         }
 
-        $metaPageUrl = $rawCanonical;
+        $metaPageUrl = preg_replace('/^http:\/\//i', 'https://', $rawCanonical);
         $metaPageType = View::hasSection('og_type') ? View::getSection('og_type') : ($dbSeo?->og_type ?: 'website');
 
         $imageExt = strtolower(pathinfo(parse_url($metaPageImage, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION));
         $imageMime = ($imageExt === 'png') ? 'image/png' : (($imageExt === 'webp') ? 'image/webp' : 'image/jpeg');
+
+        // Safe clean image URL without double-escaped ampersands (&amp;amp;)
+        $cleanImageMetaUrl = htmlspecialchars(htmlspecialchars_decode($metaPageImage, ENT_QUOTES), ENT_QUOTES, 'UTF-8');
+        $cleanPageMetaUrl = htmlspecialchars(htmlspecialchars_decode($metaPageUrl, ENT_QUOTES), ENT_QUOTES, 'UTF-8');
     @endphp
+
+    <!-- Open Graph / Facebook / WhatsApp / LinkedIn (High Priority at Top of Head) -->
+    <meta property="og:locale" content="bn_BD">
+    <meta property="og:type" content="{{ $metaPageType }}">
+    <meta property="og:url" content="{!! $cleanPageMetaUrl !!}">
+    <meta property="og:title" content="{{ $metaPageTitle }}">
+    <meta property="og:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
+    <meta property="og:image" content="{!! $cleanImageMetaUrl !!}">
+    <meta property="og:image:secure_url" content="{!! $cleanImageMetaUrl !!}">
+    <meta property="og:image:type" content="{{ $imageMime }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="{{ $metaPageTitle }}">
+    <meta property="og:site_name" content="{{ $defaultSiteName }}">
+
+    <!-- Twitter / X Cards with Large Image Focus -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{!! $cleanPageMetaUrl !!}">
+    <meta name="twitter:title" content="{{ $metaPageTitle }}">
+    <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
+    <meta name="twitter:image" content="{!! $cleanImageMetaUrl !!}">
+    <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
 
     <meta name="description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
     <meta name="keywords" content="{{ $metaPageKeywords }}">
@@ -130,28 +178,6 @@
     <link rel="alternate" hreflang="en" href="{{ $metaPageUrl }}">
     <link rel="alternate" hreflang="x-default" href="{{ $metaPageUrl }}">
     <link rel="alternate" type="application/rss+xml" title="{{ $defaultSiteName }} RSS Feed" href="{{ url('/feed') }}">
-
-    <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
-    <meta property="og:locale" content="bn_BD">
-    <meta property="og:type" content="{{ $metaPageType }}">
-    <meta property="og:url" content="{{ $metaPageUrl }}">
-    <meta property="og:title" content="{{ $metaPageTitle }}">
-    <meta property="og:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
-    <meta property="og:image" content="{{ $metaPageImage }}">
-    <meta property="og:image:secure_url" content="{{ $metaPageImage }}">
-    <meta property="og:image:type" content="{{ $imageMime }}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="{{ $metaPageTitle }}">
-    <meta property="og:site_name" content="{{ $defaultSiteName }}">
-
-    <!-- Twitter / X Cards with Large Image Focus -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="{{ $metaPageUrl }}">
-    <meta name="twitter:title" content="{{ $metaPageTitle }}">
-    <meta name="twitter:description" content="{{ Str::limit(strip_tags($metaPageDescription), 220) }}">
-    <meta name="twitter:image" content="{{ $metaPageImage }}">
-    <meta name="twitter:image:alt" content="{{ $metaPageTitle }}">
 
     {{-- Universal Google JSON-LD Schema.org Structured Data --}}
     @php

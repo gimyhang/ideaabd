@@ -128,7 +128,9 @@
 @section('content')
 @php
     $tableSettings = $campaign->table_settings ?? [];
-    $visibleCols = $tableSettings['columns'] ?? ['select', 'reg_no', 'participant', 'contact', 'location', 'fee', 'payment', 'status', 'date', 'actions'];
+    $visibleCols = $tableSettings['columns'] ?? ['select', 'reg_no', 'participant', 'contact', 'division', 'district', 'location', 'fee', 'payment', 'status', 'date', 'actions'];
+    $showDivisionCol = in_array('division', $visibleCols, true) || (!isset($tableSettings['columns']) || in_array('location', $visibleCols, true));
+    $showDistrictCol = in_array('district', $visibleCols, true) || (!isset($tableSettings['columns']) || in_array('location', $visibleCols, true));
     $density = $tableSettings['density'] ?? 'standard';
     $customFields = $campaign->custom_fields ?? [];
     $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
@@ -213,12 +215,10 @@
                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                         </a>
                     </div>
-                    <button type="button" class="btn btn-sm aec-btn-quick-edit aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                    <button type="button" class="btn btn-sm aec-btn-quick-edit aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#editTitleModal" title="Quick Edit Title & Slug">
                         <span>কুইক এডিট</span>
                     </button>
-                    <button type="button" class="btn btn-sm aec-btn-qr-code aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
-                        <i class="fa-solid fa-qrcode"></i>
+                    <button type="button" class="btn btn-sm aec-btn-qr-code aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#qrCodeModal" title="QR Code Generator">
                         <span>কিউ আর কোড</span>
                     </button>
                 </div>
@@ -227,22 +227,21 @@
             {{-- Right Top Action Buttons Group --}}
             <div class="d-flex flex-wrap align-items-center gap-2">
                 @if($isLibrary)
-                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center gap-1.5">
-                        <i class="fa-solid fa-building-columns"></i>
+                    <a href="{{ route('admin.libraries.index') }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
                         <span>Library Dashboard</span>
                     </a>
                 @endif
-                <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
-                    <i class="fa-solid fa-user-plus"></i>
+                <button type="button" class="btn btn-primary rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#adminAddParticipantModal">
                     <span>{{ $isLibrary ? 'নতুন পাঠাগার' : 'নতুন নিবন্ধন' }}</span>
                 </button>
-                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning border-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" title="{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}">
-                    <i class="fa-solid {{ $campaign->is_active ? 'fa-pause' : 'fa-play' }}" id="campaignStatusBtnIcon"></i>
+                <button type="button" class="btn btn-warning text-dark rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" onclick="openBulkBroadcastSmsModal()" title="একবারে ইভেন্ট আপডেট মেসেজ পাঠান">
+                    <span>ইভেন্ট আপডেট মেসেজ</span>
+                </button>
+                <button type="button" id="btnToggleCampaignStatus" data-url="{{ route('admin.event-campaigns.toggle-status', $campaign->id) }}" class="btn {{ $campaign->is_active ? 'btn-outline-warning border-warning' : 'btn-success' }} rounded-pill px-3 py-2 small fw-bold shadow-sm aec-btn-hover-lift d-inline-flex align-items-center" title="{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}">
                     <span id="campaignStatusBtnText">{{ $campaign->is_active ? 'Pause Registration' : 'Activate Form' }}</span>
                 </button>
                 <div class="dropdown">
-                    <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-file-export"></i>
+                    <button class="btn btn-success rounded-pill px-3 py-2 small fw-bold shadow-sm dropdown-toggle aec-btn-hover-lift d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <span>Export Data</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3" style="font-size: 13px;">
@@ -255,12 +254,10 @@
                         <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}"><i class="fa-solid fa-book-open text-warning"></i> লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
                     </ul>
                 </div>
-                <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
-                    <i class="fa-solid fa-id-card-clip"></i>
+                <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
                     <span>কার্ড ডিজাইন</span>
                 </button>
-                <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-sliders"></i>
+                <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
                     <span>All Settings</span>
                 </a>
             </div>
@@ -349,9 +346,9 @@
                         <i class="fa-solid {{ $isScholarship ? 'fa-award' : ($isLibrary ? 'fa-book-open-reader' : 'fa-user-check') }}"></i>
                     </div>
                 </div>
-                <div class="stat-value text-success">{{ number_format($selectedCount) }}</div>
+                <div class="stat-value text-success" id="statMetricConfirmedCount">{{ number_format($selectedCount) }}</div>
                 <small class="text-muted d-flex align-items-center gap-1 mt-1">
-                    <span class="badge bg-warning-subtle text-warning border px-1.5 py-0.5" style="font-size: 10.5px;">
+                    <span class="badge bg-warning-subtle text-warning border px-1.5 py-0.5" id="statMetricPendingBadge" style="font-size: 10.5px;">
                         {{ $pendingCount }} Pending Review
                     </span>
                 </small>
@@ -448,43 +445,252 @@
     {{-- FILTER TABS & INSTANT SEARCH BAR --}}
     <div class="aec-filter-card">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-            {{-- Quick Filter Pills --}}
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="aec-tab-btn {{ !request('status') && !request('payment_status') && !request('is_littlemag') && !request('division') && !request('district') && !request('tab') ? 'active' : '' }}">
+            @php
+                $baseFilters = request()->except(['status', 'payment_status', 'has_conflict', 'conflict_type', 'page']);
+            @endphp
+            {{-- Quick Filter Pills (Device-friendly swipeable bar) --}}
+            <div class="d-flex flex-wrap align-items-center gap-2 aec-filter-pills-bar">
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters)) }}" class="aec-tab-btn {{ !request('status') && !request('payment_status') && !request()->boolean('has_conflict') ? 'active' : '' }}">
                     সকল অংশগ্রহণকারী <span class="badge bg-secondary">{{ $totalRegistrations }}</span>
                 </a>
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?status=confirmed" class="aec-tab-btn {{ request('status') === 'confirmed' ? 'active' : '' }}">
-                    Confirmed / Approved
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'confirmed'])) }}" class="aec-tab-btn {{ request('status') === 'confirmed' ? 'active' : '' }}">
+                    Confirmed / Approved <span class="badge bg-secondary" id="filterPillConfirmedCount">{{ $selectedCount }}</span>
                 </a>
                 @if($isScholarship)
-                    <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?status=selected" class="aec-tab-btn {{ request('status') === 'selected' ? 'active' : '' }}">
+                    <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'selected'])) }}" class="aec-tab-btn {{ request('status') === 'selected' ? 'active' : '' }}">
                         Selected (বৃত্তিপ্রাপ্ত)
                     </a>
                 @endif
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?status=pending" class="aec-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}">
-                    Pending ({{ $pendingCount }})
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'pending'])) }}" class="aec-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}">
+                    Pending (<span id="filterPillPendingCount">{{ $pendingCount }}</span>)
                 </a>
                 @if($campaign->has_fee_or_donation)
-                    <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?payment_status=verified" class="aec-tab-btn {{ request('payment_status') === 'verified' ? 'active' : '' }}">
+                    <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['payment_status' => 'verified'])) }}" class="aec-tab-btn {{ request('payment_status') === 'verified' ? 'active' : '' }}">
                         Verified Paid
                     </a>
                 @endif
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?has_conflict=1" class="aec-tab-btn {{ request()->boolean('has_conflict') ? 'conflict-active' : (isset($phoneConflictCount) && $phoneConflictCount > 0 ? 'text-danger fw-bold' : '') }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল নম্বর বা একাউন্ট ফোন অমিল রয়েছে">
-                    <i class="fa-solid fa-triangle-exclamation me-1 {{ request()->boolean('has_conflict') ? 'text-white' : 'text-danger' }}"></i> কনফ্লিক্ট / ডুপ্লিকেট
-                    <span class="badge {{ request()->boolean('has_conflict') ? 'bg-white text-danger' : (isset($phoneConflictCount) && $phoneConflictCount > 0 ? 'bg-danger text-white' : 'bg-secondary') }}">{{ $phoneConflictCount ?? 0 }}</span>
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1])) }}" class="aec-tab-btn {{ request()->boolean('has_conflict') ? 'conflict-active' : (($totalConflictCount ?? $phoneConflictCount ?? 0) > 0 ? 'text-danger fw-bold' : '') }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল নম্বর বা বিভাগ-জেলা অমিল রয়েছে">
+                    <i class="fa-solid fa-triangle-exclamation me-1 {{ request()->boolean('has_conflict') ? 'text-white' : 'text-danger' }}"></i> কনফ্লিক্ট / অমিল
+                    <span class="badge {{ request()->boolean('has_conflict') ? 'bg-white text-danger' : (($totalConflictCount ?? $phoneConflictCount ?? 0) > 0 ? 'bg-danger text-white' : 'bg-secondary') }}">{{ $totalConflictCount ?? $phoneConflictCount ?? 0 }}</span>
                 </a>
             </div>
 
             {{-- Table Customizer Button --}}
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#tableSettingsModal">
+                <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 text-nowrap" data-bs-toggle="modal" data-bs-target="#tableSettingsModal">
                     Columns & Density
                 </button>
             </div>
         </div>
 
+        {{-- Conflict Sub-Filter Bar when has_conflict is active --}}
+        @if(request()->boolean('has_conflict'))
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-3 p-2.5 bg-danger bg-opacity-10 rounded-3 border border-danger-subtle aec-filter-pills-bar">
+                <span class="small fw-bold text-danger ps-1 text-nowrap"><i class="fa-solid fa-filter me-1"></i>কনফ্লিক্ট ফিল্টার:</span>
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1])) }}" class="btn btn-xs rounded-pill {{ !request('conflict_type') ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}">
+                    সকল কনফ্লিক্ট ({{ $totalConflictCount ?? 0 }})
+                </a>
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'geo'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'geo' ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে জেলার সাথে বিভাগের অমিল রয়েছে">
+                    <i class="fa-solid fa-map-location-dot me-1"></i> বিভাগ-জেলা অমিল ({{ $geoConflictCount ?? 0 }})
+                </a>
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'phone'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'phone' ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল বা একাউন্ট নম্বর অমিল রয়েছে">
+                    <i class="fa-solid fa-phone me-1"></i> ফোন / একাউন্ট অমিল ({{ $phoneConflictCount ?? 0 }})
+                </a>
+                @if(isset($geoConflictCount) && $geoConflictCount === 0 && !request('conflict_type'))
+                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto small">
+                        <i class="fa-solid fa-circle-check me-1"></i> কোনো বিভাগ-জেলা অমিল নেই
+                    </span>
+                @endif
+            </div>
+        @endif
+
+        {{-- Bangladesh Geo Data & Instant Client-Side Division/District Filter Logic --}}
+        <script>
+            window.BD_DIVISIONS_MAP = @json(\App\Support\BangladeshGeo::DIVISIONS);
+            window.BD_DISTRICT_STATS = @json($districtStats);
+            window.CURRENT_SELECTED_DISTRICT = @json(request('district') ?? '');
+
+            function syncDistrictSelectOptions(selectedDiv, preserveDist = '') {
+                const dst = document.getElementById('filterDistrictSelect');
+                if (!dst) return;
+                dst.innerHTML = '';
+
+                if (selectedDiv && window.BD_DIVISIONS_MAP && window.BD_DIVISIONS_MAP[selectedDiv]) {
+                    // Selected a specific division -> STRICTLY ONLY this division's districts!
+                    const defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = `সকল জেলা (${selectedDiv} বিভাগ)`;
+                    dst.appendChild(defaultOpt);
+
+                    const districts = window.BD_DIVISIONS_MAP[selectedDiv];
+                    districts.forEach(function(dName) {
+                        const opt = document.createElement('option');
+                        opt.value = dName;
+                        const count = (window.BD_DISTRICT_STATS && window.BD_DISTRICT_STATS[dName]) ? window.BD_DISTRICT_STATS[dName] : 0;
+                        opt.textContent = count > 0 ? `${dName} (${count})` : dName;
+                        if (preserveDist && preserveDist === dName) {
+                            opt.selected = true;
+                        }
+                        dst.appendChild(opt);
+                    });
+                } else {
+                    // No division selected -> show Registered Districts, then all 64 districts
+                    const defaultOpt = document.createElement('option');
+                    defaultOpt.value = '';
+                    defaultOpt.textContent = 'সকল জেলা (District)';
+                    dst.appendChild(defaultOpt);
+
+                    const stats = window.BD_DISTRICT_STATS || {};
+                    const registered = [];
+                    for (const [dName, cnt] of Object.entries(stats)) {
+                        if (dName !== 'অনির্ধারিত জেলা' && cnt > 0) {
+                            registered.push({ name: dName, count: cnt });
+                        }
+                    }
+
+                    if (registered.length > 0) {
+                        const grp = document.createElement('optgroup');
+                        grp.label = 'নিবন্ধিত জেলাসমূহ (Registered Districts)';
+                        registered.forEach(function(item) {
+                            const opt = document.createElement('option');
+                            opt.value = item.name;
+                            opt.textContent = `${item.name} (${item.count})`;
+                            if (preserveDist && preserveDist === item.name) {
+                                opt.selected = true;
+                            }
+                            grp.appendChild(opt);
+                        });
+                        dst.appendChild(grp);
+                    }
+
+                    const grpAll = document.createElement('optgroup');
+                    grpAll.label = 'বাংলাদেশের সকল জেলা (All 64 Districts)';
+                    if (window.BD_DIVISIONS_MAP) {
+                        for (const [div, distList] of Object.entries(window.BD_DIVISIONS_MAP)) {
+                            distList.forEach(function(dName) {
+                                if (!stats[dName] || stats[dName] === 0) {
+                                    const opt = document.createElement('option');
+                                    opt.value = dName;
+                                    opt.textContent = dName;
+                                    if (preserveDist && preserveDist === dName) {
+                                        opt.selected = true;
+                                    }
+                                    grpAll.appendChild(opt);
+                                }
+                            });
+                        }
+                    }
+                    dst.appendChild(grpAll);
+
+                    if (stats['অনির্ধারিত জেলা']) {
+                        const optUnk = document.createElement('option');
+                        optUnk.value = 'অনির্ধারিত জেলা';
+                        optUnk.textContent = `অনির্ধারিত জেলা (${stats['অনির্ধারিত জেলা']})`;
+                        if (preserveDist === 'অনির্ধারিত জেলা') optUnk.selected = true;
+                        dst.appendChild(optUnk);
+                    }
+                }
+            }
+
+            function instantFilterRowsByGeo(selectedDiv, selectedDist) {
+                const rows = document.querySelectorAll('#participantsTable tbody tr.participant-row');
+                let visibleCount = 0;
+                rows.forEach(function(r) {
+                    const rowDiv = r.getAttribute('data-division') || '';
+                    const rowDist = r.getAttribute('data-district') || '';
+
+                    let matches = true;
+                    if (selectedDiv && rowDiv && rowDiv !== selectedDiv) {
+                        matches = false;
+                    }
+                    if (selectedDist && rowDist && rowDist !== selectedDist) {
+                        matches = false;
+                    }
+
+                    if (matches) {
+                        r.style.display = '';
+                        visibleCount++;
+                    } else {
+                        r.style.display = 'none';
+                    }
+                });
+
+                const noResults = document.getElementById('noLiveResultsRow');
+                if (noResults) {
+                    noResults.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+                }
+            }
+
+            function onFilterDivisionChange(elem) {
+                const selectedDiv = elem ? elem.value : '';
+                // 1. Immediately restrict district dropdown options to ONLY the selected division
+                syncDistrictSelectOptions(selectedDiv, '');
+
+                // 2. Immediately filter rows on table client-side so user sees zero latency
+                instantFilterRowsByGeo(selectedDiv, '');
+
+                // 3. Submit form to synchronize server-side pagination & state
+                const form = document.getElementById('filterForm');
+                if (form) form.submit();
+            }
+
+            function onFilterDistrictChange(elem) {
+                const selectedDist = elem ? elem.value : '';
+                const divElem = document.getElementById('filterDivisionSelect');
+                const selectedDiv = divElem ? divElem.value : '';
+
+                // 1. Immediately filter rows
+                instantFilterRowsByGeo(selectedDiv, selectedDist);
+
+                // 2. Submit form
+                const form = document.getElementById('filterForm');
+                if (form) form.submit();
+            }
+
+            // Tab Persistence & Smooth Anti-Jump Stability
+            document.addEventListener('DOMContentLoaded', function() {
+                const mainTabs = document.getElementById('campaignMainTabs');
+                if (!mainTabs) return;
+
+                mainTabs.addEventListener('shown.bs.tab', function(e) {
+                    const target = e.target.getAttribute('data-bs-target') || '';
+                    const tabKey = target.replace('#tab-', '');
+                    if (tabKey) {
+                        const tabInput = document.getElementById('filterFormTabInput');
+                        if (tabInput) tabInput.value = tabKey;
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('tab', tabKey);
+                        window.history.replaceState({ tab: tabKey }, '', url.toString());
+                        try {
+                            sessionStorage.setItem('active_event_tab_' + '{{ $campaign->id }}', tabKey);
+                        } catch(err) {}
+                    }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const activeTabKey = urlParams.get('tab') || sessionStorage.getItem('active_event_tab_' + '{{ $campaign->id }}');
+                if (activeTabKey) {
+                    const targetBtn = mainTabs.querySelector(`[data-bs-target="#tab-${activeTabKey}"]`);
+                    if (targetBtn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(targetBtn);
+                        tabInstance.show();
+                    }
+                }
+            });
+        </script>
+
         {{-- Search & Server Filter Form --}}
         <form action="{{ route('admin.event-campaigns.show', $campaign->id) }}" method="GET" class="row g-2 align-items-center" id="filterForm">
+            @if(request()->boolean('has_conflict'))
+                <input type="hidden" name="has_conflict" value="1">
+            @endif
+            @if(request('conflict_type'))
+                <input type="hidden" name="conflict_type" value="{{ request('conflict_type') }}">
+            @endif
+            @if(request('tab'))
+                <input type="hidden" name="tab" id="filterFormTabInput" value="{{ request('tab') }}">
+            @endif
             <div class="col-12 col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -495,7 +701,7 @@
 
             {{-- Division Filter --}}
             <div class="col-6 col-md-2">
-                <select name="division" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
+                <select name="division" id="filterDivisionSelect" class="form-select bg-light" onchange="onFilterDivisionChange(this)">
                     <option value="">সকল বিভাগ (Division)</option>
                     @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDiv => $divDistList)
                         @php
@@ -511,16 +717,65 @@
 
             {{-- District Filter --}}
             <div class="col-6 col-md-2">
-                <select name="district" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
-                    <option value="">সকল জেলা (District)</option>
-                    @foreach($districtStats as $dName => $dCount)
-                        @if($dName !== 'অনির্ধারিত জেলা')
+                @php
+                    $activeDiv = \App\Support\BangladeshGeo::normalizeDivision(request('division'));
+                @endphp
+                <select name="district" id="filterDistrictSelect" class="form-select bg-light" onchange="onFilterDistrictChange(this)">
+                    <option value="">{{ $activeDiv ? "সকল জেলা ({$activeDiv} বিভাগ)" : 'সকল জেলা (District)' }}</option>
+                    @if($activeDiv && isset(\App\Support\BangladeshGeo::DIVISIONS[$activeDiv]))
+                        {{-- When Division is selected, show only districts belonging to that division --}}
+                        @foreach(\App\Support\BangladeshGeo::DIVISIONS[$activeDiv] as $dName)
                             @php
                                 $isSelectedDist = \App\Support\BangladeshGeo::normalizeDistrict(request('district')) === $dName;
+                                $dCount = $districtStats[$dName] ?? 0;
                             @endphp
-                            <option value="{{ $dName }}" {{ $isSelectedDist ? 'selected' : '' }}>{{ $dName }} ({{ $dCount }})</option>
+                            <option value="{{ $dName }}" {{ $isSelectedDist ? 'selected' : '' }}>
+                                {{ $dName }} {{ $dCount > 0 ? "({$dCount})" : '' }}
+                            </option>
+                        @endforeach
+                    @else
+                        {{-- 1. Registered Districts with participants right at the top --}}
+                        @php
+                            $registeredDists = [];
+                            foreach($districtStats as $dName => $count) {
+                                if ($dName !== 'অনির্ধারিত জেলা' && $count > 0) {
+                                    $registeredDists[$dName] = $count;
+                                }
+                            }
+                        @endphp
+                        @if(count($registeredDists) > 0)
+                            <optgroup label="নিবন্ধিত জেলাসমূহ (Registered Districts)">
+                                @foreach($registeredDists as $dName => $dCount)
+                                    @php
+                                        $isSelectedDist = \App\Support\BangladeshGeo::normalizeDistrict(request('district')) === $dName;
+                                    @endphp
+                                    <option value="{{ $dName }}" {{ $isSelectedDist ? 'selected' : '' }}>
+                                        {{ $dName }} ({{ $dCount }})
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         @endif
-                    @endforeach
+
+                        {{-- 2. All 64 Districts cleanly listed --}}
+                        <optgroup label="বাংলাদেশের সকল জেলা (All 64 Districts)">
+                            @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDivName => $bDistList)
+                                @foreach($bDistList as $dName)
+                                    @php
+                                        $isSelectedDist = \App\Support\BangladeshGeo::normalizeDistrict(request('district')) === $dName;
+                                    @endphp
+                                    @if(empty($registeredDists[$dName]))
+                                        <option value="{{ $dName }}" {{ $isSelectedDist ? 'selected' : '' }}>
+                                            {{ $dName }}
+                                        </option>
+                                    @endif
+                                @endforeach
+                            @endforeach
+                        </optgroup>
+
+                        @if(!empty($districtStats['অনির্ধারিত জেলা']))
+                            <option value="অনির্ধারিত জেলা" {{ request('district') === 'অনির্ধারিত জেলা' ? 'selected' : '' }}>অনির্ধারিত জেলা ({{ $districtStats['অনির্ধারিত জেলা'] }})</option>
+                        @endif
+                    @endif
                 </select>
             </div>
 
@@ -592,6 +847,9 @@
                 <span class="badge bg-light text-secondary border font-monospace">{{ $perPage }} / page</span>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" onclick="openBulkBroadcastSmsModal()" title="একবারে ইভেন্ট আপডেট মেসেজ পাঠান">
+                    <i class="fa-solid fa-paper-plane"></i> <span>আপডেট এসএমএস</span>
+                </button>
                 <a href="{{ route('admin.event-campaigns.print-all', $campaign->id) }}?{{ http_build_query(request()->all()) }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-xs" title="বর্তমান ফিল্টার অনুযায়ী সকল এন্ট্রি এক কমান্ডে প্রিন্ট করুন">
                     <i class="fa-solid fa-print me-1.5"></i> প্রিন্ট
                 </a>
@@ -611,6 +869,8 @@
                         <th class="col-reg_no {{ in_array('reg_no', $visibleCols) ? '' : 'd-none' }}">আইডি</th>
                         <th class="col-participant {{ in_array('participant', $visibleCols) ? '' : 'd-none' }}">অংশগ্রহণকারী</th>
                         <th class="col-contact {{ in_array('contact', $visibleCols) ? '' : 'd-none' }}">যোগাযোগ</th>
+                        <th class="col-division {{ $showDivisionCol ? '' : 'd-none' }}">বিভাগ</th>
+                        <th class="col-district {{ $showDistrictCol ? '' : 'd-none' }}">জেলা</th>
                         <th class="col-location {{ in_array('location', $visibleCols) ? '' : 'd-none' }}">ঠিকানা</th>
                         <th class="col-fee {{ in_array('fee', $visibleCols) ? '' : 'd-none' }}">ফি</th>
                         <th class="col-payment {{ in_array('payment', $visibleCols) ? '' : 'd-none' }}">পেমেন্ট</th>
@@ -655,7 +915,7 @@
                             $authorPhoto = $rawPhoto;
                             $cItem = $conflictMap[$reg->id] ?? null;
                         @endphp
-                        <tr class="participant-row {{ $cItem ? 'aec-conflict-row' : '' }}" data-search-text="{{ $searchPayload }}">
+                        <tr class="participant-row {{ $cItem ? 'aec-conflict-row' : '' }}" id="regRow_{{ $reg->id }}" data-search-text="{{ $searchPayload }}" data-division="{{ $reg->resolved_division }}" data-district="{{ $reg->resolved_district }}">
                             {{-- Checkbox --}}
                             <td class="ps-3 col-select {{ in_array('select', $visibleCols) ? '' : 'd-none' }}">
                                 <input class="form-check-input participant-select-check" type="checkbox" value="{{ $reg->id }}">
@@ -715,6 +975,11 @@
 
                                 @if($cItem)
                                     <div class="mt-1 d-flex flex-column gap-1">
+                                        @if(!empty($cItem['geo_conflict']))
+                                            <span class="aec-badge-conflict aec-badge-conflict-geo" data-bs-toggle="tooltip" title="{{ $cItem['geo_conflict_details'] }}">
+                                                <i class="fa-solid fa-map-location-dot"></i> বিভাগ-জেলা অমিল
+                                            </span>
+                                        @endif
                                         @if(!empty($cItem['duplicate_phone']))
                                             @php
                                                 $otherLabels = collect($cItem['other_regs_with_phone'])->map(fn($o) => '#' . $o['reg_no'] . ' (' . $o['name'] . ')')->implode(', ');
@@ -737,16 +1002,35 @@
                                 @endif
                             </td>
 
-                            {{-- Location --}}
+                            {{-- Division Column --}}
+                            <td class="col-division {{ $showDivisionCol ? '' : 'd-none' }}">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill small fw-semibold" title="বিভাগ: {{ $reg->resolved_division }}">
+                                    <i class="fa-solid fa-map me-1 text-primary"></i>{{ $reg->resolved_division }}
+                                </span>
+                            </td>
+
+                            {{-- District Column --}}
+                            <td class="col-district {{ $showDistrictCol ? '' : 'd-none' }}">
+                                <div class="fw-bold text-dark d-flex align-items-center gap-1">
+                                    <i class="fa-solid fa-location-dot text-danger" style="font-size: 11px;"></i>
+                                    <span>{{ $reg->resolved_district }}</span>
+                                </div>
+                            </td>
+
+                            {{-- Location / Address --}}
                             <td class="col-location {{ in_array('location', $visibleCols) ? '' : 'd-none' }}">
-                                @if($reg->district || $reg->thana)
-                                    <div class="fw-medium text-dark">{{ implode(', ', array_filter([$reg->thana, $reg->district])) }}</div>
+                                <div class="d-flex flex-column gap-0.5">
+                                    <div class="fw-semibold text-dark">
+                                        <span class="badge bg-light text-primary border px-1.5 py-0.5 me-1" style="font-size: 10px;">{{ $reg->resolved_division }}</span>
+                                        <span>{{ $reg->resolved_district }}</span>
+                                        @if($reg->thana)
+                                            <span class="text-muted fw-normal">({{ $reg->thana }})</span>
+                                        @endif
+                                    </div>
                                     @if($reg->address)
-                                        <small class="text-muted d-block text-truncate" style="max-width: 140px;" title="{{ $reg->address }}">{{ $reg->address }}</small>
+                                        <small class="text-muted d-block text-truncate" style="max-width: 150px;" title="{{ $reg->address }}">{{ $reg->address }}</small>
                                     @endif
-                                @else
-                                    <span class="text-muted">-</span>
-                                @endif
+                                </div>
                             </td>
 
                             {{-- Payment Fee --}}
@@ -775,7 +1059,7 @@
                             </td>
 
                             {{-- Status Badge --}}
-                            <td class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}">
+                            <td class="col-status {{ in_array('status', $visibleCols) ? '' : 'd-none' }}" id="statusBadgeWrap_{{ $reg->id }}">
                                 @if($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded']))
                                     <span class="badge badge-status-selected px-2.5 py-1.5">
                                         <i class="fa-solid fa-award me-1"></i> Selected
@@ -886,9 +1170,9 @@
                                         </button>
                                     @else
                                         {{-- Quick Approval & Reject Buttons in Table Row --}}
-                                        <div class="d-inline-flex align-items-center gap-1">
+                                        <div class="d-inline-flex align-items-center gap-1" id="quickStatusActionsWrap_{{ $reg->id }}">
                                             {{-- Quick Approve Button --}}
-                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="approve">
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ in_array($reg->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
                                                 @if(in_array($reg->status, ['confirmed', 'approved', 'selected']))
@@ -903,7 +1187,7 @@
                                             </form>
 
                                             {{-- Quick Reject / Cancel Button --}}
-                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="reject">
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ $reg->status === 'rejected' ? 'pending' : 'rejected' }}">
                                                 @if($reg->status === 'rejected')
@@ -1011,9 +1295,9 @@
 
                                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                                     {{-- Quick Status Buttons Toolbar --}}
-                                                    <div class="btn-group btn-group-sm rounded-pill overflow-hidden border p-0.5 bg-white shadow-xs" role="group">
+                                                    <div class="btn-group btn-group-sm rounded-pill overflow-hidden border p-0.5 bg-white shadow-xs" role="group" id="modalQuickStatusGroup_{{ $reg->id }}">
                                                         {{-- Quick Approve --}}
-                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-approve">
                                                             @csrf
                                                             <input type="hidden" name="status" value="confirmed">
                                                             <button type="submit" class="btn btn-sm {{ in_array($reg->status, ['confirmed', 'selected', 'approved']) ? 'btn-success text-white' : 'btn-outline-success border-0 text-success' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে এপ্রুভ করুন">
@@ -1022,7 +1306,7 @@
                                                         </form>
 
                                                         {{-- Quick Reject --}}
-                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-reject">
                                                             @csrf
                                                             <input type="hidden" name="status" value="rejected">
                                                             <button type="submit" class="btn btn-sm {{ $reg->status === 'rejected' ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger' }} px-3 py-1 fw-bold rounded-pill" title="নিবন্ধন অবিলম্বে বাতিল করুন">
@@ -1031,15 +1315,13 @@
                                                         </form>
 
                                                         {{-- Reset to Pending if confirmed or rejected --}}
-                                                        @if($reg->status !== 'pending')
-                                                            <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}">
-                                                                @csrf
-                                                                <input type="hidden" name="status" value="pending">
-                                                                <button type="submit" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill" title="পেন্ডিংয়ে ফেরত নিন">
-                                                                    <i class="fa-solid fa-clock-rotate-left me-0.5"></i> পেন্ডিং
-                                                                </button>
-                                                            </form>
-                                                        @endif
+                                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $reg->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $reg->id }}" data-status-action="modal-pending" id="modalPendingForm_{{ $reg->id }}" style="{{ $reg->status === 'pending' ? 'display: none !important;' : '' }}">
+                                                            @csrf
+                                                            <input type="hidden" name="status" value="pending">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning border-0 text-dark px-2.5 py-1 rounded-pill" title="পেন্ডিংয়ে ফেরত নিন">
+                                                                <i class="fa-solid fa-clock-rotate-left me-0.5"></i> পেন্ডিং
+                                                            </button>
+                                                        </form>
                                                     </div>
 
                                                     <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn btn-dark btn-sm rounded-pill px-3 shadow-none">
@@ -1221,13 +1503,27 @@
                                                                                         <td class="py-1">{{ $reg->form_data['foreign_address'] ?? ($reg->address ?: 'N/A') }}</td>
                                                                                     </tr>
                                                                                 @else
+                                                                                    @if($cItem && !empty($cItem['geo_conflict']))
+                                                                                        <tr>
+                                                                                            <td colspan="2" class="py-1">
+                                                                                                <div class="alert alert-danger py-1.5 px-2.5 mb-1 small d-flex align-items-center gap-1.5 rounded-2">
+                                                                                                    <i class="fa-solid fa-triangle-exclamation text-danger"></i>
+                                                                                                    <span>{{ $cItem['geo_conflict_details'] }}</span>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    @endif
                                                                                     <tr>
                                                                                         <th class="text-muted w-35 py-1">বিভাগ:</th>
-                                                                                        <td class="py-1">{{ $reg->form_data['perm_division'] ?? ($reg->division ?: 'N/A') }}</td>
+                                                                                        <td class="py-1">
+                                                                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5 rounded-pill">{{ $reg->resolved_division }}</span>
+                                                                                        </td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th class="text-muted py-1">জেলা:</th>
-                                                                                        <td class="fw-bold text-dark py-1">{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? 'N/A') }}</td>
+                                                                                        <td class="fw-bold text-dark py-1">
+                                                                                            <i class="fa-solid fa-location-dot text-danger me-1"></i>{{ $reg->resolved_district }}
+                                                                                        </td>
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <th class="text-muted py-1">উপজেলা / থানা:</th>
@@ -1812,16 +2108,41 @@
                                                             </div>
                                                         </div>
 
+                                                        @if($cItem && !empty($cItem['geo_conflict']))
+                                                            <div class="col-12">
+                                                                <div class="alert alert-danger py-2 px-3 small d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 rounded-3 border-danger">
+                                                                    <div>
+                                                                        <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+                                                                        <strong>বিভাগ ও জেলা অমিল:</strong> {{ $cItem['geo_conflict_details'] }}
+                                                                    </div>
+                                                                    @if(!empty($cItem['expected_div']))
+                                                                        <button type="button" class="btn btn-xs btn-outline-danger bg-white rounded-pill px-2.5 py-1 fw-bold" onclick="this.closest('form').querySelector('[name=perm_division]').value = '{{ $cItem['expected_div'] }}'; this.parentElement.style.display='none';">
+                                                                            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> বিভাগ ঠিক করুন ({{ $cItem['expected_div'] }})
+                                                                        </button>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                        @endif
+
                                                         {{-- Location & Address --}}
-                                                        <div class="col-12 col-sm-4">
+                                                        <div class="col-12 col-sm-3">
+                                                            <label class="form-label small fw-bold text-dark mb-1">বিভাগ (Division)</label>
+                                                            <select name="perm_division" class="form-select form-select-sm fw-medium">
+                                                                <option value="">-- বিভাগ নির্বাচন --</option>
+                                                                @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDivName => $dList)
+                                                                    <option value="{{ $bdDivName }}" {{ \App\Support\BangladeshGeo::normalizeDivision($reg->resolved_division) === $bdDivName ? 'selected' : '' }}>{{ $bdDivName }} বিভাগ</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-12 col-sm-3">
                                                             <label class="form-label small fw-bold text-dark mb-1">জেলা (District)</label>
-                                                            <input type="text" name="district" class="form-control form-control-sm" value="{{ $reg->district }}" placeholder="যেমন: রংপুর">
+                                                            <input type="text" name="district" class="form-control form-control-sm" value="{{ $reg->district ?: ($reg->form_data['permanent_district'] ?? '') }}" placeholder="যেমন: রংপুর">
                                                         </div>
-                                                        <div class="col-12 col-sm-4">
+                                                        <div class="col-12 col-sm-3">
                                                             <label class="form-label small fw-bold text-dark mb-1">উপজেলা / থানা (Thana)</label>
-                                                            <input type="text" name="thana" class="form-control form-control-sm" value="{{ $reg->thana }}" placeholder="যেমন: সদর">
+                                                            <input type="text" name="thana" class="form-control form-control-sm" value="{{ $reg->thana ?: ($reg->form_data['perm_upazila'] ?? '') }}" placeholder="যেমন: সদর">
                                                         </div>
-                                                        <div class="col-12 col-sm-4">
+                                                        <div class="col-12 col-sm-3">
                                                             <label class="form-label small fw-bold text-dark mb-1">ঠিকানা / এলাকা (Address)</label>
                                                             <input type="text" name="address" class="form-control form-control-sm" value="{{ $reg->address }}" placeholder="গ্রাম / রোড / মহল্লা">
                                                         </div>
@@ -1886,18 +2207,28 @@
                         <tr>
                             <td colspan="14" class="text-center py-5 text-muted">
                                 <div class="mb-2"><i class="fa-solid fa-user-xmark fs-2 text-secondary"></i></div>
-                                <h6 class="fw-bold">No Participants Registered Yet</h6>
-                                <p class="small mb-0">Share the link <a href="{{ $campaign->public_url }}" target="_blank">{{ $campaign->public_url }}</a> with authors / delegates.</p>
+                                <h6 class="fw-bold">কোনো অংশগ্রহণকারী পাওয়া যায়নি (No Participants Found)</h6>
+                                @if(request()->hasAny(['search', 'division', 'district', 'status', 'payment_status', 'sort', 'category', 'has_conflict']))
+                                    <p class="small mb-2 text-danger">বর্তমান ফিল্টারের সাথে মিলে এমন কোনো নিবন্ধন পাওয়া যায়নি।</p>
+                                    <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                        <i class="fa-solid fa-rotate-left me-1"></i> ফিল্টার রিসেট করুন
+                                    </a>
+                                @else
+                                    <p class="small mb-0">নিবন্ধন লিংক <a href="{{ $campaign->public_url }}" target="_blank">{{ $campaign->public_url }}</a> কবি-লেখক বা প্রতিনিধিদের সাথে শেয়ার করুন।</p>
+                                @endif
                             </td>
                         </tr>
                     @endforelse
 
-                    {{-- Client-Side Live Search No Matches Row --}}
+                    {{-- Client-Side Live Search / Geo Filter No Matches Row --}}
                     <tr id="noLiveResultsRow" style="display: none;">
-                        <td colspan="14" class="text-center py-4 text-muted">
-                            <i class="fa-solid fa-magnifying-glass fs-3 text-secondary mb-2 d-block"></i>
-                            <div class="fw-bold">No matching participants found</div>
-                            <small>Try typing a different name, phone, or registration number.</small>
+                        <td colspan="14" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-magnifying-glass fs-2 text-secondary mb-2 d-block"></i>
+                            <div class="fw-bold fs-6">কোনো ফলাফল পাওয়া যায়নি (No matching participants)</div>
+                            <small class="text-muted d-block mt-1">নির্বাচিত বিভাগ বা জেলার ফিল্টারের সাথে মিলে এমন কোনো অংশগ্রহণকারী এই পেজে পাওয়া যায়নি।</small>
+                            <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-2">
+                                <i class="fa-solid fa-rotate-left me-1"></i> ফিল্টার রিসেট করুন
+                            </a>
                         </td>
                     </tr>
                 </tbody>
@@ -1949,6 +2280,9 @@
         <button type="button" class="btn btn-sm btn-warning text-dark rounded-pill px-3" onclick="executeBulkAction('mark_pending')">
             <i class="fa-solid fa-clock me-1"></i> Mark Pending
         </button>
+        <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 fw-bold" onclick="openBulkBroadcastSmsModal()" title="নির্বাচিত অংশগ্রহণকারীদের একবারে আপডেট মেসেজ পাঠান">
+            <i class="fa-solid fa-paper-plane me-1"></i> আপডেট এসএমএস
+        </button>
         <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="executeBulkAction('delete')">
             <i class="fa-solid fa-trash me-1"></i> Delete
         </button>
@@ -1971,7 +2305,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 text-center">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ urlencode($campaign->public_url) }}" alt="QR Code" class="img-fluid rounded-3 border p-2 mb-3 shadow-xs">
+                <img loading="lazy" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ urlencode($campaign->public_url) }}" alt="QR Code" class="img-fluid rounded-3 border p-2 mb-3 shadow-xs">
                 <div class="small text-muted font-monospace mb-2">{{ $campaign->public_url }}</div>
                 <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 copy-slug-btn" data-url="{{ $campaign->public_url }}">
                     Copy Link
@@ -2289,7 +2623,9 @@
                                     'reg_no'       => 'Registration #',
                                     'participant'  => 'Participant Name & Photo',
                                     'contact'      => 'Contact (Phone & WhatsApp)',
-                                    'location'     => 'Location (District & Thana)',
+                                    'division'     => 'বিভাগ (Division)',
+                                    'district'     => 'জেলা (District)',
+                                    'location'     => 'ঠিকানা (Address & Thana)',
                                     'institution'  => 'Institution / Genre',
                                     'fee'          => 'Fee / TrxID',
                                     'payment'      => 'Payment Verification',
@@ -2300,8 +2636,11 @@
                             @endphp
 
                             @foreach($availableCols as $colKey => $colName)
+                                @php
+                                    $isColChecked = ($colKey === 'division') ? $showDivisionCol : (($colKey === 'district') ? $showDistrictCol : in_array($colKey, $visibleCols));
+                                @endphp
                                 <div class="form-check form-switch m-0">
-                                    <input class="form-check-input col-toggle-check" type="checkbox" name="columns[]" value="{{ $colKey }}" id="col_{{ $colKey }}" {{ in_array($colKey, $visibleCols) ? 'checked' : '' }}>
+                                    <input class="form-check-input col-toggle-check" type="checkbox" name="columns[]" value="{{ $colKey }}" id="col_{{ $colKey }}" {{ $isColChecked ? 'checked' : '' }}>
                                     <label class="form-check-label small text-dark" for="col_{{ $colKey }}">{{ $colName }}</label>
                                 </div>
                             @endforeach
@@ -3916,7 +4255,7 @@
                                         <div class="card-middle-section" id="liveMiddleSection" style="{{ ($cShowPhoto || $cShowNamePlate) ? '' : 'display: none;' }}">
                                             <div class="author-photo-frame card-interactive-node" id="livePhotoFrame" data-node="photo" data-tab="tab-photo-pane" 
                                                  style="width: {{ $cPhotoSize }}px; height: {{ $cPhotoSize }}px; border-radius: {{ $cPhotoBorderRadius }}; border: {{ $cPhotoBorderWidth }}px solid {{ $cPhotoBorderColor }}; filter: brightness({{ $cPhotoBrightness }}%) contrast({{ $cPhotoContrast }}%) grayscale({{ $cPhotoGrayscale }}%) sepia({{ $cPhotoSepia }}%); @if($cPhotoShadow === 'glow') box-shadow: 0 0 16px rgba(250, 204, 21, 0.6); @elseif($cPhotoShadow === 'deep') box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45); @elseif($cPhotoShadow === 'none') box-shadow: none; @else box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); @endif margin-bottom: {{ $cPhotoNameGap }}px; transform: translate({{ $cPhotoOffsetX }}px, {{ $cPhotoOffsetY }}px) scale({{ $cPhotoScale / 100 }}); transition: transform 0.1s ease-out; overflow: hidden; {{ $cShowPhoto ? '' : 'display: none !important;' }}">
-                                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Sample Portrait" id="liveCardAuthorPhotoImg" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                                <img loading="lazy" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Sample Portrait" id="liveCardAuthorPhotoImg" style="width: 100%; height: 100%; object-fit: cover; display: none;">
                                                 <div class="photo-placeholder" id="liveCardAuthorPhotoPlaceholder">
                                                     <i class="fa-solid fa-user-pen"></i>
                                                 </div>
@@ -3937,7 +4276,7 @@
                                         <div class="card-verify-qr-section card-interactive-node" id="liveQrSection" data-node="qr" data-tab="tab-qr-pane" style="position: relative; z-index: 2; border-top: 1.5px solid rgba(255, 255, 255, 0.45); padding-top: 5px; margin-top: 4px; display: {{ $cShowQrCode ? 'flex' : 'none !important' }}; align-items: center; justify-content: center; text-align: center;">
                                             <a href="{{ $cDemoVerifyUrl }}" target="_blank" class="verify-qr-anchor" title="ক্লিক করলেই লাইভ ভেরিফিকেশন ও উপস্থিতি নিশ্চিত হবে" style="text-decoration: none; display: inline-flex; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 5px 12px 5px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28); transition: all 0.2s ease; max-width: 96%;">
                                                 <div class="qr-code-box" id="liveQrCodeBox" style="width: {{ $cQrSize }}px; height: {{ $cQrSize }}px; background: #ffffff; padding: 4px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                    <img src="{{ $cDemoQrApiUrl }}" alt="Verify QR Code" id="liveQrCodeImg" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
+                                                    <img loading="lazy" src="{{ $cDemoQrApiUrl }}" alt="Verify QR Code" id="liveQrCodeImg" style="width: 100%; height: 100%; object-fit: contain; display: block;" crossorigin="anonymous">
                                                 </div>
                                                 <div class="qr-info-box" style="text-align: left; display: flex; flex-direction: column; justify-content: center;">
                                                     <div class="qr-verify-badge" style="display: inline-flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 800; background: #10b981; color: #ffffff; padding: 1.5px 7px; border-radius: 20px; width: fit-content; letter-spacing: 0.3px; margin-bottom: 2px;">
@@ -4057,15 +4396,24 @@
                             </div>
                         </div>
 
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
+                            <label class="form-label small fw-bold text-dark mb-1">বিভাগ (Division)</label>
+                            <select name="division" id="addPartDivision" class="form-select form-select-sm fw-medium">
+                                <option value="">-- বিভাগ নির্বাচন --</option>
+                                @foreach(\App\Support\BangladeshGeo::DIVISIONS as $bdDivName => $dList)
+                                    <option value="{{ $bdDivName }}" {{ $bdDivName === 'রংপুর' ? 'selected' : '' }}>{{ $bdDivName }} বিভাগ</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">জেলা (District)</label>
-                            <input type="text" name="district" class="form-control form-control-sm" placeholder="যেমন: রংপুর" value="রংপুর">
+                            <input type="text" name="district" id="addPartDistrict" class="form-control form-control-sm" placeholder="যেমন: রংপুর" value="রংপুর">
                         </div>
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">উপজেলা / থানা (Thana)</label>
-                            <input type="text" name="thana" class="form-control form-control-sm" placeholder="যেমন: কোতোয়ালি">
+                            <input type="text" name="thana" class="form-control form-control-sm" placeholder="যেমন: সদর / কোতোয়ালি">
                         </div>
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label small fw-bold text-dark mb-1">ঠিকানা / এলাকা (Address)</label>
                             <input type="text" name="address" class="form-control form-control-sm" placeholder="গ্রাম / রোড / মহল্লা">
                         </div>
@@ -4255,6 +4603,9 @@
     </div>
 </div>
 
+{{-- EVENT UPDATE BULK SMS BROADCAST MODAL --}}
+@include('admin.event_campaigns.partials.broadcast_sms_modal')
+
 {{-- TOAST CONTAINER --}}
 <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
     <div id="liveToast" class="toast align-items-center text-bg-dark border-0 rounded-4 shadow" role="alert" aria-live="assertive" aria-atomic="true">
@@ -4269,6 +4620,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="{{ asset('js/admin-event-campaign.js') }}"></script>
+
+
     <script>
         let currentCropperPreviewId = null;
         let currentCropperRegId = null;
@@ -4723,74 +5076,302 @@
         // ==========================================
         // QUICK STATUS (APPROVE / REJECT) AJAX HANDLER
         // ==========================================
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.quick-status-form').forEach(function(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    const origHtml = submitBtn ? submitBtn.innerHTML : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-                    }
+        // =========================================================================
+        // ZERO-RELOAD REAL-TIME STATUS UPDATER (APPROVE / REJECT / PENDING)
+        // =========================================================================
+        window.updateParticipantRowStatus = function(regId, newStatus, counts, message) {
+            if (!regId) return;
+            const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
 
-                    const formData = new FormData(form);
-                    const actionUrl = form.getAttribute('action');
+            const isApproved = (newStatus === 'confirmed' || newStatus === 'approved' || newStatus === 'selected');
+            const isRejected = (newStatus === 'rejected');
+            const isPending  = (newStatus === 'pending');
 
-                    fetch(actionUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = origHtml;
-                        }
-                        if (data.success) {
-                            const regId = form.getAttribute('data-reg-id');
-                            const newStatus = data.status || 'pending';
-                            
-                            // Live update modal status badges if present
-                            if (regId) {
-                                document.querySelectorAll('.modal-status-badge-' + regId).forEach(function(b) {
-                                    b.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                                    b.className = 'badge modal-status-badge-' + regId + ' ' + 
-                                        (newStatus === 'confirmed' || newStatus === 'selected' || newStatus === 'approved' ? 'bg-success' : 
-                                        (newStatus === 'rejected' ? 'bg-danger' : 'bg-warning text-dark'));
-                                });
-                            }
+            // 1. Update Main Table Row Badge (#statusBadgeWrap_{id})
+            const badgeWrap = document.getElementById('statusBadgeWrap_' + regId);
+            if (badgeWrap) {
+                if (isApproved) {
+                    badgeWrap.innerHTML = '<span class="badge badge-status-confirmed px-2.5 py-1.5"><i class="fa-solid fa-circle-check me-1"></i> Approved</span>';
+                } else if (isRejected) {
+                    badgeWrap.innerHTML = '<span class="badge badge-status-rejected px-2.5 py-1.5"><i class="fa-solid fa-circle-xmark me-1"></i> Rejected</span>';
+                } else {
+                    badgeWrap.innerHTML = '<span class="badge badge-status-pending px-2.5 py-1.5"><i class="fa-solid fa-clock me-1"></i> Pending</span>';
+                }
+            }
 
-                            // Show toast feedback
-                            if (window.showToast) {
-                                window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'স্ট্যাটাস সফলভাবে আপডেট হয়েছে!'));
-                            } else {
-                                const toastEl = document.getElementById('liveToast');
-                                const toastMsg = document.getElementById('toastMessage');
-                                if (toastEl && toastMsg && typeof bootstrap !== 'undefined') {
-                                    toastMsg.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> ' + (data.message || 'স্ট্যাটাস আপডেট হয়েছে!');
-                                    bootstrap.Toast.getOrCreateInstance(toastEl).show();
-                                }
-                            }
+            // 2. Update Main Table Row Action Buttons (#quickStatusActionsWrap_{id})
+            const actionsWrap = document.getElementById('quickStatusActionsWrap_' + regId);
+            if (actionsWrap) {
+                const approveForm = actionsWrap.querySelector('[data-status-action="approve"]');
+                const rejectForm = actionsWrap.querySelector('[data-status-action="reject"]');
 
-                            // Auto-reload to keep participant counter and full pagination state in sync
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 500);
+                if (approveForm) {
+                    const input = approveForm.querySelector('input[name="status"]');
+                    const btn = approveForm.querySelector('button[type="submit"]');
+                    if (input && btn) {
+                        if (isApproved) {
+                            input.value = 'pending';
+                            btn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                            btn.title = 'Approved (ক্লিক করে পেন্ডিং করুন)';
+                            btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Approved';
                         } else {
-                            alert(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+                            input.value = 'confirmed';
+                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                            btn.title = 'অবিলম্বে এপ্রুভ করুন';
+                            btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Approve';
                         }
-                    })
-                    .catch(err => {
-                        console.error('Quick status submit error:', err);
-                        form.submit();
-                    });
-                });
+                    }
+                }
+
+                if (rejectForm) {
+                    const input = rejectForm.querySelector('input[name="status"]');
+                    const btn = rejectForm.querySelector('button[type="submit"]');
+                    if (input && btn) {
+                        if (isRejected) {
+                            input.value = 'pending';
+                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-1 text-nowrap shadow-xs';
+                            btn.title = 'Rejected (ক্লিক করে পেন্ডিং করুন)';
+                            btn.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> Rejected';
+                        } else {
+                            input.value = 'rejected';
+                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-1 text-nowrap shadow-xs';
+                            btn.title = 'আবেদন অবিলম্বে বাতিল করুন';
+                            btn.innerHTML = '<i class="fa-solid fa-xmark me-1"></i> বাতিল';
+                        }
+                    }
+                }
+            }
+
+            // 3. Update LittleMag Row Badge & Action Buttons (if exists)
+            const lmBadgeWrap = document.getElementById('statusBadgeWrapLm_' + regId);
+            if (lmBadgeWrap) {
+                if (isApproved) {
+                    lmBadgeWrap.innerHTML = '<span class="badge badge-status-confirmed px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i> Approved</span>';
+                } else if (isRejected) {
+                    lmBadgeWrap.innerHTML = '<span class="badge badge-status-rejected px-2 py-1"><i class="fa-solid fa-circle-xmark me-1"></i> Rejected</span>';
+                } else {
+                    lmBadgeWrap.innerHTML = '<span class="badge badge-status-pending px-2 py-1"><i class="fa-solid fa-clock me-1"></i> Pending</span>';
+                }
+            }
+            const lmActionsWrap = document.getElementById('quickStatusActionsWrapLm_' + regId);
+            if (lmActionsWrap) {
+                const lmApproveForm = lmActionsWrap.querySelector('[data-status-action="lm-approve"]');
+                const lmRejectForm = lmActionsWrap.querySelector('[data-status-action="lm-reject"]');
+                if (lmApproveForm) {
+                    const input = lmApproveForm.querySelector('input[name="status"]');
+                    const btn = lmApproveForm.querySelector('button[type="submit"]');
+                    if (input && btn) {
+                        if (isApproved) {
+                            input.value = 'pending';
+                            btn.className = 'btn btn-sm btn-success rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.title = 'Approved (ক্লিক করে পেন্ডিং করুন)';
+                            btn.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                        } else {
+                            input.value = 'confirmed';
+                            btn.className = 'btn btn-sm btn-warning text-dark rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.title = 'এপ্রুভ করুন (স্বাগত ও কার্ড ডাউনলোড এসএমএস যাবে)';
+                            btn.innerHTML = '<i class="fa-solid fa-check"></i> এপ্রুভ';
+                        }
+                    }
+                }
+                if (lmRejectForm) {
+                    const input = lmRejectForm.querySelector('input[name="status"]');
+                    const btn = lmRejectForm.querySelector('button[type="submit"]');
+                    if (input && btn) {
+                        if (isRejected) {
+                            input.value = 'pending';
+                            btn.className = 'btn btn-sm btn-danger rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.title = 'Rejected (ক্লিক করে পেন্ডিং করুন)';
+                            btn.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                        } else {
+                            input.value = 'rejected';
+                            btn.className = 'btn btn-sm btn-outline-danger bg-white rounded-pill px-2 py-0.5 text-nowrap shadow-xs';
+                            btn.title = 'আবেদন বাতিল করুন (নোটিশ এসএমএস যাবে)';
+                            btn.innerHTML = '<i class="fa-solid fa-xmark"></i> বাতিল';
+                        }
+                    }
+                }
+            }
+
+            // 4. Update Modal Status Badges & Buttons (if modal exists)
+            document.querySelectorAll('.modal-status-badge-' + regId).forEach(function(b) {
+                b.textContent = isApproved ? 'Confirmed' : (isRejected ? 'Rejected' : 'Pending');
+                b.className = 'badge modal-status-badge-' + regId + ' ' + (isApproved ? 'bg-success' : (isRejected ? 'bg-danger' : 'bg-warning text-dark'));
             });
+            const modalGroup = document.getElementById('modalQuickStatusGroup_' + regId);
+            if (modalGroup) {
+                const mApproveBtn = modalGroup.querySelector('[data-status-action="modal-approve"] button');
+                const mRejectBtn = modalGroup.querySelector('[data-status-action="modal-reject"] button');
+                const mPendingForm = document.getElementById('modalPendingForm_' + regId);
+                if (mApproveBtn) {
+                    mApproveBtn.className = 'btn btn-sm ' + (isApproved ? 'btn-success text-white' : 'btn-outline-success border-0 text-success') + ' px-3 py-1 fw-bold rounded-pill';
+                    mApproveBtn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> ' + (isApproved ? 'এপ্রুভড' : 'এপ্রুভ করুন');
+                }
+                if (mRejectBtn) {
+                    mRejectBtn.className = 'btn btn-sm ' + (isRejected ? 'btn-danger text-white' : 'btn-outline-danger border-0 text-danger') + ' px-3 py-1 fw-bold rounded-pill';
+                    mRejectBtn.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> ' + (isRejected ? 'বাতিলকৃত' : 'বাতিল করুন');
+                }
+                if (mPendingForm) {
+                    mPendingForm.style.display = isPending ? 'none' : 'inline-block';
+                }
+            }
+
+            // 5. Tactile Row Highlight Animation (Zero page reload / Zero layout jerk)
+            const row = document.getElementById('regRow_' + regId) || document.getElementById('lmRow' + regId);
+            if (row) {
+                row.classList.remove('aec-row-updated-success', 'aec-row-updated-danger', 'aec-row-updated-warning');
+                requestAnimationFrame(() => {
+                    row.classList.add(isApproved ? 'aec-row-updated-success' : (isRejected ? 'aec-row-updated-danger' : 'aec-row-updated-warning'));
+                });
+            }
+
+            // 6. Live Update Counter Badges & Statistics
+            if (counts) {
+                if (counts.confirmed_count !== undefined) {
+                    const el1 = document.getElementById('statMetricConfirmedCount');
+                    if (el1) el1.textContent = counts.confirmed_count;
+                    const el2 = document.getElementById('filterPillConfirmedCount');
+                    if (el2) el2.textContent = counts.confirmed_count;
+                }
+                if (counts.pending_count !== undefined) {
+                    const el3 = document.getElementById('statMetricPendingBadge');
+                    if (el3) el3.textContent = counts.pending_count + ' Pending Review';
+                    const el4 = document.getElementById('filterPillPendingCount');
+                    if (el4) el4.textContent = counts.pending_count;
+                }
+            }
+
+            // 7. Toast Feedback
+            if (message) {
+                const icon = isApproved ? 'fa-circle-check text-success' : (isRejected ? 'fa-circle-xmark text-danger' : 'fa-clock-rotate-left text-warning');
+                if (window.showToast) {
+                    window.showToast('<i class="fa-solid ' + icon + ' me-1"></i> ' + message);
+                } else {
+                    const toastEl = document.getElementById('liveToast');
+                    const toastMsg = document.getElementById('toastMessage');
+                    if (toastEl && toastMsg && typeof bootstrap !== 'undefined') {
+                        toastMsg.innerHTML = '<i class="fa-solid ' + icon + ' me-1"></i> ' + message;
+                        bootstrap.Toast.getOrCreateInstance(toastEl).show();
+                    }
+                }
+            }
+
+            // 8. Enforce scroll lock preservation
+            window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+        };
+
+        // Universal Zero-Scroll Quick Status Switch Handler (Prevents page jumping to top)
+        function handleQuickStatusAction(form, triggerBtn) {
+            if (!form || form.getAttribute('data-submitting') === 'true') return;
+
+            // 1. Lock the exact current scroll position before any DOM modification
+            const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
+
+            // 2. Safely blur the active element to prevent browser focus-reset jump
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                try { document.activeElement.blur(); } catch (e) {}
+            }
+
+            // 3. Mark form as submitting and disable clicks without setting button.disabled=true
+            // (Setting button.disabled=true in Chromium forces focus reset to body/html, jumping scroll to top)
+            form.setAttribute('data-submitting', 'true');
+            const submitBtn = triggerBtn || form.querySelector('button[type="submit"]') || form.querySelector('button');
+            const origHtml = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.style.pointerEvents = 'none';
+                submitBtn.style.opacity = '0.7';
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            }
+
+            const restoreScroll = () => {
+                window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+                if (document.documentElement && document.documentElement.scrollTop !== lockedScrollY) {
+                    document.documentElement.scrollTop = lockedScrollY;
+                }
+                if (document.body && document.body.scrollTop !== lockedScrollY) {
+                    document.body.scrollTop = lockedScrollY;
+                }
+            };
+
+            const finalizeBtn = () => {
+                form.setAttribute('data-submitting', 'false');
+                if (submitBtn) {
+                    submitBtn.style.pointerEvents = '';
+                    submitBtn.style.opacity = '';
+                }
+                restoreScroll();
+                requestAnimationFrame(restoreScroll);
+                setTimeout(restoreScroll, 50);
+                setTimeout(restoreScroll, 150);
+            };
+
+            const formData = new FormData(form);
+            const actionUrl = form.getAttribute('action');
+
+            fetch(actionUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (submitBtn) {
+                    submitBtn.innerHTML = origHtml;
+                }
+                finalizeBtn();
+
+                if (data.success) {
+                    const regId = form.getAttribute('data-reg-id');
+                    const newStatus = data.status || 'pending';
+                    const counts = {
+                        confirmed_count: data.confirmed_count,
+                        pending_count: data.pending_count
+                    };
+                    window.updateParticipantRowStatus(regId, newStatus, counts, data.message || 'স্ট্যাটাস সফলভাবে আপডেট হয়েছে!');
+                } else {
+                    if (window.showToast) {
+                        window.showToast(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।', true);
+                    } else {
+                        alert(data.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+                    }
+                }
+                restoreScroll();
+                requestAnimationFrame(restoreScroll);
+            })
+            .catch(err => {
+                if (submitBtn) {
+                    submitBtn.innerHTML = origHtml;
+                }
+                finalizeBtn();
+                console.error('Quick status submit error:', err);
+                if (window.showToast) {
+                    window.showToast('সার্ভার সংযোগে ত্রুটি হয়েছে', true);
+                }
+            });
+        }
+
+        // Intercept form submit event in capturing phase
+        document.addEventListener('submit', function(e) {
+            const form = e.target.closest('.quick-status-form');
+            if (!form) return;
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusAction(form, null);
+        }, true);
+
+        // Intercept button click event in capturing phase to prevent any default click jump
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.quick-status-form button');
+            if (!btn) return;
+            const form = btn.closest('.quick-status-form');
+            if (!form) return;
+            e.preventDefault();
+            e.stopPropagation();
+            handleQuickStatusAction(form, btn);
+        }, true);
 
             // SMS Modal Helpers
             window.applySmsTemplate = function(selectElem, targetTextareaId) {

@@ -180,7 +180,7 @@
                         </td>
 
                         {{-- স্ট্যাটাস --}}
-                        <td class="text-center">
+                        <td class="text-center" id="statusBadgeWrapLm_{{ $lm->id }}">
                             @if($lm->status === 'confirmed' || $lm->status === 'approved')
                                 <span class="badge badge-status-confirmed px-2 py-1">
                                     <i class="fa-solid fa-circle-check me-1"></i> Approved
@@ -212,9 +212,9 @@
 
                         {{-- অ্যাকশন --}}
                         <td class="text-end pe-3">
-                            <div class="aec-action-group justify-content-end">
+                            <div class="aec-action-group justify-content-end" id="quickStatusActionsWrapLm_{{ $lm->id }}">
                                 {{-- Quick Approve Button --}}
-                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $lm->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $lm->id }}">
+                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $lm->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $lm->id }}" data-status-action="lm-approve">
                                     @csrf
                                     <input type="hidden" name="status" value="{{ in_array($lm->status, ['confirmed', 'approved', 'selected']) ? 'pending' : 'confirmed' }}">
                                     @if(in_array($lm->status, ['confirmed', 'approved', 'selected']))
@@ -229,7 +229,7 @@
                                 </form>
 
                                 {{-- Quick Reject Button --}}
-                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $lm->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $lm->id }}">
+                                <form action="{{ route('admin.event-campaigns.registrations.toggle-approval', $lm->id) }}" method="POST" class="d-inline quick-status-form" data-reg-id="{{ $lm->id }}" data-status-action="lm-reject">
                                     @csrf
                                     <input type="hidden" name="status" value="{{ $lm->status === 'rejected' ? 'pending' : 'rejected' }}">
                                     @if($lm->status === 'rejected')

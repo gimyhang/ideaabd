@@ -190,4 +190,28 @@ class BlogController extends Controller
 
         return view('blog::tag', compact('tag', 'posts'));
     }
+
+    /**
+     * Serve dynamic high-resolution Open Graph photocard for WhatsApp / Facebook preview cards.
+     */
+    public function ogImage($slug)
+    {
+        $post = BlogPost::with(['category', 'author'])
+            ->where('slug', $slug)
+            ->orWhere('id', $slug)
+            ->first();
+
+        if (!$post) {
+            $decoded = urldecode($slug);
+            $post = BlogPost::with(['category', 'author'])
+                ->where('slug', $decoded)
+                ->first();
+        }
+
+        if (!$post) {
+            abort(404);
+        }
+
+        return \Modules\Blog\Services\BlogPostOgImageService::serve($post);
+    }
 }

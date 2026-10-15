@@ -10,5 +10,6 @@ Route::prefix('blog')->name('blog.')->group(function () {
     Route::post('/{id}/review', [BlogController::class, 'storeReview'])->name('review.store');
     Route::get('/category/{slug}', [BlogController::class, 'category'])->name('category');
     Route::get('/tag/{slug}', [BlogController::class, 'tag'])->name('tag');
+    Route::get('/{slug}/og-image', [BlogController::class, 'ogImage'])->name('og-image');
     Route::get('/{slug}', [BlogController::class, 'show'])->name('show');
 });

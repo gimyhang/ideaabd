@@ -3,7 +3,7 @@
 @section('title', 'Publishers')
 
 @php
-    $letters = ['সব', 'অ', 'আ', 'ই', 'উ', 'এ', 'ও', 'ক', 'খ', 'গ', 'ঘ', 'চ', 'ছ', 'জ', 'ট', 'ড', 'ত', 'থ', 'দ', 'ধ', 'ন', 'প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'স', 'হ', 'A-Z'];
+    $letters = ['A-Z'];
 @endphp
 
 @section('content')
@@ -29,7 +29,7 @@
                         </span>
                         <h1 class="display-6 fw-bold mb-2">শীর্ষস্থানীয় প্রকাশক ও প্রকাশনী ডিরেক্টরি</h1>
                         <p class="text-light opacity-80 fs-6 mb-4" style="max-width: 650px;">
-                            দেশের স্বনামধন্য ও মননশীল প্রকাশনা প্রতিষ্ঠানের সকল বই এক ঠিকানায়। আপনার পছন্দের প্রকাশনীর গ্রন্থসম্ভার আবিষ্কার করুন।
+                            আপনার পছন্দের প্রকাশনীর গ্রন্থসম্ভার আবিষ্কার করুন।
                         </p>
 
                         <!-- Live Stats Pills -->
@@ -187,7 +187,7 @@
 
                             <!-- Description -->
                             <p class="text-muted small mb-3 line-clamp-2 lh-sm flex-grow-1" style="font-size: 0.83rem;">
-                                {{ $publisher->description ?: 'মননশীল সাহিত্য, ইতিহাস ও গবেষণা গ্রন্থ প্রকাশে নিবেদিত প্রকাশনী।' }}
+                                {{ $publisher->description ?: 'সাহিত্য, ইতিহাস ও গবেষণা গ্রন্থ' }}
                             </p>
 
                             <!-- Books & Ebooks Count Pills -->
@@ -235,7 +235,7 @@
                     <div class="p-5 bg-white rounded-4 shadow-sm border text-center">
                         <i class="fa-solid fa-building-circle-xmark display-3 text-muted opacity-50 mb-3"></i>
                         <h4 class="fw-bold text-dark mb-2">কোনো প্রকাশনী পাওয়া যায়নি</h4>
-                        <p class="text-muted mb-4">আপনার অনুসন্ধান অনুযায়ী কোনো প্রকাশনা প্রতিষ্ঠান খুঁজে পাওয়া যায়নি।</p>
+                        <p class="text-muted mb-4">কোনো প্রকাশনা প্রতিষ্ঠান খুঁজে পাওয়া যায়নি।</p>
                         <a href="{{ route('publishers.index') }}" class="btn btn-primary rounded-pill px-4 fw-semibold">
                             <i class="fa-solid fa-rotate-left me-1"></i> সব প্রকাশনী দেখুন
                         </a>
@@ -258,7 +258,7 @@
                 <div class="col-lg-8">
                     <h3 class="fw-bold mb-2">আপনার প্রকাশনা প্রতিষ্ঠান কি যুক্ত করতে চান?</h3>
                     <p class="text-light opacity-80 mb-0">
-                        আইডিয়া প্রকাশন প্ল্যাটফর্মে যুক্ত হয়ে দেশের হাজারো বইপ্রেমী পাঠকের কাছে পৌঁছে দিন আপনার প্রকাশিত সকল বই ও ই-বুক।
+                        আইডিয়া প্রকাশন প্ল্যাটফর্মে যুক্ত হয়ে বইপ্রেমী পাঠকের কাছে পৌঁছে দিন আপনার প্রকাশিত সকল বই ও ই-বুক।
                     </p>
                 </div>
                 <div class="col-lg-4 text-lg-end">

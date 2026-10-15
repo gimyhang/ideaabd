@@ -1401,6 +1401,43 @@
     border-bottom: 2px solid #e2e8f0;
     gap: 8px;
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+}
+
+.form-studio-nav-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.form-studio-nav-tabs .nav-item {
+    flex-shrink: 0;
+}
+
+.form-studio-nav-tabs .nav-link {
+    white-space: nowrap;
+}
+
+.aec-filter-pills-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    max-width: 100%;
+}
+
+.aec-filter-pills-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.aec-filter-pills-bar .aec-tab-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .form-studio-nav-tabs .nav-link {
@@ -1836,6 +1873,17 @@
     color: #9d174d;
 }
 
+.aec-badge-conflict-geo {
+    background-color: #fff1f2;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+}
+.aec-badge-conflict-geo:hover {
+    background-color: #ffe4e6;
+    color: #be123c;
+    border-color: #fda4af;
+}
+
 .aec-tab-btn.conflict-active {
     background: #ef4444 !important;
     border-color: #ef4444 !important;
@@ -1848,41 +1896,45 @@
    ========================================================================== */
 
 @keyframes aecStatusPulseSuccess {
-    0% { background-color: rgba(16, 185, 129, 0.35); transform: scale(1.002); }
-    50% { background-color: rgba(16, 185, 129, 0.15); }
-    100% { background-color: transparent; transform: scale(1); }
+    0% { background-color: rgba(16, 185, 129, 0.25); }
+    50% { background-color: rgba(16, 185, 129, 0.10); }
+    100% { background-color: transparent; }
 }
 
 @keyframes aecStatusPulseWarning {
-    0% { background-color: rgba(245, 158, 11, 0.35); transform: scale(1.002); }
-    50% { background-color: rgba(245, 158, 11, 0.15); }
-    100% { background-color: transparent; transform: scale(1); }
+    0% { background-color: rgba(245, 158, 11, 0.25); }
+    50% { background-color: rgba(245, 158, 11, 0.10); }
+    100% { background-color: transparent; }
 }
 
 @keyframes aecStatusPulseDanger {
-    0% { background-color: rgba(239, 68, 68, 0.35); transform: scale(1.002); }
-    50% { background-color: rgba(239, 68, 68, 0.15); }
-    100% { background-color: transparent; transform: scale(1); }
+    0% { background-color: rgba(239, 68, 68, 0.25); }
+    50% { background-color: rgba(239, 68, 68, 0.10); }
+    100% { background-color: transparent; }
 }
 
 .aec-row-updated-success {
-    animation: aecStatusPulseSuccess 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: aecStatusPulseSuccess 1s ease-out !important;
 }
 
 .aec-row-updated-warning {
-    animation: aecStatusPulseWarning 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: aecStatusPulseWarning 1s ease-out !important;
 }
 
 .aec-row-updated-danger {
-    animation: aecStatusPulseDanger 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    animation: aecStatusPulseDanger 1s ease-out !important;
 }
 
-.btn-quick-status {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 80px;
+.btn-quick-status,
+.quick-status-form button {
+    min-width: 82px;
+    height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
 }
 
 /* Dynamic Interactive Button Lift Effect */
@@ -1940,6 +1992,37 @@
     color: #ffffff !important;
     border-color: #10b981 !important;
     transform: scale(1.05);
+}
+
+/* Smooth Status Update Pulse Animations (Zero Jerk / Zero Layout Shift) */
+@keyframes aecRowPulseSuccess {
+    0% { background-color: rgba(16, 185, 129, 0.28); }
+    50% { background-color: rgba(16, 185, 129, 0.12); }
+    100% { background-color: transparent; }
+}
+@keyframes aecRowPulseDanger {
+    0% { background-color: rgba(239, 68, 68, 0.28); }
+    50% { background-color: rgba(239, 68, 68, 0.12); }
+    100% { background-color: transparent; }
+}
+@keyframes aecRowPulseWarning {
+    0% { background-color: rgba(245, 158, 11, 0.28); }
+    50% { background-color: rgba(245, 158, 11, 0.12); }
+    100% { background-color: transparent; }
+}
+.aec-row-updated-success {
+    animation: aecRowPulseSuccess 1.5s ease-out !important;
+}
+.aec-row-updated-danger {
+    animation: aecRowPulseDanger 1.5s ease-out !important;
+}
+.aec-row-updated-warning {
+    animation: aecRowPulseWarning 1.5s ease-out !important;
+}
+
+/* Quick Status buttons smooth transition */
+.quick-status-form button {
+    transition: all 0.2s ease-in-out;
 }
 
 
