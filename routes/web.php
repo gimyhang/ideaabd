@@ -270,6 +270,9 @@ Route::get('/api/recent-orders', [\App\Http\Controllers\SocialProofController::c
 // Blog routes are defined in the Blog module (Modules/Blog/Routes/web.php), which
 // already registers blog.index / blog.show / blog.category / blog.tag.
 
+// Bengali speech fallback for the audiobook player (browsers without a Bengali voice)
+Route::get('/tts/bn', [\App\Http\Controllers\TtsController::class, 'bengali'])->middleware('throttle:120,1')->name('tts.bn');
+
 // Ebook Routes
 Route::prefix('ebooks')->name('ebook.')->group(function () {
     Route::get('/', [\Modules\Ebook\Http\Controllers\Frontend\EbookController::class, 'index'])->name('index');
@@ -607,6 +610,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/items', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'store'])->name('items.store');
         Route::get('/items/products', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'products'])->name('items.products');
         Route::get('/items-stock', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'stock'])->name('items.stock');
+        Route::get('/items-stock/list', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'stockList'])->name('items.stock-list');
+        Route::post('/items/merge', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'merge'])->name('items.merge');
         Route::get('/{purchase}', 'show')->name('show');
         Route::get('/{purchase}/edit', 'edit')->name('edit');
         Route::put('/{purchase}', 'update')->name('update');
@@ -617,6 +622,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::prefix('production')->name('production.')->controller(\App\Http\Controllers\Admin\BookProductionController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/books', 'books')->name('books');
+        Route::get('/live', 'live')->name('live');
         Route::post('/', 'store')->name('store');
         Route::delete('/{event}', 'destroy')->name('destroy');
     });
@@ -633,6 +639,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/customer-search', 'searchCustomers')->name('invoices.customer-search');
         Route::get('/invoices/customer-due-info', 'getCustomerDueInfo')->name('invoices.customer-due-info');
         Route::get('/invoices/item-suggest', 'itemSuggest')->name('invoices.item-suggest');
+        Route::get('/invoices/next-number', 'nextInvoiceNumber')->name('invoices.next-number');
         // Raw-material rate sheet (printing cost calculator)
         Route::get('/print-rates', [\App\Http\Controllers\Admin\PrintRateController::class, 'index'])->name('print-rates.index');
         Route::post('/print-rates', [\App\Http\Controllers\Admin\PrintRateController::class, 'store'])->name('print-rates.store');
@@ -654,6 +661,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/invoices/{invoice}/send-email', 'sendInvoiceEmail')->name('invoices.send-email');
         Route::delete('/invoices/{invoice}/email-logs/{logId}', 'deleteEmailLog')->name('invoices.email-logs.destroy');
         Route::post('/invoices/{invoice}/convert', 'convertInvoiceType')->name('invoices.convert');
+        Route::patch('/invoices/{invoice}/proposal-status', 'updateProposalStatus')->name('invoices.proposal-status');
         Route::post('/invoices/orders/{order}/sync', 'syncOrderToInvoice')->name('invoices.sync-order');
         Route::post('/quick-pay-universal', 'quickPayUniversal')->name('quick-pay-universal');
         Route::delete('/invoices/{invoice}', 'destroyInvoice')->name('invoices.destroy');

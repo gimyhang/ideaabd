@@ -63,3 +63,40 @@
     .pi-submit .btn { width: 100%; }
 }
 body.dark-mode .pi-row { background: var(--ac-surface-2); border-color: var(--ac-line); }
+
+.pi-status { display: inline-block; padding: .1rem .6rem; border-radius: 999px; font-weight: 800; font-size: .8rem; background: #fee2e2; color: #b91c1c; }
+.pi-status.is-partial { background: #fef3c7; color: #b45309; }
+.pi-status.is-paid { background: #dcfce7; color: #15803d; }
+.pi-draft { margin-left: auto; margin-right: .75rem; font-size: .82rem; color: #64748b; }
+.iv-pick-item small.is-low { color: #e11d48; font-weight: 700; }
+.iv-pick-item em { font-style: normal; font-size: .75rem; color: #94a3b8; margin-left: .35rem; }
+
+.pi-cat { grid-column: 1 / -1; max-width: 320px; }
+.pi-type-row td { background: rgba(100,116,139,.18); padding-top: .55rem !important; padding-bottom: .55rem !important; }
+.pi-cat-row td { background: rgba(100,116,139,.08); }
+.pi-sub { font-size: .8rem; color: #64748b; margin-left: .35rem; }
+
+.pi-qty-chip.is-out { background: #be123c; color: #fff; }
+.pi-kpis-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.pi-stock { margin-top: 1.5rem; }
+.pi-live { font-size: .78rem; font-weight: 600; color: #64748b; margin-left: .5rem; }
+.pi-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: pi-pulse 1.6s infinite; }
+@keyframes pi-pulse { 50% { opacity: .3; } }
+#piStockBody.is-loading { opacity: .55; transition: opacity .15s; }
+#piStockBody .pi-kpis { padding: 1rem 1rem 0; }
+@media (max-width: 768px) { .pi-kpis-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.pi-tabs { display: flex; gap: .4rem; padding: .75rem 1rem; overflow-x: auto; scrollbar-width: thin; }
+.pi-tab { flex: 0 0 auto; border: 1px solid rgba(100,116,139,.3); background: transparent; color: inherit; border-radius: 999px; padding: .3rem .85rem; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.pi-tab b { margin-left: .3rem; font-size: .75rem; opacity: .65; }
+.pi-tab:hover { background: rgba(100,116,139,.12); }
+.pi-tab.is-active { background: #0f172a; color: #fff; border-color: #0f172a; }
+.pi-tab-type { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: .4rem; background: #1d4ed8; }
+.pi-tab-type.is-electronics { background: #6d28d9; }
+.pi-dupes { margin: 1rem; padding: .85rem 1rem; border: 1px solid #fcd34d; background: #fffbeb; color: #78350f; border-radius: 10px; }
+.pi-dupe { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: .6rem; }
+.pi-dupe-items { display: flex; flex-wrap: wrap; gap: .35rem; }
+.pi-dupe-chip { padding: .15rem .6rem; border-radius: 999px; background: #fef3c7; font-size: .8rem; }
+.pi-dupe-chip.is-keep { background: #bbf7d0; color: #14532d; font-weight: 700; }
+body.dark-mode .pi-dupes { background: rgba(251,191,36,.12); color: #fde68a; }
+body.dark-mode .pi-tab.is-active { background: #e2e8f0; color: #0f172a; }

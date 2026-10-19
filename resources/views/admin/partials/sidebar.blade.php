@@ -131,6 +131,29 @@
         ],
     ];
 
+    // One-word Bangla menu names (the English name is kept in data-label so search still matches it).
+    $bn = [
+        'Dashboard' => 'ড্যাশবোর্ড', 'Catalog' => 'ক্যাটালগ', 'Books' => 'বই', 'Electronics' => 'ইলেকট্রনিক্স',
+        'Stationery' => 'স্টেশনারি', 'Appliances' => 'যন্ত্রপাতি', 'Bundles' => 'প্যাকেজ', 'Categories' => 'বিভাগ',
+        'Authors' => 'লেখক', 'Publishers' => 'প্রকাশক', 'Ebooks' => 'ই-বুক', 'Titles' => 'শিরোনাম', 'Club' => 'ক্লাব',
+        'Reports' => 'প্রতিবেদন', 'Royalties' => 'রয়্যালটি', 'Payouts' => 'উত্তোলন', 'Logs' => 'লগ',
+        'Purchases' => 'ক্রয়', 'Payments' => 'পরিশোধ', 'Ledgers' => 'খতিয়ান', 'Monthly' => 'মাসিক', 'Items' => 'পণ্য',
+        'Production' => 'উৎপাদন', 'Stock' => 'মজুদ', 'Locations' => 'অবস্থান', 'Transfers' => 'স্থানান্তর',
+        'Wastage' => 'অপচয়', 'Alerts' => 'সতর্কতা', 'Movements' => 'চলাচল',
+        'Accounting' => 'হিসাব', 'Transactions' => 'লেনদেন', 'Invoices' => 'চালান', 'Quotations' => 'কোটেশন',
+        'Ledger' => 'বহি', 'Tax' => 'কর', 'Payroll' => 'বেতন', 'Employees' => 'কর্মী',
+        'Content' => 'কনটেন্ট', 'Blog' => 'ব্লগ', 'Honorariums' => 'সম্মানী', 'Webzines' => 'ওয়েবজিন',
+        'Sales' => 'বিক্রয়', 'POS' => 'কাউন্টার', 'Orders' => 'অর্ডার', 'Affiliates' => 'অ্যাফিলিয়েট', 'Receipts' => 'রসিদ',
+        'Gateways' => 'গেটওয়ে', 'SMS' => 'এসএমএস', 'Bills' => 'বিল', 'Requests' => 'অনুরোধ',
+        'Users' => 'ব্যবহারকারী', 'Sellers' => 'বিক্রেতা', 'Customers' => 'গ্রাহক', 'Approvals' => 'অনুমোদন',
+        'Security' => 'নিরাপত্তা', 'Staff' => 'কর্মকর্তা', 'Campaigns' => 'ক্যাম্পেইন', 'Libraries' => 'গ্রন্থাগার', 'Tickets' => 'টিকিট',
+        'System' => 'সিস্টেম', 'SEO' => 'এসইও', 'Currencies' => 'মুদ্রা', 'Translations' => 'অনুবাদ', 'Communication' => 'যোগাযোগ',
+        'Roles' => 'ভূমিকা', 'Visitors' => 'দর্শক', 'Settings' => 'সেটিংস', 'Cache' => 'ক্যাশ', 'Media' => 'মিডিয়া',
+        'Backup' => 'ব্যাকআপ', 'Audit' => 'নিরীক্ষা', 'Seller' => 'বিক্রেতা', 'New' => 'নতুন', 'Accounts' => 'হিসাব',
+        'Website' => 'ওয়েবসাইট',
+    ];
+    $t = fn ($s) => $bn[$s] ?? $s;
+
     $routePermissions = [
         'admin.books' => 'catalog.view',
         'admin.bundles.index' => 'catalog.view',
@@ -302,7 +325,7 @@
                 @if ($group)
                     <div class="adm-nav__group {{ $groupHasActive ? 'is-active-group' : '' }}" data-group-id="{{ $groupId }}">
                         <div class="adm-nav__group-header" onclick="toggleNavGroup('{{ $groupId }}')">
-                            <span>{{ $group }}</span>
+                            <span>{{ $t($group) }}</span>
                             <i class="fa-solid fa-chevron-down adm-nav__group-chevron"></i>
                         </div>
                         <div class="adm-nav__group-items" id="{{ $groupId }}">
@@ -326,12 +349,12 @@
                                 @endphp
                                 <a href="{{ $href }}"
                                    class="adm-nav__link {{ $active ? 'is-active' : '' }}"
-                                   data-label="{{ strtolower($item['label'] . ' ' . $group) }}"
-                                   data-tooltip="{{ $item['label'] }}"
+                                   data-label="{{ strtolower($item['label'] . ' ' . $group . ' ' . $t($item['label']) . ' ' . $t($group)) }}"
+                                   data-tooltip="{{ $t($item['label']) }}"
                                    @isset($item['target']) target="{{ $item['target'] }}" rel="noopener" @endisset
                                    @if ($active) id="activeNavItem" aria-current="page" @endif>
                                     <i class="fa-solid fa-{{ $item['icon'] }}"></i>
-                                    <span class="adm-nav__text">{{ $item['label'] }}</span>
+                                    <span class="adm-nav__text">{{ $t($item['label']) }}</span>
                                     @if (! empty($item['badge']))
                                         <span class="badge {{ $item['badgeClass'] ?? 'bg-primary' }}">{{ $item['badge'] }}</span>
                                     @endif
@@ -348,11 +371,11 @@
                         @endphp
                         <a href="{{ $href }}"
                            class="adm-nav__link {{ $active ? 'is-active' : '' }}"
-                           data-label="{{ strtolower($item['label']) }}"
-                           data-tooltip="{{ $item['label'] }}"
+                           data-label="{{ strtolower($item['label'] . ' ' . $t($item['label'])) }}"
+                           data-tooltip="{{ $t($item['label']) }}"
                            @if ($active) id="activeNavItem" aria-current="page" @endif>
                             <i class="fa-solid fa-{{ $item['icon'] }}"></i>
-                            <span class="adm-nav__text">{{ $item['label'] }}</span>
+                            <span class="adm-nav__text">{{ $t($item['label']) }}</span>
                         </a>
                     @endforeach
                 @endif

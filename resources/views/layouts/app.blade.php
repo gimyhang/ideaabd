@@ -288,6 +288,12 @@
         html, body, input, select, textarea, .form-control, .form-select, p, h1, h2, h3, h4, h5, h6, label {
             font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
+        /* Kalpurush everywhere: links, menus, spans, lists, tables, dropdowns (icons and code keep their own faces) */
+        html { font-size: 19px; } /* +3px over the 16px default: every rem-based size grows with it */
+        :root { --bs-body-font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', sans-serif; }
+        body *:not(i):not([class*="fa-"]):not(.fa):not(code):not(pre):not(kbd):not(samp):not(svg):not(svg *) {
+            font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
         button, .btn, .badge, .alert {
             font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', 'Hind Siliguri', 'Noto Sans Bengali', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
@@ -322,7 +328,7 @@
         }
         
         body {
-            font-size: 13px;
+            font-size: 16px;
             line-height: 1.6;
             background-color: #f8fafb;
             color: #1e293b;

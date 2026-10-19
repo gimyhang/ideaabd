@@ -438,6 +438,7 @@
                 watermarkText: @json($watermarkText)
             });
 
+            window.ideaReader = reader;
             reader.start();
         });
     </script>
@@ -445,40 +446,73 @@
     @include('partials.audiobook-dock')
     <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Audiobook for the open book: reads only the text rendered inside the book (EPUB pages / PDF text layer),
+        // continues chapter by chapter, and never falls back to site or catalogue text.
+        document.addEventListener('DOMContentLoaded', function () {
             const btnAudio = document.getElementById('btn-toggle-audiobook');
-            if (btnAudio) {
-                btnAudio.addEventListener('click', function() {
-                    const sel = window.getSelection()?.toString()?.trim();
-                    if (sel && sel.length > 0) {
-                        if (window.IdeaAudiobook) IdeaAudiobook.speakSelectedText();
-                        return;
-                    }
+            if (!btnAudio) return;
+            const A = () => window.IdeaAudiobook;
+            const BLOCKS = 'p, blockquote, li, h1, h2, h3, h4, h5, h6';
 
-                    let readerText = '';
-                    const iframe = document.querySelector('#epub-viewer-wrapper iframe');
-                    if (iframe && iframe.contentDocument) {
-                        readerText = iframe.contentDocument.body?.innerText || '';
-                    } else {
-                        const pdfTextLayer = document.querySelector('.textLayer');
-                        if (pdfTextLayer) {
-                            readerText = pdfTextLayer.innerText || '';
-                        }
-                    }
-
-                    const bookTitle = @js($ebook->title);
-                    if (readerText && readerText.trim().length > 20) {
-                        if (window.IdeaAudiobook) {
-                            IdeaAudiobook.startArticle(bookTitle, readerText, location.href);
-                        }
-                    } else {
-                        if (window.IdeaAudiobook) {
-                            const desc = @js($ebook->description ?: ($ebook->title . ' — লেখক: ' . ($ebook->author?->name ?: ($ebook->author_name ?: 'আইডিয়া প্রকাশন')) . '।'));
-                            IdeaAudiobook.startArticle(bookTitle, desc + '\nযেকোনো অনুচ্ছেদ বা লাইন সিলেক্ট করেও সাথে সাথে শুনতে পারবেন।', location.href);
-                        }
-                    }
-                });
+            // The document inside the book frame (null for PDF or before the book has rendered).
+            function bookDoc() {
+                const frame = document.querySelector('#epub-viewer iframe');
+                try { return frame && frame.contentDocument && frame.contentDocument.body ? frame.contentDocument : null; } catch (e) { return null; }
             }
+
+            function bookSelection() {
+                const doc = bookDoc();
+                const sel = doc && doc.defaultView ? doc.defaultView.getSelection() : null;
+                return sel ? sel.toString().trim() : '';
+            }
+
+            // Text of the current chapter, block by block, without scripts, images, watermark or controls.
+            function chapterText() {
+                const doc = bookDoc();
+                if (doc) {
+                    const parts = [];
+                    doc.body.querySelectorAll(BLOCKS).forEach(function (n) {
+                        if (n.querySelector(BLOCKS)) return;
+                        const t = A().speakableText(n);
+                        if (t) parts.push(t);
+                    });
+                    return parts.length ? parts.join('। ') : A().speakableText(doc.body);
+                }
+                const layer = document.querySelector('#pdf-viewer-wrapper .textLayer');
+                return layer ? (layer.innerText || '') : '';
+            }
+
+            // After a chapter ends, open the next one in the book and keep reading.
+            function continueToNextChapter() {
+                const reader = window.ideaReader;
+                if (!reader || !reader.rendition || !reader.book) return;
+                try {
+                    const loc = reader.rendition.currentLocation();
+                    const section = loc && loc.start ? reader.book.spine.get(loc.start.cfi) : null;
+                    const next = section ? section.next() : null;
+                    if (!next) { A().showToast('বইয়ের শেষ পর্যন্ত পাঠ সম্পন্ন হয়েছে।', 'fa-solid fa-circle-check text-success'); return; }
+                    reader.rendition.once('rendered', function () { setTimeout(startReading, 500); });
+                    reader.rendition.display(next.href);
+                } catch (e) { /* stay stopped */ }
+            }
+
+            function startReading() {
+                const text = chapterText();
+                if (!text || text.trim().length < 20) {
+                    A().showToast('বইয়ের লেখা এখনো লোড হয়নি। একটু পর আবার চেষ্টা করুন।', 'fa-solid fa-triangle-exclamation text-warning');
+                    return;
+                }
+                A().startText(text, null, continueToNextChapter);
+            }
+
+            btnAudio.addEventListener('click', function () {
+                if (!A()) return;
+                if (A().isSpeaking) { A().stop(true); return; }
+
+                const picked = bookSelection();
+                if (picked) { A().startText(picked); return; }
+                startReading();
+            });
         });
     </script>
 </body>

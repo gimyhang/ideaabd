@@ -65,8 +65,9 @@
     </div>
 </div>
 
-<form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm">
+<form action="{{ route('admin.accounting.invoices.store') }}" method="POST" id="invoiceForm" data-number-url="{{ route('admin.accounting.invoices.next-number') }}">
     @csrf
+    <input type="hidden" name="auto_number" id="autoInvoiceNumber" value="1">
 
     {{-- Document & Customer Details (Full Width) --}}
     <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
@@ -132,7 +133,7 @@
                             <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-heading"></i></span>
                             <input type="text" name="subject" id="f-subject" class="form-control form-control-sm bg-white border-start-0" 
                                    placeholder="e.g. Book Sales / Printing & Publishing Services..." 
-                                   value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : ($currentType === 'quotation' ? 'Price Quotation for Book Printing & Publication' : '')) }}">
+                                       value="{{ old('subject', $currentType === 'tender' ? 'Tender for Supply of Books, Publications & Stationery' : ($currentType === 'quotation' ? ($invoiceSettings['quotation_default_subject'] ?? 'Price Quotation for Book Printing & Publication') : '')) }}">
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -230,7 +231,7 @@
                 </div>
                 <div class="col-md-3" id="validUntilCol">
                     <label class="form-label fw-semibold">Validity / Expiry Date</label>
-                    <input type="date" name="valid_until" id="validUntilInput" class="form-control" value="{{ old('valid_until') }}" title="Validity date for quotation or tender">
+                    <input type="date" name="valid_until" id="validUntilInput" class="form-control" value="{{ old('valid_until', $selectedType === 'quotation' ? now()->addDays((int)($invoiceSettings['quotation_default_validity_days'] ?? 30))->toDateString() : '') }}" title="Validity date for quotation or tender">
                 </div>
                 <div class="col-md-8">
                     <label class="form-label small fw-semibold text-muted">Full Address / Shipping Destination</label>
@@ -242,6 +243,7 @@
                 <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted">Document / Invoice Number <span class="text-danger">*</span></label>
                     <input type="text" name="invoice_no" id="invoiceNoInput" class="form-control form-control-sm font-monospace fw-bold" value="{{ old('invoice_no', $suggestedNo) }}" required>
+                    <small class="text-danger" id="invoiceNumberError" role="status"></small>
                 </div>
 
                 {{-- Live Client Autocomplete Dropdown Menu --}}
@@ -501,13 +503,13 @@
                                 </select>
                             </div>
                         </div>
-                        <textarea name="terms_conditions" id="termsConditionsInput" rows="4" class="form-control rounded-3 font-monospace small" placeholder="Enter terms & conditions or select from preset template above...">{{ old('terms_conditions', $invoiceSettings['terms_and_conditions'] ?? '') }}</textarea>
+                        <textarea name="terms_conditions" id="termsConditionsInput" rows="4" class="form-control rounded-3 font-monospace small" placeholder="Enter terms & conditions or select from preset template above...">{{ old('terms_conditions', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_terms'] ?? '') : ($invoiceSettings['terms_and_conditions'] ?? '')) }}</textarea>
                     </div>
                     <div>
                         <label class="form-label small fw-bold text-muted mb-1">
                             <i class="fa-solid fa-comment-dots me-1 text-warning"></i>Special Notes / Remarks (Will print on document)
                         </label>
-                        <textarea name="notes" rows="3" class="form-control rounded-3 small" placeholder="e.g. Dispatched via courier or delivery terms...">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="3" class="form-control rounded-3 small" placeholder="e.g. Dispatched via courier or delivery terms...">{{ old('notes', $currentType === 'quotation' ? ($invoiceSettings['quotation_default_notes'] ?? '') : '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -2214,6 +2216,46 @@
         calcTotals();
         const activeSalesCat = document.getElementById('salesCategorySelect')?.value || 'books';
         toggleSalesCategory(activeSalesCat);
+
+        const numberInput = document.getElementById('invoiceNoInput');
+        const numberError = document.getElementById('invoiceNumberError');
+        let numberIsManual = false;
+        let numberRequest = 0;
+        const refreshNumber = () => {
+            if (numberIsManual) return;
+            const requestId = ++numberRequest;
+            const type = document.querySelector('input[name="type"]:checked')?.value || 'invoice';
+            const category = document.getElementById('salesCategorySelect')?.value || 'books';
+            const url = new URL(document.getElementById('invoiceForm').dataset.numberUrl, window.location.origin);
+            url.searchParams.set('type', type);
+            url.searchParams.set('sales_category', category);
+            fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Could not generate a document number.');
+                    return response.json();
+                })
+                .then(result => {
+                    if (requestId !== numberRequest || numberIsManual) return;
+                    numberInput.value = result.invoice_no;
+                    autoNumberInput.value = '1';
+                    numberError.textContent = '';
+                })
+                .catch(error => {
+                    if (requestId === numberRequest) numberError.textContent = error.message;
+                });
+        };
+        const autoNumberInput = document.getElementById('autoInvoiceNumber');
+        numberInput.addEventListener('input', () => {
+            numberIsManual = true;
+            autoNumberInput.value = '0';
+        });
+        document.querySelectorAll('input[name="type"]').forEach(radio => radio.addEventListener('change', () => {
+            refreshNumber();
+        }));
+        document.getElementById('salesCategorySelect')?.addEventListener('change', () => {
+            refreshNumber();
+        });
+        refreshNumber();
 
         const form = document.getElementById('invoiceForm');
         if (form) {

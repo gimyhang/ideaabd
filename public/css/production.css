@@ -38,3 +38,13 @@
     .pd-filter .form-control, .pd-filter .form-select { max-width: none; flex-basis: 100%; }
 }
 body.dark-mode .pd-list button:hover, body.dark-mode .pd-list button:focus { background: rgba(59, 130, 246, .15); }
+
+.pd-livebar { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-bottom: .75rem; font-size: .85rem; color: #64748b; }
+.pd-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: pd-pulse 1.6s infinite; }
+@keyframes pd-pulse { 50% { opacity: .3; } }
+.pd-cat td { background: rgba(100,116,139,.12); padding-top: .4rem; padding-bottom: .4rem; }
+.pd-bar { display: flex; height: 4px; margin-top: .35rem; border-radius: 4px; overflow: hidden; background: rgba(100,116,139,.18); max-width: 220px; }
+.pd-bar i { display: block; height: 100%; }
+.pd-bar .is-rec { background: #16a34a; }
+.pd-bar .is-bnd { background: #8b5cf6; }
+.pd-bar .is-prt { background: #3b82f6; }

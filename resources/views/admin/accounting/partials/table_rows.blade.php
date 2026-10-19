@@ -90,7 +90,11 @@
 
         {{-- 6. Paid (৳) --}}
         <td class="py-3.5 px-3 text-end font-monospace fw-bold text-success" style="width: 115px;" id="paid-{{ $item->global_id }}">
-            <span class="currency-symbol">৳</span>{{ number_format($item->paid_amount, 2) }}
+            @if($item->proposal_status)
+                <span class="text-muted small">—</span>
+            @else
+                <span class="currency-symbol">৳</span>{{ number_format($item->paid_amount, 2) }}
+            @endif
         </td>
 
         {{-- 7. Due (৳) --}}
@@ -104,7 +108,27 @@
 
         {{-- 8. Payment Status & Method --}}
         <td class="py-3.5 px-3 text-center" style="width: 130px;" id="status-{{ $item->global_id }}">
-            @if($isPaid)
+            @if($item->proposal_status)
+                @php
+                    $proposalBadge = match($item->proposal_status) {
+                        'sent' => 'bg-primary-subtle text-primary border-primary-subtle',
+                        'accepted' => 'bg-success-subtle text-success border-success-subtle',
+                        'rejected' => 'bg-danger-subtle text-danger border-danger-subtle',
+                        'expired' => 'bg-secondary-subtle text-secondary border-secondary-subtle',
+                        'converted' => 'bg-info-subtle text-info border-info-subtle',
+                        default => 'bg-light text-dark border-secondary-subtle',
+                    };
+                    $proposalLabel = match($item->proposal_status) {
+                        'sent' => 'Sent',
+                        'accepted' => 'Accepted',
+                        'rejected' => 'Rejected',
+                        'expired' => 'Expired',
+                        'converted' => 'Converted',
+                        default => 'Draft',
+                    };
+                @endphp
+                <span class="badge {{ $proposalBadge }} border rounded-pill px-2.5 py-1">{{ $proposalLabel }}</span>
+            @elseif($isPaid)
                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="border: 1px solid #bbf7d0 !important;">
                     <i class="fa-solid fa-circle-check me-1"></i>Paid
                 </span>
@@ -129,16 +153,16 @@
                     default => ($item->payment_method ?: 'Cash'),
                 };
             @endphp
-            <div class="small text-muted mt-1 font-monospace" style="font-size: 11px;">
-                {{ $methodEn }}
-            </div>
+            @unless($item->proposal_status)
+                <div class="small text-muted mt-1 font-monospace" style="font-size: 11px;">{{ $methodEn }}</div>
+            @endunless
         </td>
 
         {{-- 9. Actions --}}
         <td class="py-3.5 pe-4 text-center" style="width: 140px;">
             <div class="btn-group btn-group-sm rounded-pill p-0.5 bg-light border shadow-2xs" style="border: 1px solid #e2e8f0 !important;">
                 {{-- Quick Pay Trigger (if due > 0) --}}
-                @if($hasDue && ($item->channel === 'institutional' || $item->channel === 'offline_bill' || $item->channel === 'online'))
+                @if($hasDue && !$item->proposal_status && ($item->channel === 'institutional' || $item->channel === 'offline_bill' || $item->channel === 'online'))
                     @php
                         $targetType = ($item->channel === 'offline_bill') ? 'bill' : (($item->channel === 'online') ? 'order' : 'invoice');
                     @endphp

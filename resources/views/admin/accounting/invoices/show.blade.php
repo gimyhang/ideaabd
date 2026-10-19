@@ -65,6 +65,34 @@
 
 @section('actions')
     <div class="d-flex flex-wrap gap-2">
+        @if(in_array($invoice->type, ['quotation', 'tender']))
+            @php
+                $proposalStatus = $invoice->effective_proposal_status;
+                $proposalStatusBadge = match($proposalStatus) {
+                    'sent' => 'bg-primary-subtle text-primary',
+                    'accepted' => 'bg-success-subtle text-success',
+                    'rejected' => 'bg-danger-subtle text-danger',
+                    'expired' => 'bg-secondary-subtle text-secondary',
+                    default => 'bg-light text-dark',
+                };
+            @endphp
+            <span class="badge {{ $proposalStatusBadge }} rounded-pill align-self-center px-3 py-2">{{ $invoice->proposal_status_label }}</span>
+            @if($proposalStatus !== 'expired')
+                <form action="{{ route('admin.accounting.invoices.proposal-status', $invoice) }}" method="POST" class="d-inline-flex gap-1">
+                    @csrf
+                    @method('PATCH')
+                    <select name="proposal_status" class="form-select form-select-sm" aria-label="Quotation status">
+                        @foreach(['draft' => 'Draft', 'sent' => 'Sent', 'accepted' => 'Accepted', 'rejected' => 'Rejected'] as $status => $label)
+                            <option value="{{ $status }}" @selected($invoice->proposal_status === $status)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Update status</button>
+                </form>
+            @endif
+        @elseif($invoice->proposal_status === 'converted')
+            <span class="badge bg-info-subtle text-info rounded-pill align-self-center px-3 py-2">Converted from proposal</span>
+        @endif
+
         {{-- Collect Installment Payment Button --}}
         @if(in_array($invoice->type, ['invoice', 'challan']) && $invoice->due_amount > 0)
             <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#recordInvoicePaymentModal">

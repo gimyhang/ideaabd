@@ -15,6 +15,7 @@ use Modules\Inventory\Http\Controllers\Admin\InventoryAdminController;
 Route::prefix('admin/inventory')->name('admin.inventory.')->middleware(['web', 'auth', 'role:admin'])->group(function () {
     Route::get('/', [InventoryAdminController::class, 'overview'])->name('index');
     Route::get('books', [InventoryAdminController::class, 'searchBooks'])->name('books');
+    Route::get('export', [InventoryAdminController::class, 'export'])->name('export');
     Route::post('stock-in', [InventoryAdminController::class, 'stockIn'])->name('stock-in');
     Route::post('opening-balance', [InventoryAdminController::class, 'openingBalance'])->name('opening-balance');
 

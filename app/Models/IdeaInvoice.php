@@ -15,6 +15,7 @@ class IdeaInvoice extends Model
         'invoice_no',
         'access_token',
         'type',
+        'proposal_status',
         'sales_category',
         'subject',
         'reference_no',
@@ -171,6 +172,32 @@ class IdeaInvoice extends Model
         };
     }
 
+    public function getEffectiveProposalStatusAttribute(): ?string
+    {
+        if (!in_array($this->type, ['quotation', 'tender'], true)) {
+            return $this->proposal_status;
+        }
+
+        $status = $this->proposal_status ?: 'draft';
+        if (in_array($status, ['draft', 'sent'], true) && $this->valid_until?->isBefore(today())) {
+            return 'expired';
+        }
+
+        return $status;
+    }
+
+    public function getProposalStatusLabelAttribute(): string
+    {
+        return match ($this->effective_proposal_status) {
+            'sent' => 'Sent',
+            'accepted' => 'Accepted',
+            'rejected' => 'Rejected',
+            'expired' => 'Expired',
+            'converted' => 'Converted',
+            default => 'Draft',
+        };
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -271,6 +298,47 @@ class IdeaInvoice extends Model
         } while (static::withTrashed()->where('invoice_no', $candidate)->exists());
 
         return $candidate;
+    }
+
+    public static function reserveNextNumber(string $type = 'invoice', string $category = 'books'): string
+    {
+        $base = self::numberPrefix($type, $category) . now()->format('Ymd') . '-';
+        $key = substr($base, 0, 80);
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($base, $key) {
+            \Illuminate\Support\Facades\DB::table('idea_invoice_number_sequences')->insertOrIgnore([
+                'sequence_key' => $key,
+                'last_number' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $sequence = \Illuminate\Support\Facades\DB::table('idea_invoice_number_sequences')
+                ->where('sequence_key', $key)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$sequence) {
+                throw new \RuntimeException('Could not reserve a document number sequence.');
+            }
+
+            $existingMax = static::withTrashed()
+                ->where('invoice_no', 'like', $base . '%')
+                ->pluck('invoice_no')
+                ->map(fn ($no) => (int) substr((string) $no, strlen($base)))
+                ->max() ?? 0;
+            $next = max((int) $sequence->last_number, $existingMax) + 1;
+
+            do {
+                $candidate = $base . str_pad((string) $next++, 3, '0', STR_PAD_LEFT);
+            } while (static::withTrashed()->where('invoice_no', $candidate)->exists());
+
+            \Illuminate\Support\Facades\DB::table('idea_invoice_number_sequences')
+                ->where('sequence_key', $key)
+                ->update(['last_number' => $next - 1, 'updated_at' => now()]);
+
+            return $candidate;
+        });
     }
 
     public function incomeCategory(): string

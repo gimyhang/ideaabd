@@ -33,7 +33,30 @@
         ['Low', $stats['low'], $stats['low'] > 0 ? 'is-bad' : ''],
         ['Pending', $stats['transit'], ''],
     ];
+    $sortUrl = fn ($col) => request()->fullUrlWithQuery(['sort' => $col, 'dir' => request('sort') === $col && request('dir') !== 'desc' ? 'desc' : 'asc', 'page' => null]);
 @endphp
+
+<div class="iv-livebar" id="ivLiveBar"><span class="iv-dot"></span> Live · <span id="ivUpdated">now</span> · auto-refresh 30s</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="iv-filter" id="ivFilter" data-export="{{ route('admin.inventory.export') }}">
+            <input type="search" name="q" value="{{ $search }}" class="form-control" placeholder="Title / Author / ISBN / SKU" aria-label="Search">
+            <select name="category_id" class="form-select" aria-label="Category">
+                <option value="">All categories</option>
+                @foreach ($categories as $c)<option value="{{ $c->id }}" @selected(request('category_id') == $c->id)>{{ $c->name }}</option>@endforeach
+            </select>
+            <label class="iv-check"><input type="checkbox" name="unallocated" value="1" @checked(request()->boolean('unallocated'))> Unallocated</label>
+            <label class="iv-check"><input type="checkbox" name="low" value="1" @checked(request()->boolean('low'))> Low</label>
+            <label class="iv-check"><input type="checkbox" name="empty" value="1" @checked(request()->boolean('empty'))> Out of stock</label>
+            <button class="btn btn-primary btn-sm">Search</button>
+            <a href="{{ route('admin.inventory.index') }}" class="btn btn-light btn-sm">Reset</a>
+            <a href="{{ route('admin.inventory.export', request()->query()) }}" class="btn btn-outline-secondary btn-sm" id="ivExport">CSV</a>
+        </form>
+    </div>
+</div>
+
+<div id="ivLive">
 <div class="row g-3 mb-4">
     @foreach ($kpis as $kpi)
         <div class="col-6 col-md-4 col-xl-2">
@@ -43,27 +66,20 @@
 </div>
 
 <div class="card">
-    <div class="card-body">
-        <form method="GET" class="iv-filter">
-            <input type="search" name="q" value="{{ $search }}" class="form-control" aria-label="Search">
-            <label class="iv-check"><input type="checkbox" name="unallocated" value="1" @checked(request()->boolean('unallocated')) onchange="this.form.submit()"> Unallocated</label>
-            <button class="btn btn-primary btn-sm">Search</button>
-            @if ($search !== '' || request()->boolean('unallocated'))<a href="{{ route('admin.inventory.index') }}" class="btn btn-light btn-sm">Reset</a>@endif
-        </form>
-    </div>
-
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
-                    <th>Book</th>
-                    <th class="text-end">Catalogue</th>
+                    <th><a href="{{ $sortUrl('title') }}" class="iv-sort">Book</a></th>
+                    <th class="text-end"><a href="{{ $sortUrl('stock_quantity') }}" class="iv-sort">Catalogue</a></th>
                     @foreach ($locations as $loc)<th class="text-end" title="{{ $loc->name }}">{{ $loc->code }}</th>@endforeach
                     <th class="text-end">Unallocated</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($books as $book)
+                @forelse ($books->groupBy(fn ($b) => $b->category?->name ?: 'Uncategorized') as $cat => $group)
+                    <tr class="iv-cat"><td colspan="{{ 3 + $locations->count() }}"><strong>{{ $cat }}</strong> <span class="small text-muted">{{ $group->count() }} · {{ number_format($group->sum('stock_quantity')) }}</span></td></tr>
+                    @foreach ($group as $book)
                     @php
                         $byLoc = $book->inventories->keyBy('location_id');
                         $free = (int) $book->stock_quantity - (int) ($book->located_qty ?? 0);
@@ -71,7 +87,7 @@
                     <tr>
                         <td>
                             <div class="fw-semibold">{{ $book->title }}</div>
-                            @if ($book->isbn)<div class="small text-muted">{{ $book->isbn }}</div>@endif
+                            <div class="small text-muted">{{ $book->author_name }}@if ($book->isbn) · {{ $book->isbn }}@endif</div>
                         </td>
                         <td class="text-end fw-bold">{{ number_format($book->stock_quantity) }}</td>
                         @foreach ($locations as $loc)
@@ -88,6 +104,7 @@
                             @if ($free !== 0)<span class="badge {{ $free > 0 ? 'bg-warning-subtle text-warning-emphasis' : 'bg-danger-subtle text-danger' }}">{{ $free > 0 ? '+' : '' }}{{ number_format($free) }}</span>@else<span class="text-muted">0</span>@endif
                         </td>
                     </tr>
+                    @endforeach
                 @empty
                     <tr><td colspan="{{ 3 + $locations->count() }}" class="text-center text-muted py-5">No books</td></tr>
                 @endforelse
@@ -95,6 +112,7 @@
         </table>
     </div>
     @if ($books->hasPages())<div class="card-footer">{{ $books->links() }}</div>@endif
+</div>
 </div>
 
 <div class="modal fade" id="stockInModal" tabindex="-1" aria-hidden="true">

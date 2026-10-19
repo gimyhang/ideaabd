@@ -71,3 +71,11 @@
 body.dark-mode .iv-pick-item:hover, body.dark-mode .iv-pick-item:focus { background: rgba(59, 130, 246, .15); }
 body.dark-mode .iv-qty { background: rgba(16, 185, 129, .15); color: #6ee7b7; }
 body.dark-mode .iv-qty.is-low { background: rgba(244, 63, 94, .15); color: #fda4af; }
+
+.iv-livebar { display: flex; align-items: center; gap: .4rem; margin-bottom: .75rem; font-size: .85rem; color: #64748b; }
+.iv-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; animation: iv-pulse 1.6s infinite; }
+@keyframes iv-pulse { 50% { opacity: .3; } }
+.iv-cat td { background: rgba(100, 116, 139, .12); padding-top: .4rem; padding-bottom: .4rem; }
+.iv-sort { color: inherit; text-decoration: none; }
+.iv-sort:hover { text-decoration: underline; }
+#ivLive.is-loading { opacity: .55; transition: opacity .15s; }

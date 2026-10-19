@@ -72,6 +72,17 @@ class InventoryAdminTest extends TestCase
             ->assertSee(route('admin.inventory.transfers'), false);
     }
 
+    public function test_stock_grid_filters_and_csv_export(): void
+    {
+        $admin = $this->admin();
+        $this->actingAs($admin)
+            ->get(route('admin.inventory.index', ['q' => 'zzz-none', 'low' => 1, 'empty' => 1, 'sort' => 'stock_quantity', 'dir' => 'desc']))
+            ->assertOk()->assertSee('ivLive', false)->assertSee('No books');
+
+        $this->actingAs($admin)->get(route('admin.inventory.export'))
+            ->assertOk()->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    }
+
     public function test_opening_balance_allocates_catalogue_stock_once(): void
     {
         $book = $this->book(12);

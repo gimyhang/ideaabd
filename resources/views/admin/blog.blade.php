@@ -122,19 +122,19 @@
 
 @section('actions')
     <button type="button" class="btn btn-primary rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-        <i class="fa-solid fa-palette me-1.5"></i> Design Customizer
+        <i class="fa-solid fa-palette me-1.5"></i> Design
     </button>
     <button type="button" class="btn btn-outline-success rounded-pill px-3 shadow-xs fw-semibold" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-        <i class="fa-solid fa-wand-magic-sparkles me-1.5"></i> Typography Engine
+        <i class="fa-solid fa-wand-magic-sparkles me-1.5"></i> Typography
     </button>
     <a href="{{ route('admin.blog-categories') }}" class="btn btn-outline-secondary rounded-pill px-3 shadow-xs">
         <i class="fa-solid fa-shapes me-1"></i> Categories
     </a>
     <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-dark rounded-pill px-3 shadow-xs fw-semibold">
-        <i class="fa-solid fa-plus me-1"></i> New Post
+        <i class="fa-solid fa-plus me-1"></i> Create
     </a>
     <a href="{{ route('blog.index') }}" target="_blank" rel="noopener" class="btn btn-outline-primary rounded-pill px-3 shadow-xs">
-        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Blog
+        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Visit
     </a>
 @endsection
 
@@ -168,14 +168,14 @@
                     <div class="banner-thumb-box shadow">
                         <img src="{{ $blogOgBannerUrl }}" alt="Active Ideapatra Banner" id="heroBannerThumb">
                         <div class="position-absolute bottom-0 start-0 end-0 p-1.5 text-center bg-dark bg-opacity-75" style="font-size: 10px; backdrop-filter: blur(4px);">
-                            <i class="fa-solid fa-share-nodes text-warning me-1"></i> Social & Blog Banner
+                            <i class="fa-solid fa-share-nodes text-warning me-1"></i> Banner
                         </div>
                     </div>
                 </div>
                 <div class="mt-2">
                     <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 py-1 fw-bold text-dark shadow-xs" 
                             data-bs-toggle="modal" data-bs-target="#blogCustomizerModal" onclick="switchToBannerTab()">
-                        <i class="fa-solid fa-crop-simple me-1"></i> Change Banner
+                        <i class="fa-solid fa-crop-simple me-1"></i> Banner
                     </button>
                 </div>
             </div>
@@ -185,12 +185,6 @@
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">
                         {{ $blogSettings['hero_badge'] ?? 'Literature, Culture, Research & Free Thought' }}
-                    </span>
-                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
-                        <i class="fa-solid fa-font me-1 text-warning"></i> Font: {{ explode(',', $blogSettings['font_family'] ?? '')[0] ?? 'Hind Siliguri' }}
-                    </span>
-                    <span class="badge bg-white bg-opacity-10 text-white rounded-pill px-2.5 py-1">
-                        <i class="fa-solid fa-arrows-up-down me-1 text-info"></i> Line Spacing: {{ $blogSettings['line_height'] ?? '1.6' }}
                     </span>
                 </div>
 
@@ -204,13 +198,13 @@
                 <!-- Quick Action Pills -->
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#blogCustomizerModal">
-                        <i class="fa-solid fa-palette text-warning me-1"></i> Change Design
+                        <i class="fa-solid fa-palette text-warning me-1"></i> Design
                     </button>
                     <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#bulkTypographyModal">
-                        <i class="fa-solid fa-wand-magic-sparkles text-success me-1"></i> Format Typography
+                        <i class="fa-solid fa-wand-magic-sparkles text-success me-1"></i> Format
                     </button>
                     <a href="{{ route('blog.index') }}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live Ideapatra
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live
                     </a>
                 </div>
             </div>
@@ -219,7 +213,7 @@
             <div class="col-lg-3 text-center text-lg-end">
                 <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 d-inline-block text-start" style="min-width: 200px;">
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
-                        <span class="small text-white-50">Total Posts:</span>
+                        <span class="small text-white-50">Total:</span>
                         <span class="fw-bold fs-6 text-white">{{ number_format($stats['total'] ?? 0) }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-1.5">
@@ -247,7 +241,7 @@
         <a href="{{ route('admin.blog') }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">Total Posts</span>
+                    <span class="text-muted small fw-semibold">Total</span>
                     <h3 class="fw-bold mb-0 text-primary">{{ number_format($stats['total'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-primary-subtle text-primary p-3"><i class="fa-solid fa-blog fs-4"></i></div>
@@ -258,7 +252,7 @@
         <a href="{{ route('admin.blog', ['status' => 'published']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">Published (Approved)</span>
+                    <span class="text-muted small fw-semibold">Published</span>
                     <h3 class="fw-bold mb-0 text-success">{{ number_format($stats['published'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-success-subtle text-success p-3"><i class="fa-solid fa-check-double fs-4"></i></div>
@@ -269,7 +263,7 @@
         <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">Pending Review</span>
+                    <span class="text-muted small fw-semibold">Pending</span>
                     <h3 class="fw-bold mb-0 text-warning">{{ number_format($stats['pending'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-warning-subtle text-warning p-3"><i class="fa-solid fa-clock fs-4"></i></div>
@@ -280,7 +274,7 @@
         <a href="{{ route('admin.blog', ['status' => 'hold']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-secondary text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">Hold (অপ্রকাশযোগ্য)</span>
+                    <span class="text-muted small fw-semibold">Hold</span>
                     <h3 class="fw-bold mb-0 text-secondary">{{ number_format($stats['hold'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-secondary-subtle text-secondary p-3"><i class="fa-solid fa-pause-circle fs-4"></i></div>
@@ -291,7 +285,7 @@
         <a href="{{ route('admin.blog', ['status' => 'featured']) }}" class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info text-decoration-none hover-lift h-100">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <span class="text-muted small fw-semibold">Featured Posts</span>
+                    <span class="text-muted small fw-semibold">Featured</span>
                     <h3 class="fw-bold mb-0 text-info">{{ number_format($stats['featured'] ?? 0) }}</h3>
                 </div>
                 <div class="rounded-circle bg-info-subtle text-info p-3"><i class="fa-solid fa-star fs-4 text-warning"></i></div>
@@ -393,10 +387,10 @@
         @if ($posts->isEmpty())
             <div class="empty-state py-5 text-center">
                 <i class="fa-solid fa-newspaper fs-1 text-muted opacity-50 mb-3"></i>
-                <h5 class="fw-bold text-muted">No Blog Posts Found</h5>
+                <h5 class="fw-bold text-muted">Empty</h5>
                 <p class="text-muted small">Create a new post or try adjusting your search filters.</p>
                 <a href="{{ route('admin.content.create', 'blog') }}" class="btn btn-primary btn-sm rounded-pill px-4">
-                    <i class="fa-solid fa-plus me-1"></i> Write New Post
+                    <i class="fa-solid fa-plus me-1"></i> Create
                 </a>
             </div>
         @else
@@ -466,7 +460,7 @@
                                                 </a>
                                                 @if($isHold)
                                                     <span class="badge bg-secondary text-white rounded-pill px-2 py-0.5 small" style="font-size: 0.72rem;">
-                                                        <i class="fa-solid fa-pause-circle me-1"></i>হোল্ড / অপ্রকাশযোগ্য
+                                                        <i class="fa-solid fa-pause-circle me-1"></i>Hold
                                                     </span>
                                                 @endif
                                                 @if($post->hasPendingEditRequest())
@@ -668,7 +662,7 @@
                         <i class="fa-solid fa-palette text-white"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">Ideapatra & Blog Design & Banner Customizer</h5>
+                        <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="blogCustomizerModalLabel">Design</h5>
                         <span class="small text-white-50" style="font-size: 0.78rem;">Configure social banner, header gradient, font, line spacing and reader layout</span>
                     </div>
                 </div>
@@ -687,17 +681,17 @@
                             <ul class="nav nav-pills nav-fill bg-white p-1.5 rounded-pill shadow-xs border mb-3" id="customizerTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active rounded-pill fw-semibold py-1.5 small" id="tab-banner-btn" data-bs-toggle="pill" data-bs-target="#tab-banner" type="button" role="tab">
-                                        <i class="fa-solid fa-image me-1 text-warning"></i> Banner & Header
+                                        <i class="fa-solid fa-image me-1 text-warning"></i> Banner
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-typography-btn" data-bs-toggle="pill" data-bs-target="#tab-typography" type="button" role="tab">
-                                        <i class="fa-solid fa-font me-1 text-primary"></i> Typography & Spacing
+                                        <i class="fa-solid fa-font me-1 text-primary"></i> Typography
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link rounded-pill fw-semibold py-1.5 small" id="tab-reading-btn" data-bs-toggle="pill" data-bs-target="#tab-reading" type="button" role="tab">
-                                        <i class="fa-solid fa-book-open me-1 text-success"></i> Reader & Layout
+                                        <i class="fa-solid fa-book-open me-1 text-success"></i> Reader
                                     </button>
                                 </li>
                             </ul>
@@ -709,7 +703,7 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fa-solid fa-share-nodes text-primary"></i>
-                                            <span>Social Media & Ideapatra Banner</span>
+                                            <span>Banner</span>
                                         </h6>
 
                                         <div class="row g-3">
@@ -793,7 +787,7 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fa-solid fa-text-height text-primary"></i>
-                                            <span>Typography & Line Spacing</span>
+                                            <span>Typography</span>
                                         </h6>
 
                                         <div class="row g-3">
@@ -871,7 +865,7 @@
                                     <div class="card border-0 shadow-xs rounded-3 p-3.5 bg-white mb-3">
                                         <h6 class="fw-bold text-dark mb-3 pb-2 border-bottom d-flex align-items-center gap-2">
                                             <i class="fa-solid fa-layer-group text-primary"></i>
-                                            <span>Reader & External Layout Options</span>
+                                            <span>Reader</span>
                                         </h6>
 
                                         <div class="row g-3">
@@ -920,7 +914,7 @@
                         <div class="col-lg-5">
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden sticky-top" style="top: 15px;">
                                 <div class="card-header bg-dark text-white py-2 px-3 d-flex align-items-center justify-content-between">
-                                    <span class="small fw-bold"><i class="fa-solid fa-eye me-1 text-warning"></i> Real-time Live Preview</span>
+                                    <span class="small fw-bold"><i class="fa-solid fa-eye me-1 text-warning"></i> Preview</span>
                                     <span class="badge bg-primary-subtle text-primary rounded-pill small" style="font-size: 10px;">Live Update</span>
                                 </div>
                                 <div class="card-body p-3" style="background-color: #f1f5f9; max-height: 520px; overflow-y: auto;">
@@ -980,7 +974,7 @@
                 <div class="modal-footer bg-white py-3 px-4 border-top d-flex justify-content-between">
                     <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-xs">
-                        <i class="fa-solid fa-save me-1.5"></i> Save Settings
+                        <i class="fa-solid fa-save me-1.5"></i> Save
                     </button>
                 </div>
             </form>
@@ -997,7 +991,7 @@
             <div class="modal-header bg-success text-white py-3 px-4">
                 <div class="d-flex align-items-center gap-2">
                     <i class="fa-solid fa-wand-magic-sparkles fs-5"></i>
-                    <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="bulkTypographyModalLabel">Bulk Typography & Spacing Normalizer Engine</h5>
+                    <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="bulkTypographyModalLabel">Typography</h5>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1007,7 +1001,7 @@
                     <div class="rounded-circle bg-success bg-opacity-10 text-success p-3 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
                         <i class="fa-solid fa-compress-alt fs-3"></i>
                     </div>
-                    <h6 class="fw-bold text-dark mb-1">Automatically Optimize Blog Post Formatting</h6>
+                    <h6 class="fw-bold text-dark mb-1">Optimize</h6>
                     <p class="small text-muted mb-0">
                         Normalizes erratic line heights, cleans up excessive empty paragraphs, and standardizes spacing across historical articles.
                     </p>
@@ -1041,7 +1035,7 @@
             <div class="modal-footer bg-light py-2.5 px-4">
                 <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="startBulkNormalizeBtn" class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow-xs" onclick="runBulkNormalizeTypography()">
-                    <i class="fa-solid fa-play me-1"></i> Run Normalizer
+                    <i class="fa-solid fa-play me-1"></i> Run
                 </button>
             </div>
         </div>
@@ -1057,7 +1051,7 @@
             <div class="modal-header bg-dark text-white py-2.5 px-4">
                 <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="bannerCropperModalLabel">
                     <i class="fa-solid fa-crop-simple text-warning"></i>
-                    <span>Crop & Resize Ideapatra Banner (16:9)</span>
+                    <span>Crop</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1067,16 +1061,16 @@
                 </div>
                 <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(0.1)" title="Zoom In">
-                        <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Zoom In
+                        <i class="fa-solid fa-magnifying-glass-plus me-1"></i> Enlarge
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.zoom(-0.1)" title="Zoom Out">
-                        <i class="fa-solid fa-magnifying-glass-minus me-1"></i> Zoom Out
+                        <i class="fa-solid fa-magnifying-glass-minus me-1"></i> Shrink
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(-90)" title="Rotate Left">
-                        <i class="fa-solid fa-rotate-left me-1"></i> Rotate Left
+                        <i class="fa-solid fa-rotate-left me-1"></i> Left
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.rotate(90)" title="Rotate Right">
-                        <i class="fa-solid fa-rotate-right me-1"></i> Rotate Right
+                        <i class="fa-solid fa-rotate-right me-1"></i> Right
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="blogCropper && blogCropper.reset()" title="Reset">
                         <i class="fa-solid fa-arrows-rotate me-1"></i> Reset
@@ -1086,7 +1080,7 @@
             <div class="modal-footer bg-white py-2.5 px-4 border-top d-flex justify-content-between">
                 <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold shadow-xs" onclick="applyBannerCrop()">
-                    <i class="fa-solid fa-check me-1"></i> Apply Crop
+                    <i class="fa-solid fa-check me-1"></i> Apply
                 </button>
             </div>
         </div>
@@ -1101,7 +1095,7 @@
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
             <div class="modal-header bg-danger text-white py-2.5 px-4">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> ব্লগ পোস্ট বাতিল / সংশোধন নির্দেশ
+                    <i class="fa-solid fa-triangle-exclamation me-1.5"></i> Review
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -1118,7 +1112,7 @@
             <div class="modal-footer bg-light py-2.5 px-4">
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="confirmRejectBlogBtn" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold" onclick="ajaxRejectBlogPostSubmit()">
-                    <i class="fa-solid fa-circle-xmark me-1"></i> নিশ্চিত বাতিল করুন
+                    <i class="fa-solid fa-circle-xmark me-1"></i> Reject
                 </button>
             </div>
         </div>
@@ -1204,7 +1198,7 @@
                         <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
                             <div class="card-header bg-secondary bg-opacity-10 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
                                 <span class="fw-bold text-secondary small">
-                                    <i class="fa-solid fa-globe me-1"></i> বর্তমানে লাইভ থাকা মূল পোস্ট (Original)
+                                    <i class="fa-solid fa-globe me-1"></i> Original
                                 </span>
                                 <span class="badge bg-secondary rounded-pill small">Current Live</span>
                             </div>
@@ -1240,7 +1234,7 @@
                         <div class="card h-100 border-2 border-warning shadow-sm rounded-4 overflow-hidden bg-white">
                             <div class="card-header bg-warning bg-opacity-25 border-bottom py-2.5 px-3.5 d-flex align-items-center justify-content-between">
                                 <span class="fw-bold text-dark small">
-                                    <i class="fa-solid fa-feather-pointed me-1 text-warning-emphasis"></i> লেখকের প্রস্তাবিত সংশোধিত রূপ (Revised)
+                                    <i class="fa-solid fa-feather-pointed me-1 text-warning-emphasis"></i> Revised
                                 </span>
                                 <span class="badge bg-warning text-dark rounded-pill small">Proposed Changes</span>
                             </div>
@@ -1276,16 +1270,16 @@
             <div class="modal-footer bg-white border-0 py-3 px-4 d-flex flex-wrap justify-content-between gap-2">
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3.5 fw-semibold" id="btnModalRejectEditReq" onclick="triggerRejectEditRequest()">
-                        <i class="fa-solid fa-times me-1"></i> কারেকশন বাতিল করুন
+                        <i class="fa-solid fa-times me-1"></i> Dismiss
                     </button>
                     <a href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3.5" id="btnModalEditManual">
-                        <i class="fa-solid fa-pen-to-square me-1"></i> নিজে এডিট করতে ওপেন করুন
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                     </a>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-light btn-sm rounded-pill px-3.5" data-bs-dismiss="modal">বন্ধ করুন</button>
                     <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" id="btnModalApproveEditReq" onclick="triggerApproveEditRequest()">
-                        <i class="fa-solid fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন
+                        <i class="fa-solid fa-circle-check me-1"></i> Approve
                     </button>
                 </div>
             </div>
@@ -1446,7 +1440,7 @@ function openBlogPostPreviewModal(postId) {
     document.getElementById('previewModalStatus').textContent = '...';
     document.getElementById('previewModalStatus').className = 'badge bg-secondary rounded-pill px-2.5 py-1';
     document.getElementById('previewModalId').textContent = `ID: #${postId}`;
-    document.getElementById('previewModalReadTime').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> লোড হচ্ছে...';
+    document.getElementById('previewModalReadTime').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
     
     document.getElementById('previewModalBody').innerHTML = `
         <div class="text-center py-5">
@@ -1483,7 +1477,7 @@ function openBlogPostPreviewModal(postId) {
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Published';
             } else if (isPen) {
                 statusEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
-                statusEl.innerHTML = '<i class="fa-solid fa-clock me-1"></i> Pending Review';
+                statusEl.innerHTML = '<i class="fa-solid fa-clock me-1"></i> Pending';
             } else if (isRej) {
                 statusEl.className = 'badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold';
                 statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark me-1"></i> Rejected';
@@ -1536,7 +1530,7 @@ function openBlogPostPreviewModal(postId) {
             if (Array.isArray(data.tags) && data.tags.length > 0) {
                 tagsMarkup = `
                     <div class="d-flex align-items-center gap-1.5 flex-wrap mt-4 pt-3 border-top">
-                        <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-tags me-1 text-primary"></i>ট্যাগ:</span>
+                        <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-tags me-1 text-primary"></i>Tags:</span>
                         ${data.tags.map(t => `<span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">${t}</span>`).join('')}
                     </div>
                 `;
@@ -1598,7 +1592,7 @@ function openBlogPostPreviewModal(postId) {
                                 </span>
                             </div>
 
-                            <h2 class="fw-bold text-dark mb-2" style="font-size: 1.85rem; line-height: 1.35; font-family: 'Hind Siliguri', 'Kalpurush', sans-serif;">
+                            <h2 class="fw-bold text-dark mb-2" style="font-size: 1.85rem; line-height: 1.35; font-family: 'Kalpurush', 'Hind Siliguri', sans-serif;">
                                 ${data.title}
                             </h2>
 
@@ -1624,7 +1618,7 @@ function openBlogPostPreviewModal(postId) {
                         ${excerptMarkup}
 
                         <!-- Reading Content -->
-                        <div class="reading-article-prose mt-4" style="font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif; font-size: 1.08rem; line-height: 1.75; color: #1e293b;">
+                        <div class="reading-article-prose mt-4" style="font-family: 'Kalpurush', 'Hind Siliguri', 'SolaimanLipi', sans-serif; font-size: 1.08rem; line-height: 1.75; color: #1e293b;">
                             ${data.content || '<em class="text-muted">কোনো কনটেন্ট পাওয়া যায়নি।</em>'}
                         </div>
 
@@ -1637,11 +1631,11 @@ function openBlogPostPreviewModal(postId) {
             const safeTitle = (data.title || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
             document.getElementById('previewModalLeftActions').innerHTML = `
                 <a href="${data.edit_url}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit Post / এডিট
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                 </a>
                 ${isPub ? `
                     <a href="${data.show_url}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live on Site
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live
                     </a>
                 ` : ''}
             `;
@@ -1651,40 +1645,40 @@ function openBlogPostPreviewModal(postId) {
             if (isPub) {
                 rightButtons = `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
-                        <i class="fa-solid fa-ban me-1"></i> Reject / বাতিল
+                        <i class="fa-solid fa-ban me-1"></i> Reject
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'hold', this)">
-                        <i class="fa-solid fa-pause me-1"></i> Move to Hold
+                        <i class="fa-solid fa-pause me-1"></i> Hold
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'draft', this)">
-                        <i class="fa-solid fa-file-pen me-1"></i> Move to Draft
+                        <i class="fa-solid fa-file-pen me-1"></i> Draft
                     </button>
                     <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold fs-6">
-                        <i class="fa-solid fa-circle-check me-1"></i> Approved & Published
+                        <i class="fa-solid fa-circle-check me-1"></i> Approved
                     </span>
                 `;
             } else if (data.status === 'hold' || data.mod_status === 'hold') {
                 rightButtons = `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
-                        <i class="fa-solid fa-times me-1"></i> Reject / বাতিল
+                        <i class="fa-solid fa-times me-1"></i> Reject
                     </button>
                     <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'pending', this)">
-                        <i class="fa-solid fa-play me-1"></i> Unhold / পেন্ডিং করুন
+                        <i class="fa-solid fa-play me-1"></i> Unhold
                     </button>
                     <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs btn-approve-action" onclick="ajaxApproveBlogPost(${data.id}, this)">
-                        <i class="fa-solid fa-circle-check me-1.5"></i> Approve & Publish
+                        <i class="fa-solid fa-circle-check me-1.5"></i> Approve
                     </button>
                 `;
             } else {
                 rightButtons = `
                     <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" onclick="bootstrap.Modal.getInstance(document.getElementById('blogPostPreviewModal'))?.hide(); openBlogRejectModal(${data.id}, '${safeTitle}');">
-                        <i class="fa-solid fa-times me-1"></i> Reject / বাতিল
+                        <i class="fa-solid fa-times me-1"></i> Reject
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${data.id}, 'hold', this)">
-                        <i class="fa-solid fa-pause me-1"></i> Hold / অপ্রকাশযোগ্য
+                        <i class="fa-solid fa-pause me-1"></i> Hold
                     </button>
                     <button type="button" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-xs btn-approve-action" onclick="ajaxApproveBlogPost(${data.id}, this)">
-                        <i class="fa-solid fa-circle-check me-1.5"></i> Approve & Publish / অনুমোদন ও প্রকাশ
+                        <i class="fa-solid fa-circle-check me-1.5"></i> Approve
                     </button>
                 `;
             }
@@ -1741,7 +1735,7 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
             const modalStatus = document.getElementById('previewModalStatus');
             if (modalStatus) {
                 modalStatus.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold';
-                modalStatus.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Published (Approved)';
+                modalStatus.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Published';
             }
             const rightActions = document.getElementById('previewModalRightActions');
             if (rightActions) {
@@ -1750,13 +1744,13 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
                         <i class="fa-solid fa-ban me-1"></i> Reject
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${postId}, 'hold', this)">
-                        <i class="fa-solid fa-pause me-1"></i> Move to Hold
+                        <i class="fa-solid fa-pause me-1"></i> Hold
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="updatePostStatus(${postId}, 'draft', this)">
-                        <i class="fa-solid fa-file-pen me-1"></i> Move to Draft
+                        <i class="fa-solid fa-file-pen me-1"></i> Draft
                     </button>
                     <span class="badge bg-success-subtle text-success border border-success-subtle py-2 px-3 rounded-pill fw-bold fs-6">
-                        <i class="fa-solid fa-circle-check me-1"></i> Approved & Published
+                        <i class="fa-solid fa-circle-check me-1"></i> Approved
                     </span>
                     <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Close</button>
                 `;
@@ -1765,10 +1759,10 @@ async function ajaxApproveBlogPost(postId, triggerBtn = null) {
             if (leftActions && data.show_url) {
                 leftActions.innerHTML = `
                     <a href="/admin/content/blog/${postId}/edit" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs">
-                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Post
+                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit
                     </a>
                     <a href="${data.show_url}" target="_blank" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live on Site
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Live
                     </a>
                 `;
             }
@@ -1973,7 +1967,7 @@ async function updatePostStatus(postId, newStatus, triggerBtn = null, reason = n
                         statusEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Published';
                     } else if (newStatus === 'hold') {
                         statusEl.className = 'badge bg-secondary text-white border border-secondary rounded-pill px-2.5 py-1 fw-bold';
-                        statusEl.innerHTML = '<i class="fa-solid fa-pause-circle me-1"></i> Hold / অপ্রকাশযোগ্য';
+                        statusEl.innerHTML = '<i class="fa-solid fa-pause-circle me-1"></i> Hold';
                     } else if (newStatus === 'pending') {
                         statusEl.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold';
                         statusEl.innerHTML = '<i class="fa-solid fa-clock me-1"></i> Pending';
@@ -2028,7 +2022,7 @@ function deletePost(postId, title) {
         title: 'লেখাটি ডিলিট করতে চান?',
         html: `আপনি কি নিশ্চিত যে <strong>‘${title}’</strong> পোস্টটি ডিলিট করতে চান?<br><span class="text-danger small">এটি ব্লগ ও রিডিং পেজ থেকে মুছে যাবে।</span>`,
         icon: 'warning',
-        confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> হ্যাঁ, ডিলিট করুন',
+        confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Delete',
         confirmButtonColor: '#ef4444',
         cancelButtonText: 'বাতিল'
     }).then(function(result) {
@@ -2152,7 +2146,7 @@ async function runBulkNormalizeTypography() {
         title: 'ফরম্যাটিং অটোমেশন',
         text: 'আপনি কি নিশ্চিত যে সকল আর্টিকেলের লাইন স্পেসিং ও অনুচ্ছেদের মার্জিন অটো-ফরম্যাট করতে চান?',
         icon: 'question',
-        confirmButtonText: '<i class="fa-solid fa-check me-1"></i> হ্যাঁ, শুরু করুন',
+        confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Start',
     });
     if (!result.isConfirmed) return;
 
@@ -2246,14 +2240,14 @@ function triggerApproveEditRequest() {
         title: 'কারেকশন অনুমোদন নিশ্চিতকরণ',
         html: `আপনি কি নিশ্চিত যে সংশোধিত লেখাটি লাইভ পোস্টের সাথে রিপ্লেস করতে চান?<br><span class="text-success small">এটি লাইভ আর্টিকেলে অবিলম্বে সক্রিয় হয়ে যাবে।</span>`,
         icon: 'question',
-        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> হ্যাঁ, অনুমোদন ও রিপ্লেস করুন',
+        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> Approve',
         confirmButtonColor: '#16a34a'
     }).then(function(result) {
         if (result.isConfirmed) {
             const btn = document.getElementById('btnModalApproveEditReq');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> প্রসেসিং...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Working...';
             }
 
             fetch(`/admin/blog/${currentEditReqPostId}/approve-edit-request`, {
@@ -2273,7 +2267,7 @@ function triggerApproveEditRequest() {
                     Swal.fire({ title: 'ত্রুটি', text: data.message || 'সমস্যা হয়েছে।', icon: 'error' });
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন';
+                        btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Approve';
                     }
                 }
             })
@@ -2282,7 +2276,7 @@ function triggerApproveEditRequest() {
                 Swal.fire({ title: 'সার্ভার ত্রুটি', text: 'অনুরোধ সম্পন্ন করতে ব্যর্থ হয়েছে।', icon: 'error' });
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> কারেকশন অনুমোদন ও রিপ্লেস করুন';
+                    btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i> Approve';
                 }
             });
         }
@@ -2298,7 +2292,7 @@ function triggerRejectEditRequest() {
         inputLabel: 'বাতিল করার কারণ (ঐচ্ছিক)',
         inputPlaceholder: 'লেখকের সংশোধনী কেন গ্রহণ করা গেল না তা লিখুন...',
         showCancelButton: true,
-        confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> বাতিল নিশ্চিত করুন',
+        confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Reject',
         confirmButtonColor: '#ef4444',
         cancelButtonText: 'ফিরে যান'
     }).then(function(result) {

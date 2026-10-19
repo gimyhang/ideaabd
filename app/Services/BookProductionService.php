@@ -47,8 +47,9 @@ class BookProductionService
                 $like = '%' . $search . '%';
                 $q->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('isbn', 'like', $like));
             })
+            ->with('category:id,name')
             ->orderBy('title')
-            ->get(['id', 'title', 'isbn', 'stock_quantity']);
+            ->get(['id', 'title', 'isbn', 'stock_quantity', 'category_id', 'author_name']);
 
         $out = $books->map(function ($book) use ($rows, $windowed) {
             $life = $rows[$book->id]->pluck('qty', 'stage');

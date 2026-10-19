@@ -20,6 +20,10 @@
 @endsection
 
 @section('content')
+<div class="pd-livebar" id="pdLive" data-url="{{ route('admin.production.live') }}">
+    <span class="pd-dot"></span> Live · <span id="pdUpdated">now</span> · Store <b id="pdStore">—</b> (Warehouse <b id="pdWh">—</b> · Showroom <b id="pdSr">—</b>) · Indoor (Press + Binder) <b id="pdIn">—</b>
+    <button type="button" class="btn btn-outline-secondary btn-sm ms-auto" id="pdCsv">CSV</button>
+</div>
 <div class="pd-kpis">
     @foreach ([
         ['Printed', $totals['printed'], 'is-blue'],
@@ -28,7 +32,7 @@
         ['Press', $totals['at_press'], $totals['at_press'] > 0 ? 'is-amber' : ''],
         ['Binder', $totals['at_binder'], $totals['at_binder'] > 0 ? 'is-amber' : ''],
     ] as $k)
-        <article class="card pd-kpi {{ $k[2] }}"><span>{{ $k[0] }}</span><strong>{{ number_format($k[1]) }}</strong></article>
+        <article class="card pd-kpi {{ $k[2] }}"><span>{{ $k[0] }}</span><strong data-kpi="{{ strtolower($k[0]) }}">{{ number_format($k[1]) }}</strong></article>
     @endforeach
 </div>
 
@@ -49,23 +53,29 @@
                 <tr>
                     <th>Book</th>
                     <th class="text-end">Printed</th><th class="text-end">Bound</th><th class="text-end">Received</th>
-                    <th class="text-end">Press</th><th class="text-end">Binder</th><th class="text-end">Stock</th><th></th>
+                    <th class="text-end">Press</th><th class="text-end">Binder</th><th class="text-end">Stock</th><th class="text-end">Warehouse</th><th class="text-end">Showroom</th><th></th>
                 </tr>
             </thead>
-            <tbody>
-                @forelse ($summary as $row)
-                    <tr>
-                        <td><div class="fw-semibold">{{ $row->book->title }}</div>@if ($row->book->isbn)<div class="pd-sub">{{ $row->book->isbn }}</div>@endif</td>
+            <tbody id="pdSummaryBody">
+                @forelse ($summary->groupBy(fn ($r) => $r->book->category?->name ?: 'Uncategorized')->sortKeys() as $cat => $group)
+                    <tr class="pd-cat"><td colspan="10"><strong>{{ $cat }}</strong> <span class="pd-sub">{{ $group->count() }} · Stock {{ number_format($group->sum(fn ($r) => $r->book->stock_quantity)) }}</span></td></tr>
+                    @foreach ($group as $row)
+                    <tr data-book="{{ $row->book->id }}">
+                        <td><div class="fw-semibold">{{ $row->book->title }}</div><div class="pd-sub">{{ $row->book->author_name }}@if ($row->book->isbn) · {{ $row->book->isbn }}@endif</div>
+                            @php $lp = max(1, $row->life['printed']); @endphp
+                            <div class="pd-bar" title="Printed {{ $row->life['printed'] }} · Bound {{ $row->life['bound'] }} · Received {{ $row->life['received'] }}"><i class="is-rec" style="width:{{ round($row->life['received'] / $lp * 100) }}%"></i><i class="is-bnd" style="width:{{ round(max(0, $row->life['bound'] - $row->life['received']) / $lp * 100) }}%"></i><i class="is-prt" style="width:{{ round(max(0, $row->life['printed'] - $row->life['bound']) / $lp * 100) }}%"></i></div></td>
                         <td class="text-end">{{ number_format($row->printed) }}</td>
                         <td class="text-end">{{ number_format($row->bound) }}</td>
                         <td class="text-end">{{ number_format($row->received) }}</td>
                         <td class="text-end">@if ($row->at_press)<span class="pd-chip is-amber">{{ number_format($row->at_press) }}</span>@else<span class="text-muted">0</span>@endif</td>
                         <td class="text-end">@if ($row->at_binder)<span class="pd-chip is-amber">{{ number_format($row->at_binder) }}</span>@else<span class="text-muted">0</span>@endif</td>
                         <td class="text-end fw-bold">{{ number_format($row->book->stock_quantity) }}</td>
+                        <td class="text-end text-muted">…</td><td class="text-end text-muted">…</td>
                         <td class="text-end"><a href="{{ route('admin.production.index', ['book_id' => $row->book->id]) }}" class="btn btn-outline-secondary btn-sm">History</a></td>
                     </tr>
+                    @endforeach
                 @empty
-                    <tr><td colspan="8" class="pd-empty">None</td></tr>
+                    <tr><td colspan="10" class="pd-empty">None</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -124,7 +134,7 @@
                 <div class="row">
                     <div class="col-12 pd-pick">
                         <label class="form-label">Book</label>
-                        <input type="search" class="form-control" id="bookSearch" autocomplete="off" aria-label="Book">
+                        <input type="search" class="form-control" id="bookSearch" autocomplete="off" aria-label="Book" placeholder="Book / Author / ISBN">
                         <input type="hidden" name="book_id" id="bookId">
                         <div class="pd-list" id="bookList" hidden></div>
                         <div class="pd-hint" id="bookHint" hidden></div>

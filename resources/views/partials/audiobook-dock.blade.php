@@ -170,7 +170,7 @@
 </div>
 
 <!-- Modern Floating Audiobook Control Dock -->
-<div id="audiobookFloatingDock" class="no-print shadow-lg" role="region" aria-label="অডিওবুক কন্ট্রোল">
+<div id="audiobookFloatingDock" data-tts-url="{{ route('tts.bn') }}" class="no-print shadow-lg" role="region" aria-label="অডিওবুক কন্ট্রোল">
     <!-- Interactive Timeline Scrub Bar -->
     <div class="tts-scrub-container audio-dock-expanded-content" id="ttsScrubContainer" onclick="IdeaAudiobook.handleScrubClick(event)" title="যেকোনো বাক্যে সরাসরি জাম্প করতে ক্লিক করুন">
         <div class="tts-scrub-fill" id="ttsScrubFill"></div>

@@ -203,6 +203,57 @@
                 window.bootstrap.Modal.getOrCreateInstance(modalEl).show();
             });
         }
+
+        function initQuotationDefaults() {
+            var date = doc.getElementById('qqDate');
+            var valid = doc.getElementById('qqValid');
+            var days = Math.max(1, parseInt(modalEl.dataset.validityDays, 10) || 30);
+            var validDate = new Date(date.value + 'T00:00:00');
+            validDate.setDate(validDate.getDate() + days);
+            doc.getElementById('qqValid').value = validDate.getFullYear() + '-'
+                + String(validDate.getMonth() + 1).padStart(2, '0') + '-'
+                + String(validDate.getDate()).padStart(2, '0');
+        }
+
+        function initNumberRefresh() {
+            var number = doc.getElementById('qqNo');
+            var autoNumber = doc.getElementById('qqAutoNumber');
+            var message = doc.getElementById('qqNumberError');
+            var requestId = 0;
+            var manuallyEdited = false;
+
+            function refresh() {
+                if (manuallyEdited) return;
+                var id = ++requestId;
+                var url = new URL(modalEl.dataset.numberUrl, location.origin);
+                url.searchParams.set('type', 'quotation');
+                url.searchParams.set('sales_category', category());
+                fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('Could not generate a quotation number.');
+                        return response.json();
+                    })
+                    .then(function (result) {
+                        if (id !== requestId || manuallyEdited) return;
+                        number.value = result.invoice_no;
+                        autoNumber.value = '1';
+                        message.textContent = '';
+                    })
+                    .catch(function (error) {
+                        if (id !== requestId) return;
+                        message.textContent = error.message;
+                    });
+            }
+
+            number.addEventListener('input', function () {
+                manuallyEdited = true;
+                autoNumber.value = '0';
+            });
+            doc.getElementById('qqCategory').addEventListener('change', function () {
+                refresh();
+            });
+            refresh();
+        }
     }
 
     // ── Boot ────────────────────────────────────────────────────────────────
@@ -215,6 +266,8 @@
         addRow();
         initCustomers();
         initCalculator();
+        initQuotationDefaults();
+        initNumberRefresh();
 
         doc.getElementById('qqAdd').addEventListener('click', function () { addRow().querySelector('.qq-in-title').focus(); });
         form.addEventListener('input', recalc);

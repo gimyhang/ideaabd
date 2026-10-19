@@ -15,11 +15,25 @@
 @endsection
 
 @section('actions')
+    <button type="button" class="btn btn-primary btn-sm" id="piFormToggle" data-bs-toggle="collapse" data-bs-target="#piFormWrap" aria-expanded="{{ $errors->any() || old('vendor_name') ? 'true' : 'false' }}" aria-controls="piFormWrap">+ New purchase</button>
     <a href="{{ route('admin.purchases.items.stock', ['type' => $type]) }}" class="btn btn-outline-secondary btn-sm">Stock</a>
     <a href="{{ route('admin.purchases.index') }}" class="btn btn-light btn-sm">Back</a>
 @endsection
 
 @section('content')
+<section class="card pi-card p-0 pi-stock" id="piStock" data-url="{{ route('admin.purchases.items.stock-list') }}" data-merge="{{ route('admin.purchases.items.merge') }}" data-type="{{ $type }}" data-buy="1" data-csrf="{{ csrf_token() }}">
+    <div class="pi-toolbar">
+        <h3 class="pi-h">{{ $label }} stock <span class="pi-live"><span class="pi-dot"></span> <span id="piStockAt">live</span></span></h3>
+        <form class="pi-filter" id="piStockFilter" onsubmit="return false">
+            <input type="search" name="q" class="form-control" placeholder="Name / SKU / Brand" aria-label="Search stock">
+            <input type="hidden" name="category_id" value="">
+            <label class="iv-check"><input type="checkbox" name="low" value="1"> Low</label>
+        </form>
+    </div>
+    <div id="piStockBody">@include('admin.purchases.partials.item-stock-list', $stockBlock)</div>
+</section>
+
+<div class="collapse {{ $errors->any() || old('vendor_name') ? 'show' : '' }}" id="piFormWrap">
 <form method="POST" action="{{ route('admin.purchases.items.store') }}" class="pi-form" id="itemPurchaseForm" data-products="{{ route('admin.purchases.items.products') }}" data-type="{{ $type }}">
     @csrf
     <input type="hidden" name="type" value="{{ $type }}">
@@ -43,6 +57,7 @@
     <section class="card pi-card">
         <div class="pi-head">
             <h3 class="pi-h">Items</h3>
+            <span class="pi-draft" id="draftNote" hidden>Draft restored · <a href="#" id="draftClear">Discard</a></span>
             <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">Add</button>
         </div>
         <div class="pi-rows" id="rows"></div>
@@ -69,6 +84,8 @@
                     <div><dt>Discount</dt><dd><input type="number" step="0.01" min="0" name="discount" id="discount" class="form-control form-control-sm text-end" value="{{ old('discount', 0) }}"></dd></div>
                     <div class="is-grand"><dt>Total</dt><dd id="tGrand">৳0.00</dd></div>
                     <div><dt>Due</dt><dd id="tDue">৳0.00</dd></div>
+                    <div><dt>Items · Qty</dt><dd id="tCount">0 · 0</dd></div>
+                    <div><dt>Status</dt><dd><span class="pi-status" id="tStatus">Credit</span> <button type="button" class="btn btn-outline-secondary btn-sm" id="payFull">Full paid</button></dd></div>
                 </dl>
             </div>
         </div>
@@ -76,6 +93,8 @@
 
     <div class="pi-submit"><button class="btn btn-primary">Save</button></div>
 </form>
+</div>
+
 
 <template id="rowTpl">
     <div class="pi-row">
@@ -86,6 +105,13 @@
             <input type="hidden" name="items[__i__][title]" class="pi-title">
             <div class="iv-pick-list" hidden></div>
             <div class="pi-hint" hidden></div>
+        </div>
+        <div class="pi-cat" hidden>
+            <label class="form-label">Category</label>
+            <select name="items[__i__][category_id]" class="form-select pi-catsel" disabled>
+                <option value="">None</option>
+                @foreach ($categories as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
+            </select>
         </div>
         <div><label class="form-label">Qty</label><input type="number" min="1" step="1" name="items[__i__][quantity]" class="form-control pi-qty" required></div>
         <div><label class="form-label">Cost</label><input type="number" min="0" step="0.01" name="items[__i__][cost_price]" class="form-control pi-cost" required></div>

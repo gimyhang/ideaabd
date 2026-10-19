@@ -45,22 +45,55 @@ class InventoryAdminController extends Controller
 
     public function __construct(protected InventoryService $service) {}
 
+    /** Shared query for the stock grid and its CSV export. */
+    protected function stockQuery(Request $request)
+    {
+        $search = $request->string('q')->trim()->value();
+        $sort = $request->input('sort', 'title');
+        $dir = $request->input('dir') === 'desc' ? 'desc' : 'asc';
+
+        return Book::query()
+            ->with(['inventories', 'category:id,name'])
+            ->withSum('inventories as located_qty', 'quantity')
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . $search . '%';
+                $q->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('isbn', 'like', $like)->orWhere('sku', 'like', $like)->orWhere('author_name', 'like', $like));
+            })
+            ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))
+            ->when($request->boolean('unallocated'), fn ($q) => $q->whereRaw('stock_quantity > COALESCE((select sum(quantity) from inventories where inventories.book_id = books.id), 0)'))
+            ->when($request->boolean('low'), fn ($q) => $q->whereHas('inventories', fn ($i) => $i->lowStock()))
+            ->when($request->boolean('empty'), fn ($q) => $q->where('stock_quantity', '<=', 0))
+            ->orderBy(in_array($sort, ['title', 'stock_quantity'], true) ? $sort : 'title', $dir);
+    }
+
+    public function export(Request $request)
+    {
+        $locations = Location::active()->orderByDesc('is_central')->orderBy('type')->orderBy('name')->get();
+        $books = $this->stockQuery($request)->get();
+
+        return response()->streamDownload(function () use ($books, $locations) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, array_merge(['Title', 'Author', 'Category', 'ISBN', 'Catalogue'], $locations->pluck('name')->all(), ['Unallocated']));
+            foreach ($books as $b) {
+                $by = $b->inventories->keyBy('location_id');
+                fputcsv($out, array_merge(
+                    [$b->title, $b->author_name, $b->category?->name, $b->isbn, $b->stock_quantity],
+                    $locations->map(fn ($l) => (int) ($by[$l->id]->quantity ?? 0))->all(),
+                    [(int) $b->stock_quantity - (int) ($b->located_qty ?? 0)]
+                ));
+            }
+            fclose($out);
+        }, 'stock-' . now()->format('Ymd-His') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
     public function overview(Request $request): View
     {
         $search = $request->string('q')->trim()->value();
         $locations = Location::active()->orderByDesc('is_central')->orderBy('type')->orderBy('name')->get();
+        $categories = \Modules\Book\Models\Category::orderBy('name')->get(['id', 'name']);
 
-        $books = Book::query()
-            ->with('inventories')
-            ->withSum('inventories as located_qty', 'quantity')
-            ->when($search !== '', function ($q) use ($search) {
-                $like = '%' . $search . '%';
-                $q->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('isbn', 'like', $like)->orWhere('sku', 'like', $like));
-            })
-            ->when($request->boolean('unallocated'), fn ($q) => $q->whereRaw('stock_quantity > COALESCE((select sum(quantity) from inventories where inventories.book_id = books.id), 0)'))
-            ->orderBy('title')
-            ->paginate(20)
-            ->withQueryString();
+        $books = $this->stockQuery($request)->paginate(20)->withQueryString();
 
         $stats = [
             'locations'   => Location::active()->count(),
@@ -71,7 +104,7 @@ class InventoryAdminController extends Controller
         ];
         $stats['unallocated'] = max(0, $stats['catalogue'] - $stats['located']);
 
-        return view('inventory::admin.index', compact('books', 'locations', 'stats', 'search'));
+        return view('inventory::admin.index', compact('books', 'locations', 'stats', 'search', 'categories'));
     }
 
     public function searchBooks(Request $request): \Illuminate\Http\JsonResponse

@@ -5,11 +5,14 @@
 
 <div class="modal fade" id="quickQuotationModal" tabindex="-1" aria-labelledby="quickQuotationTitle" aria-hidden="true"
      data-customers="{{ route('admin.accounting.invoices.customer-search') }}"
-     data-items="{{ route('admin.accounting.invoices.item-suggest') }}">
+     data-items="{{ route('admin.accounting.invoices.item-suggest') }}"
+     data-number-url="{{ route('admin.accounting.invoices.next-number') }}"
+     data-validity-days="{{ $invoiceSettings['quotation_default_validity_days'] ?? 30 }}">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <form method="POST" action="{{ route('admin.accounting.invoices.store') }}" class="modal-content" id="quickQuotationForm" autocomplete="off">
             @csrf
             <input type="hidden" name="type" value="quotation">
+            <input type="hidden" name="auto_number" id="qqAutoNumber" value="1">
             <input type="hidden" name="payment_method" value="Cash">
             <input type="hidden" name="tax" id="qqTax" value="0">
             <input type="hidden" name="customer_org" id="qqOrg">
@@ -27,6 +30,7 @@
                     <div class="col-md-4 col-6">
                         <label class="form-label" for="qqNo">Number</label>
                         <input id="qqNo" name="invoice_no" class="form-control" value="{{ \App\Models\IdeaInvoice::nextNumber('quotation', 'books') }}" required maxlength="50">
+                        <small class="text-danger" id="qqNumberError" role="status"></small>
                     </div>
                     <div class="col-md-4 col-6">
                         <label class="form-label" for="qqDate">Date</label>
@@ -34,7 +38,7 @@
                     </div>
                     <div class="col-md-4 col-12">
                         <label class="form-label" for="qqValid">Valid until</label>
-                        <input id="qqValid" type="date" name="valid_until" class="form-control" value="{{ date('Y-m-d', strtotime('+14 days')) }}" required>
+                        <input id="qqValid" type="date" name="valid_until" class="form-control" value="{{ date('Y-m-d', strtotime('+' . (int)($invoiceSettings['quotation_default_validity_days'] ?? 30) . ' days')) }}" required>
                     </div>
 
                     <div class="col-md-6 col-12 qq-host">
@@ -58,7 +62,7 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="qqSubject">Subject</label>
-                        <input id="qqSubject" name="subject" class="form-control" required maxlength="255">
+                        <input id="qqSubject" name="subject" class="form-control" value="{{ $invoiceSettings['quotation_default_subject'] ?? '' }}" required maxlength="255">
                     </div>
                 </div>
 
@@ -84,7 +88,11 @@
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="qqNotes">Note</label>
-                                <input id="qqNotes" name="notes" class="form-control" maxlength="1000">
+                                <textarea id="qqNotes" name="notes" class="form-control" rows="2" maxlength="1000">{{ $invoiceSettings['quotation_default_notes'] ?? '' }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="qqTerms">Terms &amp; conditions</label>
+                                <textarea id="qqTerms" name="terms_conditions" class="form-control" rows="3" maxlength="2000">{{ $invoiceSettings['quotation_default_terms'] ?? '' }}</textarea>
                             </div>
                         </div>
                     </div>

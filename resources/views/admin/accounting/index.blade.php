@@ -508,6 +508,9 @@
         {{-- Filter & Search Form --}}
         <form action="{{ route('admin.accounting.index') }}" method="GET" class="row g-2.5 align-items-center" id="accountingFilterForm">
             <input type="hidden" name="stream" id="filterStreamInput" value="{{ $stream }}">
+            @if($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
+                <input type="hidden" name="type" value="{{ request('type') }}">
+            @endif
 
             {{-- 1. Unified Search Input --}}
             <div class="col-12 col-md-3">
@@ -537,27 +540,41 @@
             </div>
 
             {{-- 3. Payment Status Filter --}}
-            <div class="col-6 col-md-1.5">
-                <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                    <option value="">All Status</option>
-                    <option value="paid" @selected($paymentStatus === 'paid')>Paid</option>
-                    <option value="partial" @selected($paymentStatus === 'partial')>Partial</option>
-                    <option value="unpaid" @selected($paymentStatus === 'unpaid')>Unpaid</option>
+            @if($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
+            <div class="col-6 col-md-2">
+                <select name="proposal_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                    <option value="">All proposal statuses</option>
+                    @foreach(['draft' => 'Draft', 'sent' => 'Sent', 'accepted' => 'Accepted', 'rejected' => 'Rejected', 'expired' => 'Expired'] as $status => $label)
+                        <option value="{{ $status }}" @selected($proposalStatus === $status)>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
+            @endif
+            @unless($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
+                <div class="col-6 col-md-1.5">
+                    <select name="payment_status" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                        <option value="">All Status</option>
+                        <option value="paid" @selected($paymentStatus === 'paid')>Paid</option>
+                        <option value="partial" @selected($paymentStatus === 'partial')>Partial</option>
+                        <option value="unpaid" @selected($paymentStatus === 'unpaid')>Unpaid</option>
+                    </select>
+                </div>
+            @endunless
 
             {{-- 4. Payment Method Filter --}}
-            <div class="col-6 col-md-1.5">
-                <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
-                    <option value="">All Methods</option>
-                    <option value="Cash" @selected($paymentMethod === 'Cash')>Cash</option>
-                    <option value="bKash" @selected($paymentMethod === 'bKash')>bKash</option>
-                    <option value="Nagad" @selected($paymentMethod === 'Nagad')>Nagad</option>
-                    <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>Bank Transfer</option>
-                    <option value="cod" @selected($paymentMethod === 'cod')>COD</option>
-                    <option value="Cheque" @selected($paymentMethod === 'Cheque')>Cheque</option>
-                </select>
-            </div>
+            @unless($stream === 'invoices' && in_array(request('type'), ['quotation', 'tender'], true))
+                <div class="col-6 col-md-1.5">
+                    <select name="payment_method" class="form-select form-select-sm" onchange="this.form.submit()" style="border: 1px solid #cbd5e1;">
+                        <option value="">All Methods</option>
+                        <option value="Cash" @selected($paymentMethod === 'Cash')>Cash</option>
+                        <option value="bKash" @selected($paymentMethod === 'bKash')>bKash</option>
+                        <option value="Nagad" @selected($paymentMethod === 'Nagad')>Nagad</option>
+                        <option value="Bank" @selected($paymentMethod === 'Bank' || $paymentMethod === 'Bank Transfer')>Bank Transfer</option>
+                        <option value="cod" @selected($paymentMethod === 'cod')>COD</option>
+                        <option value="Cheque" @selected($paymentMethod === 'Cheque')>Cheque</option>
+                    </select>
+                </div>
+            @endunless
 
             {{-- 5. Date From & To --}}
             <div class="col-6 col-md-1.5">

@@ -237,7 +237,9 @@ class AccountingInvoiceTest extends TestCase
         $hub->assertOk()->assertSee('quickQuotationModal', false)->assertSee('quick-quotation.js', false);
 
         $res = $this->get(route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation']));
-        $res->assertOk()->assertSee('doc-type-pill', false)->assertSee('Q-HUB-1')->assertDontSee('I-HUB-1');
+        $res->assertOk()->assertSee('doc-type-pill', false)->assertSee('Q-HUB-1')->assertDontSee('I-HUB-1')
+            ->assertSee('All proposal statuses');
+        $res->assertDontSee('onclick="openUniversalQuickPayModal(\'invoice\', ' . $q->id, false);
 
         $this->get(route('admin.accounting.index', ['stream' => 'invoices']))->assertOk()->assertSee('Q-HUB-1')->assertSee('I-HUB-1');
 
@@ -262,6 +264,64 @@ class AccountingInvoiceTest extends TestCase
         $this->assertEquals(750, (float) $q->subtotal);
         $this->assertEquals(737.5, (float) $q->grand_total); // 750 - 50 + 37.5
         $this->assertEquals(0, (float) $q->paid_amount);
+    }
+
+    public function test_proposal_status_lifecycle_and_expiration(): void
+    {
+        $this->actingAs($this->admin());
+        $q = $this->make([
+            'type' => 'quotation', 'invoice_no' => 'Q-STATUS-1', 'subject' => 'Supply',
+            'valid_until' => now()->addWeek()->toDateString(),
+        ]);
+
+        $this->assertSame('draft', $q->effective_proposal_status);
+        $this->patch(route('admin.accounting.invoices.proposal-status', $q), ['proposal_status' => 'sent'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('sent', $q->fresh()->effective_proposal_status);
+        $this->get(route('admin.accounting.index', [
+            'stream' => 'invoices', 'type' => 'quotation', 'proposal_status' => 'sent',
+        ]))->assertOk()->assertSee('Q-STATUS-1');
+
+        $q->update(['valid_until' => now()->subDay()->toDateString()]);
+        $this->assertSame('expired', $q->fresh()->effective_proposal_status);
+        $this->patch(route('admin.accounting.invoices.proposal-status', $q->fresh()), ['proposal_status' => 'accepted'])
+            ->assertSessionHas('error');
+
+        $number = $q->invoice_no;
+        $this->post(route('admin.accounting.invoices.convert', $q->fresh()), ['target_type' => 'invoice'])
+            ->assertRedirect();
+        $this->assertSame($number, $q->fresh()->invoice_no);
+        $this->assertSame('converted', $q->fresh()->proposal_status);
+    }
+
+    public function test_document_number_endpoint_uses_selected_category_prefix(): void
+    {
+        $response = $this->actingAs($this->admin())
+            ->getJson(route('admin.accounting.invoices.next-number', ['type' => 'quotation', 'sales_category' => 'printing_goods']))
+            ->assertOk();
+
+        $this->assertStringStartsWith('IDEA-PRT-', $response->json('invoice_no'));
+    }
+
+    public function test_automatic_document_number_is_reserved_when_saving(): void
+    {
+        $this->actingAs($this->admin());
+        $existing = $this->make([
+            'type' => 'quotation', 'invoice_no' => 'Q-AUTO-1', 'subject' => 'Existing',
+            'valid_until' => now()->addWeek()->toDateString(),
+        ]);
+
+        $this->post(route('admin.accounting.invoices.store'), $this->payload([
+            'type' => 'quotation',
+            'invoice_no' => $existing->invoice_no,
+            'auto_number' => '1',
+            'subject' => 'New quotation',
+            'valid_until' => now()->addWeek()->toDateString(),
+        ]))->assertSessionHasNoErrors();
+
+        $created = IdeaInvoice::where('id', '!=', $existing->id)->latest('id')->firstOrFail();
+        $this->assertNotSame($existing->invoice_no, $created->invoice_no);
+        $this->assertStringStartsWith('IDEA-QUO-', $created->invoice_no);
     }
 
     public function test_item_suggestions_are_alphabetical_prefix_first_and_per_category(): void

@@ -99,6 +99,9 @@
                 .replace(/=/g, ' সমান ')
                 .replace(/\//g, ' বা ');
 
+            // Web addresses and e-mails are not part of what the author wrote to be heard
+            cleaned = cleaned.replace(/\b(?:https?:\/\/|www\.)\S+/gi, ' ').replace(/\S+@\S+\.\S+/g, ' ');
+
             // Remove reference brackets [১], [1]
             cleaned = cleaned.replace(/\[\s*[০-৯\d]+\s*\]/g, ' ');
             
@@ -191,44 +194,67 @@
             return finalChunks.filter(c => c && c.trim().length > 0);
         },
 
-        // Universal DOM content extractor
+        // Text that is never read aloud: markup/code, embeds, controls and page chrome that may sit inside a post.
+        NON_SPEECH_SELECTOR: 'script, style, noscript, template, iframe, object, embed, svg, canvas, video, audio, form, input, select, textarea, button, nav, aside, header, footer, table, pre, code, .no-print, .no-audio, .tts-para-speak-btn, [hidden], [aria-hidden="true"]',
+
+        // Speakable text of one block: the author's words only (no scripts, embeds, buttons, link addresses).
+        speakableText: function(node) {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll(this.NON_SPEECH_SELECTOR).forEach(n => n.remove());
+            clone.querySelectorAll('br').forEach(br => br.replaceWith(' '));
+            return (clone.textContent || '').replace(/\s+/g, ' ').trim();
+        },
+
+        // Universal DOM content extractor: the post title plus the text inside the post body only.
         extractChunksFromDOM: function(containerSelector = '#articleBody', titleSelector = '.lit-title') {
             const chunks = [];
-            const titleEl = document.querySelector(titleSelector);
+            const container = document.querySelector(containerSelector);
+            const isVisible = (el) => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+
+            // First visible title that is not inside print-only / hidden page chrome.
+            const titleEl = Array.from(document.querySelectorAll(titleSelector))
+                .find(el => !el.closest('.no-print, [hidden], [aria-hidden="true"], footer, nav') && isVisible(el));
             if (titleEl && titleEl.textContent.trim()) {
-                const titleSentences = this.splitIntoSmartSentences(titleEl.textContent.trim() + '। ');
-                titleSentences.forEach(s => chunks.push({ text: s, el: titleEl }));
+                this.splitIntoSmartSentences(titleEl.textContent.trim() + '। ').forEach(s => chunks.push({ text: s, el: titleEl }));
             }
 
-            const container = document.querySelector(containerSelector);
-            if (container) {
-                const blockElements = container.querySelectorAll('p, blockquote, li, h1, h2, h3, h4, h5, h6');
-                blockElements.forEach((node) => {
-                    if (node.closest('.no-print') || node.classList.contains('no-print') || node.classList.contains('lit-ornament')) return;
-                    
-                    const txt = node.innerText || node.textContent;
-                    if (!txt || !txt.trim()) return;
+            if (!container) return chunks;
 
-                    // Attach hover listen button
-                    if (!node.querySelector('.tts-para-speak-btn') && !['LI'].includes(node.tagName)) {
-                        const speakBtn = document.createElement('button');
-                        speakBtn.type = 'button';
-                        speakBtn.className = 'tts-para-speak-btn no-print';
-                        speakBtn.title = 'এই অনুচ্ছেদ থেকে পাঠ শুনুন';
-                        speakBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size: 10px;"></i>';
-                        speakBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            this.listenToElement(node);
-                        };
-                        node.style.position = 'relative';
-                        node.appendChild(speakBtn);
-                    }
+            const BLOCKS = 'p, blockquote, li, h1, h2, h3, h4, h5, h6';
+            const SKIP = this.NON_SPEECH_SELECTOR + ', .lit-ornament';
 
-                    const nodeSentences = this.splitIntoSmartSentences(txt);
-                    nodeSentences.forEach(s => {
-                        chunks.push({ text: s, el: node });
-                    });
-                });
+            container.querySelectorAll(BLOCKS).forEach((node) => {
+                // Skip anything inside excluded areas, and containers whose own blocks are read separately (no double reading).
+                const excluded = node.closest(SKIP);
+                if (excluded && container.contains(excluded)) return;
+                if (node.querySelector(BLOCKS)) return;
+                if (!isVisible(node)) return;
+
+                const txt = this.speakableText(node);
+                if (!txt) return;
+
+                // Attach hover listen button
+                if (!node.querySelector('.tts-para-speak-btn') && node.tagName !== 'LI') {
+                    const speakBtn = document.createElement('button');
+                    speakBtn.type = 'button';
+                    speakBtn.className = 'tts-para-speak-btn no-print';
+                    speakBtn.title = 'এই অনুচ্ছেদ থেকে পাঠ শুনুন';
+                    speakBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size: 10px;"></i>';
+                    speakBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        this.listenToElement(node);
+                    };
+                    node.style.position = 'relative';
+                    node.appendChild(speakBtn);
+                }
+
+                this.splitIntoSmartSentences(txt).forEach(s => chunks.push({ text: s, el: node }));
+            });
+
+            // Posts saved as loose text / <br> lines (no <p>) have no blocks above: read the body text itself.
+            if (chunks.length === (titleEl ? this.splitIntoSmartSentences(titleEl.textContent.trim() + '। ').length : 0)) {
+                const txt = this.speakableText(container);
+                if (txt) this.splitIntoSmartSentences(txt).forEach(s => chunks.push({ text: s, el: container }));
             }
 
             return chunks;
@@ -352,8 +378,10 @@
                 if (this.activeStorageKey) {
                     try { localStorage.removeItem(this.activeStorageKey); } catch (e) {}
                 }
+                const onComplete = this.onComplete;
                 this.stop(false);
-                this.showToast('সম্পূর্ণ লেখার পাঠ সম্পন্ন হয়েছে।', 'fa-solid fa-circle-check text-success');
+                if (onComplete) { onComplete(); return; }
+                this.showToast('সম্পূর্ণ লেখার পাঠ সম্পন্ন হয়েছে।', 'fa-solid fa-circle-check text-success');
                 return;
             }
 
@@ -375,12 +403,19 @@
 
             try { this.synth.cancel(); } catch (e) {}
 
-            this.activeUtterance = new SpeechSynthesisUtterance(chunkText);
-            window._activeTTSUtterance = this.activeUtterance;
-
             if (!this.bengaliVoice) {
                 this.initVoices();
             }
+
+            // No Bengali voice on this device (or the voice kept failing): stream the sentence from the server.
+            if (this.serverTtsUrl() && (this.useServer || !this.bengaliVoice)) {
+                this.playServerChunk(chunkText);
+                return;
+            }
+
+            const utter = new SpeechSynthesisUtterance(chunkText);
+            this.activeUtterance = utter;
+            window._activeTTSUtterance = utter;
 
             if (this.bengaliVoice) {
                 this.activeUtterance.voice = this.bengaliVoice;
@@ -393,17 +428,30 @@
             this.activeUtterance.pitch = this.ttsPitch;
             this.activeUtterance.volume = this.isMuted ? 0 : 1.0;
 
-            this.activeUtterance.onend = () => {
+            // Handlers ignore utterances that were already replaced (cancel() fires a late 'interrupted' error,
+            // which used to advance the index a second time and skip sentences).
+            utter.onend = () => {
+                if (this.activeUtterance !== utter) return;
                 this.clearWatchdog();
+                this._failures = 0;
                 if (this.isSpeaking && !this.isPaused) {
                     this.currentChunkIndex++;
                     this.playNextChunk();
                 }
             };
 
-            this.activeUtterance.onerror = (e) => {
+            utter.onerror = (e) => {
+                if (this.activeUtterance !== utter) return;
+                if (e && (e.error === 'interrupted' || e.error === 'canceled')) return;
                 this.clearWatchdog();
                 console.warn('IdeaAudiobook chunk issue:', e);
+                this._failures = (this._failures || 0) + 1;
+                if (this._failures >= 2 && this.serverTtsUrl()) {
+                    this.useServer = true;
+                    this._failures = 0;
+                    this.playNextChunk();
+                    return;
+                }
                 if (this.isSpeaking && !this.isPaused) {
                     this.currentChunkIndex++;
                     this.playNextChunk();
@@ -430,6 +478,88 @@
             }
         },
 
+        serverTtsUrl: function() {
+            const dock = document.getElementById('audiobookFloatingDock');
+            return (dock && dock.dataset.ttsUrl) || '';
+        },
+
+        stopAudio: function() {
+            if (this.audio) {
+                this.audio.onended = null;
+                this.audio.onerror = null;
+                try { this.audio.pause(); } catch (e) {}
+            }
+        },
+
+        playServerChunk: function(text) {
+            const url = this.serverTtsUrl() + '?q=' + encodeURIComponent(text);
+            this.stopAudio();
+            if (!this.audio) this.audio = new Audio();
+            const audio = this.audio;
+            const index = this.currentChunkIndex;
+            audio.src = url;
+            audio.playbackRate = this.ttsRate;
+            audio.preservesPitch = true;
+            audio.muted = this.isMuted;
+
+            const advance = () => {
+                if (this.audio !== audio || this.currentChunkIndex !== index) return;
+                this.clearWatchdog();
+                if (this.isSpeaking && !this.isPaused) {
+                    this.currentChunkIndex++;
+                    this.playNextChunk();
+                }
+            };
+            audio.onended = () => { this._failures = 0; advance(); };
+            audio.onerror = () => {
+                this._failures = (this._failures || 0) + 1;
+                if (this._failures >= 3) {
+                    this.stop(false);
+                    this.showToast('অডিও সার্ভিস এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।', 'fa-solid fa-triangle-exclamation text-warning');
+                    return;
+                }
+                advance();
+            };
+
+            this.watchdogTimer = setTimeout(advance, 20000);
+            const p = audio.play();
+            if (p && p.catch) p.catch(() => {});
+        },
+
+        // Read text that is handed in directly (the book reader passes only what is inside the open book).
+        // Clicking again while it plays stops it. `onComplete` runs after the last sentence (not when stopped by the user).
+        startText: function(text, storageKey = null, onComplete = null) {
+            if (!this.synth && !this.serverTtsUrl()) {
+                this.showToast('আপনার ব্রাউজারে অডিও স্পিচ সাপোর্ট পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
+                return false;
+            }
+            if (this.isSpeaking) {
+                this.stop(true);
+                return false;
+            }
+
+            this.initVoices();
+            const sentences = this.splitIntoSmartSentences(text || '');
+            if (!sentences.length) {
+                this.showToast('পড়ার মতো পর্যাপ্ত লেখা পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
+                return false;
+            }
+
+            this._failures = 0;
+            this.speechChunks = sentences.map(s => ({ text: s, el: null }));
+            this.activeStorageKey = storageKey;
+            this.onComplete = onComplete;
+            this.currentChunkIndex = 0;
+            this.isSpeaking = true;
+            this.isPaused = false;
+            this.updateUI();
+            this.showToast('বইয়ের পাঠ শুরু হয়েছে...', 'fa-solid fa-volume-high text-primary');
+
+            try { if (this.synth) this.synth.cancel(); } catch (e) {}
+            setTimeout(() => { if (this.isSpeaking) this.playNextChunk(); }, 80);
+            return true;
+        },
+
         startArticle: function(containerSelector = '#articleBody', titleSelector = '.lit-title', storageKey = null) {
             if (!('speechSynthesis' in window) || !this.synth) {
                 this.showToast('আপনার ব্রাউজারে অডিও স্পিচ সাপোর্ট পাওয়া যায়নি।', 'fa-solid fa-triangle-exclamation text-warning');
@@ -442,7 +572,8 @@
             }
 
             this.initVoices();
-            if (!this.bengaliVoice && !this._voiceHinted) {
+            this._failures = 0;
+            if (!this.bengaliVoice && !this.serverTtsUrl() && !this._voiceHinted) {
                 this._voiceHinted = true;
                 this.showToast('এই ডিভাইসে বাংলা ভয়েস পাওয়া যায়নি। Edge/Chrome ও Android-এ বাংলা ভয়েস চালু করলে স্পষ্ট শোনা যাবে।', 'fa-solid fa-circle-info text-warning');
             }
@@ -558,6 +689,7 @@
                 this.playNextChunk();
             } else {
                 this.isPaused = true;
+                this.stopAudio();
                 this.clearWatchdog();
                 try { this.synth.cancel(); } catch (e) {}
                 this.updateUI();
@@ -584,6 +716,7 @@
         },
 
         stop: function(showNotice = true) {
+            this.onComplete = null;
             this.clearWatchdog();
             this.clearSleepTimer();
             this.isSpeaking = false;
@@ -592,6 +725,7 @@
             this.currentChunkIndex = 0;
             this.activeUtterance = null;
             window._activeTTSUtterance = null;
+            this.stopAudio();
 
             if (this.synth) {
                 try { this.synth.cancel(); } catch (e) {}
@@ -622,6 +756,7 @@
 
         setSpeed: function(rate, label) {
             this.ttsRate = parseFloat(rate) || 1.0;
+            if (this.audio) this.audio.playbackRate = this.ttsRate;
             const speedLabel = document.getElementById('dockSpeedLabel');
             if (speedLabel) speedLabel.textContent = label;
 
@@ -677,6 +812,7 @@
             if (this.activeUtterance) {
                 this.activeUtterance.volume = this.isMuted ? 0 : 1.0;
             }
+            if (this.audio) this.audio.muted = this.isMuted;
             this.showToast(this.isMuted ? 'শব্দ মিউট করা হয়েছে (Muted)' : 'শব্দ আনমিউট করা হয়েছে', 'fa-solid fa-volume-high text-info');
         },
 

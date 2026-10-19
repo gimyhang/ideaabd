@@ -130,6 +130,77 @@ class ProductionAndItemPurchaseTest extends TestCase
         $this->getJson(route('admin.production.books', ['q' => 'Press']))->assertOk()->assertJsonFragment(['at_press' => 10]);
     }
 
+    public function test_live_endpoint_returns_totals_and_store_stock(): void
+    {
+        $this->actingAs($this->admin());
+        $book = $this->book();
+        $this->stage($book, 'printed', 10, now()->toDateString());
+
+        $this->getJson(route('admin.production.live'))->assertOk()
+            ->assertJsonPath('totals.printed', 10)
+            ->assertJsonPath('totals.at_press', 10)
+            ->assertJsonStructure(['store' => ['stock', 'warehouse', 'showroom'], 'rows' => [['id', 'warehouse', 'showroom']], 'updated_at']);
+    }
+
+    public function test_item_stock_is_grouped_by_type_and_category(): void
+    {
+        $this->actingAs($this->admin());
+        $pen = \App\Models\ProductCategory::create(['type' => 'stationery', 'name' => 'Pens', 'slug' => 'pens-t']);
+        $cam = \App\Models\ProductCategory::create(['type' => 'electronics', 'name' => 'Cameras', 'slug' => 'cameras-t']);
+        \App\Models\Product::create(['type' => 'stationery', 'category_id' => $pen->id, 'title' => 'Blue Pen', 'slug' => 'blue-pen-t', 'price' => 10, 'stock' => 4, 'is_active' => true]);
+        \App\Models\Product::create(['type' => 'electronics', 'category_id' => $cam->id, 'title' => 'Webcam', 'slug' => 'webcam-t', 'price' => 900, 'stock' => 9, 'is_active' => true]);
+
+        $this->get(route('admin.purchases.items.stock'))->assertOk()
+            ->assertSeeInOrder(['Electronics', 'Cameras', 'Webcam', 'Stationery', 'Pens', 'Blue Pen']);
+        $this->get(route('admin.purchases.items.stock', ['category_id' => $pen->id]))->assertOk()
+            ->assertSee('Blue Pen')->assertDontSee('Webcam');
+    }
+
+    public function test_typed_name_of_existing_item_reuses_the_product(): void
+    {
+        $this->actingAs($this->admin());
+        $p = \App\Models\Product::create(['type' => 'electronics', 'title' => 'Webcam Pro', 'slug' => 'webcam-pro-d', 'price' => 900, 'stock' => 2, 'is_active' => true]);
+
+        $this->post(route('admin.purchases.items.store'), [
+            'type' => 'electronics', 'purchase_no' => 'ELC-DUP-1', 'purchase_date' => now()->toDateString(), 'vendor_name' => 'V',
+            'items' => [['title' => '  webcam pro ', 'quantity' => 3, 'cost_price' => 500]],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(1, \App\Models\Product::where('type', 'electronics')->count());
+        $this->assertSame(5, (int) $p->fresh()->stock);
+    }
+
+    public function test_electronics_form_embeds_live_stock_list(): void
+    {
+        $this->actingAs($this->admin());
+        $cam = \App\Models\ProductCategory::create(['type' => 'electronics', 'name' => 'Cameras', 'slug' => 'cameras-e']);
+        \App\Models\Product::create(['type' => 'electronics', 'category_id' => $cam->id, 'title' => 'Webcam Pro', 'slug' => 'webcam-pro-e', 'price' => 900, 'stock' => 9, 'is_active' => true]);
+        \App\Models\Product::create(['type' => 'stationery', 'title' => 'Red Pen', 'slug' => 'red-pen-e', 'price' => 10, 'stock' => 3, 'is_active' => true]);
+
+        $this->get(route('admin.purchases.electronics'))->assertOk()->assertSee('piStockBody', false)->assertSee('Webcam Pro')->assertDontSee('Red Pen');
+        $this->get(route('admin.purchases.items.stock-list', ['type' => 'electronics', 'q' => 'nomatch']))->assertOk()->assertDontSee('Webcam Pro');
+        $this->get(route('admin.purchases.items.stock-list', ['type' => 'electronics', 'category_id' => $cam->id, 'buy' => 1]))->assertOk()->assertSee('Webcam Pro')->assertSee('pi-buy', false)->assertSee('pi-tab', false);
+        $this->get(route('admin.purchases.items.stock-list', ['type' => 'electronics', 'category_id' => $cam->id]))->assertOk()->assertDontSee('pi-buy', false);
+        $this->get(route('admin.purchases.items.stock-list', ['category_id' => 'none']))->assertOk()->assertSee('Red Pen')->assertDontSee('Webcam Pro');
+    }
+
+    public function test_duplicates_are_detected_and_merged(): void
+    {
+        $this->actingAs($this->admin());
+        $a = \App\Models\Product::create(['type' => 'stationery', 'title' => 'Blue  Pen', 'slug' => 'blue-pen-m1', 'price' => 10, 'stock' => 4, 'is_active' => true]);
+        $b = \App\Models\Product::create(['type' => 'stationery', 'title' => 'blue-pen', 'slug' => 'blue-pen-m2', 'price' => 10, 'stock' => 6, 'is_active' => true]);
+        $other = \App\Models\Product::create(['type' => 'electronics', 'title' => 'Blue Pen', 'slug' => 'blue-pen-m3', 'price' => 10, 'stock' => 1, 'is_active' => true]);
+
+        $this->get(route('admin.purchases.items.stock-list'))->assertOk()->assertSee('1 duplicate group', false)->assertSee('pi-merge', false);
+
+        $this->postJson(route('admin.purchases.items.merge'), ['keep_id' => $a->id, 'merge_ids' => [$other->id]])->assertStatus(422);
+        $this->postJson(route('admin.purchases.items.merge'), ['keep_id' => $a->id, 'merge_ids' => [$b->id]])->assertOk();
+
+        $this->assertNull(\App\Models\Product::find($b->id));
+        $this->assertSame(10, (int) $a->fresh()->stock);
+        $this->get(route('admin.purchases.items.stock-list'))->assertOk()->assertDontSee('duplicate group', false);
+    }
+
     public function test_guests_are_blocked_from_production(): void
     {
         $this->get(route('admin.production.index'))->assertRedirect(route('login'));

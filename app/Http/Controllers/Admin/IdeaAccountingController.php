@@ -48,6 +48,7 @@ class IdeaAccountingController extends Controller
         $paymentMethod = $request->input('payment_method');
         $category = $request->input('category');
         $type = $request->input('type'); // invoice, challan, quotation, tender
+        $proposalStatus = $request->input('proposal_status');
 
         // Resolve date preset shortcuts
         if ($datePreset === 'today') {
@@ -119,6 +120,18 @@ class IdeaAccountingController extends Controller
                 $invoicesQuery = IdeaInvoice::query()
                     ->with(['creator', 'payments'])
                     ->when($type, fn($q) => $q->where('type', $type))
+                    ->when($proposalStatus, function ($q, $status) {
+                        if ($status === 'expired') {
+                            $q->whereIn('type', ['quotation', 'tender'])
+                                ->whereIn('proposal_status', ['draft', 'sent'])
+                                ->whereDate('valid_until', '<', today());
+                        } elseif (in_array($status, ['draft', 'sent'], true)) {
+                            $q->where('proposal_status', $status)
+                                ->where(fn($w) => $w->whereNull('valid_until')->orWhereDate('valid_until', '>=', today()));
+                        } else {
+                            $q->where('proposal_status', $status);
+                        }
+                    })
                     ->when($category, fn($q) => $q->where('sales_category', $category))
                     ->when($paymentStatus, fn($q) => $q->where('payment_status', $paymentStatus))
                     ->when($paymentMethod, fn($q) => $q->where('payment_method', 'like', "%{$paymentMethod}%"))
@@ -454,6 +467,7 @@ class IdeaAccountingController extends Controller
         return view('admin.accounting.index', compact(
             'paginatedRecords', 'entries', 'stats', 'stream', 'search', 'datePreset',
             'dateFrom', 'dateTo', 'paymentStatus', 'paymentMethod', 'category', 'type',
+            'proposalStatus',
             'totalIncome', 'totalExpense', 'netBalance', 'todayIncome', 'todayExpense',
             'thisMonthIncome', 'thisMonthExpense', 'thisMonthNet', 'totalInvoiced',
             'totalInvoicePaid', 'totalInvoiceDue', 'categories', 'expenseBreakdown',
@@ -891,6 +905,7 @@ class IdeaAccountingController extends Controller
             default     => ($isOnlineOrder ? 'fa-solid fa-cart-shopping text-success' : 'fa-solid fa-receipt text-primary'),
         };
         $date = $item->invoice_date ? Carbon::parse($item->invoice_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);
+        $isProposal = in_array($item->type, ['quotation', 'tender'], true);
 
         return (object) [
             'id'                      => $item->id,
@@ -923,10 +938,11 @@ class IdeaAccountingController extends Controller
             'items_summary'           => is_array($item->items) ? count($item->items) . ' Items' : ($item->subject ?: 'Sales Invoice'),
             'total_amount'            => (float) $item->grand_total,
             'grand_total'             => (float) $item->grand_total,
-            'paid_amount'             => (float) $item->paid_amount,
-            'due_amount'              => (float) $item->due_amount,
+            'paid_amount'             => $isProposal ? 0.0 : (float) $item->paid_amount,
+            'due_amount'              => $isProposal ? 0.0 : (float) $item->due_amount,
             'payment_method'          => $item->payment_method ?: 'cash',
-            'payment_status'          => $item->payment_status ?: 'unpaid',
+            'payment_status'          => $isProposal ? null : ($item->payment_status ?: 'unpaid'),
+            'proposal_status'         => $isProposal ? $item->effective_proposal_status : ($item->proposal_status === 'converted' ? 'converted' : null),
             'is_online_order'         => $isOnlineOrder,
             'online_order_number'     => $item->reference_no,
             'is_synced'               => true,
@@ -1597,6 +1613,7 @@ class IdeaAccountingController extends Controller
         $cloned->paid_amount = 0;
         $cloned->due_amount = $cloned->grand_total;
         $cloned->payment_status = 'unpaid';
+        $cloned->proposal_status = in_array($cloned->type, ['quotation', 'tender'], true) ? 'draft' : null;
         $cloned->access_token = \Illuminate\Support\Str::random(32);
         $cloned->created_by = IdeaInvoicePayment::actorId();
         $cloned->save();
@@ -1822,6 +1839,18 @@ class IdeaAccountingController extends Controller
         $invoiceSettings = self::getInvoiceSettings();
 
         return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType', 'salesCategory', 'invoiceSettings'));
+    }
+
+    public function nextInvoiceNumber(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:invoice,challan,quotation,tender',
+            'sales_category' => 'required|in:books,stationery,printing_goods,other',
+        ]);
+
+        return response()->json([
+            'invoice_no' => IdeaInvoice::nextNumber($validated['type'], $validated['sales_category']),
+        ]);
     }
 
     /**
@@ -2225,6 +2254,19 @@ class IdeaAccountingController extends Controller
      */
     public function storeInvoice(Request $request): RedirectResponse
     {
+        if ($request->boolean('auto_number')) {
+            $numberInputs = $request->validate([
+                'type' => 'required|in:invoice,challan,quotation,tender',
+                'sales_category' => 'nullable|in:books,stationery,printing_goods,other',
+            ]);
+            $request->merge([
+                'invoice_no' => IdeaInvoice::reserveNextNumber(
+                    $numberInputs['type'],
+                    $numberInputs['sales_category'] ?? 'books'
+                ),
+            ]);
+        }
+
         $validated = $this->validatedDocument($request);
         $salesCategory = $validated['sales_category'] ?? 'books';
         $totals = $this->documentTotals($validated, $salesCategory);
@@ -2245,6 +2287,7 @@ class IdeaAccountingController extends Controller
                 $invoice = IdeaInvoice::create([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
+                    'proposal_status'      => in_array($validated['type'], ['quotation', 'tender'], true) ? 'draft' : null,
                     'sales_category'       => $salesCategory,
                     'subject'              => $validated['subject'] ?? null,
                     'reference_no'         => $validated['reference_no'] ?? null,
@@ -2392,6 +2435,9 @@ class IdeaAccountingController extends Controller
                 $invoice->update([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
+                    'proposal_status'      => in_array($validated['type'], ['quotation', 'tender'], true)
+                        ? (in_array($invoice->type, ['quotation', 'tender'], true) ? ($invoice->proposal_status ?: 'draft') : 'draft')
+                        : ($invoice->proposal_status === 'converted' ? 'converted' : null),
                     'sales_category'       => $salesCategory,
                     'subject'              => $validated['subject'] ?? null,
                     'reference_no'         => $validated['reference_no'] ?? null,
@@ -2449,6 +2495,10 @@ class IdeaAccountingController extends Controller
      */
     public function convertInvoiceType(IdeaInvoice $invoice, Request $request): RedirectResponse
     {
+        if (!in_array($invoice->type, ['quotation', 'tender'], true)) {
+            return back()->with('error', 'শুধু কোটেশন বা দরপত্রকে বিল/চালানে রূপান্তর করা যাবে।');
+        }
+
         $targetType = $request->input('target_type', 'invoice');
         if (!in_array($targetType, ['invoice', 'challan'])) {
             $targetType = 'invoice';
@@ -2457,6 +2507,7 @@ class IdeaAccountingController extends Controller
         $oldTypeLabel = $invoice->type_label;
         $invoice->update([
             'type' => $targetType,
+            'proposal_status' => 'converted',
         ]);
         $invoice->recalculatePayments();
         IdeaAccountingEntry::where('invoice_id', $invoice->id)->update(['category' => $invoice->incomeCategory()]);
@@ -2465,6 +2516,25 @@ class IdeaAccountingController extends Controller
 
         return redirect()->route('admin.accounting.invoices.show', $invoice->id)
             ->with('success', "{$oldTypeLabel} সফলভাবে {$newTypeLabel}-এ রূপান্তর করা হয়েছে।");
+    }
+
+    public function updateProposalStatus(Request $request, IdeaInvoice $invoice): RedirectResponse
+    {
+        if (!in_array($invoice->type, ['quotation', 'tender'], true)) {
+            return back()->with('error', 'শুধু কোটেশন বা দরপত্রের স্ট্যাটাস পরিবর্তন করা যাবে।');
+        }
+
+        $validated = $request->validate([
+            'proposal_status' => 'required|in:draft,sent,accepted,rejected',
+        ]);
+
+        if ($invoice->effective_proposal_status === 'expired') {
+            return back()->with('error', 'মেয়াদোত্তীর্ণ প্রস্তাবনার স্ট্যাটাস আর পরিবর্তন করা যাবে না।');
+        }
+
+        $invoice->update(['proposal_status' => $validated['proposal_status']]);
+
+        return back()->with('success', "ডকুমেন্টের স্ট্যাটাস {$invoice->fresh()->proposal_status_label} করা হয়েছে।");
     }
 
     /**
@@ -4874,4 +4944,3 @@ class IdeaAccountingController extends Controller
         return IdeaInvoiceItemService::isBookItem($itemType, $salesCategory);
     }
 }
-
