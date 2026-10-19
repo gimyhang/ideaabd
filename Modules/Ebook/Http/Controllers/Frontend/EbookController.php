@@ -82,6 +82,7 @@ class EbookController extends Controller
         $freeEbooks = collect();
         $newReleaseEbooks = collect();
         $dynamicCategories = collect();
+        $categoryShelves = collect();
         $matchedBlogPosts = collect();
         $matchedResearchPapers = collect();
         $matchedWebzineArticles = collect();
@@ -233,6 +234,33 @@ class EbookController extends Controller
                         ->take(24)
                         ->get(['id', 'name', 'slug', 'icon_or_image']);
                 } catch (\Throwable) {}
+
+                // Category shelves: one query for every shelf (no per-category queries in the view)
+                if ($dynamicCategories->isNotEmpty()) {
+                    try {
+                        $children = Category::whereIn('parent_id', $dynamicCategories->pluck('id'))->get(['id', 'parent_id']);
+                        $owner = [];
+                        foreach ($dynamicCategories as $dc) { $owner[$dc->id] = $dc->id; }
+                        foreach ($children as $ch) { $owner[$ch->id] = $ch->parent_id; }
+
+                        $shelfBooks = Ebook::query()
+                            ->with(['author', 'publisher', 'category'])
+                            ->where('is_active', true)
+                            ->whereIn('category_id', array_keys($owner))
+                            ->latest('id')
+                            ->take(600)
+                            ->get()
+                            ->groupBy(fn ($e) => $owner[$e->category_id] ?? 0);
+
+                        $categoryShelves = $dynamicCategories
+                            ->map(function ($c) use ($shelfBooks) {
+                                $c->setRelation('shelf', ($shelfBooks->get($c->id) ?? collect())->take(12)->values());
+                                return $c;
+                            })
+                            ->filter(fn ($c) => $c->shelf->isNotEmpty())
+                            ->values();
+                    } catch (\Throwable) {}
+                }
 
                 $featuredEbooks = $bestsellingEbooks->take(4);
                 $spotlightEbook = $bestsellingEbooks->first() ?: $newReleaseEbooks->first();
@@ -508,6 +536,7 @@ class EbookController extends Controller
             'freeEbooks',
             'newReleaseEbooks',
             'dynamicCategories',
+            'categoryShelves',
             'spotlightEbook',
             'userLibraryIds',
             'stats',

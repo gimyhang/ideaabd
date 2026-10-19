@@ -1,0 +1,65 @@
+/* Purchases › stationery / electronics entry form and item stock list. Layered on accounting-modern.css. */
+
+.pi-form { display: flex; flex-direction: column; gap: 1.5rem; padding-bottom: 1.5rem; }
+.pi-card { padding: 1.4rem 1.5rem; margin: 0 !important; }
+.pi-card.p-0 { padding: 0; overflow: hidden; }
+.pi-card .row { row-gap: 1rem; }
+.pi-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.pi-h { margin: 0; font-size: .8rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
+.pi-head + .pi-rows, .pi-h + .row { margin-top: 1rem; }
+
+/* Item rows */
+.pi-rows { display: flex; flex-direction: column; gap: .9rem; }
+.pi-row { display: grid; grid-template-columns: minmax(220px, 1fr) 100px 120px 120px 120px auto; gap: .75rem; align-items: end;
+    padding: 1rem; border: 1px solid var(--ac-line-2, #eef1f7); border-radius: 16px; background: var(--ac-surface-2, #f8fafc); }
+.pi-item { position: relative; }
+.pi-hint { margin-top: .35rem; font-size: .78rem; font-weight: 700; color: #047857; }
+.pi-line output { display: block; padding: .55rem .2rem; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.pi-search.is-set { border-color: #10b981; background-color: #f2fdf8; }
+
+/* Totals */
+.pi-totals { margin: 0; display: grid; gap: .65rem; }
+.pi-totals div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.pi-totals dt { font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
+.pi-totals dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
+.pi-totals dd .form-control { width: 130px; }
+.pi-totals .is-grand { padding-top: .75rem; border-top: 1px solid var(--ac-line, #e6eaf2); }
+.pi-totals .is-grand dd { font-size: 1.35rem; color: var(--ac-blue, #2563eb); }
+.pi-submit { display: flex; justify-content: flex-end; }
+.pi-submit .btn { min-width: 160px; }
+
+/* Stock list */
+.pi-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+.pi-kpi { padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .2rem; margin: 0 !important; }
+.pi-kpi span { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
+.pi-kpi strong { font-size: 1.55rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.pi-kpi.is-bad strong { color: #e11d48; }
+.pi-toolbar { padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--ac-line-2, #eef1f7); }
+.pi-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.pi-filter .form-control, .pi-filter .form-select { flex: 1 1 160px; max-width: 260px; }
+.pi-card .table th:first-child, .pi-card .table td:first-child { padding-left: 1.5rem; }
+.pi-card .table th:last-child, .pi-card .table td:last-child { padding-right: 1.5rem; }
+.pi-empty { text-align: center; padding: 3rem 1rem !important; color: var(--ac-mute, #94a3b8); font-weight: 700; }
+.pi-tag { display: inline-flex; padding: .25rem .7rem; border-radius: 999px; font-size: .74rem; font-weight: 800; background: #e8f0ff; color: #1d4ed8; border: 1px solid #c8dafc; }
+.pi-tag.is-electronics { background: #f1ecff; color: #6d28d9; border-color: #dccffd; }
+.pi-qty-chip { display: inline-block; min-width: 2.4rem; padding: .15rem .6rem; border-radius: 999px; text-align: center; font-weight: 800; background: #e7f8f0; color: #047857; font-variant-numeric: tabular-nums; }
+.pi-qty-chip.is-low { background: #ffecef; color: #be123c; }
+
+@media (max-width: 991.98px) {
+    .pi-row { grid-template-columns: 1fr 1fr 1fr; }
+    .pi-item { grid-column: 1 / -1; }
+    .pi-line { grid-column: span 1; }
+    .pi-del { grid-column: 1 / -1; }
+    .pi-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 575.98px) {
+    .pi-form { gap: 1rem; }
+    .pi-card { padding: 1rem; }
+    .pi-row { grid-template-columns: 1fr 1fr; }
+    .pi-toolbar { padding: 1rem; }
+    .pi-card .table th:first-child, .pi-card .table td:first-child { padding-left: 1rem; }
+    .pi-card .table th:last-child, .pi-card .table td:last-child { padding-right: 1rem; }
+    .pi-filter .form-control, .pi-filter .form-select { max-width: none; flex-basis: 100%; }
+    .pi-submit .btn { width: 100%; }
+}
+body.dark-mode .pi-row { background: var(--ac-surface-2); border-color: var(--ac-line); }

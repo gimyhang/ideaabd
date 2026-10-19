@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Dynamic Role & Permission Access Control (Enterprise IAM Hub)')
-@section('heading', 'Role & Permission Access Control')
+@section('heading', 'Roles & Permissions')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>

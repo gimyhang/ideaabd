@@ -19,6 +19,7 @@ class PublisherPurchaseItem extends Model
         'unit',
         'quality_spec',
         'book_id',
+        'product_id',
         'book_title',
         'author_name',
         'category_id',

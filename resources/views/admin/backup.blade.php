@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Master Backup & Disaster Recovery — Idea Publication')
-@section('heading', 'Master Backup & Disaster Recovery Hub')
+@section('heading', 'Backup')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Dashboard</a></li>

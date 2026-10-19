@@ -30,53 +30,66 @@
         ],
         'Catalog' => [
             ['route' => 'admin.books',          'icon' => 'book',          'label' => 'Books'],
-            ['route' => 'admin.products.index', 'icon' => 'bag-shopping',  'label' => 'Electronics & Stationery'],
-            ['route' => 'admin.bundles.index',  'icon' => 'boxes-stacked', 'label' => 'Combos & Bundles'],
+            ['route' => 'admin.products.electronics', 'icon' => 'laptop',       'label' => 'Electronics'],
+            ['route' => 'admin.products.stationery',  'icon' => 'pen-ruler',    'label' => 'Stationery'],
+            ['route' => 'admin.products.appliance',   'icon' => 'blender',      'label' => 'Appliances'],
+            ['route' => 'admin.bundles.index',  'icon' => 'boxes-stacked', 'label' => 'Bundles'],
             ['route' => 'admin.categories',     'icon' => 'folder-tree',   'label' => 'Categories'],
             ['route' => 'admin.authors',        'icon' => 'pen-fancy',     'label' => 'Authors'],
             ['route' => 'admin.publishers',     'icon' => 'building',      'label' => 'Publishers'],
         ],
-        'E-Books & Royalties' => [
-            ['route' => 'admin.ebooks',                 'icon' => 'tablet-screen-button', 'label' => 'E-Books Inventory'],
-            ['route' => 'admin.subscriptions.index',    'icon' => 'crown',                'label' => 'Idea Unlimited Club'],
-            ['route' => 'admin.ebook-sales-report',     'icon' => 'chart-pie',             'label' => 'E-Book Sales Report'],
-            ['route' => 'admin.author-royalties.index', 'icon' => 'scale-balanced',       'label' => 'Royalty Management'],
-            ['route' => 'admin.author-payouts.index',   'icon' => 'hand-holding-dollar',  'label' => 'Royalty Payouts',
+        'Ebooks' => [
+            ['route' => 'admin.ebooks',                 'icon' => 'tablet-screen-button', 'label' => 'Titles'],
+            ['route' => 'admin.subscriptions.index',    'icon' => 'crown',                'label' => 'Club'],
+            ['route' => 'admin.ebook-sales-report',     'icon' => 'chart-pie',             'label' => 'Reports'],
+            ['route' => 'admin.author-royalties.index', 'icon' => 'scale-balanced',       'label' => 'Royalties'],
+            ['route' => 'admin.author-payouts.index',   'icon' => 'hand-holding-dollar',  'label' => 'Payouts',
              'badge' => $pendingPayouts > 0 ? $pendingPayouts : null, 'badgeClass' => 'bg-warning text-dark'],
-            ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Payout Gateway Logs'],
+            ['route' => 'admin.royalty-payout-logs',    'icon' => 'file-invoice-dollar',  'label' => 'Logs'],
         ],
-        'Purchases & Inventory' => [
-            ['route' => 'admin.purchases.index',    'icon' => 'cart-flatbed',        'label' => 'Purchases & Invoices'],
-            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'Payments & Installments'],
-            ['route' => 'admin.purchases.ledger',   'icon' => 'book-bookmark',       'label' => 'Vendor & Press Ledgers'],
-            ['route' => 'admin.purchases.monthly-report', 'icon' => 'chart-pie',     'label' => 'Monthly Report'],
+        'Purchases' => [
+            ['route' => 'admin.purchases.index',    'icon' => 'cart-flatbed',        'label' => 'Purchases'],
+            ['route' => 'admin.purchases.payments', 'icon' => 'hand-holding-dollar', 'label' => 'Payments'],
+            ['route' => 'admin.purchases.ledger',   'icon' => 'book-bookmark',       'label' => 'Ledgers'],
+            ['route' => 'admin.purchases.monthly-report', 'icon' => 'chart-pie',     'label' => 'Monthly'],
+            ['route' => 'admin.purchases.stationery', 'icon' => 'pen-ruler',         'label' => 'Stationery'],
+            ['route' => 'admin.purchases.electronics', 'icon' => 'plug',             'label' => 'Electronics'],
+            ['route' => 'admin.purchases.items.stock', 'icon' => 'boxes-stacked',    'label' => 'Items'],
+            ['route' => 'admin.production.index',    'icon' => 'print',              'label' => 'Production'],
+            ['route' => 'admin.inventory.index',     'icon' => 'warehouse',          'label' => 'Stock'],
+            ['route' => 'admin.inventory.locations', 'icon' => 'location-dot',       'label' => 'Locations'],
+            ['route' => 'admin.inventory.transfers', 'icon' => 'truck-ramp-box',     'label' => 'Transfers'],
+            ['route' => 'admin.inventory.wastages',  'icon' => 'triangle-exclamation','label' => 'Wastage'],
+            ['route' => 'admin.inventory.alerts',    'icon' => 'bell',               'label' => 'Alerts'],
+            ['route' => 'admin.inventory.logs',      'icon' => 'clock-rotate-left',  'label' => 'Movements'],
         ],
         'Accounting' => [
             ['route' => 'admin.accounting.index',                  'icon' => 'scale-balanced',      'label' => 'Transactions'],
-            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices'],
-            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Customer Ledger'],
-            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax & VAT'],
-            ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll & Salary'],
-            ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Staff & Employees'],
-            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'Reports & Statements'],
+            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-invoice-dollar', 'label' => 'Invoices', 'url' => route('admin.accounting.index', ['stream' => 'invoices'])],
+            ['route' => 'admin.accounting.invoices.index',         'icon' => 'file-lines',          'label' => 'Quotations', 'type' => 'quotation', 'url' => route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation'])],
+            ['route' => 'admin.accounting.customer-ledger.index', 'icon' => 'book-bookmark',       'label' => 'Ledger'],
+            ['route' => 'admin.accounting.tax-vat-deductions.index', 'icon' => 'receipt',           'label' => 'Tax'],
+            ['route' => 'admin.accounting.salary.index',           'icon' => 'money-check-dollar',  'label' => 'Payroll'],
+            ['route' => 'admin.accounting.employees.index',        'icon' => 'users-gear',          'label' => 'Employees'],
+            ['route' => 'admin.accounting.reports.index',          'icon' => 'chart-pie',           'label' => 'Reports'],
         ],
         'Content' => [
-            ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Ideapatra / Blog'],
-            ['route' => 'admin.author-honorariums.index', 'icon' => 'hand-holding-heart', 'label' => 'Author Honorariums',
+            ['route' => 'admin.blog',                     'icon' => 'newspaper',          'label' => 'Blog'],
+            ['route' => 'admin.author-honorariums.index', 'icon' => 'hand-holding-heart', 'label' => 'Honorariums',
              'badge' => $pendingHonorariums > 0 ? $pendingHonorariums : null, 'badgeClass' => 'bg-danger text-white'],
             ['route' => 'admin.webzines',                 'icon' => 'book-open',          'label' => 'Webzines'],
         ],
-        'Sales & Orders' => [
-            ['route' => 'admin.pos.index',        'icon' => 'cash-register', 'label' => 'Boi Mela Stall POS'],
-            ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'Book Orders'],
-            ['route' => 'admin.affiliates.index', 'icon' => 'bullhorn',      'label' => 'Affiliates & Influencers'],
-            ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Gateway Reports'],
-            ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Payment Gateways'],
-            ['route' => 'admin.sms.index',        'icon' => 'comment-sms',   'label' => 'Bulk SMS & Gateway'],
-            ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Seller Bills'],
-            ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Book Requests'],
+        'Sales' => [
+            ['route' => 'admin.pos.index',        'icon' => 'cash-register', 'label' => 'POS'],
+            ['route' => 'admin.ecommerce-orders', 'icon' => 'cart-shopping', 'label' => 'Orders'],
+            ['route' => 'admin.affiliates.index', 'icon' => 'bullhorn',      'label' => 'Affiliates'],
+            ['route' => 'admin.gateway-reports',  'icon' => 'receipt',       'label' => 'Receipts'],
+            ['route' => 'admin.payments.index',   'icon' => 'credit-card',   'label' => 'Gateways'],
+            ['route' => 'admin.sms.index',        'icon' => 'comment-sms',   'label' => 'SMS'],
+            ['route' => 'admin.orders',           'icon' => 'file-invoice',  'label' => 'Bills'],
+            ['route' => 'admin.book-requests.index', 'icon' => 'code-pull-request', 'label' => 'Requests'],
         ],
-        'User Management' => [
+        'Users' => [
             ['route' => 'admin.users',                   'icon' => 'users',           'label' => 'Users'],
             ['route' => 'admin.registrations.authors',   'icon' => 'feather-pointed', 'label' => 'Authors',
              'badge' => $pendingAuthors > 0 ? $pendingAuthors : null, 'badgeClass' => 'bg-success text-white'],
@@ -90,31 +103,31 @@
             ['route' => 'admin.users.security.index',    'icon' => 'shield-halved',   'label' => 'Security',
              'badge' => $pendingPasswordRequests > 0 ? $pendingPasswordRequests : null, 'badgeClass' => 'bg-danger text-white'],
             ['route' => 'admin.sub-admins.index',        'icon' => 'user-shield',     'label' => 'Staff'],
-            ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns & Events'],
-            ['route' => 'admin.libraries.index',         'icon' => 'book-open-reader','label' => 'Libraries & Grants'],
+            ['route' => 'admin.event-campaigns.index',   'icon' => 'calendar-check',  'label' => 'Campaigns'],
+            ['route' => 'admin.libraries.index',         'icon' => 'book-open-reader','label' => 'Libraries'],
             ['route' => 'admin.tickets.index',           'icon' => 'ticket',          'label' => 'Tickets'],
         ],
-        'Administration' => [
-            ['route' => 'admin.seo.index',           'icon' => 'magnifying-glass-chart', 'label' => 'SEO & Auto-Scanner'],
-            ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Multi-Currency & FX'],
-            ['route' => 'admin.translations.index',  'icon' => 'language',        'label' => 'Translations & i18n'],
-            ['route' => 'admin.communication.index', 'icon' => 'paper-plane',      'label' => 'Communication Hub'],
-            ['route' => 'admin.roles.index',         'icon' => 'key',             'label' => 'Roles & Permissions'],
-            ['route' => 'admin.visitor-reports',     'icon' => 'chart-line',     'label' => 'Visitor Reports'],
-            ['route' => 'admin.system-settings',     'icon' => 'sliders',         'label' => 'System Settings'],
-            ['route' => 'admin.cache.manage',        'icon' => 'bolt',            'label' => 'Cache Management'],
-            ['route' => 'admin.media.index',         'icon' => 'images',          'label' => 'Media & Library'],
-            ['route' => 'admin.backup.index',        'icon' => 'database',        'label' => 'Backup Database'],
-            ['route' => 'admin.audit-logs.index',    'icon' => 'shield-halved',   'label' => 'Audit & Logs'],
+        'System' => [
+            ['route' => 'admin.seo.index',           'icon' => 'magnifying-glass-chart', 'label' => 'SEO'],
+            ['route' => 'admin.currencies.index',    'icon' => 'coins',           'label' => 'Currencies'],
+            ['route' => 'admin.translations.index',  'icon' => 'language',        'label' => 'Translations'],
+            ['route' => 'admin.communication.index', 'icon' => 'paper-plane',      'label' => 'Communication'],
+            ['route' => 'admin.roles.index',         'icon' => 'key',             'label' => 'Roles'],
+            ['route' => 'admin.visitor-reports',     'icon' => 'chart-line',     'label' => 'Visitors'],
+            ['route' => 'admin.system-settings',     'icon' => 'sliders',         'label' => 'Settings'],
+            ['route' => 'admin.cache.manage',        'icon' => 'bolt',            'label' => 'Cache'],
+            ['route' => 'admin.media.index',         'icon' => 'images',          'label' => 'Media'],
+            ['route' => 'admin.backup.index',        'icon' => 'database',        'label' => 'Backup'],
+            ['route' => 'admin.audit-logs.index',    'icon' => 'shield-halved',   'label' => 'Audit'],
         ],
-        'Seller Panel' => [
-            ['route' => 'subadmin.dashboard',    'icon' => 'gauge-high',         'label' => 'Seller Dashboard'],
-            ['route' => 'subadmin.bills.create', 'icon' => 'plus-circle',        'label' => 'New POS Bill'],
-            ['route' => 'subadmin.bills.index',  'icon' => 'file-invoice-dollar', 'label' => 'Bills List'],
-            ['route' => 'subadmin.accounts',     'icon' => 'wallet',             'label' => 'Seller Accounts'],
+        'Seller' => [
+            ['route' => 'subadmin.dashboard',    'icon' => 'gauge-high',         'label' => 'Dashboard'],
+            ['route' => 'subadmin.bills.create', 'icon' => 'plus-circle',        'label' => 'New'],
+            ['route' => 'subadmin.bills.index',  'icon' => 'file-invoice-dollar', 'label' => 'Bills'],
+            ['route' => 'subadmin.accounts',     'icon' => 'wallet',             'label' => 'Accounts'],
         ],
-        'Public Site' => [
-            ['route' => 'home', 'icon' => 'arrow-up-right-from-square', 'label' => 'View Website', 'target' => '_blank'],
+        'Website' => [
+            ['route' => 'home', 'icon' => 'arrow-up-right-from-square', 'label' => 'Website', 'target' => '_blank'],
         ],
     ];
 
@@ -134,6 +147,16 @@
         'admin.purchases.payments' => 'purchases.manage',
         'admin.purchases.ledger' => 'purchases.manage',
         'admin.purchases.monthly-report' => 'purchases.manage',
+        'admin.purchases.stationery' => 'purchases.manage',
+        'admin.purchases.electronics' => 'purchases.manage',
+        'admin.purchases.items.stock' => 'purchases.manage',
+        'admin.production.index' => 'catalog.view',
+        'admin.inventory.index' => 'catalog.view',
+        'admin.inventory.locations' => 'catalog.view',
+        'admin.inventory.transfers' => 'catalog.view',
+        'admin.inventory.wastages' => 'catalog.view',
+        'admin.inventory.alerts' => 'catalog.view',
+        'admin.inventory.logs' => 'catalog.view',
         'admin.accounting.index' => 'accounting.view',
         'admin.accounting.invoices.index' => 'accounting.view',
         'admin.accounting.customer-ledger.index' => 'accounting.view',
@@ -189,7 +212,7 @@
         <button type="button" class="adm-side__close d-lg-none btn btn-sm text-white" data-side-close aria-label="Close sidebar">
             <i class="fa-solid fa-xmark fs-5"></i>
         </button>
-        <button type="button" class="adm-side__desktop-toggle d-none d-lg-flex btn btn-sm text-white-50 p-1 border-0" data-side-toggle title="সাইডবার টগল করুন" aria-label="Toggle Mini Sidebar">
+        <button type="button" class="adm-side__desktop-toggle d-none d-lg-flex btn btn-sm text-white-50 p-1 border-0" data-side-toggle title="Menu" aria-label="Menu">
             <i class="fa-solid fa-bars-staggered"></i>
         </button>
     </div>
@@ -198,10 +221,10 @@
     <div class="adm-side__search-wrap">
         <div class="adm-side__search-box">
             <i class="fa-solid fa-magnifying-glass adm-side__search-icon"></i>
-            <input type="text" id="admSidebarSearch" class="adm-side__search-input" placeholder="Search menu... (Ctrl+K)" autocomplete="off">
+            <input type="text" id="admSidebarSearch" class="adm-side__search-input" placeholder="Search (Ctrl+K)" autocomplete="off">
             <span id="admSidebarMatchCounter" class="adm-side__match-badge d-none">0</span>
             <span class="adm-side__search-shortcut" id="admSidebarShortcut">⌘K</span>
-            <button type="button" id="admSidebarSearchClear" class="adm-side__search-clear" title="Clear filter">
+            <button type="button" id="admSidebarSearchClear" class="adm-side__search-clear" title="Clear">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -209,23 +232,23 @@
 
     <!-- 2. Quick Access / Favorites Chip Bar -->
     <div class="adm-side__favorites">
-        <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="Boi Mela Stall POS" data-tooltip="Boi Mela POS">
+        <a href="{{ route('admin.pos.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.pos.*') ? 'is-active' : '' }}" title="POS" data-tooltip="POS">
             <i class="fa-solid fa-cash-register text-warning"></i>
             <span>POS</span>
         </a>
-        <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Book Orders" data-tooltip="Book Orders">
+        <a href="{{ route('admin.ecommerce-orders') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.ecommerce-orders*') ? 'is-active' : '' }}" title="Orders" data-tooltip="Orders">
             <i class="fa-solid fa-cart-shopping text-info"></i>
             <span>Orders</span>
         </a>
-        <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books Catalog" data-tooltip="Books Catalog">
+        <a href="{{ route('admin.books') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.books*') ? 'is-active' : '' }}" title="Books" data-tooltip="Books">
             <i class="fa-solid fa-book text-success"></i>
             <span>Books</span>
         </a>
-        <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Multi-Currency FX" data-tooltip="Multi-Currency FX">
+        <a href="{{ route('admin.currencies.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.currencies.*') ? 'is-active' : '' }}" title="Currencies" data-tooltip="Currencies">
             <i class="fa-solid fa-coins text-warning"></i>
             <span>FX</span>
         </a>
-        <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Support Tickets" data-tooltip="Support Tickets">
+        <a href="{{ route('admin.tickets.index') }}" class="adm-side__fav-chip {{ request()->routeIs('admin.tickets.*') ? 'is-active' : '' }}" title="Tickets" data-tooltip="Tickets">
             <i class="fa-solid fa-ticket text-danger"></i>
             <span>Tickets</span>
         </a>
@@ -286,8 +309,19 @@
                             @foreach ($items as $item)
                                 @php
                                     $base = preg_replace('/\.index$/', '', $item['route']);
-                                    $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($base . '.*');
+                                    // An *.index link only owns its whole prefix when no sibling link lives under it
+                                    // (otherwise Stock/Purchases would stay lit on every sibling page).
+                                    $ownsPrefix = collect($items)->filter(fn ($o) => $o['route'] !== $item['route'] && str_starts_with($o['route'], $base . '.'))->isEmpty();
+                                    $isRouteActive = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') || ($ownsPrefix && request()->routeIs($base . '.*'));
                                     $active = isset($item['category']) ? ($isRouteActive && request('category') === $item['category']) : ($isRouteActive && empty(request('category')));
+                                    // Invoices / Quotations are two views of one hub stream (stream=invoices, type=…)
+                                    $onInvoiceStream = request()->routeIs('admin.accounting.index') && request('stream') === 'invoices';
+                                    if ($item['route'] === 'admin.accounting.invoices.index') {
+                                        $wantsQuotation = ($item['type'] ?? null) === 'quotation';
+                                        $active = $onInvoiceStream && ((request('type') === 'quotation') === $wantsQuotation);
+                                    } elseif ($item['route'] === 'admin.accounting.index' && $onInvoiceStream) {
+                                        $active = false;
+                                    }
                                     $href = $item['url'] ?? route($item['route']);
                                 @endphp
                                 <a href="{{ $href }}"
@@ -327,9 +361,9 @@
     </nav>
 
     <div class="adm-side__foot adm-brand__text d-flex justify-content-between align-items-center">
-        <span>Version 2.0</span>
-        <button type="button" class="btn btn-xs p-0 text-white-50 text-decoration-none" onclick="toggleAllNavGroups()" title="Expand/Collapse All">
-            <i class="fa-solid fa-up-down-left-right" style="font-size: 10px;"></i> Toggle All
+        <span>v2.0</span>
+        <button type="button" class="btn btn-xs p-0 text-white-50 text-decoration-none" onclick="toggleAllNavGroups()" title="Toggle">
+            <i class="fa-solid fa-up-down-left-right" style="font-size: 10px;"></i> Toggle
         </button>
     </div>
 </aside>

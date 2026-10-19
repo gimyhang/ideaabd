@@ -442,6 +442,10 @@
             }
 
             this.initVoices();
+            if (!this.bengaliVoice && !this._voiceHinted) {
+                this._voiceHinted = true;
+                this.showToast('এই ডিভাইসে বাংলা ভয়েস পাওয়া যায়নি। Edge/Chrome ও Android-এ বাংলা ভয়েস চালু করলে স্পষ্ট শোনা যাবে।', 'fa-solid fa-circle-info text-warning');
+            }
             this.activeStorageKey = storageKey;
             this.speechChunks = this.extractChunksFromDOM(containerSelector, titleSelector);
 
@@ -729,7 +733,7 @@
                     const range = selection.getRangeAt(0);
                     const container = range.commonAncestorContainer;
                     const el = container.nodeType === 1 ? container : container.parentElement;
-                    if (el && el.closest('header, nav, .card, .banner, .lit-search-container, button, select, input, .no-audio-selection, .lit-category-dropdown')) {
+                    if (!el || !el.closest('#articleBody, [data-audio-scope]') || el.closest('nav, header, footer, button, select, input, .no-audio-selection')) {
                         tooltip.style.display = 'none';
                         return;
                     }

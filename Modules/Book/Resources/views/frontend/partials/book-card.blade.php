@@ -16,10 +16,10 @@
     // Resolve Author from Authors relation or directory fallback
     $firstAuthor = $book->authors->first();
     if (!$firstAuthor && $book->author_link_id) {
-        $firstAuthor = \Modules\Author\Models\Author::find($book->author_link_id);
+        $firstAuthor = \Modules\Author\Models\Author::lookupById($book->author_link_id);
     }
     if (!$firstAuthor && $book->author_name) {
-        $firstAuthor = \Modules\Author\Models\Author::where('name', $book->author_name)->first();
+        $firstAuthor = \Modules\Author\Models\Author::lookupByName($book->author_name);
     }
     
     $authorName = $firstAuthor ? $firstAuthor->name : ($book->author_name ?: 'আইডিয়া প্রকাশন');

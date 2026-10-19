@@ -1,26 +1,32 @@
 @extends('layouts.admin')
 
 @section('title', 'E-Books Management & Search')
-@section('heading', 'E-Books & Digital Publications')
+@section('heading', 'E-Books')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">E-Books Directory</li>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-books.css') }}?v={{ @filemtime(public_path('css/admin-books.css')) ?: 1 }}">
+@endpush
+
 @section('actions')
-    <div class="d-flex align-items-center gap-2">
-        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" data-bs-toggle="modal" data-bs-target="#ebookSettingsModal" title="ই-বুক সেটিংস ও প্রিভিউ পেজ লিমিট">
-            <i class="fa-solid fa-sliders me-1"></i> Settings
-        </button>
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportEbooksToCSV()" title="CSV Export">
-            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
-        </button>
-        <a href="{{ route('admin.content.create', 'ebooks') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fa-solid fa-circle-plus me-1"></i> Upload New E-Book
+    <div class="bk-actions">
+        <a href="{{ route('admin.content.create', 'ebooks') }}" class="btn btn-primary bk-btn-main">Add</a>
+        <a href="{{ route('admin.ebooks', ['mod_status' => 'pending']) }}" class="btn btn-warning bk-btn-main text-dark">
+            Review
+            @if(($stats['pending'] ?? 0) > 0)<span class="badge bg-danger rounded-pill ms-1">{{ $stats['pending'] }}</span>@endif
         </a>
-        <a href="{{ route('ebook.index') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> View Library
-        </a>
+        <div class="dropdown">
+            <button type="button" class="btn btn-outline-secondary bk-btn-main dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">More</button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 bk-more-menu">
+                <li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#ebookSettingsModal">Settings</button></li>
+                <li><button type="button" class="dropdown-item" onclick="exportEbooksToCSV()">Export</button></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ route('ebook.index') }}" target="_blank" rel="noopener">Library</a></li>
+            </ul>
+        </div>
     </div>
 @endsection
 
@@ -39,171 +45,91 @@
     {{-- ========================================================================= --}}
     {{-- 1. KPI SUMMARY STRIP                                                      --}}
     {{-- ========================================================================= --}}
-    <div class="row g-2">
-        {{-- 1. Total E-Books --}}
-        <div class="col-6 col-md-3">
-            <a href="{{ route('admin.ebooks') }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ !request()->hasAny(['price_type', 'is_active', 'mod_status']) ? 'border-primary border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Total E-Books</small>
-                        <h4 class="fw-bold text-dark mb-0 font-monospace">{{ number_format($stats['total'] ?? 0) }}</h4>
-                    </div>
-                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-tablet-screen-button"></i></span>
-                </div>
+    @php
+        $noFilter = !request()->hasAny(['price_type', 'is_active', 'mod_status', 'category_id', 'author_id', 'search']);
+        $kpis = [
+            ['Total',   $stats['total'] ?? 0,       route('admin.ebooks'), $noFilter, 'primary'],
+            ['Pending', $stats['pending'] ?? 0,     route('admin.ebooks', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])), request('mod_status') === 'pending', 'warning'],
+            ['Live',    $stats['active'] ?? 0,      route('admin.ebooks', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])), request('is_active') === '1', 'success'],
+            ['Sold',    $stats['total_sales'] ?? 0, route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'paid'])), request('price_type') === 'paid', 'info'],
+        ];
+        $advKeys = ['category_id', 'author_id', 'price_type', 'mod_status', 'is_active'];
+        $advCount = collect($advKeys)->filter(fn ($k) => request()->filled($k))->count();
+    @endphp
+    <div class="bk-kpis" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+        @foreach($kpis as [$kLabel, $kValue, $kUrl, $kActive, $kTone])
+            <a href="{{ $kUrl }}" class="bk-kpi bk-kpi--{{ $kTone }} {{ $kActive ? 'is-active' : '' }}">
+                <span class="bk-kpi__label">{{ $kLabel }}</span>
+                <span class="bk-kpi__value">{{ number_format($kValue) }}</span>
             </a>
-        </div>
-
-        {{-- 2. Pending Moderation Queue --}}
-        <div class="col-6 col-md-3">
-            <a href="{{ route('admin.ebooks', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('mod_status') === 'pending' ? 'border-warning border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Pending Review (KDP)</small>
-                        <h4 class="fw-bold text-warning-emphasis mb-0 font-monospace">
-                            {{ number_format($stats['pending'] ?? 0) }}
-                            @if(($stats['pending'] ?? 0) > 0)
-                                <span class="badge bg-danger rounded-pill fs-6 ms-1 animate-pulse">New</span>
-                            @endif
-                        </h4>
-                    </div>
-                    <span class="p-2 bg-warning-subtle text-warning rounded-circle fs-5"><i class="fa-solid fa-hourglass-half"></i></span>
-                </div>
-            </a>
-        </div>
-
-        {{-- 3. Active & Live --}}
-        <div class="col-6 col-md-3">
-            <a href="{{ route('admin.ebooks', array_merge(request()->except(['is_active', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Active & Live</small>
-                        <h4 class="fw-bold text-success mb-0 font-monospace">{{ number_format($stats['active'] ?? 0) }}</h4>
-                    </div>
-                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fa-solid fa-circle-check"></i></span>
-                </div>
-            </a>
-        </div>
-
-        {{-- 4. Total Sold Copies --}}
-        <div class="col-6 col-md-3">
-            <a href="{{ route('admin.ebooks', array_merge(request()->except(['price_type', 'page']), ['price_type' => 'paid'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 bg-white rounded-4 shadow-sm border-0 {{ request('price_type') === 'paid' ? 'border-info border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Total Copies Sold</small>
-                        <h4 class="fw-bold text-info mb-0 font-monospace">{{ number_format($stats['total_sales'] ?? 0) }}</h4>
-                    </div>
-                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fa-solid fa-bag-shopping"></i></span>
-                </div>
-            </a>
-        </div>
+        @endforeach
     </div>
 
-    {{-- ========================================================================= --}}
-    {{-- 2. ADVANCED FILTER & SEARCH TOOLBAR                                       --}}
-    {{-- ========================================================================= --}}
-    <div class="adm-card p-3 shadow-sm border-0 bg-white rounded-4">
-        <form action="{{ route('admin.ebooks') }}" method="GET" id="ebooksFilterForm" class="d-flex flex-column gap-2.5">
-            
-            <div class="row g-2 align-items-center">
-                <!-- Search Bar -->
-                <div class="col-12 col-lg-3">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" name="search" id="ebookSearchInput" value="{{ request('search') }}" 
-                               class="form-control border-start-0 border-end-0 ps-0" 
-                               placeholder="Search title, author, publisher, ISBN..." autocomplete="off">
-                        @if(request('search'))
-                            <a href="{{ route('admin.ebooks', request()->except('search')) }}" class="input-group-text bg-white border-start-0 text-muted hover-danger" title="Clear Search">
-                                <i class="fa-solid fa-times"></i>
-                            </a>
-                        @endif
-                    </div>
+    <div class="adm-card p-3 shadow-sm border-0">
+        <form action="{{ route('admin.ebooks') }}" method="GET" id="ebooksFilterForm" class="d-flex flex-column gap-2" role="search">
+            <div class="bk-searchrow">
+                <div class="bk-search">
+                    <input type="search" name="search" id="ebookSearchInput" value="{{ request('search') }}" class="form-control bk-search__input" autocomplete="off" enterkeyhint="search" aria-label="Search">
+                    <button type="submit" class="btn btn-primary bk-search__go">Search</button>
                 </div>
-
-                <!-- Moderation Status Filter -->
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="mod_status" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">All Review Status</option>
-                        <option value="approved" @selected(request('mod_status') === 'approved')>Approved (Live)</option>
-                        <option value="pending" @selected(request('mod_status') === 'pending')>Pending Moderation</option>
-                        <option value="rejected" @selected(request('mod_status') === 'rejected')>Revision Needed</option>
-                    </select>
-                </div>
-
-                <!-- Category Filter -->
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="category_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">All Categories</option>
-                        @foreach ($categories as $catId => $catName)
-                            <option value="{{ $catId }}" @selected((string)request('category_id') === (string)$catId)>
-                                {{ $catName }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Author Filter -->
-                <div class="col-6 col-md-3 col-lg-2">
-                    <select name="author_id" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">All Authors</option>
-                        @foreach ($authors as $aId => $aName)
-                            <option value="{{ $aId }}" @selected((string)request('author_id') === (string)$aId)>
-                                {{ $aName }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Price Filter -->
-                <div class="col-6 col-md-3 col-lg-1.5">
-                    <select name="price_type" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">All Prices</option>
-                        <option value="free" @selected(request('price_type') === 'free')>Free</option>
-                        <option value="paid" @selected(request('price_type') === 'paid')>Paid</option>
-                    </select>
-                </div>
-
-                <!-- Active Status Filter -->
-                <div class="col-6 col-md-3 col-lg-1.5">
-                    <select name="is_active" class="form-select form-select-sm rounded-3" onchange="this.form.submit()">
-                        <option value="">All Status</option>
-                        <option value="1" @selected(request('is_active') === '1')>Active Only</option>
-                        <option value="0" @selected(request('is_active') === '0')>Inactive Only</option>
-                    </select>
-                </div>
+                <button type="button" class="btn btn-outline-secondary bk-filter-toggle" data-bs-toggle="collapse" data-bs-target="#ebAdmFilters" aria-expanded="{{ $advCount ? 'true' : 'false' }}">
+                    Filters @if($advCount)<span class="badge bg-primary rounded-pill ms-1">{{ $advCount }}</span>@endif
+                </button>
+                <select name="sort" class="form-select bk-sort" onchange="this.form.submit()" aria-label="Sort">
+                    @foreach(['latest' => 'Newest', 'oldest' => 'Oldest', 'title_asc' => 'A → Z', 'price_low' => 'Price ↑', 'price_high' => 'Price ↓', 'sales_high' => 'Bestseller'] as $v => $l)
+                        <option value="{{ $v }}" @selected(request('sort', 'latest') === $v)>{{ $l }}</option>
+                    @endforeach
+                </select>
             </div>
 
-            <!-- Sorting & Per Page -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="small text-muted fw-semibold">Sort By:</span>
-                    <select name="sort" class="form-select form-select-sm rounded-pill py-0.5" style="width: auto;" onchange="this.form.submit()">
-                        <option value="latest" @selected(request('sort', 'latest') === 'latest')>Newest First</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
-                        <option value="title_asc" @selected(request('sort') === 'title_asc')>Title (A-Z)</option>
-                        <option value="price_low" @selected(request('sort') === 'price_low')>Price (Low to High)</option>
-                        <option value="price_high" @selected(request('sort') === 'price_high')>Price (High to Low)</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Top Selling Copies</option>
-                    </select>
+            <div class="bk-chips" role="group" aria-label="Quick filters">
+                @foreach([['All', []], ['Live', ['is_active' => '1']], ['Draft', ['is_active' => '0']], ['Pending', ['mod_status' => 'pending']], ['Free', ['price_type' => 'free']], ['Paid', ['price_type' => 'paid']]] as [$cl, $cp])
+                    @php $on = $cp ? collect($cp)->every(fn ($v, $k) => (string) request($k) === (string) $v) : $noFilter; @endphp
+                    <a href="{{ route('admin.ebooks', array_merge(request()->only(['search', 'sort', 'per_page']), $cp)) }}" class="bk-chip {{ $on ? 'is-active' : '' }}">{{ $cl }}</a>
+                @endforeach
+                <span class="bk-count">{{ number_format($ebooks->total()) }}</span>
+            </div>
 
-                    <span class="small text-muted fw-semibold ms-2">Show:</span>
-                    <select name="per_page" class="form-select form-select-sm rounded-pill py-0.5" style="width: auto;" onchange="this.form.submit()">
-                        <option value="10" @selected(request('per_page', 20) == 10)>10</option>
-                        <option value="20" @selected(request('per_page', 20) == 20)>20</option>
-                        <option value="50" @selected(request('per_page', 20) == 50)>50</option>
-                        <option value="100" @selected(request('per_page', 20) == 100)>100</option>
-                    </select>
-                </div>
-
-                <div class="d-flex align-items-center gap-2">
-                    @if(request()->hasAny(['search', 'author_id', 'publisher_id', 'category_id', 'price_type', 'is_active', 'mod_status']))
-                        <a href="{{ route('admin.ebooks') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
-                            <i class="fa-solid fa-rotate-left me-1"></i> Reset Filters
-                        </a>
+            <div class="collapse {{ $advCount ? 'show' : '' }}" id="ebAdmFilters">
+                <div class="row g-2 pt-2 border-top">
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="efReview">Review</label>
+                        <select name="mod_status" id="efReview" class="form-select" onchange="this.form.submit()">
+                            <option value="">All</option>
+                            <option value="approved" @selected(request('mod_status') === 'approved')>Approved</option>
+                            <option value="pending" @selected(request('mod_status') === 'pending')>Pending</option>
+                            <option value="rejected" @selected(request('mod_status') === 'rejected')>Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="efCat">Category</label>
+                        <select name="category_id" id="efCat" class="form-select" onchange="this.form.submit()">
+                            <option value="">All</option>
+                            @foreach ($categories as $catId => $catName)
+                                <option value="{{ $catId }}" @selected((string) request('category_id') === (string) $catId)>{{ $catName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="efAuthor">Author</label>
+                        <select name="author_id" id="efAuthor" class="form-select" onchange="this.form.submit()">
+                            <option value="">All</option>
+                            @foreach ($authors as $aId => $aName)
+                                <option value="{{ $aId }}" @selected((string) request('author_id') === (string) $aId)>{{ $aName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="efPer">Rows</label>
+                        <select name="per_page" id="efPer" class="form-select" onchange="this.form.submit()">
+                            @foreach([10, 20, 50, 100] as $pp)<option value="{{ $pp }}" @selected((int) request('per_page', 20) === $pp)>{{ $pp }}</option>@endforeach
+                        </select>
+                    </div>
+                    @if(request()->hasAny(['search', 'author_id', 'category_id', 'price_type', 'is_active', 'mod_status']))
+                        <div class="col-12"><a href="{{ route('admin.ebooks') }}" class="btn btn-outline-secondary">Reset</a></div>
                     @endif
                 </div>
             </div>
-
         </form>
     </div>
 
@@ -216,13 +142,13 @@
                 <thead class="table-light small fw-bold text-secondary">
                     <tr>
                         <th class="ps-3" style="width: 45px;">#</th>
-                        <th style="min-width: 250px;">E-Book Title & Specs</th>
-                        <th style="min-width: 170px;">Author & Source</th>
+                        <th style="min-width: 250px;">Book</th>
+                        <th style="min-width: 170px;">Author</th>
                         <th>Category</th>
-                        <th>Pricing & Royalty</th>
-                        <th>Sales / Reads</th>
-                        <th class="text-center" style="min-width: 110px;">Review Status</th>
-                        <th class="text-center" style="min-width: 90px;">Live Store</th>
+                        <th>Price</th>
+                        <th>Sales</th>
+                        <th class="text-center" style="min-width: 110px;">Review</th>
+                        <th class="text-center" style="min-width: 90px;">Live</th>
                         <th class="text-end pe-3" style="min-width: 160px;">Actions</th>
                     </tr>
                 </thead>
@@ -394,7 +320,7 @@
 
                                     {{-- Delete --}}
                                     <form action="{{ route('admin.content.destroy', ['type' => 'ebooks', 'id' => $ebook->id]) }}" method="POST" class="d-inline"
-                                          data-confirm="আপনি কি নিশ্চিত যে এই ই-বুকটি ডিলিট করতে চান?" data-confirm-title="ই-বুক ডিলিট">
+                                          data-confirm="Delete this e-book?" data-confirm-title="Delete">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-0.5" title="Delete">
@@ -411,23 +337,19 @@
                                                 @csrf
                                                 <div class="modal-header border-bottom">
                                                     <h6 class="modal-title fw-bold text-dark">
-                                                        <i class="fa-solid fa-triangle-exclamation text-warning me-1.5"></i> Request Revision / Reject E-Book
+                                                        Reject
                                                     </h6>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body p-4">
-                                                    <p class="small text-muted mb-2">
-                                                        বই: <strong>{{ $ebook->title }}</strong> (লেখক: {{ $ebook->author_name }})
-                                                    </p>
                                                     <div class="mb-3">
-                                                        <label class="form-label small fw-bold text-dark">সংশোধনের বিবরণ / কারণ <span class="text-danger">*</span></label>
-                                                        <textarea name="rejection_reason" class="form-control form-control-sm rounded-3" rows="4" required
-                                                                  placeholder="কেন বইটি লাইভ করা যাচ্ছে না বা কী কী সংশোধন প্রয়োজন তা বিস্তারিত লিখুন (লেখকের ড্যাশবোর্ডে প্রদর্শিত হবে)..."></textarea>
+                                                        <label class="form-label small fw-bold text-dark">Reason <span class="text-danger">*</span></label>
+                                                        <textarea name="rejection_reason" class="form-control form-control-sm rounded-3" rows="4" required></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer bg-light">
                                                     <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">Send Revision Note</button>
+                                                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-xs">Send</button>
                                                 </div>
                                             </form>
                                         </div>
@@ -473,7 +395,7 @@
                     <div class="modal-header border-bottom py-3">
                         <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="ebookSettingsModalLabel">
                             <span class="p-2 bg-primary-subtle text-primary rounded-circle"><i class="fa-solid fa-sliders"></i></span>
-                            <span>ই-বুক গ্লোবাল সেটিংস ও প্রিভিউ লিমিট</span>
+                            <span>Settings</span>
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -482,38 +404,27 @@
                         <div class="modal-body p-4">
                             <div class="mb-3">
                                 <label for="default_preview_pages" class="form-label fw-bold text-dark small mb-1">
-                                    <i class="fa-solid fa-book-open-reader text-warning me-1"></i> ডিফল্ট অটো-প্রিভিউ পৃষ্ঠা সংখ্যা (Default Preview Pages)
+                                    Preview pages
                                 </label>
-                                <p class="text-muted small mb-2" style="font-size: 12px; line-height: 1.5;">
-                                    পাঠক কোনো ই-বুক কেনার আগে সর্বোচ্চ কত পৃষ্ঠা পর্যন্ত ফ্রিতে পড়তে পারবেন তা নির্ধারণ করুন (যেমন: ১, ৩, ৫, ১০, ১৬, ২০ ইত্যাদি)।
-                                </p>
                                 <div class="input-group">
                                     <input type="number" min="1" max="100" class="form-control rounded-start-3 font-monospace fw-bold" 
                                            id="default_preview_pages" name="default_preview_pages" 
                                            value="{{ $defaultPreviewPages ?? 16 }}" required>
-                                    <span class="input-group-text bg-light text-muted small">পৃষ্ঠা (Pages)</span>
+                                    <span class="input-group-text bg-light text-muted small">Pages</span>
                                 </div>
                                 <div class="d-flex gap-1.5 mt-2">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 5;">৫ পৃষ্ঠা</button>
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 10;">১০ পৃষ্ঠা</button>
-                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0.5 px-2 active fw-bold" onclick="document.getElementById('default_preview_pages').value = 16;">১৬ পৃষ্ঠা (প্রস্তাবিত)</button>
-                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 20;">২০ পৃষ্ঠা</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 5;">5</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 10;">10</button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary rounded-pill py-0.5 px-2 active fw-bold" onclick="document.getElementById('default_preview_pages').value = 16;">16</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-0.5 px-2" onclick="document.getElementById('default_preview_pages').value = 20;">20</button>
                                 </div>
                             </div>
 
-                            <div class="p-3 bg-light rounded-3 border">
-                                <div class="d-flex gap-2">
-                                    <i class="fa-solid fa-circle-info text-primary mt-0.5"></i>
-                                    <div class="small text-muted" style="font-size: 11.5px; line-height: 1.4;">
-                                        <strong>স্বয়ংক্রিয় প্রিভিউ:</strong> লেখক আলাদা স্যাম্পল ফাইল না দিলে সিস্টেম স্বয়ংক্রিয়ভাবে মূল ফাইল থেকে এই নির্ধারিত পৃষ্ঠাসংখ্যা পর্যন্ত প্রিভিউ রিডারে পরিবেশন করবে।
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                         <div class="modal-footer border-top py-2.5 px-4 bg-light bg-opacity-50">
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বন্ধ করুন</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
                             <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                                <i class="fa-solid fa-check me-1"></i> সেটিংস সংরক্ষণ করুন
+                                <i class="fa-solid fa-check me-1"></i> Save
                             </button>
                         </div>
                     </form>
@@ -529,12 +440,12 @@
 // 1-Click Instant AJAX Ebook Approval
 async function ajaxApproveEbook(id) {
     const result = await SwalConfirm({
-        title: 'ই-বুক অনুমোদন ও লাইভ প্রকাশ',
-        text: 'আপনি কি এই ই-বুকটি অনুমোদন করে লাইভ স্টোরে প্রকাশ করতে চান?',
+        title: 'Approve',
+        text: 'Publish this e-book?',
         icon: 'question',
-        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> হ্যাঁ, অনুমোদন করুন',
+        confirmButtonText: '<i class="fa-solid fa-circle-check me-1"></i> Approve',
         confirmButtonColor: '#10b981',
-        cancelButtonText: 'বাতিল'
+        cancelButtonText: 'Cancel'
     });
     if (!result.isConfirmed) return;
 
@@ -571,13 +482,13 @@ async function ajaxApproveEbook(id) {
                 if (rejectBtn) rejectBtn.remove();
             }
 
-            showEbookToast('success', data.message || 'ই-বুকটি সফলভাবে অনুমোদিত হয়েছে!');
+            showEbookToast('success', data.message || 'Approved');
         } else {
-            showEbookToast('error', data.message || 'অনুমোদনে ত্রুটি হয়েছে।');
+            showEbookToast('error', data.message || 'Failed');
         }
     } catch (err) {
         console.error(err);
-        showEbookToast('error', 'সার্ভারে সংযোগ করতে সমস্যা হয়েছে।');
+        showEbookToast('error', 'Failed');
     }
 }
 
@@ -599,7 +510,7 @@ function toggleEbookActive(id) {
     })
     .catch(err => {
         console.error('Error updating status:', err);
-        showEbookToast('error', 'স্ট্যাটাস আপডেটে সমস্যা হয়েছে।');
+        showEbookToast('error', 'Failed');
     });
 }
 

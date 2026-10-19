@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="{{ asset('css/kalpurush-font.css') }}" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -985,12 +985,6 @@
                                                     Special Discount @if($specialCommPercent > 0)<span class="badge bg-danger-subtle text-danger border px-1 py-0" style="font-size: 8.5px;">{{ $specialCommPercent }}%</span>@endif:
                                                 </td>
                                                 <td class="text-end text-danger fw-semibold font-monospace">- ৳{{ number_format($invoice->discount, 2) }}</td>
-                                            </tr>
-                                        @endif
-                                        @if(($invoice->previous_due ?? 0) > 0)
-                                            <tr class="border-bottom border-warning-subtle table-warning bg-warning bg-opacity-10">
-                                                <td class="text-dark fw-bold">Previous Due:</td>
-                                                <td class="text-end text-dark fw-bold font-monospace">+ ৳{{ number_format($invoice->previous_due, 2) }}</td>
                                             </tr>
                                         @endif
                                         @if($invoice->tax > 0)

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Sub-Admins & Staff')
-@section('heading', 'Sub-Admins & Store Staff')
+@section('heading', 'Staff')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Sub-Admins</li>
 @endsection

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Admin Activity Logs')
-@section('heading', 'Admin Activity Audit Trail')
+@section('heading', 'Activity Logs')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

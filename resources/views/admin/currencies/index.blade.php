@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Multi-Currency & Global FX Rates')
-@section('heading', 'Multi-Currency & FX Exchange Rates')
+@section('heading', 'Currencies')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

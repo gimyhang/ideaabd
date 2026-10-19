@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Orders & Billing')
-@section('heading', 'Orders & Billing History')
+@section('heading', 'Orders')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Orders & Billing</li>
 @endsection

@@ -1,46 +1,38 @@
 @extends('layouts.admin')
 
 @section('title', 'Book Management & Inventory Engine')
-@section('heading', 'Books Catalog & Inventory Search Engine')
+@section('heading', 'Books')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-books.css') }}?v={{ @filemtime(public_path('css/admin-books.css')) ?: 1 }}">
+@endpush
 
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Books List</li>
 @endsection
 
 @section('actions')
-    <div class="d-flex align-items-center gap-2">
-        <a href="{{ route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']) }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold shadow-xs text-dark position-relative" title="View Publisher Books Waiting for Approval">
-            <i class="fa-solid fa-building-circle-check me-1"></i> Publisher Review Queue
+    <div class="bk-actions">
+        <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary bk-btn-main">Add</a>
+        <button type="button" class="btn btn-success bk-btn-main" onclick="openQuickAddBookModal()" title="দ্রুত বই যোগ করুন">Quick</button>
+        <a href="{{ route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']) }}" class="btn btn-warning bk-btn-main text-dark" title="পাবলিশার রিভিউ কিউ">
+            Review
             @if(($stats['publisher_pending'] ?? 0) > 0)
-                <span class="badge bg-danger rounded-pill ms-1" style="font-size: 10px;">
-                    {{ $stats['publisher_pending'] }}
-                </span>
+                <span class="badge bg-danger rounded-pill ms-1">{{ $stats['publisher_pending'] }}</span>
             @endif
         </a>
-        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-xs" onclick="syncAllBookSerials()" title="Auto-assign missing serial numbers (SKU) to books">
-            <i class="fa-solid fa-wand-magic-sparkles me-1"></i> Sync Serials
-        </button>
-        <a href="{{ route('admin.books.print-labels') }}" target="_blank" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs" title="Print Barcode & QR Sticker Labels">
-            <i class="fa-solid fa-barcode me-1"></i> Print Labels
-        </a>
-        <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-xs" onclick="exportBooksToCSV()" title="Export to CSV file">
-            <i class="fa-solid fa-file-csv me-1"></i> Export (CSV)
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs" onclick="window.print()" title="Print List">
-            <i class="fa-solid fa-print me-1"></i> Print
-        </button>
-        <a href="{{ route('admin.categories') }}" class="btn btn-outline-info btn-sm rounded-pill px-3 shadow-xs fw-semibold" title="বইয়ের ক্যাটাগরি ব্যবস্থাপনা">
-            <i class="fa-solid fa-folder-tree me-1"></i> Categories
-        </a>
-        <button type="button" class="btn btn-success btn-sm rounded-pill px-3.5 fw-bold shadow-xs text-white" onclick="openQuickAddBookModal()" title="Quick">
-            Quick
-        </button>
-        <a href="{{ route('admin.content.create', 'books') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-xs">
-            <i class="fa-solid fa-circle-plus me-1"></i> Add Full Book
-        </a>
-        <a href="{{ route('book.index') }}" target="_blank" rel="noopener" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-xs">
-            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Storefront
-        </a>
+        <div class="dropdown">
+            <button type="button" class="btn btn-outline-secondary bk-btn-main dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">More</button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 bk-more-menu">
+                <li><a class="dropdown-item" href="{{ route('admin.categories') }}">Categories</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.books.print-labels') }}" target="_blank" rel="noopener">Labels</a></li>
+                <li><button type="button" class="dropdown-item" onclick="syncAllBookSerials()" title="অনুপস্থিত সিরিয়াল (SKU) স্বয়ংক্রিয়ভাবে বসান">Sync</button></li>
+                <li><button type="button" class="dropdown-item" onclick="exportBooksToCSV()">Export</button></li>
+                <li><button type="button" class="dropdown-item" onclick="window.print()">Print</button></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{{ route('book.index') }}" target="_blank" rel="noopener">Store</a></li>
+            </ul>
+        </div>
     </div>
 @endsection
 
@@ -60,228 +52,167 @@
     {{-- ========================================================================= --}}
     {{-- 1. KPI SUMMARY STRIP (Book & Publisher Inventory Metrics)                 --}}
     {{-- ========================================================================= --}}
-    <div class="row g-2">
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books') }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status', 'publisher_id']) ? 'border-primary border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Total Catalog</small>
-                        <h4 class="fw-bold text-dark mb-0">{{ number_format($stats['total'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
-                    </div>
-                    <span class="p-2 bg-primary-subtle text-primary rounded-circle fs-5"><i class="fa-solid fa-book"></i></span>
-                </div>
+    <div class="bk-kpis">
+        @php
+            $noFilter = !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status', 'publisher_id']);
+            $kpis = [
+                ['Total',     $stats['total'] ?? 0,             route('admin.books'),                                                                                                   $noFilter, 'primary'],
+                ['Publisher', $stats['publisher_pending'] ?? 0, route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']),                                    request('publisher_id') === 'registered' && request('mod_status') === 'pending', 'indigo'],
+                ['Pending',   $stats['pending'] ?? 0,           route('admin.books', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])),             request('mod_status') === 'pending' && request('publisher_id') !== 'registered', 'warning'],
+                ['Live',      $stats['active'] ?? 0,            route('admin.books', array_merge(request()->except(['is_active', 'mod_status', 'page']), ['is_active' => '1'])),       request('is_active') === '1', 'success'],
+                ['Pre-order', $stats['pre_order'] ?? 0,         route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'pre_order'])),                      request('stock') === 'pre_order', 'info'],
+                ['Stock',     ($stats['low_stock'] ?? 0) + ($stats['out_stock'] ?? 0), route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'low'])), in_array(request('stock'), ['low', 'out'], true), 'danger'],
+            ];
+        @endphp
+        @foreach($kpis as [$kLabel, $kValue, $kUrl, $kActive, $kTone])
+            <a href="{{ $kUrl }}" class="bk-kpi bk-kpi--{{ $kTone }} {{ $kActive ? 'is-active' : '' }}">
+                <span class="bk-kpi__label">{{ $kLabel }}</span>
+                <span class="bk-kpi__value">{{ number_format($kValue) }}</span>
             </a>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books', ['mod_status' => 'pending', 'publisher_id' => 'registered']) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('publisher_id') === 'registered' && request('mod_status') === 'pending' ? 'border-indigo border-2 bg-indigo-subtle bg-opacity-25' : (request('publisher_id') === 'registered' ? 'border-primary border-2' : '') }}">
-                    <div>
-                        <div class="d-flex align-items-center gap-1">
-                            <small class="text-indigo-emphasis fw-bold font-sans">Publisher Pending</small>
-                            <span class="badge bg-danger rounded-pill" style="font-size: 9px;">NEW</span>
-                        </div>
-                        <h4 class="fw-bold text-indigo-emphasis mb-0">{{ number_format($stats['publisher_pending'] ?? 0) }} <small class="fs-6 text-muted">review</small></h4>
-                    </div>
-                    <span class="p-2 bg-indigo-subtle text-indigo rounded-circle fs-5"><i class="fa-solid fa-building-circle-check text-primary"></i></span>
-                </div>
-            </a>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books', array_merge(request()->except(['mod_status', 'page']), ['mod_status' => 'pending'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('mod_status') === 'pending' && request('publisher_id') !== 'registered' ? 'border-warning border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">All Pending Review</small>
-                        <h4 class="fw-bold text-warning-emphasis mb-0">{{ number_format($stats['pending'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
-                    </div>
-                    <span class="p-2 bg-warning-subtle text-warning-emphasis rounded-circle fs-5"><i class="fa-solid fa-hourglass-half"></i></span>
-                </div>
-            </a>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books', array_merge(request()->except(['is_active', 'mod_status', 'page']), ['is_active' => '1'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('is_active') === '1' ? 'border-success border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Active & Live</small>
-                        <h4 class="fw-bold text-success mb-0">{{ number_format($stats['active'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
-                    </div>
-                    <span class="p-2 bg-success-subtle text-success rounded-circle fs-5"><i class="fa-solid fa-circle-check"></i></span>
-                </div>
-            </a>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'pre_order'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('stock') === 'pre_order' ? 'border-info border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Pre-Order</small>
-                        <h4 class="fw-bold text-info mb-0">{{ number_format($stats['pre_order'] ?? 0) }} <small class="fs-6 text-muted">books</small></h4>
-                    </div>
-                    <span class="p-2 bg-info-subtle text-info rounded-circle fs-5"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                </div>
-            </a>
-        </div>
-        <div class="col-6 col-md-4 col-xl">
-            <a href="{{ route('admin.books', array_merge(request()->except(['stock', 'page']), ['stock' => 'low'])) }}" class="text-decoration-none">
-                <div class="adm-card p-3 d-flex align-items-center justify-content-between h-100 {{ request('stock') === 'low' || request('stock') === 'out' ? 'border-danger border-2' : '' }}">
-                    <div>
-                        <small class="text-muted d-block font-sans">Low & Out Stock</small>
-                        <h4 class="fw-bold text-danger mb-0">{{ number_format(($stats['low_stock'] ?? 0) + ($stats['out_stock'] ?? 0)) }} <small class="fs-6 text-muted">items</small></h4>
-                    </div>
-                    <span class="p-2 bg-danger-subtle text-danger rounded-circle fs-5"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                </div>
-            </a>
-        </div>
+        @endforeach
     </div>
+
 
     {{-- ========================================================================= --}}
     {{-- 2. ADVANCED DYNAMIC SEARCH ENGINE & MULTI-FILTER TOOLBAR                   --}}
     {{-- ========================================================================= --}}
     <div class="adm-card p-3 shadow-sm border-0">
-        <form action="{{ route('admin.books') }}" method="GET" id="booksFilterForm" class="d-flex flex-column gap-2.5">
-            
-            <!-- Row 1: Search & Primary Filters -->
-            <div class="row g-2 align-items-center">
-                <!-- Search Bar -->
-                <div class="col-12 col-lg-4">
-                    <div class="input-group input-group-sm shadow-xs rounded-3 overflow-hidden border">
-                        <span class="input-group-text bg-white border-0 text-muted"><i class="fa-solid fa-magnifying-glass text-primary"></i></span>
-                        <input type="text" name="search" id="bookSearchInput" value="{{ request('search') }}" 
-                                class="form-control border-0 ps-1" 
-                                placeholder="Search by title, author, publisher, ISBN, SKU, category..." autocomplete="off">
-                        @if(request('search'))
-                            <a href="{{ route('admin.books', request()->except('search')) }}" class="input-group-text bg-white border-0 text-muted hover-danger" title="Clear Search">
-                                <i class="fa-solid fa-circle-xmark"></i>
-                            </a>
-                        @endif
-                        <button type="submit" class="btn btn-primary px-3 fw-bold d-flex align-items-center gap-1.5" id="bookSearchBtn">
-                            <span>Search</span> <i class="fa-solid fa-arrow-right small"></i>
-                        </button>
+        <form action="{{ route('admin.books') }}" method="GET" id="booksFilterForm" class="d-flex flex-column gap-2" role="search">
+            @php
+                $advKeys = ['publisher_id', 'author_id', 'category_id', 'mod_status', 'stock', 'cover_type', 'is_active', 'discount_only'];
+                $advCount = collect($advKeys)->filter(fn ($k) => request()->filled($k))->count();
+            @endphp
+
+            {{-- Row 1: big search + filters toggle + sort --}}
+            <div class="bk-searchrow">
+                <div class="bk-search">
+                    <input type="search" name="search" id="bookSearchInput" value="{{ request('search') }}"
+                           class="form-control bk-search__input" enterkeyhint="search" autocomplete="off" inputmode="search"
+                           placeholder="খুঁজুন: নাম, লেখক, ISBN, SKU…  ( / )" aria-label="Search books">
+                    <button type="button" class="bk-search__clear {{ request('search') ? '' : 'd-none' }}" id="bookSearchClear" aria-label="Clear search">&times;</button>
+                    <button type="submit" class="btn btn-primary bk-search__go" id="bookSearchBtn">Search</button>
+                </div>
+                <button type="button" class="btn btn-outline-secondary bk-filter-toggle" data-bs-toggle="collapse" data-bs-target="#bkAdvFilters" aria-expanded="{{ $advCount ? 'true' : 'false' }}" aria-controls="bkAdvFilters">
+                    Filters @if($advCount)<span class="badge bg-primary rounded-pill ms-1">{{ $advCount }}</span>@endif
+                </button>
+                <select name="sort" class="form-select bk-sort" onchange="submitFilterForm()" aria-label="Sort">
+                    <option value="idea_serial_asc" @selected(request('sort') === 'idea_serial_asc' || (request('publisher_id') === 'idea' && !request('sort')))>Serial ↑</option>
+                    <option value="idea_serial_desc" @selected(request('sort') === 'idea_serial_desc')>Serial ↓</option>
+                    <option value="latest" @selected(request('sort') === 'latest' || (!request('publisher_id') && !request('sort')))>Newest</option>
+                    <option value="oldest" @selected(request('sort') === 'oldest')>Oldest</option>
+                    <option value="title_asc" @selected(request('sort') === 'title_asc')>A → Z</option>
+                    <option value="title_desc" @selected(request('sort') === 'title_desc')>Z → A</option>
+                    <option value="price_low" @selected(request('sort') === 'price_low')>Price ↑</option>
+                    <option value="price_high" @selected(request('sort') === 'price_high')>Price ↓</option>
+                    <option value="sales_high" @selected(request('sort') === 'sales_high')>Bestseller</option>
+                    <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock ↑</option>
+                    <option value="stock_high" @selected(request('sort') === 'stock_high')>Stock ↓</option>
+                    <option value="discount_high" @selected(request('sort') === 'discount_high')>Discount</option>
+                </select>
+            </div>
+
+            {{-- Row 2: one-tap quick chips --}}
+            <div class="bk-chips" role="group" aria-label="Quick filters">
+                @php
+                    $chips = [
+                        ['All',      [],                                          !request()->hasAny(['stock', 'discount_only', 'is_active', 'mod_status', 'publisher_id'])],
+                        ['Live',     ['is_active' => '1'],                        request('is_active') === '1'],
+                        ['Draft',    ['is_active' => '0'],                        request('is_active') === '0'],
+                        ['Pending',  ['mod_status' => 'pending'],                 request('mod_status') === 'pending'],
+                        ['Low',      ['stock' => 'low'],                          request('stock') === 'low'],
+                        ['Out',      ['stock' => 'out'],                          request('stock') === 'out'],
+                        ['Discount', ['discount_only' => '1'],                    request()->boolean('discount_only')],
+                    ];
+                    $chipKeep = request()->only(['search', 'sort', 'per_page']);
+                @endphp
+                @foreach($chips as [$cLabel, $cParams, $cActive])
+                    <a href="{{ route('admin.books', array_merge($chipKeep, $cParams)) }}" class="bk-chip {{ $cActive ? 'is-active' : '' }}">{{ $cLabel }}</a>
+                @endforeach
+                <span class="bk-count">{{ number_format($books->total()) }} results</span>
+            </div>
+
+            {{-- Row 3: advanced filters (collapsible) --}}
+            <div class="collapse {{ $advCount ? 'show' : '' }}" id="bkAdvFilters">
+                <div class="row g-2 pt-2 border-top">
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fPublisher">Publisher</label>
+                        <select name="publisher_id" id="fPublisher" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            <option value="registered" @selected(request('publisher_id') === 'registered')>Registered</option>
+                            <option value="idea" @selected(request('publisher_id') === 'idea')>IDEA (In-house)</option>
+                            <optgroup label="Publishers">
+                                @foreach ($publishers as $pId => $pName)
+                                    <option value="{{ $pId }}" @selected(request('publisher_id') == $pId)>{{ $pName }}</option>
+                                @endforeach
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fAuthor">Author</label>
+                        <select name="author_id" id="fAuthor" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            @foreach ($authors as $aId => $aName)
+                                <option value="{{ $aId }}" @selected(request('author_id') == $aId)>{{ $aName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fCategory">Category</label>
+                        <select name="category_id" id="fCategory" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            @foreach ($categories as $cId => $cName)
+                                <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fReview">Review</label>
+                        <select name="mod_status" id="fReview" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            <option value="pending" @selected(request('mod_status') === 'pending')>Pending</option>
+                            <option value="approved" @selected(request('mod_status') === 'approved')>Approved</option>
+                            <option value="rejected" @selected(request('mod_status') === 'rejected')>Rejected</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fStock">Stock</label>
+                        <select name="stock" id="fStock" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            <option value="in_stock" @selected(request('stock') === 'in_stock')>In stock (&gt;5)</option>
+                            <option value="low" @selected(request('stock') === 'low')>Low (&le;5)</option>
+                            <option value="out" @selected(request('stock') === 'out')>Out (0)</option>
+                            <option value="pre_order" @selected(request('stock') === 'pre_order')>Pre-order</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fCover">Binding</label>
+                        <select name="cover_type" id="fCover" class="form-select" onchange="submitFilterForm()">
+                            <option value="">All</option>
+                            <option value="paperback" @selected(request('cover_type') === 'paperback')>Paperback</option>
+                            <option value="hardcover" @selected(request('cover_type') === 'hardcover')>Hardcover</option>
+                            <option value="both" @selected(request('cover_type') === 'both')>Both</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <label class="bk-label" for="fPer">Per page</label>
+                        <select name="per_page" id="fPer" class="form-select" onchange="submitFilterForm()">
+                            @foreach([20, 50, 100, 200] as $pp)
+                                <option value="{{ $pp }}" @selected((int) request('per_page', 20) === $pp)>{{ $pp }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-6 col-lg-3 d-flex align-items-end gap-2">
+                        <div class="form-check form-switch mb-0 bk-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="discountOnlySwitch" name="discount_only" value="1"
+                                   @checked(request('discount_only') === '1' || request()->boolean('discount_only')) onchange="submitFilterForm()">
+                            <label class="form-check-label" for="discountOnlySwitch">Discounted</label>
+                        </div>
+                        <a href="{{ route('admin.books') }}" class="btn btn-outline-secondary ms-auto">Reset</a>
                     </div>
                 </div>
-
-                <!-- Publisher Filter (with Registered Publishers Quick Selection) -->
-                <div class="col-6 col-md-4 col-lg-3">
-                    <select name="publisher_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— All Publishers —</option>
-                        <option value="registered" @selected(request('publisher_id') === 'registered') class="fw-bold text-primary">🏢 All Registered Publishers</option>
-                        <option value="idea" @selected(request('publisher_id') === 'idea')>⭐ IDEA Publication (In-House)</option>
-                        <optgroup label="Specific Publishers">
-                            @foreach ($publishers as $pId => $pName)
-                                <option value="{{ $pId }}" @selected(request('publisher_id') == $pId)>{{ $pName }}</option>
-                            @endforeach
-                        </optgroup>
-                    </select>
-                </div>
-
-                <!-- Author Filter -->
-                <div class="col-6 col-md-4 col-lg-3">
-                    <select name="author_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— All Authors & Writers —</option>
-                        @foreach ($authors as $aId => $aName)
-                            <option value="{{ $aId }}" @selected(request('author_id') == $aId)>{{ $aName }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Category Filter -->
-                <div class="col-12 col-md-4 col-lg-2">
-                    <select name="category_id" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— All Categories —</option>
-                        @foreach ($categories as $cId => $cName)
-                            <option value="{{ $cId }}" @selected(request('category_id') == $cId)>{{ $cName }}</option>
-                        @endforeach
-                    </select>
-                </div>
             </div>
-
-            <!-- Row 2: Secondary Attributes, Review Moderation & Sorting -->
-            <div class="row g-2 align-items-center pt-1 border-top">
-                <!-- Moderation Review Status Filter -->
-                <div class="col-6 col-md-2">
-                    <select name="mod_status" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— Review Status —</option>
-                        <option value="pending" @selected(request('mod_status') === 'pending')>⏳ Pending Review</option>
-                        <option value="approved" @selected(request('mod_status') === 'approved')>✅ Approved</option>
-                        <option value="rejected" @selected(request('mod_status') === 'rejected')>❌ Rejected</option>
-                    </select>
-                </div>
-
-                <!-- Stock Filter -->
-                <div class="col-6 col-md-2">
-                    <select name="stock" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— All Stock Status —</option>
-                        <option value="in_stock" @selected(request('stock') === 'in_stock')>🟢 In Stock (&gt;5)</option>
-                        <option value="low" @selected(request('stock') === 'low')>🟡 Low Stock (&le;5)</option>
-                        <option value="out" @selected(request('stock') === 'out')>🔴 Out of Stock (0)</option>
-                        <option value="pre_order" @selected(request('stock') === 'pre_order')>⏳ Pre-Order Active</option>
-                    </select>
-                </div>
-
-                <!-- Format / Cover Type -->
-                <div class="col-6 col-md-2">
-                    <select name="cover_type" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— Binding / Cover —</option>
-                        <option value="paperback" @selected(request('cover_type') === 'paperback')>Paperback</option>
-                        <option value="hardcover" @selected(request('cover_type') === 'hardcover')>Hardcover</option>
-                        <option value="both" @selected(request('cover_type') === 'both')>Both Formats</option>
-                    </select>
-                </div>
-
-                <!-- Live Status Filter -->
-                <div class="col-6 col-md-2">
-                    <select name="is_active" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="">— Live Status —</option>
-                        <option value="1" @selected(request('is_active') === '1')>Active / Live</option>
-                        <option value="0" @selected(request('is_active') === '0')>Inactive / Draft</option>
-                    </select>
-                </div>
-
-                <!-- Sort By -->
-                <div class="col-6 col-md-2">
-                    <select name="sort" class="form-select form-select-sm" onchange="submitFilterForm()">
-                        <option value="idea_serial_asc" @selected(request('sort') === 'idea_serial_asc' || (request('publisher_id') === 'idea' && !request('sort')))>⭐ Idea Serial (১ থেকে ক্রমিক)</option>
-                        <option value="idea_serial_desc" @selected(request('sort') === 'idea_serial_desc')>⭐ Idea Serial (সর্বোচ্চ থেকে ক্রমিক)</option>
-                        <option value="latest" @selected(request('sort') === 'latest' || (!request('publisher_id') && !request('sort')))>Newest First</option>
-                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest First</option>
-                        <option value="title_asc" @selected(request('sort') === 'title_asc')>Title: A to Z</option>
-                        <option value="title_desc" @selected(request('sort') === 'title_desc')>Title: Z to A</option>
-                        <option value="price_low" @selected(request('sort') === 'price_low')>Price: Low to High</option>
-                        <option value="price_high" @selected(request('sort') === 'price_high')>Price: High to Low</option>
-                        <option value="sales_high" @selected(request('sort') === 'sales_high')>Best Selling</option>
-                        <option value="stock_low" @selected(request('sort') === 'stock_low')>Stock: Low to High</option>
-                        <option value="stock_high" @selected(request('sort') === 'stock_high')>Stock: High to Low</option>
-                        <option value="discount_high" @selected(request('sort') === 'discount_high')>Highest Discount</option>
-                    </select>
-                </div>
-
-                <!-- Per Page & Reset -->
-                <div class="col-6 col-md-2 d-flex gap-1">
-                    <select name="per_page" class="form-select form-select-sm flex-fill" onchange="submitFilterForm()">
-                        <option value="20" @selected(request('per_page') == 20 || !request('per_page'))>20 per page</option>
-                        <option value="50" @selected(request('per_page') == 50)>50 per page</option>
-                        <option value="100" @selected(request('per_page') == 100)>100 per page</option>
-                        <option value="200" @selected(request('per_page') == 200)>200 per page</option>
-                    </select>
-                    <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-secondary px-2.5" title="Reset All Filters">
-                        <i class="fa-solid fa-rotate-left"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Row 3: Discount Checkbox & Quick Toggle -->
-            <div class="d-flex align-items-center justify-content-between pt-1">
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" role="switch" id="discountOnlySwitch" name="discount_only" value="1" 
-                           @checked(request('discount_only') === '1' || request()->boolean('discount_only')) onchange="submitFilterForm()">
-                    <label class="form-check-label small fw-semibold text-dark" for="discountOnlySwitch">
-                        <i class="fa-solid fa-tag text-primary me-1"></i> Show Discounted Books Only
-                    </label>
-                </div>
-                <div class="small text-muted">
-                    Total <strong>{{ number_format($books->total()) }}</strong> results found
-                </div>
-            </div>
-
         </form>
+
 
         {{-- Active Filter Badges/Chips --}}
         @php
@@ -290,7 +221,7 @@
 
         @if($hasActiveFilters)
             <div class="d-flex flex-wrap align-items-center gap-1.5 pt-2.5 mt-2 border-top">
-                <span class="small fw-semibold text-muted me-1"><i class="fa-solid fa-sliders me-1"></i>Active Filters:</span>
+                <span class="small fw-semibold text-muted me-1">Active:</span>
                 
                 @if(request('search'))
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill py-1 px-2.5 d-inline-flex align-items-center gap-1">
@@ -356,7 +287,7 @@
                 @endif
 
                 <a href="{{ route('admin.books') }}" class="btn btn-link btn-xs text-danger text-decoration-none fw-bold ms-auto">
-                    <i class="fa-solid fa-trash-can me-1"></i> Clear All Filters
+                    Clear
                 </a>
             </div>
         @endif
@@ -518,7 +449,7 @@
 
     <div class="adm-card p-0 overflow-hidden shadow-sm border-0 rounded-4">
         <div class="d-flex align-items-center justify-content-between px-3 py-2.5 bg-light border-bottom" style="font-size: 12px;">
-            <span class="text-muted"><i class="fa-solid fa-arrows-left-right text-primary me-1"></i> Scroll horizontally to view all columns and quick action commands</span>
+            <span class="text-muted">Swipe to see more columns</span>
             <div class="d-flex align-items-center gap-1">
                 <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-2 rounded-pill" onclick="scrollAdminBooksTable(-300)" title="Scroll Left">
                     <i class="fa-solid fa-chevron-left"></i>
@@ -534,15 +465,15 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3" style="width: 40px;">#</th>
-                        <th style="min-width: 195px;">Book Info</th>
+                        <th style="min-width: 195px;">Book</th>
                         <th style="min-width: 90px;">Edition</th>
-                        <th style="min-width: 125px;">Author & Pub</th>
+                        <th style="min-width: 125px;">Author</th>
                         <th style="min-width: 85px;">Category</th>
-                        <th class="text-end" style="min-width: 82px;">Paperback</th>
-                        <th class="text-end" style="min-width: 82px;">Hardcover</th>
-                        <th class="text-end" style="min-width: 85px;">Cost & Comm</th>
+                        <th class="text-end" style="min-width: 82px;">Paper</th>
+                        <th class="text-end" style="min-width: 82px;">Hard</th>
+                        <th class="text-end" style="min-width: 85px;">Cost</th>
                         <th class="text-center" style="min-width: 75px;">Stock</th>
-                        <th class="text-center" style="min-width: 110px;">Approval</th>
+                        <th class="text-center" style="min-width: 110px;">Review</th>
                         <th class="text-center" style="min-width: 55px;">Live</th>
                         <th class="text-end pe-3 adm-sticky-action-col" style="min-width: 175px;">Actions</th>
                     </tr>
@@ -629,7 +560,7 @@
                                         <div class="d-flex flex-wrap align-items-center gap-1.5 small text-muted font-monospace" style="font-size: 11px;">
                                             @if($book->idea_serial_no)
                                                 <span class="badge bg-warning-subtle text-dark border border-warning px-1.5 py-0.5 fw-bold" id="bookIdeaSerialDisplay_{{ $book->id }}" title="আইডিয়া প্রকাশন নিজস্ব ক্রমিক নম্বর">
-                                                    <i class="fa-solid fa-star text-warning me-0.5"></i>{{ $book->idea_serial_no }}
+                                                    {{ $book->idea_serial_no }}
                                                 </span>
                                             @endif
                                             @if($book->sku)
@@ -638,10 +569,10 @@
                                                 </span>
                                             @endif
                                             <button type="button" class="btn btn-xs btn-outline-dark py-0 px-1.5 rounded-pill" onclick="openBarcodeModal({{ $book->id }})" title="View Barcode & QR Code" style="font-size: 10px;">
-                                                <i class="fa-solid fa-barcode me-0.5"></i>QR
+                                                QR
                                             </button>
                                             @if($book->isbn)
-                                                <span class="text-truncate" title="ISBN: {{ $book->isbn }}"><i class="fa-solid fa-barcode me-0.5"></i>{{ $book->isbn }}</span>
+                                                <span class="text-truncate" title="ISBN: {{ $book->isbn }}">{{ $book->isbn }}</span>
                                             @endif
                                         </div>
                                     </div>
@@ -665,12 +596,12 @@
                                 <div class="fw-semibold text-dark small mb-0.5 text-truncate" style="max-width: 140px;">
                                     @if($book->authorLink)
                                         <a href="{{ route('admin.books', ['author_id' => $book->authorLink->id]) }}" class="text-decoration-none text-primary hover-underline">
-                                            <i class="fa-solid fa-user-pen me-1 text-muted"></i>{{ $book->authorLink->name }}
+                                            {{ $book->authorLink->name }}
                                         </a>
                                     @elseif($book->authors->isNotEmpty())
                                         @foreach($book->authors as $auth)
                                             <a href="{{ route('admin.books', ['author_id' => $auth->id]) }}" class="text-decoration-none text-primary hover-underline d-inline-block me-1">
-                                                <i class="fa-solid fa-user-pen me-0.5 text-muted"></i>{{ $auth->name }}
+                                                {{ $auth->name }}
                                             </a>
                                         @endforeach
                                     @else
@@ -680,13 +611,13 @@
                                 <div class="small text-muted text-truncate" style="font-size: 11px; max-width: 140px;">
                                     @if($book->publisher)
                                         <a href="{{ route('admin.publishers.show', $book->publisher->id) }}" class="text-decoration-none text-dark fw-semibold hover-primary" title="View Publisher: {{ $book->publisher->name }}">
-                                            <i class="fa-solid fa-building text-primary me-1"></i>{{ $book->publisher->name }}
+                                            {{ $book->publisher->name }}
                                         </a>
                                         <span class="badge bg-indigo-subtle text-indigo-emphasis border border-indigo-subtle rounded-pill py-0.5 px-1.5 ms-1" style="font-size: 9px;" title="Registered Publisher Book">
-                                            <i class="fa-solid fa-certificate text-warning me-0.5"></i> Publisher
+                                             Publisher
                                         </span>
                                     @else
-                                        <span class="text-muted"><i class="fa-solid fa-star text-warning me-1"></i>IDEA Pub (In-House)</span>
+                                        <span class="text-muted">IDEA Pub (In-House)</span>
                                     @endif
                                 </div>
                             </td>
@@ -695,13 +626,13 @@
                                 @if($book->category)
                                     <a href="{{ route('admin.books', ['category_id' => $book->category->id]) }}" class="text-decoration-none">
                                         <span class="badge bg-light text-primary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fa-solid fa-folder me-0.5 text-primary-subtle"></i>{{ $book->category->name }}
+                                            {{ $book->category->name }}
                                         </span>
                                     </a>
                                 @else
                                     <a href="{{ route('admin.books', ['category_id' => $bibidhId ?? 'bibidh']) }}" class="text-decoration-none" title="ক্যাটাগরি সিলেক্ট মিসিং (বিবিধ ক্যাটাগরির অন্তর্ভুক্ত)">
                                         <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                                            <i class="fa-solid fa-folder-open me-0.5 text-warning"></i>বিবিধ
+                                            বিবিধ
                                         </span>
                                     </a>
                                 @endif
@@ -859,7 +790,6 @@
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-xs fw-semibold adm-action-btn" 
                                             style="background: linear-gradient(135deg, #3b82f6, #2563eb); border: none; font-size: 11.5px;"
                                             onclick="openQuickEditModal({{ $book->id }})" title="Quick Edit Book (Shortcut)">
-                                        <i class="fa-solid fa-bolt text-warning" style="font-size: 10.5px;"></i>
                                         <span>Edit</span>
                                     </button>
 
@@ -915,7 +845,7 @@
                                     <h5 class="fw-bold text-dark mb-1">No Books Found</h5>
                                     <p class="text-muted small mb-3">Adjust your search criteria or add new books to the catalog.</p>
                                     <a href="{{ route('admin.books') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                        <i class="fa-solid fa-rotate-left me-1"></i> Clear All Filters
+                                        Clear
                                     </a>
                                 </div>
                             </td>
@@ -1459,6 +1389,38 @@
 @endsection
 
 @push('scripts')
+<script>
+// Easy search: "/" focuses, Esc clears, auto-search 700ms after typing stops, one-tap clear
+(function () {
+    var input = document.getElementById('bookSearchInput');
+    var clear = document.getElementById('bookSearchClear');
+    if (!input) return;
+    var timer, initial = input.value;
+
+    function sync() { if (clear) clear.classList.toggle('d-none', !input.value); }
+    input.addEventListener('input', function () {
+        sync();
+        clearTimeout(timer);
+        if (input.value.trim() === initial.trim()) return;
+        timer = setTimeout(function () { if (typeof submitFilterForm === 'function') submitFilterForm(); }, 700);
+    });
+    if (clear) clear.addEventListener('click', function () {
+        input.value = ''; sync(); input.focus();
+        if (initial) submitFilterForm();
+    });
+    document.addEventListener('keydown', function (e) {
+        var t = e.target, typing = t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable);
+        if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) { e.preventDefault(); input.focus(); input.select(); }
+        if (e.key === 'Escape' && document.activeElement === input && input.value) {
+            input.value = ''; sync(); if (initial) submitFilterForm();
+        }
+    });
+    // Keep the cursor at the end after a search reload so typing can continue (desktop only)
+    if (initial && location.search.indexOf('search=') > -1 && !/Mobi|Android/i.test(navigator.userAgent)) {
+        input.focus(); input.setSelectionRange(input.value.length, input.value.length);
+    }
+})();
+</script>
 <script>
 // Dynamic Search & Clean Form Submission Engine
 const searchInput = document.getElementById('bookSearchInput');

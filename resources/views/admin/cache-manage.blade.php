@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Cache Management & Performance Hub — ideaabd')
-@section('heading', 'Cache Management & Performance Hub')
+@section('heading', 'Cache')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/admin-cache.css') }}">

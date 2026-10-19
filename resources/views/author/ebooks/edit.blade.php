@@ -1,7 +1,7 @@
 @extends('author.layout')
 
 @section('title', 'ই-বুক সম্পাদনা — ' . $ebook->title)
-@section('heading', 'ই-বুক তথ্য সম্পাদনা (Edit E-Book)')
+@section('heading', 'ই-বুক সম্পাদনা')
 
 @section('content')
 <div class="container-fluid px-0">

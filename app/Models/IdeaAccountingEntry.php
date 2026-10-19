@@ -30,6 +30,15 @@ class IdeaAccountingEntry extends Model
         'entry_date' => 'date',
     ];
 
+    public static function generateEntryNo(string $prefix = 'INC'): string
+    {
+        do {
+            $candidate = $prefix . '-' . date('Ymd') . '-' . random_int(100000, 999999);
+        } while (static::withTrashed()->where('entry_no', $candidate)->exists());
+
+        return $candidate;
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

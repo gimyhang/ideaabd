@@ -867,6 +867,7 @@
             box-shadow: 0 1px 2px rgba(2, 132, 199, 0.3);
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/auth-login-polish.css') }}?v={{ @filemtime(public_path('css/auth-login-polish.css')) ?: 1 }}">
 </head>
 <body>
 
@@ -1182,11 +1183,11 @@
                         </select>
                         <input type="tel" id="regPhoneInput" class="input-text-custom flex-grow-1 font-monospace" placeholder="017XXXXXXXX" maxlength="11" required>
                     </div>
-                    <small id="regPhoneHint" class="text-muted" style="font-size: 11.5px; display: block; margin-top: 3px; font-family: 'Kalpurush', sans-serif;">১১ সংখ্যার সঠিক মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)</small>
+                    <small id="regPhoneHint" class="text-muted" style="font-size: 11.5px; display: block; margin-top: 3px; font-family: 'Kalpurush', sans-serif;">Enter an 11-digit mobile number</small>
                     <div id="phoneConflictNoticeBox" class="d-none mt-2 alert alert-warning py-2 px-3 rounded-2 small">
                         <div id="phoneConflictMsg" class="mb-1.5 fw-semibold text-dark"></div>
                         <button type="button" class="btn btn-sm btn-dark fw-bold rounded-pill px-3 py-1" onclick="switchAuthModeWithPhone(regData.phone || document.getElementById('regPhoneInput')?.value)">
-                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> সরাসরি লগইন করুন
+                            <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Sign in
                         </button>
                     </div>
                 </div>
@@ -2194,7 +2195,7 @@ function showPhoneConflictAction(phone, msg) {
     const box = document.getElementById('phoneConflictNoticeBox');
     const msgEl = document.getElementById('phoneConflictMsg');
     if (box && msgEl) {
-        msgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-warning me-1.5"></i> ' + (msg || 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে অ্যাকাউন্ট নিবন্ধিত রয়েছে।');
+        msgEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-warning me-1.5"></i> ' + (msg || 'An account already exists for this number.');
         box.classList.remove('d-none');
     }
 }
@@ -2248,7 +2249,7 @@ async function proceedToCaptchaChallenge() {
         if (phoneInput) phoneInput.value = phone;
 
         if (phone.length !== 11 || !phone.startsWith('01')) {
-            showAlert('দয়া করে সঠিক ১১ সংখ্যার মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)।');
+            showAlert('Enter a valid 11-digit mobile number.');
             if (phoneInput) phoneInput.focus();
             return;
         }
@@ -2303,7 +2304,7 @@ async function proceedToCaptchaChallenge() {
     const origBtnHtml = btnContinue ? btnContinue.innerHTML : '';
     if (btnContinue) {
         btnContinue.disabled = true;
-        btnContinue.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> যাচাই করা হচ্ছে...';
+        btnContinue.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Checking...';
     }
 
     try {
@@ -2317,7 +2318,7 @@ async function proceedToCaptchaChallenge() {
         });
         const checkData = await checkRes.json();
         if (checkData.exists && !checkData.can_upgrade) {
-            showAlert(checkData.message || 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে সাইন-ইন করুন।');
+            showAlert(checkData.message || 'An account already exists. Please sign in.');
             showPhoneConflictAction(phone, checkData.message);
             if (btnContinue) {
                 btnContinue.disabled = false;
@@ -2692,7 +2693,7 @@ async function updateMobileNumberAndResend() {
         }
     }
     if (!newNum || (newCode === '+880' ? (newNum.length !== 11 || !newNum.startsWith('01')) : newNum.length < 6)) {
-        showAlert(newCode === '+880' ? 'দয়া করে সঠিক ১১ সংখ্যার মোবাইল নম্বর লিখুন (যেমন: 017XXXXXXXX)।' : 'Please enter a valid mobile number.');
+        showAlert(newCode === '+880' ? 'Enter a valid 11-digit mobile number.' : 'Please enter a valid mobile number.');
         return;
     }
     regData.phone = newNum;

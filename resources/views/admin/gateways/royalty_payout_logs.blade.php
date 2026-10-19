@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Royalty Payout Gateway Logs')
-@section('heading', 'Royalty Payout Gateway Logs & Disbursal Audit')
+@section('heading', 'Payout Logs')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.author-payouts.index') }}">Royalty Payouts</a></li>

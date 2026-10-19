@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Media & Asset Studio — ideaabd')
-@section('heading', 'Media & Asset Studio')
+@section('heading', 'Media')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

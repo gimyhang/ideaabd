@@ -27,9 +27,23 @@ use Modules\Book\Models\Book;
 class AdminDashboardService
 {
     /** Count of seller/publisher/author signups still awaiting a decision. */
+    /**
+     * Stale-while-revalidate: within $fresh seconds the value is served as is; for the next
+     * 10x window a stale copy is served instantly and refreshed after the response is sent,
+     * so an admin never waits for the aggregate queries unless the cache is truly empty.
+     */
+    private function swr(string $key, int $fresh, \Closure $callback): mixed
+    {
+        try {
+            return Cache::flexible($key, [$fresh, $fresh * 10], $callback);
+        } catch (\Throwable) {
+            return Cache::remember($key, $fresh, $callback);
+        }
+    }
+
     public function pendingRegistrations(): int
     {
-        return Cache::remember('admin_pending_registrations_count', 60, function () {
+        return $this->swr('admin_pending_registrations_count', 60, function () {
             return $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
                 ->where('reg_status', User::STATUS_PENDING)
                 ->count(), 0);
@@ -41,7 +55,7 @@ class AdminDashboardService
      */
     public function getPendingAlerts(): array
     {
-        return Cache::remember('admin_dash_pending_alerts', 60, function () {
+        return $this->swr('admin_dash_pending_alerts', 60, function () {
             $pendingOrders = (int) $this->safe(fn () => Order::where('status', 'pending')->count(), 0);
             $pendingRegistrations = (int) $this->safe(fn () => User::whereIn('role', ['seller', 'publisher', 'author'])
                 ->where('reg_status', User::STATUS_PENDING)
@@ -119,7 +133,7 @@ class AdminDashboardService
             ->get(), collect());
 
         $blogs = collect();
-        if (Schema::hasTable('blog_posts')) {
+        if (\App\Support\SchemaCache::has('blog_posts')) {
             $blogs = $this->safe(fn () => \Modules\Blog\Models\BlogPost::where(function ($q) {
                 $q->where('status', 'pending')
                   ->orWhere('mod_status', 'pending')
@@ -128,7 +142,7 @@ class AdminDashboardService
         }
 
         $books = collect();
-        if (Schema::hasTable('books')) {
+        if (\App\Support\SchemaCache::has('books')) {
             $books = $this->safe(fn () => \Modules\Book\Models\Book::where('mod_status', 'pending')
                 ->with(['category', 'publisher'])
                 ->latest()
@@ -137,7 +151,7 @@ class AdminDashboardService
         }
 
         $ebooks = collect();
-        if (Schema::hasTable('ebooks')) {
+        if (\App\Support\SchemaCache::has('ebooks')) {
             $ebooks = $this->safe(fn () => \Modules\Ebook\Models\Ebook::where('mod_status', 'pending')
                 ->with(['category'])
                 ->latest()
@@ -146,7 +160,7 @@ class AdminDashboardService
         }
 
         $bookRequests = collect();
-        if (Schema::hasTable('book_requests')) {
+        if (\App\Support\SchemaCache::has('book_requests')) {
             $bookRequests = $this->safe(fn () => \App\Models\BookRequest::where('status', 'pending')
                 ->latest()
                 ->limit($limit)
@@ -154,7 +168,7 @@ class AdminDashboardService
         }
 
         $submissions = collect();
-        if (Schema::hasTable('author_submissions')) {
+        if (\App\Support\SchemaCache::has('author_submissions')) {
             $submissions = $this->safe(fn () => \Modules\Author\Models\AuthorSubmission::where('status', 'pending')
                 ->with(['author', 'category'])
                 ->latest()
@@ -205,7 +219,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_filtered_stats_' . md5(($from ?? '') . '_' . ($to ?? '') . '_' . $period);
 
-        return Cache::remember($cacheKey, 60, function () use ($from, $to, $period) {
+        return $this->swr($cacheKey, 60, function () use ($from, $to, $period) {
             $today = now()->startOfDay();
             $thisMonth = now()->startOfMonth();
             $thisYear = now()->startOfYear();
@@ -236,7 +250,7 @@ class AdminDashboardService
                 : ($todayRevenue > 0 ? 100 : 0);
 
             // 3. Visitor Traffic Analytics (Daily, Monthly, Yearly & Filtered)
-            $hasVisitorTable = Schema::hasTable('visitor_logs');
+            $hasVisitorTable = \App\Support\SchemaCache::has('visitor_logs');
             $visitorStats = [
                 'today_views'     => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->count(), 0) : 0,
                 'today_uniques'   => $hasVisitorTable ? (int) $this->safe(fn () => VisitorLog::where('visited_at', '>=', $today)->distinct('ip_address')->count('ip_address'), 0) : 0,
@@ -261,7 +275,7 @@ class AdminDashboardService
             // 4. Inventory Health (Low Stock & Out of Stock)
             $lowStockBooks = collect();
             $outOfStockCount = 0;
-            if (Schema::hasTable('books') && Schema::hasColumn('books', 'stock_quantity')) {
+            if (\App\Support\SchemaCache::has('books') && Schema::hasColumn('books', 'stock_quantity')) {
                 $lowStockBooks = $this->safe(fn () => Book::where('stock_quantity', '<=', 5)
                     ->whereNull('deleted_at')
                     ->orderBy('stock_quantity', 'asc')
@@ -282,7 +296,7 @@ class AdminDashboardService
 
             // 6. Top Selling Books
             $topBooks = collect();
-            if (Schema::hasTable('books')) {
+            if (\App\Support\SchemaCache::has('books')) {
                 $topBooks = $this->safe(fn () => Book::whereNull('deleted_at')
                     ->orderByDesc('sales_count')
                     ->limit(5)
@@ -291,7 +305,7 @@ class AdminDashboardService
 
             // 7. Recent Customer Book Requests
             $bookRequests = collect();
-            if (Schema::hasTable('book_requests')) {
+            if (\App\Support\SchemaCache::has('book_requests')) {
                 $bookRequests = $this->safe(fn () => DB::table('book_requests')->latest()->limit(5)->get(), collect());
             }
 
@@ -303,20 +317,20 @@ class AdminDashboardService
 
             // 9. Boi Mela Stall POS Stats
             $posStats = [
-                'today_sales' => Schema::hasTable('pos_sales') ? (float) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->sum('total'), 0.0) : 0.0,
-                'today_count' => Schema::hasTable('pos_sales') ? (int) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->count(), 0) : 0,
+                'today_sales' => \App\Support\SchemaCache::has('pos_sales') ? (float) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->sum('total'), 0.0) : 0.0,
+                'today_count' => \App\Support\SchemaCache::has('pos_sales') ? (int) $this->safe(fn () => DB::table('pos_sales')->whereDate('created_at', today())->count(), 0) : 0,
             ];
 
             // 10. Subscriptions (Kindle Unlimited Model)
             $subStats = [
-                'active_count' => Schema::hasTable('user_subscriptions') ? (int) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->where('expires_at', '>=', now())->count(), 0) : 0,
-                'total_revenue' => Schema::hasTable('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0,
+                'active_count' => \App\Support\SchemaCache::has('user_subscriptions') ? (int) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->where('expires_at', '>=', now())->count(), 0) : 0,
+                'total_revenue' => \App\Support\SchemaCache::has('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0,
             ];
 
             // 11. Affiliates & Influencers
             $affiliateStats = [
-                'total_partners' => Schema::hasTable('affiliates') ? (int) $this->safe(fn () => DB::table('affiliates')->count(), 0) : 0,
-                'unpaid_balance' => Schema::hasTable('affiliates') ? (float) $this->safe(fn () => DB::table('affiliates')->sum('balance'), 0.0) : 0.0,
+                'total_partners' => \App\Support\SchemaCache::has('affiliates') ? (int) $this->safe(fn () => DB::table('affiliates')->count(), 0) : 0,
+                'unpaid_balance' => \App\Support\SchemaCache::has('affiliates') ? (float) $this->safe(fn () => DB::table('affiliates')->sum('balance'), 0.0) : 0.0,
             ];
 
             // 12. Worldwide Country Geo-Traffic Breakdown
@@ -389,10 +403,15 @@ class AdminDashboardService
      */
     public function getLiveTransactionsFeed(): array
     {
+        return $this->swr('admin_dash_getLiveTransactionsFeed', 15, fn () => $this->getLiveTransactionsFeedUncached());
+    }
+
+    protected function getLiveTransactionsFeedUncached(): array
+    {
         $feed = [];
 
         // 1. Recent Orders
-        if (Schema::hasTable('orders')) {
+        if (\App\Support\SchemaCache::has('orders')) {
             $orders = $this->safe(fn () => Order::with('user')->latest()->limit(5)->get(), collect());
             foreach ($orders as $order) {
                 $feed[] = [
@@ -412,7 +431,7 @@ class AdminDashboardService
         }
 
         // 2. Recent POS Bills
-        if (Schema::hasTable('bills')) {
+        if (\App\Support\SchemaCache::has('bills')) {
             $bills = $this->safe(fn () => Bill::latest()->limit(4)->get(), collect());
             foreach ($bills as $bill) {
                 $feed[] = [
@@ -446,9 +465,9 @@ class AdminDashboardService
      */
     public function getMultiChannelRevenueSplit(float $totalEcomRevenue): array
     {
-        $posRevenue = Schema::hasTable('bills') ? (float) $this->safe(fn () => Bill::where('payment_status', 'paid')->sum('total_amount'), 0.0) : 0.0;
-        $subRevenue = Schema::hasTable('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0;
-        $b2bRevenue = Schema::hasTable('idea_accounting_ledgers') ? (float) $this->safe(fn () => DB::table('idea_accounting_ledgers')->where('entry_type', 'credit')->where('account_head', 'like', '%B2B%')->sum('amount'), 0.0) : 0.0;
+        $posRevenue = \App\Support\SchemaCache::has('bills') ? (float) $this->safe(fn () => Bill::where('payment_status', 'paid')->sum('total_amount'), 0.0) : 0.0;
+        $subRevenue = \App\Support\SchemaCache::has('user_subscriptions') ? (float) $this->safe(fn () => DB::table('user_subscriptions')->where('status', 'active')->sum('amount_paid'), 0.0) : 0.0;
+        $b2bRevenue = \App\Support\SchemaCache::has('idea_accounting_ledgers') ? (float) $this->safe(fn () => DB::table('idea_accounting_ledgers')->where('entry_type', 'credit')->where('account_head', 'like', '%B2B%')->sum('amount'), 0.0) : 0.0;
 
         $grandTotal = $totalEcomRevenue + $posRevenue + $subRevenue + $b2bRevenue;
         if ($grandTotal <= 0) {
@@ -468,6 +487,11 @@ class AdminDashboardService
      * Get Server Infrastructure & Storage Health Metrics.
      */
     public function getSystemHealthMetrics(): array
+    {
+        return $this->swr('admin_dash_getSystemHealthMetrics', 60, fn () => $this->getSystemHealthMetricsUncached());
+    }
+
+    protected function getSystemHealthMetricsUncached(): array
     {
         $diskTotal = @disk_total_space(base_path()) ?: (50 * 1024 * 1024 * 1024);
         $diskFree  = @disk_free_space(base_path()) ?: (32 * 1024 * 1024 * 1024);
@@ -501,11 +525,16 @@ class AdminDashboardService
      */
     public function getRoyaltiesPipeline(): array
     {
+        return $this->swr('admin_dash_getRoyaltiesPipeline', 120, fn () => $this->getRoyaltiesPipelineUncached());
+    }
+
+    protected function getRoyaltiesPipelineUncached(): array
+    {
         $accruedPool = 0.0;
         $pendingPayouts = 0.0;
         $paidThisMonth = 0.0;
 
-        if (Schema::hasTable('author_royalties')) {
+        if (\App\Support\SchemaCache::has('author_royalties')) {
             $accruedPool = (float) $this->safe(fn () => DB::table('author_royalties')->sum('royalty_amount'), 0.0);
             $pendingPayouts = (float) $this->safe(fn () => DB::table('author_royalties')->where('status', 'pending')->sum('royalty_amount'), 0.0);
             $paidThisMonth = (float) $this->safe(fn () => DB::table('author_royalties')->where('status', 'paid')->where('updated_at', '>=', now()->startOfMonth())->sum('royalty_amount'), 0.0);
@@ -542,7 +571,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_sales_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        return Cache::remember($cacheKey, 120, function () use ($period, $from, $to) {
+        return $this->swr($cacheKey, 120, function () use ($period, $from, $to) {
             $labels = [];
             $revenue = [];
             $orders = [];
@@ -622,7 +651,7 @@ class AdminDashboardService
     {
         $cacheKey = 'admin_dash_visitor_series_' . md5($period . '_' . ($from ?? '') . '_' . ($to ?? ''));
 
-        return Cache::remember($cacheKey, 120, function () use ($period, $from, $to) {
+        return $this->swr($cacheKey, 120, function () use ($period, $from, $to) {
             $labels = [];
             $views = [];
             $uniques = [];
@@ -719,6 +748,15 @@ class AdminDashboardService
     }
 
     public function roleBreakdown(): array
+
+    {
+
+        return $this->swr('admin_dash_roleBreakdown', 300, fn () => $this->roleBreakdownUncached());
+
+    }
+
+
+    protected function roleBreakdownUncached(): array
     {
         return $this->safe(fn () => User::select('role', DB::raw('count(*) as aggregate'))
             ->groupBy('role')
@@ -746,7 +784,7 @@ class AdminDashboardService
      */
     public function sellersSummary(int $limit = 6): array
     {
-        return Cache::remember('admin_dash_sellers_summary_' . $limit, 120, function () use ($limit) {
+        return $this->swr('admin_dash_sellers_summary_' . $limit, 120, function () use ($limit) {
             return $this->safe(function () use ($limit) {
             $totalSellers = User::whereIn('role', [User::ROLE_SELLER, User::ROLE_SUB_ADMIN])->count();
             $totalBills = Bill::count();
@@ -821,7 +859,12 @@ class AdminDashboardService
      */
      public function getDepartmentalEmployeeStats(): array
      {
-         if (!Schema::hasTable('idea_employees')) {
+         return $this->swr('admin_dash_getDepartmentalEmployeeStats', 300, fn () => $this->getDepartmentalEmployeeStatsUncached());
+     }
+
+     protected function getDepartmentalEmployeeStatsUncached(): array
+     {
+         if (!\App\Support\SchemaCache::has('idea_employees')) {
              return [
                  'total_employees'     => 0,
                  'active_employees'    => 0,
@@ -996,7 +1039,12 @@ class AdminDashboardService
      */
     public function getGlobalTrafficData(): array
     {
-        $hasLogs = Schema::hasTable('visitor_logs');
+        return $this->swr('admin_dash_getGlobalTrafficData', 30, fn () => $this->getGlobalTrafficDataUncached());
+    }
+
+    protected function getGlobalTrafficDataUncached(): array
+    {
+        $hasLogs = \App\Support\SchemaCache::has('visitor_logs');
         $liveOnlineCount = $this->safe(function () use ($hasLogs) {
             if (!$hasLogs) return rand(14, 28);
             $fiveMinAgo = now()->subMinutes(5);
@@ -1093,7 +1141,7 @@ class AdminDashboardService
             return self::$tableCache[$table];
         }
 
-        return self::$tableCache[$table] = $this->safe(fn () => Schema::hasTable($table), false);
+        return self::$tableCache[$table] = $this->safe(fn () => \App\Support\SchemaCache::has($table), false);
     }
 
     private function safe(callable $query, mixed $fallback = null): mixed

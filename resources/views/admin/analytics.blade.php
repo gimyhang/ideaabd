@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Site Visitors & Traffic Analytics — আইডিয়া প্রকাশন')
-@section('heading', 'Visitors & Traffic Analytics Engine')
+@section('heading', 'Analytics')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Analytics & Intelligence</li>
 @endsection

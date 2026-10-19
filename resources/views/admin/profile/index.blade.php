@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Admin Profile & Settings — Idea Prokashon')
-@section('heading', 'Admin Profile & Settings')
+@section('heading', 'Profile')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Dashboard</a></li>
     <li class="breadcrumb-item active" aria-current="page">Profile Settings</li>

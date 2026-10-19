@@ -21,7 +21,15 @@ class EventCampaignAdminController extends Controller
      */
     public function index(Request $request)
     {
-        $campaignsQuery = EventCampaign::withCount('registrations')->latest();
+        $campaignsQuery = EventCampaign::withCount([
+            'registrations',
+            'registrations as confirmed_registrations_count' => function ($q) {
+                $q->whereIn('status', ['confirmed', 'selected', 'approved']);
+            },
+            'registrations as pending_registrations_count' => function ($q) {
+                $q->where('status', 'pending');
+            }
+        ])->latest();
 
         if ($request->filled('search')) {
             $s = trim($request->search);
@@ -1263,6 +1271,98 @@ class EventCampaignAdminController extends Controller
     }
 
     /**
+     * Resolve Division/District Geo conflict by syncing the canonical division for the participant's district.
+     */
+    public function resolveGeoConflict(Request $request, EventRegistration $registration)
+    {
+        $rawDist = trim($registration->district ?? $registration->form_data['district'] ?? $registration->form_data['perm_district'] ?? '');
+        $normDist = \App\Support\BangladeshGeo::normalizeDistrict($rawDist);
+        $expectedDiv = $normDist ? \App\Support\BangladeshGeo::getDivisionForDistrict($normDist) : null;
+
+        if (empty($expectedDiv)) {
+            $expectedDiv = $request->input('target_division');
+        }
+
+        if (empty($expectedDiv)) {
+            return response()->json([
+                'success' => false,
+                'message' => "জেলা '{$rawDist}'-এর জন্য কোনো নির্ধারিত বিভাগ পাওয়া যায়নি।",
+            ], 422);
+        }
+
+        $formData = (array) ($registration->form_data ?? []);
+        $formData['perm_division'] = $expectedDiv;
+        if (isset($formData['division'])) {
+            $formData['division'] = $expectedDiv;
+        }
+
+        $updateData = ['form_data' => $formData];
+        if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+            $updateData['division'] = $expectedDiv;
+        }
+
+        $registration->update($updateData);
+
+        $msg = "নিবন্ধন #{$registration->registration_number} ({$registration->name})-এর বিভাগ সংশোধন করে '{$expectedDiv}' করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'           => true,
+                'message'           => $msg,
+                'resolved_division' => $expectedDiv,
+                'resolved_district' => $normDist ?: $rawDist,
+                'registration_id'   => $registration->id,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Bulk resolve all Division/District geo conflicts for an entire event campaign.
+     */
+    public function bulkResolveGeoConflicts(Request $request, EventCampaign $campaign)
+    {
+        $registrations = $campaign->registrations;
+        $resolvedCount = 0;
+
+        foreach ($registrations as $reg) {
+            $rawDiv = trim($reg->form_data['perm_division'] ?? $reg->form_data['division'] ?? '');
+            $rawDist = trim($reg->district ?? $reg->form_data['district'] ?? $reg->form_data['perm_district'] ?? '');
+
+            $normDiv = \App\Support\BangladeshGeo::normalizeDivision($rawDiv);
+            $normDist = \App\Support\BangladeshGeo::normalizeDistrict($rawDist);
+            $expectedDiv = $normDist ? \App\Support\BangladeshGeo::getDivisionForDistrict($normDist) : null;
+
+            if (!empty($normDiv) && !empty($expectedDiv) && $normDiv !== $expectedDiv) {
+                $formData = (array) ($reg->form_data ?? []);
+                $formData['perm_division'] = $expectedDiv;
+                if (isset($formData['division'])) {
+                    $formData['division'] = $expectedDiv;
+                }
+                $updateData = ['form_data' => $formData];
+                if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+                    $updateData['division'] = $expectedDiv;
+                }
+                $reg->update($updateData);
+                $resolvedCount++;
+            }
+        }
+
+        $msg = "মোট {$resolvedCount}টি নিবন্ধনের বিভাগ-জেলা অমিল স্বয়ংক্রিয়ভাবে সংশোধন করা হয়েছে।";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'        => true,
+                'message'        => $msg,
+                'resolved_count' => $resolvedCount,
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
      * One-click Toggle Selection / Award of Scholarship (বৃত্তিপ্রাপ্ত নির্বাচিত বাটন).
      */
     public function toggleScholarship(Request $request, EventRegistration $registration)
@@ -1469,6 +1569,30 @@ class EventCampaignAdminController extends Controller
             case 'verify_payment':
                 $query->update(['payment_status' => 'verified']);
                 $msg = "{$count} participant(s) payment marked as Verified.";
+                break;
+
+            case 'resolve_geo':
+                $resolved = 0;
+                $regs = $query->get();
+                foreach ($regs as $reg) {
+                    $rawDist = trim($reg->district ?? $reg->form_data['district'] ?? $reg->form_data['perm_district'] ?? '');
+                    $normDist = \App\Support\BangladeshGeo::normalizeDistrict($rawDist);
+                    $expectedDiv = $normDist ? \App\Support\BangladeshGeo::getDivisionForDistrict($normDist) : null;
+                    if ($expectedDiv) {
+                        $fd = (array) ($reg->form_data ?? []);
+                        $fd['perm_division'] = $expectedDiv;
+                        if (isset($fd['division'])) {
+                            $fd['division'] = $expectedDiv;
+                        }
+                        $updateData = ['form_data' => $fd];
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+                            $updateData['division'] = $expectedDiv;
+                        }
+                        $reg->update($updateData);
+                        $resolved++;
+                    }
+                }
+                $msg = "নির্বাচিত {$resolved}টি আবেদনের বিভাগ-জেলা অমিল সংশোধন করা হয়েছে।";
                 break;
 
             case 'delete':
@@ -1770,7 +1894,19 @@ class EventCampaignAdminController extends Controller
             'form_data' => $formData,
         ]);
 
-        return back()->with('success', "Viva evaluation for #{$registration->registration_number} saved. Total Score: {$totalScore}/50.");
+        $msg = "Viva evaluation for #{$registration->registration_number} saved. Total Score: {$totalScore}/50.";
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'     => true,
+                'total_score' => $totalScore,
+                'is_awarded'  => $isAwarded,
+                'status'      => $registration->status,
+                'message'     => $msg,
+            ]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**

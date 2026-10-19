@@ -203,7 +203,7 @@
 | `database/migrations/2026_08_20_170000_remove_unique_title_from_blog_posts_table.php` | ডেটাবেজ স্কিমা: Unique Title From Blog Posts টেবিল ফিল্ড আপডেট মাইগ্রেশন |
 | `database/migrations/2026_08_21_180000_add_country_and_product_type_to_books_table.php` | ডেটাবেজ স্কিমা: Country And Product Type To Books টেবিল ফিল্ড আপডেট মাইগ্রেশন |
 | `database/migrations/2026_08_21_181306_add_dimensions_cm_to_books_table.php` | ডেটাবেজ স্কিমা: Dimensions Cm To Books টেবিল ফিল্ড আপডেট মাইগ্রেশন |
-| `database/migrations/2026_08_21_190000_add_rokomari_detailed_fields_to_books_table.php` | ডেটাবেজ স্কিমা: Rokomari Detailed Fields To Books টেবিল ফিল্ড আপডেট মাইগ্রেশন |
+| `database/migrations/2026_08_21_190000_add_ideaabd_detailed_fields_to_books_table.php` | ডেটাবেজ স্কিমা: ideaabd Detailed Fields To Books টেবিল ফিল্ড আপডেট মাইগ্রেশন |
 | `database/migrations/2026_08_22_140000_create_author_kdp_and_royalty_tables.php` | ডেটাবেজ স্কিমা: Author Kdp And Royaltys টেবিল তৈরি মাইগ্রেশন |
 | `database/migrations/2026_08_22_143000_add_gateway_fields_to_author_payout_requests.php` | ডেটাবেজ স্কিমা: Gateway Fields To Author Payout Requests টেবিল ফিল্ড আপডেট মাইগ্রেশন |
 | `database/migrations/2026_08_23_000001_add_contributors_to_ebooks_table.php` | ডেটাবেজ স্কিমা: Contributors To Ebooks টেবিল ফিল্ড আপডেট মাইগ্রেশন |
@@ -766,7 +766,7 @@
 | `test_class.php` | পিএইচপি ক্লাস ও অটোলোড টেস্ট স্ক্রিপ্ট |
 | `test_db.php` | ডাটাবেজ কানেক্টিভিটি ও টেবিল কোয়েরি টেস্ট স্ক্রিপ্ট |
 | `test_invoice.php` | ইনভয়েস পিডিএফ ও ক্যালকুলেশন ভেরিফিকেশন টেস্ট স্ক্রিপ্ট |
-| `test_rokomari_improvements.php` | রকমারি ক্যাটালগ ফিল্ডস ও এসইও টেস্টিং স্ক্রিপ্ট |
+| `test_ideaabd_improvements.php` | রকমারি ক্যাটালগ ফিল্ডস ও এসইও টেস্টিং স্ক্রিপ্ট |
 | `vite.config.js` | Vite ফ্রন্টএন্ড অ্যাসেট বান্ডলার কনফিগারেশন |
 | `zip_project.php` | সম্পূর্ণ প্রজেক্টের সোর্স কোড এক ক্লিকে ব্যাকআপ জিপ ফাইল তৈরি স্ক্রিপ্ট |
 

@@ -161,6 +161,57 @@ class PublicEventRegistrationController extends Controller
     }
 
     /**
+     * Admin-defined custom fields -> Laravel rules (type, required, dropdown whitelist, length).
+     *
+     * @return array{0: array<string, mixed>, 1: array<string, string>}
+     */
+    protected function customFieldRules(EventCampaign $campaign): array
+    {
+        $rules = [];
+        $attributes = [];
+
+        foreach ((array) ($campaign->custom_fields ?? []) as $i => $field) {
+            $name = $field['name'] ?? null;
+            if (!$name || !preg_match('/^[A-Za-z0-9_]{1,60}$/', (string) $name)) {
+                continue;
+            }
+            // Never let a custom key shadow a built-in column of the form.
+            if (in_array($name, ['name', 'phone', 'email', 'password', 'address', 'district', 'thana', 'amount_paid', 'transaction_id', 'payment_method', 'student_photo', 'optimized_photo_data'], true)) {
+                continue;
+            }
+
+            $type = $field['type'] ?? 'text';
+            $base = !empty($field['required']) ? ['required'] : ['nullable'];
+
+            switch ($type) {
+                case 'number':
+                    $base[] = 'numeric';
+                    break;
+                case 'email':
+                    $base[] = 'email';
+                    $base[] = 'max:255';
+                    break;
+                case 'select':
+                    $options = array_values(array_filter(array_map('trim', explode(',', (string) ($field['options'] ?? ''))), fn ($o) => $o !== ''));
+                    $base[] = $options ? \Illuminate\Validation\Rule::in($options) : 'string';
+                    break;
+                case 'textarea':
+                    $base[] = 'string';
+                    $base[] = 'max:2000';
+                    break;
+                default:
+                    $base[] = 'string';
+                    $base[] = 'max:500';
+            }
+
+            $rules[$name] = $base;
+            $attributes[$name] = $field['label'] ?? $name;
+        }
+
+        return [$rules, $attributes];
+    }
+
+    /**
      * Convert Bengali digits to English digits
      */
     protected function normalizeBnToEn(?string $str): string
@@ -236,14 +287,18 @@ class PublicEventRegistrationController extends Controller
             $rules['previous_books_count'] = 'nullable|string|max:30';
         }
 
-        $validated = $request->validate($rules);
+        [$customRules, $customAttributes] = $this->customFieldRules($campaign);
+        $validated = $request->validate($rules + $customRules, [], $customAttributes);
 
         $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
 
         // Mandatory Photo Check
         if ($isWriter || $isScholarship) {
             $hasPhotoData = $request->filled('optimized_photo_data') || $request->hasFile('student_photo') || $request->hasFile('photo');
-            $existingPhoto = $existingRegistration?->form_data['student_photo'] ?? ($existingRegistration?->form_data['author_photo'] ?? null);
+            $priorRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
+                ->whereIn('phone', \App\Support\PhoneNormalizer::normalize($validated['phone'], $request->input('country_code'))['query_phones'])
+                ->first();
+            $existingPhoto = $priorRegistration ? 'registered' : null;
             if (!$hasPhotoData && empty($existingPhoto)) {
                 return back()->withInput()->with('error', 'নিবন্ধন সম্পন্ন করতে অনুগ্রহ করে পাসপোর্ট সাইজের ছবি আপলোড করুন (ছবি আপলোড বাধ্যতামূলক)।');
             }
@@ -267,45 +322,26 @@ class PublicEventRegistrationController extends Controller
 
         $email = !empty($validated['email']) ? strtolower(trim($validated['email'])) : null;
 
-        // Auto customer account sync
+        // Customer account sync.
+        // A registration form must never sign a visitor in as an existing account: anyone can type
+        // another person's phone or email. So an existing account is neither modified nor logged in;
+        // only a brand-new account (created right here, password chosen by this visitor) is signed in.
         $user = null;
         if (auth()->check()) {
             $user = auth()->user();
         } else {
             try {
-                $user = User::where(function ($q) use ($queryPhones, $pInfo, $email) {
+                $phoneOwner = User::withTrashed()->where(function ($q) use ($queryPhones, $pInfo) {
                     $q->whereIn('phone', $queryPhones);
                     if ($pInfo['is_bd'] && strlen($pInfo['core']) === 10) {
                         $q->orWhere('phone', 'LIKE', '%' . $pInfo['core']);
                     }
-                    if ($email) {
-                        $q->orWhere('email', $email);
-                    }
                 })->first();
 
-                if ($user) {
-                    $updateFields = [];
-                    if (empty($user->phone_verified_at)) {
-                        $updateFields['phone_verified_at'] = now();
-                    }
-                    if (!$user->is_active) {
-                        $updateFields['is_active'] = true;
-                    }
-                    if ($user->reg_status !== User::STATUS_APPROVED) {
-                        $updateFields['reg_status'] = User::STATUS_APPROVED;
-                    }
-                    if (!empty($validated['password']) && (empty($user->password) || $user->password === '')) {
-                        $updateFields['password'] = Hash::make($validated['password']);
-                    }
-                    if ($user->phone !== $localPhone && $pInfo['is_bd']) {
-                        $updateFields['phone'] = $localPhone;
-                    }
-                    if (!empty($updateFields)) {
-                        $user->update($updateFields);
-                    }
-                } else {
+                if (!$phoneOwner) {
                     $userEmail = $email ?: ($cleanDigits . '@customer.ideaabd.com');
-                    if (User::where('email', $userEmail)->exists()) {
+                    if (User::withTrashed()->where('email', $userEmail)->exists()) {
+                        // The typed email belongs to someone else: keep it out of the new account.
                         $userEmail = $cleanDigits . '_' . time() . '@customer.ideaabd.com';
                     }
                     $userPassword = !empty($validated['password']) ? $validated['password'] : Str::random(12);
@@ -319,8 +355,8 @@ class PublicEventRegistrationController extends Controller
                         'reg_type'          => 'customer',
                         'reg_status'        => User::STATUS_APPROVED,
                         'is_active'         => true,
-                        'phone_verified_at' => now(),
-                        'email_verified_at' => $email ? now() : null,
+                        'phone_verified_at' => null,
+                        'email_verified_at' => null,
                         'reg_data'          => [
                             'source'              => 'event_application',
                             'country_code'        => $countryCode,
@@ -330,10 +366,8 @@ class PublicEventRegistrationController extends Controller
                             'has_custom_password' => !empty($validated['password']),
                         ],
                     ]);
-                }
 
-                if (!auth()->check() && $user) {
-                    \Illuminate\Support\Facades\Auth::login($user, true);
+                    \Illuminate\Support\Facades\Auth::login($user);
                 }
             } catch (\Throwable $e) {
                 Log::warning("User auto-sync notice in event registration: " . $e->getMessage());
@@ -486,7 +520,7 @@ class PublicEventRegistrationController extends Controller
             $paymentStatus = !empty($validated['transaction_id']) ? 'pending' : 'unpaid';
         }
 
-        $regNumber = EventRegistration::generateRegNumber($campaign->slug);
+        $regNumber = null; // assigned inside the locked section below
 
         $requiresApproval = (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']) || !empty($campaign->form_settings['requires_approval']));
         $initialStatus = $requiresApproval ? 'pending' : 'confirmed';
@@ -495,7 +529,25 @@ class PublicEventRegistrationController extends Controller
         $prevYear = !empty($customFieldAnswers['previous_books_year']) ? $customFieldAnswers['previous_books_year'] : null;
         $prevCount = !empty($customFieldAnswers['previous_books_count']) ? intval($customFieldAnswers['previous_books_count']) : null;
 
-        $registration = EventRegistration::create([
+        $registration = \Illuminate\Support\Facades\DB::transaction(function () use ($campaign, $queryPhones, $user, $request, $validated, $localPhone, $email, $address, $district, $institution, $designation, $hasPrevBooks, $prevYear, $prevCount, $amountPaid, $paymentStatus, $customFieldAnswers, $initialStatus, &$regNumber) {
+            // Serialise submissions per campaign so a double click or a retry can neither
+            // create two registrations for one phone nor hand out the same number twice.
+            EventCampaign::whereKey($campaign->id)->lockForUpdate()->first();
+
+            $already = EventRegistration::where('event_campaign_id', $campaign->id)
+                ->where(function ($q) use ($queryPhones, $user) {
+                    $q->whereIn('phone', $queryPhones);
+                    if ($user) {
+                        $q->orWhere('user_id', $user->id);
+                    }
+                })->first();
+            if ($already) {
+                return $already;
+            }
+
+            $regNumber = EventRegistration::generateRegNumber($campaign->slug);
+
+            return EventRegistration::create([
             'event_campaign_id'    => $campaign->id,
             'user_id'              => $user?->id,
             'registration_number'  => $regNumber,
@@ -517,7 +569,14 @@ class PublicEventRegistrationController extends Controller
             'form_data'            => $customFieldAnswers,
             'status'               => $initialStatus,
             'ip_address'           => $request->ip(),
-        ]);
+            ]);
+        });
+
+        // Lost the race to an identical submission: show that registration instead of a second one.
+        if ($registration->wasRecentlyCreated === false) {
+            return redirect()->route('event.success', $campaign->slug)
+                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$registration->registration_number}");
+        }
 
         // Confirmation SMS with Direct Card Link (Admin Approval required if applicable)
         try {

@@ -11,6 +11,7 @@ use Modules\Book\Models\Book;
 use Modules\Book\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -32,22 +33,22 @@ class PublisherPurchaseController extends Controller
 
         $query = PublisherPurchase::query()
             ->with(['publisher', 'items.book', 'payments'])
-            ->when($category && in_array($category, ['books', 'raw_materials', 'other']), function($q) use ($category) {
+            ->when($category && in_array($category, ['books', 'raw_materials', 'other', 'stationery', 'electronics']), function($q) use ($category) {
                 if ($category === 'books') {
                     $q->where(fn($sub) => $sub->where('purchase_category', 'books')->orWhereNull('purchase_category'));
-                } elseif ($category === 'raw_materials') {
-                    $q->where('purchase_category', 'raw_materials');
                 } else {
-                    $q->where('purchase_category', 'other');
+                    $q->where('purchase_category', $category);
                 }
             })
             ->when($search, function ($q, $term) {
                 $like = '%' . $term . '%';
-                $q->where('purchase_no', 'like', $like)
-                  ->orWhere('supplier_name', 'like', $like)
-                  ->orWhere('vendor_name', 'like', $like)
-                  ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
-                  ->orWhereHas('items', fn($i) => $i->where('book_title', 'like', $like));
+                $q->where(function ($w) use ($like) {
+                    $w->where('purchase_no', 'like', $like)
+                      ->orWhere('supplier_name', 'like', $like)
+                      ->orWhere('vendor_name', 'like', $like)
+                      ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
+                      ->orWhereHas('items', fn($i) => $i->where('book_title', 'like', $like));
+                });
             })
             ->when($publisherId, fn($q) => $q->where('publisher_id', $publisherId))
             ->when($paymentStatus && $paymentStatus !== 'all', fn($q) => $q->where('payment_status', $paymentStatus))
@@ -72,6 +73,8 @@ class PublisherPurchaseController extends Controller
             'raw_total'      => (float) PublisherPurchase::where('purchase_category', 'raw_materials')->sum('grand_total'),
             'other_count'    => PublisherPurchase::where('purchase_category', 'other')->count(),
             'other_total'    => (float) PublisherPurchase::where('purchase_category', 'other')->sum('grand_total'),
+            'stationery_count'  => PublisherPurchase::where('purchase_category', 'stationery')->count(),
+            'electronics_count' => PublisherPurchase::where('purchase_category', 'electronics')->count(),
         ];
 
         $settings = IdeaAccountingController::getInvoiceSettings();
@@ -373,6 +376,20 @@ class PublisherPurchaseController extends Controller
     /**
      * Store new purchase (Books, Raw Materials, or Other).
      */
+    /**
+     * Keep the central-warehouse stock in step with the book total this controller already adjusts.
+     */
+    private function mirrorStock(int $bookId, int $delta, PublisherPurchase $purchase, string $type, string $note): void
+    {
+        try {
+            app(\Modules\Inventory\Services\InventoryService::class)->mirrorBookStock(
+                $bookId, $delta, $type, 'PublisherPurchase', $purchase->id, $note, auth()->id()
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Inventory mirror failed for purchase ' . $purchase->id . ': ' . $e->getMessage());
+        }
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
@@ -660,6 +677,10 @@ class PublisherPurchaseController extends Controller
                 $item->unit_sale_price = $sale;
                 $item->subtotal = $itemSubtotal;
                 $item->save();
+
+                if ($bookId && $qty > 0) {
+                    $this->mirrorStock((int) $bookId, (int) round($qty), $purchase, 'purchase_in', "Purchase #{$purchase->purchase_no}");
+                }
             }
 
             // Calculate Grand Total and Dues
@@ -668,8 +689,12 @@ class PublisherPurchaseController extends Controller
             $purchase->grand_total = $grandTotal;
 
             // If initial payment was made
+            if ($initialPaid > $grandTotal + 0.004) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['paid_amount' => 'প্রদত্ত অর্থ (৳' . number_format($initialPaid, 2) . ') মোট ক্রয়মূল্যের (৳' . number_format($grandTotal, 2) . ') চেয়ে বেশি হতে পারে না।']);
+            }
+
             if ($initialPaid > 0) {
-                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                $payNo = PublisherPayment::nextPaymentNo();
                 $trxRef = $request->input('transaction_ref');
                 $bankName = $request->input('bank_name');
                 $branchName = $request->input('branch_name');
@@ -709,8 +734,12 @@ class PublisherPurchaseController extends Controller
     /**
      * Show form to edit an existing publisher purchase.
      */
-    public function edit(PublisherPurchase $purchase): View
+    public function edit(PublisherPurchase $purchase): View|RedirectResponse
     {
+        if (in_array($purchase->purchase_category, ['stationery', 'electronics'], true)) {
+            return redirect()->route('admin.purchases.show', $purchase->id)->with('info', 'Delete and re-enter to change item purchases.');
+        }
+
         $purchase->load(['publisher', 'items.book.category', 'payments.recorder']);
         $publishers = Publisher::where('is_active', true)->orderBy('name')->get();
         $authors = \Modules\Author\Models\Author::where('is_active', true)->orderBy('name')->get();
@@ -853,6 +882,7 @@ class PublisherPurchaseController extends Controller
                     $book = Book::find($oldItem->book_id);
                     $book->stock_quantity = max(0, $book->stock_quantity - $oldItem->quantity);
                     $book->save();
+                    $this->mirrorStock((int) $oldItem->book_id, -(int) round($oldItem->quantity), $purchase, 'purchase_reversal', "Purchase #{$purchase->purchase_no} edited");
                 }
             }
             $purchase->items()->delete();
@@ -1055,6 +1085,10 @@ class PublisherPurchaseController extends Controller
                 $item->unit_sale_price = $sale;
                 $item->subtotal = $itemSubtotal;
                 $item->save();
+
+                if ($bookId && $qty > 0) {
+                    $this->mirrorStock((int) $bookId, (int) round($qty), $purchase, 'purchase_in', "Purchase #{$purchase->purchase_no}");
+                }
             }
 
             $grandTotal = max(0, $totalAmount - $discount);
@@ -1141,12 +1175,14 @@ class PublisherPurchaseController extends Controller
             ->when($dateTo, fn($q) => $q->whereDate('payment_date', '<=', $dateTo))
             ->when($search, function($q, $term) {
                 $like = '%' . $term . '%';
-                $q->where('payment_no', 'like', $like)
-                  ->orWhere('transaction_ref', 'like', $like)
-                  ->orWhere('note', 'like', $like)
-                  ->orWhere('vendor_name', 'like', $like)
-                  ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
-                  ->orWhereHas('purchase', fn($p) => $p->where('purchase_no', 'like', $like)->orWhere('vendor_name', 'like', $like)->orWhere('supplier_name', 'like', $like));
+                $q->where(function ($w) use ($like) {
+                    $w->where('payment_no', 'like', $like)
+                      ->orWhere('transaction_ref', 'like', $like)
+                      ->orWhere('note', 'like', $like)
+                      ->orWhere('vendor_name', 'like', $like)
+                      ->orWhereHas('publisher', fn($p) => $p->where('name', 'like', $like))
+                      ->orWhereHas('purchase', fn($p) => $p->where(fn($x) => $x->where('purchase_no', 'like', $like)->orWhere('vendor_name', 'like', $like)->orWhere('supplier_name', 'like', $like)));
+                });
             })
             ->latest('payment_date')
             ->latest('id');
@@ -1298,8 +1334,16 @@ class PublisherPurchaseController extends Controller
 
             // 1. SPECIFIC INVOICE PAYMENT
             if ($purchaseId) {
-                $purchase = PublisherPurchase::findOrFail($purchaseId);
-                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                $purchase = PublisherPurchase::whereKey($purchaseId)->lockForUpdate()->firstOrFail();
+                $purchaseDue = round(max(0, (float) $purchase->grand_total - (float) $purchase->payments()->sum('amount')), 2);
+                if ($amount > $purchaseDue + 0.004) {
+                    $msg = 'পরিশোধের পরিমাণ (৳' . number_format($amount, 2) . ') বকেয়ার (৳' . number_format($purchaseDue, 2) . ') চেয়ে বেশি হতে পারে না।';
+                    if (request()->wantsJson() || request()->ajax()) {
+                        return response()->json(['success' => false, 'message' => $msg], 422);
+                    }
+                    return back()->withInput()->with('error', $msg);
+                }
+                $payNo = PublisherPayment::nextPaymentNo();
 
                 PublisherPayment::create([
                     'purchase_id'     => $purchase->id,
@@ -1380,7 +1424,7 @@ class PublisherPurchaseController extends Controller
                 if ($pDue <= 0) continue;
 
                 $allocatedAmount = min($remainingPayment, $pDue);
-                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                $payNo = PublisherPayment::nextPaymentNo();
 
                 PublisherPayment::create([
                     'purchase_id'     => $p->id,
@@ -1406,7 +1450,7 @@ class PublisherPurchaseController extends Controller
 
             // If there was extra money or no due invoices at all, record a standalone unallocated payment on account
             if ($remainingPayment > 0.001 || empty($settledInvoices)) {
-                $payNo = 'PAY-' . date('Ymd') . '-' . rand(1000, 9999);
+                $payNo = PublisherPayment::nextPaymentNo();
                 PublisherPayment::create([
                     'purchase_id'     => null,
                     'publisher_id'    => $publisherId,
@@ -1751,6 +1795,15 @@ class PublisherPurchaseController extends Controller
                 $book = Book::find($item->book_id);
                 $book->stock_quantity = max(0, $book->stock_quantity - $item->quantity);
                 $book->save();
+                $this->mirrorStock((int) $item->book_id, -(int) round($item->quantity), $purchase, 'purchase_reversal', "Purchase #{$no} deleted");
+            }
+        }
+
+        foreach ($purchase->items as $item) {
+            if ($item->product_id && $product = \App\Models\Product::find($item->product_id)) {
+                $product->stock = max(0, (int) $product->stock - (int) $item->quantity);
+                $product->stock_status = $product->stock > 0 ? 'in_stock' : 'out_of_stock';
+                $product->save();
             }
         }
 
@@ -1790,6 +1843,8 @@ class PublisherPurchaseController extends Controller
         $booksPurchases = $purchases->filter(fn($p) => $p->purchase_category === 'books' || is_null($p->purchase_category));
         $rawPurchases = $purchases->filter(fn($p) => $p->purchase_category === 'raw_materials');
         $otherPurchases = $purchases->filter(fn($p) => $p->purchase_category === 'other');
+        $stationeryPurchases = $purchases->filter(fn($p) => $p->purchase_category === 'stationery');
+        $electronicsPurchases = $purchases->filter(fn($p) => $p->purchase_category === 'electronics');
 
         // Raw Materials Categorized Breakdown (কাগজ, ছাপা বিল, বাঁধাই বিল, প্লেট, কালি, অন্যান্য)
         $rawItems = PublisherPurchaseItem::whereHas('purchase', function($q) use ($startDate, $endDate) {
@@ -1836,13 +1891,16 @@ class PublisherPurchaseController extends Controller
         $booksPurchaseTotal = (float) $booksPurchases->sum('grand_total');
         $rawPurchaseTotal = (float) $rawPurchases->sum('grand_total');
         $otherPurchaseTotal = (float) $otherPurchases->sum('grand_total');
+        $stationeryPurchaseTotal = (float) $stationeryPurchases->sum('grand_total');
+        $electronicsPurchaseTotal = (float) $electronicsPurchases->sum('grand_total');
 
         $netBalance = $totalSalesAmount - $totalPurchaseAmount;
         $settings = IdeaAccountingController::getInvoiceSettings();
 
         return view('admin.purchases.monthly-report', compact(
             'month', 'year', 'startDate', 'endDate',
-            'purchases', 'booksPurchases', 'rawPurchases', 'otherPurchases',
+            'purchases', 'booksPurchases', 'rawPurchases', 'otherPurchases', 'stationeryPurchases', 'electronicsPurchases',
+            'stationeryPurchaseTotal', 'electronicsPurchaseTotal',
             'totalPurchaseAmount', 'totalPurchasePaid', 'totalPurchaseDue',
             'booksPurchaseTotal', 'rawPurchaseTotal', 'otherPurchaseTotal',
             'paperTotal', 'printTotal', 'bindingTotal', 'plateTotal', 'otherRawTotal',

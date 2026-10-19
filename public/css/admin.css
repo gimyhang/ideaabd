@@ -21,8 +21,6 @@
     --bg: #f4f7fa;
 }
 
-@import url('https://fonts.maateen.me/kalpurush/font.css');
-@import url('https://fonts.maateen.me/nikosh/font.css');
 
 @font-face {
     font-family: 'Kalpurush';
@@ -1108,10 +1106,8 @@ body.dark-mode .timeline-item::before {
 }
 
 /* ── Hardware Acceleration & High-Performance Rendering ─────── */
-.kpi, .quick, .adm-card, .btn, .adm-side {
+.adm-side {
     will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
 }
 
 .adm-table {
@@ -2602,3 +2598,117 @@ body.dark-mode .a4-pricing-summary-bar {
 .role-badge-editor { background: #f5f3ff; color: #6d28d9; border: 1px solid #ddd6fe; }
 .role-badge-rewriter { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 .role-badge-cover { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   Admin UI upgrade — visible buttons, compact titles, cleaner cards
+   ══════════════════════════════════════════════════════════════ */
+
+/* Page title: compact, single line */
+.adm-content > div > div > h1.h4 {
+    font-size: 1.3rem;
+    letter-spacing: -.01em;
+    max-width: 100%;
+}
+.adm-content > div > div > h1.h4,
+.adm-card__head h6, .card-header h5, .card-header h6, .modal-title {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-header h5, .card-header h6 { max-width: 100%; }
+
+/* Buttons: bigger hit area, bolder text, real borders */
+.btn {
+    font-weight: 600;
+    border-width: 1.5px;
+    border-radius: 10px;
+    letter-spacing: .01em;
+    transition: background .15s, box-shadow .15s, transform .15s, color .15s;
+}
+.btn:not(.btn-sm):not(.btn-lg) { padding: .5rem 1rem; }
+.btn-sm { padding: .38rem .75rem; font-size: .84rem; }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 3px solid rgba(var(--brand-rgb, 0, 102, 204), .35); outline-offset: 2px; }
+
+/* Light / secondary buttons were nearly invisible on white cards */
+.btn-light, .btn-white {
+    background: #eef2f7 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+.btn-light:hover, .btn-white:hover {
+    background: #e2e8f0 !important;
+    border-color: #94a3b8 !important;
+}
+.btn-outline-secondary, .btn-outline-dark {
+    color: #334155 !important;
+    border-color: #94a3b8 !important;
+    background: #fff !important;
+}
+.btn-outline-secondary:hover, .btn-outline-dark:hover {
+    background: #334155 !important;
+    border-color: #334155 !important;
+    color: #fff !important;
+}
+.btn-secondary { background: #475569 !important; border-color: #475569 !important; color: #fff !important; }
+
+/* Semantic outline buttons: tinted fill so they read as buttons */
+.btn-outline-primary { background: rgba(var(--brand-rgb, 0, 102, 204), .08) !important; font-weight: 700; }
+.btn-outline-success { background: rgba(25, 135, 84, .08); border-color: #198754; color: #146c43; }
+.btn-outline-danger  { background: rgba(220, 53, 69, .08); border-color: #dc3545; color: #b02a37; }
+.btn-outline-warning { background: rgba(255, 193, 7, .14); border-color: #d39e00; color: #8a6500; }
+.btn-outline-info    { background: rgba(13, 202, 240, .12); border-color: #0aa2c0; color: #087990; }
+.btn-outline-success:hover { background: #198754; color: #fff; }
+.btn-outline-danger:hover  { background: #dc3545; color: #fff; }
+.btn-outline-warning:hover { background: #d39e00; color: #fff; }
+.btn-outline-info:hover    { background: #0aa2c0; color: #fff; }
+
+/* Solid action buttons get a subtle lift */
+.btn-success, .btn-danger, .btn-warning, .btn-info { font-weight: 700; box-shadow: 0 2px 6px rgba(15, 23, 42, .18); }
+.btn-success:hover, .btn-danger:hover, .btn-warning:hover, .btn-info:hover { filter: brightness(1.07); box-shadow: 0 4px 12px rgba(15, 23, 42, .22); }
+
+/* Icon-only table action buttons: always show a border + min size */
+td .btn-sm, .table .btn-sm { min-width: 34px; min-height: 32px; display: inline-flex; align-items: center; justify-content: center; gap: .35rem; }
+
+/* Cards: cleaner header band, stronger separation */
+.card, .adm-card { border-radius: 14px; border: 1px solid #dbe4ee; box-shadow: 0 1px 3px rgba(15, 23, 42, .06); }
+.card-header, .adm-card__head { font-weight: 700; border-bottom: 1px solid #e2e8f0; }
+.card-header { padding-top: .8rem; padding-bottom: .8rem; }
+.card-header h5, .card-header h6, .adm-card__head h6 { font-size: .98rem; }
+
+/* Tables: clearer header + row hover + zebra */
+.table thead th {
+    background: #f1f5f9;
+    color: #334155;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border-bottom: 2px solid #cbd5e1;
+    white-space: nowrap;
+}
+.table > tbody > tr:hover > * { background-color: rgba(var(--brand-rgb, 0, 102, 204), .05); }
+
+/* Form controls: visible borders */
+.form-control, .form-select { border: 1.5px solid #cbd5e1; border-radius: 10px; }
+.form-control:focus, .form-select:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(var(--brand-rgb, 0, 102, 204), .18);
+}
+
+/* Dark mode counterparts */
+body.dark-mode .btn-light, body.dark-mode .btn-white {
+    background: #1e293b !important; border-color: #475569 !important; color: #f1f5f9 !important;
+}
+body.dark-mode .btn-light:hover, body.dark-mode .btn-white:hover { background: #334155 !important; }
+body.dark-mode .btn-outline-secondary, body.dark-mode .btn-outline-dark {
+    background: transparent !important; color: #e2e8f0 !important; border-color: #64748b !important;
+}
+body.dark-mode .btn-outline-secondary:hover, body.dark-mode .btn-outline-dark:hover { background: #475569 !important; border-color: #475569 !important; }
+body.dark-mode .btn-outline-success { color: #6ee7b7; border-color: #34d399; }
+body.dark-mode .btn-outline-danger  { color: #fca5a5; border-color: #f87171; }
+body.dark-mode .btn-outline-warning { color: #fcd34d; border-color: #fbbf24; }
+body.dark-mode .btn-outline-info    { color: #67e8f9; border-color: #22d3ee; }
+body.dark-mode .card, body.dark-mode .adm-card { border-color: #1f2937; }
+body.dark-mode .card-header, body.dark-mode .adm-card__head { border-bottom-color: #1f2937; }
+body.dark-mode .table thead th { background: #1a2234; color: #cbd5e1; border-bottom-color: #334155; }
+body.dark-mode .form-control, body.dark-mode .form-select { border-color: #334155; }

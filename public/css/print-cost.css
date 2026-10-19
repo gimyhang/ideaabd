@@ -1,0 +1,210 @@
+/* Printing cost calculator — clean, card based, responsive. */
+#printCostCalculatorModal .pc { border: 0; border-radius: 22px; overflow: hidden; position: relative; background: #f6f8fc; }
+#printCostCalculatorModal .modal-header { background: #fff; border-bottom: 1px solid #e6eaf2; padding: 1rem 1.5rem; }
+#printCostCalculatorModal .modal-title { font-weight: 800; letter-spacing: -.01em; font-size: 1.25rem; }
+#printCostCalculatorModal .pc-head-actions { display: flex; align-items: center; gap: .75rem; }
+#printCostCalculatorModal .modal-body { padding: 1.5rem; }
+
+#printCostCalculatorModal .pc-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 1.5rem; align-items: start; }
+#printCostCalculatorModal .pc-main { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+#printCostCalculatorModal .pc-side { position: sticky; top: 0; }
+
+#printCostCalculatorModal .pc-card { background: #fff; border: 1px solid #e6eaf2; border-radius: 18px; padding: 1.25rem 1.4rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); margin: 0; }
+#printCostCalculatorModal .pc-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+#printCostCalculatorModal .pc-h { margin: 0; font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; }
+#printCostCalculatorModal .pc-sub { font-weight: 800; font-variant-numeric: tabular-nums; color: #0f172a; }
+
+/* Job */
+#printCostCalculatorModal .pc-types { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.1rem; }
+#printCostCalculatorModal .pc-type { border: 1px solid #e6eaf2; background: #f8fafc; color: #475569; font-weight: 700; font-size: .9rem; padding: .5rem 1.05rem; border-radius: 999px; transition: background .15s, color .15s, border-color .15s; }
+#printCostCalculatorModal .pc-type:hover { background: #eef2f9; color: #0f172a; }
+#printCostCalculatorModal .pc-type.is-active { background: #0f172a; border-color: #0f172a; color: #fff; box-shadow: 0 6px 14px -6px rgba(15, 23, 42, .5); }
+#printCostCalculatorModal .pc-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; }
+#printCostCalculatorModal .pc-f { display: flex; flex-direction: column; gap: .35rem; grid-column: span 2; min-width: 0; }
+#printCostCalculatorModal .pc-f-wide { grid-column: span 6; }
+#printCostCalculatorModal .pc-f[hidden] { display: none; }
+#printCostCalculatorModal .pc-f label { margin: 0; font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #64748b; }
+#printCostCalculatorModal .pc-note { font-weight: 700; color: #64748b; }
+#printCostCalculatorModal .pc-quick { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem; }
+#printCostCalculatorModal .pc-quick button { border: 1px solid #e6eaf2; background: #fff; border-radius: 999px; padding: .15rem .65rem; font-size: .76rem; font-weight: 700; color: #475569; }
+#printCostCalculatorModal .pc-quick button:hover { background: #eef4ff; border-color: #c8dafc; color: #1d4ed8; }
+
+/* Add bar */
+#printCostCalculatorModal .pc-addbar { display: flex; align-items: center; gap: .85rem; flex-wrap: wrap; }
+#printCostCalculatorModal .pc-addlabel { font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; }
+#printCostCalculatorModal .pc-addbtns { display: flex; flex-wrap: wrap; gap: .45rem; }
+#printCostCalculatorModal .pc-addbtn { border: 1px dashed #b8c4dc; background: transparent; color: #334155; font-weight: 700; font-size: .84rem; padding: .35rem .9rem; border-radius: 999px; }
+#printCostCalculatorModal .pc-addbtn:hover { background: #fff; border-style: solid; border-color: #2563eb; color: #2563eb; }
+
+/* Component cards */
+#printCostCalculatorModal .pc-groups { display: flex; flex-direction: column; gap: 1.25rem; }
+#printCostCalculatorModal .pc-cols,
+#printCostCalculatorModal .pc-row { display: grid; grid-template-columns: 34px minmax(0, 1.7fr) minmax(88px, .6fr) minmax(88px, .6fr) minmax(96px, .7fr) 34px; gap: .6rem; align-items: center; }
+#printCostCalculatorModal .pc-cols { padding: 0 0 .4rem; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid #eef1f7; margin-bottom: .6rem; }
+#printCostCalculatorModal .pc-cols span:nth-child(3), #printCostCalculatorModal .pc-cols span:nth-child(4), #printCostCalculatorModal .pc-cols span:nth-child(5) { text-align: right; }
+#printCostCalculatorModal .pc-row { padding: .45rem 0; border-bottom: 1px solid #f3f5fa; }
+#printCostCalculatorModal .pc-row:last-child { border-bottom: 0; }
+#printCostCalculatorModal .pc-row.is-off > *:not(.pc-on):not(.pc-del) { opacity: .4; }
+#printCostCalculatorModal .pc-on { margin: 0; display: grid; place-items: center; }
+#printCostCalculatorModal .pc-on input { width: 18px; height: 18px; accent-color: #2563eb; cursor: pointer; }
+#printCostCalculatorModal .pc-name-wrap { display: grid; grid-template-columns: minmax(96px, 1fr) minmax(92px, .85fr) minmax(98px, .85fr); gap: .4rem; min-width: 0; align-items: center; }
+#printCostCalculatorModal .pc-name-wrap .pc-extra { grid-column: 1 / -1; }
+#printCostCalculatorModal .pc-var { padding-right: 1.6rem; text-overflow: ellipsis; font-weight: 600; }
+#printCostCalculatorModal .pc-var.pc-a:only-of-type { grid-column: span 2; }
+#printCostCalculatorModal .pc-extra { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+#printCostCalculatorModal .pc-extra label { display: flex; flex-direction: column; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; gap: .15rem; width: 74px; }
+#printCostCalculatorModal .pc-qty-wrap { position: relative; }
+#printCostCalculatorModal .pc-auto { position: absolute; right: 4px; top: -9px; border: 0; background: #2563eb; color: #fff; font-size: .62rem; font-weight: 800; padding: .05rem .4rem; border-radius: 999px; }
+#printCostCalculatorModal .pc-auto[hidden] { display: none; }
+#printCostCalculatorModal .pc-total { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+#printCostCalculatorModal .pc-del { border: 0; background: transparent; color: #cbd5e1; font-size: 1.4rem; line-height: 1; border-radius: 8px; width: 34px; height: 34px; }
+#printCostCalculatorModal .pc-del:hover { background: #ffecef; color: #e11d48; }
+#printCostCalculatorModal .pc-empty { text-align: center; color: #94a3b8; padding: 1.5rem; font-weight: 700; }
+#printCostCalculatorModal .form-control-sm, #printCostCalculatorModal .form-select-sm { border-radius: 10px; }
+
+/* Summary */
+#printCostCalculatorModal .pc-bars { display: flex; flex-direction: column; gap: .55rem; margin-bottom: 1.1rem; }
+#printCostCalculatorModal .pc-bar { display: grid; grid-template-columns: 82px 1fr auto; gap: .6rem; align-items: center; font-size: .82rem; }
+#printCostCalculatorModal .pc-bar span { font-weight: 700; color: #475569; }
+#printCostCalculatorModal .pc-bar i { height: 8px; border-radius: 999px; background: linear-gradient(90deg, #3b82f6 var(--w), #eef1f7 var(--w)); }
+#printCostCalculatorModal .pc-bar b { font-variant-numeric: tabular-nums; }
+#printCostCalculatorModal .pc-sum { margin: 0; display: grid; gap: .7rem; padding-top: .9rem; border-top: 1px solid #eef1f7; }
+#printCostCalculatorModal .pc-sum > div { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+#printCostCalculatorModal .pc-sum dt { font-size: .74rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; margin: 0; }
+#printCostCalculatorModal .pc-sum dt label { margin: 0; font: inherit; }
+#printCostCalculatorModal .pc-sum dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: .6rem; }
+#printCostCalculatorModal .pc-sum-input input { width: 78px; }
+#printCostCalculatorModal .pc-sum-input b { min-width: 76px; text-align: right; }
+#printCostCalculatorModal .pc-quick-profit { justify-content: flex-end; margin-top: -.25rem; }
+#printCostCalculatorModal .pc-grand { padding-top: .8rem; border-top: 1px solid #e6eaf2; }
+#printCostCalculatorModal .pc-grand dd { font-size: 1.7rem; letter-spacing: -.02em; color: #0f172a; }
+#printCostCalculatorModal .pc-unitbox { padding: .8rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #1d4ed8, #2563eb); }
+#printCostCalculatorModal .pc-unitbox dt { color: rgba(255, 255, 255, .75); }
+#printCostCalculatorModal .pc-unitbox dd { color: #fff; font-size: 1.35rem; }
+
+/* Footer */
+#printCostCalculatorModal .pc-foot { background: #fff; border-top: 1px solid #e6eaf2; padding: .9rem 1.5rem; justify-content: space-between; flex-wrap: nowrap; }
+#printCostCalculatorModal .pc-foot-sum { display: flex; gap: 1.6rem; font-size: .8rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; }
+#printCostCalculatorModal .pc-foot-sum b { display: block; font-size: 1.15rem; letter-spacing: -.01em; color: #0f172a; font-variant-numeric: tabular-nums; }
+#printCostCalculatorModal .pc-foot-actions { display: flex; gap: .6rem; }
+#printCostCalculatorModal .pc-toast { position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%); background: #0f172a; color: #fff; padding: .5rem 1.1rem; border-radius: 999px; font-weight: 700; font-size: .88rem; z-index: 5; }
+#printCostCalculatorModal .pc-toast[hidden] { display: none; }
+
+/* Tablet / phone */
+@media (max-width: 991.98px) {
+    #printCostCalculatorModal .pc-layout { grid-template-columns: minmax(0, 1fr); }
+    #printCostCalculatorModal .pc-side { position: static; }
+    #printCostCalculatorModal .modal-body { padding: 1rem; }
+    #printCostCalculatorModal .pc-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    #printCostCalculatorModal .pc-f { grid-column: span 2; }
+    #printCostCalculatorModal .pc-f-wide { grid-column: span 4; }
+}
+@media (max-width: 640px) {
+    #printCostCalculatorModal .modal-dialog { margin: 0; max-width: none; min-height: 100%; }
+    #printCostCalculatorModal .pc { border-radius: 0; min-height: 100vh; }
+    #printCostCalculatorModal .modal-header { padding: .85rem 1rem; }
+    #printCostCalculatorModal .pc-card { padding: 1rem; border-radius: 16px; }
+    #printCostCalculatorModal .pc-cols { display: none; }
+    /* component rows become two-line cards */
+    #printCostCalculatorModal .pc-row { grid-template-columns: 34px minmax(0, 1fr) 34px; grid-template-areas: "on name del" "qty qty qty" "rate rate rate" "total total total"; padding: .8rem 0; row-gap: .5rem; }
+    #printCostCalculatorModal .pc-on { grid-area: on; }
+    #printCostCalculatorModal .pc-name-wrap { grid-area: name; }
+    #printCostCalculatorModal .pc-del { grid-area: del; }
+    #printCostCalculatorModal .pc-qty-wrap, #printCostCalculatorModal .pc-row > div[data-label="Rate"], #printCostCalculatorModal .pc-total { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+    #printCostCalculatorModal .pc-qty-wrap { grid-area: qty; }
+    #printCostCalculatorModal .pc-row > div[data-label="Rate"] { grid-area: rate; }
+    #printCostCalculatorModal .pc-total { grid-area: total; }
+    #printCostCalculatorModal .pc-qty-wrap::before, #printCostCalculatorModal .pc-row > div[data-label="Rate"]::before, #printCostCalculatorModal .pc-total::before {
+        content: attr(data-label); font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
+    #printCostCalculatorModal .pc-qty-wrap input, #printCostCalculatorModal .pc-row > div[data-label="Rate"] input { max-width: 150px; font-size: 16px; min-height: 44px; }
+    #printCostCalculatorModal .pc-name { font-size: 16px; min-height: 44px; }
+    #printCostCalculatorModal .pc-foot { padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom)); gap: .6rem; flex-wrap: wrap; }
+    #printCostCalculatorModal .pc-foot-actions { width: 100%; }
+    #printCostCalculatorModal .pc-foot-actions .btn { flex: 1; min-height: 48px; }
+}
+body.dark-mode #printCostCalculatorModal .pc { background: #0b1220; }
+body.dark-mode #printCostCalculatorModal .pc-card, body.dark-mode #printCostCalculatorModal .modal-header, body.dark-mode #printCostCalculatorModal .pc-foot { background: #111a2c; border-color: #1f2a40; }
+body.dark-mode #printCostCalculatorModal .pc-type { background: #0e1626; border-color: #1f2a40; color: #aab6cc; }
+body.dark-mode #printCostCalculatorModal .pc-sub, body.dark-mode #printCostCalculatorModal .pc-grand dd, body.dark-mode #printCostCalculatorModal .pc-foot-sum b { color: #e8edf6; }
+
+/* Smart parts */
+#printCostCalculatorModal .pc-side { display: flex; flex-direction: column; gap: 1.25rem; }
+#printCostCalculatorModal .pc-sum-input select { width: 96px; }
+#printCostCalculatorModal .pc-unitbox small { font-size: .8rem; margin-left: .3rem; }
+#printCostCalculatorModal .pc-tier-list { display: grid; gap: .35rem; }
+#printCostCalculatorModal .pc-tier { display: flex; align-items: center; justify-content: space-between; width: 100%; border: 1px solid #eef1f7; background: #f8fafc; border-radius: 12px; padding: .5rem .8rem; font-variant-numeric: tabular-nums; color: #334155; transition: background .15s, border-color .15s; }
+#printCostCalculatorModal .pc-tier span { font-weight: 700; }
+#printCostCalculatorModal .pc-tier b { font-weight: 800; }
+#printCostCalculatorModal .pc-tier:hover { background: #eef4ff; border-color: #c8dafc; }
+#printCostCalculatorModal .pc-tier.is-current { background: #0f172a; border-color: #0f172a; color: #fff; }
+#printCostCalculatorModal .pc-rate.is-missing { border-color: #f59e0b !important; background: #fffbeb; box-shadow: 0 0 0 3px rgba(245, 158, 11, .16); }
+#printCostCalculatorModal .pc-missing { align-self: center; padding: .15rem .65rem; border-radius: 999px; background: #fef3c7; color: #b45309; font-size: .72rem; letter-spacing: .04em; }
+#printCostCalculatorModal .pc-missing[hidden] { display: none; }
+@media (max-width: 640px) { #printCostCalculatorModal .pc-foot-sum { flex-wrap: wrap; width: 100%; } }
+body.dark-mode #printCostCalculatorModal .pc-tier { background: #0e1626; border-color: #1f2a40; color: #aab6cc; }
+
+/* Table polish: one accent colour per component group */
+#printCostCalculatorModal .pc-card[data-group] { border-left: 4px solid var(--g, #cbd5e1); }
+#printCostCalculatorModal [data-group="Design"] { --g: #8b5cf6; }
+#printCostCalculatorModal [data-group="Paper"] { --g: #10b981; }
+#printCostCalculatorModal [data-group="CTP"] { --g: #0ea5e9; }
+#printCostCalculatorModal [data-group="Press"] { --g: #3b82f6; }
+#printCostCalculatorModal [data-group="Lamination"] { --g: #f59e0b; }
+#printCostCalculatorModal [data-group="Cutting"] { --g: #ef4444; }
+#printCostCalculatorModal [data-group="Binding"] { --g: #ec4899; }
+#printCostCalculatorModal [data-group="Packing"] { --g: #14b8a6; }
+#printCostCalculatorModal [data-group="Transport"] { --g: #64748b; }
+#printCostCalculatorModal [data-group="Other"] { --g: #94a3b8; }
+#printCostCalculatorModal .pc-row:hover { background: #fafbfe; }
+#printCostCalculatorModal .pc-cols { position: sticky; top: -1px; background: #fff; z-index: 1; }
+@media (max-width: 991.98px) { #printCostCalculatorModal .pc-name-wrap { grid-template-columns: minmax(96px, 1fr) minmax(92px, 1fr); } #printCostCalculatorModal .pc-name-wrap .pc-name { grid-column: 1 / -1; } }
+@media (max-width: 640px) { #printCostCalculatorModal .pc-var { font-size: 16px; min-height: 44px; } }
+
+/* Paper picker: one box + one-tap chips */
+#printCostCalculatorModal .pc-paper { grid-column: 1 / -1; display: flex; flex-direction: column; gap: .5rem; padding: .6rem .7rem; border-radius: 12px; background: #f8fafc; border: 1px solid #eef1f7; }
+#printCostCalculatorModal .pc-paper-top { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+#printCostCalculatorModal .pc-stock { flex: 1 1 190px; min-width: 150px; font-weight: 700; }
+#printCostCalculatorModal .pc-paper-top label { display: flex; flex-direction: column; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; gap: .15rem; width: 74px; }
+#printCostCalculatorModal .pc-chips { display: flex; flex-wrap: wrap; gap: .3rem; }
+#printCostCalculatorModal .pc-chip { position: relative; border: 1px solid #dfe5f0; background: #fff; color: #475569; font-size: .78rem; font-weight: 700; padding: .22rem .7rem; border-radius: 999px; line-height: 1.3; transition: background .12s, color .12s, border-color .12s; }
+#printCostCalculatorModal .pc-chip:hover { border-color: #2563eb; color: #2563eb; }
+#printCostCalculatorModal .pc-chip.is-active { background: #0f172a; border-color: #0f172a; color: #fff; }
+#printCostCalculatorModal .pc-chip.has-rate::after { content: ''; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 0 2px #fff; }
+@media (max-width: 640px) { #printCostCalculatorModal .pc-chip { padding: .38rem .85rem; font-size: .85rem; } #printCostCalculatorModal .pc-stock { font-size: 16px; min-height: 44px; } }
+body.dark-mode #printCostCalculatorModal .pc-paper { background: #0e1626; border-color: #1f2a40; }
+body.dark-mode #printCostCalculatorModal .pc-chip { background: #111a2c; border-color: #1f2a40; color: #aab6cc; }
+
+/* Rate sheet */
+#printCostCalculatorModal [hidden] { display: none !important; }
+#printCostCalculatorModal .pc-rate-wrap { display: flex; flex-direction: column; align-items: stretch; gap: .2rem; }
+#printCostCalculatorModal .pc-pin { border: 0; background: transparent; color: #2563eb; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 0; text-align: right; cursor: pointer; }
+#printCostCalculatorModal .pc-pin:hover { text-decoration: underline; }
+#printCostCalculatorModal .pc-pin.is-saved { color: #10b981; cursor: default; text-decoration: none; }
+#printCostCalculatorModal .pc-rates { display: flex; flex-direction: column; gap: 1.1rem; }
+#printCostCalculatorModal .pc-rates-top { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+#printCostCalculatorModal .pc-rates-search { max-width: 260px; margin-left: auto; }
+#printCostCalculatorModal .pc-rates-tools { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.1rem; }
+#printCostCalculatorModal .pc-rates-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: .75rem; align-items: end; }
+#printCostCalculatorModal .pc-rates-fields .pc-f { grid-column: auto; }
+#printCostCalculatorModal .pc-f-btn { justify-content: flex-end; }
+#printCostCalculatorModal .pc-rates-table .table { margin: 0; }
+#printCostCalculatorModal .pc-rates-table th { font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; border-bottom-color: #eef1f7; }
+#printCostCalculatorModal .pc-rates-table td { padding: .45rem .6rem; }
+#printCostCalculatorModal .pr-rate { max-width: 130px; margin-left: auto; }
+#printCostCalculatorModal .pc-gtag { display: inline-block; padding: .12rem .6rem; border-radius: 999px; font-size: .72rem; font-weight: 800; color: #fff; background: var(--g, #94a3b8); }
+#printCostCalculatorModal .pc-gtag[data-group="Design"] { --g: #8b5cf6; } #printCostCalculatorModal .pc-gtag[data-group="Paper"] { --g: #10b981; }
+#printCostCalculatorModal .pc-gtag[data-group="CTP"] { --g: #0ea5e9; } #printCostCalculatorModal .pc-gtag[data-group="Press"] { --g: #3b82f6; }
+#printCostCalculatorModal .pc-gtag[data-group="Lamination"] { --g: #f59e0b; } #printCostCalculatorModal .pc-gtag[data-group="Cutting"] { --g: #ef4444; }
+#printCostCalculatorModal .pc-gtag[data-group="Binding"] { --g: #ec4899; } #printCostCalculatorModal .pc-gtag[data-group="Packing"] { --g: #14b8a6; }
+#printCostCalculatorModal .pc-gtag[data-group="Transport"] { --g: #64748b; }
+#printCostCalculatorModal #pcRatesBtn.is-active { background: #0f172a; border-color: #0f172a; color: #fff; }
+@media (max-width: 991.98px) { #printCostCalculatorModal .pc-rates-tools { grid-template-columns: 1fr; } #printCostCalculatorModal .pc-rates-search { max-width: none; flex: 1 1 100%; margin-left: 0; } }
+@media (max-width: 640px) { #printCostCalculatorModal .pr-rate, #printCostCalculatorModal .pc-rates input, #printCostCalculatorModal .pc-rates select { font-size: 16px; min-height: 44px; } }
+body.dark-mode #printCostCalculatorModal .pc-rates-table th { border-bottom-color: #1f2a40; }
+
+#printCostCalculatorModal .pc-picks { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+#printCostCalculatorModal .pc-pick { display: flex; flex-direction: column; gap: .15rem; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; }
+#printCostCalculatorModal .pc-pick select { font-size: .85rem; font-weight: 600; text-transform: none; letter-spacing: 0; color: #0f172a; }
+#printCostCalculatorModal .pc-rates-groups { max-width: 240px; }
+@media (max-width: 640px) { #printCostCalculatorModal .pc-pick select, #printCostCalculatorModal .pc-rates-groups { font-size: 16px; min-height: 44px; max-width: none; } }
+body.dark-mode #printCostCalculatorModal .pc-pick select { color: #e2e8f0; }

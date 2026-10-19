@@ -59,6 +59,8 @@
 @endsection
 
 @push('styles')
+    <script>document.documentElement.classList.add('ev-reg');</script>
+    <link rel="stylesheet" href="{{ asset('css/event-register.css') }}?v={{ @filemtime(public_path('css/event-register.css')) ?: 1 }}" media="all">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -1330,6 +1332,8 @@
         {{-- =========================================================================
              পেমেন্ট (যদি ফি প্রযোজ্য হয়)
              ========================================================================= --}}
+        @include('frontend.events.partials.custom-fields')
+
         @if($campaign->has_fee_or_donation)
             <table class="clean-grid-table mt-2">
                 <tr>
@@ -1376,6 +1380,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/event-register.js') }}?v={{ @filemtime(public_path('js/event-register.js')) ?: 1 }}" defer></script>
 <script src="{{ asset('js/bd-geo-data.js') }}"></script>
 <script>
 let currentResidentType = 'domestic';

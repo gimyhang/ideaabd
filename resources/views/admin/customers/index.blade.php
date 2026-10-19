@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Customer Registrations — ideaabd')
-@section('heading', 'Customer Registrations')
+@section('heading', 'Customers')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

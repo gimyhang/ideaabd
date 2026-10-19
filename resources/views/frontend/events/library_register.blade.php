@@ -52,9 +52,11 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/event-register.css') }}?v={{ @filemtime(public_path('css/event-register.css')) ?: 1 }}">
+<script src="{{ asset('js/event-register.js') }}?v={{ @filemtime(public_path('js/event-register.js')) ?: 1 }}" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+    <link href="{{ asset('css/kalpurush-font.css') }}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/library-grant.css') }}">
@@ -862,6 +864,8 @@
                         <span>৬. আবেদনকারীর অঙ্গীকারনামা ও সাবমিশন</span>
                     </div>
                 </div>
+                @include('frontend.events.partials.custom-fields')
+
                 <div class="lib-submission-footer mt-0">
                     <div>
                         <label for="agreeCheck" class="lib-declaration-check">

@@ -17,58 +17,92 @@ use Illuminate\View\View;
 class ProductAdminController extends Controller
 {
     /**
-     * Display a listing of products and categories.
+     * Overview hub: one card per product family plus attention items.
      */
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        $currentTab = $request->query('tab', 'products');
-        $type = $request->query('type', 'all'); // 'all', 'electronics', 'stationery'
-
-        $query = Product::with('category')->orderBy('sort_order')->orderByDesc('id');
-
-        if (in_array($type, ['electronics', 'stationery'], true)) {
-            $query->where('type', $type);
+        $legacy = (string) $request->query('type', '');
+        if (array_key_exists($legacy, Product::TYPES)) {
+            return redirect()->route('admin.products.' . $legacy, $request->except('type'));
         }
+
+        foreach (array_keys(Product::TYPES) as $t) {
+            $this->ensureStarterCategories($t);
+        }
+
+        $stats = [];
+        foreach (Product::TYPES as $t => $label) {
+            $stats[$t] = [
+                'label'      => $label,
+                'total'      => Product::where('type', $t)->count(),
+                'active'     => Product::where('type', $t)->where('is_active', true)->count(),
+                'low'        => Product::where('type', $t)->where('stock', '<=', 5)->count(),
+                'categories' => ProductCategory::where('type', $t)->count(),
+            ];
+        }
+
+        $recent = Product::with('category')->orderByDesc('id')->take(8)->get();
+        $categories = ProductCategory::withCount('products')->orderBy('type')->orderBy('sort_order')->get();
+
+        return view('admin.products.hub', compact('stats', 'recent', 'categories'));
+    }
+
+    /**
+     * Listing for a single product family (its own page).
+     */
+    public function type(Request $request, string $type): View
+    {
+        abort_unless(array_key_exists($type, Product::TYPES), 404);
+        $this->ensureStarterCategories($type);
+
+        $query = Product::with('category')->where('type', $type)->orderBy('sort_order')->orderByDesc('id');
 
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->input('category_id'));
         }
-
         if ($request->filled('q')) {
-            $q = trim($request->input('q'));
+            $q = trim((string) $request->input('q'));
             $query->where(function ($sub) use ($q) {
                 $sub->where('title', 'like', "%{$q}%")
                     ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhere('model', 'like', "%{$q}%")
                     ->orWhere('brand', 'like', "%{$q}%");
             });
         }
-
-        if ($request->filled('status')) {
-            if ($request->input('status') === 'active') {
-                $query->where('is_active', true);
-            } elseif ($request->input('status') === 'inactive') {
-                $query->where('is_active', false);
-            }
+        if ($request->input('stock') === 'low') {
+            $query->where('stock', '<=', 5);
+        }
+        if ($request->input('status') === 'active') {
+            $query->where('is_active', true);
+        } elseif ($request->input('status') === 'inactive') {
+            $query->where('is_active', false);
         }
 
-        $products = $query->paginate(20)->withQueryString();
+        $products = $query->paginate(24)->withQueryString();
 
-        $categories = ProductCategory::withCount('products')
-            ->when(in_array($type, ['electronics', 'stationery'], true), function ($q) use ($type) {
-                $q->where('type', $type);
-            })
-            ->orderBy('type')
-            ->orderBy('sort_order')
-            ->get();
+        $categories = ProductCategory::withCount('products')->where('type', $type)->orderBy('sort_order')->get();
 
         $counts = [
-            'total' => Product::count(),
-            'electronics' => Product::where('type', 'electronics')->count(),
-            'stationery' => Product::where('type', 'stationery')->count(),
-            'categories' => ProductCategory::count(),
+            'total'    => Product::where('type', $type)->count(),
+            'active'   => Product::where('type', $type)->where('is_active', true)->count(),
+            'low_stock'=> Product::where('type', $type)->where('stock', '<=', 5)->count(),
+            'categories' => $categories->count(),
         ];
 
-        return view('admin.products.index', compact('products', 'categories', 'counts', 'type', 'currentTab'));
+        return view('admin.products.index', compact('products', 'categories', 'counts', 'type'));
+    }
+    /** Seed starter categories the first time a type is opened. */
+    private function ensureStarterCategories(string $type): void
+    {
+        if (ProductCategory::where('type', $type)->exists()) {
+            return;
+        }
+        foreach (Product::STARTER_CATEGORIES[$type] ?? [] as $i => $name) {
+            ProductCategory::firstOrCreate(
+                ['slug' => $type . '-' . Str::slug($name)],
+                ['type' => $type, 'name' => $name, 'icon' => 'fas fa-tag', 'sort_order' => $i, 'is_active' => true]
+            );
+        }
     }
 
     /**
@@ -77,12 +111,13 @@ class ProductAdminController extends Controller
     public function create(Request $request): View
     {
         $selectedType = $request->query('type', 'electronics');
-        if (!in_array($selectedType, ['electronics', 'stationery'], true)) {
+        if (!array_key_exists($selectedType, Product::TYPES)) {
             $selectedType = 'electronics';
         }
 
+        $this->ensureStarterCategories($selectedType);
         $categories = ProductCategory::where('type', $selectedType)->orderBy('sort_order')->get();
-        $allCategories = ProductCategory::orderBy('type')->orderBy('name')->get();
+        $allCategories = ProductCategory::where('type', $selectedType)->orderBy('sort_order')->get();
 
         return view('admin.products.form', [
             'product' => new Product(['type' => $selectedType, 'stock_status' => 'in_stock', 'is_active' => true]),
@@ -113,7 +148,7 @@ class ProductAdminController extends Controller
         }
 
         $validated = $request->validate([
-            'type' => 'required|in:electronics,stationery',
+            'type' => 'required|in:electronics,stationery,appliance',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug',
             'category_id' => 'nullable|exists:product_categories,id',
@@ -145,40 +180,8 @@ class ProductAdminController extends Controller
             $coverImage = ImageOptimizerService::convertAndStoreSquareProductImage($coverImage, 'products', 'public', 82, 800);
         }
 
-        // Process specialized form fields based on product type
-        $specifications = [];
-
-        if ($validated['type'] === 'electronics') {
-            $specializedFields = [
-                'Power'    => $request->input('spec_wattage'),
-                'Voltage'  => $request->input('spec_voltage'),
-                'Battery'  => $request->input('spec_battery'),
-                'Ports'    => $request->input('spec_ports'),
-                'Warranty' => $request->input('spec_guarantee'),
-                'Color'    => $request->input('spec_color'),
-            ];
-            foreach ($specializedFields as $k => $v) {
-                $v = trim((string)$v);
-                if ($v !== '') {
-                    $specifications[$k] = $v;
-                }
-            }
-        } elseif ($validated['type'] === 'stationery') {
-            $specializedFields = [
-                'GSM'      => $request->input('spec_paper_gsm'),
-                'Pages'    => $request->input('spec_pages'),
-                'Size'     => $request->input('spec_dimensions'),
-                'Binding'  => $request->input('spec_binding'),
-                'Pack'     => $request->input('spec_pack_unit'),
-                'Ink'      => $request->input('spec_ink_color'),
-            ];
-            foreach ($specializedFields as $k => $v) {
-                $v = trim((string)$v);
-                if ($v !== '') {
-                    $specifications[$k] = $v;
-                }
-            }
-        }
+        // Type-specific specifications (schema lives on the Product model)
+        $specifications = Product::collectSpecs($validated['type'], $request);
 
         // Process custom key-value specifications
         if (!empty($validated['spec_keys']) && !empty($validated['spec_vals'])) {
@@ -202,7 +205,7 @@ class ProductAdminController extends Controller
         // Default SKU if empty
         $finalSku = !empty($validated['sku']) ? trim((string)$validated['sku']) : null;
         if (empty($finalSku)) {
-            $prefix = ($validated['type'] === 'electronics') ? 'ELC' : 'STN';
+            $prefix = Product::skuPrefix($validated['type']);
             $finalSku = $prefix . '-' . date('ym') . '-' . rand(1000, 9999);
         }
 
@@ -229,7 +232,7 @@ class ProductAdminController extends Controller
             'sort_order'     => (int)($validated['sort_order'] ?? 0),
         ]);
 
-        return redirect()->route('admin.products.index', ['type' => $product->type])
+        return redirect()->route('admin.products.' . $product->type)
             ->with('success', 'পণ্যটি সফলভাবে যুক্ত করা হয়েছে!');
     }
 
@@ -241,7 +244,7 @@ class ProductAdminController extends Controller
         $product = Product::findOrFail($id);
         $selectedType = $product->type;
         $categories = ProductCategory::where('type', $selectedType)->orderBy('sort_order')->get();
-        $allCategories = ProductCategory::orderBy('type')->orderBy('name')->get();
+        $allCategories = ProductCategory::where('type', $selectedType)->orderBy('sort_order')->get();
 
         return view('admin.products.form', [
             'product' => $product,
@@ -273,7 +276,7 @@ class ProductAdminController extends Controller
         }
 
         $validated = $request->validate([
-            'type' => 'required|in:electronics,stationery',
+            'type' => 'required|in:electronics,stationery,appliance',
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|max:255|unique:products,slug,' . $product->id,
             'category_id' => 'nullable|exists:product_categories,id',
@@ -308,40 +311,8 @@ class ProductAdminController extends Controller
             }
         }
 
-        // Process specialized form fields based on product type
-        $specifications = [];
-
-        if ($validated['type'] === 'electronics') {
-            $specializedFields = [
-                'Power'    => $request->input('spec_wattage'),
-                'Voltage'  => $request->input('spec_voltage'),
-                'Battery'  => $request->input('spec_battery'),
-                'Ports'    => $request->input('spec_ports'),
-                'Warranty' => $request->input('spec_guarantee'),
-                'Color'    => $request->input('spec_color'),
-            ];
-            foreach ($specializedFields as $k => $v) {
-                $v = trim((string)$v);
-                if ($v !== '') {
-                    $specifications[$k] = $v;
-                }
-            }
-        } elseif ($validated['type'] === 'stationery') {
-            $specializedFields = [
-                'GSM'      => $request->input('spec_paper_gsm'),
-                'Pages'    => $request->input('spec_pages'),
-                'Size'     => $request->input('spec_dimensions'),
-                'Binding'  => $request->input('spec_binding'),
-                'Pack'     => $request->input('spec_pack_unit'),
-                'Ink'      => $request->input('spec_ink_color'),
-            ];
-            foreach ($specializedFields as $k => $v) {
-                $v = trim((string)$v);
-                if ($v !== '') {
-                    $specifications[$k] = $v;
-                }
-            }
-        }
+        // Type-specific specifications (schema lives on the Product model)
+        $specifications = Product::collectSpecs($validated['type'], $request);
 
         // Process custom key-value specifications
         if (!empty($validated['spec_keys']) && !empty($validated['spec_vals'])) {
@@ -364,7 +335,7 @@ class ProductAdminController extends Controller
 
         $finalSku = !empty($validated['sku']) ? trim((string)$validated['sku']) : $product->sku;
         if (empty($finalSku)) {
-            $prefix = ($validated['type'] === 'electronics') ? 'ELC' : 'STN';
+            $prefix = Product::skuPrefix($validated['type']);
             $finalSku = $prefix . '-' . date('ym') . '-' . rand(1000, 9999);
         }
 
@@ -391,7 +362,7 @@ class ProductAdminController extends Controller
             'sort_order'     => (int)($validated['sort_order'] ?? 0),
         ]);
 
-        return redirect()->route('admin.products.index', ['type' => $product->type])
+        return redirect()->route('admin.products.' . $product->type)
             ->with('success', 'পণ্যটি সফলভাবে আপডেট করা হয়েছে!');
     }
 
@@ -404,7 +375,7 @@ class ProductAdminController extends Controller
         $type = $product->type;
         $product->delete();
 
-        return redirect()->route('admin.products.index', ['type' => $type])
+        return redirect()->route('admin.products.' . $type)
             ->with('success', 'পণ্যটি সফলভাবে মুছে ফেলা হয়েছে।');
     }
 
@@ -428,7 +399,7 @@ class ProductAdminController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'type' => 'required|in:electronics,stationery',
+            'type' => 'required|in:electronics,stationery,appliance',
             'slug' => 'nullable|string|max:150|unique:product_categories,slug',
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|string|max:100',
@@ -457,7 +428,7 @@ class ProductAdminController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:150',
-            'type' => 'required|in:electronics,stationery',
+            'type' => 'required|in:electronics,stationery,appliance',
             'slug' => 'nullable|string|max:150|unique:product_categories,slug,' . $category->id,
             'description' => 'nullable|string|max:500',
             'icon' => 'nullable|string|max:100',

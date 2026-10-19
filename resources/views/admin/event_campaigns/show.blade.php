@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', $campaign->title . ' — Participants Dashboard')
+@section('hide_header', true)
 
 @push('styles')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
@@ -250,8 +251,14 @@
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', $campaign->id) }}"><i class="fa-solid fa-users text-primary"></i> All Participants (সকল অংশগ্রহণকারী)</a></li>
                         <li><a class="dropdown-item py-2 fw-semibold d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'sort' => 'alpha']) }}"><i class="fa-solid fa-arrow-down-a-z text-info"></i> বর্ণানুক্রমিক তালিকা (A-Z / ক-হ)</a></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}"><i class="fa-solid fa-book-open text-warning"></i> লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
+                        @if(!$isScholarship && ($isWriter || $totalLittleMagCount > 0))
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-2 fw-semibold text-warning-emphasis d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'type' => 'littlemag']) }}"><i class="fa-solid fa-book-open text-warning"></i> লিটিলম্যাগ সম্পাদক তালিকা (Little Mag)</a></li>
+                        @endif
+                        @if($isScholarship)
+                            <li><hr class="dropdown-divider my-1"></li>
+                            <li><a class="dropdown-item py-2 fw-semibold text-success d-flex align-items-center gap-2" href="{{ route('admin.event-campaigns.export', ['campaign' => $campaign->id, 'status' => 'selected']) }}"><i class="fa-solid fa-award text-success"></i> বৃত্তিপ্রাপ্ত নির্বাচিত তালিকা (Awarded List)</a></li>
+                        @endif
                     </ul>
                 </div>
                 <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
@@ -424,12 +431,14 @@
                 <span class="badge bg-teal-subtle text-dark border rounded-pill ms-1" style="background-color: #ccfbf1;">{{ $totalGeoDistricts }} জেলা</span>
             </button>
         </li>
+        @if(!$isScholarship && ($isWriter || $totalLittleMagCount > 0))
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'littlemag' ? 'active' : '' }}" id="tab-littlemag-nav" data-bs-toggle="tab" data-bs-target="#tab-littlemag" type="button" role="tab" aria-controls="tab-littlemag" aria-selected="{{ $currentTab === 'littlemag' ? 'true' : 'false' }}">
                 লিটিলম্যাগ
                 <span class="badge bg-warning text-dark rounded-pill ms-1">{{ $totalLittleMagCount }}</span>
             </button>
         </li>
+        @endif
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'form-studio' ? 'active' : '' }}" id="tab-form-studio-nav" data-bs-toggle="tab" data-bs-target="#tab-form-studio" type="button" role="tab" aria-controls="tab-form-studio" aria-selected="{{ $currentTab === 'form-studio' ? 'true' : 'false' }}">
                 ফর্ম স্টুডিও
@@ -485,19 +494,23 @@
 
         {{-- Conflict Sub-Filter Bar when has_conflict is active --}}
         @if(request()->boolean('has_conflict'))
-            <div class="d-flex align-items-center gap-2 flex-wrap mb-3 p-2.5 bg-danger bg-opacity-10 rounded-3 border border-danger-subtle aec-filter-pills-bar">
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-3 p-2.5 rounded-3 border aec-filter-pills-bar aec-conflict-pills-bar">
                 <span class="small fw-bold text-danger ps-1 text-nowrap"><i class="fa-solid fa-filter me-1"></i>কনফ্লিক্ট ফিল্টার:</span>
-                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1])) }}" class="btn btn-xs rounded-pill {{ !request('conflict_type') ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}">
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1])) }}" class="btn btn-xs rounded-pill {{ !request('conflict_type') ? 'btn-danger text-white fw-bold shadow-xs' : 'btn-outline-danger' }}">
                     সকল কনফ্লিক্ট ({{ $totalConflictCount ?? 0 }})
                 </a>
-                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'geo'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'geo' ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে জেলার সাথে বিভাগের অমিল রয়েছে">
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'geo'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'geo' ? 'btn-danger text-white fw-bold shadow-xs' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে জেলার সাথে বিভাগের অমিল রয়েছে">
                     <i class="fa-solid fa-map-location-dot me-1"></i> বিভাগ-জেলা অমিল ({{ $geoConflictCount ?? 0 }})
                 </a>
-                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'phone'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'phone' ? 'btn-danger text-white fw-bold' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল বা একাউন্ট নম্বর অমিল রয়েছে">
+                <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['has_conflict' => 1, 'conflict_type' => 'phone'])) }}" class="btn btn-xs rounded-pill {{ request('conflict_type') === 'phone' ? 'btn-danger text-white fw-bold shadow-xs' : 'btn-outline-danger' }}" title="যেসব নিবন্ধনে ডুপ্লিকেট মোবাইল বা একাউন্ট নম্বর অমিল রয়েছে">
                     <i class="fa-solid fa-phone me-1"></i> ফোন / একাউন্ট অমিল ({{ $phoneConflictCount ?? 0 }})
                 </a>
-                @if(isset($geoConflictCount) && $geoConflictCount === 0 && !request('conflict_type'))
-                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto small">
+                @if(isset($geoConflictCount) && $geoConflictCount > 0)
+                    <button type="button" class="btn btn-xs btn-danger text-white rounded-pill px-3 py-1 fw-bold ms-auto shadow-xs" onclick="bulkResolveGeoConflicts(this)" data-url="{{ route('admin.event-campaigns.bulk-resolve-geo', $campaign->id) }}" title="ক্যাম্পেইনের সকল বিভাগ-জেলা অমিল এক ক্লিকে সমাধান করুন">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i> সকল বিভাগ অমিল ঠিক করুন ({{ $geoConflictCount }})
+                    </button>
+                @elseif(isset($geoConflictCount) && $geoConflictCount === 0 && !request('conflict_type'))
+                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-auto small px-2.5 py-1 rounded-pill">
                         <i class="fa-solid fa-circle-check me-1"></i> কোনো বিভাগ-জেলা অমিল নেই
                     </span>
                 @endif
@@ -931,8 +944,8 @@
                             {{-- Participant Name & Avatar --}}
                             <td class="col-participant {{ in_array('participant', $visibleCols) ? '' : 'd-none' }}">
                                 <div class="d-flex align-items-center gap-2.5">
-                                    @if($authorPhoto)
-                                        <img src="{{ asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" class="aec-avatar" onerror="this.style.display='none'">
+                                    @if($authorPhoto || $photoSrc)
+                                        <img src="{{ $photoSrc ?: asset('storage/' . $authorPhoto) }}" alt="{{ $reg->name }}" class="aec-avatar" onerror="this.style.display='none'">
                                     @else
                                         <div class="aec-avatar-placeholder {{ $isLibrary ? 'bg-success-subtle text-success' : '' }}">
                                             @if($isLibrary)
@@ -976,9 +989,16 @@
                                 @if($cItem)
                                     <div class="mt-1 d-flex flex-column gap-1">
                                         @if(!empty($cItem['geo_conflict']))
-                                            <span class="aec-badge-conflict aec-badge-conflict-geo" data-bs-toggle="tooltip" title="{{ $cItem['geo_conflict_details'] }}">
-                                                <i class="fa-solid fa-map-location-dot"></i> বিভাগ-জেলা অমিল
-                                            </span>
+                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                <span class="aec-badge-conflict aec-badge-conflict-geo" data-bs-toggle="tooltip" title="{{ $cItem['geo_conflict_details'] }}">
+                                                    <i class="fa-solid fa-map-location-dot"></i> বিভাগ-জেলা অমিল
+                                                </span>
+                                                @if(!empty($cItem['expected_div']))
+                                                    <button type="button" class="btn btn-xs btn-danger text-white rounded-pill px-2 py-0 fw-semibold shadow-xs" onclick="resolveSingleGeoConflict(this)" data-url="{{ route('admin.event-campaigns.registrations.resolve-geo-conflict', $reg->id) }}" data-expected="{{ $cItem['expected_div'] }}" data-reg-id="{{ $reg->id }}" title="সঠিক বিভাগ '{{ $cItem['expected_div'] }}'-তে সংশোধন করুন">
+                                                        <i class="fa-solid fa-wand-magic-sparkles me-0.5" style="font-size: 9px;"></i> ঠিক করুন
+                                                    </button>
+                                                @endif
+                                            </div>
                                         @endif
                                         @if(!empty($cItem['duplicate_phone']))
                                             @php
@@ -989,9 +1009,14 @@
                                             </a>
                                         @endif
                                         @if(!empty($cItem['user_mismatch']))
-                                            <span class="aec-badge-conflict aec-badge-conflict-user" title="অ্যাকাউন্ট ফোন ({{ $cItem['user_phone'] }}) ও রেজিস্ট্রেশন ফোন ({{ $reg->phone }}) অমিল">
-                                                <i class="fa-solid fa-user-xmark"></i> অ্যাকাউন্ট অমিল
-                                            </span>
+                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                <span class="aec-badge-conflict aec-badge-conflict-user" title="অ্যাকাউন্ট ফোন ({{ $cItem['user_phone'] }}) ও রেজিস্ট্রেশন ফোন ({{ $reg->phone }}) অমিল">
+                                                    <i class="fa-solid fa-user-xmark"></i> অ্যাকাউন্ট অমিল
+                                                </span>
+                                                <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2 py-0 fw-semibold shadow-xs" onclick="syncSingleUserPhone(this)" data-url="{{ route('admin.event-campaigns.registrations.sync-user-phone', $reg->id) }}" data-reg-phone="{{ $reg->phone }}" data-user-phone="{{ $cItem['user_phone'] }}" data-reg-id="{{ $reg->id }}" title="ফোন নম্বর সিঙ্ক করুন">
+                                                    <i class="fa-solid fa-rotate me-0.5" style="font-size: 9px;"></i> সিঙ্ক
+                                                </button>
+                                            </div>
                                         @endif
                                         @if(!empty($cItem['duplicate_email']))
                                             <a href="{{ route('admin.event-campaigns.show', $campaign->id) }}?search={{ urlencode($reg->email) }}" class="aec-badge-conflict aec-badge-conflict-email" title="ডুপ্লিকেট ইমেইল: একাধিক এন্ট্রিতে ব্যবহৃত">
@@ -1150,14 +1175,14 @@
                                 <div class="d-inline-flex gap-1 align-items-center">
                                     @if($isScholarship)
                                         {{-- Toggle Scholarship Selection Button --}}
-                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-scholarship', $reg->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.event-campaigns.registrations.toggle-scholarship', $reg->id) }}" method="POST" class="d-inline quick-scholarship-form" data-reg-id="{{ $reg->id }}">
                                             @csrf
                                             @if($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded']))
-                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Selected for Scholarship (Click to Remove)">
+                                                <button type="submit" id="scholarshipToggleBtn_{{ $reg->id }}" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Selected for Scholarship (Click to Remove)">
                                                     <i class="fa-solid fa-award me-1"></i> Awarded
                                                 </button>
                                             @else
-                                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Select / Award Scholarship">
+                                                <button type="submit" id="scholarshipToggleBtn_{{ $reg->id }}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" title="Select / Award Scholarship">
                                                     <i class="fa-solid fa-star me-1"></i> Award
                                                 </button>
                                             @endif
@@ -1165,7 +1190,7 @@
 
                                         {{-- Viva Evaluation (50 Marks) --}}
                                         @php $vTotal = $reg->form_data['viva_total'] ?? null; @endphp
-                                        <button type="button" class="btn btn-sm {{ $vTotal !== null ? 'btn-info text-white' : 'btn-outline-info' }} rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#vivaModal{{ $reg->id }}" title="Viva Assessment (50 Marks)">
+                                        <button type="button" id="vivaModalTrigger_{{ $reg->id }}" class="btn btn-sm {{ $vTotal !== null ? 'btn-info text-white' : 'btn-outline-info' }} rounded-pill px-2.5 py-1 text-nowrap" style="font-size: 11px;" data-bs-toggle="modal" data-bs-target="#vivaModal{{ $reg->id }}" title="Viva Assessment (50 Marks)">
                                             <i class="fa-solid fa-clipboard-check me-1"></i> {{ $vTotal !== null ? "Viva: {$vTotal}/50" : 'Viva' }}
                                         </button>
                                     @else
@@ -1346,6 +1371,19 @@
                                                                 <i class="fa-solid fa-triangle-exclamation fs-4 flex-shrink-0 mt-0.5"></i>
                                                                 <div>
                                                                     <div class="fw-bold mb-1 fs-6">সতর্কতা: তথ্যের ডুপ্লিকেট বা কনফ্লিক্ট শনাক্ত হয়েছে!</div>
+                                                                    @if(!empty($cItem['geo_conflict']))
+                                                                        <div class="small mb-2 p-2 bg-white bg-opacity-75 rounded-2 border border-danger-subtle d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                                            <div>
+                                                                                <i class="fa-solid fa-map-location-dot text-danger me-1"></i>
+                                                                                <strong>বিভাগ-জেলা অমিল:</strong> {{ $cItem['geo_conflict_details'] }}
+                                                                            </div>
+                                                                            @if(!empty($cItem['expected_div']))
+                                                                                <button type="button" class="btn btn-xs btn-danger text-white rounded-pill px-3 py-1 fw-bold shadow-xs" onclick="resolveSingleGeoConflict(this)" data-url="{{ route('admin.event-campaigns.registrations.resolve-geo-conflict', $reg->id) }}" data-expected="{{ $cItem['expected_div'] }}" data-reg-id="{{ $reg->id }}" title="সঠিক বিভাগ '{{ $cItem['expected_div'] }}'-তে সংশোধন করুন">
+                                                                                    <i class="fa-solid fa-wand-magic-sparkles me-1"></i> বিভাগ '{{ $cItem['expected_div'] }}' সেভ করুন
+                                                                                </button>
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
                                                                     @if(!empty($cItem['duplicate_phone']))
                                                                         <div class="small mb-1">
                                                                             &bull; <strong>ডুপ্লিকেট মোবাইল নম্বর:</strong> এই ফোন নম্বরটি (<strong>{{ $reg->phone }}</strong>) ক্যাম্পেইনের আরও <strong>{{ count($cItem['other_regs_with_phone']) }}টি</strong> আবেদনে ব্যবহৃত হয়েছে:
@@ -1357,8 +1395,13 @@
                                                                         </div>
                                                                     @endif
                                                                     @if(!empty($cItem['user_mismatch']))
-                                                                        <div class="small mb-1">
-                                                                            &bull; <strong>আইডিয়া অ্যাকাউন্ট ফোন অমিল:</strong> আবেদন ফরমের ফোন নম্বর <strong>{{ $reg->phone }}</strong> কিন্তু আবেদনকারী ইউজারের প্রধান আইডিয়া অ্যাকাউন্ট ফোন নম্বর <strong>{{ $cItem['user_phone'] }}</strong>।
+                                                                        <div class="small mb-1 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                                            <div>
+                                                                                &bull; <strong>আইডিয়া অ্যাকাউন্ট ফোন অমিল:</strong> আবেদন ফরমের ফোন নম্বর <strong>{{ $reg->phone }}</strong> কিন্তু আবেদনকারী ইউজারের প্রধান আইডিয়া অ্যাকাউন্ট ফোন নম্বর <strong>{{ $cItem['user_phone'] }}</strong>।
+                                                                            </div>
+                                                                            <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2.5 py-1 fw-bold shadow-xs" onclick="syncSingleUserPhone(this)" data-url="{{ route('admin.event-campaigns.registrations.sync-user-phone', $reg->id) }}" data-reg-phone="{{ $reg->phone }}" data-user-phone="{{ $cItem['user_phone'] }}" data-reg-id="{{ $reg->id }}" title="ফোন নম্বর সিঙ্ক করুন">
+                                                                                <i class="fa-solid fa-rotate me-1"></i> ফোন নম্বর সিঙ্ক করুন
+                                                                            </button>
                                                                         </div>
                                                                     @endif
                                                                     @if(!empty($cItem['duplicate_email']))
@@ -1909,7 +1952,7 @@
                                     <div class="modal fade" id="vivaModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered text-start">
                                             <div class="modal-content rounded-4 border-0 shadow">
-                                                <form action="{{ route('admin.event-campaigns.registrations.viva-evaluation', $reg->id) }}" method="POST">
+                                                <form action="{{ route('admin.event-campaigns.registrations.viva-evaluation', $reg->id) }}" method="POST" class="viva-evaluation-form" data-reg-id="{{ $reg->id }}">
                                                     @csrf
                                                     <div class="modal-header border-bottom py-3 bg-light">
                                                         <div>
@@ -2249,9 +2292,11 @@
         </div>
 
         {{-- TAB 3: LITTLE MAGAZINE EDITORS DIRECTORY --}}
+        @if(!$isScholarship && ($isWriter || $totalLittleMagCount > 0))
         <div class="tab-pane fade {{ $currentTab === 'littlemag' ? 'show active' : '' }}" id="tab-littlemag" role="tabpanel" aria-labelledby="tab-littlemag-nav">
             @include('admin.event_campaigns.partials.littlemag_directory')
         </div>
+        @endif
 
         {{-- TAB 4: LIVE FORM STUDIO & CUSTOMIZER --}}
         <div class="tab-pane fade {{ $currentTab === 'form-studio' ? 'show active' : '' }}" id="tab-form-studio" role="tabpanel" aria-labelledby="tab-form-studio-nav">
@@ -2282,6 +2327,9 @@
         </button>
         <button type="button" class="btn btn-sm btn-info text-white rounded-pill px-3 fw-bold" onclick="openBulkBroadcastSmsModal()" title="নির্বাচিত অংশগ্রহণকারীদের একবারে আপডেট মেসেজ পাঠান">
             <i class="fa-solid fa-paper-plane me-1"></i> আপডেট এসএমএস
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger bg-white text-danger rounded-pill px-3 fw-bold" onclick="executeBulkAction('resolve_geo')" title="নির্বাচিত নিবন্ধনের জেলা অনুযায়ী সঠিক বিভাগ সেট করুন">
+            <i class="fa-solid fa-map-location-dot me-1"></i> বিভাগ অমিল ঠিক করুন
         </button>
         <button type="button" class="btn btn-sm btn-danger rounded-pill px-3" onclick="executeBulkAction('delete')">
             <i class="fa-solid fa-trash me-1"></i> Delete
@@ -3305,7 +3353,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="form-check form-switch m-0">
-                                                        <input class="form-check-input live-toggle-input" type="checkbox" name="show_logo" id="toggleShowLogo" value="1" {{ $cShowLogo ? 'checked' : '' }} data-target="liveLogoWrap" style="width: 2.2em; height: 1.1em;">
+                                                        <input class="form-check-input live-toggle-input" type="checkbox" id="toggleShowLogoSecondary" value="1" {{ $cShowLogo ? 'checked' : '' }} data-target="liveLogoWrap" style="width: 2.2em; height: 1.1em;">
                                                     </div>
                                                 </div>
                                             </div>
@@ -3433,7 +3481,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="form-check form-switch m-0">
-                                                        <input class="form-check-input live-toggle-input" type="checkbox" name="show_event_logo" id="toggleShowEventLogo" value="1" {{ $cShowEventLogo ? 'checked' : '' }} data-target="liveEventLogoWrap" style="width: 2.2em; height: 1.1em;">
+                                                        <input class="form-check-input live-toggle-input" type="checkbox" id="toggleShowEventLogoSecondary" value="1" {{ $cShowEventLogo ? 'checked' : '' }} data-target="liveEventLogoWrap" style="width: 2.2em; height: 1.1em;">
                                                     </div>
                                                 </div>
                                             </div>
@@ -4222,21 +4270,12 @@
                                             {{-- Left: Organization Logo Container --}}
                                             <div class="header-left-col" style="min-width: {{ $cLogoSize }}px; display: flex; align-items: center; justify-content: flex-start; position: relative;">
                                                 <div class="phiredekha-logo card-interactive-node" id="liveLogoWrap" data-node="logo" data-tab="tab-logo-pane" style="width: {{ $cLogoSize }}px; height: {{ $cLogoSize }}px; border: none; background: transparent; box-shadow: none; transform: translate({{ $cLogoOffsetX }}px, {{ $cLogoOffsetY }}px); transition: transform 0.1s ease-out; {{ $cShowLogo ? '' : 'display: none !important;' }}">
-                                                    @if($cLogoImg)
-                                                        <img src="{{ asset('storage/' . $cLogoImg) }}" alt="Logo" class="custom-card-logo-img" id="liveCustomLogoImg" style="width: 100%; height: 100%; object-fit: contain;">
-                                                        <div class="logo-inner-ring" id="liveDefaultLogoRing" style="display: none;">
-                                                            <div class="logo-brand">ফিরেদেখা</div>
-                                                            <i class="fa-solid fa-feather-pointed logo-icon"></i>
-                                                            <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
-                                                        </div>
-                                                    @else
-                                                        <img src="" alt="Logo" class="custom-card-logo-img" id="liveCustomLogoImg" style="display: none; width: 100%; height: 100%; object-fit: contain;">
-                                                        <div class="logo-inner-ring" id="liveDefaultLogoRing">
-                                                            <div class="logo-brand">ফিরেদেখা</div>
-                                                            <i class="fa-solid fa-feather-pointed logo-icon"></i>
-                                                            <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
-                                                        </div>
-                                                    @endif
+                                                    <img src="{{ $cLogoImg ? asset('storage/' . $cLogoImg) : '' }}" alt="Logo" class="custom-card-logo-img" id="liveCustomLogoImg" style="{{ $cLogoImg ? '' : 'display: none;' }} width: 100%; height: 100%; object-fit: contain;">
+                                                    <div class="logo-inner-ring" id="liveDefaultLogoRing" style="{{ $cLogoImg ? 'display: none;' : '' }}">
+                                                        <div class="logo-brand">ফিরেদেখা</div>
+                                                        <i class="fa-solid fa-feather-pointed logo-icon"></i>
+                                                        <div class="logo-est">প্রতিষ্ঠা: ২০১৬</div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -4623,6 +4662,346 @@
 
 
     <script>
+        // Global Toast Notification Helper
+        window.showToast = function(msg, isError = false) {
+            const toastEl = document.getElementById('liveToast');
+            const toastMsg = document.getElementById('toastMessage');
+            if (toastEl && toastMsg && typeof bootstrap !== 'undefined') {
+                toastMsg.innerHTML = msg;
+                if (isError) {
+                    toastEl.classList.remove('text-bg-dark', 'text-bg-success');
+                    toastEl.classList.add('text-bg-danger');
+                } else {
+                    toastEl.classList.remove('text-bg-dark', 'text-bg-danger');
+                    toastEl.classList.add('text-bg-success');
+                }
+                bootstrap.Toast.getOrCreateInstance(toastEl).show();
+            }
+        };
+
+        // Sync secondary toggles in Logo tabs with the master toggles in Toggle Settings tab
+        const toggleShowLogoSec = document.getElementById('toggleShowLogoSecondary');
+        const toggleShowLogoMain = document.getElementById('toggleShowLogo');
+        if (toggleShowLogoSec && toggleShowLogoMain) {
+            toggleShowLogoSec.addEventListener('change', function() {
+                if (toggleShowLogoMain.checked !== this.checked) {
+                    toggleShowLogoMain.checked = this.checked;
+                    toggleShowLogoMain.dispatchEvent(new Event('change'));
+                }
+            });
+            toggleShowLogoMain.addEventListener('change', function() {
+                if (toggleShowLogoSec.checked !== this.checked) {
+                    toggleShowLogoSec.checked = this.checked;
+                }
+            });
+        }
+
+        const toggleShowEvtSec = document.getElementById('toggleShowEventLogoSecondary');
+        const toggleShowEvtMain = document.getElementById('toggleShowEventLogo');
+        if (toggleShowEvtSec && toggleShowEvtMain) {
+            toggleShowEvtSec.addEventListener('change', function() {
+                if (toggleShowEvtMain.checked !== this.checked) {
+                    toggleShowEvtMain.checked = this.checked;
+                    toggleShowEvtMain.dispatchEvent(new Event('change'));
+                }
+            });
+            toggleShowEvtMain.addEventListener('change', function() {
+                if (toggleShowEvtSec.checked !== this.checked) {
+                    toggleShowEvtSec.checked = this.checked;
+                }
+            });
+        }
+
+        // Universal Bulk Action Handler for Floating Toolbar
+        window.executeBulkAction = async function(action) {
+            const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
+            if (selected.length === 0) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'কোনো অংশগ্রহণকারী নির্বাচিত নেই',
+                        text: 'অনুগ্রহ করে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।',
+                        confirmButtonColor: '#059669',
+                    });
+                } else {
+                    alert('অনুগ্রহ করে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।');
+                }
+                return;
+            }
+
+            const actionLabels = {
+                'approve': 'অনুমোদন / কনফার্ম',
+                'mark_pending': 'পেন্ডিং মার্ক',
+                'select_scholarship': 'বৃত্তিপ্রাপ্ত নির্বাচন',
+                'resolve_geo': 'বিভাগ-জেলা অমিল সংশোধন',
+                'delete': 'মুছে ফেলা'
+            };
+            const actionName = actionLabels[action] || action;
+
+            if (typeof Swal !== 'undefined') {
+                const confirmRes = await Swal.fire({
+                    title: `${actionName} করবেন?`,
+                    text: `আপনি কি নির্বাচিত ${selected.length} জন অংশগ্রহণকারীর ওপর এই অ্যাকশন চালাতে চান?`,
+                    icon: action === 'delete' ? 'warning' : 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: action === 'delete' ? '#dc2626' : '#059669',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: action === 'delete' ? 'হ্যাঁ, ডিলিট করুন' : 'হ্যাঁ, সম্পন্ন করুন',
+                    cancelButtonText: 'বাতিল'
+                });
+                if (!confirmRes.isConfirmed) return;
+            } else {
+                if (!confirm(`আপনি কি নিশ্চিত যে নির্বাচিত ${selected.length} জনের ওপর '${actionName}' অ্যাকশন চালাতে চান?`)) {
+                    return;
+                }
+            }
+
+            const form = document.getElementById('bulkActionHiddenForm');
+            const typeInput = document.getElementById('bulkActionTypeInput');
+            const idsInput = document.getElementById('bulkSelectedIdsInput');
+
+            if (typeInput) typeInput.value = action;
+            if (idsInput) idsInput.value = JSON.stringify(selected);
+
+            try {
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('action', action);
+                formData.append('selected_ids', JSON.stringify(selected));
+
+                const res = await fetch('{{ route("admin.event-campaigns.bulk-action", $campaign->id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'সফল হয়েছে!',
+                            text: data.message,
+                            confirmButtonColor: '#059669',
+                            timer: 2000,
+                            showConfirmButton: true
+                        });
+                    }
+                    window.location.reload();
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'অ্যাকশন ব্যর্থ',
+                            text: data.message || 'একটি ত্রুটি ঘটেছে।',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    } else {
+                        alert(data.message || 'ত্রুটি ঘটেছে');
+                    }
+                }
+            } catch (e) {
+                console.error('Bulk Action Error:', e);
+                if (form) form.submit();
+            }
+        };
+
+        // 1-Click Resolve Geo Conflict for Single Registration
+        window.resolveSingleGeoConflict = async function(btn) {
+            const url = btn.dataset.url;
+            const expected = btn.dataset.expected;
+            const regId = btn.dataset.regId;
+            if (!url) return;
+
+            if (typeof Swal !== 'undefined') {
+                const res = await Swal.fire({
+                    title: 'বিভাগ সংশোধন করবেন?',
+                    html: `জেলার তথ্য অনুযায়ী সঠিক বিভাগ <strong>'${expected}'</strong> স্বয়ংক্রিয়ভাবে সেভ করা হবে।`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'হ্যাঁ, সংশোধন করুন',
+                    cancelButtonText: 'বাতিল'
+                });
+                if (!res.isConfirmed) return;
+            }
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ target_division: expected })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const row = btn.closest('tr') || document.querySelector(`tr[data-participant-id="${regId}"]`);
+                    if (row) {
+                        const divCol = row.querySelector('.col-division');
+                        if (divCol) {
+                            divCol.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill small fw-semibold"><i class="fa-solid fa-circle-check me-1"></i>${data.resolved_division}</span>`;
+                        }
+                    }
+                    const container = btn.closest('.d-flex');
+                    if (container) {
+                        container.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small"><i class="fa-solid fa-check me-1"></i>বিভাগ সংশোধিত (${data.resolved_division})</span>`;
+                    }
+
+                    if (window.showToast) {
+                        window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + data.message);
+                    }
+                } else {
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'ব্যর্থ হয়েছে', text: data.message, confirmButtonColor: '#dc2626' });
+                    } else {
+                        alert(data.message);
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (e) {
+                console.error(e);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('সার্ভার যোগাযোগে সমস্যা হয়েছে।');
+            }
+        };
+
+        // 1-Click Sync User Phone Mismatch
+        window.syncSingleUserPhone = async function(btn) {
+            const url = btn.dataset.url;
+            const regPhone = btn.dataset.regPhone;
+            const userPhone = btn.dataset.userPhone;
+            if (!url) return;
+
+            let direction = 'to_reg';
+            if (typeof Swal !== 'undefined') {
+                const res = await Swal.fire({
+                    title: 'ফোন নম্বর সিঙ্ক নির্বাচন',
+                    html: `<div class="text-start small">` +
+                          `<p class="mb-2">নিবন্ধন ফোন ও মূল ইউজার প্রোফাইল ফোনের অমিল পাওয়া গেছে:</p>` +
+                          `<div class="p-2 mb-2 bg-light rounded border font-monospace">` +
+                          `&bull; ফরমের ফোন: <strong>${regPhone || 'নেই'}</strong><br>` +
+                          `&bull; ইউজার অ্যাকাউন্ট ফোন: <strong>${userPhone || 'নেই'}</strong>` +
+                          `</div>` +
+                          `<p class="mb-0 text-muted">আপনি কোনটি আপডেট করতে চান?</p>` +
+                          `</div>`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonColor: '#059669',
+                    denyButtonColor: '#0284c7',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'ফরমে ইউজার ফোন বসান (প্রস্তাবিত)',
+                    denyButtonText: 'ইউজার অ্যাকাউন্টে ফরমের ফোন বসান',
+                    cancelButtonText: 'বাতিল'
+                });
+
+                if (res.isConfirmed) {
+                    direction = 'to_reg';
+                } else if (res.isDenied) {
+                    direction = 'to_user';
+                } else {
+                    return;
+                }
+            }
+
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ direction: direction })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const container = btn.closest('.d-flex');
+                    if (container) {
+                        container.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 rounded-pill small"><i class="fa-solid fa-check me-1"></i>ফোন সিঙ্ক সম্পন্ন</span>`;
+                    }
+                    if (window.showToast) {
+                        window.showToast('<i class="fa-solid fa-circle-check text-success me-1"></i> ' + data.message);
+                    }
+                } else {
+                    alert(data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (e) {
+                console.error(e);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('সার্ভার যোগাযোগে সমস্যা হয়েছে।');
+            }
+        };
+
+        // Bulk Resolve Geo Conflicts Across Campaign
+        window.bulkResolveGeoConflicts = async function(btn) {
+            const url = btn?.dataset?.url || '{{ route("admin.event-campaigns.bulk-resolve-geo", $campaign->id) }}';
+            if (typeof Swal !== 'undefined') {
+                const res = await Swal.fire({
+                    title: 'সকল বিভাগ-জেলা অমিল সংশোধন করবেন?',
+                    text: 'ক্যাম্পেইনের যেসব নিবন্ধনে জেলার সাথে বিভাগের অমিল রয়েছে, তাদের সবার বিভাগ স্বয়ংক্রিয়ভাবে সঠিক বিভাগে আপডেট করা হবে।',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#059669',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fa-solid fa-wand-magic-sparkles me-1"></i> হ্যাঁ, সবগুলো সংশোধন করুন',
+                    cancelButtonText: 'বাতিল'
+                });
+                if (!res.isConfirmed) return;
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (typeof Swal !== 'undefined') {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: 'সফলভাবে সংশোধন হয়েছে!',
+                            text: data.message,
+                            confirmButtonColor: '#059669'
+                        });
+                    }
+                    window.location.reload();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+            }
+        };
+
         let currentCropperPreviewId = null;
         let currentCropperRegId = null;
         let initialCropperRatio = 1;
@@ -5455,6 +5834,190 @@
                     alert('সার্ভার সংযোগে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
                 });
             });
+
+            // =========================================================================
+            // VIVA TOTAL LIVE CALCULATOR
+            // =========================================================================
+            window.calcVivaTotal = function(regId) {
+                let total = 0;
+                document.querySelectorAll('.viva-input-' + regId).forEach(function(input) {
+                    const val = parseFloat(input.value) || 0;
+                    total += val;
+                });
+                const display = document.getElementById('vivaTotalDisplay' + regId);
+                if (display) {
+                    display.textContent = total + ' / ৫০';
+                }
+            };
+
+            // =========================================================================
+            // ZERO-SCROLL AJAX SCHOLARSHIP TOGGLE (AWARD / AWARDED)
+            // =========================================================================
+            document.addEventListener('submit', function(e) {
+                const form = e.target.closest('.quick-scholarship-form');
+                if (!form) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
+                const regId = form.getAttribute('data-reg-id');
+                const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+                const origHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+                }
+
+                const formData = new FormData(form);
+                const actionUrl = form.getAttribute('action');
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (data.success) {
+                        const isAwarded = data.is_awarded;
+                        if (submitBtn) {
+                            if (isAwarded) {
+                                submitBtn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                                submitBtn.title = 'Selected for Scholarship (Click to Remove)';
+                                submitBtn.innerHTML = '<i class="fa-solid fa-award me-1"></i> Awarded';
+                            } else {
+                                submitBtn.className = 'btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                                submitBtn.title = 'Select / Award Scholarship';
+                                submitBtn.innerHTML = '<i class="fa-solid fa-star me-1"></i> Award';
+                            }
+                        }
+
+                        // Update Status Badge in row
+                        const badgeWrap = document.getElementById('statusBadgeWrap_' + regId);
+                        if (badgeWrap) {
+                            badgeWrap.innerHTML = isAwarded
+                                ? '<span class="badge bg-success text-white px-2.5 py-1.5"><i class="fa-solid fa-award me-1"></i> Selected</span>'
+                                : '<span class="badge badge-status-confirmed px-2.5 py-1.5"><i class="fa-solid fa-circle-check me-1"></i> Confirmed</span>';
+                        }
+
+                        // Tactile Row Animation
+                        const row = document.getElementById('regRow_' + regId);
+                        if (row) {
+                            row.classList.remove('aec-row-updated-success');
+                            requestAnimationFrame(() => row.classList.add('aec-row-updated-success'));
+                        }
+
+                        if (window.showToast) {
+                            window.showToast('<i class="fa-solid fa-award text-warning me-1"></i> ' + data.message);
+                        }
+                    } else {
+                        if (submitBtn) submitBtn.innerHTML = origHtml;
+                        if (window.showToast) window.showToast(data.message || 'Error updating scholarship', true);
+                    }
+                    window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+                });
+            }, true);
+
+            // =========================================================================
+            // ZERO-SCROLL AJAX VIVA EVALUATION SUBMISSION
+            // =========================================================================
+            document.addEventListener('submit', function(e) {
+                const form = e.target.closest('.viva-evaluation-form');
+                if (!form) return;
+                e.preventDefault();
+                e.stopPropagation();
+
+                const lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || window.scrollY || document.body.scrollTop || 0;
+                const regId = form.getAttribute('data-reg-id');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const origHtml = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Saving...';
+                }
+
+                const formData = new FormData(form);
+                const actionUrl = form.getAttribute('action');
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    if (data.success) {
+                        // Close Modal
+                        const modalEl = form.closest('.modal');
+                        if (modalEl && typeof bootstrap !== 'undefined') {
+                            const mInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (mInstance) mInstance.hide();
+                        }
+
+                        // Update Viva button in row
+                        const vivaTrigger = document.getElementById('vivaModalTrigger_' + regId);
+                        if (vivaTrigger) {
+                            vivaTrigger.className = 'btn btn-sm btn-info text-white rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                            vivaTrigger.innerHTML = '<i class="fa-solid fa-clipboard-check me-1"></i> Viva: ' + data.total_score + '/50';
+                        }
+
+                        // If awarded is true, update toggle button
+                        if (data.is_awarded) {
+                            const awardBtn = document.getElementById('scholarshipToggleBtn_' + regId);
+                            if (awardBtn) {
+                                awardBtn.className = 'btn btn-sm btn-success rounded-pill px-2.5 py-1 text-nowrap shadow-xs';
+                                awardBtn.title = 'Selected for Scholarship (Click to Remove)';
+                                awardBtn.innerHTML = '<i class="fa-solid fa-award me-1"></i> Awarded';
+                            }
+                            const badgeWrap = document.getElementById('statusBadgeWrap_' + regId);
+                            if (badgeWrap) {
+                                badgeWrap.innerHTML = '<span class="badge bg-success text-white px-2.5 py-1.5"><i class="fa-solid fa-award me-1"></i> Selected</span>';
+                            }
+                        }
+
+                        // Tactile Row Animation
+                        const row = document.getElementById('regRow_' + regId);
+                        if (row) {
+                            row.classList.remove('aec-row-updated-success');
+                            requestAnimationFrame(() => row.classList.add('aec-row-updated-success'));
+                        }
+
+                        if (window.showToast) {
+                            window.showToast('<i class="fa-solid fa-clipboard-check text-success me-1"></i> ' + data.message);
+                        }
+                    } else {
+                        if (window.showToast) window.showToast(data.message || 'Error saving viva evaluation', true);
+                    }
+                    window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = origHtml;
+                    }
+                    window.scrollTo({ top: lockedScrollY, behavior: 'instant' });
+                });
+            }, true);
         });
     </script>
 @endpush

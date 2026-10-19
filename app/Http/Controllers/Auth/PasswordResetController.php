@@ -40,7 +40,7 @@ class PasswordResetController extends Controller
             'identity'        => ['required', 'string', 'max:150'],
             'delivery_method' => ['nullable', 'string', 'in:email,whatsapp,sms,auto'],
         ], [
-            'identity.required' => 'আপনার নিবন্ধিত ইমেইল অ্যাড্রেস অথবা মোবাইল নম্বর প্রদান করুন।',
+            'identity.required' => 'Enter your email or phone.',
         ]);
 
         $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
@@ -590,7 +590,7 @@ class PasswordResetController extends Controller
             'user_name'    => ['nullable', 'string', 'max:255'],
             'reason_notes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'identity.required' => 'আপনার নিবন্ধিত ইমেইল বা মোবাইল নম্বর দিন।',
+            'identity.required' => 'Enter your email or phone.',
         ]);
 
         $identity = trim((string)$request->input('identity'));
@@ -609,12 +609,12 @@ class PasswordResetController extends Controller
         \App\Models\PasswordResetRequest::create([
             'user_id'      => $user?->id,
             'identity'     => $identity,
-            'user_name'    => $request->input('user_name') ?: ($user?->name ?? 'গ্রাহক'),
+            'user_name'    => $request->input('user_name') ?: ($user?->name ?? 'Customer'),
             'user_ip'      => $request->ip(),
-            'reason_notes' => $request->input('reason_notes', 'লিংক বা ওটিপিতে পাসওয়ার্ড রিসেট করতে ব্যর্থ হওয়ায় অ্যাডমিন সহায়তার আবেদন।'),
+            'reason_notes' => $request->input('reason_notes', 'Password help requested.'),
             'status'       => 'pending',
         ]);
 
-        return back()->with('status', 'আপনার পাসওয়ার্ড সহায়তার আবেদন সফলভাবে অ্যাডমিন প্যানেলে পাঠানো হয়েছে! অ্যাডমিন কর্তৃপক্ষ তথ্য যাচাই করে একটি ওয়ানটাইম পাসওয়ার্ড (OTP) ইস্যু করবেন।');
+        return back()->with('status', 'Request sent. We will contact you.');
     }
 }

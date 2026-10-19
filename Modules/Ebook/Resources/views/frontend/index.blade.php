@@ -1,997 +1,250 @@
 @extends('layouts.app')
 
-@section('title', 'ডিজিটাল পাঠাগার ও ই-বুক সংগ্রহ — আইডিয়া প্রকাশন')
+@php
+    $S = \Illuminate\Support\Str::class;
+    $filterKeys = ['search', 'q', 'category', 'author', 'publisher', 'format', 'free_only', 'min_price', 'max_price', 'discount_min', 'letter', 'sort'];
+    $filtered = request()->anyFilled($filterKeys) || (int) request('page', 1) > 1;
+    $keep = fn (array $except = []) => request()->except(array_merge(['page'], $except));
+
+    // flat category list (parents then children) with counts
+    $flatCats = collect();
+    foreach ($categories as $c) {
+        $flatCats->push(['c' => $c, 'child' => false]);
+        foreach (($c->children ?? collect()) as $ch) { $flatCats->push(['c' => $ch, 'child' => true]); }
+    }
+    $curCatKey = request('category');
+    $curCat = $curCatKey ? $flatCats->first(fn ($r) => (string) $r['c']->slug === (string) $curCatKey || (string) $r['c']->id === (string) $curCatKey) : null;
+
+    $formats = ['' => 'All', 'epub' => 'EPUB', 'pdf' => 'PDF', 'free' => 'Free', 'paid' => 'Paid'];
+    $sorts = ['' => 'Latest', 'popular' => 'Popular', 'bestselling' => 'Bestselling', 'price_low' => 'Price: Low', 'price_high' => 'Price: High', 'discount_high' => 'Discount'];
+    $curFmt = request('format', '');
+    $curSort = request('sort', '');
+    $curAuthor = request('author') ? $sidebarAuthors->first(fn ($a) => (string) $a->slug === (string) request('author') || (string) $a->id === (string) request('author')) : null;
+    $curPub = request('publisher') ? $sidebarPublishers->first(fn ($p) => (string) $p->slug === (string) request('publisher') || (string) $p->id === (string) request('publisher')) : null;
+    $term = trim((string) (request('search') ?: request('q')));
+@endphp
+
+@section('title', 'ই-বুক — আইডিয়া প্রকাশন')
 @section('og_type', 'website')
-@section('og_title', 'ডিজিটাল পাঠাগার ও ই-বুক সংগ্রহ — আইডিয়া প্রকাশন')
-@section('og_description', 'আইডিয়া প্রকাশনের আধুনিক ডিজিটাল পাঠাগার থেকে পড়ুন শতশত মৌলিক সাহিত্য, উপন্যাস, কবিতা, প্রবন্ধ ও গবেষণামূলক ই-বুক। EPUB ও PDF ফরম্যাটে সরাসরি অনলাইনে পড়ুন বা সংগ্রহ করুন।')
+@section('og_title', 'ডিজিটাল পাঠাগার ও ই-বুক সংগ্রহ — আইডিয়া প্রকাশন')
+@section('og_description', 'আইডিয়া প্রকাশনের ডিজিটাল পাঠাগার থেকে EPUB ও PDF ই-বুক পড়ুন।')
 @section('og_image', asset('images/og-banner.jpg'))
 @section('og_url', route('ebook.index'))
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/ebook-modern.css') }}?v={{ @filemtime(public_path('css/ebook-modern.css')) ?: 1 }}">
+@endpush
+
 @section('content')
-<div class="site-bookstore-page bg-light py-3 py-md-4 mb-5">
-    <div class="container">
-        
-        <!-- ══ 1. TOP BREADCRUMB & HEADER ═══════════════════════════════════════════ -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-white px-3 py-1.5 rounded-pill shadow-2xs border small mb-0 d-inline-flex align-items-center">
-                    <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i>হোম</a></li>
-                    <li class="breadcrumb-item active text-dark fw-bold" aria-current="page">ডিজিটাল ই-বুক সংগ্রহ</li>
-                    @if(isset($activeFilterTitle) && $activeFilterTitle)
-                        <li class="breadcrumb-item active text-primary fw-semibold">{{ $activeFilterTitle }}</li>
-                    @endif
-                </ol>
-            </nav>
+<div class="eb-page">
 
-            @if(request()->anyFilled(['category', 'author', 'publisher', 'search', 'q', 'min_price', 'max_price', 'rating', 'format', 'free_only', 'discount_min', 'letter', 'sort']))
-                <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs">
-                    <i class="fa-solid fa-xmark"></i> ফিল্টার রিসেট করুন
-                </a>
-            @endif
-        </div>
+    <header class="eb-head container">
+        <div class="eb-head__title"><h1>E-Books</h1><span>{{ number_format($stats['total'] ?? 0) }}</span></div>
+        <form action="{{ route('ebook.index') }}" method="GET" class="eb-search" role="search">
+            @foreach(['category', 'author', 'publisher', 'format', 'sort'] as $k)@if(request($k))<input type="hidden" name="{{ $k }}" value="{{ request($k) }}">@endif @endforeach
+            <input type="search" name="search" value="{{ $term }}" placeholder="Search" aria-label="Search e-books" autocomplete="off" enterkeyhint="search" id="ebSearch">
+            <button type="submit" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+    </header>
 
-        <!-- ══ 2. TOP FILTER & DEPARTMENT QUICK PILL BAR (DYNAMIC SLIDER) ═════════ -->
-        <div class="card p-2 p-md-2.5 border-0 shadow-2xs rounded-4 bg-white mb-4 position-relative overflow-hidden">
-            <div class="position-relative d-flex align-items-center">
-                
-                <button type="button" class="btn btn-light border shadow-xs rounded-circle position-absolute start-0 z-3 pill-slider-btn prev-btn d-none d-md-flex align-items-center justify-content-center" 
-                        style="width: 32px; height: 32px; left: -6px !important;" onclick="scrollPillSlider(-1)" aria-label="পূর্ববর্তী ফিল্টার">
-                    <i class="fa-solid fa-chevron-left text-dark" style="font-size: 11px;"></i>
+    {{-- Toolbar: Category · Format · Author · Publisher · Sort --}}
+    <div class="sf-bar eb-bar">
+        <div class="container sf-bar__in">
+
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Category</span><strong class="sf-dd__value">{{ $curCat['c']->name ?? 'All' }}</strong><i class="fa-solid fa-chevron-down sf-dd__caret"></i>
                 </button>
-
-                <div class="d-flex align-items-center gap-2 overflow-x-auto scrollbar-none py-1 px-1 text-nowrap w-100 pill-scroll-track" id="categoryPillTrack" style="scroll-behavior: smooth; cursor: grab;">
-                    <a href="{{ route('ebook.index') }}" class="btn btn-sm {{ !request()->anyFilled(['category', 'format', 'free_only', 'sort', 'discount_min', 'search', 'q', 'letter']) ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span>সকল ই-বুক</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['sort' => 'bestselling']) }}" class="btn btn-sm {{ request('sort') === 'bestselling' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-fire text-danger"></i>
-                        <span>বেস্টসেলার</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['sort' => 'latest']) }}" class="btn btn-sm {{ request('sort') === 'latest' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-wand-magic-sparkles text-success"></i>
-                        <span>নতুন ই-বুক</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['discount_min' => '20']) }}" class="btn btn-sm {{ request('discount_min') ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-percent text-danger"></i>
-                        <span>বিশেষ ছাড়</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['free_only' => '1']) }}" class="btn btn-sm {{ request('free_only') || request('format') === 'free' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-gift text-success"></i>
-                        <span>ফ্রি ই-বুক</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['format' => 'epub']) }}" class="btn btn-sm {{ request('format') === 'epub' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-book-open text-info"></i>
-                        <span>EPUB সংস্করণ</span>
-                    </a>
-                    <a href="{{ route('ebook.index', ['format' => 'pdf']) }}" class="btn btn-sm {{ request('format') === 'pdf' ? 'btn-primary text-white' : 'btn-light border text-dark' }} rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-file-pdf text-danger"></i>
-                        <span>PDF সংস্করণ</span>
-                    </a>
-                    <a href="{{ route('book.index') }}" class="btn btn-sm btn-light border text-dark rounded-pill px-3 py-1.5 fw-bold d-inline-flex align-items-center gap-1.5 shadow-2xs flex-shrink-0">
-                        <i class="fa-solid fa-book text-primary"></i>
-                        <span>কাগজের বই</span>
-                    </a>
-
-                    {{-- Dynamic Category Quick Pills --}}
-                    @if(isset($categories) && $categories->isNotEmpty())
-                        @foreach($categories as $topCat)
-                            <a href="{{ route('ebook.index', ['category' => $topCat->slug]) }}" 
-                               class="btn btn-sm {{ request('category') === $topCat->slug ? 'btn-primary text-white' : 'btn-light border text-secondary' }} rounded-pill px-3 py-1.5 fw-medium d-inline-flex align-items-center gap-1 shadow-2xs flex-shrink-0">
-                                <span>{{ $topCat->name }}</span>
-                                @if(isset($topCat->ebooks_count) && $topCat->ebooks_count > 0)
-                                    <span class="badge {{ request('category') === $topCat->slug ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill px-1.5" style="font-size: 10px;">@bn($topCat->ebooks_count)</span>
-                                @endif
+                <div class="sf-dd__menu {{ $flatCats->count() > 8 ? 'sf-dd__menu--cols' : '' }}" role="menu" style="--sf-cols: {{ $flatCats->count() > 16 ? 3 : 2 }};">
+                    <div class="sf-dd__sheet-head"><b>Category</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    @if($flatCats->count() > 8)<div class="sf-dd__find"><input type="search" placeholder="Find" data-sf-find autocomplete="off" aria-label="Find"></div>@endif
+                    <div class="sf-dd__list">
+                        <a href="{{ route('ebook.index', $keep(['category'])) }}" class="sf-dd__item {{ $curCat ? '' : 'is-active' }}" role="menuitem"><span class="sf-dd__name">All</span><small>{{ $stats['total'] ?? 0 }}</small></a>
+                        @foreach($flatCats as $row)
+                            @php $c = $row['c']; @endphp
+                            <a href="{{ route('ebook.index', array_merge($keep(['category']), ['category' => $c->slug])) }}" role="menuitem"
+                               class="sf-dd__item {{ $curCat && $curCat['c']->id === $c->id ? 'is-active' : '' }} {{ $row['child'] ? 'is-child' : '' }}" data-name="{{ \Illuminate\Support\Str::lower($c->name) }}">
+                                <span class="sf-dd__name">{{ $c->name }}</span><small>{{ $c->ebooks_count ?? 0 }}</small>
                             </a>
                         @endforeach
-                    @endif
+                        <div class="sf-dd__none d-none">No match</div>
+                    </div>
                 </div>
+            </div>
 
-                <button type="button" class="btn btn-light border shadow-xs rounded-circle position-absolute end-0 z-3 pill-slider-btn next-btn d-none d-md-flex align-items-center justify-content-center" 
-                        style="width: 32px; height: 32px; right: -6px !important;" onclick="scrollPillSlider(1)" aria-label="পরবর্তী ফিল্টার">
-                    <i class="fa-solid fa-chevron-right text-dark" style="font-size: 11px;"></i>
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Format</span><strong class="sf-dd__value">{{ $formats[$curFmt] ?? 'All' }}</strong><i class="fa-solid fa-chevron-down sf-dd__caret"></i>
                 </button>
-
+                <div class="sf-dd__menu sf-dd__menu--sm" role="menu">
+                    <div class="sf-dd__sheet-head"><b>Format</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    <div class="sf-dd__list">
+                        @foreach($formats as $v => $l)
+                            <a href="{{ route('ebook.index', $v === '' ? $keep(['format']) : array_merge($keep(['format']), ['format' => $v])) }}" class="sf-dd__item {{ $curFmt === $v ? 'is-active' : '' }}" role="menuitem"><span class="sf-dd__name">{{ $l }}</span></a>
+                        @endforeach
+                    </div>
+                </div>
             </div>
+
+            @if($sidebarAuthors->isNotEmpty())
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Author</span><strong class="sf-dd__value">{{ $curAuthor->name ?? 'All' }}</strong><i class="fa-solid fa-chevron-down sf-dd__caret"></i>
+                </button>
+                <div class="sf-dd__menu {{ $sidebarAuthors->count() > 8 ? 'sf-dd__menu--cols' : '' }}" role="menu" style="--sf-cols: {{ $sidebarAuthors->count() > 16 ? 3 : 2 }};">
+                    <div class="sf-dd__sheet-head"><b>Author</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    <div class="sf-dd__find"><input type="search" placeholder="Find" data-sf-find autocomplete="off" aria-label="Find"></div>
+                    <div class="sf-dd__list">
+                        <a href="{{ route('ebook.index', $keep(['author'])) }}" class="sf-dd__item {{ $curAuthor ? '' : 'is-active' }}" role="menuitem"><span class="sf-dd__name">All</span></a>
+                        @foreach($sidebarAuthors as $a)
+                            <a href="{{ route('ebook.index', array_merge($keep(['author']), ['author' => $a->slug ?: $a->id])) }}" role="menuitem" class="sf-dd__item {{ $curAuthor && $curAuthor->id === $a->id ? 'is-active' : '' }}" data-name="{{ \Illuminate\Support\Str::lower($a->name) }}">
+                                <span class="sf-dd__name">{{ $a->name }}</span><small>{{ $a->ebooks_count }}</small>
+                            </a>
+                        @endforeach
+                        <div class="sf-dd__none d-none">No match</div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if($sidebarPublishers->isNotEmpty())
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Publisher</span><strong class="sf-dd__value">{{ $curPub->name ?? 'All' }}</strong><i class="fa-solid fa-chevron-down sf-dd__caret"></i>
+                </button>
+                <div class="sf-dd__menu {{ $sidebarPublishers->count() > 8 ? 'sf-dd__menu--cols' : '' }}" role="menu" style="--sf-cols: {{ $sidebarPublishers->count() > 16 ? 3 : 2 }};">
+                    <div class="sf-dd__sheet-head"><b>Publisher</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    <div class="sf-dd__find"><input type="search" placeholder="Find" data-sf-find autocomplete="off" aria-label="Find"></div>
+                    <div class="sf-dd__list">
+                        <a href="{{ route('ebook.index', $keep(['publisher'])) }}" class="sf-dd__item {{ $curPub ? '' : 'is-active' }}" role="menuitem"><span class="sf-dd__name">All</span></a>
+                        @foreach($sidebarPublishers as $p)
+                            <a href="{{ route('ebook.index', array_merge($keep(['publisher']), ['publisher' => $p->slug ?: $p->id])) }}" role="menuitem" class="sf-dd__item {{ $curPub && $curPub->id === $p->id ? 'is-active' : '' }}" data-name="{{ \Illuminate\Support\Str::lower($p->name) }}">
+                                <span class="sf-dd__name">{{ $p->name }}</span><small>{{ $p->ebooks_count }}</small>
+                            </a>
+                        @endforeach
+                        <div class="sf-dd__none d-none">No match</div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Sort</span><strong class="sf-dd__value">{{ $sorts[$curSort] ?? 'Latest' }}</strong><i class="fa-solid fa-chevron-down sf-dd__caret"></i>
+                </button>
+                <div class="sf-dd__menu sf-dd__menu--sm" role="menu">
+                    <div class="sf-dd__sheet-head"><b>Sort</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    <div class="sf-dd__list">
+                        @foreach($sorts as $v => $l)
+                            <a href="{{ route('ebook.index', $v === '' ? $keep(['sort']) : array_merge($keep(['sort']), ['sort' => $v])) }}" class="sf-dd__item {{ $curSort === $v ? 'is-active' : '' }}" role="menuitem"><span class="sf-dd__name">{{ $l }}</span></a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            @if(request()->anyFilled($filterKeys))<a href="{{ route('ebook.index') }}" class="eb-clear">Clear</a>@endif
         </div>
-
-        <!-- ══ 2.1 ALPHABETICAL FILTER CHIPS (BANGLA & ENGLISH) ═══════════════════ -->
-        @php
-            $alphabetLetters = ['সব', 'অ', 'আ', 'ই', 'উ', 'এ', 'ও', 'ক', 'খ', 'গ', 'ঘ', 'চ', 'ছ', 'জ', 'ট', 'ড', 'ত', 'থ', 'দ', 'ধ', 'ন', 'প', 'ফ', 'ব', 'ভ', 'ম', 'য', 'র', 'ল', 'শ', 'স', 'হ', 'A-Z'];
-        @endphp
-        <div class="card p-2.5 px-3 border-0 shadow-2xs rounded-4 bg-white mb-4">
-            <div class="d-flex align-items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                <span class="small fw-bold text-dark text-nowrap d-inline-flex align-items-center gap-1 me-2" style="font-size: 0.8rem;">
-                    <i class="fa-solid fa-arrow-down-a-z text-primary"></i>বর্ণানুক্রমিক:
-                </span>
-                @foreach($alphabetLetters as $char)
-                    @php
-                        $isCharActive = ($char === 'সব' && (!request('letter') || request('letter') === 'all')) || request('letter') === $char;
-                        $charParam = $char === 'সব' ? 'all' : $char;
-                    @endphp
-                    <a href="{{ route('ebook.index', array_merge(request()->except(['letter', 'page']), ['letter' => $charParam])) }}" 
-                       class="badge text-decoration-none px-2.5 py-1.5 rounded-pill transition-all {{ $isCharActive ? 'bg-primary text-white shadow-xs fw-bold' : 'bg-light text-secondary hover-bg-light border' }}"
-                       style="font-size: 0.8rem; min-width: 32px; text-align: center;">
-                        {{ $char }}
-                    </a>
-                @endforeach
-            </div>
-        </div>
-
-        @if(isset($isSearchMode) && $isSearchMode)
-            <!-- ══ 3. CATALOG GRID VIEW (FILTERED / SEARCH / SINGLE CATEGORY MODE) ══ -->
-            <div class="row g-4">
-                
-                <!-- Left Sidebar Filters -->
-                <aside class="col-lg-3 col-12">
-                    <form action="{{ route('ebook.index') }}" method="GET" id="filter-form" class="d-flex flex-column gap-3 sticky-top" style="top: 85px;">
-                        @if(request('letter') && request('letter') !== 'all')
-                            <input type="hidden" name="letter" value="{{ request('letter') }}">
-                        @endif
-                        
-                        <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
-                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                                <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-filter text-primary me-1"></i> ফিল্টার</h6>
-                                <a href="{{ route('ebook.index') }}" class="btn btn-sm btn-link text-danger text-decoration-none p-0 small">রিসেট</a>
-                            </div>
-
-                            <!-- Search -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-semibold text-muted mb-1">ই-বুক অনুসন্ধান</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="search" value="{{ request('search') ?: request('q') }}" placeholder="ই-বুক বা লেখকের নাম..." class="form-control rounded-start-pill">
-                                    <button type="submit" class="btn btn-primary rounded-end-pill px-3"><i class="fas fa-search"></i></button>
-                                </div>
-                            </div>
-
-                            <!-- Free Only Switch -->
-                            <div class="form-check form-switch mb-3 p-2 bg-light rounded-3">
-                                <input class="form-check-input ms-0 me-2" type="checkbox" role="switch" id="free_only" name="free_only" value="1" 
-                                       {{ request('free_only') ? 'checked' : '' }} onchange="this.form.submit()">
-                                <label class="form-check-label small fw-semibold text-dark cursor-pointer" for="free_only">শুধুমাত্র ফ্রি পড়ার ই-বুক</label>
-                            </div>
-
-                            <!-- Categories Filter -->
-                            @if(isset($categories) && $categories->isNotEmpty())
-                            <div class="mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label small fw-bold text-dark text-uppercase mb-0" style="font-size: 0.8rem;">
-                                        <i class="fas fa-layer-group text-primary me-1"></i> বিষয় ও ক্যাটাগরি
-                                    </label>
-                                    <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $categories->count() }}টি</span>
-                                </div>
-                                <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 280px;">
-                                    @foreach($categories as $category)
-                                        @php
-                                            $isParentSelected = request('category') == $category->slug || request('category') == (string)$category->id;
-                                            $hasChildren = isset($category->children) && $category->children->isNotEmpty();
-                                            $isAnyChildSelected = $hasChildren && $category->children->contains(fn($ch) => request('category') == $ch->slug || request('category') == (string)$ch->id);
-                                        @endphp
-                                        <div class="rounded-3 p-1 {{ ($isParentSelected || $isAnyChildSelected) ? 'bg-primary-subtle border border-primary-subtle' : 'hover-bg-light' }}">
-                                            <label class="form-check-label d-flex align-items-center justify-content-between p-1 cursor-pointer w-100 mb-0" style="font-size: 13px;">
-                                                <span class="d-flex align-items-center gap-2">
-                                                    <input type="radio" name="category" value="{{ $category->slug }}" onchange="this.form.submit()" 
-                                                           {{ $isParentSelected ? 'checked' : '' }} class="form-check-input mt-0">
-                                                    <span class="text-dark fw-bold text-truncate" style="max-width: 145px;" title="{{ $category->name }}">{{ $category->name }}</span>
-                                                </span>
-                                                <span class="badge bg-white text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 10.5px;">@bn($category->ebooks_count ?? $category->books_count ?? 0)</span>
-                                            </label>
-
-                                            @if($hasChildren)
-                                                <div class="d-flex flex-column gap-1 ps-3.5 pe-1 py-1 border-start border-2 border-primary-subtle ms-2 mt-0.5">
-                                                    @foreach($category->children as $child)
-                                                        @php $isChildSelected = request('category') == $child->slug || request('category') == (string)$child->id; @endphp
-                                                        <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded-2 cursor-pointer {{ $isChildSelected ? 'bg-primary text-white' : 'hover-bg-light text-muted' }}" style="font-size: 12px;">
-                                                            <span class="d-flex align-items-center gap-1.5">
-                                                                <input type="radio" name="category" value="{{ $child->slug }}" onchange="this.form.submit()" 
-                                                                       {{ $isChildSelected ? 'checked' : '' }} class="form-check-input mt-0" style="width: 13px; height: 13px;">
-                                                                <span class="text-truncate {{ $isChildSelected ? 'text-white fw-bold' : 'text-dark' }}" style="max-width: 125px;" title="{{ $child->name }}">{{ $child->name }}</span>
-                                                            </span>
-                                                            @if(isset($child->ebooks_count) && $child->ebooks_count > 0)
-                                                                <span class="badge {{ $isChildSelected ? 'bg-white text-primary' : 'bg-light text-muted border' }} px-1 py-0.5" style="font-size: 9.5px;">@bn($child->ebooks_count)</span>
-                                                            @endif
-                                                        </label>
-                                                    @endforeach
-                                                </div>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
-
-                            <!-- Authors Filter -->
-                            @if(isset($sidebarAuthors) && $sidebarAuthors->isNotEmpty())
-                            <div class="mb-3 pt-2.5 border-top">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <label class="form-label small fw-bold text-dark text-uppercase mb-0" style="font-size: 0.8rem;">
-                                        <i class="fas fa-feather-pointed text-info me-1"></i> লেখক
-                                    </label>
-                                    <span class="badge bg-light text-muted border" style="font-size: 10px;">{{ $sidebarAuthors->count() }}জন</span>
-                                </div>
-                                <div class="d-flex flex-column gap-1 overflow-y-auto custom-scrollbar pe-1" style="max-height: 220px;">
-                                    @foreach($sidebarAuthors as $author)
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1.5 rounded-2 hover-bg-light cursor-pointer" style="font-size: 13px;">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="author" value="{{ $author->slug }}" onchange="this.form.submit()" 
-                                                   {{ request('author') == $author->slug || request('author') == $author->id ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-dark fw-medium text-truncate" style="max-width: 150px;" title="{{ $author->name }}">{{ $author->name }}</span>
-                                        </span>
-                                        <span class="badge bg-light text-muted border px-1.5 py-0.5 fw-semibold" style="font-size: 11px;">@bn($author->ebooks_count ?? $author->books_count ?? 0)</span>
-                                    </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
-
-                            <!-- Format Filter -->
-                            <div class="mb-3 pt-2 border-top">
-                                <label class="form-label small fw-semibold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">
-                                    <i class="fa-solid fa-tablet-screen-button text-primary me-1"></i> ই-বুক ফরম্যাট
-                                </label>
-                                <div class="d-flex flex-column gap-1">
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="format" value="" onchange="this.form.submit()" {{ !request('format') ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-secondary">সকল ফরম্যাট</span>
-                                        </span>
-                                    </label>
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="format" value="epub" onchange="this.form.submit()" {{ request('format') === 'epub' ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-secondary">EPUB সংস্করণ</span>
-                                        </span>
-                                        <span class="badge bg-light text-muted border small">EPUB</span>
-                                    </label>
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="format" value="pdf" onchange="this.form.submit()" {{ request('format') === 'pdf' ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-secondary">PDF সংস্করণ</span>
-                                        </span>
-                                        <span class="badge bg-light text-muted border small">PDF</span>
-                                    </label>
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="format" value="free" onchange="this.form.submit()" {{ request('format') === 'free' ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-secondary">বিনামূল্যে পড়ার ই-বুক</span>
-                                        </span>
-                                        <span class="badge bg-success text-white small">Free</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Discount Filter -->
-                            <div class="mb-3 pt-2 border-top">
-                                <label class="form-label small fw-semibold text-muted mb-2 text-uppercase" style="font-size: 0.75rem;">
-                                    <i class="fa-solid fa-tags text-danger me-1"></i> বিশেষ ছাড়
-                                </label>
-                                <div class="d-flex flex-column gap-1">
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="discount_min" value="30" onchange="this.form.submit()" {{ request('discount_min') == '30' ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-danger fw-semibold">৩০% বা তদূর্ধ্ব ছাড়</span>
-                                        </span>
-                                    </label>
-                                    <label class="form-check-label d-flex align-items-center justify-content-between p-1 rounded hover-bg-light cursor-pointer small">
-                                        <span class="d-flex align-items-center gap-2">
-                                            <input type="radio" name="discount_min" value="20" onchange="this.form.submit()" {{ request('discount_min') == '20' ? 'checked' : '' }} class="form-check-input mt-0">
-                                            <span class="text-secondary">২০% বা তদূর্ধ্ব ছাড়</span>
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                        </div>
-                    </form>
-                </aside>
-
-                <!-- Right Books Grid -->
-                <main class="col-lg-9 col-12">
-                    <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3 pb-2 border-bottom">
-                            <div class="d-flex align-items-center gap-2">
-                                <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                                    <i class="fa-solid fa-tablet-screen-button text-primary"></i> 
-                                    {{ $activeFilterTitle ?? 'ই-বুক সংগ্রহ' }}
-                                    @if(isset($ebooks) && $ebooks instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill ms-1 px-2.5 py-1" style="font-size: 12px;">@bn($ebooks->total())টি ই-বুক</span>
-                                    @endif
-                                </h5>
-                            </div>
-
-                            <div class="d-flex align-items-center gap-2">
-                                <label for="sort" class="small text-muted text-nowrap fw-semibold">সাজান:</label>
-                                @php $currentSort = request('sort', ''); @endphp
-                                <select name="sort" id="sort" form="filter-form" onchange="document.getElementById('filter-form').submit()" 
-                                        class="form-select form-select-sm rounded-pill border shadow-sm px-3">
-                                    <option value="latest" {{ $currentSort == 'latest' || $currentSort == '' ? 'selected' : '' }}>নতুন ই-বুক</option>
-                                    <option value="bestselling" {{ $currentSort == 'bestselling' ? 'selected' : '' }}>সর্বাধিক বিক্রিত</option>
-                                    <option value="popular" {{ $currentSort == 'popular' ? 'selected' : '' }}>সর্বাধিক পঠিত</option>
-                                    <option value="price_low" {{ $currentSort == 'price_low' ? 'selected' : '' }}>মূল্য: কম থেকে বেশি</option>
-                                    <option value="price_high" {{ $currentSort == 'price_high' ? 'selected' : '' }}>মূল্য: বেশি থেকে কম</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Cross-Entity Matches: Site Pages / Categories / Authors / Ideapatra Blog --}}
-                        @if((isset($matchedPages) && count($matchedPages) > 0) || (isset($matchedCategories) && $matchedCategories->isNotEmpty()) || (isset($matchedAuthors) && $matchedAuthors->isNotEmpty()) || (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()))
-                            <div class="mb-4 d-flex flex-column gap-3">
-
-                                {{-- Matched Site Pages & Navigation Guides --}}
-                                @if(isset($matchedPages) && count($matchedPages) > 0)
-                                    <div class="p-3 rounded-4 bg-white border shadow-2xs">
-                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                                            <div class="fw-bold text-dark small d-flex align-items-center gap-1.5">
-                                                <i class="fa-solid fa-file-lines text-primary"></i> 
-                                                <span>সংশ্লিষ্ট পেজ ও নির্দেশিকা ({{ count($matchedPages) }}টি)</span>
-                                            </div>
-                                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-0.5" style="font-size: 10px;">সাইট নেভিগেশন</span>
-                                        </div>
-                                        <div class="row g-2">
-                                            @foreach(array_slice($matchedPages, 0, 4) as $mPage)
-                                                <div class="col-md-6 col-12">
-                                                    <a href="{{ $mPage['url'] }}" class="d-flex align-items-center gap-2.5 p-2.5 bg-light bg-opacity-75 rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
-                                                        <div class="rounded-circle bg-white shadow-2xs border text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px; font-size: 14px;">
-                                                            <i class="fa-solid {{ $mPage['icon'] ?? 'fa-file-lines' }}"></i>
-                                                        </div>
-                                                        <div class="flex-grow-1 min-w-0">
-                                                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                                                <span class="fw-bold text-dark text-truncate small">{{ $mPage['title'] }}</span>
-                                                                @if(!empty($mPage['category']))
-                                                                    <span class="badge bg-white text-secondary border rounded-pill px-1.5 py-0.2" style="font-size: 9px;">{{ $mPage['category'] }}</span>
-                                                                @endif
-                                                            </div>
-                                                            @if(!empty($mPage['description']))
-                                                                <div class="text-muted text-truncate" style="font-size: 11px;">{{ $mPage['description'] }}</div>
-                                                            @endif
-                                                        </div>
-                                                        <span class="btn btn-sm btn-primary rounded-pill px-2.5 py-1 text-white flex-shrink-0 ms-1 d-none d-sm-inline-block" style="font-size: 10.5px;">প্রবেশ করুন →</span>
-                                                    </a>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-                                
-                                {{-- Matched Categories --}}
-                                @if(isset($matchedCategories) && $matchedCategories->isNotEmpty())
-                                    <div class="p-2.5 rounded-3 bg-light border">
-                                        <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
-                                            <i class="fa-solid fa-folder-open text-warning"></i> সংশ্লিষ্ট বিষয় / ক্যাটাগরি:
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach($matchedCategories as $mCat)
-                                                <a href="{{ route('ebook.index', ['category' => $mCat->slug]) }}" class="btn btn-sm btn-white border rounded-pill px-3 py-1 shadow-2xs fw-semibold text-dark text-decoration-none d-inline-flex align-items-center gap-1.5 hover-primary">
-                                                    <span>{{ $mCat->name }}</span>
-                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $mCat->ebooks_count ?? 0 }}</span>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                {{-- Matched Authors --}}
-                                @if(isset($matchedAuthors) && $matchedAuthors->isNotEmpty())
-                                    <div class="p-2.5 rounded-3 bg-light border">
-                                        <div class="small fw-bold text-muted mb-2 d-flex align-items-center gap-1.5">
-                                            <i class="fa-solid fa-feather text-success"></i> সংশ্লিষ্ট লেখক:
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @foreach($matchedAuthors as $mAuth)
-                                                <a href="{{ route('ebook.index', ['author' => $mAuth->slug]) }}" class="btn btn-sm btn-white border rounded-pill px-3 py-1 shadow-2xs fw-semibold text-dark text-decoration-none d-inline-flex align-items-center gap-1.5 hover-primary">
-                                                    <i class="fa-regular fa-user small text-muted"></i>
-                                                    <span>{{ $mAuth->name }}</span>
-                                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill small">{{ $mAuth->ebooks_count ?? 0 }}টি ই-বুক</span>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                {{-- Matched Published Writings, Ideapatra Articles, Webzines & Research Papers --}}
-                                @php
-                                    $hasWritings = (isset($matchedBlogPosts) && $matchedBlogPosts->isNotEmpty()) || 
-                                                   (isset($matchedWebzineArticles) && $matchedWebzineArticles->isNotEmpty()) || 
-                                                   (isset($matchedResearchPapers) && $matchedResearchPapers->isNotEmpty());
-                                    $totalWritings = ($matchedBlogPosts->count() ?? 0) + ($matchedWebzineArticles->count() ?? 0) + ($matchedResearchPapers->count() ?? 0);
-                                @endphp
-
-                                @if($hasWritings)
-                                    <div class="p-3 rounded-4 bg-primary-subtle bg-opacity-25 border border-primary-subtle">
-                                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom border-primary-subtle">
-                                            <div class="fw-bold text-primary small d-flex align-items-center gap-1.5">
-                                                <i class="fa-solid fa-newspaper"></i> সংশ্লিষ্ট প্রকাশিত লেখা ও প্রবন্ধ ({{ $totalWritings }}টি)
-                                            </div>
-                                            @if(Route::has('blog.index'))
-                                                <a href="{{ route('blog.index', ['q' => request('q') ?: request('search')]) }}" class="small fw-semibold text-decoration-none text-primary">সকল লেখা দেখুন →</a>
-                                            @endif
-                                        </div>
-                                        <div class="row g-2">
-                                            {{-- Blog Posts / Ideapatra --}}
-                                            @if(isset($matchedBlogPosts))
-                                                @foreach($matchedBlogPosts as $mPost)
-                                                    <div class="col-md-6 col-12">
-                                                        <a href="{{ route('blog.show', $mPost->slug) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
-                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
-                                                                @if(!empty($mPost->featured_image))
-                                                                    <img src="{{ asset('storage/' . $mPost->featured_image) }}" alt="{{ $mPost->title }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\'fa-solid fa-newspaper text-muted fs-5\'></i>';">
-                                                                @else
-                                                                    <i class="fa-solid fa-newspaper text-muted fs-5"></i>
-                                                                @endif
-                                                            </div>
-                                                            <div class="flex-grow-1 min-w-0">
-                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mPost->title }}</div>
-                                                                <div class="text-muted" style="font-size: 11px;">
-                                                                    <span><i class="fa-solid fa-user-pen me-0.5 opacity-75"></i> {{ $mPost->author?->name ?: ($mPost->owner_name ?: 'আইডিয়াপত্র লেখক') }}</span>
-                                                                    <span class="opacity-50">•</span>
-                                                                    <span class="badge bg-info bg-opacity-10 text-info px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">{{ $mPost->category?->name ?: 'আইডিয়াপত্র' }}</span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
-                                                        </a>
-                                                    </div>
-                                                @endforeach
-                                            @endif
-
-                                            {{-- Webzine Articles --}}
-                                            @if(isset($matchedWebzineArticles))
-                                                @foreach($matchedWebzineArticles as $mWArt)
-                                                    @php $wSlug = $mWArt->webzine?->slug ?: $mWArt->webzine_id; @endphp
-                                                    <div class="col-md-6 col-12">
-                                                        <a href="{{ Route::has('webzine.read') ? route('webzine.read', $wSlug) . '#page-' . ($mWArt->page_number ?: 1) : url('/webzines/' . $wSlug) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
-                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
-                                                                <i class="fa-solid fa-book-journal-whills text-info fs-5"></i>
-                                                            </div>
-                                                            <div class="flex-grow-1 min-w-0">
-                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mWArt->title }}</div>
-                                                                <div class="text-muted" style="font-size: 11px;">
-                                                                    <span>{{ $mWArt->author_name ?: 'ওয়েবজিন লেখক' }}</span>
-                                                                    <span class="opacity-50">•</span>
-                                                                    <span class="badge bg-warning bg-opacity-15 text-dark px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">ওয়েবজিন</span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
-                                                        </a>
-                                                    </div>
-                                                @endforeach
-                                            @endif
-
-                                            {{-- Research Papers --}}
-                                            @if(isset($matchedResearchPapers))
-                                                @foreach($matchedResearchPapers as $mRPaper)
-                                                    <div class="col-md-6 col-12">
-                                                        <a href="{{ Route::has('research.show') ? route('research.show', $mRPaper->slug ?: $mRPaper->id) : url('/research/' . ($mRPaper->slug ?: $mRPaper->id)) }}" class="d-flex align-items-center gap-2.5 p-2 bg-white rounded-3 border text-decoration-none shadow-2xs hover-lift h-100">
-                                                            <div class="rounded-2 bg-light d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; overflow: hidden;">
-                                                                <i class="fa-solid fa-flask text-success fs-5"></i>
-                                                            </div>
-                                                            <div class="flex-grow-1 min-w-0">
-                                                                <div class="fw-semibold text-dark text-truncate small">{{ $mRPaper->title }}</div>
-                                                                <div class="text-muted" style="font-size: 11px;">
-                                                                    <span>{{ $mRPaper->author?->name ?: 'গবেষক' }}</span>
-                                                                    <span class="opacity-50">•</span>
-                                                                    <span class="badge bg-success bg-opacity-10 text-success px-1.5 py-0.2 rounded-pill" style="font-size: 9px;">গবেষণাপত্র</span>
-                                                                </div>
-                                                            </div>
-                                                            <i class="fa-solid fa-chevron-right text-muted small me-1"></i>
-                                                        </a>
-                                                    </div>
-                                                @endforeach
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endif
-
-                            </div>
-                        @endif
-
-                        <!-- Books Grid -->
-                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-2.5 g-md-3">
-                            @forelse($ebooks as $ebook)
-                                <div class="col">
-                                    @include('ebook::frontend.partials.book_3d_card', ['ebook' => $ebook, 'userLibraryIds' => $userLibraryIds])
-                                </div>
-                            @empty
-                                <div class="col-12 w-100 text-center py-5">
-                                    <div class="fs-1 text-muted mb-2 opacity-50"><i class="fa-solid fa-book-open"></i></div>
-                                    <h5 class="fw-bold text-dark mb-1">এই ক্যাটাগরিতে কোনো ই-বুক পাওয়া যায়নি</h5>
-                                    <p class="text-muted small mb-3">শীঘ্রই এই বিষয়ে নতুন ই-বুক যুক্ত হবে। আপনি অন্যান্য বিষয় বা সকল ই-বুক দেখতে পারেন।</p>
-                                    <a href="{{ route('ebook.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm">সকল ই-বুক দেখুন</a>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        <!-- Pagination -->
-                        @if(isset($ebooks) && $ebooks instanceof \Illuminate\Pagination\LengthAwarePaginator && $ebooks->hasPages())
-                            <div class="d-flex justify-content-center mt-4 pt-3 border-top">
-                                {{ $ebooks->appends(request()->query())->links() }}
-                            </div>
-                        @endif
-                    </div>
-                </main>
-
-            </div>
-
-        @else
-            <!-- ══ 4. SLIDING CATEGORY & COLLECTION CAROUSELS (MATCHING HOMEPAGE & /books) ══════ -->
-            <div class="d-flex flex-column gap-4">
-
-                {{-- Shelf 1: FLASH SALES (ফ্ল্যাশ সেলস স্লাইডিং রো) --}}
-                @if(isset($flashSales) && $flashSales->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="rounded-circle bg-warning bg-opacity-20 text-warning d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-bolt text-warning fs-6"></i>
-                            </span>
-                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                                <span>ফ্ল্যাশ সেলস ও বিশেষ অফার</span>
-                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">সীমিত অফার</span>
-                            </h4>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookFlashSaleSlider', -1)" title="পূর্ববর্তী">
-                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookFlashSaleSlider', 1)" title="পরবর্তী">
-                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <a href="{{ route('ebook.index', ['discount_min' => '20']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="idea-slider-wrapper position-relative">
-                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookFlashSaleSlider', -1)" aria-label="পূর্ববর্তী">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <div class="idea-book-slider" id="ebookFlashSaleSlider">
-                            @foreach($flashSales as $eb)
-                                <div class="idea-slider-item">
-                                    @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookFlashSaleSlider', 1)" aria-label="পরবর্তী">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Shelf 2: BEST SELLERS (সর্বাধিক বিক্রিত ও জনপ্রিয় ই-বুক স্লাইডিং রো) --}}
-                @if(isset($bestsellingEbooks) && $bestsellingEbooks->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-fire text-danger fs-6"></i>
-                            </span>
-                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                                <span>সর্বাধিক বিক্রিত ও জনপ্রিয় ই-বুক</span>
-                                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">শীর্ষ চার্ট</span>
-                            </h4>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookBestsellerSlider', -1)" title="পূর্ববর্তী">
-                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookBestsellerSlider', 1)" title="পরবর্তী">
-                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <a href="{{ route('ebook.index', ['sort' => 'bestselling']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="idea-slider-wrapper position-relative">
-                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookBestsellerSlider', -1)" aria-label="পূর্ববর্তী">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <div class="idea-book-slider" id="ebookBestsellerSlider">
-                            @foreach($bestsellingEbooks as $eb)
-                                <div class="idea-slider-item">
-                                    @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookBestsellerSlider', 1)" aria-label="পরবর্তী">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Shelf 3: NEW RELEASES (নতুন প্রকাশিত ই-বুক স্লাইডিং রো) --}}
-                @if(isset($newReleaseEbooks) && $newReleaseEbooks->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-wand-magic-sparkles text-success fs-6"></i>
-                            </span>
-                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                                <span>নতুন প্রকাশিত ই-বুক</span>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">নতুন</span>
-                            </h4>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookNewArrivalsSlider', -1)" title="পূর্ববর্তী">
-                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookNewArrivalsSlider', 1)" title="পরবর্তী">
-                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <a href="{{ route('ebook.index', ['sort' => 'latest']) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="idea-slider-wrapper position-relative">
-                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookNewArrivalsSlider', -1)" aria-label="পূর্ববর্তী">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <div class="idea-book-slider" id="ebookNewArrivalsSlider">
-                            @foreach($newReleaseEbooks as $eb)
-                                <div class="idea-slider-item">
-                                    @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookNewArrivalsSlider', 1)" aria-label="পরবর্তী">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Shelf 4: FREE EBOOKS (১০০% ফ্রি পড়ার ই-বুক স্লাইডিং রো) --}}
-                @if(isset($freeEbooks) && $freeEbooks->isNotEmpty())
-                <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-                    <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-gift text-success fs-6"></i>
-                            </span>
-                            <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                                <span>বিনামূল্যে পড়ার ই-বুক</span>
-                                <span class="badge bg-success text-white rounded-pill px-2 py-0.5 small fw-bold" style="font-size: 0.68rem;">১০০% ফ্রি</span>
-                            </h4>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookFreeSlider', -1)" title="পূর্ববর্তী">
-                                <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('ebookFreeSlider', 1)" title="পরবর্তী">
-                                <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                            </button>
-                            <a href="{{ route('ebook.index', ['free_only' => '1']) }}" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                                সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <div class="idea-slider-wrapper position-relative">
-                        <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookFreeSlider', -1)" aria-label="পূর্ববর্তী">
-                            <i class="fa-solid fa-chevron-left"></i>
-                        </button>
-                        <div class="idea-book-slider" id="ebookFreeSlider">
-                            @foreach($freeEbooks as $eb)
-                                <div class="idea-slider-item">
-                                    @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])
-                                </div>
-                            @endforeach
-                        </div>
-                        <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('ebookFreeSlider', 1)" aria-label="পরবর্তী">
-                            <i class="fa-solid fa-chevron-right"></i>
-                        </button>
-                    </div>
-                </div>
-                @endif
-
-                {{-- Shelves 5+: DYNAMIC CATEGORY SHELVES (ক্যাটাগরি অনুযায়ী স্লাইডিং রো) --}}
-                @if(isset($dynamicCategories) && $dynamicCategories->isNotEmpty())
-                    @foreach($dynamicCategories as $cat)
-                        @php
-                            $subCatIds = \Modules\Book\Models\Category::where('parent_id', $cat->id)->pluck('id')->all();
-                            $allCatIds = array_merge([$cat->id], $subCatIds);
-                            $catEbooks = \Modules\Ebook\Models\Ebook::with(['author', 'publisher', 'category'])
-                                ->withAvg('reviews', 'rating')
-                                ->withCount('reviews')
-                                ->where('is_active', true)
-                                ->whereIn('category_id', $allCatIds)
-                                ->latest('id')
-                                ->take(12)
-                                ->get();
-                            $catSliderId = 'catEbookSlider_' . $cat->id;
-                        @endphp
-                        @if($catEbooks->isNotEmpty())
-                        <div class="card p-3 p-md-4 border-0 shadow-sm rounded-4 bg-white position-relative" style="border: 1px solid #f1f5f9 !important;">
-                            <div class="d-flex align-items-center justify-content-between mb-2.5 pb-2 border-bottom">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center shadow-2xs" style="width: 32px; height: 32px;">
-                                        <i class="fa-solid fa-bookmark text-primary fs-6"></i>
-                                    </span>
-                                    <div>
-                                        <h4 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-size: clamp(1.05rem, 2.5vw, 1.35rem);">
-                                            <span>{{ $cat->name }}</span>
-                                            @if(isset($cat->ebooks_count))
-                                                <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5 small fw-normal d-none d-sm-inline">@bn($cat->ebooks_count)টি ই-বুক</span>
-                                            @endif
-                                        </h4>
-                                    </div>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('{{ $catSliderId }}', -1)" title="পূর্ববর্তী">
-                                        <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-light rounded-circle shadow-2xs border d-none d-md-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="scrollIdeaSlider('{{ $catSliderId }}', 1)" title="পরবর্তী">
-                                        <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                                    </button>
-                                    <a href="{{ route('ebook.index', ['category' => $cat->slug]) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold ms-1" style="font-size: 0.80rem;">
-                                        সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="idea-slider-wrapper position-relative">
-                                <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('{{ $catSliderId }}', -1)" aria-label="পূর্ববর্তী">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </button>
-                                <div class="idea-book-slider" id="{{ $catSliderId }}">
-                                    @foreach($catEbooks as $eb)
-                                        <div class="idea-slider-item">
-                                            @include('ebook::frontend.partials.book_3d_card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <button type="button" class="idea-slider-nav-btn next-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('{{ $catSliderId }}', 1)" aria-label="পরবর্তী">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                        @endif
-                    @endforeach
-                @endif
-
-            </div>
-        @endif
-
     </div>
-</div>
+    <div class="sf-dd__scrim" data-sf-scrim></div>
 
-{{-- Slider Navigation & Dynamic Pill Bar Script --}}
+    <main class="container eb-main">
+
+        @if(!$isSearchMode)
+            {{-- Spotlight --}}
+            @if($spotlightEbook)
+                @php
+                    $sp = $spotlightEbook; $spReg = (float) $sp->price; $spOff = ($sp->discount_price > 0 && $sp->discount_price < $spReg) ? (float) $sp->discount_price : null;
+                    $spFree = !empty($sp->is_free) || $spReg <= 0;
+                @endphp
+                <section class="eb-spot">
+                    <a href="{{ route('ebook.show', $sp->slug ?: $sp->id) }}" class="eb-spot__cover">
+                        @if($sp->cover_url)<img src="{{ $sp->cover_url }}" alt="" width="300" height="450" decoding="async" fetchpriority="high" onerror="this.remove()">@endif
+                        <span class="eb-card__fallback">{{ mb_substr($sp->title, 0, 1) }}</span>
+                    </a>
+                    <div class="eb-spot__info">
+                        @if($sp->category)<em>{{ $sp->category->name }}</em>@endif
+                        <h2><a href="{{ route('ebook.show', $sp->slug ?: $sp->id) }}">{{ $sp->title }}</a></h2>
+                        <p>{{ optional($sp->author)->name ?: ($sp->author_name ?: 'আইডিয়া প্রকাশন') }}</p>
+                        <div class="dz-card__price">
+                            <span class="dz-card__now">{{ $spFree ? 'Free' : '৳' . number_format($spOff ?? $spReg) }}</span>
+                            @if($spOff && !$spFree)<s class="dz-card__old">৳{{ number_format($spReg) }}</s>@endif
+                        </div>
+                        <div class="eb-spot__act">
+                            <a href="{{ route('ebook.show', $sp->slug ?: $sp->id) }}" class="btn btn-primary">Open</a>
+                            @if($spFree)<a href="{{ route('ebook.read', $sp->slug ?: $sp->id) }}" class="btn btn-outline-dark">Read</a>@endif
+                        </div>
+                    </div>
+                </section>
+            @endif
+
+            @php
+                $shelves = [
+                    ['Sale', $flashSales, route('ebook.index', ['discount_min' => 1]), 'eb-flash'],
+                    ['Bestsellers', $bestsellingEbooks, route('ebook.index', ['sort' => 'bestselling']), 'eb-best'],
+                    ['New', $newReleaseEbooks, route('ebook.index'), 'eb-new'],
+                    ['Free', $freeEbooks, route('ebook.index', ['format' => 'free']), 'eb-free'],
+                ];
+            @endphp
+            @foreach($shelves as [$label, $list, $more, $sid])
+                @if($list->isNotEmpty())
+                    <section class="dz-row">
+                        <div class="dz-row__head">
+                            <h2 class="dz-row__title"><a href="{{ $more }}">{{ $label }}</a><small>{{ $list->count() }}</small></h2>
+                            <div class="dz-row__tools">
+                                <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('{{ $sid }}', -1)" aria-label="Prev"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('{{ $sid }}', 1)" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                                <a href="{{ $more }}" class="dz-shopall">All</a>
+                            </div>
+                        </div>
+                        <div class="idea-book-slider dz-track eb-track" id="{{ $sid }}">
+                            @foreach($list as $eb)<div class="idea-slider-item eb-item">@include('ebook::frontend.partials.shelf-card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])</div>@endforeach
+                        </div>
+                    </section>
+                @endif
+            @endforeach
+
+            {{-- One row per category --}}
+            @foreach($categoryShelves as $cat)
+                <section class="dz-row">
+                    <div class="dz-row__head">
+                        <h2 class="dz-row__title"><a href="{{ route('ebook.index', ['category' => $cat->slug]) }}">{{ $cat->name }}</a><small>{{ $cat->ebooks_count }}</small></h2>
+                        <div class="dz-row__tools">
+                            <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('ebCat{{ $cat->id }}', -1)" aria-label="Prev"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('ebCat{{ $cat->id }}', 1)" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                            <a href="{{ route('ebook.index', ['category' => $cat->slug]) }}" class="dz-shopall">All</a>
+                        </div>
+                    </div>
+                    <div class="idea-book-slider dz-track eb-track" id="ebCat{{ $cat->id }}">
+                        @foreach($cat->shelf as $eb)<div class="idea-slider-item eb-item">@include('ebook::frontend.partials.shelf-card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])</div>@endforeach
+                    </div>
+                </section>
+            @endforeach
+
+            @if($newReleaseEbooks->isEmpty() && $categoryShelves->isEmpty())
+                <div class="sf-empty"><strong>No e-books</strong></div>
+            @endif
+        @else
+            @if($activeFilterTitle || $term)
+                <h2 class="eb-result">{{ $activeFilterTitle ?: '“' . $term . '”' }}<small>{{ method_exists($ebooks, 'total') ? number_format($ebooks->total()) : '' }}</small></h2>
+            @endif
+            @if(method_exists($ebooks, 'total') && $ebooks->count())
+                <div class="eb-grid">
+                    @foreach($ebooks as $eb)@include('ebook::frontend.partials.shelf-card', ['ebook' => $eb, 'userLibraryIds' => $userLibraryIds])@endforeach
+                </div>
+                @if($ebooks->hasPages())<div class="eb-pager">{{ $ebooks->links() }}</div>@endif
+            @else
+                <div class="sf-empty"><strong>No e-books</strong><a href="{{ route('ebook.index') }}" class="dz-shopall">Reset</a></div>
+            @endif
+        @endif
+    </main>
+</div>
+@endsection
+
 @push('scripts')
 <script>
-function scrollPillSlider(direction) {
-    const track = document.getElementById('categoryPillTrack');
-    if (!track) return;
-    const scrollAmount = (track.clientWidth * 0.65) * direction;
-    track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-}
-
-function scrollIdeaSlider(sliderId, direction) {
-    const slider = document.getElementById(sliderId);
-    if (!slider) return;
-    const scrollDistance = (slider.clientWidth * 0.75) * direction;
-    slider.scrollBy({
-        left: scrollDistance,
-        behavior: 'smooth'
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. Dynamic Top Pill Slider with Drag-to-Scroll
-    const pillTrack = document.getElementById('categoryPillTrack');
-    if (pillTrack) {
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        pillTrack.addEventListener('mousedown', (e) => {
-            isDown = true;
-            pillTrack.style.cursor = 'grabbing';
-            startX = e.pageX - pillTrack.offsetLeft;
-            scrollLeft = pillTrack.scrollLeft;
-        });
-
-        pillTrack.addEventListener('mouseleave', () => {
-            isDown = false;
-            pillTrack.style.cursor = 'grab';
-        });
-
-        pillTrack.addEventListener('mouseup', () => {
-            isDown = false;
-            pillTrack.style.cursor = 'grab';
-        });
-
-        pillTrack.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - pillTrack.offsetLeft;
-            const walk = (x - startX) * 1.6;
-            pillTrack.scrollLeft = scrollLeft - walk;
-        });
-
-        // Wheel horizontal scroll
-        pillTrack.addEventListener('wheel', (e) => {
-            if (e.deltaY !== 0) {
-                e.preventDefault();
-                pillTrack.scrollLeft += e.deltaY;
-            }
-        }, { passive: false });
-    }
-
-    // 2. Continuous Gentle Auto-Move & Interactive Mouse Drag for All Book Sliders
-    const autoScrollSliders = document.querySelectorAll('.idea-book-slider');
-    autoScrollSliders.forEach((slider, idx) => {
-        let isHovered = false;
-        let isTouching = false;
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        slider.addEventListener('mouseenter', () => isHovered = true);
-        slider.addEventListener('mouseleave', () => {
-            isHovered = false;
-            isDown = false;
-            slider.classList.remove('active');
-        });
-        slider.addEventListener('touchstart', () => isTouching = true, { passive: true });
-        slider.addEventListener('touchend', () => isTouching = false, { passive: true });
-
-        slider.addEventListener('mousedown', (e) => {
-            isDown = true;
-            slider.classList.add('active');
-            startX = e.pageX - slider.offsetLeft;
-            scrollLeft = slider.scrollLeft;
-        });
-
-        slider.addEventListener('mouseup', () => {
-            isDown = false;
-            slider.classList.remove('active');
-        });
-
-        slider.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            slider.scrollLeft = scrollLeft - walk;
-        });
-
-        setInterval(() => {
-            if (isHovered || isTouching || isDown || slider.classList.contains('active')) return;
-            
-            const maxScroll = slider.scrollWidth - slider.clientWidth;
-            if (maxScroll <= 15) return;
-
-            const singleItem = slider.querySelector('.idea-slider-item');
-            const scrollStep = singleItem ? (singleItem.offsetWidth + 14) : Math.max(180, slider.clientWidth * 0.45);
-            
-            if (slider.scrollLeft >= maxScroll - 10) {
-                slider.scrollTo({ left: 0, behavior: 'smooth' });
-            } else {
-                slider.scrollBy({ left: scrollStep, behavior: 'smooth' });
-            }
-        }, 4000 + (idx * 300));
-    });
+document.addEventListener('keydown', function (e) {
+    var t = e.target, typing = t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable);
+    if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) { var s = document.getElementById('ebSearch'); if (s) { e.preventDefault(); s.focus(); s.select(); } }
 });
 </script>
 @endpush
-
-<style>
-/* ══ IDEA SLIDER STYLING (100% IDENTICAL TO /books & HOMEPAGE) ══ */
-.idea-slider-wrapper {
-    position: relative;
-    width: 100%;
-}
-.idea-book-slider {
-    display: flex;
-    gap: 14px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 6px 2px;
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-}
-.idea-book-slider:active {
-    cursor: grabbing;
-}
-.idea-book-slider::-webkit-scrollbar {
-    display: none;
-}
-.idea-slider-item {
-    flex: 0 0 calc(16.666% - 13.5px);
-    min-width: 180px;
-    max-width: 220px;
-    display: flex;
-}
-@media (max-width: 1200px) {
-    .idea-slider-item {
-        flex: 0 0 calc(20% - 13px);
-        min-width: 165px;
-    }
-}
-@media (max-width: 992px) {
-    .idea-slider-item {
-        flex: 0 0 calc(25% - 12px);
-        min-width: 155px;
-    }
-}
-@media (max-width: 768px) {
-    .idea-slider-item {
-        flex: 0 0 calc(33.333% - 10px);
-        min-width: 145px;
-    }
-}
-@media (max-width: 576px) {
-    .idea-book-slider {
-        gap: 8px !important;
-        padding: 4px 1px !important;
-    }
-    .idea-slider-item {
-        flex: 0 0 calc(50% - 4px) !important;
-        min-width: 0 !important;
-        max-width: calc(50% - 4px) !important;
-    }
-}
-
-/* Floating Navigation Arrows */
-.idea-slider-nav-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
-    border: 1px solid #e2e8f0;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    opacity: 0;
-    visibility: hidden;
-}
-.idea-slider-wrapper:hover .idea-slider-nav-btn {
-    opacity: 1;
-    visibility: visible;
-}
-.idea-slider-nav-btn.prev-btn {
-    left: -14px;
-}
-.idea-slider-nav-btn.next-btn {
-    right: -14px;
-}
-.idea-slider-nav-btn:hover {
-    background: #0066cc;
-    color: #ffffff;
-    border-color: #0066cc;
-    transform: translateY(-50%) scale(1.12);
-    box-shadow: 0 6px 16px rgba(0, 102, 204, 0.35);
-}
-
-.pill-scroll-track::-webkit-scrollbar {
-    display: none;
-}
-.pill-slider-btn {
-    background: #ffffff !important;
-    opacity: 0.95;
-    transition: all 0.2s ease;
-}
-.pill-slider-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15) !important;
-}
-</style>
-@endsection

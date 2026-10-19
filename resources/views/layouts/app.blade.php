@@ -250,11 +250,14 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4534355865737776" crossorigin="anonymous"></script>
     
     <!-- Fonts: Kalpurush, Nikosh, Hind Siliguri, Noto Sans Bengali & Inter -->
-    <link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
-    <link href="https://fonts.maateen.me/nikosh/font.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" as="style">
+    {{-- Non-blocking font CSS: text renders immediately with fallback font, swaps when loaded --}}
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -265,6 +268,9 @@
     <!-- Site chrome (header/nav/footer) — served from /public, no build step needed -->
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ @filemtime(public_path('css/site.css')) ?: 1 }}">
     
+    <!-- Product cards & sliders (shared by home, shop and product pages) -->
+    <link rel="stylesheet" href="{{ asset('css/storefront-products.css') }}?v={{ @filemtime(public_path('css/storefront-products.css')) ?: 1 }}">
+
     <!-- Universal Theme Engine & Color Contrast Guard Stylesheet -->
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}?v={{ @filemtime(public_path('css/theme.css')) ?: 1 }}">
     
@@ -911,14 +917,28 @@
     </script>
 
     {{-- Universal World-Class Bengali Audiobook Dock & Selection Tooltip --}}
-    @include('partials.audiobook-dock')
-    <script src="{{ asset('js/idea-audiobook-engine.js') }}"></script>
+    {{-- Audio reading is opt-in: only pages that define @section('audio_enabled') (article pages) get the player --}}
+    @hasSection('audio_enabled')
+        @include('partials.audiobook-dock')
+        <script src="{{ asset('js/idea-audiobook-engine.js') }}" defer></script>
+    @endif
 
     {{-- Universal Theme Controller Script --}}
     <script src="{{ asset('js/theme.js') }}?v={{ @filemtime(public_path('js/theme.js')) ?: 1 }}"></script>
 
     {{-- Modern Site Enhancements & Utility Engine (Toast, Shortcuts, Auto-Draft) --}}
     <script src="{{ asset('js/site-enhancements.js') }}?v={{ @filemtime(public_path('js/site-enhancements.js')) ?: 1 }}"></script>
+
+    {{-- Shared quick view for product cards --}}
+    <div class="modal fade" id="productQuickViewModal" tabindex="-1" aria-hidden="true" data-url="{{ route('products.quick-view', ':id') }}">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 overflow-hidden">
+                <div class="modal-header border-0 pb-0"><button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body pt-0" id="qvContentBody"></div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ asset('js/storefront-products.js') }}?v={{ @filemtime(public_path('js/storefront-products.js')) ?: 1 }}" defer></script>
 
     {{-- Both mechanisms are supported: @section('scripts') and @push('scripts') --}}
     @yield('scripts')

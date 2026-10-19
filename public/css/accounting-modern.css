@@ -1,0 +1,526 @@
+/*
+ * Accounting › shared modern layer (hub, invoices, ledgers, payroll, tax, reports).
+ * Scoped to html.acc-ui so nothing else in the admin is touched.
+ * Mobile-first, dark-mode aware. Printable paper (.invoice-page-card, @media print) is left alone.
+ */
+
+html.acc-ui {
+    --ac-bg: #f4f6fb;
+    --ac-surface: #ffffff;
+    --ac-surface-2: #f8fafc;
+    --ac-line: #e6eaf2;
+    --ac-line-2: #eef1f7;
+    --ac-ink: #0f172a;
+    --ac-ink-2: #475569;
+    --ac-mute: #94a3b8;
+    --ac-blue: #2563eb;
+    --ac-green: #059669;
+    --ac-red: #e11d48;
+    --ac-amber: #d97706;
+    --ac-violet: #7c3aed;
+    --ac-radius: 18px;
+    --ac-radius-sm: 12px;
+    --ac-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 8px 24px -12px rgba(15, 23, 42, .10);
+    --ac-shadow-lg: 0 2px 4px rgba(15, 23, 42, .05), 0 18px 40px -16px rgba(15, 23, 42, .18);
+}
+
+/* ── Surfaces ─────────────────────────────────────────────── */
+html.acc-ui .card:not(.invoice-page-card) {
+    border: 1px solid var(--ac-line) !important;
+    border-radius: var(--ac-radius) !important;
+    box-shadow: var(--ac-shadow);
+    background: var(--ac-surface);
+}
+html.acc-ui .card:not(.invoice-page-card) > .card-header {
+    background: transparent;
+    border-bottom: 1px solid var(--ac-line-2);
+    padding: 1rem 1.25rem;
+    font-weight: 700;
+}
+html.acc-ui .card:not(.invoice-page-card) > .card-footer {
+    background: var(--ac-surface-2);
+    border-top: 1px solid var(--ac-line-2);
+}
+
+/* ── KPI tiles ────────────────────────────────────────────── */
+html.acc-ui .acc-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition: transform .22s cubic-bezier(.2, .8, .2, 1), box-shadow .22s;
+}
+html.acc-ui .acc-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -30% -55% auto;
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(37, 99, 235, .10), transparent);
+    z-index: -1;
+    pointer-events: none;
+}
+html.acc-ui .acc-card:hover { transform: translateY(-3px); box-shadow: var(--ac-shadow-lg); }
+html.acc-ui .acc-card h4,
+html.acc-ui .acc-card .h4 {
+    font-size: clamp(1.15rem, 1.1vw + .9rem, 1.55rem);
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    font-family: inherit !important;
+}
+html.acc-ui .acc-card .text-uppercase {
+    font-size: .68rem !important;
+    letter-spacing: .09em !important;
+    color: var(--ac-mute) !important;
+}
+html.acc-ui .acc-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    border: 0 !important;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .05);
+}
+
+/* ── Stream tabs: segmented bar ───────────────────────────── */
+html.acc-ui #streamTabsContainer {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    gap: .25rem !important;
+    padding: .3rem;
+    background: var(--ac-surface-2);
+    border: 1px solid var(--ac-line);
+    border-radius: 999px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    max-width: 100%;
+}
+html.acc-ui #streamTabsContainer::-webkit-scrollbar { display: none; }
+html.acc-ui .stream-tab-btn {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--ac-ink-2);
+    padding: .5rem 1rem;
+    font-weight: 700;
+    box-shadow: none;
+}
+html.acc-ui .stream-tab-btn > i { display: none; }
+html.acc-ui .stream-tab-btn:hover { background: rgba(15, 23, 42, .05) !important; color: var(--ac-ink); }
+html.acc-ui .stream-tab-btn.active {
+    background: var(--ac-ink) !important;
+    color: #fff !important;
+    box-shadow: 0 6px 16px -6px rgba(15, 23, 42, .5);
+}
+html.acc-ui .stream-tab-btn .badge {
+    font-size: .68rem;
+    font-weight: 800;
+    background: rgba(15, 23, 42, .07) !important;
+    color: var(--ac-ink-2) !important;
+    border: 0 !important;
+}
+
+/* ── Pills / chips ────────────────────────────────────────── */
+html.acc-ui .filter-preset-pill,
+html.acc-ui .category-chip {
+    border: 1px solid var(--ac-line);
+    background: var(--ac-surface);
+    color: var(--ac-ink-2);
+    font-weight: 700;
+    padding: .4rem .9rem;
+}
+html.acc-ui .filter-preset-pill:hover,
+html.acc-ui .filter-preset-pill.active,
+html.acc-ui .category-chip.active-cat {
+    background: var(--ac-blue);
+    border-color: var(--ac-blue);
+    color: #fff;
+    box-shadow: 0 6px 14px -6px rgba(37, 99, 235, .6);
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+html.acc-ui .btn {
+    font-weight: 700;
+    border-radius: 12px;
+    letter-spacing: .005em;
+    transition: transform .15s, box-shadow .2s, background-color .2s, border-color .2s;
+}
+html.acc-ui .btn.rounded-pill { border-radius: 999px !important; }
+html.acc-ui .btn:active { transform: translateY(1px) scale(.99); }
+html.acc-ui .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-color: #2563eb;
+    box-shadow: 0 8px 18px -8px rgba(37, 99, 235, .7);
+}
+html.acc-ui .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); transform: translateY(-1px); }
+html.acc-ui .btn-success { background: linear-gradient(135deg, #10b981, #059669); border-color: #059669; box-shadow: 0 8px 18px -8px rgba(5, 150, 105, .7); }
+html.acc-ui .btn-danger { background: linear-gradient(135deg, #f43f5e, #e11d48); border-color: #e11d48; box-shadow: 0 8px 18px -8px rgba(225, 29, 72, .6); }
+html.acc-ui .btn-warning { box-shadow: 0 8px 18px -8px rgba(217, 119, 6, .6); }
+html.acc-ui .btn-outline-secondary,
+html.acc-ui .btn-outline-dark,
+html.acc-ui .btn-light {
+    background: var(--ac-surface);
+    border: 1px solid var(--ac-line) !important;
+    color: var(--ac-ink-2);
+}
+html.acc-ui .btn-outline-secondary:hover,
+html.acc-ui .btn-outline-dark:hover,
+html.acc-ui .btn-light:hover { background: var(--ac-surface-2); color: var(--ac-ink); border-color: #cbd5e1 !important; }
+html.acc-ui .btn:focus-visible { outline: 3px solid rgba(37, 99, 235, .35); outline-offset: 2px; }
+
+/* ── Forms ────────────────────────────────────────────────── */
+html.acc-ui .form-control,
+html.acc-ui .form-select {
+    border-radius: 12px;
+    border: 1px solid #dbe2ee;
+    background-color: var(--ac-surface);
+    transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+html.acc-ui .form-control:hover,
+html.acc-ui .form-select:hover { border-color: #c3cde0; }
+html.acc-ui .form-control:focus,
+html.acc-ui .form-select:focus {
+    border-color: var(--ac-blue);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, .14);
+    background-color: #fff;
+}
+html.acc-ui .form-label {
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ac-ink-2);
+}
+html.acc-ui .input-group-text { border-radius: 12px; border-color: #dbe2ee; background: var(--ac-surface-2); font-weight: 700; color: var(--ac-ink-2); }
+html.acc-ui .form-check-input:checked { background-color: var(--ac-blue); border-color: var(--ac-blue); }
+
+/* ── Tables ───────────────────────────────────────────────── */
+html.acc-ui .table-responsive,
+html.acc-ui .adm-table-wrap { border-radius: var(--ac-radius-sm); }
+html.acc-ui .table {
+    --bs-table-bg: transparent;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0;
+}
+html.acc-ui .table > thead > tr > th,
+html.acc-ui #unifiedAccountingTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--ac-surface-2) !important;
+    color: var(--ac-mute);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--ac-line) !important;
+    padding: .85rem .9rem;
+    white-space: nowrap;
+}
+html.acc-ui .table > tbody > tr > td {
+    border-color: var(--ac-line-2);
+    padding: .85rem .9rem;
+    vertical-align: middle;
+}
+html.acc-ui .table-hover > tbody > tr:hover > *,
+html.acc-ui .record-row:hover { background-color: #f6f9ff !important; }
+html.acc-ui .record-row.has-due { box-shadow: inset 3px 0 0 var(--ac-red); background-color: rgba(255, 241, 242, .45); }
+
+/* ── Badges ───────────────────────────────────────────────── */
+html.acc-ui .badge {
+    font-weight: 800;
+    letter-spacing: .02em;
+    padding: .38em .7em;
+    border-radius: 999px;
+}
+html.acc-ui .badge.bg-success-subtle { background: #e7f8f0 !important; color: #047857 !important; border: 1px solid #bff0d9 !important; }
+html.acc-ui .badge.bg-danger-subtle  { background: #ffecef !important; color: #be123c !important; border: 1px solid #ffd0d9 !important; }
+html.acc-ui .badge.bg-warning-subtle { background: #fff5dd !important; color: #b45309 !important; border: 1px solid #fde3a6 !important; }
+html.acc-ui .badge.bg-primary-subtle { background: #e8f0ff !important; color: #1d4ed8 !important; border: 1px solid #c8dafc !important; }
+html.acc-ui .badge.bg-info-subtle    { background: #e3f7fb !important; color: #0e7490 !important; border: 1px solid #b6e8f1 !important; }
+html.acc-ui .badge-income  { background: #e7f8f0; color: #047857; border: 1px solid #bff0d9; }
+html.acc-ui .badge-expense { background: #ffecef; color: #be123c; border: 1px solid #ffd0d9; }
+
+/* ── Dropdowns / modals / pagination ─────────────────────── */
+html.acc-ui .dropdown-menu {
+    border: 1px solid var(--ac-line);
+    border-radius: 14px;
+    padding: .4rem;
+    box-shadow: var(--ac-shadow-lg);
+}
+html.acc-ui .dropdown-item { border-radius: 9px; font-weight: 600; padding: .5rem .75rem; }
+html.acc-ui .modal-content {
+    border: 0;
+    border-radius: 22px;
+    box-shadow: 0 30px 80px -20px rgba(15, 23, 42, .45);
+    overflow: hidden;
+}
+html.acc-ui .modal-header { border-bottom: 1px solid var(--ac-line-2); padding: 1.1rem 1.35rem; }
+html.acc-ui .modal-footer { border-top: 1px solid var(--ac-line-2); background: var(--ac-surface-2); }
+html.acc-ui .modal-title { font-weight: 800; letter-spacing: -.01em; }
+html.acc-ui .modal-backdrop.show { opacity: .5; backdrop-filter: blur(3px); }
+html.acc-ui .pagination .page-link { border-radius: 10px; margin: 0 2px; border: 1px solid var(--ac-line); color: var(--ac-ink-2); font-weight: 700; }
+html.acc-ui .pagination .active > .page-link { background: var(--ac-ink); border-color: var(--ac-ink); color: #fff; }
+html.acc-ui .nav-tabs, html.acc-ui .nav-pills { gap: .25rem; }
+html.acc-ui .nav-pills .nav-link { border-radius: 999px; font-weight: 700; color: var(--ac-ink-2); }
+html.acc-ui .nav-pills .nav-link.active { background: var(--ac-ink); color: #fff; }
+html.acc-ui .progress { height: 8px; border-radius: 999px; background: var(--ac-line-2); }
+html.acc-ui .progress-bar { border-radius: 999px; }
+
+/* ── Entrance motion ──────────────────────────────────────── */
+@keyframes acFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+html.acc-ui .card:not(.invoice-page-card) { animation: acFadeUp .45s both; }
+html.acc-ui .row > *:nth-child(2) .card { animation-delay: .04s; }
+html.acc-ui .row > *:nth-child(3) .card { animation-delay: .08s; }
+html.acc-ui .row > *:nth-child(4) .card { animation-delay: .12s; }
+html.acc-ui .row > *:nth-child(5) .card { animation-delay: .16s; }
+@media (prefers-reduced-motion: reduce) {
+    html.acc-ui .card, html.acc-ui .acc-card, html.acc-ui .btn { animation: none !important; transition: none !important; }
+}
+
+/* ── Phone / tablet ───────────────────────────────────────── */
+@media (max-width: 1199.98px) {
+    html.acc-ui .col-xl-2-4 { flex: 0 0 50% !important; max-width: 50% !important; }
+}
+@media (max-width: 575.98px) {
+    html.acc-ui .col-xl-2-4 { flex: 0 0 100% !important; max-width: 100% !important; }
+    html.acc-ui .card-body { padding: 1rem !important; }
+    html.acc-ui .modal-dialog { margin: .5rem; }
+    html.acc-ui .btn-sm { min-height: 40px; }
+    html.acc-ui .table > thead > tr > th { padding: .7rem .65rem; }
+    html.acc-ui .table > tbody > tr > td { padding: .7rem .65rem; }
+}
+
+/* ── Dark mode ────────────────────────────────────────────── */
+html.acc-ui.dark-mode, body.dark-mode {
+    --ac-bg: #0b1220;
+    --ac-surface: #111a2c;
+    --ac-surface-2: #0e1626;
+    --ac-line: #1f2a40;
+    --ac-line-2: #19233a;
+    --ac-ink: #e8edf6;
+    --ac-ink-2: #aab6cc;
+    --ac-mute: #6f7e99;
+}
+body.dark-mode .card:not(.invoice-page-card) { background: var(--ac-surface); }
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode .input-group-text { background-color: var(--ac-surface-2); border-color: var(--ac-line); color: var(--ac-ink); }
+body.dark-mode .table > thead > tr > th { background: var(--ac-surface-2) !important; }
+body.dark-mode .table > tbody > tr > td { color: var(--ac-ink); }
+body.dark-mode .table-hover > tbody > tr:hover > *,
+body.dark-mode .record-row:hover { background-color: rgba(59, 130, 246, .08) !important; }
+body.dark-mode .stream-tab-btn.active { background: #e8edf6 !important; color: #0b1220 !important; }
+body.dark-mode .modal-content { background: var(--ac-surface); color: var(--ac-ink); }
+body.dark-mode .modal-footer { background: var(--ac-surface-2); }
+body.dark-mode .dropdown-menu { background: var(--ac-surface); }
+body.dark-mode .dropdown-item { color: var(--ac-ink-2); }
+body.dark-mode .dropdown-item:hover { background: var(--ac-surface-2); color: var(--ac-ink); }
+body.dark-mode .bg-white { background-color: var(--ac-surface) !important; }
+body.dark-mode .bg-light { background-color: var(--ac-surface-2) !important; }
+body.dark-mode .text-dark { color: var(--ac-ink) !important; }
+
+@media print {
+    html.acc-ui .card, html.acc-ui .table > thead > tr > th { animation: none !important; box-shadow: none !important; position: static !important; }
+}
+
+/* ── Half-step spacing utilities (p-3.5, gap-2.5 …) used across accounting views but absent from Bootstrap ── */
+html.acc-ui .pt-0\.5 { padding-top: .125rem; }
+html.acc-ui .pt-1\.5 { padding-top: .375rem; }
+html.acc-ui .pt-2\.5 { padding-top: .75rem; }
+html.acc-ui .pt-3\.5 { padding-top: 1.25rem; }
+html.acc-ui .pt-4\.5 { padding-top: 2.25rem; }
+html.acc-ui .pb-0\.5 { padding-bottom: .125rem; }
+html.acc-ui .pb-1\.5 { padding-bottom: .375rem; }
+html.acc-ui .pb-2\.5 { padding-bottom: .75rem; }
+html.acc-ui .pb-3\.5 { padding-bottom: 1.25rem; }
+html.acc-ui .pb-4\.5 { padding-bottom: 2.25rem; }
+html.acc-ui .ps-0\.5 { padding-inline-start: .125rem; }
+html.acc-ui .ps-1\.5 { padding-inline-start: .375rem; }
+html.acc-ui .ps-2\.5 { padding-inline-start: .75rem; }
+html.acc-ui .ps-3\.5 { padding-inline-start: 1.25rem; }
+html.acc-ui .ps-4\.5 { padding-inline-start: 2.25rem; }
+html.acc-ui .pe-0\.5 { padding-inline-end: .125rem; }
+html.acc-ui .pe-1\.5 { padding-inline-end: .375rem; }
+html.acc-ui .pe-2\.5 { padding-inline-end: .75rem; }
+html.acc-ui .pe-3\.5 { padding-inline-end: 1.25rem; }
+html.acc-ui .pe-4\.5 { padding-inline-end: 2.25rem; }
+html.acc-ui .px-0\.5 { padding-inline: .125rem; }
+html.acc-ui .px-1\.5 { padding-inline: .375rem; }
+html.acc-ui .px-2\.5 { padding-inline: .75rem; }
+html.acc-ui .px-3\.5 { padding-inline: 1.25rem; }
+html.acc-ui .px-4\.5 { padding-inline: 2.25rem; }
+html.acc-ui .py-0\.5 { padding-block: .125rem; }
+html.acc-ui .py-1\.5 { padding-block: .375rem; }
+html.acc-ui .py-2\.5 { padding-block: .75rem; }
+html.acc-ui .py-3\.5 { padding-block: 1.25rem; }
+html.acc-ui .py-4\.5 { padding-block: 2.25rem; }
+html.acc-ui .p-0\.5 { padding: .125rem; }
+html.acc-ui .p-1\.5 { padding: .375rem; }
+html.acc-ui .p-2\.5 { padding: .75rem; }
+html.acc-ui .p-3\.5 { padding: 1.25rem; }
+html.acc-ui .p-4\.5 { padding: 2.25rem; }
+html.acc-ui .mt-0\.5 { margin-top: .125rem; }
+html.acc-ui .mt-1\.5 { margin-top: .375rem; }
+html.acc-ui .mt-2\.5 { margin-top: .75rem; }
+html.acc-ui .mt-3\.5 { margin-top: 1.25rem; }
+html.acc-ui .mt-4\.5 { margin-top: 2.25rem; }
+html.acc-ui .mb-0\.5 { margin-bottom: .125rem; }
+html.acc-ui .mb-1\.5 { margin-bottom: .375rem; }
+html.acc-ui .mb-2\.5 { margin-bottom: .75rem; }
+html.acc-ui .mb-3\.5 { margin-bottom: 1.25rem; }
+html.acc-ui .mb-4\.5 { margin-bottom: 2.25rem; }
+html.acc-ui .ms-0\.5 { margin-inline-start: .125rem; }
+html.acc-ui .ms-1\.5 { margin-inline-start: .375rem; }
+html.acc-ui .ms-2\.5 { margin-inline-start: .75rem; }
+html.acc-ui .ms-3\.5 { margin-inline-start: 1.25rem; }
+html.acc-ui .ms-4\.5 { margin-inline-start: 2.25rem; }
+html.acc-ui .me-0\.5 { margin-inline-end: .125rem; }
+html.acc-ui .me-1\.5 { margin-inline-end: .375rem; }
+html.acc-ui .me-2\.5 { margin-inline-end: .75rem; }
+html.acc-ui .me-3\.5 { margin-inline-end: 1.25rem; }
+html.acc-ui .me-4\.5 { margin-inline-end: 2.25rem; }
+html.acc-ui .mx-0\.5 { margin-inline: .125rem; }
+html.acc-ui .mx-1\.5 { margin-inline: .375rem; }
+html.acc-ui .mx-2\.5 { margin-inline: .75rem; }
+html.acc-ui .mx-3\.5 { margin-inline: 1.25rem; }
+html.acc-ui .mx-4\.5 { margin-inline: 2.25rem; }
+html.acc-ui .my-0\.5 { margin-block: .125rem; }
+html.acc-ui .my-1\.5 { margin-block: .375rem; }
+html.acc-ui .my-2\.5 { margin-block: .75rem; }
+html.acc-ui .my-3\.5 { margin-block: 1.25rem; }
+html.acc-ui .my-4\.5 { margin-block: 2.25rem; }
+html.acc-ui .m-0\.5 { margin: .125rem; }
+html.acc-ui .m-1\.5 { margin: .375rem; }
+html.acc-ui .m-2\.5 { margin: .75rem; }
+html.acc-ui .m-3\.5 { margin: 1.25rem; }
+html.acc-ui .m-4\.5 { margin: 2.25rem; }
+html.acc-ui .gap-0\.5 { gap: .125rem; }
+html.acc-ui .g-0\.5 { --bs-gutter-x: .125rem; --bs-gutter-y: .125rem; }
+html.acc-ui .gx-0\.5 { --bs-gutter-x: .125rem; }
+html.acc-ui .gy-0\.5 { --bs-gutter-y: .125rem; }
+html.acc-ui .gap-1\.5 { gap: .375rem; }
+html.acc-ui .g-1\.5 { --bs-gutter-x: .375rem; --bs-gutter-y: .375rem; }
+html.acc-ui .gx-1\.5 { --bs-gutter-x: .375rem; }
+html.acc-ui .gy-1\.5 { --bs-gutter-y: .375rem; }
+html.acc-ui .gap-2\.5 { gap: .75rem; }
+html.acc-ui .g-2\.5 { --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }
+html.acc-ui .gx-2\.5 { --bs-gutter-x: .75rem; }
+html.acc-ui .gy-2\.5 { --bs-gutter-y: .75rem; }
+html.acc-ui .gap-3\.5 { gap: 1.25rem; }
+html.acc-ui .g-3\.5 { --bs-gutter-x: 1.25rem; --bs-gutter-y: 1.25rem; }
+html.acc-ui .gx-3\.5 { --bs-gutter-x: 1.25rem; }
+html.acc-ui .gy-3\.5 { --bs-gutter-y: 1.25rem; }
+html.acc-ui .gap-4\.5 { gap: 2.25rem; }
+html.acc-ui .g-4\.5 { --bs-gutter-x: 2.25rem; --bs-gutter-y: 2.25rem; }
+html.acc-ui .gx-4\.5 { --bs-gutter-x: 2.25rem; }
+html.acc-ui .gy-4\.5 { --bs-gutter-y: 2.25rem; }
+@media (min-width: 1200px) { html.acc-ui .g-xl-3\.5 { --bs-gutter-x: 1.25rem; --bs-gutter-y: 1.25rem; } }
+
+/* ── Buttons v2: sizes, icon alignment, groups, header actions ─────────── */
+html.acc-ui .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    line-height: 1.2;
+    min-height: 40px;
+    padding: .5rem 1.05rem;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+html.acc-ui .btn-sm { min-height: 36px; padding: .4rem .85rem; font-size: .84rem; }
+html.acc-ui .btn-lg { min-height: 50px; padding: .7rem 1.5rem; font-size: 1rem; border-radius: 14px; }
+html.acc-ui .btn > i, html.acc-ui .btn > .fa-solid, html.acc-ui .btn > .fa-regular { margin: 0 !important; font-size: .95em; flex: 0 0 auto; }
+html.acc-ui .btn-emerald { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 18px -8px rgba(5, 150, 105, .7); }
+html.acc-ui .btn-rose    { background: linear-gradient(135deg, #f43f5e, #e11d48); box-shadow: 0 8px 18px -8px rgba(225, 29, 72, .65); }
+html.acc-ui .btn-emerald:hover, html.acc-ui .btn-rose:hover, html.acc-ui .btn-success:hover, html.acc-ui .btn-danger:hover { transform: translateY(-1px); filter: brightness(1.05); }
+html.acc-ui .btn:disabled, html.acc-ui .btn.disabled { opacity: .55; box-shadow: none; transform: none; filter: grayscale(.2); }
+html.acc-ui .btn-outline-primary { border-color: #bfd3fb; color: var(--ac-blue); background: #f5f8ff; }
+html.acc-ui .btn-outline-primary:hover { background: var(--ac-blue); color: #fff; border-color: var(--ac-blue); }
+html.acc-ui .btn-outline-success { border-color: #bdeed7; color: #047857; background: #f2fdf8; }
+html.acc-ui .btn-outline-success:hover { background: #059669; color: #fff; border-color: #059669; }
+html.acc-ui .btn-outline-danger { border-color: #ffd0d9; color: #be123c; background: #fff7f8; }
+html.acc-ui .btn-outline-danger:hover { background: #e11d48; color: #fff; border-color: #e11d48; }
+html.acc-ui .btn-xs { min-height: 28px; padding: .2rem .6rem; font-size: .75rem; border-radius: 9px; }
+
+/* Row action buttons: compact, equal squares */
+html.acc-ui td .btn-sm, html.acc-ui .btn-icon {
+    min-height: 34px; min-width: 34px; padding: .3rem .55rem; border-radius: 10px;
+}
+html.acc-ui td .btn-group, html.acc-ui td .d-flex.gap-1 { gap: .3rem !important; }
+html.acc-ui .btn-group { gap: 0; border-radius: 12px; }
+html.acc-ui .btn-group > .btn { border-radius: 0 !important; }
+html.acc-ui .btn-group > .btn:first-child { border-radius: 12px 0 0 12px !important; }
+html.acc-ui .btn-group > .btn:last-child  { border-radius: 0 12px 12px 0 !important; }
+
+/* Press ripple (driven by accounting-ui.js) */
+html.acc-ui .ac-ripple {
+    position: absolute; border-radius: 50%; pointer-events: none; transform: scale(0);
+    background: rgba(255, 255, 255, .45); animation: acRipple .55s ease-out forwards;
+}
+html.acc-ui .btn-light .ac-ripple, html.acc-ui .btn-outline-secondary .ac-ripple, html.acc-ui [class*="btn-outline-"] .ac-ripple { background: rgba(37, 99, 235, .18); }
+@keyframes acRipple { to { transform: scale(3.2); opacity: 0; } }
+
+/* Page header actions (title bar) */
+html.acc-ui .adm-topbar__actions, html.acc-ui [class*="page-actions"] { gap: .6rem; flex-wrap: wrap; }
+
+/* ── Layout rhythm / margins ───────────────────────────────────────────── */
+html.acc-ui .card { margin-bottom: 1.5rem; }
+html.acc-ui .row > * > .card { margin-bottom: 0; }
+html.acc-ui .row + .card, html.acc-ui .card + .row, html.acc-ui .row + .row { margin-top: 1.5rem; }
+html.acc-ui .card-body { padding: 1.35rem 1.5rem; }
+html.acc-ui .mb-4 { margin-bottom: 1.5rem !important; }
+html.acc-ui .row.g-3, html.acc-ui .row.g-2 { row-gap: var(--bs-gutter-y); }
+
+/* Results area: table card + footer + pagination */
+html.acc-ui .card > .table-responsive,
+html.acc-ui .card > .adm-table-wrap { margin: 0; border-radius: 0 0 var(--ac-radius) var(--ac-radius); }
+html.acc-ui .card-body > .table-responsive { margin: 0 -.25rem; }
+html.acc-ui .table > tbody > tr > td:first-child, html.acc-ui .table > thead > tr > th:first-child { padding-left: 1.35rem; }
+html.acc-ui .table > tbody > tr > td:last-child,  html.acc-ui .table > thead > tr > th:last-child  { padding-right: 1.35rem; }
+html.acc-ui nav[aria-label*="agination"], html.acc-ui .pagination { margin-top: 1.25rem; }
+html.acc-ui .card-footer { padding: 1rem 1.5rem; }
+html.acc-ui .alert { border-radius: 14px; border: 0; margin-bottom: 1.25rem; box-shadow: var(--ac-shadow); }
+html.acc-ui .form-text { margin-top: .35rem; }
+html.acc-ui .mb-3 > .form-label, html.acc-ui .col-12 > .form-label, html.acc-ui [class*="col-"] > .form-label { margin-bottom: .4rem; }
+html.acc-ui .modal-body { padding: 1.35rem 1.5rem; }
+html.acc-ui .modal-body .row { row-gap: 1rem; }
+
+@media (max-width: 767.98px) {
+    html.acc-ui .card { margin-bottom: 1rem; border-radius: 16px !important; }
+    html.acc-ui .card-body { padding: 1rem !important; }
+    html.acc-ui .table > tbody > tr > td:first-child, html.acc-ui .table > thead > tr > th:first-child { padding-left: 1rem; }
+    html.acc-ui .table > tbody > tr > td:last-child,  html.acc-ui .table > thead > tr > th:last-child  { padding-right: 1rem; }
+    /* header action buttons: two per row, full width */
+    html.acc-ui .adm-topbar__actions .btn, html.acc-ui [class*="page-actions"] .btn { flex: 1 1 calc(50% - .3rem); }
+    html.acc-ui .btn-lg { min-height: 48px; }
+    html.acc-ui .modal-footer { flex-wrap: wrap; gap: .5rem; }
+    html.acc-ui .modal-footer .btn { flex: 1 1 140px; margin: 0; }
+}
+
+/* ── Shared picker + check (inventory, purchases, production) ───────────── */
+html.acc-ui .iv-check { display: inline-flex; align-items: center; gap: .45rem; font-weight: 600; font-size: .9rem; margin: 0; cursor: pointer; }
+html.acc-ui .iv-pick-list {
+    position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); max-height: 260px; overflow: auto;
+    background: var(--ac-surface, #fff); border: 1px solid var(--ac-line, #e6eaf2); border-radius: 14px;
+    box-shadow: 0 18px 40px -16px rgba(15, 23, 42, .3); padding: .35rem;
+}
+html.acc-ui .iv-pick-list[hidden] { display: none; }
+html.acc-ui .iv-pick-item { display: flex; justify-content: space-between; gap: .75rem; width: 100%; text-align: left; padding: .55rem .7rem; border: 0; background: transparent; border-radius: 10px; cursor: pointer; }
+html.acc-ui .iv-pick-item:hover, html.acc-ui .iv-pick-item:focus { background: #eef4ff; outline: 0; }
+html.acc-ui .iv-pick-item small { color: #64748b; white-space: nowrap; }
+html.acc-ui .iv-pick-empty { padding: .7rem; color: #94a3b8; text-align: center; font-size: .9rem; }
+body.dark-mode .iv-pick-item:hover, body.dark-mode .iv-pick-item:focus { background: rgba(59, 130, 246, .15); }
+
+/* ── Document-type pills (hub › invoices stream) ────────────────────────── */
+html.acc-ui .doc-type-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 0 0 1.5rem; }
+html.acc-ui .doc-type-pill { display: inline-flex; align-items: center; gap: .55rem; padding: .5rem 1rem; border-radius: 999px; font-weight: 700; font-size: .9rem; text-decoration: none;
+    color: var(--ac-ink-2); background: var(--ac-surface); border: 1px solid var(--ac-line); transition: background .15s, color .15s, border-color .15s; }
+html.acc-ui .doc-type-pill span { font-size: .72rem; padding: .08rem .5rem; border-radius: 999px; background: rgba(15, 23, 42, .07); }
+html.acc-ui .doc-type-pill:hover { background: var(--ac-surface-2); color: var(--ac-ink); }
+html.acc-ui .doc-type-pill.active { background: var(--ac-ink); border-color: var(--ac-ink); color: #fff; }
+html.acc-ui .doc-type-pill.active span { background: rgba(255, 255, 255, .22); }
+@media (max-width: 575.98px) { html.acc-ui .doc-type-bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } html.acc-ui .doc-type-pill { flex: 0 0 auto; } }

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Helpdesk & Support Tickets')
-@section('heading', 'Customer 360 & Support Tickets')
+@section('heading', 'Tickets')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

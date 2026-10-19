@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Ideapatra & Blog Posts Management')
-@section('heading', 'Ideapatra — Blog & Content Moderation')
+@section('heading', 'Blog')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Ideapatra & Blog</li>
 @endsection

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Book Requests Hub')
-@section('heading', 'Special Book Requests Hub')
+@section('heading', 'Book Requests')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

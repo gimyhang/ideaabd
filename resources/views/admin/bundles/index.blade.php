@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Combos, Bundles & Pre-Orders')
-@section('heading', 'Book Bundles, Combos & Pre-Orders')
+@section('heading', 'Bundles')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

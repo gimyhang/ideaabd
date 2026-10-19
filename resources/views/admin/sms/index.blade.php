@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Bulk SMS & Email Messaging Hub — IDEA')
-@section('heading', 'বাল্ক এসএমএস, ইমেইল ও ওটিপি ব্রডকাস্ট হাব')
+@section('heading', 'বাল্ক মেসেজ')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/admin-sms.css') }}">

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', $user->name . ' — Registration Details')
-@section('heading', 'Registration Details')
+@section('heading', 'Registration')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.registrations.index') }}" class="text-decoration-none">Registrations</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ $user->name }}</li>

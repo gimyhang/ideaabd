@@ -35,7 +35,7 @@ class AdminController extends Controller
 
         $systemNotice = null;
         try {
-            if (Schema::hasTable('admin_dashboard_settings')) {
+            if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
                 $setting = \App\Models\AdminDashboardSetting::where('key', 'system_notice')->first();
                 if ($setting && ! empty($setting->value['active'])) {
                     $systemNotice = $setting->value;
@@ -325,7 +325,7 @@ class AdminController extends Controller
                     break;
 
                 case 'submission':
-                    if (Schema::hasTable('author_submissions')) {
+                    if (\App\Support\SchemaCache::has('author_submissions')) {
                         $sub = \Modules\Author\Models\AuthorSubmission::findOrFail($id);
                         if ($action === 'approve') {
                             $sub->update(['status' => 'accepted']);
@@ -742,7 +742,7 @@ class AdminController extends Controller
         $totalRevenue = 0.0;
         $totalDue = 0.0;
         try {
-            if (Schema::hasTable('bills')) {
+            if (\App\Support\SchemaCache::has('bills')) {
                 $totalCount = (int) Bill::count();
                 $totalRevenue = (float) Bill::where('payment_status', 'paid')->sum('total');
                 $totalDue = (float) Bill::whereIn('payment_status', ['pending', 'partial'])->sum('total');
@@ -904,7 +904,7 @@ class AdminController extends Controller
             'invoice_footer' => 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!',
         ];
 
-        if (Schema::hasTable('admin_dashboard_settings')) {
+        if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
             $settingRow = \App\Models\AdminDashboardSetting::where('key', 'invoice_settings')->first();
             if ($settingRow && !empty($settingRow->value)) {
                 $invoiceSettings = array_merge($invoiceSettings, $settingRow->value);
@@ -926,7 +926,7 @@ class AdminController extends Controller
             'sender_website' => 'www.ideaabd.com',
         ];
 
-        if (Schema::hasTable('admin_dashboard_settings')) {
+        if (\App\Support\SchemaCache::has('admin_dashboard_settings')) {
             $settingRow = \App\Models\AdminDashboardSetting::where('key', 'invoice_settings')->first();
             if ($settingRow && !empty($settingRow->value)) {
                 $invoiceSettings = array_merge($invoiceSettings, $settingRow->value);
@@ -943,27 +943,27 @@ class AdminController extends Controller
 
             DB::transaction(function () use ($order) {
                 // Delete related author royalties
-                if (Schema::hasTable('author_royalties') && Schema::hasColumn('author_royalties', 'order_id')) {
+                if (\App\Support\SchemaCache::has('author_royalties') && Schema::hasColumn('author_royalties', 'order_id')) {
                     DB::table('author_royalties')->where('order_id', $order->id)->delete();
                 }
 
                 // Delete related user ebook library entries
-                if (Schema::hasTable('user_ebook_library') && Schema::hasColumn('user_ebook_library', 'order_id')) {
+                if (\App\Support\SchemaCache::has('user_ebook_library') && Schema::hasColumn('user_ebook_library', 'order_id')) {
                     DB::table('user_ebook_library')->where('order_id', $order->id)->delete();
                 }
 
                 // Delete related courier consignments if table exists
-                if (Schema::hasTable('courier_consignments') && Schema::hasColumn('courier_consignments', 'order_id')) {
+                if (\App\Support\SchemaCache::has('courier_consignments') && Schema::hasColumn('courier_consignments', 'order_id')) {
                     DB::table('courier_consignments')->where('order_id', $order->id)->delete();
                 }
 
                 // Delete related order items if table exists
-                if (Schema::hasTable('order_items') && Schema::hasColumn('order_items', 'order_id')) {
+                if (\App\Support\SchemaCache::has('order_items') && Schema::hasColumn('order_items', 'order_id')) {
                     DB::table('order_items')->where('order_id', $order->id)->delete();
                 }
 
                 // Delete payments if referencing order_id
-                if (Schema::hasTable('payments') && Schema::hasColumn('payments', 'order_id')) {
+                if (\App\Support\SchemaCache::has('payments') && Schema::hasColumn('payments', 'order_id')) {
                     DB::table('payments')->where('order_id', $order->id)->delete();
                 }
 
@@ -2382,7 +2382,7 @@ class AdminController extends Controller
             'verified'         => \Modules\Author\Models\Author::where('is_verified', true)->count(),
             'with_books'       => \Modules\Author\Models\Author::has('books')->count(),
             'registered_users' => \Modules\Author\Models\Author::whereNotNull('user_id')->count(),
-            'total_books'      => Schema::hasTable('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
+            'total_books'      => \App\Support\SchemaCache::has('book_author') ? DB::table('book_author')->distinct('book_id')->count('book_id') : 0,
         ];
 
         if ($request->wantsJson() && $request->has('ajax_filter')) {
@@ -2641,7 +2641,7 @@ class AdminController extends Controller
         $booksCount = $author->books_count;
 
         // Detach pivot books
-        if (Schema::hasTable('book_author')) {
+        if (\App\Support\SchemaCache::has('book_author')) {
             DB::table('book_author')->where('author_id', $author->id)->delete();
         }
 
@@ -2695,7 +2695,7 @@ class AdminController extends Controller
                 $msg = "{$count} জন লেখকের ভেরিফিকেশন প্রত্যাহার করা হয়েছে।";
                 break;
             case 'delete':
-                if (Schema::hasTable('book_author')) {
+                if (\App\Support\SchemaCache::has('book_author')) {
                     DB::table('book_author')->whereIn('author_id', $ids)->delete();
                 }
                 \Modules\Author\Models\Author::whereIn('id', $ids)->delete();
@@ -3625,7 +3625,7 @@ class AdminController extends Controller
     private function paginateSafely(callable $builder, string $table, int $perPage = 20): mixed
     {
         try {
-            if (! Schema::hasTable($table)) {
+            if (! \App\Support\SchemaCache::has($table)) {
                 return $this->emptyPaginator($perPage);
             }
 

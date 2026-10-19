@@ -204,6 +204,32 @@ class Book extends Model
     }
 
     /**
+     * Inventories Relationship (মাল্টি-লোকেশন স্টক রেকর্ড)
+     */
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(\Modules\Inventory\Models\Inventory::class, 'book_id');
+    }
+
+    /**
+     * Locations where this book is stocked (Warehouse, Showroom, etc.)
+     */
+    public function locations(): BelongsToMany
+    {
+        return $this->belongsToMany(\Modules\Inventory\Models\Location::class, 'inventories', 'book_id', 'location_id')
+            ->withPivot(['quantity', 'min_alert_quantity', 'shelf_location'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get stock quantity at a specific location
+     */
+    public function stockAt(int $locationId): int
+    {
+        return (int) ($this->inventories()->where('location_id', $locationId)->value('quantity') ?? 0);
+    }
+
+    /**
      * Get Cover URL safely across all storage formats, converted WebP/AVIF files, and live environments.
      */
     public function getCoverUrlAttribute(): ?string

@@ -1,0 +1,40 @@
+/* Production ledger: printed → bound → received. Layered on accounting-modern.css. */
+
+.pd-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+.pd-kpi { padding: 1.1rem 1.3rem; display: flex; flex-direction: column; gap: .2rem; margin: 0 !important; border-top: 3px solid var(--tone, #cbd5e1) !important; }
+.pd-kpi span { font-size: .68rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
+.pd-kpi strong { font-size: 1.6rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; color: var(--tone, inherit); }
+.is-blue { --tone: #2563eb; } .is-violet { --tone: #7c3aed; } .is-green { --tone: #059669; } .is-amber { --tone: #d97706; } .is-gray { --tone: #64748b; }
+
+.pd-card { margin: 0 0 1.5rem !important; overflow: hidden; }
+.pd-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--ac-line-2, #eef1f7); }
+.pd-h { margin: 0; font-size: .8rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ac-mute, #94a3b8); }
+.pd-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.pd-filter .form-control, .pd-filter .form-select { flex: 1 1 150px; max-width: 220px; }
+.pd-card .table th:first-child, .pd-card .table td:first-child { padding-left: 1.5rem; }
+.pd-card .table th:last-child, .pd-card .table td:last-child { padding-right: 1.5rem; }
+.pd-sub { font-size: .74rem; font-weight: 600; color: var(--ac-mute, #94a3b8); }
+.pd-empty { text-align: center; padding: 3rem 1rem !important; color: var(--ac-mute, #94a3b8); font-weight: 700; }
+.pd-chip { display: inline-block; min-width: 2.4rem; padding: .18rem .7rem; border-radius: 999px; text-align: center; font-size: .78rem; font-weight: 800; font-variant-numeric: tabular-nums;
+    color: var(--tone); background: color-mix(in srgb, var(--tone) 12%, transparent); border: 1px solid color-mix(in srgb, var(--tone) 28%, transparent); }
+
+/* Book picker in the modal */
+.pd-pick { position: relative; }
+.pd-list { position: absolute; z-index: 30; left: 12px; right: 12px; top: calc(100% - 2px); max-height: 260px; overflow: auto; padding: .35rem;
+    background: var(--ac-surface, #fff); border: 1px solid var(--ac-line, #e6eaf2); border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(15, 23, 42, .3); }
+.pd-list[hidden], .pd-hint[hidden] { display: none; }
+.pd-list button { display: flex; justify-content: space-between; gap: .75rem; width: 100%; text-align: left; padding: .55rem .7rem; border: 0; background: transparent; border-radius: 10px; cursor: pointer; }
+.pd-list button:hover, .pd-list button:focus { background: #eef4ff; outline: 0; }
+.pd-list small { color: #64748b; white-space: nowrap; }
+.pd-hint { margin-top: .4rem; font-size: .78rem; font-weight: 700; color: #475569; display: flex; gap: 1rem; flex-wrap: wrap; }
+.pd-hint b { color: #d97706; }
+
+@media (max-width: 1199.98px) { .pd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 575.98px) {
+    .pd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .pd-toolbar { padding: 1rem; }
+    .pd-card .table th:first-child, .pd-card .table td:first-child { padding-left: 1rem; }
+    .pd-card .table th:last-child, .pd-card .table td:last-child { padding-right: 1rem; }
+    .pd-filter .form-control, .pd-filter .form-select { max-width: none; flex-basis: 100%; }
+}
+body.dark-mode .pd-list button:hover, body.dark-mode .pd-list button:focus { background: rgba(59, 130, 246, .15); }

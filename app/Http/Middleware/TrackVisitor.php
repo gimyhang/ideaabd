@@ -20,7 +20,7 @@ class TrackVisitor
         // Only track GET web requests, ignore static assets, API calls, and Admin routes to keep stats accurate
         if ($request->isMethod('GET') && !$request->ajax() && !$request->is('admin*', 'storage*', 'css*', 'js*', 'images*', 'vendor*', 'favicon*', 'api*')) {
             try {
-                if (Schema::hasTable('visitor_logs')) {
+                if (\Illuminate\Support\Facades\Cache::remember('schema_has_visitor_logs', 86400, fn () => Schema::hasTable('visitor_logs'))) {
                     $userAgent = (string) ($request->userAgent() ?? '');
                     
                     // 1. Device Type & Exact Hardware/Brand Model parsing

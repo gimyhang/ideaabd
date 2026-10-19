@@ -4,8 +4,6 @@
  * Pairs with resources/views/layouts/header.blade.php
  */
 
-@import url('https://fonts.maateen.me/kalpurush/font.css');
-@import url('https://fonts.maateen.me/nikosh/font.css');
 
 :root {
     --sh-brand: #0066cc;
@@ -1425,3 +1423,84 @@ body {
     outline: none !important;
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.35) !important;
 }
+
+/* ── Mobile drawer must sit above the sticky site header (header layers use z-index 1060–1090) ── */
+.offcanvas.site-offcanvas { z-index: 2600 !important; height: 100dvh; max-height: 100dvh; }
+.offcanvas-backdrop { z-index: 2590 !important; }
+.site-offcanvas .offcanvas-header { padding-top: calc(.75rem + env(safe-area-inset-top)); flex: 0 0 auto; }
+.site-offcanvas .offcanvas-body { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+body.offcanvas-open-lock { overflow: hidden; }
+
+/* ── Mobile drawer: quick links + portals ── */
+.md-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: .45rem; padding-top: .7rem; margin-top: .2rem; border-top: 1px solid rgba(255, 255, 255, .18); }
+.md-quick__item {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; min-height: 58px; padding: .4rem .2rem;
+    border-radius: 12px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2);
+    color: #fff; text-decoration: none; font-size: .72rem; font-weight: 700; transition: background .15s, transform .15s;
+}
+.md-quick__item i { font-size: 1rem; color: #fde68a; }
+.md-quick__item:nth-child(2) i { color: #fdba74; } .md-quick__item:nth-child(3) i { color: #fda4af; } .md-quick__item:nth-child(4) i { color: #86efac; }
+.md-quick__item:hover, .md-quick__item:active { background: rgba(255, 255, 255, .24); color: #fff; transform: translateY(-1px); }
+
+.md-portals { display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; margin-top: .7rem; }
+.md-portals:has(.md-portal:only-child) { grid-template-columns: 1fr; }
+.md-portal {
+    display: flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 12px; text-decoration: none;
+    font-weight: 800; font-size: .95rem; letter-spacing: .01em; color: #fff; border: 1px solid rgba(255, 255, 255, .25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .22); transition: transform .15s, filter .15s;
+}
+.md-portal:hover, .md-portal:active { color: #fff; filter: brightness(1.1); transform: translateY(-1px); }
+.md-portal--admin { background: linear-gradient(135deg, #f59e0b, #d97706); color: #1f1300; }
+.md-portal--admin:hover, .md-portal--admin:active { color: #1f1300; }
+.md-portal--seller { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+.md-portal--publisher { background: linear-gradient(135deg, #22c55e, #15803d); }
+.md-portal--author { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+/* Drawer: keep content in normal flow, scroll anchoring off so late-loading images never push the card out of view */
+.site-offcanvas .offcanvas-body { overflow-anchor: none; scroll-padding-top: 0; }
+.site-offcanvas .offcanvas-body > .card:first-child { flex-shrink: 0; }
+
+/* ── Account dropdown: never clipped or covered when the viewport/device changes ── */
+.site-actions, .user-header-dropdown { position: relative; z-index: 3000; }
+.user-header-dropdown > .dropdown-menu { z-index: 3000 !important; max-height: min(80vh, 620px); overflow-y: auto; overscroll-behavior: contain; }
+
+@media (max-width: 991.98px) {
+    /* Floating sheet anchored under the header button (top is set by JS), full width minus gutters */
+    .user-header-dropdown > .dropdown-menu {
+        position: fixed !important;
+        left: 10px !important; right: 10px !important; top: var(--acct-menu-top, 72px) !important;
+        width: auto !important; max-width: 420px; margin: 0 0 0 auto !important;
+        max-height: calc(100dvh - var(--acct-menu-top, 72px) - 12px);
+        transform: none !important;
+    }
+}
+
+/* ── Drawer account block: plain block, never shrinks or clips (replaces the Bootstrap .card) ── */
+.site-offcanvas .offcanvas-body { display: block; }
+.md-account {
+    display: block; flex: none; height: auto; min-height: max-content; overflow: visible;
+    margin-bottom: 1rem; padding: .9rem; color: #fff; border-radius: 18px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); box-shadow: 0 6px 18px rgba(15, 23, 42, .25);
+}
+.md-account h6, .md-account .badge { max-width: 100%; }
+
+/* ── Drawer main menu: distinct tile buttons, 2 per row ── */
+.md-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; padding: 0; background: transparent; border: 0; }
+.md-menu .site-m-link {
+    position: relative; display: flex !important; align-items: center; justify-content: center !important; text-align: center;
+    min-height: 52px; padding: .55rem .6rem !important; border-radius: 14px !important;
+    background: #fff !important; color: #1f2937 !important; border: 1.5px solid #e5e7eb; font-size: .92rem !important; font-weight: 700;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06); transition: transform .12s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+.md-menu .site-m-link > span:first-child { justify-content: center; width: 100%; min-width: 0; }
+.md-menu .site-m-link > span:first-child span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.md-menu .site-m-link:hover, .md-menu .site-m-link:focus-visible { border-color: #93c5fd; box-shadow: 0 4px 12px rgba(37, 99, 235, .14); }
+.md-menu .site-m-link:active { transform: scale(.97); }
+.md-menu .site-m-link .badge, .md-menu .site-m-link > i.fa-chevron-right, .md-menu .site-m-link i.fa-house { display: none !important; }
+/* current page */
+.md-menu .site-m-link.bg-primary {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; color: #fff !important; border-color: #1d4ed8;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, .35);
+}
+.md-menu .site-m-link.bg-primary::after { content: ''; position: absolute; right: 9px; top: 9px; width: 7px; height: 7px; border-radius: 50%; background: #fde047; box-shadow: 0 0 0 3px rgba(253, 224, 71, .3); }
+body.dark-mode .md-menu .site-m-link { background: #111827 !important; color: #f1f5f9 !important; border-color: #334155; }

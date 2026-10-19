@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'E-commerce Book Orders & Billing')
-@section('heading', 'E-Commerce Book Orders & Invoices')
+@section('heading', 'Book Orders')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

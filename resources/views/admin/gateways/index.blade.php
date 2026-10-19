@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Payment Gateway Reports & Transactions')
-@section('heading', 'Payment Gateway Reports & Transaction Logs')
+@section('heading', 'Gateway Reports')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.payments.index') }}">Payment Gateways</a></li>

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Payments & Gateway Settings — ideaabd')
-@section('heading', 'Payments & Gateway Settings')
+@section('heading', 'Payments')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/admin-payments.css') }}">

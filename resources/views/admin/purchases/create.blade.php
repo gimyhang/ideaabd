@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'New Purchase Order Entry')
-@section('heading', 'New Purchase Order Entry')
+@section('heading', 'New Purchase')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
     <li class="breadcrumb-item active" aria-current="page">New Purchase Order</li>

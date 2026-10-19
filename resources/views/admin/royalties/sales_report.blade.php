@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'E-Book Sales Report & Revenue')
-@section('heading', 'E-Book Sales Report & Royalty Share (৫০% Model)')
+@section('heading', 'E-Book Sales')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.ebooks') }}">E-Books</a></li>

@@ -19,7 +19,7 @@ class AdminAccessService
     public function log(string $actionType, string $description, ?string $targetType = null, ?int $targetId = null): void
     {
         try {
-            if (! Schema::hasTable('admin_activity_logs')) {
+            if (! \App\Support\SchemaCache::has('admin_activity_logs')) {
                 return;
             }
 
@@ -42,9 +42,9 @@ class AdminAccessService
      */
     public function getIamSummaryStats(): array
     {
-        $totalRoles = Schema::hasTable('admin_roles') ? AdminRole::where('is_active', true)->count() : 4;
-        $customRoles = Schema::hasTable('admin_roles') ? AdminRole::where('is_system', false)->count() : 0;
-        $totalPermissions = Schema::hasTable('admin_permissions') ? AdminPermission::count() : 0;
+        $totalRoles = \App\Support\SchemaCache::has('admin_roles') ? AdminRole::where('is_active', true)->count() : 4;
+        $customRoles = \App\Support\SchemaCache::has('admin_roles') ? AdminRole::where('is_system', false)->count() : 0;
+        $totalPermissions = \App\Support\SchemaCache::has('admin_permissions') ? AdminPermission::count() : 0;
         
         $managedRoles = [User::ROLE_SUB_ADMIN, User::ROLE_SELLER, 'operations_manager', 'chief_editor', 'digital_marketer', 'tech_admin', 'finance_controller', 'support_agent'];
         
@@ -58,7 +58,7 @@ class AdminAccessService
         $suspendedStaff = (clone $subordinateStaffQuery)->where('is_active', false)->count();
 
         $directOverridesCount = 0;
-        if (Schema::hasTable('user_has_permissions')) {
+        if (\App\Support\SchemaCache::has('user_has_permissions')) {
             $directOverridesCount = DB::table('user_has_permissions')->distinct('user_id')->count('user_id');
         }
 
@@ -78,7 +78,7 @@ class AdminAccessService
      */
     public function getAllRoles()
     {
-        if (! Schema::hasTable('admin_roles')) {
+        if (! \App\Support\SchemaCache::has('admin_roles')) {
             return collect();
         }
 
@@ -90,7 +90,7 @@ class AdminAccessService
      */
     public function getPermissionsGrouped()
     {
-        if (! Schema::hasTable('admin_permissions')) {
+        if (! \App\Support\SchemaCache::has('admin_permissions')) {
             return collect();
         }
 
@@ -103,7 +103,7 @@ class AdminAccessService
     public function getRolePermissionsMap(): array
     {
         $map = [];
-        if (! Schema::hasTable('role_has_permissions')) {
+        if (! \App\Support\SchemaCache::has('role_has_permissions')) {
             return $map;
         }
 
@@ -120,7 +120,7 @@ class AdminAccessService
      */
     public function syncMatrix(array $permissionsByRole): void
     {
-        if (! Schema::hasTable('role_has_permissions')) {
+        if (! \App\Support\SchemaCache::has('role_has_permissions')) {
             return;
         }
 
@@ -507,7 +507,7 @@ class AdminAccessService
     public function recentLogs(int $limit = 20)
     {
         try {
-            if (! Schema::hasTable('admin_activity_logs')) {
+            if (! \App\Support\SchemaCache::has('admin_activity_logs')) {
                 return collect();
             }
 
@@ -530,7 +530,7 @@ class AdminAccessService
         }
 
         try {
-            if (! Schema::hasTable('admin_permissions') || ! Schema::hasTable('role_has_permissions')) {
+            if (! \App\Support\SchemaCache::has('admin_permissions') || ! \App\Support\SchemaCache::has('role_has_permissions')) {
                 return true;
             }
 
@@ -559,10 +559,10 @@ class AdminAccessService
 
         $pendingModeration = 0;
         try {
-            if (Schema::hasTable('books')) {
+            if (\App\Support\SchemaCache::has('books')) {
                 $pendingModeration += DB::table('books')->where('status', 'pending')->count();
             }
-            if (Schema::hasTable('ebooks')) {
+            if (\App\Support\SchemaCache::has('ebooks')) {
                 $pendingModeration += DB::table('ebooks')->where('status', 'pending')->count();
             }
         } catch (\Throwable) {}
@@ -689,7 +689,7 @@ class AdminAccessService
         ];
 
         // Also merge any custom roles from admin_roles table
-        if (Schema::hasTable('admin_roles')) {
+        if (\App\Support\SchemaCache::has('admin_roles')) {
             $customDbRoles = AdminRole::where('is_active', true)->get();
             $knownSlugs = array_column($systemRoles, 'slug');
             foreach ($customDbRoles as $dr) {
@@ -795,7 +795,7 @@ class AdminAccessService
         $user->save();
 
         // Clear any direct permission overrides
-        if (Schema::hasTable('user_has_permissions')) {
+        if (\App\Support\SchemaCache::has('user_has_permissions')) {
             DB::table('user_has_permissions')->where('user_id', $user->id)->delete();
         }
 

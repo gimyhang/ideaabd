@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @section('title', 'Salary & Wages Disbursement — Idea Prokashon')
 
 @section('content')

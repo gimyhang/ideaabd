@@ -53,10 +53,24 @@ class RoleMiddleware
         'admin.payments.index'                     => 'orders.view',
         
         // Accounting, Invoices & Payroll
+        'admin.purchases.stationery'               => 'purchases.manage',
+        'admin.purchases.electronics'              => 'purchases.manage',
+        'admin.purchases.items.store'              => 'purchases.manage',
+        'admin.purchases.items.products'           => 'purchases.manage',
+        'admin.purchases.items.stock'              => 'purchases.manage',
+        'admin.production.index'                   => 'catalog.view',
+        'admin.production.books'                   => 'catalog.view',
+        'admin.production.store'                   => 'catalog.stock_update',
+        'admin.production.destroy'                 => 'catalog.stock_update',
         'admin.accounting.index'                   => 'accounting.view',
         'admin.accounting.entries.store'           => 'accounting.ledger_manage',
         'admin.accounting.entries.destroy'         => 'accounting.ledger_manage',
         'admin.accounting.invoices.index'          => 'accounting.view',
+        'admin.accounting.invoices.item-suggest'   => 'accounting.ledger_manage',
+        'admin.accounting.print-rates.index'       => 'accounting.ledger_manage',
+        'admin.accounting.print-rates.store'       => 'accounting.ledger_manage',
+        'admin.accounting.print-rates.adjust'      => 'accounting.ledger_manage',
+        'admin.accounting.print-rates.destroy'     => 'accounting.ledger_manage',
         'admin.accounting.invoices.export'         => 'accounting.view',
         'admin.accounting.invoices.bulk-action'    => 'accounting.ledger_manage',
         'admin.accounting.invoices.create'         => 'accounting.ledger_manage',
@@ -317,6 +331,18 @@ class RoleMiddleware
                 }
 
                 abort(403, "অ্যাক্সেস সংরক্ষিত: অ্যাডমিন আপনার রোলে '{$requiredPermission}' পারমিশনটি বন্ধ রেখেছেন। এই কাজের জন্য অ্যাডমিনের অনুমতি প্রয়োজন।");
+            }
+        }
+
+        // 6. Inventory module routes (admin.inventory.* and inventory.* API) are not individually mapped:
+        //    reads need catalog.view, anything that changes stock needs catalog.stock_update.
+        if ($routeName && (str_starts_with($routeName, 'admin.inventory.') || str_starts_with($routeName, 'inventory.'))) {
+            $required = $request->isMethodSafe() ? 'catalog.view' : 'catalog.stock_update';
+            if (!$user->hasPermission($required)) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'অনুমতি নেই।'], 403);
+                }
+                abort(403, "অ্যাক্সেস সংরক্ষিত: '{$required}' পারমিশন প্রয়োজন।");
             }
         }
 

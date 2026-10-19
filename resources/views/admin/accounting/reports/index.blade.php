@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @section('title', 'Financial Reports — Idea Accounting')
 @section('heading', 'Reports')
 
@@ -452,6 +456,15 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    if (window.Chart) {
+        Chart.defaults.font.family = 'inherit';
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.backgroundColor = '#0f172a';
+        Chart.defaults.plugins.tooltip.cornerRadius = 12;
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+        Chart.defaults.elements.line.borderCapStyle = 'round';
+    }
     // 1. Interactive Trend Chart
     const trendData = @json($trendDataset ?? []);
     const labels = trendData.map(d => d.label);

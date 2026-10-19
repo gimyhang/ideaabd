@@ -24,8 +24,8 @@ class LoginController extends Controller
     private static array $challengeCategories = [
         'traffic_signs' => [
             'key'   => 'traffic_signs',
-            'title' => 'ট্রাফিক সাইন / Traffic Signs',
-            'desc'  => 'ট্রাফিক লাইট বা রোডের সংকেত চিহ্ন',
+            'title' => 'Traffic Signs',
+            'desc'  => 'Traffic lights and road signs',
             'icon'  => 'fa-traffic-light',
             'color' => '#dc2626',
             'items' => [
@@ -39,8 +39,8 @@ class LoginController extends Controller
         ],
         'vehicles' => [
             'key'   => 'vehicles',
-            'title' => 'যানবাহন বা গাড়ি / Vehicles & Cars',
-            'desc'  => 'গাড়ি, বাস, ট্রাক বা যানবাহন',
+            'title' => 'Vehicles & Cars',
+            'desc'  => 'Cars, buses and trucks',
             'icon'  => 'fa-car-side',
             'color' => '#0284c7',
             'items' => [
@@ -54,8 +54,8 @@ class LoginController extends Controller
         ],
         'books' => [
             'key'   => 'books',
-            'title' => 'বই ও পড়াশোনা / Books & Study',
-            'desc'  => 'বই, লাইব্রেরি বা পড়ার সামগ্রী',
+            'title' => 'Books & Study',
+            'desc'  => 'Books and study items',
             'icon'  => 'fa-book-open',
             'color' => '#16a34a',
             'items' => [
@@ -69,8 +69,8 @@ class LoginController extends Controller
         ],
         'nature' => [
             'key'   => 'nature',
-            'title' => 'গাছ ও প্রকৃতি / Trees & Nature',
-            'desc'  => 'গাছ, পাতা বা প্রাকৃতিক উপাদান',
+            'title' => 'Trees & Nature',
+            'desc'  => 'Trees and leaves',
             'icon'  => 'fa-tree',
             'color' => '#059669',
             'items' => [
@@ -84,8 +84,8 @@ class LoginController extends Controller
         ],
         'animals' => [
             'key'   => 'animals',
-            'title' => 'পশুপাখি / Animals & Birds',
-            'desc'  => 'বিড়াল, কুকুর বা জীবজন্তু',
+            'title' => 'Animals & Birds',
+            'desc'  => 'Animals and birds',
             'icon'  => 'fa-paw',
             'color' => '#d97706',
             'items' => [
@@ -99,8 +99,8 @@ class LoginController extends Controller
         ],
         'food' => [
             'key'   => 'food',
-            'title' => 'খাবার ও পানীয় / Food & Beverages',
-            'desc'  => 'চা, কফি বা খাবার সামগ্রী',
+            'title' => 'Food & Beverages',
+            'desc'  => 'Food and drinks',
             'icon'  => 'fa-mug-hot',
             'color' => '#ea580c',
             'items' => [
@@ -114,8 +114,8 @@ class LoginController extends Controller
         ],
         'tech' => [
             'key'   => 'tech',
-            'title' => 'ডিজিটাল ডিভাইস / Tech Devices',
-            'desc'  => 'ল্যাপটপ, কম্পিউটার বা গ্যাজেট',
+            'title' => 'Tech Devices',
+            'desc'  => 'Gadgets and devices',
             'icon'  => 'fa-laptop',
             'color' => '#4f46e5',
             'items' => [
@@ -160,14 +160,14 @@ class LoginController extends Controller
         foreach ($selectedTargets as $item) {
             $allTiles[] = [
                 'icon'     => $item['icon'],
-                'label'    => $item['bn'],
+                'label'    => $item['name'],
                 'is_match' => true,
             ];
         }
         foreach ($selectedDecoys as $item) {
             $allTiles[] = [
                 'icon'     => $item['icon'],
-                'label'    => $item['bn'],
+                'label'    => $item['name'],
                 'is_match' => false,
             ];
         }
@@ -304,7 +304,7 @@ class LoginController extends Controller
         if (!$storedChallenge) {
             return response()->json([
                 'success' => false,
-                'message' => 'চ্যালেঞ্জ মেয়াদোত্তীর্ণ হয়েছে। অনুগ্রহ করে নতুন চ্যালেঞ্জ নিন।',
+                'message' => 'Challenge expired. Try a new one.',
                 'new_challenge' => self::createVisualChallenge(),
             ], 422);
         }
@@ -324,7 +324,7 @@ class LoginController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'মানুষ প্রমাণ যাচাই সফল হয়েছে! এখন পাসওয়ার্ড দিয়ে লগইন করুন।',
+                'message' => 'Verified. Now sign in.',
             ]);
         }
 
@@ -333,7 +333,7 @@ class LoginController extends Controller
 
         return response()->json([
             'success'       => false,
-            'message'       => 'সঠিক ছবিগুলো চিহ্নিত করা হয়নি! অনুগ্রহ করে নতুন ছবিতে সাইনগুলো চিহ্নিত করুন।',
+            'message'       => 'Wrong selection. Try a new challenge.',
             'new_challenge' => $newChallenge,
         ], 422);
     }
@@ -344,7 +344,7 @@ class LoginController extends Controller
 
         // 1. Invisible Honeypot Bot Check
         if ($request->filled('website_url_hp') || $request->filled('b_check_field')) {
-            $msg = 'স্বয়ংক্রিয় রোবট কার্যকলাপ সনাক্ত হয়েছে। অনুগ্রহ করে সাধারণ ব্রাউজার ব্যবহার করুন।';
+            $msg = 'Automated activity detected.';
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -355,7 +355,7 @@ class LoginController extends Controller
         $password   = (string) $request->input('password', '');
 
         if ($loginInput === '' || $password === '') {
-            $msg = 'ইমেইল/ইউজারনেম এবং পাসওয়ার্ড দিন।';
+            $msg = 'Enter email and password.';
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -365,7 +365,7 @@ class LoginController extends Controller
         // 2. Intelligent IP Security & Progressive Delay Check
         $ipStatus = LoginSecurityLog::checkIpStatus($request->ip(), $loginInput);
         if ($ipStatus['status'] === 'blocked') {
-            $msg = "নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ চেষ্টার কারণে এই আইপি অ্যাড্রেসটি ({$request->ip()}) ব্লক করা হয়েছে। অ্যাকাউন্ট ফিরে পেতে অ্যাডমিনের সাথে যোগাযোগ করুন।";
+            $msg = "Too many failed attempts. This IP ({$request->ip()}) is blocked.";
             if ($isAjax) {
                 return response()->json(['success' => false, 'is_blocked' => true, 'message' => $msg], 422);
             }
@@ -375,8 +375,8 @@ class LoginController extends Controller
         if ($ipStatus['status'] === 'locked') {
             $remainingSec = $ipStatus['remaining_seconds'] ?? 30;
             $msg = ($remainingSec >= 60)
-                ? "একাধিক ভুল চেষ্টার কারণে লগইন সাময়িক স্থগিত করা হয়েছে। অনুগ্রহ করে " . ceil($remainingSec / 60) . " মিনিট পর আবার চেষ্টা করুন।"
-                : "একাধিক ভুল চেষ্টার কারণে লগইন সাময়িক স্থগিত করা হয়েছে। অনুগ্রহ করে {$remainingSec} সেকেন্ড পর আবার চেষ্টা করুন।";
+                ? "Too many attempts. Try again in " . ceil($remainingSec / 60) . " min."
+                : "Too many attempts. Try again in {$remainingSec} sec.";
             if ($isAjax) {
                 return response()->json([
                     'success'           => false,
@@ -406,7 +406,7 @@ class LoginController extends Controller
 
             if (!$isVerified) {
                 Session::flash('show_captcha', true);
-                $msg = 'নিরাপত্তা সতর্কতা: একাধিক ব্যর্থ লগইন চেষ্টার কারণে CAPTCHA যাচাইকরণ আবশ্যক। সঠিক কোড দিন।';
+                $msg = 'Verify the CAPTCHA to continue.';
                 if ($isAjax) {
                     return response()->json([
                         'success'          => false,
@@ -425,7 +425,7 @@ class LoginController extends Controller
         $throttleKey = 'login_attempt:' . sha1($request->ip() . '|' . strtolower($loginInput));
         if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            $msg = "খুব বেশি ভুল লগইন চেষ্টা করা হয়েছে! অনুগ্রহ করে {$seconds} সেকেন্ড পর আবার চেষ্টা করুন।";
+            $msg = "Too many attempts. Try again in {$seconds} sec.";
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $msg], 429);
             }
@@ -543,9 +543,9 @@ class LoginController extends Controller
 
                 if (isset($matchedUser->is_active) && ! $matchedUser->is_active) {
                     if ($isPendingAccount) {
-                        $msg = "আপনার {$roleName} অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।";
+                        $msg = "Your {$roleName} account is pending admin approval.";
                     } else {
-                        $msg = 'আপনার অ্যাকাউন্টটি নিষ্ক্রিয় করা আছে। কর্তৃপক্ষের সাথে যোগাযোগ করুন।';
+                        $msg = 'Your account is disabled. Contact support.';
                     }
                     if ($isAjax) {
                         return response()->json(['success' => false, 'message' => $msg, 'pending_approval' => true], 422);
@@ -554,7 +554,7 @@ class LoginController extends Controller
                 }
 
                 if ($matchedUser->reg_status === 'pending' && in_array($matchedUser->role, ['author', 'publisher', 'seller', 'vendor'], true)) {
-                    $msg = "আপনার {$roleName} অ্যাকাউন্টটি অ্যাডমিন অনুমোদনের অপেক্ষায় রয়েছে। অ্যাডমিন কর্তৃক অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।";
+                    $msg = "Your {$roleName} account is pending admin approval.";
                     if ($isAjax) {
                         return response()->json(['success' => false, 'message' => $msg, 'pending_approval' => true], 422);
                     }
@@ -573,13 +573,13 @@ class LoginController extends Controller
                 if ($isAjax) {
                     return response()->json([
                         'success'  => true,
-                        'message'  => 'লগইন সফল হয়েছে!',
+                        'message'  => 'Signed in.',
                         'redirect' => $redirectUrl,
                     ]);
                 }
 
                 if (!empty($matchedUser->must_change_password)) {
-                    return redirect()->route('my-account')->with('warning', 'আপনি নতুন পাসওয়ার্ড/ওটিপি দিয়ে লগইন করেছেন। অনুগ্রহ করে প্রোফাইল থেকে একটি স্থায়ী পাসওয়ার্ড সেট করুন।');
+                    return redirect()->route('my-account')->with('warning', 'Signed in. Your account is pending approval.');
                 }
 
                 return redirect()->to($redirectUrl);
@@ -593,7 +593,7 @@ class LoginController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            $msg = 'লগইন প্রক্রিয়ায় সাময়িক সমস্যা দেখা দিয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন বা অ্যাডমিনের সাথে যোগাযোগ করুন।';
+            $msg = 'Sign in failed. Try again.';
             if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -621,8 +621,8 @@ class LoginController extends Controller
                     'phone'            => $firstCandidate->phone,
                     'name'             => $firstCandidate->name,
                     'message'          => $isUnverifiedAccount
-                        ? 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট বা মোবাইল ভেরিফিকেশন করা হয়নি। ওটিপি (OTP) দিয়ে ভেরিফাই করে নতুন পাসওয়ার্ড সেট করুন।'
-                        : ($failResult['message'] ?? 'পাসওয়ার্ড সঠিক নয়। পাসওয়ার্ড ভুলে গেলে ওটিপি দিয়ে নতুন পাসওয়ার্ড সেট করুন।'),
+                        ? 'Set a password or verify your phone.'
+                        : ($failResult['message'] ?? 'Wrong password. Use OTP to reset.'),
                 ], 422);
             }
 
@@ -633,18 +633,18 @@ class LoginController extends Controller
                 'attempts'         => $failResult['count'] ?? 1,
                 'cooldown_seconds' => $failResult['cooldown_seconds'] ?? 0,
                 'is_blocked'       => ($failResult['action'] ?? '') === 'auto_blocked',
-                'message'          => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
+                'message'          => $failResult['message'] ?? 'Wrong email or password.',
             ], 422);
         }
 
         if ($isUnverifiedAccount) {
             throw ValidationException::withMessages([
-                'email' => 'আপনার অ্যাকাউন্টে পাসওয়ার্ড সেট করা হয়নি। অনুগ্রহ করে ওটিপি (OTP) দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন।',
+                'email' => 'No password set. Use OTP to create one.',
             ]);
         }
 
         throw ValidationException::withMessages([
-            'email' => $failResult['message'] ?? 'ইমেইল/ইউজারনেম বা পাসওয়ার্ড সঠিক নয়।',
+            'email' => $failResult['message'] ?? 'Wrong email or password.',
         ]);
     }
 
@@ -656,7 +656,7 @@ class LoginController extends Controller
         $request->validate([
             'phone' => ['required', 'string', 'max:50'],
         ], [
-            'phone.required' => 'আপনার নিবন্ধিত মোবাইল নম্বর দিন।',
+            'phone.required' => 'Enter your phone number.',
         ]);
 
         $bn = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
@@ -665,7 +665,7 @@ class LoginController extends Controller
         $cleanDigits = preg_replace('/[^\d]/', '', $rawPhone);
 
         if (strlen($cleanDigits) < 8) {
-            $msg = 'সঠিক মোবাইল নম্বর প্রদান করুন।';
+            $msg = 'Enter a valid phone number.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -817,7 +817,7 @@ class LoginController extends Controller
         }
 
         if (!$matchedPayload) {
-            $msg = 'ভুল অথবা মেয়াদোত্তীর্ণ ওটিপি (OTP) কোড। অনুগ্রহ করে নতুন কোড নিন।';
+            $msg = 'Wrong or expired code.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
@@ -847,7 +847,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         $targetUrl = $request->input('redirect_to') ?: ($user->isAdmin() ? route('admin.dashboard') : route('home'));
-        $msg = 'অভিনন্দন! আপনার পাসওয়ার্ড সফলভাবে সেট হয়েছে এবং সাইন ইন সম্পন্ন হয়েছে।';
+        $msg = 'Password set. Signed in.';
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
@@ -892,6 +892,6 @@ class LoginController extends Controller
             ]);
         }
 
-        return redirect($redirectTo)->with('success', 'সফলভাবে লগআউট সম্পন্ন হয়েছে।');
+        return redirect($redirectTo)->with('success', 'Signed out.');
     }
 }

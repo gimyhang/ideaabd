@@ -1,114 +1,54 @@
 @php
-    $finalPrice = (float)$product->final_price;
-    $regularPrice = (float)$product->price;
-    $discPrice = (float)($product->discount_price ?? 0);
+    $finalPrice = (float) $product->final_price;
+    $regularPrice = (float) $product->price;
+    $discPrice = (float) ($product->discount_price ?? 0);
     $hasDiscount = $discPrice > 0 && $discPrice < $regularPrice;
     $discountPercent = $product->discount_percent;
-    $rating = (float)($product->rating ?? 4.8);
-    $reviewsCount = (int)($product->reviews_count ?? 12);
+    $rating = max(0, min(5, (float) ($product->rating ?? 5)));
+    $reviewsCount = (int) ($product->reviews_count ?? 0);
     $imgUrl = $product->image_url;
     $productUrl = route('products.show', ['type' => $product->type, 'slug' => $product->slug]);
-    $isInStock = (int)$product->stock > 0 && $product->stock_status !== 'out_of_stock';
+    $isInStock = (int) $product->stock > 0 && $product->stock_status !== 'out_of_stock';
 @endphp
 
-<div class="card h-100 w-100 border-0 shadow-sm rounded-4 d-flex flex-column position-relative bg-white idea-product-card transition-all hover-lift"
-     style="padding: 10px; border: 1px solid #eef2f6 !important;">
-    
-    <!-- Image Box -->
-    <div class="position-relative overflow-hidden rounded-3 mb-2 w-100 product-img-box d-flex align-items-center justify-content-center"
-         style="aspect-ratio: 1 / 1; width: 100%; height: auto; background: #fafafa; border: 1px solid #f1f5f9; padding: 8px;">
-        
-        <a href="{{ $productUrl }}" class="d-flex align-items-center justify-content-center w-100 h-100 text-decoration-none">
-            <img src="{{ $imgUrl }}" 
-                 alt="{{ $product->title }}" 
-                 class="w-100 h-100 object-fit-contain d-block product-thumb transition-all"
-                 loading="lazy"
-                 onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\' viewBox=\'0 0 300 300\'><rect width=\'300\' height=\'300\' fill=\'%23f8fafc\'/><text x=\'50%25\' y=\'52%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%230284c7\' font-size=\'18\' font-weight=\'bold\' font-family=\'sans-serif\'>Idea Shop</text></svg>';">
-        </a>
+{{-- Marketplace-style card: image · name · offer price + small old price · ★★★★★ --}}
+<article class="dz-card {{ $isInStock ? '' : 'is-soldout' }}">
+    <a href="{{ $productUrl }}" class="dz-card__media" aria-label="{{ $product->title }}">
+        <img src="{{ $imgUrl }}" alt="{{ $product->title }}" width="400" height="400" loading="lazy" decoding="async"
+             onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'><rect width=\'300\' height=\'300\' fill=\'%23f1f5f9\'/></svg>';">
+        @if(!$isInStock)<span class="dz-card__sold">স্টক শেষ</span>@endif
+    </a>
 
-        <!-- Offer Discount Badge on Product Head (প্রোডাক্টের মাথায় ছাড় ব্যাজ) -->
-        @if($hasDiscount)
-            <span class="position-absolute top-0 start-0 m-1.5 badge bg-danger text-white rounded-pill fw-bold px-2 py-0.5 shadow-xs" style="font-size: 0.7rem; z-index: 4;">
-                -{{ $discountPercent }}% ছাড়
-            </span>
-        @endif
+    <div class="dz-card__body">
+        <a href="{{ $productUrl }}" class="dz-card__name" title="{{ $product->title }}">{{ $product->title }}</a>
 
-        <!-- Out of Stock Badge -->
-        @if(!$isInStock)
-            <span class="position-absolute {{ $hasDiscount ? 'top-0 end-0' : 'top-0 start-0' }} m-1.5 badge bg-dark bg-opacity-75 text-white rounded-pill fw-bold px-2 py-0.5" style="font-size: 0.65rem; z-index: 4;">
-                স্টক শেষ
-            </span>
-        @endif
-
-        <!-- Quick View Overlay Button -->
-        <button type="button" 
-                class="btn btn-light btn-sm rounded-circle position-absolute bottom-0 end-0 m-1.5 shadow-sm d-inline-flex align-items-center justify-content-center p-0 product-quickview-btn"
-                style="width: 28px; height: 28px; z-index: 5; opacity: 0.9;"
-                title="দ্রুত দেখুন"
-                onclick="event.stopPropagation(); window.openProductQuickView({{ $product->id }});">
-            <i class="fa-regular fa-eye text-dark" style="font-size: 10px;"></i>
-        </button>
-    </div>
-    
-    <!-- Info & Actions Body (Center Aligned, Device Friendly) -->
-    <div class="d-flex flex-column flex-grow-1 justify-content-between w-100 min-w-0 product-card-body px-1 text-center">
-        
-        <div class="d-flex flex-column align-items-center w-100 text-center">
-            <!-- 1. প্রোডাক্ট নাম (সেন্টার এলাইন) -->
-            <h6 class="fw-bold w-100 mb-1.5 text-center" style="font-size: 13.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px;" title="{{ $product->title }}">
-                <a href="{{ $productUrl }}" class="text-dark text-decoration-none hover-primary d-block">
-                    {{ $product->title }}
-                </a>
-            </h6>
-
-            <!-- 2. মূল্য (সেন্টার এলাইন - ছাড় প্রোডাক্টের মাথায় স্থানান্তর) -->
-            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2 w-100 mb-1.5 product-price-row text-center">
-                <span class="fw-black text-primary" style="font-size: 1.15rem; line-height: 1;">
-                    ৳@bn(round($finalPrice))
-                </span>
-                @if($hasDiscount)
-                    <span class="text-muted text-decoration-line-through small" style="font-size: 0.85rem; line-height: 1;">
-                        ৳@bn(round($regularPrice))
-                    </span>
-                @endif
-            </div>
-
-            <!-- 3. ***** (শুধু ৫টি গোল্ডেন স্টার - সেন্টার এলাইন, 4.8 ও (৪৯) বাদ) -->
-            <div class="d-flex align-items-center justify-content-center w-100 mb-2.5 text-center">
-                <div class="d-inline-flex align-items-center text-warning" style="font-size: 11px; letter-spacing: 2px;">
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add to Cart Action Button -->
-        <div class="mt-auto w-100 product-card-action">
-            @if($isInStock)
-                <button type="button" 
-                        class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5 shadow-2xs hover-lift btn-add-cart-card"
-                        style="font-size: 12px;"
-                        data-product-id="{{ $product->id }}"
-                        data-product-title="{{ $product->title }}"
-                        data-product-price="{{ $finalPrice }}"
-                        data-product-image="{{ $imgUrl }}"
-                        data-product-type="{{ $product->type }}"
-                        onclick="event.stopPropagation(); window.handleCardAddToCart(this);">
-                    <i class="fa-solid fa-cart-shopping" style="font-size: 11px;"></i>
-                    <span>কার্টে নিন</span>
-                </button>
-            @else
-                <button type="button" 
-                        class="btn btn-sm btn-light border text-muted rounded-pill w-100 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 py-1.5"
-                        style="font-size: 12px;" disabled>
-                    <i class="fa-solid fa-ban text-danger" style="font-size: 10px;"></i>
-                    <span>স্টক শেষ</span>
-                </button>
+        <div class="dz-card__price">
+            <span class="dz-card__now">৳@bn(round($finalPrice))</span>
+            @if($hasDiscount)
+                <s class="dz-card__old">৳@bn(round($regularPrice))</s>
+                <span class="dz-card__off">-@bn($discountPercent)%</span>
             @endif
         </div>
 
+        <div class="dz-card__stars" role="img" aria-label="{{ number_format($rating, 1) }} / 5">
+            @for($i = 1; $i <= 5; $i++)
+                <i class="fa-solid fa-star {{ $i <= round($rating) ? 'on' : '' }}"></i>
+            @endfor
+            @if($reviewsCount > 0)<span>(@bn($reviewsCount))</span>@endif
+        </div>
     </div>
-</div>
+
+    <div class="dz-card__tools">
+        <button type="button" class="dz-tool" title="দ্রুত দেখুন" aria-label="দ্রুত দেখুন"
+                onclick="event.stopPropagation(); window.openProductQuickView({{ $product->id }});"><i class="fa-regular fa-eye"></i></button>
+        @if($isInStock)
+            <button type="button" class="dz-tool dz-tool--cart btn-add-cart-card" title="কার্টে নিন" aria-label="কার্টে নিন"
+                    data-product-id="{{ $product->id }}"
+                    data-product-title="{{ $product->title }}"
+                    data-product-price="{{ $finalPrice }}"
+                    data-product-image="{{ $imgUrl }}"
+                    data-product-type="{{ $product->type }}"
+                    onclick="event.stopPropagation(); window.handleCardAddToCart(this);"><i class="fa-solid fa-cart-plus"></i></button>
+        @endif
+    </div>
+</article>

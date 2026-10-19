@@ -16,23 +16,60 @@
     $studioLogoOffsetY = intval($campaign->form_settings['logo_offset_y'] ?? 0);
     $studioLogoBg = $campaign->form_settings['logo_bg'] ?? 'transparent';
 
-    $studioTitle = $campaign->title;
-    $studioSubhead = $campaign->form_settings['form_subhead'] ?? '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে';
-    $studioVenue = $campaign->form_settings['form_venue'] ?? 'স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ';
-    $studioDate = $campaign->form_settings['form_date'] ?? 'তারিখ: ১৩ নভেম্বর ২০২৬';
-    $studioOrg = $campaign->form_settings['form_org'] ?? 'নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com';
-    $studioCopyTag = $campaign->form_settings['form_copy_tag'] ?? 'DELEGATE COPY';
+    $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || $campaign->id === 3 || !empty($campaign->form_settings['is_library_form']));
 
-    $studioThemeColor = $campaign->form_settings['theme_color'] ?? ($campaign->theme_color ?: '#991b1b');
+    $defaultSubhead = $isScholarship
+        ? 'জয়ী শিক্ষাবৃত্তি কর্মসূচি'
+        : ($isLibrary ? 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচি' : '২০ অক্টোবর ১৩তম প্রতিষ্ঠাবার্ষিকী উপলক্ষে');
+
+    $defaultVenue = $isScholarship
+        ? 'স্থান: প্রধান কার্যালয় / অনলাইন'
+        : ($isLibrary ? 'স্থান: আইডিয়া বুকশপ ও প্রকাশন' : 'স্থান: সরকারি টিচার্স ট্রেনিং কলেজ, রংপুর, বাংলাদেশ');
+
+    $defaultNotice = $isScholarship
+        ? 'জয়ী শিক্ষাবৃত্তি আবেদন যাচাই-বাছাই কার্যক্রম চলছে।'
+        : ($isLibrary ? 'পাঠাগার নিবন্ধন ও বই অনুদান কার্যক্রম চলছে।' : 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলার লেখক ও ডেলিগেট নিবন্ধন চলছে। আসন সংখ্যা সীমিত।');
+
+    $defaultCopyTag = $isScholarship ? 'STUDENT COPY' : ($isLibrary ? 'LIBRARY COPY' : 'DELEGATE COPY');
+
+    $studioTitle = $campaign->title;
+    $studioSubhead = $campaign->form_settings['form_subhead'] ?? $defaultSubhead;
+    $studioVenue = $campaign->form_settings['form_venue'] ?? $defaultVenue;
+    $studioDate = $campaign->form_settings['form_date'] ?? 'তারিখ: ' . date('d F Y');
+    $studioOrg = $campaign->form_settings['form_org'] ?? 'নিবন্ধন সহযোগিতায়: আইডিয়া প্রকাশন | www.ideaabd.com';
+    $studioCopyTag = $campaign->form_settings['form_copy_tag'] ?? $defaultCopyTag;
+
+    $studioThemeColor = $campaign->form_settings['theme_color'] ?? ($campaign->theme_color ?: '#0284c7');
     $studioBorderColor = $campaign->form_settings['form_border_color'] ?? '#0f172a';
     $studioBgLabel = $campaign->form_settings['form_bg_label'] ?? '#f8fafc';
     $studioFontFamily = $campaign->form_settings['font_family'] ?? 'Hind Siliguri';
 
     $studioNoticeActive = !empty($campaign->form_settings['form_notice_active']);
     $studioNoticeType = $campaign->form_settings['form_notice_type'] ?? 'info';
-    $studioNoticeText = $campaign->form_settings['form_notice_text'] ?? 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলার লেখক ও ডেলিগেট নিবন্ধন চলছে। আসন সংখ্যা সীমিত।';
+    $studioNoticeText = $campaign->form_settings['form_notice_text'] ?? $defaultNotice;
 
-    $defaultCatsList = [
+    $defaultCatsList = $isScholarship ? [
+        '৬ষ্ঠ শ্রেণি',
+        '৭ম শ্রেণি',
+        '৮ম শ্রেণি',
+        '৯ম শ্রেণি',
+        '১০ম শ্রেণি',
+        'এস.এস.সি / সমমান',
+        'একাদশ শ্রেণি',
+        'দ্বাদশ শ্রেণি',
+        'এইচ.এস.সি / সমমান',
+        'স্নাতক (পাস / সম্মান)',
+        'ফাজিল / কামিল',
+        'অন্যান্য'
+    ] : ($isLibrary ? [
+        'পাবলিক পাঠাগার',
+        'স্কুল পাঠাগার',
+        'কলেজ পাঠাগার',
+        'মাদ্রাসা পাঠাগার',
+        'কমিউনিটি পাঠাগার',
+        'অন্যান্য'
+    ] : [
         'কবি',
         'অনুবাদক',
         'ছড়াকার',
@@ -46,7 +83,7 @@
         'শিল্পী',
         'সংগঠক',
         'অন্যান্য'
-    ];
+    ]);
     $studioCategories = !empty($campaign->form_settings['categories']) && is_array($campaign->form_settings['categories']) && count($campaign->form_settings['categories']) > 0
         ? $campaign->form_settings['categories']
         : $defaultCatsList;

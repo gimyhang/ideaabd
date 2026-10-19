@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'লেখক ও গবেষক ডিরেক্টরি ব্যবস্থাপনা (Authors Directory)')
-@section('heading', 'লেখক ও গবেষক ডিরেক্টরি')
+@section('heading', 'লেখক তালিকা')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>

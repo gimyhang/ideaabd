@@ -31,6 +31,8 @@ use Modules\Book\Models\Book;
 
 class IdeaAccountingController extends Controller
 {
+    private const SELLER_BILL_CATEGORY = 'সেলার বিক্রয় বিল';
+
     /**
      * Unified Dynamic Accounting, Billing & Financial Hub.
      * কেন্দ্রীয় ডাইনামিক রুট: অনলাইন ও অফলাইন বিলিং কনফ্লিক্ট-মুক্ত, সকল আয়, ব্যয়, বিল, মেমো এক জায়গায় সার্চযোগ্য।
@@ -334,7 +336,12 @@ class IdeaAccountingController extends Controller
         $expenseLedgerTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'expense')->sum('amount') : 0.0;
         $incomeCount = $hasEntries ? IdeaAccountingEntry::where('type', 'income')->count() : 0;
         $expenseCount = $hasEntries ? IdeaAccountingEntry::where('type', 'expense')->count() : 0;
-        $directIncomeTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->whereNull('invoice_id')->sum('amount') : 0.0;
+        // Cash actually banked against invoices (net of VAT/tax withheld by the customer).
+        $invoiceCashTotal = $hasEntries ? (float) IdeaAccountingEntry::where('type', 'income')->whereNotNull('invoice_id')->sum('amount') : 0.0;
+        // Manual income only: seller-bill collections are already inside $billsPaid.
+        $directIncomeTotal = $hasEntries
+            ? (float) IdeaAccountingEntry::where('type', 'income')->whereNull('invoice_id')->where('category', '!=', self::SELLER_BILL_CATEGORY)->sum('amount')
+            : 0.0;
 
         $hasPurchases = Schema::hasTable('publisher_purchases');
         $purchasesCount = $hasPurchases ? PublisherPurchase::count() : 0;
@@ -344,7 +351,7 @@ class IdeaAccountingController extends Controller
 
         // Grand KPI Aggregations (100% Deduplicated!)
         $totalTurnover = $invoicesTotal + $unsyncedOrdersAmount + $posAmount + $billsAmount;
-        $totalCollected = $invoicesPaid + $unsyncedOrdersPaid + $posPaid + $billsPaid + $directIncomeTotal;
+        $totalCollected = $invoiceCashTotal + $unsyncedOrdersPaid + $posPaid + $billsPaid + $directIncomeTotal;
         $totalDue = $invoicesDue + $unsyncedOrdersDue + $posDue + $billsDue;
         $totalExpenses = $expenseLedgerTotal + $purchasesAmount;
         $netBalance = $totalCollected - $totalExpenses;
@@ -404,6 +411,8 @@ class IdeaAccountingController extends Controller
             'purchases_count'      => $purchasesCount,
             'invoices_total'       => $invoicesTotal,
             'invoices_paid'        => $invoicesPaid,
+            'invoices_cash'        => $invoiceCashTotal,
+            'invoices_withheld'    => max(0, round($invoicesPaid - $invoiceCashTotal, 2)),
             'invoices_due'         => $invoicesDue,
             'orders_total'         => $allOrdersAmount,
             'pos_total'            => $posAmount,
@@ -1132,55 +1141,57 @@ class IdeaAccountingController extends Controller
             ];
         }
 
-        $dateStr = date('Ymd');
-        $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
-        $invoiceNo = 'IDEA-INV-' . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
-
         $paidAmount = ($order->payment_status === 'paid') ? (float) $order->total_amount : 0.0;
-        $dueAmount = max(0.0, (float) $order->total_amount - $paidAmount);
-        $payStatus = ($dueAmount <= 0.001) ? 'paid' : ($paidAmount > 0.001 ? 'partial' : 'unpaid');
 
-        $invoice = IdeaInvoice::create([
-            'invoice_no'       => $invoiceNo,
-            'type'             => 'invoice',
-            'sales_category'   => 'books',
-            'subject'          => "অনলাইন অর্ডার #{$order->order_number} বিল ও চালান",
-            'reference_no'     => $order->order_number,
-            'customer_name'    => $order->customer_name ?: 'সম্মানিত অনলাইন ক্রেতা',
-            'customer_phone'   => $order->customer_phone,
-            'customer_address' => $order->customer_address,
-            'invoice_date'     => $order->created_at ? $order->created_at->format('Y-m-d') : date('Y-m-d'),
-            'items'            => $items,
-            'subtotal'         => (float) ($unitPrice * $qty),
-            'discount'         => (float) $order->discount_amount,
-            'tax'              => 0,
-            'grand_total'      => (float) $order->total_amount,
-            'paid_amount'      => $paidAmount,
-            'due_amount'       => $dueAmount,
-            'payment_method'   => $order->payment_method ?: 'cash',
-            'payment_status'   => $payStatus,
-            'notes'            => "অনলাইন শপ থেকে অর্ডার রূপান্তর। Trx ID: " . ($order->transaction_id ?: 'N/A'),
-            'created_by'       => auth()->id(),
-        ]);
-
-        if ($paidAmount > 0 && Schema::hasTable('idea_invoice_payments')) {
-            try {
-                IdeaInvoicePayment::create([
-                    'invoice_id'           => $invoice->id,
-                    'customer_name'        => $order->customer_name,
-                    'customer_phone'       => $order->customer_phone,
-                    'payment_no'           => IdeaInvoicePayment::generatePaymentNo(),
-                    'payment_date'         => $order->created_at ? $order->created_at->format('Y-m-d') : date('Y-m-d'),
-                    'amount'               => $paidAmount,
-                    'net_amount'           => $paidAmount,
-                    'payment_method'       => $order->payment_method ?: 'cash',
-                    'transaction_ref'      => $order->transaction_id,
-                    'note'                 => 'অনলাইন অর্ডার থেকে সংগৃহীত পেমেন্ট',
-                    'recorded_by'          => auth()->id(),
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning('Error creating payment record in syncOrderToInvoice: ' . $e->getMessage());
+        $invoice = DB::transaction(function () use ($order, $items, $unitPrice, $qty, $paidAmount) {
+            // Re-check inside the transaction so a double click cannot create two invoices.
+            if (IdeaInvoice::where('reference_no', $order->order_number)->lockForUpdate()->exists()) {
+                return null;
             }
+
+            $invoice = IdeaInvoice::create([
+                'invoice_no'       => IdeaInvoice::nextNumber('invoice', 'books'),
+                'type'             => 'invoice',
+                'sales_category'   => 'books',
+                'subject'          => "অনলাইন অর্ডার #{$order->order_number} বিল ও চালান",
+                'reference_no'     => $order->order_number,
+                'customer_name'    => $order->customer_name ?: 'সম্মানিত অনলাইন ক্রেতা',
+                'customer_phone'   => $order->customer_phone,
+                'customer_address' => $order->customer_address,
+                'invoice_date'     => $order->created_at ? $order->created_at->format('Y-m-d') : date('Y-m-d'),
+                'items'            => $items,
+                'subtotal'         => round($unitPrice * $qty + (float) $order->shipping_cost, 2),
+                'discount'         => (float) $order->discount_amount,
+                'tax'              => 0,
+                'grand_total'      => (float) $order->total_amount,
+                'paid_amount'      => 0,
+                'due_amount'       => (float) $order->total_amount,
+                'payment_method'   => $order->payment_method ?: 'cash',
+                'payment_status'   => 'unpaid',
+                'notes'            => "অনলাইন শপ থেকে অর্ডার রূপান্তর। Trx ID: " . ($order->transaction_id ?: 'N/A'),
+                'created_by'       => IdeaInvoicePayment::actorId(),
+            ]);
+
+            if ($paidAmount > 0) {
+                IdeaInvoicePayment::record($invoice, [
+                    'payment_date'    => $invoice->invoice_date,
+                    'amount'          => $paidAmount,
+                    'payment_method'  => $order->payment_method ?: 'cash',
+                    'transaction_ref' => $order->transaction_id,
+                    'note'            => 'অনলাইন অর্ডার থেকে সংগৃহীত পেমেন্ট',
+                ], IdeaInvoicePayment::actorId());
+            }
+
+            $invoice->recalculatePayments();
+
+            return $invoice;
+        });
+
+        if (!$invoice) {
+            $existing = IdeaInvoice::where('reference_no', $order->order_number)->first();
+
+            return redirect()->route('admin.accounting.invoices.show', $existing->id)
+                ->with('info', "এই অর্ডারের জন্য ইতিমধ্যে ইনভয়েস #{$existing->invoice_no} তৈরি করা আছে।");
         }
 
         return redirect()->route('admin.accounting.invoices.show', $invoice->id)
@@ -1325,58 +1336,66 @@ class IdeaAccountingController extends Controller
 
         switch ($action) {
             case 'delete':
-                foreach ($ids as $id) {
-                    $inv = IdeaInvoice::find($id);
-                    if ($inv) {
-                        IdeaAccountingEntry::where('invoice_id', $inv->id)->delete();
-                        $inv->payments()->delete();
-                        $inv->delete();
+                DB::transaction(function () use ($ids, &$updated) {
+                    foreach (IdeaInvoice::whereIn('id', $ids)->get() as $inv) {
+                        $inv->deleteWithLedger();
                         $updated++;
                     }
-                }
-                $message = "সফলভাবে {$updated} টি ডকুমেন্ট মুছে ফেলা হয়েছে।";
+                });
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট মুছে ফেলা হয়েছে।";
                 break;
 
             case 'mark_paid':
-                foreach ($ids as $id) {
-                    $inv = IdeaInvoice::find($id);
-                    if ($inv) {
-                        $grand = (float) $inv->grand_total;
-                        $inv->update([
-                            'paid_amount'    => $grand,
-                            'due_amount'     => 0,
-                            'payment_status' => 'paid',
-                        ]);
+                DB::transaction(function () use ($ids, &$updated) {
+                    foreach (IdeaInvoice::whereIn('id', $ids)->get() as $inv) {
+                        if (!$inv->acceptsPayments()) {
+                            continue;
+                        }
+                        $remaining = $inv->remainingDue();
+                        if ($remaining > 0) {
+                            IdeaInvoicePayment::record($inv, [
+                                'amount'         => $remaining,
+                                'payment_date'   => now()->toDateString(),
+                                'payment_method' => $inv->payment_method ?: 'cash',
+                                'note'           => 'Bulk mark paid',
+                            ], IdeaInvoicePayment::actorId());
+                        }
+                        $inv->recalculatePayments();
                         $updated++;
                     }
-                }
-                $message = "সফলভাবে {$updated} টি ডকুমেন্ট পরিশোধিত (Paid) চিহ্নিত করা হয়েছে।";
+                });
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট পরিশোধিত (Paid) চিহ্নিত করা হয়েছে। কোটেশন/দরপত্র বাদ দেওয়া হয়েছে।";
                 break;
 
             case 'mark_unpaid':
-                foreach ($ids as $id) {
-                    $inv = IdeaInvoice::find($id);
-                    if ($inv) {
-                        $grand = (float) $inv->grand_total;
-                        $inv->update([
-                            'paid_amount'    => 0,
-                            'due_amount'     => $grand,
-                            'payment_status' => 'unpaid',
-                        ]);
+                DB::transaction(function () use ($ids, &$updated) {
+                    foreach (IdeaInvoice::whereIn('id', $ids)->get() as $inv) {
+                        if (!$inv->acceptsPayments()) {
+                            continue;
+                        }
+                        IdeaAccountingEntry::where('invoice_id', $inv->id)->delete();
+                        $inv->payments()->delete();
+                        $inv->recalculatePayments();
                         $updated++;
                     }
-                }
-                $message = "সফলভাবে {$updated} টি ডকুমেন্ট বকেয়া (Unpaid) চিহ্নিত করা হয়েছে।";
+                });
+                $message = "সফলভাবে {$updated} টি ডকুমেন্ট বকেয়া (Unpaid) চিহ্নিত করা হয়েছে। সংশ্লিষ্ট পেমেন্ট ও আয়ের এন্ট্রি সরানো হয়েছে।";
                 break;
 
             case 'convert_to_invoice':
-                $updated = IdeaInvoice::whereIn('id', $ids)->update(['type' => 'invoice']);
-                $message = "সফলভাবে {$updated} টি ডকুমেন্ট বিল/ইনভয়েস-এ রূপান্তর করা হয়েছে।";
-                break;
-
             case 'convert_to_challan':
-                $updated = IdeaInvoice::whereIn('id', $ids)->update(['type' => 'challan']);
-                $message = "সফলভাবে {$updated} টি ডকুমেন্ট ডেলিভারি চালান-এ রূপান্তর করা হয়েছে।";
+                $target = $action === 'convert_to_invoice' ? 'invoice' : 'challan';
+                DB::transaction(function () use ($ids, $target, &$updated) {
+                    foreach (IdeaInvoice::whereIn('id', $ids)->get() as $inv) {
+                        $inv->update(['type' => $target]);
+                        $inv->recalculatePayments();
+                        IdeaAccountingEntry::where('invoice_id', $inv->id)->update(['category' => $inv->incomeCategory()]);
+                        $updated++;
+                    }
+                });
+                $message = $target === 'invoice'
+                    ? "সফলভাবে {$updated} টি ডকুমেন্ট বিল/ইনভয়েস-এ রূপান্তর করা হয়েছে।"
+                    : "সফলভাবে {$updated} টি ডকুমেন্ট ডেলিভারি চালান-এ রূপান্তর করা হয়েছে।";
                 break;
 
             default:
@@ -1408,52 +1427,56 @@ class IdeaAccountingController extends Controller
             'note'           => 'nullable|string|max:500',
         ]);
 
-        $amount = (float) $validated['amount'];
-        $userId = auth()->id() ?: null;
-        if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
-            $userId = null;
+        if (!$invoice->acceptsPayments()) {
+            return response()->json(['success' => false, 'message' => 'কোটেশন বা দরপত্রে পেমেন্ট জমা নেওয়া যায় না।'], 422);
         }
 
-        // Record payment
-        $payment = IdeaInvoicePayment::create([
-            'invoice_id'      => $invoice->id,
-            'payment_no'      => 'PMT-' . date('Ymd') . '-' . rand(1000, 9999),
-            'payment_date'    => $validated['payment_date'],
-            'amount'          => $amount,
-            'net_amount'      => $amount,
-            'payment_method'  => $validated['payment_method'],
-            'transaction_ref' => $validated['transaction_ref'] ?? null,
-            'note'            => $validated['note'] ?? 'Quick payment from invoice index table',
-            'recorded_by'     => $userId,
-        ]);
+        $amount = round((float) $validated['amount'], 2);
 
-        // Record accounting entry
-        IdeaAccountingEntry::create([
-            'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-            'type'           => 'income',
-            'category'       => $invoice->type === 'challan' ? 'পাইকারি বিক্রয় ও চালান' : 'বই বিক্রয়',
-            'title'          => "বিল #{$invoice->invoice_no} হতে কিস্তি/পেমেন্ট জমা — {$invoice->customer_name}",
-            'amount'         => $amount,
-            'entry_date'     => $validated['payment_date'],
-            'payment_method' => $validated['payment_method'],
-            'party_name'     => $invoice->customer_name,
-            'invoice_id'     => $invoice->id,
-            'notes'          => "রসিদ নম্বর #{$payment->payment_no}",
-            'created_by'     => $userId,
-        ]);
+        $result = DB::transaction(function () use ($invoice, $validated, $amount) {
+            $locked = IdeaInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
-        // Recalculate invoice totals
-        $invoice->recalculatePayments();
-        $invoice->refresh();
+            if ($locked->payments()->count() === 0 && (float) $locked->paid_amount > 0) {
+                IdeaInvoicePayment::record($locked, [
+                    'payment_date'   => $locked->invoice_date,
+                    'amount'         => (float) $locked->paid_amount,
+                    'payment_method' => $locked->payment_method ?: 'cash',
+                    'note'           => 'অগ্রিম জমা (Advance Payment)',
+                ], $locked->created_by);
+            }
+
+            $remaining = $locked->remainingDue();
+            if ($amount > $remaining + 0.004) {
+                return ['error' => 'জমার পরিমাণ (৳' . number_format($amount, 2) . ') বকেয়ার (৳' . number_format($remaining, 2) . ') চেয়ে বেশি হতে পারে না।'];
+            }
+
+            $payment = IdeaInvoicePayment::record($locked, [
+                'payment_date'    => $validated['payment_date'],
+                'amount'          => $amount,
+                'payment_method'  => $validated['payment_method'],
+                'transaction_ref' => $validated['transaction_ref'] ?? null,
+                'note'            => $validated['note'] ?? 'Quick payment',
+            ], IdeaInvoicePayment::actorId());
+
+            $locked->recalculatePayments();
+
+            return ['invoice' => $locked->fresh(), 'payment' => $payment];
+        });
+
+        if (isset($result['error'])) {
+            return response()->json(['success' => false, 'message' => $result['error']], 422);
+        }
+
+        $invoice = $result['invoice'];
 
         return response()->json([
             'success'        => true,
-            'message'        => "বিল #{$invoice->invoice_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
+            'message'        => "বিল #{$invoice->invoice_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
             'paid_amount'    => (float) $invoice->paid_amount,
             'due_amount'     => (float) $invoice->due_amount,
             'grand_total'    => (float) $invoice->grand_total,
             'payment_status' => $invoice->payment_status,
-            'payment_no'     => $payment->payment_no,
+            'payment_no'     => $result['payment']->payment_no,
         ]);
     }
 
@@ -1484,34 +1507,42 @@ class IdeaAccountingController extends Controller
 
         if ($type === 'bill') {
             $bill = Bill::findOrFail($id);
-            $newPaid = (float)$bill->paid_amount + $amount;
-            $newDue = max(0.0, (float)$bill->total - $newPaid);
+            $billDue = max(0.0, (float) $bill->total - (float) $bill->paid_amount);
+            if ($amount > $billDue + 0.004) {
+                return response()->json(['success' => false, 'message' => 'জমার পরিমাণ (৳' . number_format($amount, 2) . ') বকেয়ার (৳' . number_format($billDue, 2) . ') চেয়ে বেশি হতে পারে না।'], 422);
+            }
+
+            $newPaid = round((float) $bill->paid_amount + $amount, 2);
+            $newDue = round(max(0.0, (float) $bill->total - $newPaid), 2);
             $payStatus = ($newDue <= 0.001) ? 'paid' : 'partial';
 
-            $bill->update([
-                'paid_amount'    => $newPaid,
-                'due_amount'     => $newDue,
-                'payment_status' => $payStatus,
-                'payment_method' => $validated['payment_method'],
-            ]);
+            DB::transaction(function () use ($bill, $newPaid, $newDue, $payStatus, $validated, $amount, $userId) {
+                $bill->update([
+                    'paid_amount'    => $newPaid,
+                    'due_amount'     => $newDue,
+                    'payment_status' => $payStatus,
+                    'payment_method' => $validated['payment_method'],
+                ]);
 
-            // Record accounting entry
-            IdeaAccountingEntry::create([
-                'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                'type'           => 'income',
-                'category'       => 'সেলার বিক্রয় বিল',
-                'title'          => "সেলার বিল #{$bill->bill_no} হতে পেমেন্ট আদায় — {$bill->customer_name}",
-                'amount'         => $amount,
-                'entry_date'     => $validated['payment_date'],
-                'payment_method' => $validated['payment_method'],
-                'party_name'     => $bill->customer_name,
-                'notes'          => $validated['note'] ?: "বিল নম্বর #{$bill->bill_no}",
-                'created_by'     => $userId,
-            ]);
+                // Seller-bill collections are already part of the bills totals; the entry only
+                // feeds the ledger/reports (the hub KPI skips this category to avoid double counting).
+                IdeaAccountingEntry::create([
+                    'entry_no'       => IdeaAccountingEntry::generateEntryNo('INC'),
+                    'type'           => 'income',
+                    'category'       => self::SELLER_BILL_CATEGORY,
+                    'title'          => "সেলার বিল #{$bill->bill_no} হতে পেমেন্ট আদায় — {$bill->customer_name}",
+                    'amount'         => $amount,
+                    'entry_date'     => $validated['payment_date'],
+                    'payment_method' => $validated['payment_method'],
+                    'party_name'     => $bill->customer_name,
+                    'notes'          => ($validated['note'] ?? null) ?: "বিল নম্বর #{$bill->bill_no}",
+                    'created_by'     => $userId,
+                ]);
+            });
 
             return response()->json([
                 'success'        => true,
-                'message'        => "সেলার বিল #{$bill->bill_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
+                'message'        => "সেলার বিল #{$bill->bill_no}-এ ৳" . number_format($amount, 2) . " পেমেন্ট জমা নেওয়া হয়েছে।",
                 'paid_amount'    => $newPaid,
                 'due_amount'     => $newDue,
                 'payment_status' => $payStatus,
@@ -1520,14 +1551,21 @@ class IdeaAccountingController extends Controller
 
         if ($type === 'order') {
             $order = Order::findOrFail($id);
+
+            // An order that already became an invoice is settled through that invoice.
+            $linked = IdeaInvoice::where('reference_no', $order->order_number)->first();
+            if ($linked) {
+                return $this->quickPayment($request, $linked);
+            }
+
             $order->update([
                 'payment_status' => 'paid',
-                'transaction_id' => $validated['transaction_ref'] ?: $order->transaction_id,
+                'transaction_id' => ($validated['transaction_ref'] ?? null) ?: $order->transaction_id,
             ]);
 
             return response()->json([
                 'success'        => true,
-                'message'        => "অনলাইন অর্ডার #{$order->order_number} সফলভাবে পরিশোধিত (Paid) চিহ্নিত করা হয়েছে।",
+                'message'        => "অনলাইন অর্ডার #{$order->order_number} সফলভাবে পরিশোধিত (Paid) চিহ্নিত করা হয়েছে।",
                 'paid_amount'    => (float) $order->total_amount,
                 'due_amount'     => 0.0,
                 'payment_status' => 'paid',
@@ -1542,8 +1580,7 @@ class IdeaAccountingController extends Controller
      */
     public function duplicateInvoice(Request $request, IdeaInvoice $invoice): RedirectResponse
     {
-        $settings = self::getInvoiceSettings();
-        $newNo = self::generateNextNumber($invoice->type, $invoice->sales_category ?? 'books', $settings);
+        $newNo = IdeaInvoice::nextNumber($invoice->type, $invoice->sales_category ?? 'books');
 
         $cloned = $invoice->replicate([
             'invoice_no',
@@ -1561,7 +1598,7 @@ class IdeaAccountingController extends Controller
         $cloned->due_amount = $cloned->grand_total;
         $cloned->payment_status = 'unpaid';
         $cloned->access_token = \Illuminate\Support\Str::random(32);
-        $cloned->created_by = auth()->id() ?: null;
+        $cloned->created_by = IdeaInvoicePayment::actorId();
         $cloned->save();
 
         return redirect()->route('admin.accounting.invoices.edit', $cloned->id)
@@ -1781,21 +1818,7 @@ class IdeaAccountingController extends Controller
             $salesCategory = 'books';
         }
 
-        $prefix = match($salesCategory) {
-            'stationery'     => 'IDEA-STN-',
-            'printing_goods' => 'IDEA-PRT-',
-            'other'          => 'IDEA-OTH-',
-            default          => match($selectedType) {
-                'challan'   => 'IDEA-CHL-',
-                'quotation' => 'IDEA-QUO-',
-                'tender'    => 'IDEA-TND-',
-                default     => 'IDEA-INV-',
-            },
-        };
-
-        $dateStr = date('Ymd');
-        $countToday = IdeaInvoice::whereDate('created_at', today())->count() + 1;
-        $suggestedNo = $prefix . $dateStr . '-' . str_pad((string)$countToday, 3, '0', STR_PAD_LEFT);
+        $suggestedNo = IdeaInvoice::nextNumber($selectedType, $salesCategory);
         $invoiceSettings = self::getInvoiceSettings();
 
         return view('admin.accounting.invoices.create', compact('books', 'suggestedNo', 'selectedType', 'salesCategory', 'invoiceSettings'));
@@ -1960,7 +1983,98 @@ class IdeaAccountingController extends Controller
             }
         }
 
-        return response()->json($results->take(20)->values());
+        // Typing letters lists names that START with them first, then the rest — each group A→Z.
+        $needle = mb_strtolower($q);
+        $sorted = $results->sort(function ($a, $b) use ($needle) {
+            $an = mb_strtolower(trim((string) $a['name']));
+            $bn = mb_strtolower(trim((string) $b['name']));
+            $ap = str_starts_with($an, $needle) ? 0 : 1;
+            $bp = str_starts_with($bn, $needle) ? 0 : 1;
+
+            return [$ap, $an] <=> [$bp, $bn];
+        });
+
+        return response()->json($sorted->take(20)->values());
+    }
+
+    /**
+     * Item suggestions for the quotation / invoice forms, per sales category, A→Z.
+     * Sources: book catalogue, shop products, printing presets and the lines of earlier documents.
+     */
+    public function itemSuggest(Request $request): JsonResponse
+    {
+        $category = $request->input('category', 'books');
+        if (!in_array($category, ['books', 'stationery', 'printing_goods', 'other'], true)) {
+            $category = 'books';
+        }
+        $q = trim((string) $request->input('q', ''));
+        $like = '%' . addcslashes($q, '%_\\') . '%';
+        $needle = mb_strtolower($q);
+        $matches = fn (string $title, string $detail = '') => $q === ''
+            || str_contains(mb_strtolower($title), $needle)
+            || ($detail !== '' && str_contains(mb_strtolower($detail), $needle));
+
+        $rows = collect();
+
+        if ($category === 'books') {
+            Book::query()
+                ->when($q !== '', fn ($b) => $b->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('author_name', 'like', $like)->orWhere('isbn', 'like', $like)))
+                ->orderBy('title')->limit(60)
+                ->get(['id', 'title', 'author_name', 'price', 'discount_price'])
+                ->each(function ($b) use ($rows) {
+                    $regular = (float) $b->price;
+                    $price = (float) ($b->discount_price ?: $b->price);
+                    $rows->push(['title' => $b->title, 'detail' => (string) $b->author_name, 'price' => $price, 'regular' => $regular,
+                        'unit' => 'Copy', 'type' => 'Book (Paperback)', 'book_id' => $b->id, 'source' => 'book']);
+                });
+        }
+
+        if (in_array($category, ['stationery', 'other'], true) && Schema::hasTable('products')) {
+            \App\Models\Product::query()
+                ->whereIn('type', $category === 'stationery' ? ['stationery'] : ['electronics', 'appliance'])
+                ->when($q !== '', fn ($p) => $p->where(fn ($w) => $w->where('title', 'like', $like)->orWhere('sku', 'like', $like)->orWhere('brand', 'like', $like)))
+                ->orderBy('title')->limit(60)->get(['title', 'brand', 'price', 'discount_price'])
+                ->each(function ($p) use ($rows, $category) {
+                    $rows->push(['title' => $p->title, 'detail' => (string) $p->brand, 'price' => (float) ($p->discount_price ?: $p->price), 'regular' => (float) $p->price,
+                        'unit' => 'Pcs', 'type' => $category === 'stationery' ? IdeaInvoiceItemService::TYPE_STATIONERY : IdeaInvoiceItemService::TYPE_PRODUCT, 'source' => 'product']);
+                });
+        }
+
+        // Lines of earlier documents in this category (latest price wins)
+        IdeaInvoice::query()->where('sales_category', $category)->latest('id')->limit(300)->pluck('items')
+            ->each(function ($items) use ($rows, $matches) {
+                foreach ((array) $items as $it) {
+                    $title = trim((string) ($it['title'] ?? ''));
+                    if ($title === '' || !$matches($title)) {
+                        continue;
+                    }
+                    $first = trim((string) strtok($title, "\n"));
+                    $rows->push(['title' => $first, 'detail' => trim((string) substr($title, strlen($first))), 'price' => (float) ($it['unit_price'] ?? $it['price'] ?? 0),
+                        'regular' => (float) ($it['regular_price'] ?? 0), 'unit' => $it['unit'] ?? 'Pcs', 'type' => $it['item_type'] ?? null,
+                        'book_id' => $it['book_id'] ?? null, 'source' => 'history']);
+                }
+            });
+
+        // Ready-made printing / stationery lines
+        if (in_array($category, ['stationery', 'printing_goods'], true)) {
+            foreach ((IdeaInvoiceItemService::getPresets()[$category === 'stationery' ? 'stationery' : 'printing'] ?? []) as $group) {
+                foreach ($group as $p) {
+                    if ($matches($p['title'], $p['spec'] ?? '')) {
+                        $rows->push(['title' => $p['title'], 'detail' => $p['spec'] ?? '', 'price' => (float) $p['price'], 'regular' => (float) $p['reg'],
+                            'unit' => $p['unit'] ?? 'Pcs', 'type' => $p['type'] ?? null, 'source' => 'preset']);
+                    }
+                }
+            }
+        }
+
+        $unique = $rows->unique(fn ($r) => mb_strtolower($r['title']))->sort(function ($a, $b) use ($needle) {
+            $an = mb_strtolower($a['title']);
+            $bn = mb_strtolower($b['title']);
+
+            return [str_starts_with($an, $needle) ? 0 : 1, $an] <=> [str_starts_with($bn, $needle) ? 0 : 1, $bn];
+        });
+
+        return response()->json($unique->take(20)->values());
     }
 
     /**
@@ -2021,9 +2135,9 @@ class IdeaAccountingController extends Controller
     }
 
     /**
-     * Store Bill / Challan / Quotation / Tender.
+     * Shared normalisation + validation for creating / editing a document.
      */
-    public function storeInvoice(Request $request): RedirectResponse
+    private function validatedDocument(Request $request, ?IdeaInvoice $existing = null): array
     {
         if ($request->has('items') && is_array($request->items)) {
             $filteredItems = array_values(array_filter($request->items, function ($item) {
@@ -2033,14 +2147,16 @@ class IdeaAccountingController extends Controller
         }
 
         if (!$request->filled('payment_method')) {
-            $request->merge(['payment_method' => 'Cash']);
+            $request->merge(['payment_method' => $existing?->payment_method ?: 'Cash']);
         }
 
-        $validated = $request->validate([
+        $isProposal = in_array($request->input('type'), ['quotation', 'tender'], true);
+
+        return $request->validate([
             'type'             => 'required|in:invoice,challan,quotation,tender',
             'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
-            'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no',
-            'subject'          => 'nullable|string|max:255',
+            'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no' . ($existing ? ',' . $existing->id : ''),
+            'subject'          => ($isProposal ? 'required' : 'nullable') . '|string|max:255',
             'reference_no'     => 'nullable|string|max:100',
             'customer_name'        => 'required|string|max:255',
             'customer_designation' => 'nullable|string|max:150',
@@ -2049,11 +2165,10 @@ class IdeaAccountingController extends Controller
             'customer_phone'       => 'nullable|string|max:50',
             'customer_address'     => 'nullable|string|max:255',
             'invoice_date'         => 'required|date',
-            'due_date'             => 'nullable|date',
-            'valid_until'          => 'nullable|date',
+            'due_date'             => 'nullable|date|after_or_equal:invoice_date',
+            'valid_until'          => ($isProposal ? 'required' : 'nullable') . '|date|after_or_equal:invoice_date',
             'discount'             => 'nullable|numeric|min:0',
             'tax'                  => 'nullable|numeric|min:0',
-            'previous_due'         => 'nullable|numeric|min:0',
             'paid_amount'          => 'nullable|numeric|min:0',
             'payment_method'       => 'required|string|max:50',
             'notes'                => 'nullable|string|max:1000',
@@ -2072,37 +2187,60 @@ class IdeaAccountingController extends Controller
             'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
             'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
             'items.min'              => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
+            'subject.required'       => 'কোটেশন/দরপত্রের বিষয় (Subject) লিখুন।',
+            'valid_until.required'   => 'কোটেশন/দরপত্রের বৈধতার তারিখ দিন।',
+            'valid_until.after_or_equal' => 'বৈধতার তারিখ ডকুমেন্টের তারিখের আগে হতে পারবে না।',
+            'due_date.after_or_equal'    => 'পরিশোধের শেষ তারিখ ডকুমেন্টের তারিখের আগে হতে পারবে না।',
         ]);
+    }
 
-        $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', 'books');
-        $autoCreateBooks = $request->boolean('auto_create_books', false);
+    /**
+     * Totals: previous dues are NOT folded into a new document (each open
+     * invoice already carries its own due), so customer balances never double count.
+     */
+    private function documentTotals(array $validated, string $salesCategory): array
+    {
+        $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, false);
+        $subtotal = round((float) $itemResult['subtotal'], 2);
+        $discount = round((float) ($validated['discount'] ?? 0), 2);
+        $tax = round((float) ($validated['tax'] ?? 0), 2);
+
+        if ($discount > $subtotal + 0.004) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'discount' => 'ছাড়ের পরিমাণ সাবটোটালের (৳' . number_format($subtotal, 2) . ') চেয়ে বেশি হতে পারে না।',
+            ]);
+        }
+
+        return [
+            'items'    => $itemResult['items'],
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax'      => $tax,
+            'grand'    => round($subtotal - $discount + $tax, 2),
+        ];
+    }
+
+    /**
+     * Store Bill / Challan / Quotation / Tender.
+     */
+    public function storeInvoice(Request $request): RedirectResponse
+    {
+        $validated = $this->validatedDocument($request);
+        $salesCategory = $validated['sales_category'] ?? 'books';
+        $totals = $this->documentTotals($validated, $salesCategory);
+
+        $acceptsPayments = in_array($validated['type'], ['invoice', 'challan'], true);
+        $paid = $acceptsPayments ? round((float) ($validated['paid_amount'] ?? 0), 2) : 0.0;
+
+        if ($paid > $totals['grand'] + 0.004) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'paid_amount' => 'জমার পরিমাণ মোট বিলের (৳' . number_format($totals['grand'], 2) . ') চেয়ে বেশি হতে পারে না।',
+            ]);
+        }
 
         try {
-            return DB::transaction(function () use ($validated, $salesCategory, $autoCreateBooks, $request) {
-                $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, $autoCreateBooks);
-                $itemsProcessed = $itemResult['items'];
-                $subtotal = $itemResult['subtotal'];
-
-                $discount = (float) ($validated['discount'] ?? 0);
-                $tax = (float) ($validated['tax'] ?? 0);
-                $previousDue = (float) ($validated['previous_due'] ?? 0);
-                $grandTotal = max(0, $subtotal - $discount + $tax + $previousDue);
-                $paid = (float) ($validated['paid_amount'] ?? 0);
-                $due = max(0, $grandTotal - $paid);
-
-                $paymentStatus = 'unpaid';
-                if ($paid >= $grandTotal && $grandTotal > 0) {
-                    $paymentStatus = 'paid';
-                } elseif ($paid > 0 && $due > 0) {
-                    $paymentStatus = 'partial';
-                }
-
-                $userId = auth()->id() ?: null;
-                if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
-                    $userId = null;
-                }
-
-                $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', 'books');
+            return DB::transaction(function () use ($validated, $salesCategory, $totals, $paid, $request) {
+                $userId = IdeaInvoicePayment::actorId();
 
                 $invoice = IdeaInvoice::create([
                     'invoice_no'           => $validated['invoice_no'],
@@ -2119,68 +2257,38 @@ class IdeaAccountingController extends Controller
                     'invoice_date'         => $validated['invoice_date'],
                     'due_date'             => $validated['due_date'] ?? null,
                     'valid_until'          => $validated['valid_until'] ?? null,
-                    'items'                => $itemsProcessed,
-                    'subtotal'             => $subtotal,
-                    'discount'             => $discount,
-                    'tax'                  => $tax,
-                    'previous_due'         => $previousDue,
-                    'grand_total'          => $grandTotal,
-                    'paid_amount'          => $paid,
-                    'due_amount'           => $due,
+                    'items'                => $totals['items'],
+                    'subtotal'             => $totals['subtotal'],
+                    'discount'             => $totals['discount'],
+                    'tax'                  => $totals['tax'],
+                    'previous_due'         => 0,
+                    'grand_total'          => $totals['grand'],
+                    'paid_amount'          => 0,
+                    'due_amount'           => $totals['grand'],
                     'payment_method'       => $validated['payment_method'],
-                    'payment_status'       => $paymentStatus,
+                    'payment_status'       => 'unpaid',
                     'notes'                => $validated['notes'] ?? null,
                     'terms_conditions'     => $validated['terms_conditions'] ?? null,
                     'created_by'           => $userId,
                 ]);
 
-                // Record initial advance payment if paid amount > 0 and type is invoice/challan
-                if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
-                    $payNo = IdeaInvoicePayment::generatePaymentNo();
-
-                    IdeaInvoicePayment::create([
-                        'invoice_id'      => $invoice->id,
-                        'customer_name'   => $invoice->customer_name,
-                        'customer_phone'  => $invoice->customer_phone,
-                        'payment_no'      => $payNo,
+                if ($paid > 0) {
+                    IdeaInvoicePayment::record($invoice, [
                         'payment_date'    => $invoice->invoice_date,
                         'amount'          => $paid,
                         'payment_method'  => $validated['payment_method'],
                         'transaction_ref' => $request->input('transaction_ref') ?: null,
                         'note'            => $request->input('payment_note') ?: 'অগ্রিম জমা (Advance Payment)',
-                        'recorded_by'     => $userId,
-                    ]);
-
-                    $incomeCategory = match($salesCategory) {
-                        'stationery'     => 'স্টেশনারী বিক্রয় (Stationery Sales)',
-                        'printing_goods' => 'মুদ্রণ ও প্রকাশনা সেবা (Printing & Publication)',
-                        'other'          => 'অন্যান্য আয় (Other Income)',
-                        default          => ($validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)')
-                    };
-
-                    IdeaAccountingEntry::create([
-                        'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                        'type'           => 'income',
-                        'category'       => $incomeCategory,
-                        'title'          => "বিল #{$invoice->invoice_no} হতে অগ্রিম জমা — {$invoice->customer_name}",
-                        'amount'         => $paid,
-                        'entry_date'     => $invoice->invoice_date,
-                        'payment_method' => $validated['payment_method'],
-                        'party_name'     => $invoice->customer_name,
-                        'voucher_no'     => $payNo,
-                        'invoice_id'     => $invoice->id,
-                        'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} হতে প্রাপ্ত অগ্রিম অর্থ [রসিদ #{$payNo}]।",
-                        'created_by'     => $userId,
-                    ]);
+                    ], $userId);
                 }
 
-                $typeLabel = $invoice->type_label;
+                $invoice->recalculatePayments();
 
                 return redirect()->route('admin.accounting.invoices.show', $invoice->id)
-                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে তৈরি হয়েছে।");
+                    ->with('success', "{$invoice->type_label} #{$invoice->invoice_no} সফলভাবে তৈরি হয়েছে।");
             });
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'ডকুমেন্ট তৈরিতে সমস্যা হয়েছে: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'ডকুমেন্ট তৈরিতে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
 
@@ -2252,82 +2360,35 @@ class IdeaAccountingController extends Controller
      */
     public function updateInvoice(Request $request, IdeaInvoice $invoice): RedirectResponse
     {
-        if ($request->has('items') && is_array($request->items)) {
-            $filteredItems = array_values(array_filter($request->items, function ($item) {
-                return is_array($item) && !empty(trim((string)($item['title'] ?? '')));
-            }));
-            $request->merge(['items' => $filteredItems]);
+        $validated = $this->validatedDocument($request, $invoice);
+        $salesCategory = $validated['sales_category'] ?? $invoice->sales_category ?? 'books';
+        $totals = $this->documentTotals($validated, $salesCategory);
+
+        $collected = round((float) $invoice->payments()->sum('amount'), 2);
+        $acceptsPayments = in_array($validated['type'], ['invoice', 'challan'], true);
+
+        if (!$acceptsPayments && $collected > 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'type' => 'এই ডকুমেন্টে পেমেন্ট জমা আছে; কোটেশন বা দরপত্রে রূপান্তর করা যাবে না।',
+            ]);
         }
 
-        if (!$request->filled('payment_method')) {
-            $request->merge(['payment_method' => $invoice->payment_method ?: 'Cash']);
+        if ($collected > $totals['grand'] + 0.004) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'discount' => 'জমা হওয়া ৳' . number_format($collected, 2) . ' নতুন মোট বিলের (৳' . number_format($totals['grand'], 2) . ') চেয়ে বেশি।',
+            ]);
         }
 
-        $validated = $request->validate([
-            'type'             => 'required|in:invoice,challan,quotation,tender',
-            'sales_category'   => 'nullable|in:books,stationery,printing_goods,other',
-            'invoice_no'       => 'required|string|max:50|unique:idea_invoices,invoice_no,' . $invoice->id,
-            'subject'          => 'nullable|string|max:255',
-            'reference_no'     => 'nullable|string|max:100',
-            'customer_name'        => 'required|string|max:255',
-            'customer_designation' => 'nullable|string|max:150',
-            'customer_org'         => 'nullable|string|max:255',
-            'customer_email'       => 'nullable|email|max:255',
-            'customer_phone'       => 'nullable|string|max:50',
-            'customer_address'     => 'nullable|string|max:255',
-            'invoice_date'         => 'required|date',
-            'due_date'             => 'nullable|date',
-            'valid_until'          => 'nullable|date',
-            'discount'             => 'nullable|numeric|min:0',
-            'tax'                  => 'nullable|numeric|min:0',
-            'previous_due'         => 'nullable|numeric|min:0',
-            'paid_amount'          => 'nullable|numeric|min:0',
-            'payment_method'       => 'required|string|max:50',
-            'notes'                => 'nullable|string|max:1000',
-            'terms_conditions'     => 'nullable|string|max:2000',
-            'items'                => 'required|array|min:1',
-            'items.*.title'            => 'required|string|max:2000',
-            'items.*.author_name'      => 'nullable|string|max:1000',
-            'items.*.item_type'        => 'nullable|string|max:50',
-            'items.*.unit'             => 'nullable|string|max:50',
-            'items.*.book_id'          => 'nullable|integer',
-            'items.*.quantity'         => 'required|numeric|min:0.01',
-            'items.*.regular_price'    => 'nullable|numeric|min:0',
-            'items.*.discount_percent' => 'nullable|numeric|min:0|max:100',
-            'items.*.price'            => 'required|numeric|min:0',
-        ], [
-            'customer_name.required' => 'গ্রাহক বা প্রতিনিধির নাম লিখুন।',
-            'items.required'         => 'কমপক্ষে একটি আইটেম বা বিবরণ যোগ করুন।',
-        ]);
+        // Advance only counts when nothing has been collected through payment records yet.
+        $advance = ($acceptsPayments && $collected <= 0) ? round((float) ($validated['paid_amount'] ?? 0), 2) : 0.0;
+        if ($advance > $totals['grand'] + 0.004) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'paid_amount' => 'জমার পরিমাণ মোট বিলের (৳' . number_format($totals['grand'], 2) . ') চেয়ে বেশি হতে পারে না।',
+            ]);
+        }
 
         try {
-            return DB::transaction(function () use ($validated, $invoice, $request) {
-                $salesCategory = $request->input('sales_category', $invoice->sales_category ?? 'books');
-                $autoCreateBooks = $request->boolean('auto_create_books', false);
-
-                $itemResult = IdeaInvoiceItemService::processItems($validated['items'], $salesCategory, $autoCreateBooks);
-                $itemsProcessed = $itemResult['items'];
-                $subtotal = $itemResult['subtotal'];
-
-                $discount = (float) ($validated['discount'] ?? 0);
-                $tax = (float) ($validated['tax'] ?? 0);
-                $previousDue = (float) ($validated['previous_due'] ?? ($invoice->previous_due ?? 0));
-                $grandTotal = max(0, $subtotal - $discount + $tax + $previousDue);
-                
-                // Check if payments exist
-                $hasPayments = $invoice->payments()->exists();
-                $paid = $hasPayments ? (float)$invoice->payments()->sum('amount') : (float)($validated['paid_amount'] ?? 0);
-                $due = max(0, $grandTotal - $paid);
-
-                $paymentStatus = 'unpaid';
-                if ($paid >= $grandTotal && $grandTotal > 0) {
-                    $paymentStatus = 'paid';
-                } elseif ($paid > 0 && $due > 0) {
-                    $paymentStatus = 'partial';
-                }
-
-                $salesCategory = $validated['sales_category'] ?? $request->input('sales_category', $invoice->sales_category ?? 'books');
-
+            return DB::transaction(function () use ($validated, $invoice, $salesCategory, $totals, $advance) {
                 $invoice->update([
                     'invoice_no'           => $validated['invoice_no'],
                     'type'                 => $validated['type'],
@@ -2343,156 +2404,43 @@ class IdeaAccountingController extends Controller
                     'invoice_date'         => $validated['invoice_date'],
                     'due_date'             => $validated['due_date'] ?? null,
                     'valid_until'          => $validated['valid_until'] ?? null,
-                    'items'                => $itemsProcessed,
-                    'subtotal'             => $subtotal,
-                    'discount'             => $discount,
-                    'tax'                  => $tax,
-                    'previous_due'         => $previousDue,
-                    'grand_total'          => $grandTotal,
-                    'paid_amount'          => $paid,
-                    'due_amount'           => $due,
+                    'items'                => $totals['items'],
+                    'subtotal'             => $totals['subtotal'],
+                    'discount'             => $totals['discount'],
+                    'tax'                  => $totals['tax'],
+                    'previous_due'         => 0,
+                    'grand_total'          => $totals['grand'],
                     'payment_method'       => $validated['payment_method'],
-                    'payment_status'       => $paymentStatus,
                     'notes'                => $validated['notes'] ?? null,
                     'terms_conditions'     => $validated['terms_conditions'] ?? null,
                 ]);
 
-                // If no payments existed yet and a paid amount was provided on update, log the payment record
-                if (!$hasPayments && $paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
-                    $payNo = IdeaInvoicePayment::generatePaymentNo();
-                    IdeaInvoicePayment::create([
-                        'invoice_id'      => $invoice->id,
-                        'customer_name'   => $invoice->customer_name,
-                        'customer_phone'  => $invoice->customer_phone,
-                        'payment_no'      => $payNo,
-                        'payment_date'    => $invoice->invoice_date,
-                        'amount'          => $paid,
-                        'payment_method'  => $validated['payment_method'],
-                        'note'            => 'অগ্রিম জমা (Advance Payment)',
-                        'recorded_by'     => auth()->id(),
-                    ]);
+                if ($advance > 0) {
+                    IdeaInvoicePayment::record($invoice, [
+                        'payment_date'   => $invoice->invoice_date,
+                        'amount'         => $advance,
+                        'payment_method' => $validated['payment_method'],
+                        'note'           => 'অগ্রিম জমা (Advance Payment)',
+                    ], IdeaInvoicePayment::actorId());
                 }
 
-                // Sync accounting entry if exists
-                                        // Handle Banking Details
-            $settings['bank_name'] = $request->input('bank_name') ?? ($settings['bank_name'] ?? '');
-            $settings['bank_account_name'] = $request->input('bank_account_name') ?? ($settings['bank_account_name'] ?? '');
-            $settings['bank_account_no'] = $request->input('bank_account_no') ?? ($settings['bank_account_no'] ?? '');
-            $settings['bank_branch'] = $request->input('bank_branch') ?? ($settings['bank_branch'] ?? '');
-            $settings['bank_routing_no'] = $request->input('bank_routing_no') ?? ($settings['bank_routing_no'] ?? '');
+                // Payments already carry their own income entries; only keep labels in step.
+                IdeaAccountingEntry::where('invoice_id', $invoice->id)->update([
+                    'category'   => $invoice->incomeCategory(),
+                    'party_name' => $invoice->customer_name,
+                ]);
+                IdeaInvoicePayment::where('invoice_id', $invoice->id)->update([
+                    'customer_name'  => $invoice->customer_name,
+                    'customer_phone' => $invoice->customer_phone,
+                ]);
 
-                        // Handle MFS QR (bKash / Nagad / Rocket)
-            if ($request->has('mfs_qr_note')) {
-                $settings['mfs_qr_note'] = $request->input('mfs_qr_note') ?: 'bKash / Nagad / Rocket';
-            }
-            if ($request->filled('remove_mfs_qr') && $request->input('remove_mfs_qr') == '1') {
-                unset($settings['mfs_qr_image']);
-            } elseif ($request->hasFile('mfs_qr_file')) {
-                $file = $request->file('mfs_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'mfs_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['mfs_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Bank QR (Bank Payment)
-            if ($request->has('bank_qr_note')) {
-                $settings['bank_qr_note'] = $request->input('bank_qr_note') ?: 'Bank Payment';
-            }
-            if ($request->filled('remove_bank_qr') && $request->input('remove_bank_qr') == '1') {
-                unset($settings['bank_qr_image']);
-            } elseif ($request->hasFile('bank_qr_file')) {
-                $file = $request->file('bank_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'bank_qr_' . time() . '.' . $ext;
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) { @mkdir($targetDir, 0777, true); }
-                $file->move($targetDir, $filename);
-                $settings['bank_qr_image'] = 'images/settings/' . $filename;
-            }
-
-            // Handle Payment QR (Bangla QR / bKash / Nagad / Bank)
-            if ($request->has('payment_qr_note')) {
-                $settings['payment_qr_note'] = $request->input('payment_qr_note') ?: 'বিকাশ / নগদ / রকেট';
-            }
-
-            if ($request->filled('remove_payment_qr') && $request->input('remove_payment_qr') == '1') {
-                unset($settings['payment_qr_image']);
-            } elseif ($request->hasFile('payment_qr_file')) {
-                $file = $request->file('payment_qr_file');
-                $ext = $file->getClientOriginalExtension() ?: 'png';
-                $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                $targetDir = public_path('images/settings');
-                if (!is_dir($targetDir)) {
-                    @mkdir($targetDir, 0777, true);
-                }
-                $file->move($targetDir, $filename);
-                $settings['payment_qr_image'] = 'images/settings/' . $filename;
-            } elseif (!empty($request->input('payment_qr_base64')) && str_starts_with($request->input('payment_qr_base64'), 'data:image/')) {
-                $base64 = $request->input('payment_qr_base64');
-                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $type)) {
-                    $base64Data = substr($base64, strpos($base64, ',') + 1);
-                    $decoded = base64_decode($base64Data);
-                    if ($decoded !== false) {
-                        $ext = strtolower($type[1] ?? 'png');
-                        if ($ext === 'jpeg') $ext = 'jpg';
-                        $filename = 'payment_qr_' . time() . '.' . $ext;
-
-                        $targetDir = public_path('images/settings');
-                        if (!is_dir($targetDir)) {
-                            @mkdir($targetDir, 0777, true);
-                        }
-                        @file_put_contents($targetDir . '/' . $filename, $decoded);
-                        $settings['payment_qr_image'] = 'images/settings/' . $filename;
-                    }
-                }
-            } elseif (!empty($request->input('payment_qr_url'))) {
-                $settings['payment_qr_image'] = $request->input('payment_qr_url');
-            }
-
-            $userId = auth()->id() ?: null;
-                if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
-                    $userId = null;
-                }
-
-                $entry = IdeaAccountingEntry::where('invoice_id', $invoice->id)->first();
-                if ($paid > 0 && in_array($validated['type'], ['invoice', 'challan'])) {
-                    if ($entry) {
-                        $entry->update([
-                            'amount'         => $paid,
-                            'entry_date'     => $invoice->invoice_date,
-                            'payment_method' => $validated['payment_method'],
-                            'party_name'     => $invoice->customer_name,
-                        ]);
-                    } else {
-                        IdeaAccountingEntry::create([
-                            'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                            'type'           => 'income',
-                            'category'       => $validated['type'] === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)',
-                            'title'          => "বিল #{$invoice->invoice_no} হতে পেমেন্ট প্রাপ্তি — {$invoice->customer_name}",
-                            'amount'         => $paid,
-                            'entry_date'     => $invoice->invoice_date,
-                            'payment_method' => $validated['payment_method'],
-                            'party_name'     => $invoice->customer_name,
-                            'invoice_id'     => $invoice->id,
-                            'notes'          => "চালান/বিল নম্বর #{$invoice->invoice_no} থেকে প্রাপ্ত অর্থ।",
-                            'created_by'     => $userId,
-                        ]);
-                    }
-                } elseif ($entry && ($paid == 0 || in_array($validated['type'], ['quotation', 'tender']))) {
-                    $entry->delete();
-                }
-
-                $typeLabel = $invoice->type_label;
+                $invoice->recalculatePayments();
 
                 return redirect()->route('admin.accounting.invoices.show', $invoice->id)
-                    ->with('success', "{$typeLabel} #{$invoice->invoice_no} সফলভাবে আপডেট হয়েছে।");
+                    ->with('success', "{$invoice->type_label} #{$invoice->invoice_no} সফলভাবে আপডেট হয়েছে।");
             });
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'ডকুমেন্ট আপডেটে সমস্যা হয়েছে: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'ডকুমেন্ট আপডেটে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
 
@@ -2510,6 +2458,8 @@ class IdeaAccountingController extends Controller
         $invoice->update([
             'type' => $targetType,
         ]);
+        $invoice->recalculatePayments();
+        IdeaAccountingEntry::where('invoice_id', $invoice->id)->update(['category' => $invoice->incomeCategory()]);
 
         $newTypeLabel = $invoice->type_label;
 
@@ -2517,9 +2467,6 @@ class IdeaAccountingController extends Controller
             ->with('success', "{$oldTypeLabel} সফলভাবে {$newTypeLabel}-এ রূপান্তর করা হয়েছে।");
     }
 
-    /**
-     * Record a new installment/step payment against an invoice.
-     */
     /**
      * Record a new installment/step payment against an invoice.
      */
@@ -2546,126 +2493,74 @@ class IdeaAccountingController extends Controller
             'payment_date.required' => 'জমার তারিখ প্রদান করুন।',
         ]);
 
-        $amount = (float) $validated['amount'];
-        $vatRate = (float) ($validated['vat_deduction_rate'] ?? 0);
-        $vatAmount = (float) ($validated['vat_deduction_amount'] ?? 0);
-        $taxRate = (float) ($validated['tax_deduction_rate'] ?? 0);
-        $taxAmount = (float) ($validated['tax_deduction_amount'] ?? 0);
-        $otherAmount = (float) ($validated['other_deduction_amount'] ?? 0);
-        $totalDeductions = $vatAmount + $taxAmount + $otherAmount;
-        
-        $netAmount = isset($validated['net_amount']) && (float)$validated['net_amount'] > 0
-            ? (float)$validated['net_amount']
-            : max(0, $amount - $totalDeductions);
-
-        // If net_amount + deductions is explicitly calculated, ensure total settlement credit is synchronized
-        if ($netAmount > 0 && $totalDeductions > 0 && abs(($netAmount + $totalDeductions) - $amount) > 0.01) {
-            $amount = $netAmount + $totalDeductions;
+        if (!$invoice->acceptsPayments()) {
+            return back()->withInput()->with('error', 'কোটেশন বা দরপত্রে পেমেন্ট জমা নেওয়া যায় না। আগে বিল/চালানে রূপান্তর করুন।');
         }
 
-        $challanNo = $validated['deduction_challan_no'] ?? null;
-        $deductionNotes = $validated['deduction_notes'] ?? null;
-        $paymentDate = $validated['payment_date'];
-        $paymentMethod = $validated['payment_method'];
-        $trxRef = $validated['transaction_ref'] ?? null;
-        $note = $validated['note'] ?? null;
+        $deductions = (float) ($validated['vat_deduction_amount'] ?? 0)
+            + (float) ($validated['tax_deduction_amount'] ?? 0)
+            + (float) ($validated['other_deduction_amount'] ?? 0);
+
+        $amount = round((float) $validated['amount'], 2);
+        $net = (float) ($validated['net_amount'] ?? 0);
+        if ($net > 0 && $deductions > 0 && abs(($net + $deductions) - $amount) > 0.01) {
+            $amount = round($net + $deductions, 2);
+        }
+
+        if ($deductions > $amount + 0.004) {
+            return back()->withInput()->with('error', 'কর্তনের মোট পরিমাণ জমার পরিমাণের চেয়ে বেশি হতে পারে না।');
+        }
 
         try {
-            return DB::transaction(function () use ($invoice, $amount, $netAmount, $vatRate, $vatAmount, $taxRate, $taxAmount, $otherAmount, $challanNo, $deductionNotes, $totalDeductions, $paymentDate, $paymentMethod, $trxRef, $note, $request) {
-                $payNo = IdeaInvoicePayment::generatePaymentNo();
+            return DB::transaction(function () use ($invoice, $amount, $validated, $request) {
+                $invoice = IdeaInvoice::whereKey($invoice->id)->lockForUpdate()->firstOrFail();
 
-                // If previous payments do not exist but invoice had existing paid_amount > 0, backfill the advance record first
-                if ($invoice->payments()->count() === 0 && (float)$invoice->paid_amount > 0) {
-                    IdeaInvoicePayment::create([
-                        'invoice_id'      => $invoice->id,
-                        'customer_name'   => $invoice->customer_name,
-                        'customer_phone'  => $invoice->customer_phone,
-                        'payment_no'      => IdeaInvoicePayment::generatePaymentNo(),
-                        'payment_date'    => $invoice->invoice_date,
-                        'amount'          => (float)$invoice->paid_amount,
-                        'net_amount'      => (float)$invoice->paid_amount,
-                        'payment_method'  => $invoice->payment_method ?: 'cash',
-                        'transaction_ref' => null,
-                        'note'            => 'অগ্রিম জমা (Advance Payment)',
-                        'recorded_by'     => $invoice->created_by ?: auth()->id(),
-                    ]);
+                // Legacy rows that only carry a paid_amount: materialise it before adding more.
+                if ($invoice->payments()->count() === 0 && (float) $invoice->paid_amount > 0) {
+                    IdeaInvoicePayment::record($invoice, [
+                        'payment_date'   => $invoice->invoice_date,
+                        'amount'         => (float) $invoice->paid_amount,
+                        'payment_method' => $invoice->payment_method ?: 'cash',
+                        'note'           => 'অগ্রিম জমা (Advance Payment)',
+                    ], $invoice->created_by);
                 }
 
-                $payment = IdeaInvoicePayment::create([
-                    'invoice_id'             => $invoice->id,
-                    'customer_name'          => $invoice->customer_name,
-                    'customer_phone'         => $invoice->customer_phone,
-                    'payment_no'             => $payNo,
-                    'payment_date'           => $paymentDate,
-                    'amount'                 => $amount,
-                    'net_amount'             => $netAmount,
-                    'vat_deduction_rate'     => $vatRate,
-                    'vat_deduction_amount'   => $vatAmount,
-                    'tax_deduction_rate'     => $taxRate,
-                    'tax_deduction_amount'   => $taxAmount,
-                    'other_deduction_amount' => $otherAmount,
-                    'deduction_challan_no'   => $challanNo,
-                    'deduction_notes'        => $deductionNotes,
-                    'payment_method'         => $paymentMethod,
-                    'transaction_ref'        => $trxRef,
-                    'note'                   => $note,
-                    'recorded_by'            => auth()->id(),
-                ]);
+                $remaining = $invoice->remainingDue();
+                if ($amount > $remaining + 0.004) {
+                    return back()->withInput()->with('error', 'জমার পরিমাণ (৳' . number_format($amount, 2) . ') বকেয়ার (৳' . number_format($remaining, 2) . ') চেয়ে বেশি হতে পারে না।');
+                }
 
-                // Update due date if requested (optional next installment date)
+                $payment = IdeaInvoicePayment::record($invoice, [
+                    'payment_date'           => $validated['payment_date'],
+                    'amount'                 => $amount,
+                    'net_amount'             => $validated['net_amount'] ?? null,
+                    'vat_deduction_rate'     => $validated['vat_deduction_rate'] ?? 0,
+                    'vat_deduction_amount'   => $validated['vat_deduction_amount'] ?? 0,
+                    'tax_deduction_rate'     => $validated['tax_deduction_rate'] ?? 0,
+                    'tax_deduction_amount'   => $validated['tax_deduction_amount'] ?? 0,
+                    'other_deduction_amount' => $validated['other_deduction_amount'] ?? 0,
+                    'deduction_challan_no'   => $validated['deduction_challan_no'] ?? null,
+                    'deduction_notes'        => $validated['deduction_notes'] ?? null,
+                    'payment_method'         => $validated['payment_method'],
+                    'transaction_ref'        => $validated['transaction_ref'] ?? null,
+                    'note'                   => $validated['note'] ?? null,
+                ], IdeaInvoicePayment::actorId());
+
                 if ($request->has('due_date')) {
                     $invoice->due_date = $request->filled('due_date') ? $request->input('due_date') : null;
                 }
 
-                // Recalculate invoice totals and status
                 $invoice->recalculatePayments();
 
-                // Record non-duplicating accounting income entry
-                $incomeCategory = match($invoice->sales_category) {
-                    'stationery'     => 'স্টেশনারী বিক্রয় (Stationery Sales)',
-                    'printing_goods' => 'মুদ্রণ ও প্রকাশনা সেবা (Printing & Publication)',
-                    'other'          => 'অন্যান্য আয় (Other Income)',
-                    default          => ($invoice->type === 'challan' ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)' : 'বই বিক্রয় (Book Sales)')
-                };
-                $userId = auth()->id() ?: null;
-                if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
-                    $userId = null;
-                }
-
-                $deductionSummaryTxt = '';
-                if ($totalDeductions > 0.001) {
-                    $parts = [];
-                    if ($netAmount > 0) $parts[] = "নিট প্রাপ্তি: ৳" . number_format($netAmount, 2);
-                    if ($vatAmount > 0) $parts[] = "মূসক কর্তন" . ($vatRate > 0 ? " ({$vatRate}%)" : "") . ": ৳" . number_format($vatAmount, 2);
-                    if ($taxAmount > 0) $parts[] = "উৎসে কর" . ($taxRate > 0 ? " ({$taxRate}%)" : "") . ": ৳" . number_format($taxAmount, 2);
-                    if ($otherAmount > 0) $parts[] = "অন্যান্য কর্তন: ৳" . number_format($otherAmount, 2);
-                    $deductionSummaryTxt = " [" . implode(', ', $parts) . ($challanNo ? " | চালান/সনদ: {$challanNo}" : "") . "]";
-                }
-
-                IdeaAccountingEntry::create([
-                    'entry_no'       => 'INC-' . date('Ymd') . '-' . rand(1000, 9999),
-                    'type'           => 'income',
-                    'category'       => $incomeCategory,
-                    'title'          => "বিল #{$invoice->invoice_no} হতে কিস্তি/বকেয়া সমন্বয় — {$invoice->customer_name}",
-                    'amount'         => $amount,
-                    'entry_date'     => $paymentDate,
-                    'payment_method' => $paymentMethod,
-                    'party_name'     => $invoice->customer_name,
-                    'voucher_no'     => $payNo,
-                    'invoice_id'     => $invoice->id,
-                    'notes'          => ($note ? "{$note} — " : "") . "বিল #{$invoice->invoice_no} এর কিস্তি/জমা রসিদ #{$payNo}{$deductionSummaryTxt}",
-                    'created_by'     => $userId,
-                ]);
-
-                $msg = "বিল #{$invoice->invoice_no}-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা জমা/সমন্বয় রেকর্ড করা হয়েছে (রসিদ #{$payNo})।";
-                if ($totalDeductions > 0.001) {
-                    $msg .= " (নিট প্রাপ্তি: ৳" . number_format($netAmount, 2) . ", ভ্যাট/ট্যাক্স কর্তন: ৳" . number_format($totalDeductions, 2) . ")";
+                $msg = "বিল #{$invoice->invoice_no}-এর বিপরীতে ৳" . number_format($amount, 2) . " টাকা জমা/সমন্বয় রেকর্ড করা হয়েছে (রসিদ #{$payment->payment_no})।";
+                if ($payment->has_deductions) {
+                    $msg .= " (নিট প্রাপ্তি: ৳" . number_format((float) $payment->net_amount, 2) . ", ভ্যাট/ট্যাক্স কর্তন: ৳" . number_format($payment->total_deductions, 2) . ")";
                 }
 
                 return back()->with('success', $msg);
             });
         } catch (\Throwable $e) {
-            return back()->withInput()->with('error', 'কিস্তি জমা রেকর্ডে সমস্যা হয়েছে: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'কিস্তি জমা রেকর্ডে সমস্যা হয়েছে: ' . $e->getMessage());
         }
     }
 
@@ -2724,6 +2619,14 @@ class IdeaAccountingController extends Controller
                 $invoice = $payment->invoice;
                 $payNo = $payment->payment_no;
 
+                if ($invoice) {
+                    $otherPaid = round((float) $invoice->payments()->where('id', '!=', $payment->id)->sum('amount'), 2);
+                    $room = round((float) $invoice->grand_total - $otherPaid, 2);
+                    if ($amount > $room + 0.004) {
+                        return back()->withInput()->with('error', 'জমার পরিমাণ (৳' . number_format($amount, 2) . ') অনুমোদিত সীমা (৳' . number_format(max(0, $room), 2) . ') ছাড়িয়ে গেছে।');
+                    }
+                }
+
                 $payment->update([
                     'payment_date'           => $paymentDate,
                     'amount'                 => $amount,
@@ -2762,7 +2665,7 @@ class IdeaAccountingController extends Controller
                     $invoiceNo = $invoice?->invoice_no ?? '—';
 
                     IdeaAccountingEntry::where('voucher_no', $payNo)->update([
-                        'amount'         => $amount,
+                        'amount'         => $netAmount > 0 ? $netAmount : $amount,
                         'entry_date'     => $paymentDate,
                         'payment_method' => $paymentMethod,
                         'notes'          => ($note ? "{$note} — " : "") . "বিল #{$invoiceNo} এর কিস্তি/জমা রসিদ #{$payNo}{$deductionSummaryTxt}",
@@ -4189,9 +4092,10 @@ class IdeaAccountingController extends Controller
 
     public function destroyInvoice(IdeaInvoice $invoice): RedirectResponse
     {
-        $invoice->delete();
+        DB::transaction(fn () => $invoice->deleteWithLedger());
+
         return redirect()->route('admin.accounting.invoices.index')
-            ->with('success', 'ডকুমেন্টটি সফলভাবে মুছে ফেলা হয়েছে।');
+            ->with('success', 'ডকুমেন্টটি এবং এর পেমেন্ট ও আয়ের এন্ট্রি সফলভাবে মুছে ফেলা হয়েছে।');
     }
 
     /**

@@ -27,35 +27,62 @@ class ProductController extends Controller
     }
 
     /**
-     * Common catalog renderer for electronics and stationery.
+     * Display Home Appliance shop page.
+     */
+    public function appliance(Request $request)
+    {
+        return $this->renderCatalog($request, 'appliance');
+    }
+
+    /**
+     * Common catalog renderer for electronics, stationery and appliances.
      */
     protected function renderCatalog(Request $request, string $type)
     {
+        // Categories (auto-updates: every active category that has live products becomes a slider row)
         $categories = ProductCategory::where('type', $type)
             ->active()
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->withCount(['products' => function ($q) {
                 $q->active();
             }])
             ->get();
 
-        $categoriesWithProducts = ProductCategory::where('type', $type)
+        // Uncategorised products get their own "Others" row/chip so nothing is hidden
+        $uncategorised = Product::where('type', $type)->active()->whereNull('category_id')->count();
+        if ($uncategorised > 0) {
+            $others = new ProductCategory(['type' => $type, 'name' => 'Others', 'slug' => 'others']);
+            $others->id = 0;
+            $others->products_count = $uncategorised;
+            $categories->push($others);
+        }
+
+        // One query for all rows, capped per category so big catalogues stay fast
+        $perRow = 16;
+        $byCategory = Product::where('type', $type)
             ->active()
             ->orderBy('sort_order')
-            ->with(['products' => function ($q) {
-                $q->active()->orderBy('sort_order')->orderByDesc('id');
-            }])
+            ->orderByDesc('id')
             ->get()
-            ->filter(function ($cat) {
-                return $cat->products->isNotEmpty();
-            });
+            ->groupBy(fn ($p) => (int) ($p->category_id ?? 0));
 
+        $categoriesWithProducts = $categories
+            ->map(function ($cat) use ($byCategory, $perRow) {
+                $items = $byCategory->get((int) $cat->id, collect());
+                $cat->setRelation('products', $items->take($perRow)->values());
+                return $cat;
+            })
+            ->filter(fn ($cat) => $cat->products->isNotEmpty())
+            ->values();
         $query = Product::where('type', $type)
             ->active()
             ->with('category');
 
         // Filter by category (slug or id)
-        if ($request->filled('category')) {
+        if ($request->input('category') === 'others') {
+            $query->whereNull('category_id');
+        } elseif ($request->filled('category')) {
             $catParam = (string) $request->input('category');
             $query->where(function ($q) use ($catParam) {
                 $q->whereHas('category', function ($sub) use ($catParam) {
@@ -288,6 +315,25 @@ class ProductController extends Controller
                 'guarantee_desc' => 'সেরা ব্র্যান্ড ও অফিসিয়াল ওয়ারেন্টি',
                 'quick_view_summary' => 'উন্নত মানের হোম অ্যাপ্লায়েন্স ও ডিজিটাল গ্যাজেট।',
             ],
+            'appliance' => [
+                'title' => 'হোম অ্যাপ্লায়েন্স',
+                'subtitle' => 'রান্নাঘর, কুলিং, লন্ড্রি, ক্লিনিং ও ঘরের প্রয়োজনীয় ইলেকট্রিক সামগ্রী',
+                'badge' => 'হোম অ্যাপ্লায়েন্স',
+                'badge_suffix' => 'অফিসিয়াল ওয়ারেন্টি',
+                'slug' => 'appliance',
+                'icon' => 'fas fa-blender',
+                'theme_color' => '#d97706',
+                'theme_color_dark' => '#b45309',
+                'banner_bg' => 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 55%, #f8fafc 100%)',
+                'search_placeholder' => 'অ্যাপ্লায়েন্স খুঁজুন...',
+                'category_title' => 'ক্যাটাগরি',
+                'popular_text' => 'জনপ্রিয়',
+                'new_text' => 'নতুন',
+                'under_1000_text' => '৳৩,০০০ নিচে',
+                'guarantee_title' => 'ওয়ারেন্টি সহ',
+                'guarantee_desc' => 'জেনুইন পণ্য ও বিক্রয়োত্তর সেবা',
+                'quick_view_summary' => 'নির্ভরযোগ্য হোম অ্যাপ্লায়েন্স।',
+            ],
             'stationery' => [
                 'title' => 'স্টেশনারি ও অফিস',
                 'subtitle' => 'খাতা, স্ট্যাম্প, ক্যালেন্ডার, ভিজিটিং কার্ড, মেমো ও অফিসিয়াল সামগ্রী',
@@ -311,7 +357,9 @@ class ProductController extends Controller
 
         $currentMeta = $typeMeta[$type] ?? $typeMeta['electronics'];
 
-        return view('frontend.products.index', compact(
+        $view = 'frontend.products.shop';
+
+        return view($view, compact(
             'products',
             'categories',
             'categoriesWithProducts',
@@ -333,7 +381,7 @@ class ProductController extends Controller
      */
     public function show(string $type, string $slug)
     {
-        if (!in_array($type, ['electronics', 'stationery'], true)) {
+        if (!array_key_exists($type, Product::TYPES)) {
             abort(404);
         }
 

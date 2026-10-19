@@ -31,6 +31,12 @@
                         <i class="fa-solid fa-cart-shopping text-info"></i> Others
                     </a>
                 </li>
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold" href="{{ route('admin.purchases.stationery') }}">Stationery</a>
+                </li>
+                <li>
+                    <a class="dropdown-item rounded-2 py-2 fw-semibold" href="{{ route('admin.purchases.electronics') }}">Electronics</a>
+                </li>
             </ul>
         </div>
 
@@ -57,6 +63,9 @@
             <i class="fa-solid fa-book-bookmark"></i>
             <span>Ledgers</span>
         </a>
+
+        <a href="{{ route('admin.purchases.items.stock') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold">Items</a>
+        <a href="{{ route('admin.production.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold">Production</a>
 
         {{-- Reports --}}
         <a href="{{ route('admin.purchases.monthly-report') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5">
@@ -89,6 +98,10 @@
                    class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $category === 'other' ? 'btn-white text-info text-dark shadow-xs' : 'btn-light text-muted' }}">
                     <i class="fa-solid fa-cart-shopping me-1"></i> Others ({{ $stats['other_count'] }})
                 </a>
+                <a href="{{ route('admin.purchases.index', ['category' => 'stationery']) }}"
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $category === 'stationery' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">Stationery ({{ $stats['stationery_count'] }})</a>
+                <a href="{{ route('admin.purchases.index', ['category' => 'electronics']) }}"
+                   class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold {{ $category === 'electronics' ? 'btn-white text-primary shadow-xs' : 'btn-light text-muted' }}">Electronics ({{ $stats['electronics_count'] }})</a>
             </div>
 
             <div class="d-flex align-items-center gap-3">
@@ -191,11 +204,12 @@
 
         {{-- Quick Client-Side Status Filter Chips --}}
         <div class="d-flex align-items-center gap-1.5 mt-2.5 pt-2 border-top flex-wrap">
-            <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-filter-list me-1 text-primary"></i>Quick Filter:</span>
-            <button type="button" class="btn btn-xs btn-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip active" data-status="all" onclick="filterByStatusChip('all', this)">All</button>
-            <button type="button" class="btn btn-xs btn-outline-danger rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip" data-status="due" onclick="filterByStatusChip('due', this)">Due</button>
-            <button type="button" class="btn btn-xs btn-outline-warning text-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip" data-status="partial" onclick="filterByStatusChip('partial', this)">Partial</button>
-            <button type="button" class="btn btn-xs btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip" data-status="paid" onclick="filterByStatusChip('paid', this)">Paid</button>
+            <select class="form-select form-select-sm w-auto quick-status-chip" id="quickStatus" aria-label="Status" onchange="filterPurchasesTableLive()">
+                <option value="all">All</option>
+                <option value="due">Due</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+            </select>
             <span class="text-muted ms-auto small" id="liveVisibleCount"></span>
         </div>
     </div>
@@ -259,6 +273,8 @@
                                     <span class="badge bg-warning-subtle text-dark border px-2 py-0.5 rounded-pill" style="font-size: 11px;">
                                         <i class="fa-solid fa-boxes-stacked me-1 text-warning"></i>Materials
                                     </span>
+                                @elseif(in_array($catType, ['stationery', 'electronics'], true))
+                                    <span class="badge bg-success-subtle text-dark border px-2 py-0.5 rounded-pill" style="font-size: 11px;">{{ ucfirst($catType) }}</span>
                                 @elseif($catType === 'other')
                                     <span class="badge bg-info-subtle text-dark border px-2 py-0.5 rounded-pill" style="font-size: 11px;">
                                         <i class="fa-solid fa-cart-shopping me-1 text-info"></i>Others
@@ -545,8 +561,7 @@
 function filterPurchasesTableLive() {
     const term = (document.getElementById('liveSearchInput')?.value || '').trim().toLowerCase();
     const rows = document.querySelectorAll('#purchasesTableBody .purchase-row');
-    const activeChip = document.querySelector('.quick-status-chip.active');
-    const statusFilter = activeChip ? activeChip.getAttribute('data-status') : 'all';
+    const statusFilter = document.getElementById('quickStatus')?.value || 'all';
     
     let visibleCount = 0;
 
@@ -574,31 +589,6 @@ function filterPurchasesTableLive() {
     if (countLabel) {
         countLabel.textContent = `Showing ${visibleCount} invoices`;
     }
-}
-
-// Filter by Status Chips (All, Due, Partial, Paid)
-function filterByStatusChip(status, btn) {
-    document.querySelectorAll('.quick-status-chip').forEach(c => {
-        c.classList.remove('active', 'btn-dark', 'btn-danger', 'btn-warning', 'btn-success');
-        const s = c.getAttribute('data-status');
-        if (s === 'all') c.className = 'btn btn-xs btn-outline-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip';
-        else if (s === 'due') c.className = 'btn btn-xs btn-outline-danger rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip';
-        else if (s === 'partial') c.className = 'btn btn-xs btn-outline-warning text-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip';
-        else if (s === 'paid') c.className = 'btn btn-xs btn-outline-success rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip';
-    });
-
-    btn.classList.add('active');
-    if (status === 'all') {
-        btn.className = 'btn btn-xs btn-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip active';
-    } else if (status === 'due') {
-        btn.className = 'btn btn-xs btn-danger rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip active';
-    } else if (status === 'partial') {
-        btn.className = 'btn btn-xs btn-warning text-dark rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip active';
-    } else if (status === 'paid') {
-        btn.className = 'btn btn-xs btn-success rounded-pill px-2.5 py-0.5 fw-semibold quick-status-chip active';
-    }
-
-    filterPurchasesTableLive();
 }
 
 // Toast Notification

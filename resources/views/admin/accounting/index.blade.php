@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @section('title', 'Accounting')
 @section('heading', 'Accounting')
 @section('breadcrumb')
@@ -21,6 +25,10 @@
             <i class="fa-solid fa-file-invoice-dollar"></i>
             <span>Invoice</span>
         </a>
+        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3.5 shadow-xs fw-semibold text-dark d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Quotation</span>
+        </button>
         <a href="{{ route('admin.accounting.invoices.export', array_merge(request()->all(), ['format' => 'csv'])) }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 shadow-2xs fw-semibold d-inline-flex align-items-center gap-1.5" title="Export CSV" style="border: 1px solid #cbd5e1;">
             <i class="fa-solid fa-file-csv text-success"></i>
             <span>Export</span>
@@ -241,11 +249,16 @@
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['offline_count']) }}</span>
                 </a>
 
-                <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'invoices'])) }}" 
-                   class="stream-tab-btn {{ $stream === 'invoices' ? 'active' : '' }}" data-stream="invoices">
+                <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page', 'type'), ['stream' => 'invoices'])) }}" 
+                   class="stream-tab-btn {{ $stream === 'invoices' && request('type') !== 'quotation' ? 'active' : '' }}" data-stream="invoices">
                     <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
                     <span>Invoices</span>
                     <span class="badge bg-light text-dark border rounded-pill">{{ number_format($stats['invoices_count']) }}</span>
+                </a>
+
+                <a href="{{ route('admin.accounting.index', ['stream' => 'invoices', 'type' => 'quotation']) }}" class="stream-tab-btn {{ $stream === 'invoices' && request('type') === 'quotation' ? 'active' : '' }}" data-stream="quotations">
+                    <span>Quotations</span>
+                    <span class="badge bg-light text-dark border rounded-pill">{{ number_format(\App\Models\IdeaInvoice::where('type', 'quotation')->count()) }}</span>
                 </a>
 
                 <a href="{{ route('admin.accounting.index', array_merge(request()->except('stream', 'page'), ['stream' => 'income'])) }}" 
@@ -285,6 +298,26 @@
         </div>
     </div>
 </div>
+
+{{-- Document types of the invoices stream (invoice, challan, quotation, tender) --}}
+@if ($stream === 'invoices')
+    @php
+        $docTypes = ['' => 'All', 'invoice' => 'Invoices', 'challan' => 'Challans', 'quotation' => 'Quotations', 'tender' => 'Tenders'];
+        $typeCounts = \App\Models\IdeaInvoice::selectRaw('type, COUNT(*) as n')->groupBy('type')->pluck('n', 'type');
+    @endphp
+    <div class="doc-type-bar" role="tablist" aria-label="Document type">
+        @foreach ($docTypes as $key => $label)
+            <a href="{{ route('admin.accounting.index', array_filter(array_merge(request()->except('type', 'page'), ['stream' => 'invoices', 'type' => $key]))) }}"
+               class="doc-type-pill {{ (string) request('type', '') === (string) $key ? 'active' : '' }}">
+                {{ $label }}
+                <span>{{ number_format($key === '' ? $typeCounts->sum() : ($typeCounts[$key] ?? 0)) }}</span>
+            </a>
+        @endforeach
+        @if (request('type') === 'quotation')
+            <button type="button" class="btn btn-warning btn-sm ms-auto fw-semibold text-dark" data-bs-toggle="modal" data-bs-target="#quickQuotationModal">New quotation</button>
+        @endif
+    </div>
+@endif
 
 {{-- 2. Financial KPI Metric Cards (Deduplicated & Accurate) --}}
 <div class="row g-3 g-xl-3.5 mb-4">
@@ -433,7 +466,7 @@
                         </h6>
                     </div>
                 </div>
-                <div style="position: relative; height: 180px; width: 100%;" class="mb-2">
+                <div style="position: relative; height: 250px; width: 100%;" class="mb-2">
                     <canvas id="expenseDonutChart"></canvas>
                 </div>
             </div>
@@ -701,6 +734,8 @@
 </div>
 
 {{-- 7. Record Income Modal --}}
+@include('admin.accounting.partials.quick-quotation')
+
 <div class="modal fade" id="newIncomeModal" tabindex="-1" aria-labelledby="newIncomeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
@@ -1026,38 +1061,35 @@ document.addEventListener('DOMContentLoaded', function () {
         const incomeData = @json($trendIncome);
         const expenseData = @json($trendExpense);
 
+        const g = (ctx, rgb) => {
+            const grad = ctx.createLinearGradient(0, 0, 0, trendCtx.clientHeight || 240);
+            grad.addColorStop(0, `rgba(${rgb}, .32)`);
+            grad.addColorStop(1, `rgba(${rgb}, 0)`);
+            return grad;
+        };
+        const ctx2d = trendCtx.getContext('2d');
+        const money = v => '৳' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
         new Chart(trendCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: trendLabels,
                 datasets: [
-                    {
-                        label: 'Income',
-                        data: incomeData,
-                        backgroundColor: 'rgba(16, 185, 129, 0.85)',
-                        borderColor: '#059669',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                    },
-                    {
-                        label: 'Expense',
-                        data: expenseData,
-                        backgroundColor: 'rgba(244, 63, 94, 0.85)',
-                        borderColor: '#e11d48',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                    }
+                    { label: 'Income', data: incomeData, borderColor: '#059669', backgroundColor: g(ctx2d, '16,185,129'), fill: true, tension: .38, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 6, pointHoverBackgroundColor: '#059669', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2 },
+                    { label: 'Expense', data: expenseData, borderColor: '#e11d48', backgroundColor: g(ctx2d, '244,63,94'), fill: true, tension: .38, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 6, pointHoverBackgroundColor: '#e11d48', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2 }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { position: 'top', labels: { boxWidth: 12, font: { weight: 600 } } }
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: { weight: 700 } } },
+                    tooltip: { backgroundColor: '#0f172a', padding: 12, cornerRadius: 12, titleFont: { weight: 700 }, callbacks: { label: c => ` ${c.dataset.label}: ${money(c.parsed.y)}` } }
                 },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } },
-                    x: { grid: { display: false } }
+                    y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(148,163,184,.18)' }, ticks: { callback: v => money(v), maxTicksLimit: 5 } },
+                    x: { grid: { display: false }, border: { display: false } }
                 }
             }
         });
@@ -1074,15 +1106,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     datasets: [{
                         data: breakdownData.map(i => parseFloat(i.total)),
                         backgroundColor: ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#64748b'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 8,
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    cutout: '65%'
+                    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: { size: 11, weight: 600 } } }, tooltip: { backgroundColor: '#0f172a', padding: 10, cornerRadius: 10 } },
+                    cutout: '72%'
                 }
             });
         }

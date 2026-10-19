@@ -215,7 +215,7 @@ class RegistrationController extends Controller
 
             // If user is a customer/buyer applying to be an author or publisher
             if ($isCustomer && $isApplyingRole) {
-                $roleLabel = ($category === 'author' ? 'লেখক (Author)' : ($category === 'publisher' ? 'প্রকাশক (Publisher)' : 'সেলার (Seller)'));
+                $roleLabel = ($category === 'author' ? 'Author' : ($category === 'publisher' ? 'Publisher' : 'Seller'));
                 return response()->json([
                     'exists'        => true,
                     'can_upgrade'   => true,
@@ -223,17 +223,17 @@ class RegistrationController extends Controller
                     'is_verified'   => $isVerified,
                     'phone'         => $localPhone,
                     'name'          => $existing->name,
-                    'message'       => "আপনার এই নম্বরে সাধারণ গ্রাহক অ্যাকাউন্ট রয়েছে। ওটিপি কোড দিয়ে মোবাইল যাচাই করে আপনি {$roleLabel} হিসেবে আবেদন সম্পন্ন করতে পারবেন।",
+                    'message'       => "A customer account exists for this number. Verify with OTP to continue as {$roleLabel}.",
                     'login_url'     => route('login'),
                     'forgot_url'    => route('password.request'),
                 ]);
             }
             
             $msg = ($hasPassword && $isVerified)
-                ? 'এই মোবাইল নম্বর (' . $localPhone . ') দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।'
+                ? 'Account exists (' . $localPhone . '). Sign in instead.'
                 : ($isVerified
-                    ? 'আপনার এই মোবাইল নম্বরটি ভেরিফাইড রয়েছে। আপনি ওটিপি কোড দিয়ে সরাসরি লগইন করতে বা পাসওয়ার্ড পরিবর্তন করতে পারেন।'
-                    : 'আপনার এই মোবাইল নম্বরটি পূর্বে সংরক্ষিত হয়েছে কিন্তু ভেরিফিকেশন বা পাসওয়ার্ড সেট সম্পন্ন হয়নি। ওটিপি কোড পাঠিয়ে ভেরিফাই করুন এবং নতুন পাসওয়ার্ড দিন।');
+                    ? 'Number verified. Sign in with OTP.'
+                    : 'Number saved but not verified. Verify with OTP.');
 
             return response()->json([
                 'exists'        => true,
@@ -254,7 +254,7 @@ class RegistrationController extends Controller
             'has_password' => false,
             'is_verified'  => false,
             'phone'        => $localPhone,
-            'message'      => 'মোবাইল নম্বরটি নতুন রেজিস্ট্রেশনের জন্য উন্মুক্ত ও প্রস্তুত।',
+            'message'      => 'Number is available.',
         ]);
     }
 
@@ -300,18 +300,18 @@ class RegistrationController extends Controller
                     'success'        => false,
                     'already_exists' => true,
                     'is_admin'       => true,
-                    'message'        => 'এই নম্বরটি এডমিন বা স্টাফ অ্যাকাউন্টের সাথে যুক্ত। সাধারণ রেজিস্ট্রেশন সম্ভব নয়, দয়া করে সাইন-ইন করুন।',
+                    'message'        => 'This number belongs to a staff account.',
                     'login_url'      => route('login'),
                 ], 422);
             }
 
             // If user already has the exact approved role requested
             if ($category && $existing->role === $category && $existing->reg_status === User::STATUS_APPROVED) {
-                $roleLabel = ($category === 'author' ? 'লেখক' : ($category === 'publisher' ? 'প্রকাশক' : ucfirst($category)));
+                $roleLabel = ($category === 'author' ? 'Author' : ($category === 'publisher' ? 'Publisher' : ucfirst($category)));
                 return response()->json([
                     'success'        => false,
                     'already_exists' => true,
-                    'message'        => "আপনার এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একজন অনুমোদিত {$roleLabel} অ্যাকাউন্ট রয়েছে। দয়া করে লগইন করুন।",
+                    'message'        => "This number already has an approved {$roleLabel} account.",
                     'login_url'      => route('login'),
                     'forgot_url'     => route('password.request'),
                 ], 200);
@@ -327,7 +327,7 @@ class RegistrationController extends Controller
                 return response()->json([
                     'success'        => false,
                     'already_exists' => true,
-                    'message'        => 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। আপনি ওটিপি কোড দিয়ে সরাসরি লগইন করতে পারেন অথবা পাসওয়ার্ড দিন।',
+                    'message'        => 'An account with this number already exists.',
                     'phone'          => $localPhone,
                     'user_name'      => $existing->name,
                     'login_url'      => route('login'),
@@ -343,7 +343,7 @@ class RegistrationController extends Controller
             if ($remaining > 0) {
                 return response()->json([
                     'success'  => false,
-                    'message'  => "দয়া করে {$remaining} সেকেন্ড অপেক্ষা করে পুনরায় কোড পাঠানোর চেষ্টা করুন।",
+                    'message'  => "Wait {$remaining} seconds before requesting a new code.",
                     'cooldown' => max(1, $remaining),
                 ], 429);
             }
@@ -377,7 +377,7 @@ class RegistrationController extends Controller
         if (!$smsSent && !app()->environment('local', 'testing') && !config('app.debug')) {
             return response()->json([
                 'success' => false,
-                'message' => $smsErrorMsg ?: 'মোবাইল নম্বরে এসএমএস ওটিপি কোড পাঠাতে সমস্যা হয়েছে। দয়া করে নম্বরটি যাচাই করে পুনরায় চেষ্টা করুন।',
+                'message' => $smsErrorMsg ?: 'Could not send the code. Try again.',
                 'phone'   => $localPhone,
             ], 422);
         }
@@ -395,7 +395,7 @@ class RegistrationController extends Controller
             'success'              => true,
             'is_existing'          => (bool) $existing,
             'user_name'            => $existing ? $existing->name : null,
-            'message'              => 'আপনার মোবাইলে ৬-ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ২ মিনিট)।',
+            'message'              => 'A 6-digit code was sent. Valid for 2 minutes.',
             'cooldown'             => 120,
             'phone'                => $localPhone,
             'support_whatsapp_url' => $supportWhatsappUrl,
@@ -437,7 +437,7 @@ class RegistrationController extends Controller
             Cache::forget('reg_otp_' . $cleanDigits);
             return response()->json([
                 'success' => false,
-                'message' => 'অতিরিক্ত ভুল চেষ্টার কারণে কোড বাতিল হয়েছে। অনুগ্রহ করে নতুন কোড নিন।',
+                'message' => 'Too many wrong attempts. Request a new code.',
             ], 422);
         }
 
@@ -449,7 +449,7 @@ class RegistrationController extends Controller
             Cache::put($failCountKey, $fails + 1, now()->addMinutes(10));
             return response()->json([
                 'success' => false,
-                'message' => 'ভুল বা মেয়াদোত্তীর্ণ ওটিপি কোড (২ মিনিট সময়সীমা)। অনুগ্রহ করে পুনরায় চেষ্টা করুন।',
+                'message' => 'Wrong or expired code.',
             ], 422);
         }
 
@@ -498,7 +498,7 @@ class RegistrationController extends Controller
 
         return response()->json([
             'success'        => true,
-            'message'        => $existing ? 'মোবাইল ওটিপি যাচাই সফল এবং লগইন সম্পন্ন হয়েছে!' : 'মোবাইল নম্বর সফলভাবে ভেরিফাই সম্পন্ন হয়েছে!',
+            'message'        => $existing ? 'Verified. Signed in.' : 'Number verified.',
             'verified_phone' => $localPhone,
             'is_existing'    => (bool) $existing,
             'is_logged_in'   => $isLoggedIn || auth()->check(),
@@ -611,7 +611,7 @@ class RegistrationController extends Controller
             return response()->json([
                 'success'        => false,
                 'already_exists' => true,
-                'message'        => 'এই মোবাইল নম্বর বা ইমেইল দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে। দয়া করে সাইন-ইন করুন।',
+                'message'        => 'An account with this phone or email already exists.',
                 'login_url'      => route('login'),
                 'forgot_url'     => route('password.request'),
             ], 422);
@@ -622,7 +622,7 @@ class RegistrationController extends Controller
             return response()->json([
                 'success'        => false,
                 'already_exists' => true,
-                'message'        => 'এই অ্যাকাউন্টটি অ্যাডমিন বা স্টাফদের জন্য সংরক্ষিত। সাধারণ রেজিস্ট্রেশন সম্ভব নয়।',
+                'message'        => 'Reserved account.',
                 'login_url'      => route('login'),
             ], 422);
         }
@@ -633,7 +633,7 @@ class RegistrationController extends Controller
             if ($emailCollision) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'এই ইমেইল ঠিকানাটি ইতিমধ্যে অন্য একটি অ্যাকাউন্টে ব্যবহৃত হচ্ছে। অনুগ্রহ করে ভিন্ন ইমেইল প্রদান করুন।',
+                    'message' => 'This email is already in use.',
                 ], 422);
             }
         }
@@ -833,7 +833,7 @@ class RegistrationController extends Controller
         // Send registration SMS notification
         try {
             if ($isCustomer) {
-                $welcomeMsg = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার কাস্টমার অ্যাকাউন্ট সফলভাবে সক্রিয় হয়েছে। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
+                $welcomeMsg = "Welcome to Idea Prokashon! Your account is ready.";
                 SmsService::send($user->phone, $welcomeMsg);
             }
         } catch (\Throwable $smsEx) {
@@ -866,21 +866,21 @@ class RegistrationController extends Controller
             return response()->json([
                 'success'      => true,
                 'redirect_url' => route('my-account'),
-                'message'      => 'আপনার অ্যাকাউন্ট সফলভাবে তৈরি ও সক্রিয় হয়েছে!',
+                'message'      => 'Account created.',
                 'is_approved'  => true,
             ]);
         }
 
         // Format role label for partner pending notice
         $typeLabels = [
-            'author'    => 'লেখক (Author)',
-            'publisher' => 'প্রকাশক (Publisher)',
-            'seller'    => 'সেলার (Seller)',
+            'author'    => 'Author',
+            'publisher' => 'Publisher',
+            'seller'    => 'Seller',
         ];
         $typeLabel = $typeLabels[$category] ?? ucfirst($category);
 
         try {
-            $pendingMsg = "আইডিয়া প্রকাশন — আপনার {$typeLabel} রেজিস্ট্রেশন সফলভাবে জমা হয়েছে। অ্যাডমিন পর্যালোচনার পর অনুমোদন দিলে দায়িত্বপ্রাপ্ত হবেন। হেল্পলাইন: 01726976982";
+            $pendingMsg = "Idea Prokashon: your {$typeLabel} registration is received and pending admin approval.";
             SmsService::send($user->phone, $pendingMsg);
         } catch (\Throwable $smsEx) {
             Log::warning("Partner pending SMS note: " . $smsEx->getMessage());
@@ -904,7 +904,7 @@ class RegistrationController extends Controller
         return response()->json([
             'success'      => true,
             'redirect_url' => route('register.success'),
-            'message'      => "আপনার অ্যাকাউন্ট তৈরি হয়েছে! আপনার {$typeLabel} দায়িত্বপ্রাপ্তির বিষয়টি এডমিনের অনুমোদনের জন্য অপেক্ষমাণ রয়েছে (সর্বোচ্চ ২৪ ঘণ্টার মধ্যে অনুমোদিত হবে)।",
+            'message'      => "Account created. Your {$typeLabel} request is pending admin approval.",
             'is_approved'  => false,
             'pending'      => true,
         ]);
@@ -924,17 +924,17 @@ class RegistrationController extends Controller
         }
 
         $customMessages = [
-            'name.required'      => 'আপনার পুরো নাম লিখুন।',
-            'phone.required'     => 'মোবাইল নম্বর প্রদান করা বাধ্যতামূলক।',
-            'phone.unique'       => 'এই মোবাইল নম্বরটি দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট নিবন্ধিত রয়েছে।',
-            'email.required'     => 'আপনার নিজস্ব সক্রিয় ইমেইল এড্রেস প্রদান করা বাধ্যতামূলক।',
-            'email.email'        => 'সঠিক ফরম্যাটের ইমেইল এড্রেস দিন।',
-            'email.unique'       => 'এই ইমেইলটি ইতিমধ্যে ব্যবহৃত হচ্ছে।',
-            'password.required'  => 'পাসওয়ার্ড প্রদান করুন।',
-            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।',
-            'password.max'       => 'পাসওয়ার্ড সর্বোচ্চ ২৫ অক্ষরের মধ্যে হতে হবে।',
-            'password.regex'     => 'পাসওয়ার্ডে অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করতে হবে।',
-            'password.confirmed' => 'পাসওয়ার্ড এবং পাসওয়ার্ড নিশ্চিতকরণ মেলেনি।',
+            'name.required'      => 'Name is required.',
+            'phone.required'     => 'Phone is required.',
+            'phone.unique'       => 'Phone already registered.',
+            'email.required'     => 'Email is required.',
+            'email.email'        => 'Enter a valid email.',
+            'email.unique'       => 'Email already in use.',
+            'password.required'  => 'Password is required.',
+            'password.min'       => 'Minimum 8 characters.',
+            'password.max'       => 'Maximum 25 characters.',
+            'password.regex'     => 'Add a special character.',
+            'password.confirmed' => 'Passwords do not match.',
         ];
 
         $passwordRules = [
@@ -1074,7 +1074,7 @@ class RegistrationController extends Controller
 
         // Generate 6 digit verification OTP
         $otpCode = rand(100000, 999999);
-        $smsMessage = "আইডিয়া প্রকাশনে আপনাকে স্বাগতম! আপনার অ্যাকাউন্ট ভেরিফিকেশন কোড: {$otpCode}। বই পড়ুন, জ্ঞানের সাথে থাকুন। www.ideaabd.com";
+        $smsMessage = "Idea Prokashon: your code is {$otpCode}.";
 
         // Dispatch & Log SMS
         try {
@@ -1129,10 +1129,10 @@ class RegistrationController extends Controller
 
         // Format type label
         $typeLabels = [
-            'buyer'     => 'সাধারণ পাঠক / ক্রেতা',
-            'author'    => 'লেখক ও গবেষক',
-            'seller'    => 'সেলার / বই বিক্রেতা ও ডিলার',
-            'publisher' => 'প্রকাশনী ও কোম্পানি',
+            'buyer'     => 'Reader',
+            'author'    => 'Author',
+            'seller'    => 'Seller',
+            'publisher' => 'Publisher',
         ];
         $typeLabel = $typeLabels[$type] ?? ucfirst($type);
 
@@ -1154,7 +1154,7 @@ class RegistrationController extends Controller
         session(['registration_summary' => $registrationSummary]);
 
         return redirect()->route('register.success')
-            ->with('success', 'আপনার রেজিস্ট্রেশন সফলভাবে সম্পন্ন হয়েছে!');
+            ->with('success', 'Registration complete.');
     }
 
     /**
@@ -1167,10 +1167,10 @@ class RegistrationController extends Controller
 
         if (!$summary && $user) {
             $typeLabels = [
-                'buyer'     => 'সাধারণ পাঠক / ক্রেতা',
-                'author'    => 'লেখক ও গবেষক',
-                'seller'    => 'সেলার / বই বিক্রেতা ও ডিলার',
-                'publisher' => 'প্রকাশনী ও কোম্পানি',
+                'buyer'     => 'Reader',
+                'author'    => 'Author',
+                'seller'    => 'Seller',
+                'publisher' => 'Publisher',
             ];
             $summary = [
                 'user_id'    => $user->id,
@@ -1178,7 +1178,7 @@ class RegistrationController extends Controller
                 'email'      => $user->email,
                 'phone'      => $user->phone,
                 'type'       => $user->reg_type ?: ($user->role ?: 'buyer'),
-                'type_label' => $typeLabels[$user->reg_type ?: $user->role] ?? 'ব্যবহারকারী অ্যাকাউন্ট',
+                'type_label' => $typeLabels[$user->reg_type ?: $user->role] ?? 'Account',
                 'is_active'  => (bool) $user->is_active,
                 'reg_status' => $user->reg_status,
                 'created_at' => $user->created_at ? $user->created_at->format('d M, Y - h:i A') : now()->format('d M, Y - h:i A'),
@@ -1190,6 +1190,10 @@ class RegistrationController extends Controller
 
     public function pendingApproval(Request $request)
     {
+        if (!auth()->check() && !session('registration_summary')) {
+            return redirect()->route('login');
+        }
+
         return $this->registrationSuccess($request);
     }
 
@@ -1255,7 +1259,7 @@ class RegistrationController extends Controller
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
                         'success'  => true,
-                        'message'  => 'স্বাগতম! আপনার অ্যাকাউন্ট সফলভাবে সক্রিয়, ভেরিফাইড ও লগইন হয়েছে।',
+                        'message'  => 'Welcome. You are signed in.',
                         'redirect' => $targetUrl,
                         'user'     => [
                             'id'    => $existing->id,
@@ -1265,10 +1269,10 @@ class RegistrationController extends Controller
                         ],
                     ]);
                 }
-                return redirect()->to($targetUrl)->with('success', 'স্বাগতম! আপনি সফলভাবে লগইন করেছেন।');
+                return redirect()->to($targetUrl)->with('success', 'Welcome back.');
             }
 
-            $errMsg = 'এই মোবাইল নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট সংরক্ষিত রয়েছে। ওটিপি কোড দিয়ে ভেরিফাই করে পাসওয়ার্ড সেট করুন অথবা সঠিক পাসওয়ার্ড দিন।';
+            $errMsg = 'An account with this number exists. Verify with OTP.';
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success'      => false,
@@ -1304,7 +1308,7 @@ class RegistrationController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success'  => true,
-                'message'  => 'কাস্টমার অ্যাকাউন্ট সফলভাবে তৈরি ও লগইন হয়েছে!',
+                'message'  => 'Account created and signed in.',
                 'redirect' => $targetUrl,
                 'user'     => [
                     'id'    => $user->id,
@@ -1315,6 +1319,6 @@ class RegistrationController extends Controller
             ]);
         }
 
-        return redirect()->to($targetUrl)->with('success', 'আপনার অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!');
+        return redirect()->to($targetUrl)->with('success', 'Account created.');
     }
 }

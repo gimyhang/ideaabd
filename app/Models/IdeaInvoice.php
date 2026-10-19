@@ -206,22 +206,20 @@ class IdeaInvoice extends Model
      */
     public function recalculatePayments(): void
     {
-        $hasPaymentRecords = $this->payments()->exists();
+        // Payment rows are the single source of truth for what has been collected.
+        $totalPaid = round((float) $this->payments()->sum('amount'), 2);
 
-        if ($hasPaymentRecords) {
-            $totalPaid = (float) $this->payments()->sum('amount');
-        } else {
-            // Keep existing paid amount or 0
-            $totalPaid = (float) ($this->paid_amount ?? 0);
+        if (!in_array($this->type, ['invoice', 'challan'], true)) {
+            $totalPaid = 0.0;
         }
 
-        $grandTotal = (float) ($this->grand_total ?? 0);
-        $due = max(0, $grandTotal - $totalPaid);
+        $grandTotal = round((float) ($this->grand_total ?? 0), 2);
+        $due = round(max(0, $grandTotal - $totalPaid), 2);
 
         $status = 'unpaid';
-        if ($totalPaid >= $grandTotal && $grandTotal > 0) {
+        if ($grandTotal > 0 && $due <= 0.004) {
             $status = 'paid';
-        } elseif ($totalPaid > 0 && $due > 0) {
+        } elseif ($totalPaid > 0) {
             $status = 'partial';
         }
 
@@ -229,6 +227,72 @@ class IdeaInvoice extends Model
         $this->due_amount = $due;
         $this->payment_status = $status;
         $this->save();
+    }
+
+    /** Amount still collectable on this document. */
+    public function remainingDue(): float
+    {
+        return round(max(0, (float) $this->grand_total - (float) $this->payments()->sum('amount')), 2);
+    }
+
+    public function acceptsPayments(): bool
+    {
+        return in_array($this->type, ['invoice', 'challan'], true);
+    }
+
+    public static function numberPrefix(string $type, string $category): string
+    {
+        return match ($category) {
+            'stationery'     => 'IDEA-STN-',
+            'printing_goods' => 'IDEA-PRT-',
+            'other'          => 'IDEA-OTH-',
+            default          => match ($type) {
+                'challan'   => 'IDEA-CHL-',
+                'quotation' => 'IDEA-QUO-',
+                'tender'    => 'IDEA-TND-',
+                default     => 'IDEA-INV-',
+            },
+        };
+    }
+
+    /** Next free document number, counting soft-deleted rows so numbers are never reused. */
+    public static function nextNumber(string $type = 'invoice', string $category = 'books'): string
+    {
+        $base = self::numberPrefix($type, $category) . date('Ymd') . '-';
+
+        $last = static::withTrashed()
+            ->where('invoice_no', 'like', $base . '%')
+            ->pluck('invoice_no')
+            ->map(fn ($no) => (int) substr((string) $no, strlen($base)))
+            ->max() ?? 0;
+
+        do {
+            $candidate = $base . str_pad((string) (++$last), 3, '0', STR_PAD_LEFT);
+        } while (static::withTrashed()->where('invoice_no', $candidate)->exists());
+
+        return $candidate;
+    }
+
+    public function incomeCategory(): string
+    {
+        return match ($this->sales_category) {
+            'stationery'     => 'স্টেশনারী বিক্রয় (Stationery Sales)',
+            'printing_goods' => 'মুদ্রণ ও প্রকাশনা সেবা (Printing & Publication)',
+            'other'          => 'অন্যান্য আয় (Other Income)',
+            default          => $this->type === 'challan'
+                ? 'পাইকারি বিক্রয় ও চালান (Wholesale Sales)'
+                : 'বই বিক্রয় (Book Sales)',
+        };
+    }
+
+    /**
+     * Remove a document together with its payments and income entries.
+     */
+    public function deleteWithLedger(): void
+    {
+        IdeaAccountingEntry::where('invoice_id', $this->id)->delete();
+        $this->payments()->delete();
+        $this->delete();
     }
 
     /**

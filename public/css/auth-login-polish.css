@@ -1,0 +1,23 @@
+/* Sign in / register page — device-friendly polish (loaded after the page's own styles) */
+.input-text-custom, .otp-digit-field, .country-select-dropdown, select.input-text-custom { font-size: 16px; min-height: 50px; border-radius: 12px; }
+.input-text-custom:focus { outline: none; box-shadow: 0 0 0 4px rgba(37, 99, 235, .14); }
+.btn-action-primary, .btn-action-secondary, .btn-create-account-featured { min-height: 52px; border-radius: 12px; font-weight: 700; touch-action: manipulation; }
+.btn-action-primary:active, .btn-action-secondary:active, .btn-create-account-featured:active { transform: scale(.985); }
+.pwd-eye-btn { min-width: 44px; min-height: 44px; }
+.auth-footer-link, .custom-link, .help-expander-toggle { min-height: 36px; display: inline-flex; align-items: center; }
+.reg-stepper { overflow-x: auto; scrollbar-width: none; }
+.reg-stepper::-webkit-scrollbar { display: none; }
+.genre-chips-container { gap: .4rem; }
+.genre-chip { min-height: 40px; display: inline-flex; align-items: center; }
+.role-select-box { min-height: 64px; }
+:focus-visible { outline: 3px solid rgba(37, 99, 235, .45); outline-offset: 2px; }
+
+@media (max-width: 575.98px) {
+    body { padding-bottom: env(safe-area-inset-bottom); }
+    .auth-container { padding-left: 12px; padding-right: 12px; }
+    .auth-box { padding: 1.25rem 1rem; border-radius: 18px; box-shadow: 0 6px 24px rgba(15, 23, 42, .08); }
+    .otp-inputs-wrapper { gap: 6px; }
+    .otp-digit-field { min-width: 0; }
+    .country-select-dropdown { max-width: calc(100vw - 24px); }
+}
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }

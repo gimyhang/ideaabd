@@ -101,6 +101,34 @@ class IdeaInvoiceItemService
     }
 
     /**
+     * Keep the item type consistent with the sales category: a book type on a
+     * non-book document (or the reverse) falls back to the category default.
+     */
+    public static function normalizeItemType(?string $itemType, string $salesCategory = 'books'): ?string
+    {
+        $itemType = $itemType !== null ? trim($itemType) : null;
+        if ($itemType === '') {
+            $itemType = null;
+        }
+
+        $looksLikeBook = $itemType !== null && str_starts_with(mb_strtolower($itemType), 'book');
+
+        if ($salesCategory === 'books') {
+            return $itemType ?? self::TYPE_BOOK_PAPERBACK;
+        }
+
+        if ($itemType === null || $looksLikeBook) {
+            return match ($salesCategory) {
+                'stationery'     => self::TYPE_STATIONERY,
+                'printing_goods' => self::TYPE_PRINTING,
+                default          => self::TYPE_OTHER,
+            };
+        }
+
+        return $itemType;
+    }
+
+    /**
      * Get default unit for item type.
      */
     public static function getDefaultUnit(?string $itemType, string $salesCategory = 'books'): string
@@ -197,18 +225,17 @@ class IdeaInvoiceItemService
                 ? (float)$item['regular_price']
                 : $price;
 
-            $discPct = isset($item['discount_percent']) && is_numeric($item['discount_percent'])
-                ? (float)$item['discount_percent']
+            // The unit price is authoritative; the percentage is always derived from it
+            // so the printed discount can never disagree with the charged amount.
+            $discPct = $regularPrice > $price && $regularPrice > 0
+                ? round((($regularPrice - $price) / $regularPrice) * 100, 2)
                 : 0.0;
 
-            if ($discPct == 0 && $regularPrice > $price && $regularPrice > 0) {
-                $discPct = round((($regularPrice - $price) / $regularPrice) * 100, 2);
-            }
+            $price = round($price, 2);
+            $lineTotal = round($qty * $price, 2);
+            $subtotal = round($subtotal + $lineTotal, 2);
 
-            $lineTotal = $qty * $price;
-            $subtotal += $lineTotal;
-
-            $itemType = $item['item_type'] ?? null;
+            $itemType = self::normalizeItemType($item['item_type'] ?? null, $salesCategory);
             $isBook = self::isBookItem($itemType, $salesCategory);
             $bookId = !empty($item['book_id']) ? (int)$item['book_id'] : null;
 

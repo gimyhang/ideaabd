@@ -31,14 +31,21 @@
         <link rel="icon" href="{{ asset('favicon.ico') }}">
     @endif
 
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preload" as="script" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" crossorigin>
+    <link rel="preload" as="style" href="{{ asset('css/admin.css') }}?v={{ @filemtime(public_path('css/admin.css')) ?: 1 }}">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
     {{-- Admin stylesheet lives in /public so deploys need no vite build step --}}
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ @filemtime(public_path('css/admin.css')) ?: 1 }}">
+
+    <link rel="stylesheet" href="{{ asset('css/admin-ux.css') }}?v={{ @filemtime(public_path('css/admin-ux.css')) ?: 1 }}">
 
     {{-- Dynamic Server-Side Injected Theme CSS Variables & Universal Kalpurush Font-Face --}}
     <style id="admDynamicThemeStyles">
@@ -92,6 +99,7 @@
     @include('admin.partials.topbar')
 
     <div class="adm-content">
+        @unless(View::hasSection('hide_header'))
         {{-- Page heading + breadcrumb --}}
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 d-print-none">
             <div>
@@ -105,6 +113,7 @@
             </div>
             <div class="d-flex flex-wrap gap-2">@yield('actions')</div>
         </div>
+        @endunless
 
         {{-- Flash messages --}}
         @foreach (['success' => 'circle-check', 'error' => 'circle-exclamation', 'warning' => 'triangle-exclamation', 'info' => 'circle-info'] as $key => $icon)
@@ -134,7 +143,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
 <script>
     // Global SweetAlert2 World-Class Confirmation Helper
     window.SwalConfirm = function(options) {
@@ -458,6 +467,8 @@
 
 {{-- Modular Standalone Theme Controller JS --}}
 <script src="{{ asset('js/admin-theme.js') }}?v={{ @filemtime(public_path('js/admin-theme.js')) ?: 1 }}"></script>
+
+<script src="{{ asset('js/admin-ux.js') }}?v={{ @filemtime(public_path('js/admin-ux.js')) ?: 1 }}" defer></script>
 
 @stack('scripts')
 </body>

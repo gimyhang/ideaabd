@@ -11,13 +11,13 @@
             <ol class="breadcrumb small mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none text-muted">হোম</a></li>
                 <li class="breadcrumb-item">
-                    <a href="{{ route($product->type === 'electronics' ? 'products.electronics' : 'products.stationery') }}" class="text-decoration-none text-muted">
-                        {{ $product->type === 'electronics' ? 'ইলেক্ট্রনিক্স' : 'স্টেশনারি' }}
+                    <a href="{{ route($product->shop_route) }}" class="text-decoration-none text-muted">
+                        {{ $product->type_label_bn }}
                     </a>
                 </li>
                 @if($product->category)
                     <li class="breadcrumb-item">
-                        <a href="{{ route($product->type === 'electronics' ? 'products.electronics' : 'products.stationery', ['category' => $product->category->slug]) }}" class="text-decoration-none text-muted">
+                        <a href="{{ route($product->shop_route, ['category' => $product->category->slug]) }}" class="text-decoration-none text-muted">
                             {{ $product->category->name }}
                         </a>
                     </li>
@@ -249,7 +249,7 @@
                         <i class="fa-solid fa-layer-group text-primary"></i>
                         <span>সম্পর্কিত অন্যান্য আকর্ষণীয় পণ্য</span>
                     </h4>
-                    <a href="{{ route($product->type === 'electronics' ? 'products.electronics' : 'products.stationery') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                    <a href="{{ route($product->shop_route) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
                         সব দেখুন →
                     </a>
                 </div>

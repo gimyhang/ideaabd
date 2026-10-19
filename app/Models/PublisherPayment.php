@@ -63,4 +63,13 @@ class PublisherPayment extends Model
             'other'    => 'অন্যান্য (Other)',
         ];
     }
+
+    public static function nextPaymentNo(): string
+    {
+        do {
+            $candidate = 'PAY-' . date('Ymd') . '-' . random_int(100000, 999999);
+        } while (static::query()->where('payment_no', $candidate)->exists());
+
+        return $candidate;
+    }
 }

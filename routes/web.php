@@ -102,6 +102,7 @@ Route::get('/search/suggest', [BookController::class, 'suggest'])->name('search.
 // --- Electronics & Stationery Stores -----------------------------------------
 Route::get('/electronics', [ProductController::class, 'electronics'])->name('products.electronics');
 Route::get('/stationery', [ProductController::class, 'stationery'])->name('products.stationery');
+Route::get('/appliances', [ProductController::class, 'appliance'])->name('products.appliance');
 Route::get('/products/quick-view/{id}', [ProductController::class, 'quickView'])->name('products.quick-view');
 Route::get('/products/{type}/{slug}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/electronics/{slug}', fn($slug) => redirect()->route('products.show', ['type' => 'electronics', 'slug' => $slug]));
@@ -433,7 +434,7 @@ Route::get('/user', function () {
 })->name('user.portal');
 
 // --- Publisher Portal & Catalog Management ---
-Route::prefix('publisher')->name('publisher.')->middleware(['auth'])->group(function () {
+Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'portal.approved'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'dashboard'])->name('dashboard');
     Route::post('/books', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'storeBook'])->name('books.store');
     Route::get('/books/{id}/edit', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'editBook'])->name('books.edit');
@@ -459,7 +460,7 @@ Route::middleware(['auth'])->group(function () {
 // --- Author Portal (KDP Self-Publishing, Royalties, Payouts & Blogs) --------
 Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
 
-Route::prefix('author')->name('author.')->middleware(['auth'])->group(function () {
+Route::prefix('author')->name('author.')->middleware(['auth', 'portal.approved'])->group(function () {
     // KDP Dashboard & Sales Analytics
     Route::get('/dashboard', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'dashboard'])->name('dashboard');
     Route::post('/profile/avatar', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'updateAvatar'])->name('profile.avatar');
@@ -573,6 +574,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Electronics & Stationery Product Catalog Management
     Route::prefix('products')->name('products.')->controller(\App\Http\Controllers\Admin\ProductAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
+        foreach (['electronics', 'stationery', 'appliance'] as $productType) {
+            Route::get('/' . $productType, 'type')->defaults('type', $productType)->name($productType);
+        }
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
@@ -597,10 +601,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/party-due', 'ajaxPartyDue')->name('party-due');
         Route::get('/search-books', 'searchBooks')->name('search-books');
         Route::get('/monthly-report', 'monthlyReport')->name('monthly-report');
+        // Stationery / electronics purchases (static paths must stay above /{purchase})
+        Route::get('/stationery', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'stationery'])->name('stationery');
+        Route::get('/electronics', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'electronics'])->name('electronics');
+        Route::post('/items', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'store'])->name('items.store');
+        Route::get('/items/products', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'products'])->name('items.products');
+        Route::get('/items-stock', [\App\Http\Controllers\Admin\ItemPurchaseController::class, 'stock'])->name('items.stock');
         Route::get('/{purchase}', 'show')->name('show');
         Route::get('/{purchase}/edit', 'edit')->name('edit');
         Route::put('/{purchase}', 'update')->name('update');
         Route::delete('/{purchase}', 'destroy')->name('destroy');
+    });
+
+    // Book production ledger: printed → bound → received at office
+    Route::prefix('production')->name('production.')->controller(\App\Http\Controllers\Admin\BookProductionController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/books', 'books')->name('books');
+        Route::post('/', 'store')->name('store');
+        Route::delete('/{event}', 'destroy')->name('destroy');
     });
 
     // Idea Prokashon Accounting, Invoicing, Income & Expense Management
@@ -614,6 +632,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/invoices/search-books', 'searchBooks')->name('invoices.search-books');
         Route::get('/invoices/customer-search', 'searchCustomers')->name('invoices.customer-search');
         Route::get('/invoices/customer-due-info', 'getCustomerDueInfo')->name('invoices.customer-due-info');
+        Route::get('/invoices/item-suggest', 'itemSuggest')->name('invoices.item-suggest');
+        // Raw-material rate sheet (printing cost calculator)
+        Route::get('/print-rates', [\App\Http\Controllers\Admin\PrintRateController::class, 'index'])->name('print-rates.index');
+        Route::post('/print-rates', [\App\Http\Controllers\Admin\PrintRateController::class, 'store'])->name('print-rates.store');
+        Route::post('/print-rates/adjust', [\App\Http\Controllers\Admin\PrintRateController::class, 'adjust'])->name('print-rates.adjust');
+        Route::delete('/print-rates/{rate}', [\App\Http\Controllers\Admin\PrintRateController::class, 'destroy'])->name('print-rates.destroy');
         Route::post('/invoices/quick-store-book', 'quickStoreBook')->name('invoices.quick-store-book');
         Route::get('/invoices/create', 'createInvoice')->name('invoices.create');
         Route::post('/invoices', 'storeInvoice')->name('invoices.store');
@@ -742,6 +766,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['post', 'patch'], '/registrations/{registration}/toggle-approval', 'toggleApproval')->name('registrations.toggle-approval');
         Route::match(['post', 'patch'], '/registrations/{registration}/quick-status', 'toggleApproval')->name('registrations.quick-status');
         Route::post('/registrations/{registration}/sync-user-phone', 'syncUserPhone')->name('registrations.sync-user-phone');
+        Route::post('/registrations/{registration}/resolve-geo-conflict', 'resolveGeoConflict')->name('registrations.resolve-geo-conflict');
+        Route::post('/{campaign}/bulk-resolve-geo', 'bulkResolveGeoConflicts')->name('bulk-resolve-geo');
         Route::post('/registrations/{registration}/viva-evaluation', 'updateVivaEvaluation')->name('registrations.viva-evaluation');
         Route::get('/registrations/{registration}/print', 'printRegistration')->name('registrations.print');
         Route::get('/registrations/{registration}/pdf', 'pdfRegistration')->name('registrations.pdf');
@@ -996,7 +1022,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 });
 
 // --- Sub-admin / Seller panel ---------------------------------------------
-Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'role:sub_admin,seller,admin'])->group(function () {
+Route::prefix('seller')->name('subadmin.')->middleware(['auth', 'portal.approved', 'role:sub_admin,seller,admin'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerDashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/bills', [BillingController::class, 'index'])->name('bills.index');
     Route::get('/bills/export', [BillingController::class, 'exportCsv'])->name('bills.export');

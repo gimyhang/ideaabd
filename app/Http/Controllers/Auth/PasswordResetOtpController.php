@@ -28,7 +28,7 @@ class PasswordResetOtpController extends Controller
         $request->validate([
             'phone' => ['required', 'string', 'max:50'],
         ], [
-            'phone.required' => 'আপনার নিবন্ধিত মোবাইল নম্বর বা ইমেইল লিখুন।',
+            'phone.required' => 'Enter your phone or email.',
         ]);
 
         $input = trim((string) $request->input('phone'));
@@ -43,13 +43,13 @@ class PasswordResetOtpController extends Controller
 
         if (!$user) {
             return back()->withInput()->withErrors([
-                'phone' => 'প্রদত্ত তথ্য অনুযায়ী কোনো নিবন্ধিত ব্যবহারকারী পাওয়া যায়নি।',
+                'phone' => 'No account found.',
             ]);
         }
 
         if (empty($user->phone)) {
             return back()->withInput()->withErrors([
-                'phone' => 'এই অ্যাকাউন্টে কোনো মোবাইল নম্বর যুক্ত নেই। সাপোর্টে যোগাযোগ করুন।',
+                'phone' => 'No phone number on this account.',
             ]);
         }
 
@@ -84,7 +84,7 @@ class PasswordResetOtpController extends Controller
         \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
 
         return redirect()->route('password.reset-otp', ['phone' => $user->phone])
-            ->with('status', "আপনার মোবাইল নম্বর ({$user->phone})-এ ৬ ডিজিটের ভেরিফিকেশন কোড পাঠানো হয়েছে (মেয়াদ ৩০ মিনিট)। কোডটি দিয়ে নতুন পাসওয়ার্ড সেট করুন।")
+            ->with('status', "A 6-digit code was sent to {$user->phone}.")
             ->with('otp_code', $otpCode);
     }
 
@@ -103,14 +103,14 @@ class PasswordResetOtpController extends Controller
     public function resetPassword(Request $request)
     {
         $customMessages = [
-            'phone.required'     => 'মোবাইল নম্বর প্রদান করুন।',
-            'otp.required'       => '৬ ডিজিটের ভেরিফিকেশন কোড প্রদান করুন।',
-            'otp.digits'         => 'ভেরিফিকেশন কোডটি অবশ্যই ৬ ডিজিটের হতে হবে।',
-            'password.required'  => 'নতুন পাসওয়ার্ড প্রদান করুন।',
-            'password.min'       => 'পাসওয়ার্ড সর্বনিম্ন ৮ অক্ষরের হতে হবে।',
-            'password.max'       => 'পাসওয়ার্ড সর্বোচ্চ ২৫ অক্ষরের মধ্যে হতে হবে।',
-            'password.regex'     => 'পাসওয়ার্ডে অন্তত একটি স্পেশাল ক্যারেক্টার (যেমন: @, #, $, %, !, *, ?, &) ব্যবহার করতে হবে।',
-            'password.confirmed' => 'পাসওয়ার্ড এবং পাসওয়ার্ড নিশ্চিতকরণ মেলেনি।',
+            'phone.required'     => 'Phone is required.',
+            'otp.required'       => 'Enter the 6-digit code.',
+            'otp.digits'         => 'The code must be 6 digits.',
+            'password.required'  => 'New password is required.',
+            'password.min'       => 'Minimum 8 characters.',
+            'password.max'       => 'Maximum 25 characters.',
+            'password.regex'     => 'Add a special character.',
+            'password.confirmed' => 'Passwords do not match.',
         ];
 
         $request->validate([
@@ -155,7 +155,7 @@ class PasswordResetOtpController extends Controller
 
         if (!$isValidOtp || !$user) {
             return back()->withInput()->withErrors([
-                'otp' => 'ভেরিফিকেশন কোডটি সঠিক নয় বা এর মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে পুনরায় কোড পাঠিয়ে চেষ্টা করুন।',
+                'otp' => 'Wrong or expired code.',
             ]);
         }
 
@@ -172,6 +172,6 @@ class PasswordResetOtpController extends Controller
         Log::info("Password successfully reset via mobile OTP for User ID: {$user->id} ({$user->phone})");
 
         return redirect()->route('login')
-            ->with('success', 'আপনার পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে! এখন আপনার মোবাইল নম্বর ও নতুন পাসওয়ার্ড দিয়ে লগইন করুন।');
+            ->with('success', 'Password changed. Sign in now.');
     }
 }

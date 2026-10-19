@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Publishers & Imprints Management')
-@section('heading', 'Publisher Directory, Catalog & Accounts Ledger')
+@section('heading', 'Publishers')
 
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Publishers Directory</li>

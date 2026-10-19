@@ -1,0 +1,9 @@
+/* Kalpurush served locally (no external font host needed) */
+@font-face {
+    font-family: 'Kalpurush';
+    src: url('../fonts/kalpurush/kalpurush.woff2') format('woff2'),
+         url('../fonts/kalpurush/kalpurush.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}

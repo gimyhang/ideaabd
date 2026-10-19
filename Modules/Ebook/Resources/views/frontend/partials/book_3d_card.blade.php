@@ -19,13 +19,13 @@
     // Resolve Author from Author relation or directory fallback
     $firstAuthor = (method_exists($item, 'authors') && $item->relationLoaded('authors')) ? $item->authors->first() : ($item->author ?? null);
     if (!$firstAuthor && !empty($item->author_id)) {
-        $firstAuthor = \Modules\Author\Models\Author::find($item->author_id);
+        $firstAuthor = \Modules\Author\Models\Author::lookupById($item->author_id);
     }
     if (!$firstAuthor && !empty($item->author_link_id)) {
-        $firstAuthor = \Modules\Author\Models\Author::find($item->author_link_id);
+        $firstAuthor = \Modules\Author\Models\Author::lookupById($item->author_link_id);
     }
     if (!$firstAuthor && !empty($item->author_name)) {
-        $firstAuthor = \Modules\Author\Models\Author::where('name', $item->author_name)->first();
+        $firstAuthor = \Modules\Author\Models\Author::lookupByName($item->author_name);
     }
     
     $authorName = $firstAuthor ? $firstAuthor->name : ($item->author_name ?: 'আইডিয়া প্রকাশন');

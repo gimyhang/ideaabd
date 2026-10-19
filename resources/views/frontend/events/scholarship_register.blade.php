@@ -52,6 +52,8 @@
 @endsection
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('css/event-register.css') }}?v={{ @filemtime(public_path('css/event-register.css')) ?: 1 }}">
+<script src="{{ asset('js/event-register.js') }}?v={{ @filemtime(public_path('js/event-register.js')) ?: 1 }}" defer></script>
 <style>
     .scholarship-form-wrap {
         max-width: 900px;
@@ -545,6 +547,8 @@
             </div>
 
             {{-- 6. DECLARATION & SUBMISSION --}}
+            @include('frontend.events.partials.custom-fields')
+
             <div class="p-3 bg-light border-top text-center">
                 <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
                     <input type="checkbox" id="agreeCheck" name="declaration_agreed" checked required style="width: 16px; height: 16px; cursor: pointer;">

@@ -6,6 +6,7 @@
 
     $tplScheduleUpdate = "প্রিয় {name}, {event_title}-এর সময়সূচি আপডেট: অনুষ্ঠান আগামী {date} তারিখে {venue}-এ অনুষ্ঠিত হবে। কার্ড লিংক: {card_url} — আইডিয়া প্রকাশন";
     $tplCardDownload = "প্রিয় {name}, {event_title}-এ আপনার নিবন্ধন অনুমোদিত হয়েছে। কার্ড ডাউনলোড লিংক: {card_url} (কার্ড নং: {reg_no}) — আইডিয়া প্রকাশন";
+    $tplLittleMag = "সাহিত্য উৎসব ও লিটিলম্যাগমেলা ২০২৬: প্রিয় {name}, আপনার অংশগ্রহণ/স্টল নিশ্চিত হয়েছে। কার্ড ও নির্দেশিকা: {card_url} — আইডিয়া প্রকাশন";
     $tplGeneralNotice = "জরুরি বিজ্ঞপ্তি: প্রিয় {name}, {event_title}-এ নির্ধারিত সময়ে উপস্থিত থাকার জন্য অনুরোধ করা হচ্ছে। বিস্তারিত: {card_url} — আইডিয়া প্রকাশন";
 @endphp
 
@@ -61,8 +62,9 @@
                                 <option value="">-- রেডি টেমপ্লেট বেছে নিন --</option>
                                 <option value="{{ $tplScheduleUpdate }}" selected>১. ইভেন্ট সময়সূচি ও ভেন্যু আপডেট</option>
                                 <option value="{{ $tplCardDownload }}">২. আমন্ত্রণ কার্ড ডাউনলোড ও লিংক</option>
-                                <option value="{{ $tplGeneralNotice }}">৩. জরুরি ঘোষণা ও দিকনির্দেশনা</option>
-                                <option value="">৪. কাস্টম বার্তা (খালি লিখুন)</option>
+                                <option value="{{ $tplLittleMag }}">৩. সাহিত্য উৎসব ও লিটিলম্যাগ স্টল আপডেট</option>
+                                <option value="{{ $tplGeneralNotice }}">৪. জরুরি ঘোষণা ও দিকনির্দেশনা</option>
+                                <option value="">৫. কাস্টম বার্তা (খালি লিখুন)</option>
                             </select>
                         </div>
                     </div>
@@ -256,7 +258,7 @@
         }
     }
 
-    function openBulkBroadcastSmsModal() {
+    window.openBulkBroadcastSmsModal = function(preferredTarget = null) {
         const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
         const optCustom = document.getElementById('optCustomSelected');
         const selectBox = document.getElementById('broadcastTargetGroup');
@@ -271,7 +273,9 @@
         }
 
         if (selectBox) {
-            if (selected.length > 0) {
+            if (preferredTarget) {
+                selectBox.value = preferredTarget;
+            } else if (selected.length > 0) {
                 selectBox.value = 'custom_ids';
             } else {
                 selectBox.value = 'all';
@@ -284,9 +288,9 @@
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
         }
-    }
+    };
 
-    async function handleBroadcastSmsSubmit(e) {
+    window.handleBroadcastSmsSubmit = async function(e) {
         e.preventDefault();
         const form = document.getElementById('broadcastSmsForm');
         const btn = document.getElementById('btnSubmitBroadcast');
@@ -296,17 +300,57 @@
         // Check selected checkboxes if target is custom_ids
         const targetGroup = document.getElementById('broadcastTargetGroup')?.value;
         const hiddenIds = document.getElementById('broadcastSelectedIdsInput');
+        const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
+
         if (targetGroup === 'custom_ids') {
-            const selected = Array.from(document.querySelectorAll('.participant-select-check:checked')).map(cb => cb.value);
             if (selected.length === 0) {
-                alert('অনুগ্রহ করে টেবিল থেকে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'কোনো অংশগ্রহণকারী নির্বাচিত নেই',
+                        text: 'অনুগ্রহ করে টেবিলের বামপাশের চেকবক্সে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন অথবা অন্যান্য অপশন বেছে নিন।',
+                        confirmButtonColor: '#059669',
+                    });
+                } else {
+                    alert('অনুগ্রহ করে টেবিল থেকে অন্তত একজন অংশগ্রহণকারী নির্বাচন করুন।');
+                }
                 return;
             }
             if (hiddenIds) hiddenIds.value = JSON.stringify(selected);
         }
 
-        if (!confirm('আপনি কি নিশ্চিত যে নির্বাচিত অংশগ্রহণকারীদের কাছে এই ইভেন্ট আপডেট বার্তা পাঠাতে চান?')) {
+        const msg = document.getElementById('broadcastMessageInput')?.value?.trim();
+        if (!msg) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'মেসেজ বক্স খালি!',
+                    text: 'অনুগ্রহ করে বার্তা লিখুন বা একটি রেডি টেমপ্লেট বেছে নিন।',
+                    confirmButtonColor: '#059669',
+                });
+            } else {
+                alert('অনুগ্রহ করে মেসেজ কন্টেন্ট লিখুন।');
+            }
             return;
+        }
+
+        // SweetAlert2 Confirmation
+        if (typeof Swal !== 'undefined') {
+            const res = await Swal.fire({
+                title: 'ইভেন্ট আপডেট এসএমএস পাঠাবেন?',
+                html: `আপনি কি নিশ্চিত যে নির্বাচিত তালিকায় বাল্ক এসএমএস পাঠাতে চান?<br><small class="text-muted">প্রতিটি বার্তা স্বয়ংক্রিয়ভাবে মেসেজ গেটওয়ের মাধ্যমে পাঠানো হবে।</small>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fa-solid fa-paper-plane me-1"></i> হ্যাঁ, একবারে পাঠান',
+                cancelButtonText: 'বাতিল'
+            });
+            if (!res.isConfirmed) return;
+        } else {
+            if (!confirm('আপনি কি নিশ্চিত যে নির্বাচিত অংশগ্রহণকারীদের কাছে এই ইভেন্ট আপডেট বার্তা পাঠাতে চান?')) {
+                return;
+            }
         }
 
         if (btn) btn.disabled = true;
@@ -328,28 +372,62 @@
             const data = await response.json();
 
             if (data.success) {
-                if (typeof window.showToast === 'function') {
-                    window.showToast(data.message, false);
-                } else {
-                    alert(data.message);
-                }
                 const modalEl = document.getElementById('broadcastSmsModal');
                 if (modalEl) {
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                 }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'বার্তা প্রেরিত হয়েছে!',
+                        html: `<div class="text-start p-3 bg-light rounded-3 font-monospace small">` +
+                              `<div class="mb-2 text-success fw-bold"><i class="fa-solid fa-circle-check me-1"></i> ${data.message}</div>` +
+                              `&bull; সফল ডেলিভারি: <strong class="text-success">${data.sent_count ?? 0} জন</strong><br>` +
+                              (data.failed_count > 0 ? `&bull; নম্বর বাদ/ব্যর্থ: <strong class="text-danger">${data.failed_count} টি</strong><br>` : '') +
+                              `&bull; মোট প্রাপক: <strong>${data.total_target ?? 0} জন</strong>` +
+                              `</div>`,
+                        confirmButtonColor: '#059669',
+                        confirmButtonText: 'ঠিক আছে'
+                    });
+                } else {
+                    alert(data.message);
+                }
+
+                if (typeof window.showToast === 'function') {
+                    window.showToast(data.message, false);
+                }
             } else {
-                alert(data.message || 'মেসেজ প্রেরণে ব্যর্থ হয়েছে।');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'বার্তা প্রেরণে ব্যর্থ',
+                        text: data.message || 'মেসেজ প্রেরণে ব্যর্থ হয়েছে।',
+                        confirmButtonColor: '#dc2626'
+                    });
+                } else {
+                    alert(data.message || 'মেসেজ প্রেরণে ব্যর্থ হয়েছে।');
+                }
             }
         } catch (err) {
             console.error('Broadcast SMS Error:', err);
-            alert('সার্ভার যোগাযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'সার্ভার যোগাযোগ সমস্যা',
+                    text: 'সার্ভারের সাথে যোগাযোগে বিঘ্ন ঘটেছে। আপনার নেটওয়ার্ক চেক করে পুনরায় চেষ্টা করুন।',
+                    confirmButtonColor: '#dc2626'
+                });
+            } else {
+                alert('সার্ভার যোগাযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+            }
         } finally {
             if (btn) btn.disabled = false;
             if (btnText) btnText.textContent = 'একবারে আপডেট পাঠান';
             if (progressBox) progressBox.style.display = 'none';
         }
-    }
+    };
 
     // Initialize on DOM load
     document.addEventListener('DOMContentLoaded', function() {

@@ -1,7 +1,7 @@
 @extends('author.layout')
 
 @section('title', 'নতুন ই-বুক প্রকাশ — লেখক পোর্টাল')
-@section('heading', 'নতুন ই-বুক স্বত্ব ও পাণ্ডুলিপি আপলোড (Self-Publishing)')
+@section('heading', 'নতুন ই-বুক')
 
 @section('content')
 <div class="container-fluid px-0">

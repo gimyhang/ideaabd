@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @php
     $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';

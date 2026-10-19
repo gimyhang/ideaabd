@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'New Sub-Admin')
-@section('heading', 'Add New Sub-Admin / Staff')
+@section('heading', 'New Staff')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.sub-admins.index') }}" class="text-decoration-none">Sub-Admins</a></li>
     <li class="breadcrumb-item active" aria-current="page">Create</li>

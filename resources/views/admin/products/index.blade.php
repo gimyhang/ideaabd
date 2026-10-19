@@ -1,371 +1,254 @@
 @extends('layouts.admin')
 
-@section('title', 'ইলেক্ট্রনিক্স ও স্টেশনারি পণ্য ব্যবস্থাপনা')
-@section('heading', 'ইলেক্ট্রনিক্স ও স্টেশনারি ক্যাটালগ')
+@php
+    $types = \App\Models\Product::TYPES;
+    $typeLabel = $types[$type] ?? ucfirst($type);
+    $typeTone = ['electronics' => 'info', 'stationery' => 'success', 'appliance' => 'warning'];
+    $typeAddLabel = ['electronics' => 'Add', 'stationery' => 'Add', 'appliance' => 'Add'][$type] ?? 'Add';
+@endphp
+
+@section('title', $typeLabel)
+@section('heading', $typeLabel)
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>
-    <li class="breadcrumb-item active" aria-current="page">ইলেক্ট্রনিক্স ও স্টেশনারি</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.products.index') }}">Products</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $typeLabel }}</li>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-products.css') }}?v={{ @filemtime(public_path('css/admin-products.css')) ?: 1 }}">
+@endpush
+
 @section('actions')
-    <div class="d-flex align-items-center flex-wrap gap-2">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 shadow-xs fw-semibold d-inline-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#categoryManageModal">
-            <i class="fa-solid fa-folder-tree text-primary"></i>
-            <span>ক্যাটাগরি ম্যানেজমেন্ট</span>
-        </button>
-        <a href="{{ route('admin.products.create', ['type' => 'electronics']) }}" class="btn btn-info text-white rounded-pill px-3.5 py-2 shadow-xs fw-bold d-inline-flex align-items-center gap-1.5" title="নতুন ইলেক্ট্রনিক্স পণ্য এন্ট্রি ফর্ম">
-            <i class="fa-solid fa-laptop-code"></i>
-            <span>+ নতুন ইলেক্ট্রনিক্স পণ্য</span>
-        </a>
-        <a href="{{ route('admin.products.create', ['type' => 'stationery']) }}" class="btn btn-success rounded-pill px-3.5 py-2 shadow-xs fw-bold d-inline-flex align-items-center gap-1.5" title="নতুন স্টেশনারি পণ্য এন্ট্রি ফর্ম">
-            <i class="fa-solid fa-pen-ruler"></i>
-            <span>+ নতুন স্টেশনারি পণ্য</span>
-        </a>
+    <div class="pr-actions">
+        <a href="{{ route('admin.products.create', ['type' => $type]) }}" class="btn btn-primary pr-btn">{{ $typeAddLabel }}</a>
+        <button type="button" class="btn btn-outline-secondary pr-btn" data-bs-toggle="modal" data-bs-target="#categoryManageModal">Categories</button>
+        <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary pr-btn">Overview</a>
     </div>
 @endsection
 
 @section('content')
-<div class="container-fluid px-0">
+@php
+    $base = route('admin.products.' . $type);
+    $kpis = [
+        ['Total',      $counts['total'],      $base,                              !request()->hasAny(['status', 'stock', 'category_id']), 'primary'],
+        ['Active',     $counts['active'],     $base . '?status=active',           request('status') === 'active', 'success'],
+        ['Low',        $counts['low_stock'],  $base . '?stock=low',               request('stock') === 'low', 'danger'],
+        ['Categories', $counts['categories'], '#',                                false, 'warning'],
+    ];
+    $advActive = request()->filled('status') || request()->filled('stock');
+@endphp
 
-    <!-- ═══ METRIC CARDS ═══ -->
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 rounded-4 shadow-xs p-3.5 bg-white">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">সর্বমোট পণ্য</div>
-                        <h3 class="fw-bold text-dark mb-0 mt-1">{{ $counts['total'] }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-3">
-                        <i class="fa-solid fa-boxes-stacked fa-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 rounded-4 shadow-xs p-3.5 bg-white">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">ইলেক্ট্রনিক্স আইটেম</div>
-                        <h3 class="fw-bold text-primary mb-0 mt-1">{{ $counts['electronics'] }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-info bg-opacity-10 text-info p-3">
-                        <i class="fa-solid fa-laptop-code fa-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 rounded-4 shadow-xs p-3.5 bg-white">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">স্টেশনারি আইটেম</div>
-                        <h3 class="fw-bold text-success mb-0 mt-1">{{ $counts['stationery'] }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-success bg-opacity-10 text-success p-3">
-                        <i class="fa-solid fa-pen-nib fa-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card border-0 rounded-4 shadow-xs p-3.5 bg-white">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="text-muted small fw-semibold">মোট ক্যাটাগরি</div>
-                        <h3 class="fw-bold text-warning mb-0 mt-1">{{ $counts['categories'] }}</h3>
-                    </div>
-                    <div class="rounded-circle bg-warning bg-opacity-10 text-warning p-3">
-                        <i class="fa-solid fa-tags fa-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="d-flex flex-column gap-3">
+
+    {{-- Type switch: each family has its own page --}}
+    <nav class="pr-chips" aria-label="Product families">
+        <a class="pr-chip" href="{{ route('admin.products.index') }}">Overview</a>
+        @foreach($types as $tKey => $tLabel)
+            <a class="pr-chip {{ $type === $tKey ? 'is-active' : '' }}" href="{{ route('admin.products.' . $tKey) }}">{{ $tLabel }}</a>
+        @endforeach
+    </nav>
+
+    {{-- KPI strip --}}
+    <div class="pr-kpis pr-kpis--4">
+        @foreach($kpis as [$kLabel, $kValue, $kUrl, $kActive, $kTone])
+            <a href="{{ $kUrl }}" @if($kUrl === '#') data-bs-toggle="modal" data-bs-target="#categoryManageModal" @endif class="pr-kpi pr-kpi--{{ $kTone }} {{ $kActive ? 'is-active' : '' }}">
+                <span class="pr-kpi__label">{{ $kLabel }}</span>
+                <span class="pr-kpi__value">{{ number_format($kValue) }}</span>
+            </a>
+        @endforeach
     </div>
 
-    <!-- ═══ FILTER & TABS CARD ═══ -->
-    <div class="card border-0 rounded-4 shadow-xs bg-white mb-4">
-        <div class="card-body p-3 p-md-4">
-            
-            <!-- Type Tabs -->
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 border-bottom pb-3 mb-3">
-                <ul class="nav nav-pills gap-1">
-                    <li class="nav-item">
-                        <a class="nav-link rounded-pill fw-bold px-3 py-1.5 {{ $type === 'all' ? 'active' : '' }}" 
-                           href="{{ route('admin.products.index', ['type' => 'all']) }}">
-                            সব পণ্য ({{ $counts['total'] }})
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link rounded-pill fw-bold px-3 py-1.5 {{ $type === 'electronics' ? 'active' : '' }}" 
-                           href="{{ route('admin.products.index', ['type' => 'electronics']) }}">
-                            <i class="fa-solid fa-laptop-code me-1"></i>ইলেক্ট্রনিক্স ({{ $counts['electronics'] }})
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link rounded-pill fw-bold px-3 py-1.5 {{ $type === 'stationery' ? 'active' : '' }}" 
-                           href="{{ route('admin.products.index', ['type' => 'stationery']) }}">
-                            <i class="fa-solid fa-pen-nib me-1"></i>স্টেশনারি ({{ $counts['stationery'] }})
-                        </a>
-                    </li>
-                </ul>
-
-                <!-- Public Store Quick Links -->
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('products.electronics') }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill fw-semibold">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>ইলেক্ট্রনিক্স পেজ
-                    </a>
-                    <a href="{{ route('products.stationery') }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill fw-semibold">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>স্টেশনারি পেজ
-                    </a>
+    {{-- Toolbar --}}
+    <div class="adm-card p-3">
+        <form action="{{ $base }}" method="GET" id="prFilterForm" role="search" class="d-flex flex-column gap-2">
+            @if(request('category_id'))<input type="hidden" name="category_id" value="{{ request('category_id') }}">@endif
+            <div class="pr-searchrow">
+                <div class="pr-search">
+                    <input type="search" name="q" id="prSearch" value="{{ request('q') }}" class="form-control pr-search__input"
+                           placeholder="Search name, brand, model, SKU…  ( / )" autocomplete="off" enterkeyhint="search" aria-label="Search {{ $typeLabel }}">
+                    <button type="submit" class="btn btn-primary pr-search__go">Search</button>
+                </div>
+                <select name="status" class="form-select pr-tool pr-tool--select" onchange="this.form.submit()" aria-label="Status">
+                    <option value="">Any status</option>
+                    <option value="active" @selected(request('status') === 'active')>Active</option>
+                    <option value="inactive" @selected(request('status') === 'inactive')>Hidden</option>
+                </select>
+                <div class="pr-view" role="group" aria-label="View">
+                    <button type="button" class="pr-view__btn" data-view="grid">Grid</button>
+                    <button type="button" class="pr-view__btn" data-view="table">Table</button>
                 </div>
             </div>
 
-            <!-- Search & Filter Form -->
-            <form action="{{ route('admin.products.index') }}" method="GET" class="row g-2 align-items-center">
-                <input type="hidden" name="type" value="{{ $type }}">
-                <div class="col-md-4">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm border-start-0 table-spec-input" placeholder="Search...">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select name="category_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">সকল ক্যাটাগরি</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
-                                [{{ $cat->type === 'electronics' ? 'ইলেক' : 'স্টেশ' }}] {{ $cat->name }} ({{ $cat->products_count }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="">সকল স্ট্যাটাস</option>
-                        <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>সক্রিয়</option>
-                        <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>নিষ্ক্রিয়</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-grow-1">ফিল্টার</button>
-                    @if(request()->anyFilled(['q', 'category_id', 'status']))
-                        <a href="{{ route('admin.products.index', ['type' => $type]) }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">রিসেট</a>
-                    @endif
-                </div>
-            </form>
-
-        </div>
+            {{-- Category: filter within this family --}}
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <select class="form-select pr-tool pr-tool--select w-auto" aria-label="Category" onchange="window.location = this.value">
+                    <option value="{{ $base . (request('q') ? '?q=' . urlencode(request('q')) : '') }}">All</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $base . '?category_id=' . $cat->id . (request('q') ? '&q=' . urlencode(request('q')) : '') }}" @selected((string) request('category_id') === (string) $cat->id)>{{ $cat->name }} ({{ $cat->products_count }})</option>
+                    @endforeach
+                </select>
+                <span class="pr-count">{{ number_format($products->total()) }} items</span>
+            </div>
+        </form>
     </div>
 
-    <!-- ═══ PRODUCTS TABLE ═══ -->
-    <div class="card border-0 rounded-4 shadow-xs bg-white overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3" style="width: 70px; font-weight: 700; color: #334155;">Image</th>
-                        <th style="font-weight: 700; color: #334155;">Product</th>
-                        <th style="font-weight: 700; color: #334155;">Category</th>
-                        <th style="font-weight: 700; color: #334155;">Price</th>
-                        <th style="font-weight: 700; color: #334155;">Stock</th>
-                        <th style="font-weight: 700; color: #334155;">Status</th>
-                        <th class="text-end pe-3" style="width: 140px; font-weight: 700; color: #334155;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($products as $prod)
+    {{-- Products --}}
+    @if($products->isEmpty())
+        <div class="adm-card pr-empty">
+            <div class="pr-empty__title">No products</div>
+            <p class="text-muted mb-3">Nothing matches this view yet.</p>
+            <a href="{{ route('admin.products.create', ['type' => $type]) }}" class="btn btn-primary pr-btn">Add</a>
+        </div>
+    @else
+        @php
+            $statusQ = fn ($p) => $p->stock <= 0 ? ['Out', 'danger'] : ($p->stock <= 5 ? ['Low', 'warning'] : ['In stock', 'success']);
+        @endphp
+
+        {{-- Grid view --}}
+        <div class="pr-grid" id="prGrid">
+            @foreach($products as $prod)
+                @php [$sLabel, $sTone] = $statusQ($prod); $specs = collect($prod->specifications ?? [])->take(3); @endphp
+                <article class="pr-card {{ $prod->is_active ? '' : 'is-hidden' }}">
+                    <a href="{{ route('admin.products.edit', $prod->id) }}" class="pr-card__media" aria-label="Edit {{ $prod->title }}">
+                        <img src="{{ $prod->image_url }}" alt="" loading="lazy" decoding="async"
+                             onerror="this.onerror=null;this.src='https://placehold.co/400x400/f1f5f9/64748b?text={{ rawurlencode(mb_substr($prod->title, 0, 1)) }}';">
+                        @if($prod->category)<span class="pr-tag pr-tag--{{ $typeTone[$prod->type] ?? 'info' }}">{{ $prod->category->name }}</span>@endif
+                        @if($prod->discount_percent)<span class="pr-off">-{{ $prod->discount_percent }}%</span>@endif
+                        @unless($prod->is_active)<span class="pr-hidden">Hidden</span>@endunless
+                    </a>
+                    <div class="pr-card__body">
+                        <div class="pr-card__meta">{{ $prod->brand ?: ($prod->category?->name ?? '—') }}@if($prod->model) · {{ $prod->model }}@endif</div>
+                        <a href="{{ route('admin.products.edit', $prod->id) }}" class="pr-card__title" title="{{ $prod->title }}">{{ $prod->title }}</a>
+                        @if($specs->isNotEmpty())
+                            <ul class="pr-specs">
+                                @foreach($specs as $sk => $sv)
+                                    <li><span>{{ $sk }}</span><b>{{ $sv }}</b></li>
+                                @endforeach
+                            </ul>
+                        @endif
+                        <div class="pr-card__price">
+                            <strong>৳{{ number_format($prod->final_price, 0) }}</strong>
+                            @if($prod->discount_percent)<s>৳{{ number_format($prod->price, 0) }}</s>@endif
+                        </div>
+                        <div class="pr-card__row">
+                            <span class="pr-pill pr-pill--{{ $sTone }}">{{ $sLabel }}@if($prod->stock > 0) · {{ $prod->stock }}@endif</span>
+                            @if($prod->sku)<span class="pr-sku">{{ $prod->sku }}</span>@endif
+                        </div>
+                    </div>
+                    <div class="pr-card__foot">
+                        <a href="{{ route('admin.products.edit', $prod->id) }}" class="btn btn-primary pr-act">Edit</a>
+                        <form action="{{ route('admin.products.toggle-status', $prod->id) }}" method="POST" class="pr-flex">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-secondary pr-act w-100">{{ $prod->is_active ? 'Hide' : 'Show' }}</button>
+                        </form>
+                        <form action="{{ route('admin.products.destroy', $prod->id) }}" method="POST" data-confirm="এই পণ্যটি স্থায়ীভাবে মুছে ফেলবেন?">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger pr-act">Delete</button>
+                        </form>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+
+        {{-- Table view --}}
+        <div class="adm-card p-0 overflow-hidden d-none" id="prTableWrap">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 pr-table">
+                    <thead>
                         <tr>
-                            <!-- Image Thumbnail -->
-                            <td class="ps-3">
-                                <div class="rounded-3 border overflow-hidden bg-light" style="width: 50px; height: 50px;">
-                                    <img src="{{ $prod->image_url }}" alt="" class="w-100 h-100 object-fit-cover"
-                                         onerror="this.onerror=null; this.src='https://placehold.co/100x100/f8fafc/0284c7?text=Idea';">
-                                </div>
-                            </td>
-
-                            <!-- Title & Info -->
-                            <td>
-                                <div class="fw-bold text-dark mb-0.5">
-                                    <a href="{{ route('products.show', ['type' => $prod->type, 'slug' => $prod->slug]) }}" target="_blank" class="text-dark text-decoration-none hover-primary">
-                                        {{ $prod->title }}
-                                    </a>
-                                </div>
-                                <div class="d-flex align-items-center gap-2 text-muted small" style="font-size: 11.5px;">
-                                    @if($prod->sku)
-                                        <span>SKU: <strong class="font-monospace text-secondary">{{ $prod->sku }}</strong></span>
-                                    @endif
-                                    @if($prod->brand)
-                                        <span>• {{ $prod->brand }}</span>
-                                    @endif
-                                    @if($prod->is_featured)
-                                        <span class="badge bg-warning bg-opacity-25 text-warning-emphasis rounded-pill px-1.5">ফিচার্ড</span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <!-- Type & Category -->
-                            <td>
-                                <div class="mb-1">
-                                    @if($prod->type === 'electronics')
-                                        <span class="badge bg-info bg-opacity-15 text-info-emphasis rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">
-                                            <i class="fa-solid fa-laptop-code me-1"></i>ইলেক্ট্রনিক্স
-                                        </span>
-                                    @else
-                                        <span class="badge bg-success bg-opacity-15 text-success-emphasis rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 11px;">
-                                            <i class="fa-solid fa-pen-nib me-1"></i>স্টেশনারি
-                                        </span>
-                                    @endif
-                                </div>
-                                <span class="text-muted small">{{ $prod->category?->name ?? '—' }}</span>
-                            </td>
-
-                            <!-- Price -->
-                            <td>
-                                <div class="fw-bold text-primary">৳{{ number_format($prod->final_price, 0) }}</div>
-                                @if($prod->discount_price && $prod->discount_price < $prod->price)
-                                    <div class="text-muted small text-decoration-line-through" style="font-size: 11px;">
-                                        ৳{{ number_format($prod->price, 0) }} (-{{ $prod->discount_percent }}%)
+                            <th class="ps-3">Product</th>
+                            <th>Category</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($products as $prod)
+                            @php [$sLabel, $sTone] = $statusQ($prod); @endphp
+                            <tr>
+                                <td class="ps-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ $prod->image_url }}" alt="" width="46" height="46" loading="lazy" class="pr-thumb"
+                                             onerror="this.onerror=null;this.src='https://placehold.co/100x100/f1f5f9/64748b?text=%20';">
+                                        <div class="min-w-0">
+                                            <a href="{{ route('admin.products.edit', $prod->id) }}" class="pr-t-title">{{ $prod->title }}</a>
+                                            <div class="pr-t-sub">{{ $prod->brand }}@if($prod->brand && $prod->sku) · @endif{{ $prod->sku }}</div>
+                                        </div>
                                     </div>
-                                @endif
-                            </td>
-
-                            <!-- Stock -->
-                            <td>
-                                @if($prod->stock > 0)
-                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-1 fw-semibold">
-                                        {{ $prod->stock }} টি স্টকে
-                                    </span>
-                                @else
-                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-1 fw-semibold">
-                                        স্টক আউট
-                                    </span>
-                                @endif
-                            </td>
-
-                            <!-- Active Status Toggle -->
-                            <td>
-                                <form action="{{ route('admin.products.toggle-status', $prod->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm p-0 border-0 bg-transparent" title="ক্লিক করে স্ট্যাটাস পরিবর্তন করুন">
-                                        @if($prod->is_active)
-                                            <span class="badge bg-success rounded-pill px-2.5 py-1">সক্রিয়</span>
-                                        @else
-                                            <span class="badge bg-secondary rounded-pill px-2.5 py-1">নিষ্ক্রিয়</span>
-                                        @endif
-                                    </button>
-                                </form>
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="text-end pe-3">
-                                <div class="d-inline-flex gap-1">
-                                    <a href="{{ route('admin.products.edit', $prod->id) }}" class="btn btn-sm btn-light rounded-circle shadow-2xs" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="সম্পাদনা">
-                                        <i class="fa-solid fa-pen text-secondary" style="font-size: 12px;"></i>
-                                    </a>
-                                    <form action="{{ route('admin.products.destroy', $prod->id) }}" method="POST" class="d-inline" onsubmit="return confirm('আপনি কি নিশ্চিতভাবে এই পণ্যটি মুছে ফেলতে চান?');">
+                                </td>
+                                <td class="text-muted">{{ $prod->category?->name ?? '—' }}</td>
+                                <td class="text-end">
+                                    <strong>৳{{ number_format($prod->final_price, 0) }}</strong>
+                                    @if($prod->discount_percent)<div class="pr-t-sub"><s>৳{{ number_format($prod->price, 0) }}</s> -{{ $prod->discount_percent }}%</div>@endif
+                                </td>
+                                <td class="text-center"><span class="pr-pill pr-pill--{{ $sTone }}">{{ $sLabel }}@if($prod->stock > 0) · {{ $prod->stock }}@endif</span></td>
+                                <td class="text-center">
+                                    <form action="{{ route('admin.products.toggle-status', $prod->id) }}" method="POST" class="d-inline">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-2xs text-danger" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" title="মুছুন">
-                                            <i class="fa-solid fa-trash-can" style="font-size: 12px;"></i>
-                                        </button>
+                                        <button type="submit" class="pr-pill pr-pill--{{ $prod->is_active ? 'success' : 'muted' }} pr-pill--btn" title="Toggle">{{ $prod->is_active ? 'Active' : 'Hidden' }}</button>
                                     </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-boxes-stacked fa-3x opacity-25 mb-2 d-block"></i>
-                                কোনো পণ্য পাওয়া যায়নি।
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                                <td class="text-end pe-3">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{{ route('admin.products.edit', $prod->id) }}" class="btn btn-primary pr-act">Edit</a>
+                                        <form action="{{ route('admin.products.destroy', $prod->id) }}" method="POST" data-confirm="এই পণ্যটি স্থায়ীভাবে মুছে ফেলবেন?">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger pr-act">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         @if($products->hasPages())
-            <div class="card-footer bg-white border-top py-3 d-flex justify-content-center">
-                {{ $products->links() }}
-            </div>
+            <div class="d-flex justify-content-center">{{ $products->links() }}</div>
         @endif
-    </div>
-
+    @endif
 </div>
 
-<!-- ═══ CATEGORIES MANAGEMENT MODAL ═══ -->
+{{-- Categories modal --}}
 <div class="modal fade" id="categoryManageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow-2xl">
-            <div class="modal-header border-bottom py-2.5 px-3.5 bg-light">
-                <h6 class="modal-title fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-folder-tree text-primary"></i>
-                    <span>ইলেক্ট্রনিক্স ও স্টেশনারি ক্যাটাগরি ব্যবস্থাপনা</span>
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Categories</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3.5">
-                
-                <!-- Add New Category Form -->
-                <div class="p-3 rounded-4 bg-light border mb-4">
-                    <h6 class="fw-bold text-dark mb-2.5" style="font-size: 13.5px;">+ নতুন ক্যাটাগরি তৈরি করুন</h6>
-                    <form action="{{ route('admin.products.categories.store') }}" method="POST" class="row g-2">
-                        @csrf
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold mb-1">ক্যাটাগরি টাইপ</label>
-                            <select name="type" class="form-select form-select-sm" required>
-                                <option value="electronics">ইলেক্ট্রনিক্স</option>
-                                <option value="stationery">স্টেশনারি</option>
-                            </select>
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label small fw-bold mb-1">ক্যাটাগরির নাম</label>
-                            <input type="text" name="name" class="form-control form-control-sm" placeholder="যেমন: রিডিং লাইট" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold mb-1">আইকন ক্লাস</label>
-                            <input type="text" name="icon" class="form-control form-control-sm" placeholder="fas fa-lightbulb">
-                        </div>
-                        <div class="col-12 text-end mt-2">
-                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                                যুক্ত করুন
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="modal-body">
+                <form action="{{ route('admin.products.categories.store') }}" method="POST" class="row g-2 p-3 rounded-3 bg-light border mb-3">
+                    @csrf
+                    <input type="hidden" name="type" value="{{ $type }}">
+                    <div class="col-12 col-md-3">
+                        <label class="pr-label">Family</label>
+                        <div class="form-control bg-white fw-bold">{{ $typeLabel }}</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="pr-label">Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Air Fryer" required>
+                    </div>
+                    <div class="col-12 col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary pr-btn w-100">Add</button>
+                    </div>
+                </form>
 
-                <!-- Existing Categories Table -->
-                <h6 class="fw-bold text-dark mb-2" style="font-size: 13px;">বর্তমান ক্যাটাগরিসমূহ</h6>
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 12.5px;">
-                        <thead class="table-light">
-                            <tr>
-                                <th>টাইপ</th>
-                                <th>নাম</th>
-                                <th>স্লাগ</th>
-                                <th>পণ্য সংখ্যা</th>
-                                <th class="text-end">অ্যাকশন</th>
-                            </tr>
-                        </thead>
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Name</th><th class="text-center">Items</th><th class="text-end">Actions</th></tr></thead>
                         <tbody>
                             @foreach($categories as $cat)
                                 <tr>
-                                    <td>
-                                        <span class="badge {{ $cat->type === 'electronics' ? 'bg-info text-dark' : 'bg-success text-white' }} rounded-pill px-2">
-                                            {{ $cat->type === 'electronics' ? 'ইলেক' : 'স্টেশ' }}
-                                        </span>
-                                    </td>
                                     <td class="fw-semibold">{{ $cat->name }}</td>
-                                    <td><code>{{ $cat->slug }}</code></td>
-                                    <td>{{ $cat->products_count }} টি</td>
+                                    <td class="text-center">{{ $cat->products_count }}</td>
                                     <td class="text-end">
-                                        <form action="{{ route('admin.products.categories.destroy', $cat->id) }}" method="POST" class="d-inline" onsubmit="return confirm('এই ক্যাটাগরি মুছে ফেলতে চান?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1.5 rounded-2">
-                                                <i class="fa-solid fa-trash-can" style="font-size: 10px;"></i>
-                                            </button>
+                                        <form action="{{ route('admin.products.categories.destroy', $cat->id) }}" method="POST" class="d-inline" data-confirm="এই ক্যাটাগরি মুছে ফেলবেন?">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger pr-act">Delete</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -373,21 +256,42 @@
                         </tbody>
                     </table>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 @endsection
 
-@push('styles')
-<style>
-.table-spec-input::placeholder,
-.table-spec-input::-webkit-input-placeholder,
-.table-spec-input::-moz-placeholder,
-.table-spec-input:-ms-input-placeholder {
-    opacity: 0.3 !important;
-    color: #475569 !important;
-}
-</style>
+@push('scripts')
+<script>
+(function () {
+    // Grid / Table toggle (remembered per browser; defaults to grid on phones, table on desktop)
+    var grid = document.getElementById('prGrid'), table = document.getElementById('prTableWrap');
+    var btns = document.querySelectorAll('.pr-view__btn');
+    function apply(v) {
+        if (grid) grid.classList.toggle('d-none', v !== 'grid');
+        if (table) table.classList.toggle('d-none', v !== 'table');
+        btns.forEach(function (b) { b.classList.toggle('is-active', b.dataset.view === v); });
+        try { localStorage.setItem('pr-view', v); } catch (e) {}
+    }
+    var saved = null; try { saved = localStorage.getItem('pr-view'); } catch (e) {}
+    apply(saved || 'grid');
+    btns.forEach(function (b) { b.addEventListener('click', function () { apply(b.dataset.view); }); });
+
+    // Search: "/" focuses, auto-search after typing stops
+    var input = document.getElementById('prSearch'), form = document.getElementById('prFilterForm');
+    if (input && form) {
+        var t, initial = input.value;
+        input.addEventListener('input', function () {
+            clearTimeout(t);
+            if (input.value.trim() === initial.trim()) return;
+            t = setTimeout(function () { form.submit(); }, 700);
+        });
+        document.addEventListener('keydown', function (e) {
+            var el = e.target, typing = el && (/^(input|textarea|select)$/i.test(el.tagName) || el.isContentEditable);
+            if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) { e.preventDefault(); input.focus(); input.select(); }
+        });
+    }
+})();
+</script>
 @endpush

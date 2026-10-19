@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Author Royalty Payouts')
-@section('heading', 'Author Royalty Payouts & Tax Management')
+@section('heading', 'Author Payouts')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.payments.index') }}">Payments</a></li>

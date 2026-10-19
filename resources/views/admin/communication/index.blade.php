@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Global Communication & Automation')
-@section('heading', 'Omnichannel Communication & Automated Dispatch')
+@section('heading', 'Communication')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

@@ -1,908 +1,183 @@
 @extends('layouts.app')
 
 @php
+    use Illuminate\Support\Str;
+
     $ogBlogImage = \App\Support\SiteSetting::blogOgBannerUrl();
-    if (!empty($featured) && $featured->count() > 0) {
-        $firstHero = $featured->first(fn($p) => !empty($p->cover_url) || !empty($p->featured_image));
-        if ($firstHero) {
-            $ogBlogImage = $firstHero->cover_url ?: (str_starts_with($firstHero->featured_image, 'http') ? $firstHero->featured_image : asset('storage/' . ltrim($firstHero->featured_image, '/')));
-        }
-    }
+    $imgOf = function ($p) {
+        $img = $p->featured_image;
+        if (!$img) return null;
+        return str_starts_with($img, 'http') ? $img : (str_starts_with($img, 'storage/') ? asset($img) : asset('storage/' . ltrim($img, '/')));
+    };
+    $heroImg = $heroPost ? $imgOf($heroPost) : null;
+    if ($heroImg) { $ogBlogImage = $heroImg; }
+
+    $filtered = request()->anyFilled(['search', 'category', 'sort']);
+    $curSort = request('sort') === 'popular' ? 'popular' : 'latest';
+    $curCat = request('category') ? $categories->first(fn ($c) => $c->slug === request('category') || (string) $c->id === (string) request('category') || $c->name === request('category')) : null;
+    $curCatLabel = $curCat->name ?? 'All';
+    $totalPosts = $categories->sum('posts_count');
+    $keep = fn (array $except = []) => request()->except(array_merge(['page'], $except));
+    $sideFeatured = $featured->reject(fn ($p) => $heroPost && $p->id === $heroPost->id)->take(3);
 @endphp
 
-@section('title', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ (Ideapatra)')
+@section('title', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ (Ideapatra)')
 @section('og_type', 'website')
-@section('og_title', 'আইডিয়াপত্র (Ideapatra) — মুক্তচিন্তার অসীম আকাশ')
-@section('og_description', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ। নিয়মিত প্রকাশিত হচ্ছে সমকালীন প্রবন্ধ, গল্প, কবিতা, গ্রন্থালোচনা ও গবেষণামূলক রচনা।')
+@section('og_title', 'আইডিয়াপত্র (Ideapatra) — মুক্তচিন্তার অসীম আকাশ')
+@section('og_description', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ। নিয়মিত গল্প, কবিতা, প্রবন্ধ ও সাহিত্যচর্চা।')
 @section('og_image', $ogBlogImage)
 @section('og_url', route('blog.index'))
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/blog-modern.css') }}?v={{ @filemtime(public_path('css/blog-modern.css')) ?: 1 }}">
+@endpush
+
 @section('content')
-<!-- Literary Blog Custom CSS -->
-<style>
-    :root {
-        --lit-primary: #0284c7;
-        --lit-primary-dark: #0369a1;
-        --lit-accent: #d97706;
-        --lit-dark: #0f172a;
-        --lit-slate: #334155;
-        --lit-light-bg: #f8fafc;
-        --lit-card-bg: #ffffff;
-        --lit-border: #e2e8f0;
-    }
+<div class="bl-page">
 
-    /* Literary Typography */
-    .lit-title {
-        font-family: 'Kalpurush', 'Nikosh', 'Noto Sans Bengali', 'Hind Siliguri', serif;
-        font-weight: 700;
-        letter-spacing: -0.2px;
-    }
-
-    .lit-headline {
-        font-family: 'Kalpurush', 'Nikosh', 'Noto Sans Bengali', 'Hind Siliguri', serif;
-        font-weight: 700;
-        color: var(--lit-dark);
-        line-height: 1.42;
-        transition: color 0.25s ease;
-    }
-    .lit-headline:hover {
-        color: var(--lit-primary);
-    }
-
-    /* Card Micro-interactions */
-    .lit-card {
-        background: var(--lit-card-bg);
-        border: 1px solid var(--lit-border);
-        border-radius: 16px;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
-    }
-    .lit-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 30px -10px rgba(15, 23, 42, 0.08), 0 8px 12px -4px rgba(15, 23, 42, 0.04) !important;
-        border-color: #cbd5e1;
-    }
-
-    .lit-card-media {
-        overflow: hidden;
-        position: relative;
-        aspect-ratio: 16/10;
-        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-    }
-    .lit-card-media img {
-        transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .lit-card:hover .lit-card-media img {
-        transform: scale(1.06);
-    }
-    .lit-card-media-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(15, 23, 42, 0.45) 0%, transparent 60%);
-        pointer-events: none;
-    }
-
-    /* Author Avatar Initials */
-    .lit-author-avatar {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25);
-        margin-right: 8px;
-        flex-shrink: 0;
-    }
-
-    /* Submenu Category Navigation */
-    .lit-nav-pills {
-        display: flex;
-        gap: 0.5rem;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 transparent;
-    }
-    .lit-nav-pills::-webkit-scrollbar {
-        height: 4px;
-    }
-    .lit-nav-pills::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-    }
-    .lit-nav-pill {
-        white-space: nowrap;
-        font-size: 0.86rem;
-        font-weight: 600;
-        padding: 0.45rem 1rem;
-        border-radius: 9999px;
-        transition: all 0.2s ease;
-        text-decoration: none;
-        border: 1px solid var(--lit-border);
-        background: #ffffff;
-        color: var(--lit-slate);
-    }
-    .lit-nav-pill:hover {
-        background: #f1f5f9;
-        color: var(--lit-primary);
-        border-color: #cbd5e1;
-    }
-    .lit-nav-pill.active {
-        background: var(--lit-primary);
-        color: #ffffff !important;
-        border-color: var(--lit-primary);
-        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
-    }
-
-    /* Unified Search Bar */
-    .lit-search-container {
-        background: #ffffff;
-        border: 1px solid var(--lit-border);
-        border-radius: 9999px;
-        box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
-        padding: 4px 6px;
-        transition: box-shadow 0.2s, border-color 0.2s;
-    }
-    .lit-search-container:focus-within {
-        border-color: var(--lit-primary);
-        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.15);
-    }
-
-    /* Clean Custom Category Dropdown */
-    .lit-category-dropdown .dropdown-toggle {
-        font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', sans-serif;
-        font-size: 0.95rem;
-        transition: all 0.2s ease;
-    }
-    .lit-category-dropdown .dropdown-toggle::after {
-        color: #64748b;
-        margin-left: 0.5rem;
-        vertical-align: middle;
-        transition: transform 0.2s ease;
-    }
-    .lit-category-dropdown .dropdown-toggle.show::after {
-        transform: rotate(180deg);
-    }
-    .lit-category-dropdown .dropdown-menu {
-        border-radius: 16px !important;
-        border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 20px 35px -8px rgba(15, 23, 42, 0.22), 0 8px 16px -4px rgba(15, 23, 42, 0.1) !important;
-        padding: 6px !important;
-        background-color: #ffffff !important;
-        z-index: 1060 !important;
-    }
-    .lit-category-dropdown .dropdown-item {
-        font-family: 'Kalpurush', 'Nikosh', 'SolaimanLipi', sans-serif;
-        font-size: 0.95rem;
-        padding: 9px 14px !important;
-        border-radius: 10px !important;
-        transition: all 0.16s ease;
-        line-height: 1.45;
-    }
-    .lit-category-dropdown .dropdown-item:hover {
-        background-color: #f0f9ff !important;
-        color: var(--lit-primary) !important;
-    }
-    .lit-category-dropdown .dropdown-item.active {
-        background-color: var(--lit-primary) !important;
-        color: #ffffff !important;
-    }
-    .lit-category-dropdown .dropdown-menu::-webkit-scrollbar {
-        width: 5px;
-    }
-    .lit-category-dropdown .dropdown-menu::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 4px;
-    }
-
-    .lit-popular-card {
-        background: #f8fafc;
-        border: 1px solid #edf2f7;
-        padding: 13px 15px !important;
-        border-radius: 12px !important;
-        transition: all 0.22s ease;
-    }
-    .lit-popular-card:hover {
-        background: #f0fdf4 !important;
-        border-color: #86efac !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-    }
-    .lit-popular-card:hover h6 {
-        color: var(--lit-primary) !important;
-    }
-
-    .btn-lit-read {
-        transition: all 0.2s ease;
-    }
-    .btn-lit-read:hover {
-        background: var(--lit-primary) !important;
-        color: #ffffff !important;
-        transform: translateX(3px);
-    }
-</style>
-
-@php
-    $blogCustomizer = \App\Support\SiteSetting::blogCustomizer();
-@endphp
-
-<div class="container py-4 mb-5">
-
-    <!-- Masthead / Hero Header -->
-    <div class="card p-4 p-md-5 mb-4 border-0 shadow-sm rounded-4 position-relative overflow-visible text-white" 
-         style="z-index: 25; background: {{ $blogCustomizer['header_gradient'] ?? 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)' }};">
-
-        <div class="position-relative z-1 text-center py-2">
-            <h1 class="fw-bold display-5 mb-2 lit-title text-white tracking-tight">{{ $blogCustomizer['hero_title'] ?? 'আইডিয়াপত্র' }}</h1>
-            <p class="fs-5 opacity-90 mb-0 font-kalpurush fw-normal text-white-50" style="letter-spacing: 0.3px;">
-                মুক্তচিন্তার অসীম আকাশ
-            </p>
-
-            <!-- Unified Search Bar with Clean Custom Category Dropdown -->
-            <div class="mt-4 pt-1 mx-auto position-relative" style="max-width: 760px; z-index: 30;">
-                <form action="{{ route('blog.index') }}" method="GET" id="litSearchForm" 
-                      class="lit-search-container d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2 position-relative">
-                    
-                    @php
-                        $activeCatSlug = request('category');
-                        $activeCat = isset($categories) ? $categories->firstWhere('slug', $activeCatSlug) : null;
-                        $activeCatName = $activeCat ? $activeCat->name : 'সকল ক্যাটাগরি';
-                    @endphp
-
-                    <!-- Clean Category Dropdown with perfect padding & styling -->
-                    <div class="dropdown lit-category-dropdown flex-shrink-0">
-                        <button class="btn bg-transparent border-0 d-flex align-items-center justify-content-between gap-2 px-3 py-2 fw-semibold text-dark dropdown-toggle shadow-none w-100" 
-                                type="button" id="litCategoryDropdownBtn" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" 
-                                style="min-width: 160px; font-size: 0.94rem;">
-                            <span class="d-flex align-items-center gap-2 text-truncate" id="selectedCatLabel">
-                                <i class="fa-solid fa-shapes text-primary" style="font-size: 0.95rem;"></i>
-                                <span class="fw-semibold">{{ $activeCatName }}</span>
-                            </span>
-                        </button>
-                        <input type="hidden" name="category" id="litCategoryInput" value="{{ request('category') }}">
-
-                        <ul class="dropdown-menu shadow-lg border-0 rounded-4 py-2 mt-2 dropdown-menu-start" 
-                            aria-labelledby="litCategoryDropdownBtn" 
-                            style="min-width: 280px; max-height: 380px; overflow-y: auto; z-index: 1060; background: #ffffff;">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 rounded-2 mx-1 {{ !request('category') ? 'active bg-primary text-white fw-bold' : 'text-dark' }}" 
-                                   href="javascript:void(0)" onclick="selectLitCategory('', 'সকল ক্যাটাগরি')">
-                                    <span class="d-flex align-items-center gap-2">
-                                        <i class="fa-solid fa-border-all {{ !request('category') ? 'text-white' : 'text-primary' }}" style="width: 16px;"></i>
-                                        <span>সকল ক্যাটাগরি</span>
-                                    </span>
-                                    @if(isset($categories) && $categories->isNotEmpty())
-                                        <span class="badge {{ !request('category') ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill font-monospace" style="font-size: 0.72rem;">@bn($categories->sum('posts_count'))</span>
-                                    @endif
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider my-1.5 opacity-50"></li>
-                            @if(isset($categories) && $categories->isNotEmpty())
-                                @foreach($categories as $cat)
-                                    <li>
-                                        <a class="dropdown-item d-flex align-items-center justify-content-between px-3 py-2 rounded-2 mx-1 my-0.5 {{ request('category') === $cat->slug ? 'active bg-primary text-white fw-bold' : 'text-secondary-emphasis' }}" 
-                                           href="javascript:void(0)" onclick="selectLitCategory('{{ $cat->slug }}', '{{ addslashes($cat->name) }}')">
-                                            <span class="d-flex align-items-center gap-2">
-                                                <i class="fa-regular fa-folder {{ request('category') === $cat->slug ? 'text-white' : 'text-muted' }}" style="width: 16px;"></i>
-                                                <span class="text-truncate" style="max-width: 175px;">{{ $cat->name }}</span>
-                                            </span>
-                                            <span class="badge {{ request('category') === $cat->slug ? 'bg-white text-primary' : 'bg-light text-muted border' }} rounded-pill font-monospace" style="font-size: 0.72rem;">@bn($cat->posts_count ?? 0)</span>
-                                        </a>
-                                    </li>
-                                @endforeach
-                            @endif
-                        </ul>
-                    </div>
-
-                    <!-- Clean Divider -->
-                    <div class="d-none d-md-block bg-secondary bg-opacity-25" style="width: 1px; height: 26px;"></div>
-
-                    <div class="d-flex align-items-center flex-grow-1 px-2">
-                        <i class="fas fa-search text-muted me-2"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" 
-                               class="form-control border-0 shadow-none ps-1 font-kalpurush" 
-                               placeholder="নিবন্ধের শিরোনাম, বিষয়বস্তু বা লেখকের নাম দিয়ে খুঁজুন...">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold flex-shrink-0 shadow-sm">
-                        <i class="fas fa-search me-1.5"></i> অনুসন্ধান
-                    </button>
-                </form>
-            </div>
+    {{-- Title · search · write --}}
+    <header class="bl-head container">
+        <div class="bl-head__title">
+            <h1>Ideapatra</h1>
+            <span>{{ number_format($posts->total()) }}</span>
         </div>
-    </div>
+        <form action="{{ route('blog.index') }}" method="GET" class="bl-search" role="search">
+            @if(request('category'))<input type="hidden" name="category" value="{{ request('category') }}">@endif
+            @if(request('sort'))<input type="hidden" name="sort" value="{{ request('sort') }}">@endif
+            <input type="search" name="search" value="{{ request('search') }}" placeholder="Search" aria-label="Search" autocomplete="off" enterkeyhint="search" id="blSearch">
+            <button type="submit" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+        <a href="{{ route('blog.write') }}" class="bl-write">Write</a>
+    </header>
 
-
-
-    {{-- Author Action Bar & Writer Invitation --}}
-    @auth
-        @php
-            $authUser = auth()->user();
-            $authorAvatar = $authUser->avatar_url ?? null;
-            if ((!$authorAvatar || str_contains($authorAvatar, 'ui-avatars') || empty($authUser->avatar)) && class_exists(\Modules\Author\Models\Author::class)) {
-                $authorProfile = \Modules\Author\Models\Author::where('user_id', $authUser->id)->orWhere('phone', $authUser->phone)->first();
-                if ($authorProfile && $authorProfile->avatar) {
-                    $authorAvatar = str_starts_with($authorProfile->avatar, 'http') ? $authorProfile->avatar : asset('storage/' . ltrim($authorProfile->avatar, '/'));
-                }
-            }
-        @endphp
-        <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 text-white" style="background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle overflow-hidden shadow-sm flex-shrink-0 border border-2 border-white d-flex align-items-center justify-content-center me-1" style="width: 50px; height: 50px; background: #ffffff;">
-                        @if ($authorAvatar)
-                            <img src="{{ $authorAvatar }}" alt="{{ $authUser->name }}" class="w-100 h-100 object-fit-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <span class="w-100 h-100 text-white fw-bold align-items-center justify-content-center font-kalpurush fs-5" style="background: linear-gradient(135deg, #059669, #047857); display: none;">
-                                {{ mb_substr($authUser->name ?: 'উ', 0, 1) }}
-                            </span>
-                        @else
-                            <span class="w-100 h-100 text-white fw-bold d-inline-flex align-items-center justify-content-center font-kalpurush fs-5" style="background: linear-gradient(135deg, #059669, #047857);">
-                                {{ mb_substr($authUser->name ?: 'উ', 0, 1) }}
-                            </span>
-                        @endif
-                    </div>
-                    <div class="ps-1">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <h5 class="fw-bold mb-0 text-white lit-title">স্বাগতম, {{ $authUser->name }}!</h5>
-                            <span class="badge bg-warning text-dark px-2.5 py-0.5 rounded-pill small fw-bold ms-1">অনুমোদিত লেখক</span>
-                        </div>
-                        <p class="small mb-0 text-light opacity-90">আইডিয়া সাহিত্যপত্রে আপনার নতুন গল্প, প্রবন্ধ, কবিতা বা বই পর্যালোচনা পোস্ট করুন।</p>
-                    </div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('blog.write') }}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold shadow-sm">
-                        <i class="fas fa-pen-nib me-1.5"></i> নিজের লেখা পোস্ট করুন
-                    </a>
-                    <a href="{{ route('author.dashboard') }}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold">
-                        <i class="fas fa-gauge-high me-1.5"></i> লেখক ড্যাশবোর্ড
-                    </a>
-                </div>
-            </div>
-        </div>
-    @else
-        <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white border-start border-4 border-success">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center shadow-sm fs-4 flex-shrink-0" style="width: 48px; height: 48px;">
-                        <i class="fas fa-pen-fancy"></i>
-                    </div>
-                    <div>
-                        <div class="d-flex align-items-center gap-2">
-                            <h5 class="fw-bold mb-0 text-dark lit-title">আপনি কি আইডিয়াপত্রে লিখতে চান?</h5>
-                            <span class="badge bg-success-subtle text-success px-2.5 py-0.5 rounded-pill small fw-bold">লেখক কর্নার</span>
-                        </div>
-                        <p class="small text-muted mb-0">আইডিয়াপত্রে আপনার মৌলিক লেখা, প্রবন্ধ ও সৃজনশীল সাহিত্যকর্ম প্রকাশ করতে লেখক হিসেবে যোগ দিন।</p>
-                    </div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('blog.write') }}" class="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm">
-                        <i class="fas fa-feather-pointed me-1.5"></i> নিজের লেখা পোস্ট করুন
-                    </a>
-                    <a href="{{ route('login') }}" class="btn btn-outline-success rounded-pill px-3 py-2 fw-semibold">
-                        <i class="fas fa-right-to-bracket me-1.5"></i> লেখক লগইন
-                    </a>
-                    <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold">
-                        <i class="fas fa-user-plus me-1.5"></i> নতুন নিবন্ধন
-                    </a>
-                </div>
-            </div>
-        </div>
-    @endauth
-
-    <!-- Featured Editorial Lead Article (When on main view) -->
-    @if(!request('search') && !request('category') && isset($heroPost) && $heroPost)
-    <div class="card p-3 p-md-4 mb-5 border-0 shadow-sm rounded-4 bg-white lit-card overflow-hidden">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-6">
-                <a href="{{ route('blog.show', $heroPost->slug) }}" class="d-block position-relative rounded-4 overflow-hidden shadow-sm" style="aspect-ratio: 16/10; background: #e2e8f0;">
-                    @php
-                        $hImg = $heroPost->featured_image;
-                        $hImgUrl = null;
-                        if ($hImg) {
-                            $hImgUrl = str_starts_with($hImg, 'http') ? $hImg : (str_starts_with($hImg, 'storage/') ? asset($hImg) : asset('storage/' . $hImg));
-                        }
-                    @endphp
-                    @if($hImgUrl)
-                        <img src="{{ $hImgUrl }}" alt="{{ $heroPost->title }}" class="w-100 h-100 object-fit-cover transition-transform"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-newspaper fs-1 text-primary opacity-50 mb-2\'></i><span class=\'fw-bold\'>আইডিয়াপত্র</span></div>';">
-                    @else
-                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
-                            <i class="fa-solid fa-newspaper fs-1 text-primary opacity-50 mb-2"></i>
-                            <span class="fw-bold">আইডিয়াপত্র</span>
-                        </div>
+    {{-- Sticky toolbar: Category ▾ · Sort ▾ --}}
+    <div class="sf-bar bl-bar">
+        <div class="container sf-bar__in">
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Category</span>
+                    <strong class="sf-dd__value">{{ $curCatLabel }}</strong>
+                    <i class="fa-solid fa-chevron-down sf-dd__caret"></i>
+                </button>
+                <div class="sf-dd__menu {{ $categories->count() > 8 ? 'sf-dd__menu--cols' : '' }}" role="menu" style="--sf-cols: {{ $categories->count() > 16 ? 3 : 2 }};">
+                    <div class="sf-dd__sheet-head"><b>Category</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    @if($categories->count() > 8)
+                        <div class="sf-dd__find"><input type="search" placeholder="Find" aria-label="Find category" data-sf-find autocomplete="off"></div>
                     @endif
-                    @if($heroPost->category)
-                        <span class="badge bg-primary bg-gradient position-absolute top-0 start-0 m-3 px-3 py-1.5 rounded-pill shadow-sm">
-                            <i class="fa-solid fa-folder me-1"></i> {{ $heroPost->category->name }}
-                        </span>
-                    @endif
-                </a>
-            </div>
-            <div class="col-lg-6">
-                <div class="ps-lg-2">
-                    <div class="d-flex align-items-center gap-3 text-muted small mb-2">
-                        <span class="badge bg-warning text-dark px-2.5 py-1 rounded-pill fw-bold">
-                            <i class="fa-solid fa-star me-1"></i> সম্পাদকীয় প্রধান নিবন্ধ
-                        </span>
-                        <span>
-                            <i class="fa-regular fa-calendar text-primary me-1"></i>
-                            {{ $heroPost->published_at ? $heroPost->published_at->format('d M, Y') : ($heroPost->created_at ? $heroPost->created_at->format('d M, Y') : 'আজ') }}
-                        </span>
-                        @if($heroPost->view_count)
-                            <span><i class="fa-regular fa-eye text-primary me-1"></i>@bn($heroPost->view_count) পঠিত</span>
-                        @endif
-                    </div>
-
-                    <h2 class="fw-bold text-dark mb-3 lit-headline display-7">
-                        <a href="{{ route('blog.show', $heroPost->slug) }}" class="text-decoration-none text-dark hover-primary">
-                            {{ $heroPost->title }}
+                    <div class="sf-dd__list">
+                        <a href="{{ route('blog.index', $keep(['category'])) }}" class="sf-dd__item {{ $curCat ? '' : 'is-active' }}" role="menuitem">
+                            <span class="sf-dd__name">All</span><small>{{ $totalPosts }}</small>
                         </a>
-                    </h2>
-
-                    <p class="text-secondary mb-4 line-clamp-3 leading-relaxed" style="font-size: 0.95rem; line-height: 1.75;">
-                        {{ $heroPost->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$heroPost->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 160) }}
-                    </p>
-
-                    <div class="d-flex align-items-center justify-content-between pt-3 border-top">
-                        <div class="d-flex align-items-center gap-2.5">
-                            <div class="lit-author-avatar me-2" style="width: 38px; height: 38px; font-size: 1rem;">
-                                {{ mb_substr($heroPost->author_name ?: 'আ', 0, 1) }}
-                            </div>
-                            <div class="ps-0.5">
-                                <span class="fw-bold text-dark d-block small" style="font-size: 0.94rem;">{{ $heroPost->author_name ?: 'সম্পাদকীয় বিভাগ' }}</span>
-                                <span class="text-muted" style="font-size: 0.72rem;">আইডিয়া প্রকাশন</span>
-                            </div>
-                        </div>
-
-                        <div class="d-flex align-items-center gap-2">
-                            <button type="button" class="btn btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1.5"
-                                onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($heroPost->title), @js($heroPost->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$heroPost->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 250)), @js(route('blog.show', $heroPost->slug)))"
-                                title="সংক্ষিপ্ত অডিও শুনুন">
-                                <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
-                            </button>
-                            <a href="{{ route('blog.show', $heroPost->slug) }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
-                                সম্পূর্ণ পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
+                        @foreach($categories as $cat)
+                            <a href="{{ route('blog.index', array_merge($keep(['category']), ['category' => $cat->slug])) }}"
+                               class="sf-dd__item {{ $curCat && $curCat->id === $cat->id ? 'is-active' : '' }}" role="menuitem" data-name="{{ \Illuminate\Support\Str::lower($cat->name) }}">
+                                <span class="sf-dd__name">{{ $cat->name }}</span><small>{{ $cat->posts_count }}</small>
                             </a>
-                        </div>
+                        @endforeach
+                        <div class="sf-dd__none d-none">No match</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    @endif
 
-    <!-- Main Content & Slim Literary Sidebar -->
-    <div class="row g-4">
-        <!-- Main Feed Column (Expanded 75% Width) -->
-        <main class="col-lg-8 col-xl-9">
-            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-4 pb-2 border-bottom">
-                <div class="d-flex align-items-center gap-2">
-                    <h5 class="fw-bold text-dark mb-0 lit-title d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-newspaper text-primary"></i>
-                        @if(request('category'))
-                            “{{ request('category') }}” বিভাগের সাহিত্যকর্ম ও নিবন্ধ
-                        @elseif(request('search'))
-                            “{{ request('search') }}”-এর অনুসন্ধান ফলাফল
-                        @else
-                            সাম্প্রতিক প্রকাশিত লেখা ও সাহিত্যকর্ম
-                        @endif
-                    </h5>
-                    @if(isset($posts) && $posts instanceof \Illuminate\Pagination\LengthAwarePaginator)
-                        <span class="badge bg-light text-muted border">@bn($posts->total())টি পোস্ট</span>
-                    @endif
+            <div class="sf-dd" data-sf-dd>
+                <button type="button" class="sf-dd__btn" aria-haspopup="true" aria-expanded="false">
+                    <span class="sf-dd__label">Sort</span>
+                    <strong class="sf-dd__value">{{ $curSort === 'popular' ? 'Popular' : 'Latest' }}</strong>
+                    <i class="fa-solid fa-chevron-down sf-dd__caret"></i>
+                </button>
+                <div class="sf-dd__menu sf-dd__menu--sm" role="menu">
+                    <div class="sf-dd__sheet-head"><b>Sort</b><button type="button" class="sf-dd__close" aria-label="Close">&times;</button></div>
+                    <div class="sf-dd__list">
+                        <a href="{{ route('blog.index', $keep(['sort'])) }}" class="sf-dd__item {{ $curSort === 'latest' ? 'is-active' : '' }}" role="menuitem"><span class="sf-dd__name">Latest</span></a>
+                        <a href="{{ route('blog.index', array_merge($keep(['sort']), ['sort' => 'popular'])) }}" class="sf-dd__item {{ $curSort === 'popular' ? 'is-active' : '' }}" role="menuitem"><span class="sf-dd__name">Popular</span></a>
+                    </div>
                 </div>
-
-                <form method="GET" action="{{ route('blog.index') }}" class="d-flex align-items-center gap-2">
-                    @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
-                    @if(request('category')) <input type="hidden" name="category" value="{{ request('category') }}"> @endif
-                    <label for="sort" class="small text-muted text-nowrap fw-semibold">সাজান:</label>
-                    <select name="sort" id="sort" class="form-select form-select-sm rounded-pill border shadow-sm px-3" onchange="this.form.submit()">
-                        <option value="latest" @selected(request('sort') === 'latest' || !request('sort'))>সর্বশেষ প্রকাশিত</option>
-                        <option value="popular" @selected(request('sort') === 'popular')>সর্বাধিক পঠিত</option>
-                    </select>
-                </form>
             </div>
 
-            @if(request('search') || request('category') || $categoriesWithPosts->isEmpty())
-                <!-- Search Results or Single Filtered Category Grid (3 Columns) -->
-                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4 mb-4">
-                    @forelse($posts as $post)
-                        <div class="col">
-                            <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lit-card d-flex flex-column">
-                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none d-block">
-                                    <div class="lit-card-media">
-                                        @php
-                                            $image = $post->featured_image;
-                                            $imageUrl = null;
-                                            if ($image) {
-                                                $imageUrl = str_starts_with($image, 'http') ? $image : (str_starts_with($image, 'storage/') ? asset($image) : asset('storage/' . $image));
-                                            }
-                                        @endphp
-                                        @if($imageUrl)
-                                            <img src="{{ $imageUrl }}" 
-                                                 alt="{{ $post->title }}" 
-                                                 loading="lazy"
-                                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1\'></i><span class=\'small fw-bold\'>আইডিয়া ব্লগ</span></div>';">
-                                        @else
-                                            <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
-                                                <i class="fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1"></i>
-                                                <span class="small fw-semibold">আইডিয়া প্রকাশন</span>
-                                            </div>
-                                        @endif
+            @if($filtered)
+                <a href="{{ route('blog.index') }}" class="bl-clear">Clear</a>
+            @endif
+        </div>
+    </div>
+    <div class="sf-dd__scrim" data-sf-scrim></div>
 
-                                        <div class="lit-card-media-overlay"></div>
+    <main class="container bl-main">
 
-                                        @if($post->category)
-                                            <span class="badge bg-primary bg-gradient position-absolute top-0 start-0 m-2.5 shadow-sm rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.72rem; z-index: 2;">
-                                                <i class="fa-solid fa-folder me-1"></i>{{ $post->category->name }}
-                                            </span>
-                                        @endif
-
-                                        @if($post->view_count)
-                                            <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2.5 shadow-sm rounded-pill px-2 py-1 small" style="font-size: 0.7rem; z-index: 2;">
-                                                <i class="fa-regular fa-eye me-1"></i>@bn($post->view_count)
-                                            </span>
-                                        @endif
-                                    </div>
-                                </a>
-
-                                <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
-                                    <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.05rem;">
-                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark hover-primary">
-                                            {{ $post->title }}
-                                        </a>
-                                    </h5>
-
-                                    {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
-                                    @php
-                                        $authorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
-                                        $authorSearchUrl = route('authors.index') . '?search=' . urlencode($authorName);
-                                    @endphp
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
-                                        <a href="{{ $authorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                            <span class="lit-author-avatar flex-shrink-0 me-2" style="width: 28px; height: 28px; font-size: 0.78rem;">
-                                                {{ mb_substr($authorName, 0, 1) }}
-                                            </span>
-                                            <span class="fw-bold text-dark text-truncate ps-0.5" style="max-width: 130px;">
-                                                {{ $authorName }}
-                                            </span>
-                                        </a>
-
-                                        <span class="text-muted" title="প্রকাশের তারিখ ও সময়">
-                                            <i class="fa-regular fa-clock text-primary me-1"></i>
-                                            {{ $post->published_at ? $post->published_at->format('d M, Y • h:i A') : ($post->created_at ? $post->created_at->format('d M, Y • h:i A') : 'আজ') }}
-                                        </span>
-                                    </div>
-
-                                    <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
-                                        {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 90) }}
-                                    </p>
-
-                                    <div class="mt-auto pt-2 d-flex align-items-center justify-content-between gap-1">
-                                        <button type="button" class="btn btn-sm btn-light border text-primary rounded-pill px-2.5 py-0.5 fw-semibold btn-quick-audio d-inline-flex align-items-center gap-1"
-                                            style="font-size: 0.72rem;"
-                                            onclick="if(window.IdeaAudiobook) IdeaAudiobook.speakExcerpt(this, @js($post->title), @js($post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 150)), @js(route('blog.show', $post->slug)))"
-                                            title="সংক্ষিপ্ত অডিও শুনুন">
-                                            <i class="fa-solid fa-volume-high text-primary"></i> <span>শুনুন</span>
-                                        </button>
-                                        <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
-                                            পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    @empty
-                        <div class="col-12 w-100">
-                            <div class="card p-5 text-center border-0 shadow-sm rounded-4 bg-light">
-                                <i class="fa-solid fa-book-open-reader fs-1 text-muted mb-3 opacity-50"></i>
-                                <h5 class="fw-bold text-dark lit-title">কোনো লেখা পাওয়া যায়নি</h5>
-                                <p class="text-muted small mb-3">অন্য কোনো ক্যাটাগরি বা শব্দ দিয়ে অনুসন্ধান করুন।</p>
-                                <a href="{{ route('blog.index') }}" class="btn btn-primary btn-sm rounded-pill px-4 align-self-center">সকল লেখা দেখুন</a>
-                            </div>
-                        </div>
-                    @endforelse
-                </div>
-
-                <!-- Pagination for Filtered List -->
-                @if(isset($posts) && $posts instanceof \Illuminate\Pagination\LengthAwarePaginator && $posts->hasPages())
-                    <div class="d-flex justify-content-center mb-5">
-                        {{ $posts->links() }}
+        {{-- Hero: top story + 3 highlights --}}
+        @if(!$filtered && $heroPost && (int) request('page', 1) === 1)
+            <section class="bl-hero">
+                <a href="{{ route('blog.show', $heroPost->slug) }}" class="bl-hero__main">
+                    @if($heroImg)<img src="{{ $heroImg }}" alt="" width="900" height="560" decoding="async" fetchpriority="high">@else<span class="bl-hero__ph"></span>@endif
+                    <span class="bl-hero__shade"></span>
+                    <span class="bl-hero__text">
+                        @if($heroPost->category)<em>{{ $heroPost->category->name }}</em>@endif
+                        <strong>{{ $heroPost->title }}</strong>
+                        <small>{{ $heroPost->author_name ?: 'সম্পাদকীয়' }} · {{ optional($heroPost->published_at)->format('d M Y') }}</small>
+                    </span>
+                </a>
+                @if($sideFeatured->isNotEmpty())
+                    <div class="bl-hero__side">
+                        @foreach($sideFeatured as $f)
+                            @php $fi = $imgOf($f); @endphp
+                            <a href="{{ route('blog.show', $f->slug) }}" class="bl-mini">
+                                <span class="bl-mini__img">@if($fi)<img src="{{ $fi }}" alt="" width="160" height="160" loading="lazy" decoding="async">@endif</span>
+                                <span class="bl-mini__text">
+                                    @if($f->category)<em>{{ $f->category->name }}</em>@endif
+                                    <strong>{{ $f->title }}</strong>
+                                    <small>{{ $f->author_name ?: 'সম্পাদকীয়' }}</small>
+                                </span>
+                            </a>
+                        @endforeach
                     </div>
                 @endif
+            </section>
+        @endif
 
-            @else
-                <!-- Category-wise Grouped Literary Sections (3-Column Grid per Category) -->
-                @foreach($categoriesWithPosts as $catSection)
-                    <section class="mb-5">
-                        <div class="d-flex align-items-center justify-content-between pb-2 mb-3 border-bottom border-2 border-primary border-opacity-25">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 d-inline-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                    <i class="fa-solid fa-feather-pointed fs-5"></i>
-                                </span>
-                                <h4 class="fw-bold text-dark mb-0 lit-title">{{ $catSection->name }}</h4>
-                                <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1 small">@bn($catSection->posts_count)টি লেখা</span>
-                            </div>
-                            <a href="{{ route('blog.category', $catSection->slug) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold text-nowrap">
-                                সকল {{ $catSection->name }} দেখুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                            </a>
+        @php
+            $card = function ($p) use ($imgOf) { return ['p' => $p, 'img' => $imgOf($p)]; };
+        @endphp
+
+        @if(!$filtered && $categoriesWithPosts->isNotEmpty())
+            {{-- One sliding row per category --}}
+            @foreach($categoriesWithPosts as $sec)
+                <section class="dz-row">
+                    <div class="dz-row__head">
+                        <h2 class="dz-row__title">
+                            <a href="{{ route('blog.category', $sec->slug) }}">{{ $sec->name }}</a>
+                            <small>{{ $sec->posts_count }}</small>
+                        </h2>
+                        <div class="dz-row__tools">
+                            <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('blRow{{ $sec->id }}', -1)" aria-label="Prev"><i class="fa-solid fa-chevron-left"></i></button>
+                            <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('blRow{{ $sec->id }}', 1)" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                            <a href="{{ route('blog.category', $sec->slug) }}" class="dz-shopall">All</a>
                         </div>
-
-                        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
-                            @foreach($catSection->posts as $post)
-                                <div class="col">
-                                    <article class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lit-card d-flex flex-column">
-                                        <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none d-block">
-                                            <div class="lit-card-media">
-                                                @php
-                                                    $image = $post->featured_image;
-                                                    $imageUrl = null;
-                                                    if ($image) {
-                                                        $imageUrl = str_starts_with($image, 'http') ? $image : (str_starts_with($image, 'storage/') ? asset($image) : asset('storage/' . $image));
-                                                    }
-                                                @endphp
-                                                @if($imageUrl)
-                                                    <img src="{{ $imageUrl }}" 
-                                                         alt="{{ $post->title }}" 
-                                                         loading="lazy"
-                                                         onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted\'><i class=\'fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1\'></i><span class=\'small fw-bold\'>আইডিয়া ব্লগ</span></div>';">
-                                                @else
-                                                    <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light text-muted">
-                                                        <i class="fa-solid fa-feather-pointed fs-2 text-primary opacity-50 mb-1"></i>
-                                                        <span class="small fw-semibold">আইডিয়া প্রকাশন</span>
-                                                    </div>
-                                                @endif
-
-                                                <div class="lit-card-media-overlay"></div>
-
-                                                @if($post->view_count)
-                                                    <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2.5 shadow-sm rounded-pill px-2 py-1 small" style="font-size: 0.7rem; z-index: 2;">
-                                                        <i class="fa-regular fa-eye me-1"></i>@bn($post->view_count)
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </a>
-
-                                        <div class="card-body p-3 p-xl-3.5 d-flex flex-column">
-                                            <h5 class="fw-bold mb-2 line-clamp-2 lit-headline" style="font-size: 1.05rem;">
-                                                <a href="{{ route('blog.show', $post->slug) }}" class="text-decoration-none text-dark hover-primary">
-                                                    {{ $post->title }}
-                                                </a>
-                                            </h5>
-
-                                            {{-- Author Icon & Name Linked to Author Directory + Publish Date and Time --}}
-                                            @php
-                                                $catAuthorName = $post->author_name ?: 'সম্পাদকীয় বিভাগ';
-                                                $catAuthorSearchUrl = route('authors.index') . '?search=' . urlencode($catAuthorName);
-                                            @endphp
-                                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2.5 pb-2 border-bottom text-muted small" style="font-size: 0.76rem;">
-                                                <a href="{{ $catAuthorSearchUrl }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark hover-primary" title="লেখক ডিরেক্টরীতে লেখকের প্রোফাইল ও বই দেখুন">
-                                                    <span class="lit-author-avatar flex-shrink-0 me-2" style="width: 28px; height: 28px; font-size: 0.78rem;">
-                                                        {{ mb_substr($catAuthorName, 0, 1) }}
-                                                    </span>
-                                                    <span class="fw-bold text-dark text-truncate ps-0.5" style="max-width: 130px;">
-                                                        {{ $catAuthorName }}
-                                                    </span>
-                                                </a>
-
-                                                <span class="text-muted" title="প্রকাশের তারিখ ও সময়">
-                                                    <i class="fa-regular fa-clock text-primary me-1"></i>
-                                                    {{ $post->published_at ? $post->published_at->format('d M, Y • h:i A') : ($post->created_at ? $post->created_at->format('d M, Y • h:i A') : 'আজ') }}
-                                                </span>
-                                            </div>
-
-                                            <p class="text-secondary small line-clamp-2 mb-3 opacity-90" style="font-size: 0.84rem; line-height: 1.65;">
-                                                {{ $post->excerpt ?: Str::limit(trim(strip_tags(html_entity_decode((string)$post->content, ENT_QUOTES | ENT_HTML5, 'UTF-8'))), 90) }}
-                                            </p>
-
-                                            <div class="mt-auto pt-2 d-flex align-items-center justify-content-between">
-                                                <span class="text-muted small" style="font-size: 0.72rem;">
-                                                    <i class="fa-solid fa-book-open text-warning me-1"></i>৩ মিনিট পাঠ
-                                                </span>
-                                                <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold btn-lit-read" style="font-size: 0.75rem;">
-                                                    পড়ুন <i class="fa-solid fa-arrow-right ms-1"></i>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </article>
-                                </div>
-                            @endforeach
-                        </div>
-                    </section>
+                    </div>
+                    <div class="idea-book-slider dz-track bl-track" id="blRow{{ $sec->id }}">
+                        @foreach($sec->posts as $p)
+                            <div class="idea-slider-item bl-item">@include('blog::partials.post-card', ['post' => $p, 'imageUrl' => $imgOf($p)])</div>
+                        @endforeach
+                    </div>
+                </section>
+            @endforeach
+        @elseif($posts->count())
+            <div class="bl-grid">
+                @foreach($posts as $p)
+                    @include('blog::partials.post-card', ['post' => $p, 'imageUrl' => $imgOf($p)])
                 @endforeach
-            @endif
-            <!-- Bottom In-Feed Google Ad Slot -->
-            @include('partials.google-ad', ['type' => 'bottom'])
-        </main>
-
-        <!-- Compact Literary Sidebar (Slim 25% Width) -->
-        <aside class="col-lg-4 col-xl-3">
-            <!-- Author / Write Post Box (Top Sidebar Widget) -->
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 text-center bg-white border-top border-4 border-success">
-                <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 46px; height: 46px;">
-                    <i class="fa-solid fa-feather-pointed fs-4"></i>
-                </div>
-                <h6 class="fw-bold text-dark mb-1 lit-title">আইডিয়াপত্রে লিখতে চান?</h6>
-                <p class="text-muted mb-2.5" style="font-size: 0.78rem; line-height: 1.45;">আইডিয়াপত্রে আপনার মৌলিক গল্প, কবিতা, প্রবন্ধ ও সাহিত্য আলোচনা প্রকাশ করুন।</p>
-                @auth
-                    <div class="d-flex flex-column gap-1.5">
-                        <a href="{{ route('blog.write') }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
-                            <i class="fas fa-feather-pointed me-1"></i> নিজের লেখা পোস্ট করুন
-                        </a>
-                        <a href="{{ route('author.dashboard') }}" class="btn btn-outline-success btn-sm rounded-pill py-1.5 fw-semibold" style="font-size: 0.78rem;">
-                            <i class="fas fa-gauge-high me-1"></i> লেখক ড্যাশবোর্ড
-                        </a>
-                    </div>
-                @else
-                    <div class="d-flex flex-column gap-1.5">
-                        <a href="{{ route('blog.write') }}" class="btn btn-success btn-sm rounded-pill py-2 fw-bold shadow-sm">
-                            <i class="fas fa-feather-pointed me-1"></i> নিজের লেখা পোস্ট করুন
-                        </a>
-                        <div class="d-flex gap-1.5 justify-content-center">
-                            <a href="{{ route('login') }}" class="btn btn-outline-success btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill text-center" style="font-size: 0.78rem;">
-                                <i class="fas fa-right-to-bracket me-1"></i> লগইন
-                            </a>
-                            <a href="{{ route('register.form', 'author') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5 py-1 fw-semibold flex-fill text-center" style="font-size: 0.78rem;">
-                                <i class="fas fa-user-plus me-1"></i> নিবন্ধন
-                            </a>
-                        </div>
-                    </div>
-                @endauth
             </div>
-
-            <!-- Newsletter Box (Placed BELOW Author Box) -->
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 text-center text-white position-relative overflow-hidden" 
-                 style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);">
-                <i class="fa-regular fa-envelope-open fs-2 mb-1.5 opacity-75"></i>
-                <h6 class="fw-bold mb-1 lit-title">সাহিত্যপত্র আপডেট ইমেইলে পান</h6>
-                <p class="opacity-90 mb-2.5" style="font-size: 0.78rem; line-height: 1.45;">নতুন সংখ্যা ও নিয়মিত বই পর্যালোচনার নোটিফিকেশন পেতে সাবস্ক্রাইব করুন।</p>
-                <form action="{{ route('newsletter.subscribe') }}" method="POST">
-                    @csrf
-                    <input type="email" name="email" placeholder="আপনার ইমেইল ঠিকানা..." required 
-                           class="form-control form-control-sm rounded-pill mb-2 border-0 text-center shadow-sm" style="font-size: 0.8rem;">
-                    <button type="submit" class="btn btn-light btn-sm fw-bold rounded-pill px-3 text-primary w-100 shadow-sm" style="font-size: 0.8rem;">
-                        সাবস্ক্রাইব করুন
-                    </button>
-                </form>
-            </div>
-
-            <!-- Trending / Popular Stories Widget -->
-            @if(isset($featured) && $featured->isNotEmpty())
-            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm rounded-4 bg-white">
-                <h6 class="fw-bold text-dark mb-3 pb-2.5 border-bottom d-flex align-items-center lit-title" style="font-size: 0.92rem;">
-                    <i class="fa-solid fa-fire text-danger me-2"></i>শীর্ষ পঠিত সাহিত্যকর্ম
-                </h6>
-                <div class="d-flex flex-column gap-2.5">
-                    @foreach($featured->take(4) as $feat)
-                        <a href="{{ route('blog.show', $feat->slug) }}" class="d-block p-3 rounded-3 text-decoration-none text-dark lit-popular-card">
-                            <h6 class="fw-bold text-dark mb-2 line-clamp-2 font-kalpurush" style="font-size: 0.88rem; line-height: 1.45;">{{ $feat->title }}</h6>
-                            <div class="d-flex flex-wrap align-items-center gap-3 text-muted" style="font-size: 0.74rem;">
-                                @if(!empty($feat->author_name))
-                                    <span class="text-truncate d-inline-flex align-items-center gap-2" style="max-width: 135px;">
-                                        <i class="fa-solid fa-pen-nib text-primary opacity-75"></i>
-                                        <span class="fw-semibold text-dark-emphasis">{{ $feat->author_name }}</span>
-                                    </span>
-                                    <span class="text-muted opacity-50">•</span>
-                                @endif
-                                <span class="d-inline-flex align-items-center gap-2 text-muted">
-                                    <i class="fa-regular fa-clock opacity-75"></i>
-                                    <span>{{ $feat->published_at ? $feat->published_at->format('d M, Y') : ($feat->created_at ? $feat->created_at->format('d M, Y') : '') }}</span>
-                                </span>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <!-- Categories Widget -->
-            @if(isset($categories) && $categories->isNotEmpty())
-            <div class="card p-3 mb-3.5 border-0 shadow-sm rounded-4 bg-white">
-                <h6 class="fw-bold text-dark mb-2.5 pb-2 border-bottom d-flex align-items-center lit-title" style="font-size: 0.88rem;">
-                    <i class="fa-solid fa-folder-open text-primary me-1.5"></i>বিষয়ভিত্তিক বিভাগসমূহ
-                </h6>
-                <div class="d-flex flex-column gap-1.5">
-                    @foreach($categories as $category)
-                        <a href="{{ route('blog.category', $category->slug) }}" 
-                           class="d-flex justify-content-between align-items-center py-1 text-decoration-none text-secondary hover-primary border-bottom border-light" style="font-size: 0.82rem;">
-                            <span class="fw-semibold">{{ $category->name }}</span>
-                            <span class="badge bg-light text-muted border rounded-pill" style="font-size: 0.7rem;">{{ $category->posts_count ?? 0 }}</span>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            <!-- Verified Google Video Shorts & Responsive Ad Units -->
-            @include('partials.google-ad', ['type' => 'video-shorts'])
-            @include('partials.google-ad', ['type' => 'sidebar'])
-        </aside>
-    </div>
+            @if($posts->hasPages())<div class="bl-pager">{{ $posts->links() }}</div>@endif
+        @else
+            <div class="sf-empty"><strong>No posts</strong><a href="{{ route('blog.index') }}" class="dz-shopall">Reset</a></div>
+        @endif
+    </main>
 </div>
-
-{{-- Author Quick Login Modal --}}
-@guest
-<div class="modal fade" id="authorLoginModal" tabindex="-1" aria-labelledby="authorLoginModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
-            <div class="modal-header bg-success text-white py-3 px-4 border-0">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-feather-pointed fs-4 text-warning"></i>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0 text-white" id="authorLoginModalLabel">লেখক লগইন</h5>
-                        <small class="text-white-50">মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে প্রবেশ করুন</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4 bg-white">
-                <form action="{{ route('login') }}" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-dark">
-                            <i class="fas fa-mobile-screen-button text-success me-1"></i> মোবাইল নম্বর বা ইমেইল
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-user text-muted"></i></span>
-                            <input type="text" name="email" class="form-control form-control-lg fs-6" 
-                                   placeholder="০১৭১০... অথবা ইমেইল" required autofocus>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold text-dark">
-                            <i class="fas fa-lock text-success me-1"></i> পাসওয়ার্ড
-                        </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="fas fa-key text-muted"></i></span>
-                            <input type="password" name="password" class="form-control form-control-lg fs-6" 
-                                   placeholder="পাসওয়ার্ড লিখুন" required>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember" id="authorRemember" checked>
-                            <label class="form-check-label small text-muted" for="authorRemember">লগইন মনে রাখুন</label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm mb-3">
-                        <i class="fas fa-right-to-bracket me-1.5"></i> লগইন করে ড্যাশবোর্ডে প্রবেশ করুন
-                    </button>
-
-                    <div class="text-center pt-2 border-top">
-                        <span class="text-muted small">এখনো লেখক হিসেবে একাউন্ট নেই?</span>
-                        <a href="{{ route('register.form', 'author') }}" class="fw-bold text-success text-decoration-none ms-1 small">
-                            + লেখক হিসেবে নিবন্ধন করুন
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endguest
-
-<script>
-    function selectLitCategory(slug, name) {
-        const input = document.getElementById('litCategoryInput');
-        const labelSpan = document.getElementById('selectedCatLabel')?.querySelector('span');
-        if (input) input.value = slug;
-        if (labelSpan) labelSpan.textContent = name;
-        const form = document.getElementById('litSearchForm');
-        if (form) form.submit();
-    }
-</script>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('keydown', function (e) {
+    var t = e.target, typing = t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable);
+    if (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey) { var s = document.getElementById('blSearch'); if (s) { e.preventDefault(); s.focus(); s.select(); } }
+});
+</script>
+@endpush

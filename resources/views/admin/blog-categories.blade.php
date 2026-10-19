@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Blog & Literature Categories')
-@section('heading', 'Blog & Literature Categories Management')
+@section('heading', 'Blog Categories')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.blog') }}">Articles</a></li>
     <li class="breadcrumb-item active" aria-current="page">Blog Categories</li>

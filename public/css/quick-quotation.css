@@ -1,0 +1,53 @@
+/* Quick quotation modal — layered on accounting-modern.css */
+#quickQuotationModal .qq-grid { row-gap: 1rem; margin-bottom: 1rem; }
+#quickQuotationModal .qq-items-head { display: flex; align-items: center; justify-content: space-between; margin: 1.25rem 0 .75rem; }
+#quickQuotationModal .qq-h { margin: 0; font-size: .8rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #94a3b8; }
+#quickQuotationModal .qq-items { display: flex; flex-direction: column; gap: .75rem; }
+#quickQuotationModal .qq-row { display: grid; grid-template-columns: minmax(180px, 1fr) 90px 120px 120px auto; gap: .6rem; align-items: end;
+    padding: .85rem; border: 1px solid #eef1f7; border-radius: 14px; background: #f8fafc; }
+#quickQuotationModal .qq-line output { display: block; padding: .55rem .1rem; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+#quickQuotationModal .qq-foot { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid #eef1f7; }
+#quickQuotationModal .qq-foot .row > * { margin-bottom: .75rem; }
+
+#quickQuotationModal .qq-totals { margin: 0; display: grid; gap: .6rem; padding: 1rem 1.1rem; border-radius: 14px; background: #f8fafc; border: 1px solid #eef1f7; }
+#quickQuotationModal .qq-totals div { display: flex; justify-content: space-between; gap: 1rem; }
+#quickQuotationModal .qq-totals dt { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #94a3b8; }
+#quickQuotationModal .qq-totals dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
+#quickQuotationModal .qq-totals .is-grand { padding-top: .65rem; border-top: 1px solid #e6eaf2; }
+#quickQuotationModal .qq-totals .is-grand dd { font-size: 1.4rem; color: #2563eb; }
+
+@media (max-width: 767.98px) {
+    #quickQuotationModal .qq-row { grid-template-columns: 1fr 1fr; }
+    #quickQuotationModal .qq-title { grid-column: 1 / -1; }
+    #quickQuotationModal .qq-line { grid-column: span 1; }
+    #quickQuotationModal .qq-del { grid-column: 1 / -1; }
+}
+body.dark-mode #quickQuotationModal .qq-row,
+body.dark-mode #quickQuotationModal .qq-totals { background: #0e1626; border-color: #1f2a40; }
+
+/* ── Suggestions (customers / items) ───────────────────────────────────── */
+#quickQuotationModal .qq-host { position: relative; }
+#quickQuotationModal .qq-suggest {
+    position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% - 2px); max-height: 280px; overflow: auto; padding: .35rem;
+    background: #fff; border: 1px solid #e6eaf2; border-radius: 14px; box-shadow: 0 18px 40px -16px rgba(15, 23, 42, .32);
+}
+#quickQuotationModal .qq-row .qq-host .qq-suggest { top: calc(100% - 2px); }
+#quickQuotationModal .qq-suggest[hidden] { display: none; }
+#quickQuotationModal .qq-suggest-item { display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; text-align: left;
+    padding: .55rem .7rem; border: 0; background: transparent; border-radius: 10px; cursor: pointer; }
+#quickQuotationModal .qq-suggest-item:hover, #quickQuotationModal .qq-suggest-item.is-active { background: #eef4ff; }
+#quickQuotationModal .qq-s-main { display: flex; flex-direction: column; min-width: 0; }
+#quickQuotationModal .qq-s-main b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#quickQuotationModal .qq-s-main small { color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#quickQuotationModal .qq-s-side { display: flex; flex-direction: column; align-items: flex-end; flex: 0 0 auto; font-weight: 800; font-variant-numeric: tabular-nums; font-size: .86rem; }
+#quickQuotationModal .qq-s-side em { font-style: normal; font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #94a3b8; }
+#quickQuotationModal .qq-s-due { color: #e11d48; }
+#quickQuotationModal .qq-suggest-empty { padding: .7rem; text-align: center; color: #94a3b8; font-size: .9rem; }
+#quickQuotationModal .qq-due { margin-top: .4rem; display: inline-block; padding: .2rem .7rem; border-radius: 999px; background: #ffecef; color: #be123c; font-weight: 800; font-size: .8rem; }
+#quickQuotationModal .qq-due[hidden] { display: none; }
+
+#quickQuotationModal .qq-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+#quickQuotationModal .qq-detail { grid-column: 1 / -1; }
+#quickQuotationModal .qq-detail textarea { resize: vertical; min-height: 56px; }
+body.dark-mode #quickQuotationModal .qq-suggest { background: #111a2c; border-color: #1f2a40; }
+body.dark-mode #quickQuotationModal .qq-suggest-item:hover, body.dark-mode #quickQuotationModal .qq-suggest-item.is-active { background: rgba(59, 130, 246, .15); }

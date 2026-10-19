@@ -1,0 +1,127 @@
+/*
+ * Event / writer / scholarship / library registration — device layer.
+ * Loaded before each page's own <style>, so the page-level rules are beaten with the html.ev-reg prefix.
+ * Mobile-first sizing: 16px controls (no iOS zoom), 48px touch targets, safe-area aware, sticky submit.
+ */
+
+/* ── Admin-defined fields (shared by all registration pages) ───────────── */
+.ev-dynamic { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0 0 12px; }
+.ev-dynamic td { padding: 6px 8px; vertical-align: middle; overflow-wrap: anywhere; }
+.ev-dynamic .grid-section-header { font-weight: 800; }
+.ev-dynamic .c-label label { margin: 0; font-weight: 700; cursor: pointer; }
+.ev-dynamic .c-input, .ev-dynamic .c-select { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; font: inherit; background: #fff; }
+.ev-dynamic textarea.c-input { min-height: 84px; resize: vertical; }
+.ev-field-error { margin-top: 4px; font-size: 12.5px; font-weight: 700; color: #dc2626; }
+.ev-dyn-row.has-error .c-input, .ev-dyn-row.has-error .c-select { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, .12); }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+html.ev-reg { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+html.ev-reg body { background: radial-gradient(1200px 420px at 50% -120px, color-mix(in srgb, var(--form-accent, #991b1b) 9%, transparent), transparent), #f1f5f9; }
+
+html.ev-reg .letterhead-container {
+    width: min(100% - 2 * max(12px, env(safe-area-inset-left)), 980px);
+    max-width: none;
+    margin: clamp(10px, 2.5vw, 28px) auto 56px;
+    padding: 0;
+}
+html.ev-reg .official-letterhead-form {
+    padding: clamp(14px, 3vw, 32px);
+    border-radius: clamp(8px, 1.4vw, 10px);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 22px 50px -24px rgba(15, 23, 42, .28);
+}
+html.ev-reg .form-top-actions { gap: 8px; }
+html.ev-reg .form-top-actions .btn { min-height: 42px; }
+
+/* Anchored errors / invalid fields never hide behind the sticky bar */
+html.ev-reg .c-input, html.ev-reg .c-select, html.ev-reg textarea { scroll-margin-block: 110px; }
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+html.ev-reg .c-input, html.ev-reg .c-select { min-height: 40px; font-size: 14px; }
+html.ev-reg .c-input:focus-visible, html.ev-reg .c-select:focus-visible { outline: 3px solid color-mix(in srgb, var(--form-accent, #991b1b) 35%, transparent); outline-offset: 1px; }
+html.ev-reg .c-input:user-invalid, html.ev-reg .c-select:user-invalid { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, .12); }
+html.ev-reg .c-input::placeholder { color: #94a3b8; font-weight: 500; }
+html.ev-reg input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+html.ev-reg input[type="number"]::-webkit-outer-spin-button, html.ev-reg input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+html.ev-reg .btn-submit-letterhead { min-height: 48px; border-radius: 8px; font-size: 16px; }
+html.ev-reg .btn-submit-letterhead[disabled] { opacity: .7; cursor: progress; transform: none; }
+html.ev-reg .btn-submit-letterhead .ev-spin { width: 1em; height: 1em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; display: inline-block; animation: evSpin .6s linear infinite; }
+@keyframes evSpin { to { transform: rotate(360deg); } }
+
+/* ── Draft notice (event-register.js) ──────────────────────────────────── */
+.ev-draft { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: 13.5px; font-weight: 700; }
+.ev-draft button { border: 0; background: transparent; color: #047857; font-weight: 800; text-decoration: underline; padding: 6px 4px; min-height: 36px; cursor: pointer; }
+.ev-toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translate(-50%, 140%); z-index: 1200; max-width: calc(100vw - 32px);
+    padding: 10px 18px; border-radius: 999px; background: #0f172a; color: #fff; font-weight: 700; font-size: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .3); transition: transform .25s; }
+.ev-toast.show { transform: translate(-50%, 0); }
+.ev-toast.is-bad { background: #b91c1c; }
+
+/* ── Tablet (portrait → landscape) ─────────────────────────────────────── */
+@media (min-width: 769px) and (max-width: 1100px) {
+    html.ev-reg .letterhead-container { width: min(100% - 32px, 900px); }
+    html.ev-reg .clean-grid-table td { font-size: 13.5px; }
+    html.ev-reg .c-input, html.ev-reg .c-select { min-height: 44px; font-size: 15px; }
+    html.ev-reg .clean-grid-table .c-label { white-space: normal; }
+}
+
+/* ── Phone ─────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    html.ev-reg .letterhead-container { width: calc(100% - 2 * max(10px, env(safe-area-inset-left))); margin-top: 10px; }
+    html.ev-reg .official-letterhead-form { padding: 14px 12px calc(14px + env(safe-area-inset-bottom)); }
+
+    /* 16px+ stops iOS zooming into the field; 48px is a comfortable thumb target */
+    html.ev-reg .c-input, html.ev-reg .c-select, html.ev-reg textarea.c-input { min-height: 48px; font-size: 16px; padding: 10px 12px; }
+    html.ev-reg textarea.c-input { min-height: 96px; }
+    html.ev-reg .clean-grid-table .c-label, html.ev-reg .ev-dynamic .c-label { font-size: 13.5px; }
+    html.ev-reg .btn-country-code { min-height: 48px; font-size: 16px; }
+
+    /* Stacked rows for admin-defined fields (same pattern the page uses for its own grid) */
+    html.ev-reg .ev-dynamic, html.ev-reg .ev-dynamic tbody { display: block; width: 100%; }
+    html.ev-reg .ev-dynamic tr { display: flex !important; flex-direction: column; padding: 8px 10px; border-bottom: 1px solid #e2e8f0; background: #fff; }
+    html.ev-reg .ev-dynamic td { display: block; width: 100% !important; border: 0 !important; padding: 3px 0 !important; background: transparent !important; }
+    html.ev-reg .ev-dynamic td.grid-section-header { padding: 8px 10px !important; background: #0f172a !important; color: #fff; }
+
+    html.ev-reg .category-radio-grid, html.ev-reg .category-checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+    html.ev-reg .cat-pill { min-height: 48px !important; font-size: 14px !important; }
+    html.ev-reg .res-type-pill-group label { min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    html.ev-reg .lh-photo-box { width: 132px; height: 158px; }
+
+    /* Submit stays reachable while scrolling a long form */
+    html.ev-reg .btn-submit-letterhead { width: 100%; }
+    html.ev-reg form .text-center.mt-4.no-print {
+        position: sticky; bottom: 0; z-index: 30; margin: 18px -12px 0 !important;
+        padding: 14px 12px calc(14px + env(safe-area-inset-bottom));
+        background: linear-gradient(to top, #fff 72%, rgba(255, 255, 255, 0));
+    }
+}
+
+/* ── Small phones ──────────────────────────────────────────────────────── */
+@media (max-width: 380px) {
+    html.ev-reg .category-radio-grid, html.ev-reg .category-checkbox-grid { grid-template-columns: 1fr !important; }
+    html.ev-reg .lh-pad-title { font-size: 17px; }
+}
+
+/* ── Landscape phones: short viewport ──────────────────────────────────── */
+@media (max-height: 480px) and (orientation: landscape) {
+    html.ev-reg form .text-center.mt-4.no-print { position: static; background: none; margin: 18px 0 0 !important; padding: 0; }
+    html.ev-reg .c-input, html.ev-reg .c-select { min-height: 44px; }
+}
+
+/* ── Large desktops ────────────────────────────────────────────────────── */
+@media (min-width: 1400px) {
+    html.ev-reg .letterhead-container { width: min(100% - 80px, 1040px); }
+    html.ev-reg .clean-grid-table td { font-size: 13.5px; }
+}
+
+/* ── Touch / motion preferences ────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+    html.ev-reg .cat-pill, html.ev-reg .res-type-pill-group label, html.ev-reg .btn-logo-tool { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    html.ev-reg { scroll-behavior: auto; }
+    html.ev-reg *, .ev-toast { transition: none !important; animation: none !important; }
+}
+@media print {
+    .ev-draft, .ev-toast { display: none !important; }
+    html.ev-reg form .text-center.mt-4.no-print { position: static; }
+}

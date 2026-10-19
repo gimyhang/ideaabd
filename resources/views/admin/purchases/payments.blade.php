@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Supplier Payments & Ledgers')
-@section('heading', 'Vendor Payments & Installments')
+@section('heading', 'Vendor Payments')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
     <li class="breadcrumb-item active" aria-current="page">Payments & Ledgers</li>

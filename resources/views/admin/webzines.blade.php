@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Webzines & Periodicals')
-@section('heading', 'Webzines & Literary Editions')
+@section('heading', 'Webzines')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">Webzines</li>
 @endsection

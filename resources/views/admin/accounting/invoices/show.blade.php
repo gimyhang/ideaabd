@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @php
     $typeTitles = [
         'challan'   => 'Delivery Challan #',
@@ -133,7 +137,7 @@
 
 @section('content')
 <link rel="stylesheet" href="{{ asset('css/invoice-management.css') }}">
-<link href="https://fonts.maateen.me/kalpurush/font.css" rel="stylesheet">
+<link href="{{ asset('css/kalpurush-font.css') }}" rel="stylesheet">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">

@@ -44,7 +44,7 @@
                     আপনার {{ $isAuthor ? 'লেখক' : ($isPublisher ? 'প্রকাশক' : 'সেলার') }} অ্যাকাউন্টটি অনুমোদনের অপেক্ষায় রয়েছে
                 </h5>
                 <p class="mb-0 text-muted small lh-base" style="font-size: 13px;">
-                    আপনার আবেদনটি অ্যাডমিন টিম কর্তৃক পর্যালোচনায় রয়েছে। অনুমোদন সম্পন্ন হলে আপনার বিশেষায়িত পোর্টাল সক্রিয় হবে। বর্তমানে আপনি সাধারণ পাঠক হিসেবে বই ব্রাউজিং, অর্ডার ও ট্র্যাকিং সুবিধা ব্যবহার করতে পারছেন।
+                    আপনার একাউন্টটি পর্যালোচনায় রয়েছে। অনুমোদন সম্পন্ন হলে বিশেষায়িত পোর্টাল সক্রিয় হবে। পাঠক হিসেবে বই ব্রাউজিং, অর্ডার ও ট্র্যাকিং করতে পারেন।
                 </p>
             </div>
         @endif
@@ -319,7 +319,7 @@
                     </div>
                     <div class="amz-card-text">
                         <div class="amz-card-headline">কেওয়াইসি ও ভেরিফিকেশন</div>
-                        <p class="amz-card-summary">পরিচয়, ভূমিকা (লেখক/প্রকাশক/সেলার) ও এনআইডি যাচাই</p>
+                        <p class="amz-card-summary">পরিচয় ও এনআইডি যাচাই</p>
                     </div>
                 </div>
 
@@ -330,7 +330,7 @@
                     </div>
                     <div class="amz-card-text">
                         <div class="amz-card-headline">ওয়ালেট ও রয়্যালটি</div>
-                        <p class="amz-card-summary">রয়্যালটি আয়, ওয়ালেট ব্যালেন্স ও পেমেন্ট হিস্ট্রি</p>
+                        <p class="amz-card-summary">রয়্যালটি ও পেমেন্ট হিস্ট্রি</p>
                     </div>
                 </div>
 
@@ -340,8 +340,8 @@
                         <i class="fa-solid fa-book-open-reader"></i>
                     </div>
                     <div class="amz-card-text">
-                        <div class="amz-card-headline">পাঠাগার ও বই অনুদান</div>
-                        <p class="amz-card-summary">বিনামূল্যে বই বিতরণ কর্মসূচি ও প্রাপ্তিস্বীকার এন্ট্রি</p>
+                        <div class="amz-card-headline">পাঠাগারে বই অনুদান</div>
+                        <p class="amz-card-summary">বিনামূল্যে বই প্রাপ্তিস্বীকার এন্ট্রি</p>
                     </div>
                 </div>
 
@@ -352,7 +352,7 @@
                     </div>
                     <div class="amz-card-text">
                         <div class="amz-card-headline">গ্রাহক সেবা ও সহায়তা</div>
-                        <p class="amz-card-summary">সরাসরি ফোন কল, হোয়াটসঅ্যাপ ও হেল্পলাইন সাপোর্ট</p>
+                        <p class="amz-card-summary">সরাসরি হোয়াটসঅ্যাপ ও হেল্পলাইন সাপোর্ট</p>
                     </div>
                 </div>
 

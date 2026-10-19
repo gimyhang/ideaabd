@@ -497,7 +497,7 @@
                 <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('electronicsSlider', -1)" aria-label="পূর্ববর্তী">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <div class="idea-book-slider" id="electronicsSlider">
+                <div class="idea-book-slider dz-track" id="electronicsSlider">
                     @foreach($electronicsProducts as $prod)
                         <div class="idea-slider-item idea-product-slider-item">
                             @include('frontend.products.partials.product-card', ['product' => $prod])
@@ -551,7 +551,7 @@
                 <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('stationerySlider', -1)" aria-label="পূর্ববর্তী">
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
-                <div class="idea-book-slider" id="stationerySlider">
+                <div class="idea-book-slider dz-track" id="stationerySlider">
                     @foreach($stationeryProducts as $prod)
                         <div class="idea-slider-item idea-product-slider-item">
                             @include('frontend.products.partials.product-card', ['product' => $prod])

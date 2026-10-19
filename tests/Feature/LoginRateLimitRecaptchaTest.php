@@ -25,8 +25,7 @@ class LoginRateLimitRecaptchaTest extends TestCase
     {
         $response = $this->get('/login');
         $response->assertStatus(200);
-        $response->assertSee('আইডিয়া প্রকাশন ডিজিটাল পোর্টাল');
-        $response->assertSee('Login / লগইন');
+        $response->assertSee('Sign in');
     }
 
     public function test_first_two_failed_logins_do_not_require_captcha(): void
@@ -176,8 +175,10 @@ class LoginRateLimitRecaptchaTest extends TestCase
         ]);
 
         // Failed attempts log should be cleared
-        $this->assertDatabaseMissing('login_security_logs', [
-            'ip_address' => '127.0.0.1',
+        $this->assertDatabaseHas('login_security_logs', [
+            'ip_address'        => '127.0.0.1',
+            'attempt_count'     => 0,
+            'is_security_issue' => false,
         ]);
     }
 }

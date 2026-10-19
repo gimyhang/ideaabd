@@ -315,7 +315,7 @@
                                 style="min-height: 44px; background: #ffffff;">
                             <img src="{{ $userAvatarUrl }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs" style="width: 34px; height: 34px; border: 2px solid #0284c7;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($me->name) }}&background=0284c7&color=ffffff&size=128&bold=true';">
                             <div class="text-start d-none d-md-block lh-1 pe-1">
-                                <small class="text-muted d-block" style="font-size: 10px;">স্বাগতম,</small>
+                                <small class="text-muted d-block" style="font-size: 10px;">Hi,</small>
                                 <span class="fw-bold text-dark" style="font-size: 12.5px;">{{ Str::limit($me->name, 12) }}</span>
                             </div>
                         </button>
@@ -329,12 +329,12 @@
                                 <div class="text-muted small text-truncate">{{ $me->email }}</div>
                                 @if($me->isAdmin())
                                     <div class="badge bg-warning text-dark border border-warning-subtle mt-2 px-3 py-1 rounded-pill fw-bold shadow-2xs">
-                                        👑 সুপার অ্যাডমিন
+                                        👑 Admin
                                     </div>
                                 @else
                                     <div class="badge bg-primary mt-2 px-3 py-1 rounded-pill small">
-                                        {{ ['sub_admin' => '🛡️ সাব-অ্যাডমিন', 'seller' => '💼 সেলার',
-                                            'publisher' => '🏢 প্রকাশক', 'author' => '✍️ লেখক'][$me->role] ?? '👤 গ্রাহক / পাঠক' }}
+                                        {{ ['sub_admin' => '🛡️ Staff', 'seller' => '💼 Seller',
+                                            'publisher' => '🏢 Publisher', 'author' => '✍️ Author'][$me->role] ?? '👤 Reader' }}
                                     </div>
                                 @endif
                             </li>
@@ -347,36 +347,31 @@
                                 {{-- Complete Dashboard Hub for Super Admin --}}
                                 <div class="px-2 py-1 mb-1 bg-light bg-opacity-75 rounded-3 border">
                                     <div class="text-uppercase fw-bold text-muted px-2 py-1" style="font-size: 10px; letter-spacing: 0.5px;">
-                                        <i class="fa-solid fa-layer-group text-primary me-1"></i> ড্যাশবোর্ড হাব (Dashboard Hub)
+                                        <i class="fa-solid fa-layer-group text-primary me-1"></i> Portals
                                     </div>
                                     @if(Route::has('admin.dashboard'))
                                         <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-danger d-flex align-items-center justify-content-between" href="{{ route('admin.dashboard') }}">
-                                            <span><i class="fas fa-gauge-high me-2 text-danger"></i>অ্যাডমিন প্যানেল</span>
-                                            <span class="badge bg-danger text-white rounded-pill" style="font-size: 9.5px;">এডমিন</span>
+                                            <span><i class="fas fa-gauge-high me-2 text-danger"></i>Admin</span>
                                         </a>
                                     @endif
                                     @if(Route::has('author.dashboard'))
                                         <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-success d-flex align-items-center justify-content-between" href="{{ route('author.dashboard') }}">
-                                            <span><i class="fas fa-feather-pointed me-2 text-success"></i>লেখক ড্যাশবোর্ড</span>
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 9.5px;">লেখক</span>
+                                            <span><i class="fas fa-feather-pointed me-2 text-success"></i>Author</span>
                                         </a>
                                     @endif
                                     @if(Route::has('publisher.dashboard'))
                                         <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-primary d-flex align-items-center justify-content-between" href="{{ route('publisher.dashboard') }}">
-                                            <span><i class="fas fa-building me-2 text-primary"></i>পাবলিশার ড্যাশবোর্ড</span>
-                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 9.5px;">প্রকাশক</span>
+                                            <span><i class="fas fa-building me-2 text-primary"></i>Publisher</span>
                                         </a>
                                     @endif
                                     @if(Route::has('subadmin.dashboard'))
                                         <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-warning-emphasis d-flex align-items-center justify-content-between" href="{{ route('subadmin.dashboard') }}">
-                                            <span><i class="fas fa-store me-2 text-warning"></i>সেলার ড্যাশবোর্ড</span>
-                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill" style="font-size: 9.5px;">সেলার</span>
+                                            <span><i class="fas fa-store me-2 text-warning"></i>Seller</span>
                                         </a>
                                     @endif
                                     @if(Route::has('my-account'))
                                         <a class="dropdown-item py-1.5 rounded-2 fw-semibold text-dark d-flex align-items-center justify-content-between" href="{{ route('my-account') }}">
-                                            <span><i class="fas fa-user-tag me-2 text-secondary"></i>বায়ার / কাস্টমার একাউন্ট</span>
-                                            <span class="badge bg-light text-muted border rounded-pill" style="font-size: 9.5px;">পাঠক</span>
+                                            <span><i class="fas fa-user-tag me-2 text-secondary"></i>Buyer</span>
                                         </a>
                                     @endif
                                 </div>
@@ -385,7 +380,7 @@
                                 @if ((($me->isSeller() || $me->isSubAdmin() || $me->reg_type === 'seller') && $isMeApproved) && Route::has('subadmin.dashboard'))
                                     <li>
                                         <a class="dropdown-item py-2 fw-semibold text-primary" href="{{ route('subadmin.dashboard') }}">
-                                            <i class="fas fa-store me-2 text-primary"></i>সেলার ড্যাশবোর্ড
+                                            <i class="fas fa-store me-2 text-primary"></i>Seller
                                         </a>
                                     </li>
                                 @endif
@@ -393,7 +388,7 @@
                                 @if ((($me->isPublisher() || $me->reg_type === 'publisher') && $isMeApproved) && Route::has('publisher.dashboard'))
                                     <li>
                                         <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('publisher.dashboard') }}">
-                                            <i class="fas fa-building me-2 text-success"></i>পাবলিশার ড্যাশবোর্ড
+                                            <i class="fas fa-building me-2 text-success"></i>Publisher
                                         </a>
                                     </li>
                                 @endif
@@ -401,25 +396,25 @@
                                 @if ((($me->isAuthor() || $me->reg_type === 'author') && $isMeApproved) && Route::has('author.dashboard'))
                                     <li>
                                         <a class="dropdown-item py-2 fw-semibold text-success" href="{{ route('author.dashboard') }}">
-                                            <i class="fas fa-feather-pointed me-2"></i>লেখক ড্যাশবোর্ড
+                                            <i class="fas fa-feather-pointed me-2"></i>Author
                                         </a>
                                     </li>
                                 @endif
 
-                                <li><a class="dropdown-item py-2" href="{{ route('my-account') }}"><i class="fas fa-user text-primary me-2"></i>আমার একাউন্ট</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ route('my-account') }}"><i class="fas fa-user text-primary me-2"></i>Account</a></li>
                             @endif
 
                             @if (Route::has('wishlist'))
-                                <li><a class="dropdown-item py-2" href="{{ route('wishlist') }}"><i class="fas fa-heart text-danger me-2"></i>পছন্দের তালিকা</a></li>
+                                <li><a class="dropdown-item py-2" href="{{ route('wishlist') }}"><i class="fas fa-heart text-danger me-2"></i>Wishlist</a></li>
                             @endif
-                            <li><a class="dropdown-item py-2" href="{{ route('cart') }}"><i class="fas fa-bag-shopping text-info me-2"></i>আমার কার্ট</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('cart') }}"><i class="fas fa-bag-shopping text-info me-2"></i>Cart</a></li>
 
                             <li><hr class="dropdown-divider my-2"></li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="dropdown-item text-danger py-2 fw-semibold bg-danger-subtle rounded text-center">
-                                        <i class="fas fa-arrow-right-from-bracket me-2"></i>লগ আউট
+                                        <i class="fas fa-arrow-right-from-bracket me-2"></i>Logout
                                     </button>
                                 </form>
                             </li>
@@ -446,7 +441,7 @@
                 {{-- Cart Button with live counter --}}
                 <a href="{{ route('cart') }}" class="btn btn-primary rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 shadow-xs fw-bold text-decoration-none hover-shadow" title="কার্ট" data-bs-toggle="offcanvas" data-bs-target="#siteCartDrawer" onclick="if(window.openCartDrawer){ window.openCartDrawer(); }" style="min-height: 42px;">
                     <i class="fa-solid fa-bag-shopping" style="font-size: 16px;"></i>
-                    <span class="d-none d-sm-inline" style="font-size: 13px;">কার্ট</span>
+                    <span class="d-none d-sm-inline" style="font-size: 13px;">Cart</span>
                     <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold font-monospace" id="siteCartCount" style="font-size: 11px;">০</span>
                 </a>
 
@@ -477,7 +472,7 @@
                        data-bs-toggle="dropdown" 
                        aria-expanded="false">
                         <i class="fa-solid fa-layer-group"></i>
-                        <span>সকল বিষয়</span>
+                        <span>Topics</span>
                         <i class="fa-solid fa-chevron-down nav-arrow"></i>
                     </a>
 
@@ -491,10 +486,10 @@
                             <div class="col-lg-8 border-end pe-lg-4">
                                 <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                                     <span class="fw-bold text-dark text-uppercase small" style="letter-spacing: 0.5px; font-size: 12px;">
-                                        <i class="fas fa-book-open text-primary me-1.5"></i> বইয়ের বিষয় ও ক্যাটাগরি
+                                        <i class="fas fa-book-open text-primary me-1.5"></i> Subjects
                                     </span>
                                     <a href="{{ route('book.index') }}" class="small text-primary text-decoration-none fw-semibold" style="font-size: 12px;">
-                                        সকল বিষয় দেখুন ({{ $headerCategories->count() }}টি) →
+                                        All ({{ $headerCategories->count() }}) →
                                     </a>
                                 </div>
 
@@ -514,7 +509,7 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <div class="text-muted text-center py-3 small">বিষয়ের তালিকা লোড হচ্ছে...</div>
+                                    <div class="text-muted text-center py-3 small">Loading...</div>
                                 @endif
                             </div>
 
@@ -523,21 +518,21 @@
                                 {{-- Formats --}}
                                 <div class="mb-3">
                                     <div class="fw-bold text-dark text-uppercase small mb-2 pb-1 border-bottom" style="letter-spacing: 0.5px; font-size: 12px;">
-                                        <i class="fa-solid fa-shapes text-info me-1.5"></i> বাঁধাই ও সংস্করণ
+                                        <i class="fa-solid fa-shapes text-info me-1.5"></i> Formats
                                     </div>
                                     <div class="d-flex flex-column gap-1">
                                         <a href="{{ route('book.index', ['format' => 'paperback']) }}" class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <i class="fa-solid fa-book text-primary opacity-75" style="font-size: 12px; width: 16px;"></i>
-                                            <span>কাগজের বই (Paperback)</span>
+                                            <span>Paperback</span>
                                         </a>
                                         <a href="{{ route('book.index', ['format' => 'hardcover']) }}" class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <i class="fa-solid fa-book-bookmark text-dark opacity-75" style="font-size: 12px; width: 16px;"></i>
-                                            <span>হার্ডকভার বাঁধাই (Hardcover)</span>
+                                            <span>Hardcover</span>
                                         </a>
                                         <a href="{{ route('ebook.index') }}" class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <span class="d-flex align-items-center gap-2">
                                                 <i class="fa-solid fa-tablet-screen-button text-info" style="font-size: 12px; width: 16px;"></i>
-                                                <span>ডিজিটাল ই-বুক (E-Book)</span>
+                                                <span>E-Book</span>
                                             </span>
                                             <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-1.5 py-0.5" style="font-size: 9px;">PDF</span>
                                         </a>
@@ -547,27 +542,27 @@
                                 {{-- Curated Shelves --}}
                                 <div>
                                     <div class="fw-bold text-dark text-uppercase small mb-2 pb-1 border-bottom" style="letter-spacing: 0.5px; font-size: 12px;">
-                                        <i class="fa-solid fa-star text-warning me-1.5"></i> বিশেষ সংগ্রহ
+                                        <i class="fa-solid fa-star text-warning me-1.5"></i> Featured
                                     </div>
                                     <div class="d-flex flex-column gap-1">
                                         <a href="{{ route('book.index', ['sort' => 'bestselling']) }}" class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <i class="fa-solid fa-fire text-danger" style="font-size: 12px; width: 16px;"></i>
-                                            <span>বেস্টসেলার বই</span>
+                                            <span>Bestsellers</span>
                                         </a>
                                         <a href="{{ route('book.index', ['filter' => 'discounted']) }}" class="d-flex align-items-center justify-content-between py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <span class="d-flex align-items-center gap-2">
                                                 <i class="fa-solid fa-tags text-warning" style="font-size: 12px; width: 16px;"></i>
-                                                <span>বিশেষ ছাড়ের অফার</span>
+                                                <span>Offers</span>
                                             </span>
-                                            <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.5" style="font-size: 9px;">ছাড়</span>
+                                            <span class="badge bg-danger text-white rounded-pill px-1.5 py-0.5" style="font-size: 9px;">Sale</span>
                                         </a>
                                         <a href="{{ route('authors.index') }}" class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <i class="fa-solid fa-feather-pointed text-success" style="font-size: 12px; width: 16px;"></i>
-                                            <span>জনপ্রিয় লেখক তালিকা</span>
+                                            <span>Authors</span>
                                         </a>
                                         <a href="{{ route('publishers.index') }}" class="d-flex align-items-center gap-2 py-1.5 px-2 rounded-2 text-decoration-none text-dark hover-bg-light hover-primary transition-all" style="font-size: 13px; font-weight: 500;">
                                             <i class="fa-solid fa-building text-secondary" style="font-size: 12px; width: 16px;"></i>
-                                            <span>শীর্ষ প্রকাশনীসমূহ</span>
+                                            <span>Publishers</span>
                                         </a>
                                     </div>
                                 </div>
@@ -579,91 +574,98 @@
                 {{-- 2. [হোম] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('home') ? 'is-active' : '' }}" href="{{ route('home') }}">
-                        <span>হোম</span>
+                        <span>Home</span>
                     </a>
                 </li>
 
                 {{-- 3. [বুকশপ] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('book.index') }}">
-                        <span>বুকশপ</span>
+                        <span>Books</span>
                     </a>
                 </li>
 
                 {{-- 3.1. [ইলেক্ট্রনিক্স] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'is-active' : '' }}" href="{{ route('products.electronics') }}">
-                        <span>ইলেক্ট্রনিক্স</span>
+                        <span>Electronics</span>
                     </a>
                 </li>
 
                 {{-- 3.2. [স্টেশনারি] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'is-active' : '' }}" href="{{ route('products.stationery') }}">
-                        <span>স্টেশনারি</span>
+                        <span>Stationery</span>
+                    </a>
+                </li>
+
+                {{-- 3.3. [হোম অ্যাপ্লায়েন্স] --}}
+                <li class="nav-item site-nav__item">
+                    <a class="nav-link site-nav__link {{ request()->routeIs('products.appliance') || (request()->routeIs('products.show') && request()->route('type') === 'appliance') ? 'is-active' : '' }}" href="{{ route('products.appliance') }}">
+                        <span>Appliances</span>
                     </a>
                 </li>
 
                 {{-- 4. [ই-বুক] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('ebook.*') ? 'is-active' : '' }}" href="{{ route('ebook.index') }}">
-                        <span>ই-বুক</span>
+                        <span>E-Books</span>
                     </a>
                 </li>
 
                 {{-- 4. [লেখক] (Direct Link) --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('authors.*') ? 'is-active' : '' }}" href="{{ route('authors.index') }}">
-                        <span>লেখক</span>
+                        <span>Authors</span>
                     </a>
                 </li>
 
                 {{-- 5. [প্রকাশক] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('publishers.*') ? 'is-active' : '' }}" href="{{ route('publishers.index') }}">
-                        <span>প্রকাশক</span>
+                        <span>Publishers</span>
                     </a>
                 </li>
 
                 {{-- 6. [আইডিয়াপত্র] (Direct Link) --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('blog.*') ? 'is-active' : '' }}" href="{{ route('blog.index') }}">
-                        <span>আইডিয়াপত্র</span>
+                        <span>Ideapatra</span>
                     </a>
                 </li>
 
                 {{-- 7. [ওয়েবজিন] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('webzine.*') ? 'is-active' : '' }}" href="{{ Route::has('webzine.index') ? route('webzine.index') : url('/webzines') }}">
-                        <span>ওয়েবজিন</span>
+                        <span>Webzine</span>
                     </a>
                 </li>
 
                 {{-- 8. [গবেষণা] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->is('research*') || request()->routeIs('research.*') ? 'is-active' : '' }}" href="{{ Route::has('research.index') ? route('research.index') : url('/research') }}">
-                        <span>গবেষণা</span>
+                        <span>Research</span>
                     </a>
                 </li>
 
                 {{-- 9. [আইডিয়া হাব] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->is('hub*') || request()->routeIs('hub') ? 'is-active' : '' }}" href="{{ Route::has('hub') ? route('hub') : url('/hub') }}">
-                        <span>আইডিয়া হাব</span>
+                        <span>Hub</span>
                     </a>
                 </li>
 
                 {{-- 10. [আমাদের সম্পর্কে] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('about') ? 'is-active' : '' }}" href="{{ Route::has('about') ? route('about') : url('/about') }}">
-                        <span>আমাদের সম্পর্কে</span>
+                        <span>About</span>
                     </a>
                 </li>
 
                 {{-- 11. [যোগাযোগ] --}}
                 <li class="nav-item site-nav__item">
                     <a class="nav-link site-nav__link {{ request()->routeIs('contact') ? 'is-active' : '' }}" href="{{ Route::has('contact') ? route('contact') : url('/contact') }}">
-                        <span>যোগাযোগ</span>
+                        <span>Contact</span>
                     </a>
                 </li>
             </ul>
@@ -1122,7 +1124,7 @@
             @php
                 $mAvatarUrl = $me->avatar_url;
             @endphp
-            <div class="card border-0 rounded-4 p-3 mb-3 text-white shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+            <section class="md-account" aria-label="অ্যাকাউন্ট">
                 <div class="d-flex align-items-center gap-2.5 mb-2.5">
                     <div class="rounded-circle overflow-hidden shadow-xs border border-2 border-white d-flex align-items-center justify-content-center bg-light text-primary fw-bold" style="width: 44px; height: 44px; font-size: 16px; flex-shrink: 0;">
                         @if ($mAvatarUrl)
@@ -1139,60 +1141,32 @@
                     </div>
                 </div>
 
-                {{-- User Quick Actions Grid --}}
-                <div class="row g-1.5 pt-2 border-top border-white border-opacity-15 text-center">
-                    <div class="col-3">
-                        <a href="{{ route('my-account') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="প্রোফাইল">
-                            <i class="fa-solid fa-user small mb-1 text-info"></i>
-                            <span style="font-size: 9.5px;">প্রোফাইল</span>
-                        </a>
-                    </div>
-                    <div class="col-3">
-                        <a href="{{ route('my-account') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="অর্ডার">
-                            <i class="fa-solid fa-box-open small mb-1 text-warning"></i>
-                            <span style="font-size: 9.5px;">অর্ডারসমূহ</span>
-                        </a>
-                    </div>
-                    <div class="col-3">
-                        <a href="{{ Route::has('wishlist') ? route('wishlist') : url('/wishlist') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="উইশলিস্ট">
-                            <i class="fa-solid fa-heart small mb-1 text-danger"></i>
-                            <span style="font-size: 9.5px;">উইশলিস্ট</span>
-                        </a>
-                    </div>
-                    <div class="col-3">
-                        <a href="{{ route('cart') }}" class="btn btn-sm btn-light bg-opacity-15 text-white border-0 rounded-3 w-100 py-1.5 px-0 d-flex flex-column align-items-center justify-content-center hover-bg-light hover-text-dark" title="কার্ট">
-                            <i class="fa-solid fa-bag-shopping small mb-1 text-success"></i>
-                            <span style="font-size: 9.5px;">কার্ট</span>
-                        </a>
-                    </div>
+                {{-- Quick links: one word each, high contrast --}}
+                <div class="md-quick">
+                    <a href="{{ route('my-account') }}" class="md-quick__item"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+                    <a href="{{ route('my-account') }}" class="md-quick__item"><i class="fa-solid fa-box-open"></i><span>Orders</span></a>
+                    <a href="{{ Route::has('wishlist') ? route('wishlist') : url('/wishlist') }}" class="md-quick__item"><i class="fa-solid fa-heart"></i><span>Wishlist</span></a>
+                    <a href="{{ route('cart') }}" class="md-quick__item"><i class="fa-solid fa-bag-shopping"></i><span>Cart</span></a>
                 </div>
 
-                {{-- Role Dashboard Shortcut if available --}}
-                @if ($me->isAdmin() && Route::has('admin.dashboard'))
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-warning btn-sm rounded-pill fw-bold text-dark w-100 mt-2 py-1 shadow-xs">
-                        <i class="fa-solid fa-gauge-high me-1"></i> অ্যাডমিন প্যানেল প্রবেশ করুন
-                    </a>
-                @endif
-                @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
-                    <a href="{{ route('subadmin.dashboard') }}" class="btn btn-primary btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
-                        <i class="fa-solid fa-store me-1"></i> সেলার ড্যাশবোর্ড
-                    </a>
-                @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
-                    <a href="{{ route('subadmin.bills.index') }}" class="btn btn-primary btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
-                        <i class="fa-solid fa-file-invoice-dollar me-1"></i> সেলার প্যানেল
-                    </a>
-                @endif
-                @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
-                    <a href="{{ route('publisher.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
-                        <i class="fa-solid fa-building me-1"></i> পাবলিশার ড্যাশবোর্ড
-                    </a>
-                @endif
-                @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
-                    <a href="{{ route('author.dashboard') }}" class="btn btn-success btn-sm rounded-pill fw-bold text-white w-100 mt-2 py-1 shadow-xs">
-                        <i class="fa-solid fa-feather-pointed me-1"></i> লেখক ড্যাশবোর্ড
-                    </a>
-                @endif
-            </div>
+                {{-- Portals: one word each --}}
+                <div class="md-portals">
+                    @if ($me->isAdmin() && Route::has('admin.dashboard'))
+                        <a href="{{ route('admin.dashboard') }}" class="md-portal md-portal--admin">Admin</a>
+                    @endif
+                    @if (($me->isSeller() || $me->isSubAdmin() || $me->isAdmin() || $me->reg_type === 'seller') && Route::has('subadmin.dashboard'))
+                        <a href="{{ route('subadmin.dashboard') }}" class="md-portal md-portal--seller">Seller</a>
+                    @elseif ($me->isSeller() && Route::has('subadmin.bills.index'))
+                        <a href="{{ route('subadmin.bills.index') }}" class="md-portal md-portal--seller">Seller</a>
+                    @endif
+                    @if (($me->isPublisher() || $me->isAdmin() || $me->reg_type === 'publisher') && Route::has('publisher.dashboard'))
+                        <a href="{{ route('publisher.dashboard') }}" class="md-portal md-portal--publisher">Publisher</a>
+                    @endif
+                    @if (($me->isAuthor() || $me->isAdmin() || $me->reg_type === 'author') && Route::has('author.dashboard'))
+                        <a href="{{ route('author.dashboard') }}" class="md-portal md-portal--author">Author</a>
+                    @endif
+                </div>
+            </section>
         @else
             {{-- Guest Welcome & Login/Register Cards --}}
             <div class="card border-0 rounded-4 p-3 mb-3 shadow-sm" style="background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%); border: 1px solid rgba(0, 106, 78, 0.15) !important;">
@@ -1224,51 +1198,55 @@
         {{-- 2. PRIMARY EXPLORE MENU LIST (Centered & Clean) --}}
         <div class="mb-3">
             <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
-                <i class="fa-solid fa-compass text-primary me-1"></i> প্রধান মেনু
+                <i class="fa-solid fa-compass text-primary me-1"></i> Menu
             </div>
-            <div class="d-flex flex-column gap-1 bg-light bg-opacity-75 p-2 rounded-4 border">
+            <div class="md-menu">
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('home') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('home') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-house text-primary"></i> <span>হোম</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><i class="fa-solid fa-house text-primary"></i> <span>Home</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('book.*') && !request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('book.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>বুকশপ</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">বই সম্ভার</span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Books</span></span>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Books</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.electronics') || (request()->routeIs('products.show') && request()->route('type') === 'electronics') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.electronics') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ইলেক্ট্রনিক্স</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">গ্যাজেট</span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Electronics</span></span>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Gadgets</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.stationery') || (request()->routeIs('products.show') && request()->route('type') === 'stationery') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.stationery') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>স্টেশনারি</span></span>
-                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">শিক্ষা সামগ্রী</span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Stationery</span></span>
+                    <span class="badge bg-success text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">School</span>
+                </a>
+                <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('products.appliance') || (request()->routeIs('products.show') && request()->route('type') === 'appliance') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('products.appliance') }}">
+                    <span class="d-flex align-items-center gap-2.5"><span>Appliances</span></span>
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Home</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('ebook.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('ebook.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ই-বুক</span></span>
-                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">ডিজিটাল</span>
+                    <span class="d-flex align-items-center gap-2.5"><span>E-Books</span></span>
+                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Digital</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('authors.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('authors.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>লেখক তালিকা</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Authors</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('publishers.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('publishers.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>প্রকাশক</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Publishers</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('blog.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ route('blog.index') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>আইডিয়াপত্র</span></span>
-                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">ম্যাগাজিন</span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Ideapatra</span></span>
+                    <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 9.5px;">Magazine</span>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->routeIs('webzine.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('webzine.index') ? route('webzine.index') : url('/webzines') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>ওয়েবজিন</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Webzine</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('research*') || request()->routeIs('research.*') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('research.index') ? route('research.index') : url('/research') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>গবেষণা</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Research</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
                 <a class="site-m-link rounded-3 px-2.5 py-2 text-decoration-none d-flex align-items-center justify-content-between transition-all {{ request()->is('hub*') || request()->routeIs('hub') ? 'bg-primary text-white shadow-xs fw-bold' : 'text-dark hover-bg-white' }}" href="{{ Route::has('hub') ? route('hub') : url('/hub') }}" style="font-size: 13.5px;">
-                    <span class="d-flex align-items-center gap-2.5"><span>আইডিয়া হাব</span></span>
+                    <span class="d-flex align-items-center gap-2.5"><span>Hub</span></span>
                     <i class="fa-solid fa-chevron-right small opacity-50" style="font-size: 10px;"></i>
                 </a>
             </div>
@@ -1282,9 +1260,9 @@
                         <button class="accordion-button collapsed py-2.5 px-3 fw-bold bg-white text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMobileCats" aria-expanded="false" aria-controls="collapseMobileCats" style="font-size: 13.5px;">
                             <span class="d-flex align-items-center gap-2 text-primary">
                                 <i class="fa-solid fa-layer-group"></i>
-                                <span>সকল বিষয় ও ক্যাটাগরি</span>
+                                <span>Categories</span>
                             </span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary ms-auto me-2 rounded-pill px-2 py-0.5" style="font-size: 10px;">@bn($headerCategories->count())টি</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary ms-auto me-2 rounded-pill px-2 py-0.5" style="font-size: 10px;">@bn($headerCategories->count())</span>
                         </button>
                     </h2>
                     <div id="collapseMobileCats" class="accordion-collapse collapse" aria-labelledby="headingMobileCats" data-bs-parent="#mobileCatAccordion">
@@ -1304,7 +1282,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <div class="text-muted text-center py-2 small">ক্যাটাগরি লোড হচ্ছে...</div>
+                                <div class="text-muted text-center py-2 small">Loading...</div>
                             @endif
                         </div>
                     </div>
@@ -1315,31 +1293,31 @@
         {{-- 4. SPECIAL DEALS & FESTIVAL STRIP --}}
         <div class="mb-3">
             <div class="text-uppercase fw-bold text-muted px-1 mb-1.5" style="font-size: 10.5px; letter-spacing: 0.6px;">
-                <i class="fa-solid fa-tags text-warning me-1"></i> স্পেশাল অফার ও মেলা
+                <i class="fa-solid fa-tags text-warning me-1"></i> Offers
             </div>
             <div class="row g-2">
                 <div class="col-6">
                     <a href="{{ route('book.index', ['filter' => 'boimela-2026']) }}" class="btn btn-outline-danger btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #fff5f5;">
                         <i class="fa-solid fa-fire text-danger"></i>
-                        <span>বইমেলা ২০২৬</span>
+                        <span>Fair 2026</span>
                     </a>
                 </div>
                 <div class="col-6">
                     <a href="{{ route('book.index', ['filter' => 'mega-discount']) }}" class="btn btn-outline-warning btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold text-dark shadow-2xs hover-shadow" style="font-size: 12px; background: #fffdf0;">
                         <i class="fa-solid fa-tags text-warning"></i>
-                        <span>মেগা ছাড়</span>
+                        <span>Mega Sale</span>
                     </a>
                 </div>
                 <div class="col-6">
                     <a href="{{ route('book.index', ['category' => 'pshcimbnger-bi']) }}" class="btn btn-outline-primary btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0f9ff;">
                         <i class="fa-solid fa-book text-primary"></i>
-                        <span>পশ্চিমবঙ্গের বই</span>
+                        <span>Bengal</span>
                     </a>
                 </div>
                 <div class="col-6">
                     <a href="{{ route('book.index', ['filter' => 'free-shipping']) }}" class="btn btn-outline-success btn-sm rounded-4 w-100 py-2 px-2 d-flex align-items-center justify-content-center gap-1.5 text-nowrap fw-bold shadow-2xs hover-shadow" style="font-size: 12px; background: #f0fdf4;">
                         <i class="fa-solid fa-truck-fast text-success"></i>
-                        <span>ফ্রি ডেলিভারি</span>
+                        <span>Free Ship</span>
                     </a>
                 </div>
             </div>
@@ -1350,7 +1328,7 @@
             <a href="{{ route('blog.write') }}" class="btn btn-warning rounded-4 fw-bold text-dark w-100 py-2.5 px-3 d-flex align-items-center justify-content-between shadow-sm hover-shadow" style="font-size: 13.5px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);">
                 <span class="d-flex align-items-center gap-2">
                     <i class="fa-solid fa-pen-nib text-dark fs-6"></i>
-                    <span>নিজের লেখা প্রকাশ করুন</span>
+                    <span>Publish</span>
                 </span>
                 <i class="fa-solid fa-arrow-right small text-dark opacity-75"></i>
             </a>
@@ -1359,17 +1337,17 @@
         {{-- 6. HOTLINE & WHATSAPP SUPPORT CARD --}}
         <div class="card border-0 rounded-4 p-3 mb-3 bg-light border shadow-2xs">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark small"><i class="fa-solid fa-headset text-success me-1"></i> গ্রাহক সহায়তা কেন্দ্র:</span>
-                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0.5" style="font-size: 9px;">সকাল ৯টা - রাত ১১টা</span>
+                <span class="fw-bold text-dark small"><i class="fa-solid fa-headset text-success me-1"></i> Support</span>
+                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2 py-0.5" style="font-size: 9px;">9 AM - 11 PM</span>
             </div>
             <div class="d-flex gap-2">
                 <a href="https://wa.me/8801726976982" target="_blank" rel="noopener" class="btn btn-success btn-sm rounded-pill flex-grow-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
                     <i class="fa-brands fa-whatsapp fs-6"></i>
-                    <span>হোয়াটসঅ্যাপ</span>
+                    <span>WhatsApp</span>
                 </a>
                 <a href="tel:+8801726976982" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1 fw-bold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs">
                     <i class="fa-solid fa-phone small"></i>
-                    <span>কল দিন</span>
+                    <span>Call</span>
                 </a>
             </div>
         </div>
@@ -1377,7 +1355,7 @@
         {{-- 7. MOBILE LANGUAGE SELECTOR --}}
         <div class="mb-3 p-3 rounded-4 bg-light border notranslate shadow-2xs">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark small"><i class="fas fa-globe text-primary me-1.5"></i>ভাষা নির্বাচন / Language:</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-globe text-primary me-1.5"></i>Language</span>
                 <span class="badge bg-primary px-2.5 py-1 current-lang-display">বাংলা</span>
             </div>
             <div class="d-flex flex-wrap gap-1.5">
@@ -1391,16 +1369,16 @@
         {{-- 8. MOBILE THEME SELECTOR --}}
         <div class="mb-3 p-3 rounded-4 bg-light border shadow-2xs">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="fw-bold text-dark small"><i class="fas fa-circle-half-stroke text-warning me-1.5"></i>থিম মোড / Theme:</span>
+                <span class="fw-bold text-dark small"><i class="fas fa-circle-half-stroke text-warning me-1.5"></i>Theme</span>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-outline-secondary py-1.5 px-2.5 rounded-pill flex-grow-1 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5" onclick="applySiteTheme('light', true)">
                     <i class="fas fa-sun text-warning"></i>
-                    <span>লাইট মোড</span>
+                    <span>Light</span>
                 </button>
                 <button type="button" class="btn btn-sm btn-outline-dark py-1.5 px-2.5 rounded-pill flex-grow-1 fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5" onclick="applySiteTheme('dark', true)">
                     <i class="fas fa-moon text-primary"></i>
-                    <span>ডার্ক মোড</span>
+                    <span>Dark</span>
                 </button>
             </div>
         </div>
@@ -1410,7 +1388,7 @@
             <div class="mt-2">
                 <button type="button" onclick="window.siteLogout(event)" class="btn btn-outline-danger rounded-pill w-100 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" id="mobileDrawerLogoutBtn">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                    <span>লগ আউট করুন</span>
+                    <span>Logout</span>
                 </button>
             </div>
             <form id="globalSiteLogoutForm" method="POST" action="{{ route('logout') }}" class="d-none">
@@ -1507,7 +1485,7 @@
                 'blog': 'আইডিয়াপত্র ও ব্লগ নিবন্ধ অনুসন্ধান...'
             };
 
-            const TRENDING_SEARCHES = ['উপন্যাস', 'আইডিয়াপত্র', 'কবিতা', 'ছোটগল্প', 'আইডিয়া প্রকাশন', 'বিজ্ঞান ও প্রযুক্তি', 'ইতিহাস', 'অনুবাদ সাহিত্য', 'শিশুতোষ', 'বেস্টসেলার বই'];
+            const TRENDING_SEARCHES = ['উপন্যাস', 'আইডিয়াপত্র', 'কবিতা', 'ছোটগল্প', 'আইডিয়া প্রকাশন', 'বিজ্ঞান ও প্রযুক্তি', 'ইতিহাস', 'অনুবাদ সাহিত্য', 'শিশুতোষ', 'Bestsellers'];
 
             function getRecentSearches() {
                 try {
@@ -2461,5 +2439,46 @@
         };
 
         document.addEventListener('DOMContentLoaded', updateHeaderCartBadge);
+    </script>
+@endonce
+{{-- Mobile drawer: always open at the top so the account card and portal buttons are never scrolled out of view --}}
+@once
+    <script>
+        (function () {
+            function resetDrawer() {
+                var d = document.getElementById('siteMobileNav');
+                if (!d) return;
+                var body = d.querySelector('.offcanvas-body');
+                function toTop() { if (body) body.scrollTop = 0; d.scrollTop = 0; }
+                d.addEventListener('show.bs.offcanvas', toTop);
+                d.addEventListener('shown.bs.offcanvas', toTop);   // after Bootstrap's focus handling
+                d.addEventListener('hidden.bs.offcanvas', toTop);  // next open starts clean
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', resetDrawer);
+            else resetDrawer();
+        })();
+    </script>
+@endonce
+
+{{-- Account menu: place it just under the avatar button on any device size / orientation --}}
+@once
+    <script>
+        (function () {
+            function place() {
+                var btn = document.getElementById('userAccountDropdownBtn');
+                if (!btn) return;
+                var r = btn.getBoundingClientRect();
+                document.documentElement.style.setProperty('--acct-menu-top', Math.round(Math.max(r.bottom, 0) + 8) + 'px');
+            }
+            function init() {
+                var btn = document.getElementById('userAccountDropdownBtn');
+                if (!btn) return;
+                var wrap = btn.closest('.dropdown');
+                if (wrap) wrap.addEventListener('show.bs.dropdown', place);
+                window.addEventListener('resize', place);
+                window.addEventListener('orientationchange', place);
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+        })();
     </script>
 @endonce

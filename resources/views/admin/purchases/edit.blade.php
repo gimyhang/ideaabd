@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Edit Purchase Invoice #' . $purchase->purchase_no)
-@section('heading', 'Edit Purchase Order & Inventory Stock')
+@section('heading', 'Edit Purchase')
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.purchases.index') }}">Purchases</a></li>
     <li class="breadcrumb-item"><a href="{{ route('admin.purchases.show', $purchase->id) }}">#{{ $purchase->purchase_no }}</a></li>

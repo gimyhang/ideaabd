@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Idea Unlimited & Subscriptions — আইডিয়া আনলিমিটেড মেম্বারশিপ')
-@section('heading', 'Idea Unlimited & Reader Subscriptions')
+@section('heading', 'Subscriptions')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ড্যাশবোর্ড</a></li>

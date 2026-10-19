@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'বইয়ের ক্যাটাগরি ব্যবস্থাপনা')
-@section('heading', 'ক্যাটাগরি সমূহ')
+@section('heading', 'ক্যাটাগরি')
 @section('breadcrumb')
     <li class="breadcrumb-item active" aria-current="page">ক্যাটাগরি গ্যালারি</li>
 @endsection

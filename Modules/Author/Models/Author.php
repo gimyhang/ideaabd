@@ -14,6 +14,33 @@ use Modules\SEO\Traits\HasSeo;
 
 class Author extends Model
 {
+    /** Request-scoped + short cache lookups for list pages that resolve many authors by name/id (avoids N+1). */
+    private static array $lookupMemo = [];
+
+    public static function lookupByName(?string $name): ?self
+    {
+        if ($name === null || trim($name) === '') {
+            return null;
+        }
+        $key = 'n:' . $name;
+        if (!array_key_exists($key, self::$lookupMemo)) {
+            self::$lookupMemo[$key] = \Illuminate\Support\Facades\Cache::remember('author_lookup_name_' . md5($name), 600, fn () => self::where('name', $name)->first());
+        }
+        return self::$lookupMemo[$key];
+    }
+
+    public static function lookupById($id): ?self
+    {
+        if (empty($id)) {
+            return null;
+        }
+        $key = 'i:' . $id;
+        if (!array_key_exists($key, self::$lookupMemo)) {
+            self::$lookupMemo[$key] = \Illuminate\Support\Facades\Cache::remember('author_lookup_id_' . $id, 600, fn () => self::find($id));
+        }
+        return self::$lookupMemo[$key];
+    }
+
     use HasFactory, SoftDeletes, Moderatable, HasSeo;
 
     protected $fillable = [

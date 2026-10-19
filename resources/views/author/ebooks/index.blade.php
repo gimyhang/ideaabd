@@ -1,7 +1,7 @@
 @extends('author.layout')
 
 @section('title', 'আমার ই-বুকসমূহ — লেখক পোর্টাল')
-@section('heading', 'আমার ই-বুক ও প্রকাশনা তালিকা')
+@section('heading', 'আমার ই-বুক')
 
 @section('content')
 <div class="d-flex flex-column gap-4">

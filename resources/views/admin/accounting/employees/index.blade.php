@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@push('styles')
+@include('admin.accounting._modern')
+@endpush
+
 @section('title', 'Employees & Staff Directory — Idea Prakashan')
 
 @section('content')

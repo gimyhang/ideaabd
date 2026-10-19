@@ -1,0 +1,104 @@
+/* Admin › Books — clean, touch-friendly layout */
+
+/* ── Header actions ── */
+.bk-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.bk-btn-main { min-height: 42px; padding: .45rem 1.1rem; font-weight: 700; border-radius: 10px; }
+.bk-more-menu .dropdown-item { padding: .6rem 1rem; font-weight: 600; }
+
+/* ── KPI strip ── */
+.bk-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; }
+.bk-kpi {
+    display: flex; flex-direction: column; gap: .15rem; padding: .7rem .9rem;
+    background: #fff; border: 1.5px solid #e2e8f0; border-left-width: 4px; border-radius: 12px;
+    text-decoration: none; color: #0f172a; transition: box-shadow .15s, transform .15s, border-color .15s;
+}
+.bk-kpi:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, .09); transform: translateY(-1px); color: #0f172a; }
+.bk-kpi__label { font-size: .78rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+.bk-kpi__value { font-size: 1.45rem; font-weight: 800; line-height: 1.1; }
+.bk-kpi--primary { border-left-color: #2563eb; } .bk-kpi--indigo { border-left-color: #6366f1; }
+.bk-kpi--warning { border-left-color: #f59e0b; } .bk-kpi--success { border-left-color: #16a34a; }
+.bk-kpi--info { border-left-color: #0891b2; }    .bk-kpi--danger { border-left-color: #dc2626; }
+.bk-kpi.is-active { background: #eff6ff; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+
+/* ── Search row ── */
+.bk-searchrow { display: flex; gap: .5rem; align-items: stretch; flex-wrap: wrap; }
+.bk-search { position: relative; flex: 1 1 320px; display: flex; min-width: 0; }
+.bk-search__input {
+    height: 48px; font-size: 1rem; padding-right: 7.5rem; border-radius: 12px !important;
+    border: 2px solid #cbd5e1; background: #f8fafc;
+}
+.bk-search__input:focus { background: #fff; }
+.bk-search__go { position: absolute; right: 4px; top: 4px; bottom: 4px; border-radius: 9px; padding: 0 1.1rem; font-weight: 700; }
+.bk-search__clear {
+    position: absolute; right: 5.6rem; top: 50%; transform: translateY(-50%);
+    width: 30px; height: 30px; border: 0; border-radius: 50%; background: #e2e8f0; color: #334155;
+    font-size: 1.2rem; line-height: 1; cursor: pointer;
+}
+.bk-search__clear:hover { background: #cbd5e1; }
+.bk-filter-toggle, .bk-sort { height: 48px; border-radius: 12px; font-weight: 600; }
+.bk-sort { width: auto; min-width: 130px; flex: 0 0 auto; }
+
+/* ── Quick chips ── */
+.bk-chips { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.bk-chip {
+    display: inline-flex; align-items: center; min-height: 36px; padding: .25rem .95rem;
+    border: 1.5px solid #cbd5e1; border-radius: 999px; background: #fff;
+    font-weight: 600; font-size: .88rem; color: #334155; text-decoration: none;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.bk-chip:hover { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+.bk-chip.is-active { background: var(--brand, #2563eb); border-color: var(--brand, #2563eb); color: #fff; }
+.bk-count { margin-left: auto; font-size: .85rem; font-weight: 600; color: #64748b; }
+.bk-label { display: block; font-size: .75rem; font-weight: 700; color: #64748b; margin-bottom: .2rem; text-transform: uppercase; letter-spacing: .04em; }
+.bk-switch { min-height: 42px; display: flex; align-items: center; gap: .4rem; }
+#bkAdvFilters .form-select, #bkAdvFilters .btn { min-height: 42px; }
+
+/* ── Table polish ── */
+.adm-books-table thead th { text-transform: uppercase; letter-spacing: .04em; font-size: 11px !important; }
+.adm-books-table tbody tr:nth-child(even) td { background: #fbfdff; }
+.adm-books-table tbody td { padding-top: 12px; padding-bottom: 12px; }
+.adm-books-table .btn-sm.btn-primary { min-height: 34px; padding: .25rem .9rem; }
+.adm-books-table .adm-icon-action-btn { width: 34px !important; height: 34px !important; }
+
+/* ── Tablet ── */
+@media (max-width: 1199.98px) {
+    .bk-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* ── Phone ── */
+@media (max-width: 767.98px) {
+    .bk-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .bk-kpi__value { font-size: 1.25rem; }
+
+    .bk-actions { width: 100%; }
+    .bk-actions > .btn, .bk-actions > .dropdown { flex: 1 1 calc(50% - .5rem); }
+    .bk-actions > .dropdown > .btn { width: 100%; }
+
+    .bk-searchrow { flex-direction: column; }
+    .bk-search { flex-basis: auto; }
+    .bk-filter-toggle, .bk-sort { width: 100%; }
+
+    .bk-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -.25rem; padding: .1rem .25rem; }
+    .bk-chips::-webkit-scrollbar { display: none; }
+    .bk-chip { flex: 0 0 auto; min-height: 40px; }
+    .bk-count { display: none; }
+
+    /* Table: keep the essentials, drop secondary columns, let actions wrap */
+    #adminBooksTable { min-width: 0 !important; }
+    #adminBooksTable th:nth-child(1), #adminBooksTable td:nth-child(1),
+    #adminBooksTable th:nth-child(3), #adminBooksTable td:nth-child(3),
+    #adminBooksTable th:nth-child(5), #adminBooksTable td:nth-child(5),
+    #adminBooksTable th:nth-child(7), #adminBooksTable td:nth-child(7),
+    #adminBooksTable th:nth-child(8), #adminBooksTable td:nth-child(8) { display: none; }
+    #adminBooksTable .adm-sticky-action-col { position: static; box-shadow: none; min-width: 0 !important; }
+    #adminBooksTable td .d-inline-flex[id^="bookActionBtns_"] { flex-wrap: wrap; justify-content: flex-end; max-width: 150px; gap: 6px !important; }
+    #adminBooksTable .adm-icon-action-btn { width: 40px !important; height: 40px !important; }
+    #adminBooksTable .btn-sm.btn-primary { min-height: 40px; }
+    .adm-scroll-sync-bar { display: none; }
+}
+
+body.dark-mode .bk-kpi, body.dark-mode .bk-chip { background: #111827; border-color: #334155; color: #f1f5f9; }
+body.dark-mode .bk-kpi__label { color: #94a3b8; }
+body.dark-mode .bk-kpi.is-active { background: #172554; }
+body.dark-mode .bk-search__input { background: #0f172a; border-color: #334155; color: #f1f5f9; }
+body.dark-mode .adm-books-table tbody tr:nth-child(even) td { background: #0f172a; }

@@ -6,13 +6,13 @@
 
 <header class="adm-top">
     <div class="d-flex align-items-center gap-2">
-        <button class="adm-iconbtn" data-side-toggle type="button" aria-label="Toggle sidebar" title="সাইডবার টগল করুন (Toggle Sidebar)">
+        <button class="adm-iconbtn" data-side-toggle type="button" aria-label="Toggle sidebar" title="Menu">
             <i class="fa-solid fa-bars-staggered"></i>
         </button>
         @if(!request()->routeIs('admin.dashboard'))
             <button class="adm-iconbtn adm-topbar-back-btn d-inline-flex align-items-center justify-content-center" type="button" 
                     onclick="if(window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1){ window.history.back(); } else { window.location.href='{{ route('admin.dashboard') }}'; }" 
-                    title="পূর্ববর্তী পৃষ্ঠায় ফিরে যান (Backspace / Alt+←)" 
+                    title="Back" 
                     aria-label="Back to Previous Page">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
@@ -24,7 +24,7 @@
         <div class="adm-search__inner position-relative">
             <i class="fa-solid fa-magnifying-glass adm-search__icon"></i>
             <input type="search" name="search" class="adm-search__input"
-                   placeholder="Search catalog, authors, orders or users... (Ctrl+K)" value="{{ request('search') }}" aria-label="Search" autocomplete="off">
+                   placeholder="Search (Ctrl+K)" value="{{ request('search') }}" aria-label="Search" autocomplete="off">
             <span class="adm-search__kbd"><kbd>⌘K</kbd></span>
         </div>
     </form>
@@ -34,20 +34,20 @@
         <div class="dropdown">
             <button class="btn btn-primary btn-sm d-flex align-items-center gap-1 dropdown-toggle fw-semibold py-1.5 px-2.5" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-circle-plus"></i>
-                <span class="d-none d-sm-inline">Quick Add</span>
+                <span class="d-none d-sm-inline">Add</span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                <li><h6 class="dropdown-header text-uppercase small text-muted">Catalog & Content</h6></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'books') }}"><i class="fa-solid fa-book me-2 text-primary"></i>New Book</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'ebooks') }}"><i class="fa-solid fa-tablet-screen-button me-2 text-info"></i>New E-Book</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'blog') }}"><i class="fa-solid fa-blog me-2 text-success"></i>New Blog Post</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'webzines') }}"><i class="fa-solid fa-newspaper me-2 text-warning"></i>New Webzine</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'authors') }}"><i class="fa-solid fa-pen-fancy me-2 text-secondary"></i>New Author</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'publishers') }}"><i class="fa-solid fa-building me-2 text-dark"></i>New Publisher</a></li>
+                <li><h6 class="dropdown-header text-uppercase small text-muted">Catalog</h6></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'books') }}"><i class="fa-solid fa-book me-2 text-primary"></i>Book</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'ebooks') }}"><i class="fa-solid fa-tablet-screen-button me-2 text-info"></i>Ebook</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'blog') }}"><i class="fa-solid fa-blog me-2 text-success"></i>Post</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'webzines') }}"><i class="fa-solid fa-newspaper me-2 text-warning"></i>Webzine</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'authors') }}"><i class="fa-solid fa-pen-fancy me-2 text-secondary"></i>Author</a></li>
+                <li><a class="dropdown-item" href="{{ route('admin.content.create', 'publishers') }}"><i class="fa-solid fa-building me-2 text-dark"></i>Publisher</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><h6 class="dropdown-header text-uppercase small text-muted">Orders & Purchases</h6></li>
-                <li><a class="dropdown-item" href="{{ route('admin.purchases.create') }}"><i class="fa-solid fa-cart-plus me-2 text-primary"></i>New Purchase Order</a></li>
-                <li><a class="dropdown-item text-danger fw-bold" href="{{ route('subadmin.bills.create') }}"><i class="fa-solid fa-receipt me-2"></i>New Seller Bill</a></li>
+                <li><h6 class="dropdown-header text-uppercase small text-muted">Orders</h6></li>
+                <li><a class="dropdown-item" href="{{ route('admin.purchases.create') }}"><i class="fa-solid fa-cart-plus me-2 text-primary"></i>Purchase</a></li>
+                <li><a class="dropdown-item text-danger fw-bold" href="{{ route('subadmin.bills.create') }}"><i class="fa-solid fa-receipt me-2"></i>Bill</a></li>
             </ul>
         </div>
 
@@ -79,8 +79,8 @@
             <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-0 border-0 overflow-hidden" style="width: 330px;">
                 <div class="p-3 bg-primary text-white d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bell me-1.5"></i>Notification Center</h6>
-                        <small class="text-white-50" style="font-size: 0.72rem;">Pending Approvals & Orders</small>
+                        <h6 class="fw-bold mb-0 text-white"><i class="fa-solid fa-bell me-1.5"></i>Alerts</h6>
+                        <small class="text-white-50" style="font-size: 0.72rem;">Pending</small>
                     </div>
                     @if($totalAlertCount > 0)
                         <span class="badge bg-white text-primary fw-bold rounded-pill px-2 py-0.5">{{ $totalAlertCount }} Pending</span>
@@ -94,8 +94,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-warning text-dark p-2 rounded-circle"><i class="fa-solid fa-cart-shopping"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">New Book Orders</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Awaiting processing & delivery</div>
+                                    <div class="fw-bold text-dark small">Orders</div>
                                 </div>
                             </div>
                             <span class="badge bg-warning-subtle text-warning-emphasis fw-bold rounded-pill px-2">{{ $alerts['orders'] }}</span>
@@ -108,8 +107,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-danger text-white p-2 rounded-circle"><i class="fa-solid fa-user-clock"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">Registration Requests</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Publisher/Author/Seller review</div>
+                                    <div class="fw-bold text-dark small">Registrations</div>
                                 </div>
                             </div>
                             <span class="badge bg-danger-subtle text-danger fw-bold rounded-pill px-2">{{ $alerts['registrations'] }}</span>
@@ -122,8 +120,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-warning text-dark p-2 rounded-circle"><i class="fa-solid fa-user-pen"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">Author Profile Updates</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Authors updated bio/photo</div>
+                                    <div class="fw-bold text-dark small">Profiles</div>
                                 </div>
                             </div>
                             <span class="badge bg-warning text-dark fw-bold rounded-pill px-2">{{ $alerts['author_updates'] }}</span>
@@ -136,8 +133,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-success text-white p-2 rounded-circle"><i class="fa-solid fa-feather-pointed"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">Blog & Article Posts</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Awaiting publication approval</div>
+                                    <div class="fw-bold text-dark small">Posts</div>
                                 </div>
                             </div>
                             <span class="badge bg-success-subtle text-success fw-bold rounded-pill px-2">{{ $alerts['blogs'] }}</span>
@@ -150,8 +146,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-info text-white p-2 rounded-circle"><i class="fa-solid fa-book-bookmark"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">Customer Book Requests</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Sourcing in progress</div>
+                                    <div class="fw-bold text-dark small">Requests</div>
                                 </div>
                             </div>
                             <span class="badge bg-info-subtle text-info fw-bold rounded-pill px-2">{{ $alerts['book_requests'] }}</span>
@@ -164,8 +159,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-secondary text-white p-2 rounded-circle"><i class="fa-solid fa-file-lines"></i></span>
                                 <div>
-                                    <div class="fw-bold text-dark small">Author Submissions</div>
-                                    <div class="text-muted" style="font-size: 0.72rem;">Manuscript review needed</div>
+                                    <div class="fw-bold text-dark small">Submissions</div>
                                 </div>
                             </div>
                             <span class="badge bg-secondary-subtle text-secondary fw-bold rounded-pill px-2">{{ $alerts['submissions'] }}</span>
@@ -175,40 +169,43 @@
                     @if($totalAlertCount === 0)
                         <div class="p-3 text-center text-muted">
                             <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
-                            <div class="fw-bold small text-dark">Everything is up-to-date!</div>
-                            <small class="text-muted">No pending approvals or unread alerts.</small>
+                            <div class="fw-bold small text-dark">Clear</div>
                         </div>
                     @endif
                 </div>
 
                 <div class="p-2 border-top bg-light text-center">
                     <a href="{{ route('admin.dashboard') }}" class="small fw-semibold text-primary text-decoration-none">
-                        <i class="fa-solid fa-chart-pie me-1"></i> View System Dashboard
+                        <i class="fa-solid fa-chart-pie me-1"></i> Dashboard
                     </a>
                 </div>
             </div>
         </div>
 
         {{-- Dynamic Theme Customizer Trigger --}}
-        <button class="adm-iconbtn text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#admThemeCustomizerDrawer" aria-controls="admThemeCustomizerDrawer" title="থিম ও লেআউট কাস্টমাইজ করুন (Theme Studio)">
+        <button class="adm-iconbtn text-decoration-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#admThemeCustomizerDrawer" aria-controls="admThemeCustomizerDrawer" title="Theme">
             <i class="fa-solid fa-palette text-primary"></i>
         </button>
 
         {{-- Dark / Light Mode Toggle --}}
-        <button class="adm-iconbtn text-decoration-none" data-theme-toggle type="button" title="Toggle Theme (Light / Dark)">
+        <button class="adm-iconbtn text-decoration-none" data-theme-toggle type="button" title="Mode">
             <i class="fa-solid fa-moon"></i>
         </button>
 
         {{-- View site --}}
-        <a href="{{ route('home') }}" target="_blank" rel="noopener" class="adm-iconbtn text-decoration-none d-none d-sm-grid" title="View Public Website">
+        <a href="{{ route('home') }}" target="_blank" rel="noopener" class="adm-iconbtn text-decoration-none d-none d-sm-grid" title="Website">
             <i class="fa-solid fa-globe"></i>
         </a>
 
         {{-- Profile Dropdown --}}
         <div class="dropdown">
             <button class="btn d-flex align-items-center gap-2 px-2" data-bs-toggle="dropdown" aria-expanded="false">
-                @if($me && $me->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($me->avatar))
-                    <img src="{{ asset('storage/' . $me->avatar) }}" alt="{{ $me->name }}" class="rounded-circle object-fit-cover shadow-xs border border-2 border-primary" style="width: 34px; height: 34px;">
+                @php
+                    $meAvatarUrl = $me ? $me->avatar_url : null;
+                    if ($meAvatarUrl && str_contains($meAvatarUrl, 'ui-avatars.com')) { $meAvatarUrl = null; }
+                @endphp
+                @if($meAvatarUrl)
+                    <img src="{{ $meAvatarUrl }}" alt="{{ $me->name }}" width="34" height="34" decoding="async" class="rounded-circle object-fit-cover shadow-xs border border-2 border-primary" style="width: 34px; height: 34px;" onerror="this.outerHTML='<span class=&quot;adm-avatar shadow-xs&quot;>{{ $initial }}</span>'">
                 @else
                     <span class="adm-avatar shadow-xs">{{ $initial }}</span>
                 @endif
@@ -232,12 +229,12 @@
                 @if (Route::has('admin.profile'))
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}">
-                            <i class="fa-solid fa-user-gear me-2 text-primary"></i>Profile Settings
+                            <i class="fa-solid fa-user-gear me-2 text-primary"></i>Profile
                         </a>
                     </li>
                     <li>
                         <a class="dropdown-item py-1.5" href="{{ route('admin.profile') }}#security">
-                            <i class="fa-solid fa-key me-2 text-danger"></i>Password & Security
+                            <i class="fa-solid fa-key me-2 text-danger"></i>Security
                         </a>
                     </li>
                     <li>
@@ -249,29 +246,29 @@
                 @endif
 
                 @if (Route::has('admin.roles.index'))
-                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.roles.index') }}"><i class="fa-solid fa-shield-halved me-2 text-info"></i>Roles & Permissions</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.roles.index') }}"><i class="fa-solid fa-shield-halved me-2 text-info"></i>Roles</a></li>
                 @endif
                 @if (Route::has('admin.users'))
-                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}"><i class="fa-solid fa-users me-2 text-secondary"></i>Users Management</a></li>
+                    <li><a class="dropdown-item py-1.5" href="{{ route('admin.users') }}"><i class="fa-solid fa-users me-2 text-secondary"></i>Users</a></li>
                 @endif
 
                 @if($me && $me->isAdmin())
                     <li><hr class="dropdown-divider my-1"></li>
-                    <li class="dropdown-header text-uppercase small text-muted px-3" style="font-size: 10px;">Switch Portal View (সুপার এডমিন)</li>
-                    <li><a class="dropdown-item py-1.5 text-success fw-semibold" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed me-2"></i>লেখক স্টুডিও (Author Studio)</a></li>
-                    <li><a class="dropdown-item py-1.5 text-primary fw-semibold" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building me-2"></i>প্রকাশক পোর্টাল (Publisher Portal)</a></li>
-                    <li><a class="dropdown-item py-1.5 text-warning fw-semibold" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store me-2"></i>সেলার ড্যাশবোর্ড (Seller Panel)</a></li>
-                    <li><a class="dropdown-item py-1.5 text-dark fw-semibold" href="{{ route('my-account') }}"><i class="fa-solid fa-user-tag me-2"></i>বায়ার / কাস্টমার একাউন্ট (Buyer View)</a></li>
+                    <li class="dropdown-header text-uppercase small text-muted px-3" style="font-size: 10px;">Portals</li>
+                    <li><a class="dropdown-item py-1.5 text-success fw-semibold" href="{{ route('author.dashboard') }}"><i class="fa-solid fa-feather-pointed me-2"></i>Author</a></li>
+                    <li><a class="dropdown-item py-1.5 text-primary fw-semibold" href="{{ route('publisher.dashboard') }}"><i class="fa-solid fa-building me-2"></i>Publisher</a></li>
+                    <li><a class="dropdown-item py-1.5 text-warning fw-semibold" href="{{ route('subadmin.dashboard') }}"><i class="fa-solid fa-store me-2"></i>Seller</a></li>
+                    <li><a class="dropdown-item py-1.5 text-dark fw-semibold" href="{{ route('my-account') }}"><i class="fa-solid fa-user-tag me-2"></i>Buyer</a></li>
                 @endif
 
                 <li><hr class="dropdown-divider my-1"></li>
-                <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-2 text-muted"></i>View Website</a></li>
+                <li><a class="dropdown-item py-1.5" href="{{ route('home') }}" target="_blank" rel="noopener"><i class="fa-solid fa-globe me-2 text-muted"></i>Website</a></li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="dropdown-item py-1.5 text-danger fw-semibold">
-                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>লগআউট (Log Out)
+                            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Logout
                         </button>
                     </form>
                 </li>

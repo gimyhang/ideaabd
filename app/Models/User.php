@@ -224,7 +224,10 @@ class User extends Authenticatable
         if ($this->isAdmin()) {
             return true;
         }
-        if (in_array($this->role, [self::ROLE_AUTHOR, self::ROLE_SELLER, self::ROLE_PUBLISHER], true)) {
+        // Applicants for a privileged role (author / publisher / seller) stay locked out until an admin approves,
+        // even though they sign in with the plain 'customer' role while pending.
+        if (in_array($this->role, [self::ROLE_AUTHOR, self::ROLE_SELLER, self::ROLE_PUBLISHER], true)
+            || in_array($this->reg_type, ['author', 'publisher', 'seller'], true)) {
             return $this->reg_status === self::STATUS_APPROVED && (bool) $this->is_active;
         }
         return $this->reg_status === self::STATUS_APPROVED || in_array($this->role, [self::ROLE_BUYER, self::ROLE_CUSTOMER, self::ROLE_ADMIN], true); 
@@ -442,6 +445,19 @@ class User extends Authenticatable
      * Dynamic Avatar URL for User
      */
     public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->exists && $this->getKey()) {
+            return \Illuminate\Support\Facades\Cache::remember(
+                'user_avatar_url_' . $this->getKey() . '_' . ($this->updated_at?->timestamp ?? 0),
+                300,
+                fn () => $this->resolveAvatarUrl()
+            );
+        }
+
+        return $this->resolveAvatarUrl();
+    }
+
+    private function resolveAvatarUrl(): ?string
     {
         $avatar = $this->avatar 
             ?? ($this->reg_data['avatar'] ?? null)

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Affiliate Network & Influencers')
-@section('heading', 'Affiliate Network & Influencer Marketing')
+@section('heading', 'Affiliates')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

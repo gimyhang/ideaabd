@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Multi-Language Translations & i18n')
-@section('heading', 'Multi-Language Translations & Localization')
+@section('heading', 'Translations')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

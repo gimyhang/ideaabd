@@ -98,7 +98,7 @@ php artisan db:seed --class=DemoDataSeeder
 
 ### ব্র্যান্ডিং
 - সমস্ত টেক্সট "ideaabd" হিসাবে সেট করা হয়েছে
-- কোন প্রতিযোগী রেফারেন্স নেই (Rokomari, Boitoi ইত্যাদি)
+- কোন প্রতিযোগী রেফারেন্স নেই (Ideaabd, Boitoi ইত্যাদি)
 - Developer attribution: "Masud Rana Shakil"
 
 ### ইউআই উপাদান

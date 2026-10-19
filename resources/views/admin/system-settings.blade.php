@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'System Settings & Theme Control')
-@section('heading', 'সিস্টেম সেটিংস ও থিম কন্ট্রোল (System Settings & Theme Control)')
+@section('heading', 'System Settings')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>

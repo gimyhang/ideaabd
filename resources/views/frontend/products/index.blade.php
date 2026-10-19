@@ -5,13 +5,17 @@
 @section('og_title', $currentMeta['title'] . ' | আইডিয়া প্রকাশন')
 @section('og_description', $currentMeta['subtitle'])
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/storefront-products.css') }}?v={{ @filemtime(public_path('css/storefront-products.css')) ?: 1 }}">
+@endpush
+
 @section('content')
 @php
-    $shopRoute = $type === 'electronics' ? 'products.electronics' : 'products.stationery';
+    $shopRoute = ['electronics' => 'products.electronics', 'stationery' => 'products.stationery', 'appliance' => 'products.appliance'][$type] ?? 'products.electronics';
     $currentCategorySlug = request('category');
     $isAllCategoryActive = empty($currentCategorySlug);
     $hasActiveFilters = request()->anyFilled(['category', 'q', 'min_price', 'max_price', 'brand', 'discount', 'rating', 'warranty', 'feature']);
-    $isCategorySliderMode = in_array($type, ['stationery', 'electronics'], true) 
+    $isCategorySliderMode = in_array($type, ['stationery', 'electronics', 'appliance'], true)
         && !$hasActiveFilters 
         && request('view') !== 'grid' 
         && isset($categoriesWithProducts) 
@@ -926,61 +930,25 @@
                     <!-- ═══ প্রতিটি ক্যাটাগরি পণ্য এক একটি রোতে স্লাইড আকারে (CATEGORY SLIDERS) ═══ -->
                     <div class="category-sliders-container d-flex flex-column gap-3.5 mb-4">
                         @foreach($categoriesWithProducts as $cat)
-                            <div class="card p-3 p-md-4 border-0 shadow-2xs rounded-4 bg-white category-slider-card position-relative">
-                                {{-- Category Header --}}
-                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2.5 border-bottom flex-wrap gap-2">
-                                    <div class="d-flex align-items-center gap-2.5 min-w-0">
-                                        <span class="rounded-circle {{ $type === 'stationery' ? 'bg-success bg-opacity-10 text-success' : 'bg-primary bg-opacity-10 text-primary' }} d-flex align-items-center justify-content-center shadow-2xs flex-shrink-0" style="width: 38px; height: 38px;">
-                                            <i class="{{ $cat->icon ?: ($type === 'stationery' ? 'fa-solid fa-pen-nib' : 'fa-solid fa-layer-group') }} fs-6"></i>
-                                        </span>
-                                        <div class="min-w-0">
-                                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                                <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5 text-truncate" style="letter-spacing: -0.2px;">
-                                                    <a href="{{ route($shopRoute, ['category' => $cat->slug]) }}" class="text-dark text-decoration-none hover-primary">
-                                                        {{ $cat->name }}
-                                                    </a>
-                                                </h5>
-                                                <span class="badge {{ $type === 'stationery' ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25' : 'bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25' }} rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.72rem;">
-                                                    @bn($cat->products->count())টি পণ্য
-                                                </span>
-                                            </div>
-                                            @if($cat->description)
-                                                <p class="text-muted small mb-0 text-truncate d-none d-sm-block mt-0.5" style="max-width: 480px; font-size: 12px; line-height: 1.4;">
-                                                    {{ $cat->description }}
-                                                </p>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex align-items-center gap-1.5 ms-auto flex-shrink-0">
-                                        <button type="button" 
-                                                class="btn btn-sm btn-light rounded-circle shadow-2xs border d-flex align-items-center justify-content-center slider-arrow-btn" 
-                                                style="width: 32px; height: 32px;" 
-                                                onclick="scrollIdeaSlider('catSlider_{{ $cat->id }}', -1)" 
-                                                title="পূর্ববর্তী">
-                                            <i class="fa-solid fa-chevron-left text-secondary" style="font-size: 11px;"></i>
-                                        </button>
-                                        <button type="button" 
-                                                class="btn btn-sm btn-light rounded-circle shadow-2xs border d-flex align-items-center justify-content-center slider-arrow-btn" 
-                                                style="width: 32px; height: 32px;" 
-                                                onclick="scrollIdeaSlider('catSlider_{{ $cat->id }}', 1)" 
-                                                title="পরবর্তী">
-                                            <i class="fa-solid fa-chevron-right text-secondary" style="font-size: 11px;"></i>
-                                        </button>
-                                        <a href="{{ route($shopRoute, ['category' => $cat->slug]) }}" 
-                                           class="btn {{ $type === 'stationery' ? 'btn-outline-success' : 'btn-outline-primary' }} btn-sm rounded-pill px-3 fw-bold ms-1" 
-                                           style="font-size: 0.78rem;">
-                                            সব দেখুন <i class="fa-solid fa-arrow-right ms-0.5" style="font-size: 10px;"></i>
-                                        </a>
+                            <div class="dz-row category-slider-card position-relative">
+                                {{-- Category header: name · count · shop all --}}
+                                <div class="dz-row__head">
+                                    <h2 class="dz-row__title">
+                                        <a href="{{ route($shopRoute, ['category' => $cat->slug]) }}">{{ $cat->name }}</a>
+                                        <small>@bn($cat->products->count())</small>
+                                    </h2>
+                                    <div class="dz-row__tools">
+                                        <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('catSlider_{{ $cat->id }}', -1)" aria-label="পূর্ববর্তী"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('catSlider_{{ $cat->id }}', 1)" aria-label="পরবর্তী"><i class="fa-solid fa-chevron-right"></i></button>
+                                        <a href="{{ route($shopRoute, ['category' => $cat->slug]) }}" class="dz-shopall">সব দেখুন</a>
                                     </div>
                                 </div>
-
                                 {{-- Slider Track with Floating Nav Buttons --}}
                                 <div class="idea-slider-wrapper position-relative">
                                     <button type="button" class="idea-slider-nav-btn prev-btn shadow-md d-none d-lg-flex" onclick="scrollIdeaSlider('catSlider_{{ $cat->id }}', -1)" aria-label="পূর্ববর্তী">
                                         <i class="fa-solid fa-chevron-left"></i>
                                     </button>
-                                    <div class="idea-book-slider" id="catSlider_{{ $cat->id }}">
+                                    <div class="idea-book-slider dz-track" id="catSlider_{{ $cat->id }}" data-autoplay="1">
                                         @foreach($cat->products as $catProduct)
                                             <div class="idea-slider-item idea-product-slider-item">
                                                 @include('frontend.products.partials.product-card', ['product' => $catProduct])
@@ -1033,7 +1001,68 @@
                                 <line x1="8" y1="11" x2="14" y2="11"></line>
                             </svg>
                         </div>
-                        <h4 class="fw-bold text-dark mb-1">কোনো পণ্য পাওয়া �<div class="offcanvas offcanvas-start rounded-end-4" tabindex="-1" id="mobileFilterOffcanvas" aria-labelledby="mobileFilterLabel" style="width: 320px;">
+                        <h4 class="fw-bold text-dark mb-1">কোনো পণ্য পাওয়া যায়নি</h4>
+                        <p class="text-muted small mb-4" style="max-width: 420px; margin: 0 auto;">আপনার প্রদত্ত ফিল্টার বা সার্চ শব্দের সাথে মেলে এমন কোনো পণ্য বর্তমানে তালিকায় পাওয়া যায়নি। ফিল্টার রিসেট করে পুনরায় দেখুন।</p>
+                        <a href="{{ route($shopRoute) }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-xs">
+                            সকল পণ্য দেখুন
+                        </a>
+                    </div>
+                @endif
+                @endif
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ 4. STORE TRUST & VALUE PROPOSITIONS ═══ -->
+    <div class="container pt-4 pb-3">
+        <div class="row g-3">
+            <div class="col-lg-3 col-6">
+                <div class="store-feature-card">
+                    <div class="store-feature-icon icon-blue">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                    <div class="store-feature-badge badge-blue">শিপিং সুবিধা</div>
+                    <h6 class="store-feature-title">দ্রুত হোম ডেলিভারি</h6>
+                    <p class="store-feature-desc">সারা দেশে সর্বোচ্চ দ্রুত ও নিরাপদ শিপিং সেবা পৌঁছে দেওয়া হয়</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="store-feature-card">
+                    <div class="store-feature-icon icon-green">
+                        <i class="fa-solid fa-certificate"></i>
+                    </div>
+                    <div class="store-feature-badge badge-green">গুণগত মান</div>
+                    <h6 class="store-feature-title">{{ $currentMeta['guarantee_title'] }}</h6>
+                    <p class="store-feature-desc">{{ $currentMeta['guarantee_desc'] }}</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="store-feature-card">
+                    <div class="store-feature-icon icon-amber">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="store-feature-badge badge-amber">সুবিধা ও নিশ্চয়তা</div>
+                    <h6 class="store-feature-title">{{ $type === 'electronics' ? 'সহজ রিপ্লেসমেন্ট' : 'বিশ্বস্ত ব্র্যান্ড কালেকশন' }}</h6>
+                    <p class="store-feature-desc">{{ $type === 'electronics' ? 'ত্রুটিযুক্ত পণ্যে দ্রুত অফিসিয়াল রিপ্লেসমেন্ট ও টেকনিক্যাল সাপোর্ট' : 'আসল ও আন্তর্জাতিক ব্র্যান্ডের সেরা স্টেশনারি ও আর্ট টুলস' }}</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="store-feature-card">
+                    <div class="store-feature-icon icon-cyan">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div class="store-feature-badge badge-cyan">কাস্টমার সাপোর্ট</div>
+                    <h6 class="store-feature-title">সার্বক্ষণিক হেল্পলাইন</h6>
+                    <p class="store-feature-desc">পণ্য তথ্য ও দ্রুত অর্ডারে সার্বক্ষণিক সহায়তার জন্য হেল্পলাইন</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ 5. MOBILE FILTER OFFCANVAS ═══ -->
+<div class="offcanvas offcanvas-start rounded-end-4" tabindex="-1" id="mobileFilterOffcanvas" aria-labelledby="mobileFilterLabel" style="width: 320px;">
     <div class="offcanvas-header border-bottom py-3 px-3.5">
         <div class="d-flex align-items-center gap-2">
             <span class="rounded-3 bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 13px;">
@@ -1396,64 +1425,6 @@
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary rounded-pill fw-bold py-2 shadow-xs">প্রয়োগ করুন</button>
                 <a href="{{ route($shopRoute, request()->only(['q'])) }}" class="btn btn-light rounded-pill py-2 text-muted border ajax-filter-trigger">সব মুছুন</a>
-            </div>
-        </form>
-    </div>
-</div>ill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['official'] ?? 0)</span>
-                    </label>
-                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === 'replacement' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
-                        <span class="d-flex align-items-center gap-2">
-                            <input class="form-check-input mt-0" type="radio" name="warranty" value="replacement" {{ request('warranty') === 'replacement' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <span>রিপ্লেসমেন্ট সুবিধা</span>
-                        </span>
-                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['replacement'] ?? 0)</span>
-                    </label>
-                    <label class="d-flex align-items-center justify-content-between py-2 px-2.5 rounded-3 border {{ request('warranty') === '1year' ? 'bg-success bg-opacity-10 fw-bold text-success border-success' : 'hover-bg-light' }}" style="font-size: 12.5px; cursor: pointer;">
-                        <span class="d-flex align-items-center gap-2">
-                            <input class="form-check-input mt-0" type="radio" name="warranty" value="1year" {{ request('warranty') === '1year' ? 'checked' : '' }} onchange="this.form.submit()">
-                            <span>১ বছর+ মেয়াদি ওয়ারেন্টি</span>
-                        </span>
-                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1" style="font-size: 10px;">@bn($warrantyCounts['1year'] ?? 0)</span>
-                    </label>
-                </div>
-            </div>
-            @endif
-
-            <!-- 6. Features & Toggles (Mobile) -->
-            <div class="mb-4 pt-3 border-top">
-                <label class="form-label filter-sec-label mb-2 d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-wand-magic-sparkles text-primary"></i>
-                    <span>প্রোডাক্ট ফিচার</span>
-                </label>
-                <div class="d-flex flex-column gap-2">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="feature" value="bestseller" id="mFeatBestseller" {{ request('feature') === 'bestseller' ? 'checked' : '' }} onchange="this.form.submit()">
-                        <label class="form-check-label small fw-semibold d-flex justify-content-between" for="mFeatBestseller">
-                            <span>বেস্টসেলার পণ্য</span>
-                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">@bn($featureCounts['bestseller'] ?? 0)</span>
-                        </label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="feature" value="hot_deal" id="mFeatHotDeal" {{ request('feature') === 'hot_deal' ? 'checked' : '' }} onchange="this.form.submit()">
-                        <label class="form-check-label small fw-semibold d-flex justify-content-between" for="mFeatHotDeal">
-                            <span>হট ডিল অফার</span>
-                            <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">@bn($featureCounts['hot_deal'] ?? 0)</span>
-                        </label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="in_stock" value="1" id="mInStock" {{ request('in_stock') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
-                        <label class="form-check-label small fw-semibold" for="mInStock">শুধুমাত্র স্টকে থাকা পণ্য</label>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="discount" value="1" id="mDiscount" {{ request('discount') === '1' ? 'checked' : '' }} onchange="this.form.submit()">
-                        <label class="form-check-label small fw-semibold" for="mDiscount">ছাড়কৃত অফার পণ্য</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary rounded-pill fw-bold py-2 shadow-xs">ফিল্টার প্রয়োগ করুন</button>
-                <a href="{{ route($shopRoute, request()->only(['q'])) }}" class="btn btn-light rounded-pill py-2 text-muted border ajax-filter-trigger">সকল ফিল্টার মুছুন</a>
             </div>
         </form>
     </div>
@@ -2294,6 +2265,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/storefront-products.js') }}?v={{ @filemtime(public_path('js/storefront-products.js')) ?: 1 }}" defer></script>
 <script>
 // Bulletproof Category Dropdown Toggle Handler
 document.addEventListener('DOMContentLoaded', function() {

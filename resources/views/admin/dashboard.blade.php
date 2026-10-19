@@ -1947,7 +1947,7 @@
                     {{-- ══ PANE 1: USERS & AUTHORS REGISTRATIONS ═══════════════════ --}}
                     <div class="tab-pane fade show active" id="pane-pending-users" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0">Pending Users & Authors</h6>
+                            <h6 class="fw-bold text-dark mb-0">Users & Authors</h6>
                             <a href="{{ route('admin.registrations.index', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-decoration-none fw-semibold small">
                                 View All <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                             </a>
@@ -2097,7 +2097,7 @@
                     {{-- ══ PANE 3: BLOG POSTS ═══════════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-blogs" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0">Pending Blogs & Articles</h6>
+                            <h6 class="fw-bold text-dark mb-0">Blogs</h6>
                             <a href="{{ route('admin.blog', ['status' => 'pending']) }}" class="btn btn-sm btn-link text-decoration-none fw-semibold small">
                                 View All <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                             </a>
@@ -2154,7 +2154,7 @@
                     {{-- ══ PANE 4: BOOKS & E-BOOKS ══════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-books" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0">Pending Books & E-Books</h6>
+                            <h6 class="fw-bold text-dark mb-0">Books</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingBooksListContainer">
@@ -2250,7 +2250,7 @@
                     {{-- ══ PANE 5: BOOK REQUESTS ════════════════════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-requests" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0">Customer Book Requests</h6>
+                            <h6 class="fw-bold text-dark mb-0">Book Requests</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingRequestsListContainer">
@@ -2300,7 +2300,7 @@
                     {{-- ══ PANE 6: SUBMISSIONS & AUTHOR UPDATES ═══════════════════════ --}}
                     <div class="tab-pane fade" id="pane-pending-submissions" role="tabpanel">
                         <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h6 class="fw-bold text-dark mb-0">Submissions & Author Profile Updates</h6>
+                            <h6 class="fw-bold text-dark mb-0">Author Updates</h6>
                         </div>
 
                         <div class="d-flex flex-column gap-2.5" id="pendingSubmissionsListContainer">
@@ -2592,7 +2592,7 @@
 @endpush
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     

@@ -8,63 +8,46 @@
     {{-- CARD 1: BASIC INFORMATION & CONTRIBUTORS --}}
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <span class="badge bg-primary bg-opacity-10 text-primary rounded-circle p-2">
-                    <i class="fa-solid fa-tablet-screen-button"></i>
-                </span>
-                <span>Basic Information & Details</span>
-            </h2>
-            <span class="badge bg-light text-muted border small">* Marked fields are required</span>
+            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2"><span>Details</span></h2>
         </div>
 
         <div class="row g-3">
             {{-- 1. E-Book Title --}}
             <div class="col-12 col-md-8">
-                <label for="f-title" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-book text-primary me-1"></i> E-Book Title <span class="text-danger">*</span>
-                </label>
+                <label for="f-title" class="form-label small fw-bold text-dark mb-1">Title <span class="text-danger">*</span></label>
                 <input type="text" id="f-title" name="title" value="{{ $val('title') }}" required
-                       class="form-control form-control-sm rounded-3 fw-semibold @error('title') is-invalid @enderror" 
-                       placeholder="Enter full e-book title..." oninput="updateEbookLivePreview()">
+                       class="form-control form-control-sm rounded-3 fw-semibold @error('title') is-invalid @enderror" oninput="updateEbookLivePreview()">
                 @error('title')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- 2. ISBN / E-Book Code --}}
             <div class="col-12 col-md-4">
-                <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-barcode text-secondary me-1"></i> ISBN / E-Book Code
-                </label>
+                <label for="f-isbn" class="form-label small fw-bold text-dark mb-1">ISBN</label>
                 <input type="text" id="f-isbn" name="isbn" value="{{ $val('isbn') }}"
-                       class="form-control form-control-sm rounded-3 font-monospace @error('isbn') is-invalid @enderror" 
-                       placeholder="e.g. 978-984-XXXXX">
+                       class="form-control form-control-sm rounded-3 font-monospace @error('isbn') is-invalid @enderror">
                 @error('isbn')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- 3. Subtitle / Tagline --}}
             <div class="col-12">
-                <label for="f-subtitle" class="form-label small fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-quote-left text-muted me-1"></i> Subtitle / Tagline
-                </label>
+                <label for="f-subtitle" class="form-label small fw-bold text-dark mb-1">Subtitle</label>
                 <input type="text" id="f-subtitle" name="subtitle" value="{{ $val('subtitle') }}"
-                       class="form-control form-control-sm rounded-3 @error('subtitle') is-invalid @enderror" 
-                       placeholder="Short one-line subtitle or book tagline...">
+                       class="form-control form-control-sm rounded-3 @error('subtitle') is-invalid @enderror">
                 @error('subtitle')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             {{-- 4. Category & Publisher --}}
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-folder-tree text-primary me-1"></i> Category <span class="text-danger">*</span>
-                    </label>
+                    <label for="f-category_id" class="form-label small fw-bold text-dark mb-0">Category <span class="text-danger">*</span></label>
                     <button type="button" class="btn btn-xs btn-link text-primary text-decoration-none p-0 fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddCategoryModal" style="font-size: 11px;">
-                        <i class="fa-solid fa-plus"></i> + Add Category
+                        + Add
                     </button>
                 </div>
                 <select id="f-category_id" name="category_id" required
                         class="form-select form-select-sm rounded-3 @error('category_id') is-invalid @enderror">
-                    <option value="">-- Select Category --</option>
+                    <option value="">Select</option>
                     @foreach ($lookups['categories'] ?? [] as $id => $label)
                         <option value="{{ $id }}" @selected((string)$val('category_id') === (string)$id)>{{ $label }}</option>
                     @endforeach
@@ -74,17 +57,15 @@
 
             <div class="col-12 col-md-6">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-building text-success me-1"></i> Publisher
-                    </label>
+                    <label for="f-publisher_id" class="form-label small fw-bold text-dark mb-0">Publisher</label>
                     <button type="button" class="btn btn-xs btn-link text-primary text-decoration-none p-0 fw-semibold" 
                             data-bs-toggle="modal" data-bs-target="#quickAddPublisherModal" style="font-size: 11px;">
-                        <i class="fa-solid fa-plus"></i> + Add Publisher
+                        + Add
                     </button>
                 </div>
                 <select id="f-publisher_id" name="publisher_id"
                         class="form-select form-select-sm rounded-3 @error('publisher_id') is-invalid @enderror">
-                    <option value="">-- Select Publisher (Idea Prokashon Default) --</option>
+                    <option value="">Select</option>
                     @foreach ($lookups['publishers'] ?? [] as $id => $label)
                         <option value="{{ $id }}" @selected((string)$val('publisher_id') === (string)$id)>{{ $label }}</option>
                     @endforeach
@@ -96,39 +77,30 @@
             <div class="col-12 mt-2">
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                        <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-tags text-success me-1"></i> Pricing & Page Count
-                        </label>
-                        <span class="badge bg-white text-muted border small">৳0 = Free E-Book</span>
+                        <label class="form-label small fw-bold text-dark mb-0">Price</label>
                     </div>
 
                     <div class="row g-2">
                         {{-- Regular Price --}}
                         <div class="col-12 col-md-4">
-                            <label for="f-price" class="form-label small fw-semibold text-dark mb-1">
-                                Regular Price (৳) <span class="text-danger">*</span>
-                            </label>
+                            <label for="f-price" class="form-label small fw-semibold text-dark mb-1">Price <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white fw-bold">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-price" name="price" 
                                        value="{{ $val('price', 0) }}" required
-                                       class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" 
-                                       placeholder="0.00" oninput="calculateEbookDiscount()">
+                                       class="form-control rounded-end-3 font-monospace fw-semibold @error('price') is-invalid @enderror" oninput="calculateEbookDiscount()">
                             </div>
                             @error('price')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
 
                         {{-- Discount Price --}}
                         <div class="col-12 col-md-4">
-                            <label for="f-discount_price" class="form-label small fw-semibold text-dark mb-1">
-                                Discount Price (৳)
-                            </label>
+                            <label for="f-discount_price" class="form-label small fw-semibold text-dark mb-1">Offer</label>
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-white fw-bold text-danger">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-discount_price" name="discount_price" 
                                        value="{{ $val('discount_price') }}" 
-                                       class="form-control rounded-end-3 font-monospace fw-semibold text-danger @error('discount_price') is-invalid @enderror" 
-                                       placeholder="Optional discount" oninput="calculateEbookDiscount()">
+                                       class="form-control rounded-end-3 font-monospace fw-semibold text-danger @error('discount_price') is-invalid @enderror" oninput="calculateEbookDiscount()">
                             </div>
                             <div id="ebookSavingsBadge" class="mt-1 d-none">
                                 <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5 small fw-bold">
@@ -140,13 +112,10 @@
 
                         {{-- Page Count --}}
                         <div class="col-12 col-md-4">
-                            <label for="f-pages" class="form-label small fw-semibold text-dark mb-1">
-                                Total Pages
-                            </label>
+                            <label for="f-pages" class="form-label small fw-semibold text-dark mb-1">Pages</label>
                             <input type="number" min="0" id="f-pages" name="pages" 
                                    value="{{ $val('pages', 0) }}" 
-                                   class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror" 
-                                   placeholder="e.g. 150">
+                                   class="form-control form-control-sm rounded-3 font-monospace @error('pages') is-invalid @enderror">
                             @error('pages')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -161,14 +130,8 @@
             <div class="col-12 mt-2">
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border" style="border-left: 4px solid #10b981 !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                        <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-coins text-success me-1"></i> রয়্যালটি ও লেখক আয় সেটিংস (Royalty & Author Earnings)
-                        </label>
-                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle small fw-bold">
-                            ইবুক রয়্যালটি নিয়ন্ত্রণ
-                        </span>
+                        <label class="form-label small fw-bold text-dark mb-0">Royalty</label>
                     </div>
-
                     <div class="row g-2 align-items-center">
                         <div class="col-12 col-md-6">
                             <div class="form-check form-switch p-2 bg-white rounded-3 border">
@@ -176,25 +139,18 @@
                                 <input class="form-check-input ms-0 me-2 cursor-pointer" type="checkbox" role="switch" 
                                        id="f-is_royalty_free" name="is_royalty_free" value="1" 
                                        @checked($isRoyaltyFree) onchange="toggleEbookRoyaltyInputs(this)">
-                                <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free">
-                                    <i class="fa-solid fa-hand-holding-heart text-warning me-1"></i> রয়্যালটি ফ্রি ইবুক (Royalty-Free)
-                                </label>
-                                <small class="d-block text-muted" style="font-size: 11px;">অন করলে এই ইবুক বিক্রয়ে কোনো রয়্যালটি লেখক অ্যাকাউন্টে যাবে না (০% রয়্যালটি)।</small>
+                                <label class="form-check-label fw-bold text-dark small cursor-pointer" for="f-is_royalty_free">Exempt</label>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6" id="ebookRoyaltyPercentGroup">
-                            <label for="f-royalty_percentage" class="form-label small fw-semibold text-dark mb-1">
-                                লেখক রয়্যালটি শেয়ার (%) (Author Royalty %)
-                            </label>
+                            <label for="f-royalty_percentage" class="form-label small fw-semibold text-dark mb-1">Share</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" step="0.5" min="0" max="100" id="f-royalty_percentage" 
                                        name="royalty_percentage" value="{{ $royaltyPct }}" 
-                                       class="form-control rounded-start-3 font-monospace fw-bold @error('royalty_percentage') is-invalid @enderror" 
-                                       placeholder="50">
+                                       class="form-control rounded-start-3 font-monospace fw-bold @error('royalty_percentage') is-invalid @enderror">
                                 <span class="input-group-text bg-white fw-bold">%</span>
                             </div>
-                            <small class="text-muted d-block mt-0.5" style="font-size: 10.5px;">ডিফল্ট ৫০%। চাইলে পরিবর্তন বা ০% (রয়্যালটি ফ্রি) করতে পারেন।</small>
                             @error('royalty_percentage')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -213,25 +169,21 @@
             <div class="col-12 mt-2">
                 <div class="p-3 bg-light bg-opacity-75 rounded-3 border">
                     <div class="d-flex align-items-center justify-content-between mb-2 pb-1 border-bottom">
-                        <label class="form-label small fw-bold text-dark mb-0">
-                            <i class="fa-solid fa-pen-nib text-primary me-1"></i> Authors & Contributors <span class="text-danger">*</span>
-                        </label>
+                        <label class="form-label small fw-bold text-dark mb-0">Team <span class="text-danger">*</span></label>
                         <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2.5 rounded-pill fw-semibold" 
                                 data-bs-toggle="modal" data-bs-target="#quickAddAuthorModal" style="font-size: 11.5px;">
-                            <i class="fa-solid fa-plus me-1"></i>+ Add New Author
+                            <i class="fa-solid fa-plus me-1"></i>+ Add
                         </button>
                     </div>
 
                     {{-- Primary Author Selection --}}
                     <div class="row g-2 mb-2.5">
                         <div class="col-12 col-md-7">
-                            <label for="f-author_id" class="form-label small fw-semibold text-dark mb-1">
-                                Author (Select from Directory)
-                            </label>
+                            <label for="f-author_id" class="form-label small fw-semibold text-dark mb-1">Author</label>
                             <select name="author_id" id="f-author_id"
                                     class="form-select form-select-sm rounded-3 @error('author_id') is-invalid @enderror"
                                     onchange="onEbookAuthorChange(this)">
-                                <option value="">— Select Author (Total: {{ count($authorOptions) }}) —</option>
+                                <option value="">Select</option>
                                 @foreach ($authorOptions as $aId => $aName)
                                     <option value="{{ $aId }}" @selected((string)$curAuthorId === (string)$aId || (!$curAuthorId && $curAuthorName === $aName))>
                                         {{ $aName }}
@@ -242,12 +194,9 @@
                             @error('author_id')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-md-5">
-                            <label for="f-author_name" class="form-label small fw-semibold text-dark mb-1">
-                                Author Name (Display Name)
-                            </label>
+                            <label for="f-author_name" class="form-label small fw-semibold text-dark mb-1">Name</label>
                             <input type="text" name="author_name" id="f-author_name"
                                    value="{{ $curAuthorName }}"
-                                   placeholder="Or custom author name..."
                                    class="form-control form-control-sm rounded-3 @error('author_name') is-invalid @enderror"
                                    oninput="updateEbookLivePreview()">
                             @error('author_name')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
@@ -257,32 +206,23 @@
                     {{-- Editor, Rewriter & Translator Row --}}
                     <div class="row g-2 pt-2 border-top">
                         <div class="col-12 col-md-4">
-                            <label for="f-editor_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fa-solid fa-feather text-info me-1"></i> Editor (সম্পাদক)
-                            </label>
+                            <label for="f-editor_name" class="form-label small fw-semibold text-dark mb-1">Editor</label>
                             <input type="text" id="f-editor_name" name="editor_name" value="{{ $curEditor }}"
-                                   class="form-control form-control-sm rounded-3 @error('editor_name') is-invalid @enderror" 
-                                   placeholder="Editor's name...">
+                                   class="form-control form-control-sm rounded-3 @error('editor_name') is-invalid @enderror">
                             @error('editor_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="col-12 col-md-4">
-                            <label for="f-rewriter_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fa-solid fa-pen-fancy text-warning me-1"></i> Rewriter (পুনর্লেখক)
-                            </label>
+                            <label for="f-rewriter_name" class="form-label small fw-semibold text-dark mb-1">Rewriter</label>
                             <input type="text" id="f-rewriter_name" name="rewriter_name" value="{{ $curRewriter }}"
-                                   class="form-control form-control-sm rounded-3 @error('rewriter_name') is-invalid @enderror" 
-                                   placeholder="Rewriter's name...">
+                                   class="form-control form-control-sm rounded-3 @error('rewriter_name') is-invalid @enderror">
                             @error('rewriter_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="col-12 col-md-4">
-                            <label for="f-translator_name" class="form-label small fw-semibold text-dark mb-1">
-                                <i class="fa-solid fa-language text-secondary me-1"></i> Translator (অনুবাদক)
-                            </label>
+                            <label for="f-translator_name" class="form-label small fw-semibold text-dark mb-1">Translator</label>
                             <input type="text" id="f-translator_name" name="translator_name" value="{{ $curTranslator }}"
-                                   class="form-control form-control-sm rounded-3 @error('translator_name') is-invalid @enderror" 
-                                   placeholder="Translator's name (if any)...">
+                                   class="form-control form-control-sm rounded-3 @error('translator_name') is-invalid @enderror">
                             @error('translator_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
@@ -292,14 +232,11 @@
             {{-- 7. Description & Synopsis --}}
             <div class="col-12 mt-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <label for="f-description" class="form-label small fw-bold text-dark mb-0">
-                        <i class="fa-solid fa-align-left text-primary me-1"></i> Description & Synopsis
-                    </label>
+                    <label for="f-description" class="form-label small fw-bold text-dark mb-0">Description</label>
                     <span class="text-muted small" style="font-size: 11px;">HTML & Rich formatting supported</span>
                 </div>
                 <textarea id="f-description" name="description" rows="7" 
-                          class="form-control rounded-3 @error('description') is-invalid @enderror" 
-                          placeholder="Enter table of contents, book synopsis, author intro and overview for readers...">{{ $val('description') }}</textarea>
+                          class="form-control rounded-3 @error('description') is-invalid @enderror">{{ $val('description') }}</textarea>
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
         </div>
@@ -308,15 +245,7 @@
     {{-- CARD 2: E-BOOK FILES & DIGITAL FORMATS --}}
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                <span class="badge bg-danger bg-opacity-10 text-danger rounded-circle p-2">
-                    <i class="fa-solid fa-file-pdf"></i>
-                </span>
-                <span>Digital E-Book Files Upload</span>
-            </h2>
-            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-0.5 small">
-                PDF & EPUB Supported
-            </span>
+            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-2"><span>Files</span></h2>
         </div>
 
         <div class="row g-3">
@@ -324,13 +253,7 @@
             <div class="col-12">
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 hover-shadow transition-all">
                     <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-2">
-                        <label for="f-file_path" class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">
-                            <i class="fa-solid fa-file-arrow-up text-primary fs-6"></i>
-                            <span>Main Digital Book File (PDF / EPUB)</span>
-                        </label>
-                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2 py-0.5" style="font-size: 11px;">
-                            Max 100 MB (.pdf, .epub)
-                        </span>
+                        <label for="f-file_path" class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1.5">File</label>
                     </div>
                     <input type="file" id="f-file_path" name="file_path" accept=".pdf,.epub"
                            class="form-control form-control-sm rounded-3 @error('file_path') is-invalid @enderror">
@@ -352,11 +275,7 @@
             {{-- 2. Dedicated EPUB File (Optional) --}}
             <div class="col-12 col-md-6">
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 h-100">
-                    <label for="f-epub_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fa-solid fa-book-open text-info fs-6"></i>
-                        <span>Dedicated EPUB File (Optional)</span>
-                    </label>
-                    <small class="text-muted d-block mb-2" style="font-size: 11px;">Optimized file for native e-pub reader devices</small>
+                    <label for="f-epub_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">EPUB</label>
                     <input type="file" id="f-epub_file_path" name="epub_file_path" accept=".epub"
                            class="form-control form-control-sm rounded-3 @error('epub_file_path') is-invalid @enderror">
                     @error('epub_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -372,11 +291,7 @@
             {{-- 3. Free Sample Preview File (Optional) --}}
             <div class="col-12 col-md-6">
                 <div class="p-3 rounded-4 border bg-light bg-opacity-50 h-100">
-                    <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                        <i class="fa-solid fa-eye text-warning fs-6"></i>
-                        <span>Free Sample Preview File (Optional)</span>
-                    </label>
-                    <small class="text-muted d-block mb-2" style="font-size: 11px;">Sample chapter for visitors to preview before purchasing</small>
+                    <label for="f-sample_file_path" class="form-label small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">Sample</label>
                     <input type="file" id="f-sample_file_path" name="sample_file_path" accept=".pdf,.epub"
                            class="form-control form-control-sm rounded-3 @error('sample_file_path') is-invalid @enderror">
                     @error('sample_file_path')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -398,30 +313,24 @@
     {{-- CARD 1: PUBLISH ACTIONS & STORE VISIBILITY --}}
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-circle-check text-success"></i> Publishing Actions
-            </h2>
-            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 small">Live Control</span>
+            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5"><span>Publish</span></h2>
         </div>
 
         {{-- Store Visibility Switch --}}
         <div class="p-3 bg-light rounded-3 border mb-3">
             <div class="form-check form-switch d-flex align-items-center justify-content-between ps-0 mb-0">
-                <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer" for="f-is_active">
-                    <i class="fa-solid fa-globe text-primary me-1"></i> Active & Live in Store
-                </label>
+                <label class="form-check-label fw-bold text-dark small mb-0 cursor-pointer" for="f-is_active">Active</label>
                 <input type="hidden" name="is_active" value="0">
                 <input class="form-check-input ms-0 cursor-pointer" type="checkbox" role="switch" id="f-is_active" 
                        name="is_active" value="1" @checked($val('is_active', true) == 1 || $val('is_active') === null)>
             </div>
-            <small class="text-muted d-block mt-1" style="font-size: 11px;">When active, readers can view and purchase this e-book from the digital store.</small>
         </div>
 
         {{-- Primary Action Button --}}
         <button type="submit" form="contentMainForm" id="btnSubmitEbookForm" 
                 class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2 mb-2 py-2.5">
             <i class="fa-solid fa-circle-check fs-5"></i>
-            <span>{{ $editing ? 'Save Changes' : 'Publish & Save E-Book' }}</span>
+            <span>Save</span>
         </button>
 
         <a href="{{ route($spec['listRoute']) }}" class="btn btn-outline-secondary w-100 rounded-pill fw-semibold btn-sm py-2">
@@ -432,10 +341,7 @@
     {{-- CARD 2: COVER IMAGE & LIVE PREVIEW --}}
     <div class="adm-card bg-white rounded-4 shadow-sm border-0 p-3 p-md-4 mb-4">
         <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-image text-primary"></i> E-Book Cover
-            </h2>
-            <span class="badge bg-light text-muted border small">7:10 Ratio</span>
+            <h2 class="h6 fw-bold mb-0 text-dark d-flex align-items-center gap-1.5"><span>Cover</span></h2>
         </div>
 
         @php
@@ -475,13 +381,10 @@
 
         {{-- File Input --}}
         <div>
-            <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">
-                <i class="fa-solid fa-cloud-arrow-up text-secondary me-1"></i> Upload Cover Image
-            </label>
+            <label for="f-cover_image" class="form-label small fw-bold text-dark mb-1">Cover</label>
             <input type="file" id="f-cover_image" name="cover_image" accept="image/*"
                    class="form-control form-control-sm rounded-3 @error('cover_image') is-invalid @enderror"
                    onchange="previewEbookCover(this)">
-            <small class="text-muted d-block mt-1" style="font-size: 11px;">JPG, PNG, WEBP formats (Max 8 MB)</small>
             @error('cover_image')<div class="invalid-feedback">{{ $message }}</div>@enderror
         </div>
     </div>
