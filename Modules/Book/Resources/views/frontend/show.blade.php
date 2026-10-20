@@ -80,7 +80,7 @@
     }
 @endphp
 <script type="application/ld+json">
-{!! json_encode($bookSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($bookSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -1036,7 +1036,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('orders.store') }}" method="POST" id="orderSubmitForm">
-                @csrf
+                @csrf <x-bot-trap />
                 <input type="hidden" name="book_id" value="{{ $book->id }}">
                 <input type="hidden" name="format" id="modalOrderFormat" value="{{ $activeFormat }}">
                 <input type="hidden" name="price" id="modalOrderPrice" value="{{ $finalPrice }}">

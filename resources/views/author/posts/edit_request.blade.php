@@ -187,10 +187,10 @@
                             <div id="authorContentEditable" contenteditable="true" 
                                  class="p-3 bg-white text-dark rich-editor-content" 
                                  style="min-height: 420px; max-height: 700px; overflow-y: auto; outline: none; font-size: 16.5px; line-height: 1.85; font-family: 'Hind Siliguri', 'SolaimanLipi', sans-serif;"
-                                 oninput="syncEditorContent()">{!! $contentVal !!}</div>
+                                 oninput="syncEditorContent()">{!! \App\Support\HtmlSanitizer::clean($contentVal) !!}</div>
 
                             {{-- Hidden Form Textarea --}}
-                            <textarea id="hiddenContent" name="content" class="d-none @error('content') is-invalid @enderror" required>{!! $contentVal !!}</textarea>
+                            <textarea id="hiddenContent" name="content" class="d-none @error('content') is-invalid @enderror" required>{!! \App\Support\HtmlSanitizer::clean($contentVal) !!}</textarea>
                         </div>
                         @error('content')
                             <div class="text-danger small mt-1 fw-semibold">{{ $message }}</div>

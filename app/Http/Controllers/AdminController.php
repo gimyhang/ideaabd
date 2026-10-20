@@ -689,7 +689,7 @@ class AdminController extends Controller
     public function quickResetUserPassword(Request $request, $id): \Illuminate\Http\JsonResponse
     {
         $user = User::findOrFail($id);
-        $newPass = $request->input('password') ? trim($request->input('password')) : ('Idea@' . rand(1000, 9999));
+        $newPass = $request->input('password') ? trim($request->input('password')) : ('Idea@' . random_int(100000, 999999) . \Illuminate\Support\Str::random(3));
 
         $user->password = \Illuminate\Support\Facades\Hash::make($newPass);
         $user->save();
@@ -2408,7 +2408,7 @@ class AdminController extends Controller
             'bio'         => 'nullable|string|max:20000',
             'is_active'   => 'nullable|boolean',
             'is_verified' => 'nullable|boolean',
-            'avatar_file' => 'nullable|max:25600',
+            'avatar_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
         ]);
 
         $avatarPath = null;
@@ -2450,7 +2450,7 @@ class AdminController extends Controller
             'bio'         => 'nullable|string|max:20000',
             'is_active'   => 'nullable|boolean',
             'is_verified' => 'nullable|boolean',
-            'avatar_file' => 'nullable|max:25600',
+            'avatar_file' => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
         ]);
 
         $updates = [
@@ -2559,13 +2559,13 @@ class AdminController extends Controller
         $author = \Modules\Author\Models\Author::findOrFail($id);
 
         $validated = $request->validate([
-            'password'      => 'nullable|string|min:6|max:100',
+            'password'      => ['nullable', 'string', 'min:8', 'max:100', new \App\Rules\StrongPassword()],
             'auto_generate' => 'nullable|boolean',
             'notify_author' => 'nullable|boolean',
         ]);
 
         // Determine or generate new friendly password
-        $newPassword = !empty($validated['password']) ? trim($validated['password']) : ('Idea@' . rand(1000, 9999));
+        $newPassword = !empty($validated['password']) ? trim($validated['password']) : ('Idea@' . random_int(100000, 999999) . \Illuminate\Support\Str::random(3));
 
         // Find or create linked User account for Author
         $user = null;

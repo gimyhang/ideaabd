@@ -1233,7 +1233,7 @@
                                                         <span class="badge p-1.5 rounded-circle flex-shrink-0" style="background-color: {{ $dData['bg_light'] }}; color: {{ $dData['color'] }}; border: 1px solid {{ $dData['border_color'] ?? '#e2e8f0' }};">
                                                             <i class="{{ $dData['icon'] }}" style="font-size: 11px;"></i>
                                                         </span>
-                                                        <strong class="text-dark">{{ $dData['title_bn'] }}</strong>
+                                                        <strong class="text-dark">{{ $dData['short'] ?? ($dData['title'] ?? $dKey) }}</strong>
                                                     </div>
                                                 </td>
                                                 <td class="text-center py-2.5">

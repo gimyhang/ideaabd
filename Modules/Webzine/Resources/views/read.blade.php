@@ -595,7 +595,7 @@
                             @endif
                         </div>
                         <div class="article-body">
-                            {!! $art->content !!}
+                            {!! \App\Support\HtmlSanitizer::clean($art->content) !!}
                         </div>
                     </div>
                 @empty

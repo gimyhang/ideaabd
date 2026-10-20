@@ -1173,7 +1173,7 @@ class SitemapController extends Controller
     /**
      * Ping Google and Bing Search Engines to immediately crawl updated sitemap.
      */
-    public function pingSearchEngines(): Response
+    public function pingSearchEngines(): \Illuminate\Http\JsonResponse
     {
         $baseUrl = $this->getBaseUrl();
         $sitemapUrl = urlencode($baseUrl . '/sitemap.xml');

@@ -51,7 +51,7 @@
                     @endif
 
                     <form method="POST" action="{{ route('register.submit', 'buyer') }}" id="buyerRegisterForm">
-                        @csrf
+                        @csrf <x-bot-trap />
                         
                         {{-- Full Name --}}
                         <div class="mb-3">

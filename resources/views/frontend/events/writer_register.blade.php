@@ -54,7 +54,7 @@
     ];
 @endphp
 <script type="application/ld+json">
-{!! json_encode($writerEventSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($writerEventSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -957,7 +957,7 @@
 
     {{-- MAIN OFFICIAL LETTERHEAD FORM --}}
     <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="writerRegisterForm" class="official-letterhead-form">
-        @csrf
+        @csrf <x-bot-trap />
 
         {{-- Hidden input for Client-Side Auto-Optimized Photo Blob (Base64) --}}
         <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">
@@ -1026,7 +1026,7 @@
                     @endif
                     @if(!empty($formOrg))
                         <div class="lh-pad-org" id="pubPadOrg" style="font-size: 11.5px; font-weight: 700; color: #475569;">
-                            {!! $formOrg !!}
+                            {!! \App\Support\HtmlSanitizer::clean($formOrg) !!}
                         </div>
                     @endif
                 </div>

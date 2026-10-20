@@ -47,7 +47,7 @@ class SeoServiceProvider extends ServiceProvider
             ->group(__DIR__ . '/../Routes/web.php');
 
         // Admin SEO Management Routes
-        Route::middleware(['web', 'auth'])
+        Route::middleware(['web', 'auth', 'role:admin'])
             ->prefix('admin/seo')
             ->name('admin.seo.')
             ->group(__DIR__ . '/../Routes/admin.php');

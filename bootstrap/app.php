@@ -12,8 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Trust all reverse proxies (e.g. Cloudflare / Nginx / mobile gateways)
-        $middleware->trustProxies(at: '*');
+        // Reverse proxies whose X-Forwarded-* headers are believed. Set TRUSTED_PROXIES in .env to the proxy IPs/CIDRs
+        // (comma separated, e.g. "127.0.0.1,173.245.48.0/20" for Nginx + Cloudflare). Left empty it trusts every sender,
+        // which lets a client fake its IP and slip past the login rate limit and IP whitelists.
+        $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
+        $middleware->trustProxies(at: $trustedProxies !== '' ? array_map('trim', explode(',', $trustedProxies)) : '*');
 
         $middleware->validateCsrfTokens(except: [
             'payment/bkash/callback',
@@ -23,21 +26,22 @@ return Application::configure(basePath: dirname(__DIR__))
             'payment/sslcommerz/cancel',
             'payment/sslcommerz/ipn',
             'auth/captcha/*',
-            'register/send-email-otp',
-            'register/verify-email-otp',
-            'register/check-phone',
-            'register/send-otp',
-            'register/verify-otp',
-            'register/complete',
-            'register/complete-unified',
         ]);
         
+        // Appended (not prepended) so TrustProxies has already worked out the real visitor IP.
+        $middleware->append(\App\Http\Middleware\AbuseGuard::class);
+
+        $middleware->web(prepend: [
+            \App\Http\Middleware\AbuseGuard::class,
+        ]);
+
         $middleware->web(append: [
             \Modules\SEO\Http\Middleware\SeoRedirectMiddleware::class,
             \App\Http\Middleware\SecurityHeaders::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\AffiliateTracking::class,
             \App\Http\Middleware\TrackVisitor::class,
+            \App\Http\Middleware\BlockWhileImpersonating::class,
             \App\Http\Middleware\MinifyHtmlResponse::class,
         ]);
 

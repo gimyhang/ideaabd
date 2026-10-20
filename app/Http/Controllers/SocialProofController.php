@@ -23,14 +23,7 @@ class SocialProofController extends Controller
                 ];
             });
 
-        // Fallback fake data for demo if no orders exist yet
-        if ($orders->isEmpty()) {
-            $orders = collect([
-                ['customer_name' => 'রাকিব', 'district' => 'ঢাকা', 'book_title' => 'সমকালীন সাহিত্য', 'time_ago' => '৫ মিনিট আগে'],
-                ['customer_name' => 'তানভীর', 'district' => 'চট্টগ্রাম', 'book_title' => 'ব্যবসায় কৌশল', 'time_ago' => '১ ঘন্টা আগে'],
-                ['customer_name' => 'ফারহানা', 'district' => 'সিলেট', 'book_title' => 'ইসলামিক জীবনধারা', 'time_ago' => '২ ঘন্টা আগে'],
-            ]);
-        }
+        // Only real orders are ever shown (no invented demo purchases); an empty list simply shows nothing.
 
         return response()->json($orders);
     }

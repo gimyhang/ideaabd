@@ -47,7 +47,7 @@
     ];
 @endphp
 <script type="application/ld+json">
-{!! json_encode($scholarshipSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($scholarshipSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -233,7 +233,7 @@
         @endif
 
         <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="dynamicScholarshipForm" class="form-table-card">
-            @csrf
+            @csrf <x-bot-trap />
             
             {{-- Hidden input for Client-Side Auto-Optimized Photo Blob (Base64) --}}
             <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">

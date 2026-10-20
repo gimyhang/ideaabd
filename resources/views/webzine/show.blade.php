@@ -24,7 +24,7 @@
                 <img src="{{ $article->image }}" alt="" class="w-full h-auto rounded mb-6" />
             @endif
 
-            {!! $article->content ?? '<p>আর্টিকেল এর মূল কনটেন্ট এখানে দেখানো হবে।</p>' !!}
+            {!! \App\Support\HtmlSanitizer::clean($article->content ?? '<p>আর্টিকেল এর মূল কনটেন্ট এখানে দেখানো হবে।</p>') !!}
         </div>
 
         <footer class="mt-10 border-t pt-6">

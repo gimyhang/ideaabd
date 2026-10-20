@@ -73,7 +73,7 @@
     ];
 @endphp
 <script type="application/ld+json">
-{!! json_encode($blogSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($blogSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -92,7 +92,7 @@
         border-radius: 20px;
         position: relative;
         transition: all 0.3s ease;
-        font-family: {!! $custFont !!};
+        font-family: {!! preg_replace('/[^A-Za-z0-9 ,\'"\-\x{0980}-\x{09FF}]/u', '', (string) $custFont) !!};
     }
 
     /* Sepia / Vintage Book Mode */
@@ -913,8 +913,8 @@
                             }
                         }
 
-                        $allowedTags = '<p><br><b><strong><i><em><u><s><ul><ol><li><a><h2><h3><h4><h5><h6><blockquote><pre><code><div><span><hr><img><figure><figcaption><small>';
-                        $cleanContent = strip_tags($rawBody, $allowedTags);
+                        // Allow-list cleaner: no scripts, event handlers, javascript: links or unsafe CSS may reach readers.
+                        $cleanContent = \App\Support\HtmlSanitizer::clean($rawBody);
 
                         if (!str_contains($cleanContent, '<p>') && !str_contains($cleanContent, '<br>') && !str_contains($cleanContent, '<div>') && !str_contains($cleanContent, '<blockquote')) {
                             $cleanContent = nl2br($cleanContent);
@@ -1070,7 +1070,7 @@
                             {{-- Modal Body --}}
                             <div class="modal-body p-4" style="background: #fafafa;">
                                 <form action="{{ route('blog.honorarium.send') }}" method="POST" id="honorariumModalForm">
-                                    @csrf
+                                    @csrf <x-bot-trap />
                                     <input type="hidden" name="blog_post_id" value="{{ $post->id }}">
                                     <input type="hidden" name="payment_method" value="bkash" id="selectedPaymentMethod">
 

@@ -7,6 +7,7 @@
 @endsection
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/blog-admin.css') }}?v={{ @filemtime(public_path('css/blog-admin.css')) ?: 1 }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
 <style>
     .banner-hero-card {
@@ -294,6 +295,28 @@
     </div>
 </div>
 
+{{-- 2b. Status tabs: one click filters the list; counts come from the stat cards --}}
+@php
+    $curStatus = request('status') ?: 'all';
+    $statusTabs = [
+        'all'       => ['All', $stats['total'] ?? null],
+        'pending'   => ['Pending', $stats['pending'] ?? null],
+        'published' => ['Published', $stats['published'] ?? null],
+        'hold'      => ['Hold', $stats['hold'] ?? null],
+        'featured'  => ['Featured', $stats['featured'] ?? null],
+        'draft'     => ['Draft', null],
+        'rejected'  => ['Rejected', null],
+    ];
+@endphp
+<nav class="blog-tabs mb-3" id="blogTabs" aria-label="Post status">
+    @foreach ($statusTabs as $key => [$label, $count])
+        <a href="{{ route('admin.blog', array_filter(['status' => $key === 'all' ? null : $key, 'search' => request('search'), 'category' => request('category'), 'per_page' => request('per_page')])) }}"
+           class="blog-tab {{ $curStatus === $key ? 'is-active' : '' }} {{ $key === 'pending' && ($count ?? 0) > 0 ? 'has-alert' : '' }}" data-status="{{ $key }}">
+            {{ $label }}@if ($count !== null)<b>{{ number_format($count) }}</b>@endif
+        </a>
+    @endforeach
+    <span class="blog-live ms-auto"><i class="blog-dot"></i> <span id="blogUpdated">live</span></span>
+</nav>
 {{-- 3. Advanced Multi-Filter Bar --}}
 <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
     <div class="card-body p-3">
@@ -303,7 +326,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
                     <input type="search" name="search" class="form-control border-start-0" 
-                           placeholder="Search post title, subject, author or slug..." value="{{ request('search') }}">
+                           placeholder="Search title, author or slug" value="{{ request('search') }}">
                 </div>
             </div>
 
@@ -324,8 +347,8 @@
                 <select name="status" class="form-select" onchange="this.form.submit()">
                     <option value="all" @selected(request('status') === 'all' || !request('status'))>All Statuses</option>
                     <option value="published" @selected(request('status') === 'published')>Published</option>
-                    <option value="pending" @selected(request('status') === 'pending')>⏳ Pending Review</option>
-                    <option value="hold" @selected(request('status') === 'hold')>⏸️ Hold / অপ্রকাশযোগ্য</option>
+                    <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                    <option value="hold" @selected(request('status') === 'hold')>Hold</option>
                     <option value="featured" @selected(request('status') === 'featured')>Featured</option>
                     <option value="draft" @selected(request('status') === 'draft')>Draft</option>
                     <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
@@ -365,12 +388,12 @@
             
             <div class="input-group input-group-sm" style="max-width: 320px;">
                 <select name="bulk_action" id="bulkActionSelect" class="form-select form-select-sm rounded-start-pill">
-                    <option value="">Choose bulk action...</option>
-                    <option value="publish">Publish & Approve Selected</option>
-                    <option value="hold">⏸️ Move to Hold (আলাদা রাখুন)</option>
-                    <option value="pending">⏳ Restore to Pending (পেন্ডিং করুন)</option>
-                    <option value="draft">Draft Selected</option>
-                    <option value="delete">Delete Selected</option>
+                    <option value="">Bulk action</option>
+                    <option value="publish">Publish selected</option>
+                    <option value="hold">Hold selected</option>
+                    <option value="pending">Pending selected</option>
+                    <option value="draft">Draft selected</option>
+                    <option value="delete">Delete selected</option>
                 </select>
                 <button type="submit" class="btn btn-dark btn-sm rounded-end-pill px-3 fw-semibold" onclick="return confirmBulkAction()">
                     Apply
@@ -383,6 +406,7 @@
         </div>
     </div>
 
+    <div id="blogLive">
     <div class="adm-card shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
         @if ($posts->isEmpty())
             <div class="empty-state py-5 text-center">
@@ -407,7 +431,7 @@
                             <th>Status</th>
                             <th>Views</th>
                             <th>Date</th>
-                            <th class="text-end pe-3" style="min-width: 380px;">Actions</th>
+                            <th class="text-end pe-3" style="min-width: 250px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -581,6 +605,16 @@
                                             </button>
                                         @endif
 
+                                        {{-- 6. Edit Button --}}
+                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
+                                           class="adm-action-btn btn btn-outline-primary shadow-xs" title="Edit Post">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
+                                        </a>
+
+                                        {{-- More: secondary actions --}}
+                                        <div class="dropdown d-inline-block adm-more">
+                                            <button type="button" class="adm-action-btn btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-config='{"popperConfig":{"strategy":"fixed"}}' aria-expanded="false">More</button>
+                                            <div class="dropdown-menu dropdown-menu-end p-1 adm-more-menu">
                                         {{-- 4. Hold / Unhold Button --}}
                                         @if($isHold)
                                             <button type="button" class="adm-action-btn btn btn-outline-warning shadow-xs" 
@@ -611,12 +645,6 @@
                                             </button>
                                         @endif
 
-                                        {{-- 6. Edit Button --}}
-                                        <a href="{{ route('admin.content.edit', ['type' => 'blog', 'id' => $post->id]) }}" 
-                                           class="adm-action-btn btn btn-outline-primary shadow-xs" title="Edit Post">
-                                            <i class="fa-solid fa-pen-to-square me-1"></i> Edit
-                                        </a>
-
                                         {{-- 7. Live Blog Link (if published) --}}
                                         @if($isPublished)
                                             <a href="{{ route('blog.show', $post->slug) }}" target="_blank" rel="noopener" 
@@ -630,6 +658,8 @@
                                                 onclick="deletePost({{ $post->id }}, '{{ addslashes($post->title) }}')" title="Delete Post">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -647,6 +677,7 @@
                 </div>
             @endif
         @endif
+    </div>
     </div>
 </form>
 
@@ -670,6 +701,7 @@
             </div>
 
             <form action="{{ route('admin.blog.settings.update') }}" method="POST" enctype="multipart/form-data" id="blogCustomizerForm">
+                <div class="cust-status" id="custStatus" hidden><span class="cust-dot"></span> Unsaved changes <button type="button" class="btn btn-link btn-sm p-0 ms-2" id="custReset">Reset</button></div>
                 @csrf
                 <div class="modal-body p-4 bg-light">
                     <div class="row g-4">
@@ -792,6 +824,15 @@
 
                                         <div class="row g-3">
                                             <!-- Font Family -->
+                                            <div class="col-12">
+                                                <label class="form-label small fw-bold text-dark mb-1">Preset</label>
+                                                <div class="cust-presets" id="custPresets" role="group" aria-label="Reading presets">
+                                                    <button type="button" data-preset="classic">Classic</button>
+                                                    <button type="button" data-preset="book">Book</button>
+                                                    <button type="button" data-preset="reader">Reader</button>
+                                                    <button type="button" data-preset="compact">Compact</button>
+                                                </div>
+                                            </div>
                                             <div class="col-12">
                                                 <label class="form-label small fw-bold text-dark mb-1">Font Family:</label>
                                                 <select name="font_family" id="custFontFamily" class="form-select form-select-sm" onchange="updateLivePreview()">
@@ -1288,6 +1329,7 @@
 </div>
 
 @push('scripts')
+<script src="{{ asset('js/blog-admin.js') }}?v={{ @filemtime(public_path('js/blog-admin.js')) ?: 1 }}" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>
 let blogCropper = null;

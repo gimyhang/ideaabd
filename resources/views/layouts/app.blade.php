@@ -227,11 +227,11 @@
         ];
     @endphp
     <script type="application/ld+json">
-    {!! json_encode($universalGraph, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    {!! json_encode($universalGraph, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
     </script>
     @if(!View::hasSection('schema_json') && !empty($dbSeo?->schema_json))
     <script type="application/ld+json">
-    {!! is_array($dbSeo->schema_json) ? json_encode($dbSeo->schema_json, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) : $dbSeo->schema_json !!}
+    {!! json_encode(is_array($dbSeo->schema_json) ? $dbSeo->schema_json : (json_decode((string) $dbSeo->schema_json, true) ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
     </script>
     @endif
     @yield('schema_json')
@@ -430,6 +430,7 @@
     @stack('head')
 </head>
 <body style="display: flex; flex-direction: column; min-height: 100vh;">
+    @include('partials.impersonation-bar')
     <!-- Header Navigation -->
     @include('layouts.header')
 

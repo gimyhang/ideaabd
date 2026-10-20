@@ -266,27 +266,101 @@ class UserController extends Controller
     /**
      * Update customer profile name, email, phone, and avatar.
      */
+    /**
+     * Canonical local form of a phone number (01XXXXXXXXX for Bangladesh) plus every spelling it can be stored under,
+     * so "+8801…", "8801…" and "01…" are always the same number.
+     */
+    private function phoneForms(string $raw): array
+    {
+        $n = \App\Support\PhoneNormalizer::normalize($raw);
+
+        return [
+            'canonical' => $n['local_phone'] ?? $n['formatted_phone'] ?? trim($raw),
+            'variants'  => $n['query_phones'] ?? [trim($raw)],
+        ];
+    }
+
+    private function phoneInUseByOther(array $forms, int $userId): bool
+    {
+        return User::where('id', '!=', $userId)->whereIn('phone', $forms['variants'])->exists();
+    }
+
+    /** Step 1 of a phone change: send a one-time code to the NEW number. */
+    public function sendPhoneOtp(Request $request)
+    {
+        $user = auth()->user();
+        $data = $request->validate(['phone' => 'required|string|max:20']);
+        $forms = $this->phoneForms($data['phone']);
+
+        if (!preg_match('/^\+?\d{10,15}$/', $forms['canonical'])) {
+            return response()->json(['success' => false, 'message' => 'সঠিক মোবাইল নম্বর দিন।'], 422);
+        }
+        if ($this->phoneInUseByOther($forms, $user->id)) {
+            return response()->json(['success' => false, 'message' => 'এই মোবাইল নম্বরটি অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।'], 422);
+        }
+
+        $code = (string) random_int(100000, 999999);
+        \Illuminate\Support\Facades\Cache::put('phone_change:' . $user->id, [
+            'phone' => $forms['canonical'], 'hash' => Hash::make($code), 'attempts' => 0,
+        ], now()->addMinutes(10));
+
+        try {
+            \App\Services\SmsService::send($forms['canonical'], "Idea Prokashon: your phone change code is {$code}. Do not share it.");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Phone-change SMS failed: ' . $e->getMessage());
+        }
+
+        return response()->json(['success' => true, 'message' => 'কোড পাঠানো হয়েছে (১০ মিনিট মেয়াদ)।']);
+    }
+
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
 
         $validated = $request->validate([
-            'name'   => 'required|string|max:255',
-            'phone'  => 'required|string|max:20|unique:users,phone,' . $user->id,
-            'email'  => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'avatar' => 'nullable|max:25600',
+            'name'      => 'required|string|max:255',
+            'phone'     => 'required|string|max:20',
+            'phone_otp' => 'nullable|string|max:10',
+            'email'     => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'avatar'    => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
         ], [
             'name.required'  => 'আপনার পুরো নাম লিখুন।',
-            'phone.required' => 'মোবাইল নম্বর দেওয়া বাধ্যতামূলক।',
-            'phone.unique'   => 'এই মোবাইল নম্বরটি অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।',
+            'phone.required' => 'মোবাইল নম্বর দেওয়া বাধ্যতামূলক।',
             'email.email'    => 'সঠিক ফরম্যাটের ইমেইল দিন।',
             'email.unique'   => 'এই ইমেইলটি অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।',
         ]);
 
-        $updates = [
-            'name'  => $validated['name'],
-            'phone' => $validated['phone'],
-        ];
+        $updates = ['name' => $validated['name']];
+
+        // The phone number is an identity (login, SMS, recovery): changing it needs a code sent to the NEW number.
+        $new = $this->phoneForms($validated['phone']);
+        $current = $this->phoneForms((string) $user->phone);
+        if ($new['canonical'] !== $current['canonical']) {
+            if ($this->phoneInUseByOther($new, $user->id)) {
+                return back()->withErrors(['phone' => 'এই মোবাইল নম্বরটি অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।'])->withInput();
+            }
+
+            $key = 'phone_change:' . $user->id;
+            $pending = \Illuminate\Support\Facades\Cache::get($key);
+            $otp = trim((string) ($validated['phone_otp'] ?? ''));
+
+            if (!$pending || $pending['phone'] !== $new['canonical'] || $otp === '') {
+                return back()->withErrors(['phone' => 'নতুন নম্বরে পাঠানো কোড দিয়ে নম্বর যাচাই করুন।'])->withInput();
+            }
+            if ($pending['attempts'] >= 5) {
+                \Illuminate\Support\Facades\Cache::forget($key);
+                return back()->withErrors(['phone' => 'অনেকবার ভুল কোড দেওয়া হয়েছে। নতুন কোড নিন।'])->withInput();
+            }
+            if (!Hash::check($otp, $pending['hash'])) {
+                $pending['attempts']++;
+                \Illuminate\Support\Facades\Cache::put($key, $pending, now()->addMinutes(10));
+                return back()->withErrors(['phone' => 'কোডটি সঠিক নয়।'])->withInput();
+            }
+
+            \Illuminate\Support\Facades\Cache::forget($key);
+            $updates['phone'] = $new['canonical'];
+            $updates['phone_verified_at'] = now();
+        }
 
         if (!empty($validated['email'])) {
             $updates['email'] = $validated['email'];
@@ -299,7 +373,7 @@ class UserController extends Controller
         $user->update($updates);
 
         return redirect()->route('my-account', ['tab' => 'settings'])
-            ->with('success', 'আপনার প্রোফাইল তথ্য সফলভাবে হালনাগাদ করা হয়েছে!');
+            ->with('success', 'আপনার প্রোফাইল তথ্য সফলভাবে হালনাগাদ করা হয়েছে!');
     }
 
     /**
@@ -414,7 +488,7 @@ class UserController extends Controller
             'name_bn'                => 'nullable|string|max:255',
             'name_en'                => 'nullable|string|max:255',
             'pen_name'               => 'nullable|string|max:255',
-            'avatar'                 => 'nullable|max:25600',
+            'avatar'                 => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
             'genres'                 => 'nullable|array',
             'genres.*'               => 'string|max:100',
             'bio'                    => 'nullable|string|max:5000',

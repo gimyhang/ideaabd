@@ -1073,7 +1073,7 @@ class RegistrationController extends Controller
         }
 
         // Generate 6 digit verification OTP
-        $otpCode = rand(100000, 999999);
+        $otpCode = random_int(100000, 999999);
         $smsMessage = "Idea Prokashon: your code is {$otpCode}.";
 
         // Dispatch & Log SMS
@@ -1206,7 +1206,7 @@ class RegistrationController extends Controller
             'name'     => ['required', 'string', 'max:150'],
             'phone'    => ['required', 'string', 'max:25'],
             'email'    => ['nullable', 'email', 'max:150'],
-            'password' => ['required', 'string', 'min:6', 'max:100'],
+            'password' => ['required', 'string', 'min:8', 'max:100', new \App\Rules\StrongPassword()],
         ]);
 
         $pInfo = \App\Support\PhoneNormalizer::normalize($request->input('phone'), $request->input('country_code'));
@@ -1234,7 +1234,7 @@ class RegistrationController extends Controller
             }
         })->first();
 
-        $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: route('my-account'));
+        $targetUrl = \App\Support\SafeRedirect::sanitize($request->input('redirect_to') ?: $request->input('redirect'), route('my-account'));
 
         if ($existing) {
             if (Hash::check($request->input('password'), $existing->password) || $phoneVerifiedSession) {

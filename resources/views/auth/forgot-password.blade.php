@@ -315,7 +315,7 @@
         @endif
 
         <form method="POST" action="{{ route('password.email') }}">
-            @csrf
+            @csrf <x-bot-trap />
 
             <div class="form-group-item">
                 <label for="identity" class="form-label-custom">Email or mobile phone number</label>

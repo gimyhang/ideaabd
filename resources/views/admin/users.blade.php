@@ -669,6 +669,16 @@
                                             <span>Password</span>
                                         </button>
 
+                                        {{-- 1b. View this user's own dashboard (administrator only, read-only) --}}
+                                        @if (auth()->user()->isAdmin() && !$user->isAdmin() && $user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('admin.users.impersonate', $user->id) }}" class="d-inline m-0">
+                                                @csrf
+                                                <button type="submit" class="action-pill-btn bg-light text-dark" title="Open this user's dashboard (read-only)">
+                                                    <span>Dashboard</span>
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         {{-- 2. Role Assignment --}}
                                         <button type="button" class="action-pill-btn bg-light text-success" 
                                                 onclick="openAssignRoleModal('{{ $user->id }}', '{{ addslashes($user->name) }}', '{{ $user->role }}', '{{ $user->custom_role_id ?? '' }}', '{{ $user->reg_status }}', {{ $user->is_active ? 'true' : 'false' }})" 

@@ -267,7 +267,7 @@ class PublicEventRegistrationController extends Controller
             'amount_paid'          => 'nullable|numeric|min:0',
             'payment_method'       => 'nullable|string|max:50',
             'transaction_id'       => 'nullable|string|max:100',
-            'password'             => 'nullable|string|min:6|max:64',
+            'password'             => ['nullable', 'string', 'min:8', 'max:64', new \App\Rules\StrongPassword()],
             'student_photo'        => 'nullable|max:25600',
             'optimized_photo_data' => 'nullable|string',
             'scholarship_reason'   => 'nullable|string|max:2000',

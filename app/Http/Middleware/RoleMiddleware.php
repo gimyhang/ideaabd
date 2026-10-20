@@ -236,6 +236,112 @@ class RoleMiddleware
         'admin.seo.update'                         => 'settings.manage',
     ];
 
+    /** Marker: only the real administrator (role admin / super_admin) may use the route. */
+    public const ADMIN_ONLY = '__admin_only__';
+
+    /** Marker: any signed-in staff member may use the route (their own profile pages). */
+    public const STAFF_SELF = '__staff_self__';
+
+    /**
+     * Routes not listed in ROUTE_PERMISSION_MAP, matched by route-name prefix (longest prefix wins).
+     * A string is the permission for every method; [read, write] picks one by HTTP method.
+     * Anything that matches nothing here is ADMIN_ONLY, so a new admin route is closed until someone opens it on purpose.
+     */
+    public const PREFIX_PERMISSION_MAP = [
+        // Credentials, roles and system tools: administrator only
+        'admin.users.quick-password-reset' => self::ADMIN_ONLY,
+        'admin.users.assign-role'          => self::ADMIN_ONLY,
+        'admin.users.impersonate'          => self::ADMIN_ONLY,
+        'admin.users.revoke-role'          => self::ADMIN_ONLY,
+        'admin.backup.'                    => self::ADMIN_ONLY,
+        'admin.authors.reset-password'     => self::ADMIN_ONLY,
+
+        'admin.users.security.'            => 'security.sessions',
+        'admin.users.'                     => ['users.view', 'users.manage'],
+        'admin.registrations.'             => ['users.view', 'users.manage'],
+        'admin.libraries.'                 => ['users.view', 'users.manage'],
+        'admin.sub-admins.'                => 'roles.manage',
+
+        'admin.dashboard.'                 => 'dashboard.view',
+        'admin.settings.'                  => 'settings.manage',
+        'admin.theme.'                     => 'settings.manage',
+        'admin.cache.'                     => 'settings.manage',
+        'admin.currencies.'                => 'settings.manage',
+        'admin.translations.'              => 'settings.manage',
+        'admin.communication.'             => 'settings.manage',
+        'admin.accounting.settings.'       => 'settings.manage',
+        'admin.media.'                     => 'marketing.banners_manage',
+
+        'admin.author-royalties.'          => 'royalties.manage',
+        'admin.author-payouts.'            => 'royalties.manage',
+        'admin.author-honorariums.'        => 'editorial.honorarium',
+        'admin.subscriptions.'             => ['ebooks.view', 'ebooks.manage'],
+
+        'admin.books.destroy'              => 'catalog.delete',
+        'admin.books.quick-store'          => 'catalog.create',
+        'admin.books.'                     => ['catalog.view', 'catalog.edit'],
+        'admin.authors.destroy'            => 'catalog.delete',
+        'admin.authors.'                   => ['catalog.view', 'catalog.edit'],
+        'admin.publishers.quick-payment'   => 'purchases.manage',
+        'admin.publishers.send-po'         => 'purchases.manage',
+        'admin.publishers.'                => ['catalog.view', 'catalog.edit'],
+        'admin.products.destroy'           => 'catalog.delete',
+        'admin.products.'                  => ['catalog.view', 'catalog.edit'],
+        'admin.bundles.'                   => ['catalog.view', 'catalog.create'],
+        'admin.quick.'                     => 'catalog.create',
+
+        'admin.purchases.'                 => 'purchases.manage',
+        'admin.production.'                => ['catalog.view', 'catalog.stock_update'],
+        'admin.pos.'                       => 'pos.operate',
+        'admin.payments.'                  => 'orders.manage',
+        'admin.book-requests.'             => ['support.view', 'support.reply'],
+
+        'admin.accounting.employees.'      => ['staff.view', 'staff.manage'],
+        'admin.accounting.salary.'         => 'accounting.salary_disburse',
+        'admin.accounting.tax-vat-deductions.' => 'accounting.reports',
+        'admin.accounting.'                => ['accounting.view', 'accounting.ledger_manage'],
+        'admin.reports.'                   => 'accounting.reports',
+
+        'admin.blog-categories'            => 'editorial.view',
+        'admin.blog.'                      => 'editorial.publish',
+        'admin.content.'                   => ['editorial.view', 'editorial.publish'],
+        'admin.moderation'                 => 'content.moderate',
+
+        'admin.event-campaigns.broadcast-sms' => 'support.broadcast',
+        'admin.event-campaigns.'           => ['marketing.view', 'marketing.banners_manage'],
+        'admin.sms.'                       => 'support.broadcast',
+
+        'admin.profile'                    => self::STAFF_SELF,
+    ];
+
+    /** Permission a route needs: exact map, then prefix map, otherwise ADMIN_ONLY. */
+    public static function permissionFor(?string $routeName, string $method): string
+    {
+        if ($routeName === null || $routeName === '') {
+            return self::ADMIN_ONLY;
+        }
+        if (isset(self::ROUTE_PERMISSION_MAP[$routeName])) {
+            return self::ROUTE_PERMISSION_MAP[$routeName];
+        }
+
+        $best = null;
+        foreach (self::PREFIX_PERMISSION_MAP as $prefix => $perm) {
+            if (str_starts_with($routeName, $prefix) && ($best === null || strlen($prefix) > strlen($best))) {
+                $best = $prefix;
+            }
+        }
+        if ($best === null) {
+            return self::ADMIN_ONLY;
+        }
+
+        $perm = self::PREFIX_PERMISSION_MAP[$best];
+        if (is_array($perm)) {
+            return in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true) ? $perm[0] : $perm[1];
+        }
+
+        return $perm;
+    }
+
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();
@@ -319,9 +425,32 @@ class RoleMiddleware
         }
 
         // 5. Dynamic Granular Permission Check for Current Route
+        //    Deny by default: on admin route groups every route needs an explicit permission (exact map,
+        //    then prefix map). A route nobody mapped is reserved for the administrator.
         $routeName = $request->route()?->getName();
-        if ($routeName && isset(self::ROUTE_PERMISSION_MAP[$routeName])) {
-            $requiredPermission = self::ROUTE_PERMISSION_MAP[$routeName];
+        $isInventoryRoute = $routeName && (str_starts_with($routeName, 'admin.inventory.') || str_starts_with($routeName, 'inventory.'));
+
+        // "Strict" = a group reserved for administrators (role:admin alone). Shared groups such as the seller
+        // portal (role:sub_admin,seller,admin) keep their own per-route rules.
+        $isStrictAdminGroup = $roles === [User::ROLE_ADMIN];
+
+        if ($isStrictAdminGroup && !$isInventoryRoute) {
+            $requiredPermission = self::permissionFor($routeName, $request->method());
+
+            if ($requiredPermission === self::ADMIN_ONLY) {
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'এই কাজটি শুধু মূল অ্যাডমিন করতে পারেন।'], 403);
+                }
+                abort(403, 'এই কাজটি শুধু মূল অ্যাডমিন করতে পারেন।');
+            }
+            if ($requiredPermission === self::STAFF_SELF) {
+                $requiredPermission = null;
+            }
+        } else {
+            $requiredPermission = ($routeName && isset(self::ROUTE_PERMISSION_MAP[$routeName])) ? self::ROUTE_PERMISSION_MAP[$routeName] : null;
+        }
+
+        if ($requiredPermission !== null) {
             if (!$user->hasPermission($requiredPermission)) {
                 if ($request->expectsJson()) {
                     return response()->json([

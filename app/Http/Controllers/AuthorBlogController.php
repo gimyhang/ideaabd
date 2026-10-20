@@ -37,7 +37,7 @@ class AuthorBlogController extends Controller
 
         // If user is a customer/buyer, prompt them to apply as an author
         if ($user->role === 'customer' || $user->role === 'buyer' || empty($user->role)) {
-            return redirect()->route('register.type', 'author')->with('info', 'ব্লগে নিজের লেখা প্রকাশ করতে অনুগ্রহ করে লেখক হিসেবে রেজিস্ট্রেশন আবেদন জমা দিন। অ্যাডমিন অনুমোদনের পর আপনি লেখা প্রকাশ করতে পারবেন।');
+            return redirect()->route('register.form', 'author')->with('info', 'ব্লগে নিজের লেখা প্রকাশ করতে অনুগ্রহ করে লেখক হিসেবে রেজিস্ট্রেশন আবেদন জমা দিন। অ্যাডমিন অনুমোদনের পর আপনি লেখা প্রকাশ করতে পারবেন।');
         }
 
         if (!$user->isAuthor() && !$user->isAdmin()) {
@@ -63,7 +63,7 @@ class AuthorBlogController extends Controller
         }
 
         if ($user->role === 'customer' || $user->role === 'buyer' || empty($user->role)) {
-            return redirect()->route('register.type', 'author')->with('info', 'লেখক ড্যাশবোর্ড ব্যবহারের জন্য লেখক হিসেবে রেজিস্ট্রেশন আবেদন করুন।');
+            return redirect()->route('register.form', 'author')->with('info', 'লেখক ড্যাশবোর্ড ব্যবহারের জন্য লেখক হিসেবে রেজিস্ট্রেশন আবেদন করুন।');
         }
 
         if (!$user->isAuthor() && !$user->isAdmin()) {

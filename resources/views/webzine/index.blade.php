@@ -53,7 +53,7 @@
             <div class="bg-white p-4 rounded-lg shadow-sm">
                 <h3 class="text-sm font-semibold">সাবস্ক্রাইব</h3>
                 <form action="{{ route('newsletter.subscribe') ?? '#' }}" method="POST" class="mt-2">
-                    @csrf
+                    @csrf <x-bot-trap />
                     <input name="email" type="email" placeholder="আপনার ইমেইল" class="w-full border rounded px-3 py-2 text-sm" required />
                     <button class="mt-2 w-full bg-indigo-600 text-white px-3 py-2 rounded">সাবস্ক্রাইব</button>
                 </form>

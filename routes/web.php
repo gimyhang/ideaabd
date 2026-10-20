@@ -56,7 +56,7 @@ Route::get('/sitemaps/publishers.xml', [\App\Http\Controllers\SitemapController:
 Route::get('/sitemaps/categories.xml', [\App\Http\Controllers\SitemapController::class, 'categoriesSitemap'])->name('sitemap.categories');
 Route::get('/sitemaps/research.xml', [\App\Http\Controllers\SitemapController::class, 'researchSitemap'])->name('sitemap.research');
 Route::get('/sitemaps/{slug}.xml', [\App\Http\Controllers\SitemapController::class, 'dynamicPageSitemap'])->name('sitemap.dynamic');
-Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pingSearchEngines'])->name('sitemap.ping');
+Route::get('/sitemap/ping', [\App\Http\Controllers\SitemapController::class, 'pingSearchEngines'])->middleware(['auth', 'role:admin', 'throttle:6,1'])->name('sitemap.ping');
 Route::get('/feed', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('feed');
 Route::get('/rss.xml', [\App\Http\Controllers\SitemapController::class, 'feed'])->name('rss');
 
@@ -396,10 +396,14 @@ Route::get('/pending-approval', [RegistrationController::class, 'pendingApproval
 Route::get('/register/{type}', fn($type) => redirect('/login?mode=register&role=' . $type))->whereIn('type', ['seller', 'publisher', 'author', 'buyer'])->name('register.form');
 Route::post('/register/{type}', [RegistrationController::class, 'register'])->whereIn('type', ['seller', 'publisher', 'author', 'buyer'])->name('register.submit');
 
+// Leave an admin "view as user" session (the viewed user is not an admin, so this sits outside the admin group)
+Route::post('/impersonate/leave', [\App\Http\Controllers\Admin\ImpersonationController::class, 'leave'])->middleware('auth')->name('impersonate.leave');
+
 // --- User Account & Portal (Buyer / Customer) --------------------------------
 Route::prefix('my-account')->middleware('auth')->group(function () {
     Route::get('/', [\App\Http\Controllers\UserController::class, 'dashboard'])->name('my-account');
     Route::post('/profile', [\App\Http\Controllers\UserController::class, 'updateProfile'])->name('my-account.profile.update');
+    Route::post('/phone/send-otp', [\App\Http\Controllers\UserController::class, 'sendPhoneOtp'])->middleware('throttle:3,1')->name('my-account.phone.send-otp');
     Route::post('/address', [\App\Http\Controllers\UserController::class, 'updateAddress'])->name('my-account.address.update');
     Route::post('/password', [\App\Http\Controllers\UserController::class, 'updatePassword'])->name('my-account.password.update');
     Route::post('/kyc', [\App\Http\Controllers\UserController::class, 'updateKyc'])->name('my-account.kyc.update');
@@ -437,7 +441,7 @@ Route::get('/user', function () {
 })->name('user.portal');
 
 // --- Publisher Portal & Catalog Management ---
-Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'portal.approved'])->group(function () {
+Route::prefix('publisher')->name('publisher.')->middleware(['auth', 'portal.approved:publisher'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'dashboard'])->name('dashboard');
     Route::post('/books', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'storeBook'])->name('books.store');
     Route::get('/books/{id}/edit', [\App\Http\Controllers\Publisher\PublisherPortalController::class, 'editBook'])->name('books.edit');
@@ -463,7 +467,7 @@ Route::middleware(['auth'])->group(function () {
 // --- Author Portal (KDP Self-Publishing, Royalties, Payouts & Blogs) --------
 Route::get('/blog/write', [\App\Http\Controllers\AuthorBlogController::class, 'writeGateway'])->name('blog.write');
 
-Route::prefix('author')->name('author.')->middleware(['auth', 'portal.approved'])->group(function () {
+Route::prefix('author')->name('author.')->middleware(['auth', 'portal.approved:author'])->group(function () {
     // KDP Dashboard & Sales Analytics
     Route::get('/dashboard', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'dashboard'])->name('dashboard');
     Route::post('/profile/avatar', [\App\Http\Controllers\Author\AuthorDashboardController::class, 'updateAvatar'])->name('profile.avatar');
@@ -527,6 +531,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/users/{id}/approve', [AdminController::class, 'approveUserRegistration'])->name('users.approve');
     Route::post('/users/{id}/reject', [AdminController::class, 'rejectUserRegistration'])->name('users.reject');
     Route::post('/users/{id}/quick-password-reset', [AdminController::class, 'quickResetUserPassword'])->name('users.quick-password-reset');
+    Route::post('/users/{user}/impersonate', [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('users.impersonate');
     Route::get('/books', [AdminController::class, 'books'])->name('books');
     Route::post('/books/sync-serials', [AdminController::class, 'syncBookSerials'])->name('books.sync-serials');
     Route::get('/books/generate-serial', [AdminController::class, 'generateBookSerial'])->name('books.generate-serial');
@@ -816,7 +821,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::match(['post', 'patch'], '/{user}/approve', 'approve')->name('approve');
         Route::match(['post', 'patch'], '/{user}/reject', 'reject')->name('reject');
         Route::match(['post', 'patch'], '/{user}/toggle-status', 'toggleStatus')->name('toggle-status');
-        Route::match(['delete', 'post'], '/{user}', 'cancel')->name('cancel');
+        Route::post('/{user}', 'cancel')->name('cancel');
         Route::delete('/{user}', 'cancel')->name('destroy');
     });
 

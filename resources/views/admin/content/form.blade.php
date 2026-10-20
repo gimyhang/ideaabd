@@ -975,10 +975,10 @@
                                         <div id="editable-{{ $name }}" contenteditable="true" 
                                              class="p-3.5 bg-white text-dark rich-editor-content" 
                                              style="min-height: 350px; max-height: 650px; overflow-y: auto; outline: none; font-size: 16.5px; line-height: 1.55; font-family: 'Hind Siliguri', 'Kalpurush', 'SolaimanLipi', sans-serif;"
-                                             oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! $editorHtml !!}</div>
+                                             oninput="onEditorInputWithSpellCheck('{{ $name }}')">{!! \App\Support\HtmlSanitizer::clean($editorHtml) !!}</div>
 
                                         <!-- Hidden/Synced real textarea for form submission -->
-                                        <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{!! $editorHtml !!}</textarea>
+                                        <textarea id="f-{{ $name }}" name="{{ $name }}" class="d-none @error($name) is-invalid @enderror">{!! \App\Support\HtmlSanitizer::clean($editorHtml) !!}</textarea>
                                     </div>
 
                                     <!-- Spell Checker Results Notification Box -->

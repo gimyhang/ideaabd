@@ -114,7 +114,7 @@ class EventRegistrationTest extends TestCase
         $this->campaign();
         $banned = $this->user(['phone' => '01711222333', 'is_active' => false, 'reg_status' => User::STATUS_REJECTED, 'phone_verified_at' => null]);
 
-        $this->post('/rangpursutsab', $this->payload(['password' => 'SomethingNew1!']))->assertSessionHasNoErrors();
+        $this->post('/rangpursutsab', $this->payload(['password' => 'Vq7#rT2!mX9zLp']))->assertSessionHasNoErrors();
 
         $this->assertGuest();
         $fresh = $banned->fresh();

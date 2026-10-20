@@ -275,6 +275,12 @@ class BlogPost extends Model
         });
     }
 
+    /** Post HTML is cleaned on every write, so nothing executable is ever stored. */
+    public function setContentAttribute($value): void
+    {
+        $this->attributes['content'] = \App\Support\HtmlSanitizer::clean(is_string($value) ? $value : (string) $value);
+    }
+
     public function getAuthorNameAttribute(): string
     {
         if (!empty($this->owner_name)) {

@@ -24,7 +24,7 @@
                     @endif
 
                     <form method="POST" action="{{ route('register.submit', 'publisher') }}" id="publisherRegisterForm" onsubmit="document.getElementById('publisherSubmitBtn').disabled = true; document.getElementById('publisherSubmitSpinner').classList.remove('d-none'); document.getElementById('publisherSubmitText').textContent = 'Submitting...';">
-                        @csrf
+                        @csrf <x-bot-trap />
                         
                         {{-- Publisher / Company Information --}}
                         <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">

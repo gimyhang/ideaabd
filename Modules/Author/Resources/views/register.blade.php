@@ -614,7 +614,7 @@
 
                     <!-- Main Form -->
                     <form action="{{ route('author.store-registration') }}" method="POST" enctype="multipart/form-data" id="authorRegistrationForm">
-                        @csrf
+                        @csrf <x-bot-trap />
                         <!-- Anti-bot honeypot -->
                         <input type="text" name="author_hp_field" style="display:none !important;" tabindex="-1" autocomplete="off">
                         <input type="hidden" name="country_code" id="hiddenCountryCode" value="{{ old('country_code', '+880') }}">

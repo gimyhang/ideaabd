@@ -98,7 +98,7 @@ class AdminProfileController extends Controller
 
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
-            'password'         => ['required', 'string', 'confirmed', Password::min(6)],
+            'password'         => ['required', 'string', 'confirmed', 'min:8', new \App\Rules\StrongPassword()],
         ]);
 
         $user->update([

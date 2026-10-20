@@ -277,7 +277,7 @@ class PublisherPortalController extends Controller
             'summary'                  => 'nullable|string',
             'description'              => 'nullable|string',
             'look_inside_type'         => 'nullable|string|in:pdf,images',
-            'cover_image'              => 'nullable|max:25600',
+            'cover_image'              => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
             'pdf_sample'               => 'nullable|mimes:pdf|max:25600',
         ]);
 
@@ -511,7 +511,7 @@ class PublisherPortalController extends Controller
             'summary'                  => 'nullable|string',
             'description'              => 'nullable|string',
             'look_inside_type'         => 'nullable|string|in:pdf,images',
-            'cover_image'              => 'nullable|max:25600',
+            'cover_image'              => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
             'pdf_sample'               => 'nullable|mimes:pdf|max:25600',
         ]);
 
@@ -737,7 +737,7 @@ class PublisherPortalController extends Controller
             'website'     => 'nullable|url|max:255',
             'address'     => 'nullable|string|max:500',
             'description' => 'nullable|string',
-            'logo'        => 'nullable|max:25600',
+            'logo'        => 'nullable|file|mimes:jpg,jpeg,png,webp,avif,gif|max:25600',
         ]);
 
         $updates = [

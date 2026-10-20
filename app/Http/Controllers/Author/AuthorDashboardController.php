@@ -404,12 +404,19 @@ class AuthorDashboardController extends Controller
             'payout_number'   => ['nullable', 'string', 'max:50'],
         ]);
 
+        if ($request->filled('phone')) {
+            $asked = \App\Support\PhoneNormalizer::normalize($request->input('phone'));
+            $has = \App\Support\PhoneNormalizer::normalize((string) $user->phone);
+            if (($asked['local_phone'] ?? $request->input('phone')) !== ($has['local_phone'] ?? (string) $user->phone)) {
+                return back()->withErrors(['phone' => 'ফোন নম্বর বদলাতে অ্যাকাউন্ট সেটিংস (My Account) থেকে কোড দিয়ে যাচাই করুন।'])->withInput();
+            }
+        }
+
         try {
             DB::transaction(function () use ($user, &$author, $request) {
                 $user->name = $request->input('name');
-                if ($request->filled('phone')) {
-                    $user->phone = $request->input('phone');
-                }
+                // The phone number is an identity: it is changed only through My Account (code sent to the new number),
+                // never silently from this form.
 
                 $regData = is_array($user->reg_data) ? $user->reg_data : [];
 

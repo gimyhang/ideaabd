@@ -436,7 +436,7 @@ class PasswordResetController extends Controller
         $request->validate([
             'token'    => 'required',
             'email'    => 'required|email',
-            'password' => 'required|confirmed|min:6|max:128',
+            'password' => ['required', 'confirmed', 'string', 'min:8', 'max:128', new \App\Rules\StrongPassword()],
         ], [
             'email.required'     => 'Please enter your email address.',
             'password.required'  => 'Please enter a new password.',
@@ -531,7 +531,7 @@ class PasswordResetController extends Controller
         $request->validate([
             'phone'    => ['required', 'string'],
             'otp'      => ['required', 'string', 'digits:6'],
-            'password' => ['required', 'confirmed', 'string', 'min:6', 'max:128'],
+            'password' => ['required', 'confirmed', 'string', 'min:8', 'max:128', new \App\Rules\StrongPassword()],
         ], $customMessages);
 
         $phoneInput = trim((string) $request->input('phone'));

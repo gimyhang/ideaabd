@@ -493,9 +493,7 @@ class LoginController extends Controller
                             ->orWhere('phone', '880' . $last10);
                     }
 
-                    // 3. Username / Full Name matching
-                    $query->orWhere('name', $loginInput)
-                        ->orWhere('name', $normalizedInput);
+                    // (Full-name login was removed: names are not unique, so a name could point at somebody else's account.)
 
                     // 4. Admin identifier fallback
                     if ($cleanLower === 'admin' || $cleanLower === $adminUsername || in_array($cleanLower, array_filter($adminEmails), true) || in_array($rawDigitsOnly, array_filter($adminPhones), true)) {
@@ -564,10 +562,8 @@ class LoginController extends Controller
                 Auth::login($matchedUser, $request->boolean('remember'));
                 $request->session()->regenerate();
 
-                $targetUrl = $request->input('redirect_to') ?: ($request->input('redirect') ?: session()->pull('url.intended'));
-                if (!$targetUrl) {
-                    $targetUrl = $matchedUser->isAdmin() ? route('admin.dashboard') : route('home');
-                }
+                $default = $matchedUser->isAdmin() ? route('admin.dashboard') : route('home');
+                $targetUrl = \App\Support\SafeRedirect::sanitize($request->input('redirect_to') ?: ($request->input('redirect') ?: session()->pull('url.intended')), $default);
                 $redirectUrl = $targetUrl;
 
                 if ($isAjax) {
@@ -762,7 +758,7 @@ class LoginController extends Controller
         $request->validate([
             'phone'                 => ['required', 'string'],
             'otp'                   => ['required', 'string', 'digits:6'],
-            'password'              => ['required', 'string', 'min:6', 'max:64', 'confirmed'],
+            'password'              => ['required', 'string', 'min:8', 'max:64', 'confirmed', new \App\Rules\StrongPassword()],
             'password_confirmation' => ['required', 'string'],
             'redirect_to'           => ['nullable', 'string', 'max:500'],
         ], [
@@ -846,7 +842,7 @@ class LoginController extends Controller
         \Illuminate\Support\Facades\Auth::login($user, true);
         $request->session()->regenerate();
 
-        $targetUrl = $request->input('redirect_to') ?: ($user->isAdmin() ? route('admin.dashboard') : route('home'));
+        $targetUrl = \App\Support\SafeRedirect::sanitize($request->input('redirect_to'), $user->isAdmin() ? route('admin.dashboard') : route('home'));
         $msg = 'Password set. Signed in.';
 
         if ($request->ajax() || $request->wantsJson()) {
@@ -882,7 +878,7 @@ class LoginController extends Controller
             // Ignore session invalidation exceptions
         }
 
-        $redirectTo = $request->input('redirect_to') ?: url('/');
+        $redirectTo = \App\Support\SafeRedirect::sanitize($request->input('redirect_to'), url('/'));
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

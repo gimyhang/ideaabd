@@ -48,3 +48,29 @@
     php_value max_execution_time 300
     php_value max_input_time 300
 </IfModule>
+
+# ── Hardening ────────────────────────────────────────────────────────────────
+# Never serve hidden files (.env, .git …) or leftovers such as dumps, backups and logs.
+<FilesMatch "(^\.(?!well-known)|\.(sql|bak|old|orig|swp|log|ini|sh|md|lock|dist)$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Uploaded files are data, never programs: refuse to run scripts that live in upload folders.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(storage|images|uploads|media)/.*\.(php\d?|phtml|phar|pl|py|cgi|sh|asp|aspx|jsp)$ - [F,L,NC]
+</IfModule>
+
+# Browser safety headers for everything Apache serves directly (images, scripts, fonts).
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always unset X-Powered-By
+</IfModule>
+ServerSignature Off

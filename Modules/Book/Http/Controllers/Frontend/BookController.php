@@ -493,7 +493,7 @@ class BookController extends Controller
     /**
      * একক বইয়ের ডিটেইলস ও ক্রস-সেলিং (Frequently Bought Together)
      */
-    public function show(string $slug): View
+    public function show(Request $request, string $slug): View
     {
         $decoded = urldecode($slug);
         $book = Book::query()

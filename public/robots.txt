@@ -100,3 +100,25 @@ Sitemap: https://www.ideaabd.com/sitemaps/publishers.xml
 Sitemap: https://www.ideaabd.com/sitemaps/categories.xml
 Sitemap: https://www.ideaabd.com/sitemaps/research.xml
 Sitemap: https://www.ideaabd.com/feed
+
+
+# Aggressive scrapers that give nothing back (also blocked by the server).
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: MJ12bot
+User-agent: DotBot
+User-agent: BLEXBot
+User-agent: PetalBot
+User-agent: Bytespider
+User-agent: DataForSeoBot
+User-agent: SerpstatBot
+User-agent: SeekportBot
+User-agent: Barkrowler
+User-agent: MegaIndex
+Disallow: /
+
+# Private tools
+User-agent: *
+Disallow: /tts/
+Disallow: /impersonate/
+Disallow: /sitemap/ping

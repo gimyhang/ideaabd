@@ -47,7 +47,7 @@
     ];
 @endphp
 <script type="application/ld+json">
-{!! json_encode($librarySchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($librarySchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -252,7 +252,7 @@
 
                     {{-- ফর্ম ২: দ্রুত কাস্টমার রেজিস্টার ফর্ম (ওটিপি সহ - ডিফল্ট একটিভ) --}}
                     <form action="{{ route('register.quick-customer') }}" method="POST" id="gateRegisterForm">
-                        @csrf
+                        @csrf <x-bot-trap />
                         <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -391,7 +391,7 @@
         {{-- লাইব্রেরি রেজিস্ট্রেশন ফরম --}}
         <div id="libraryFormWrapper" class="{{ !auth()->check() ? 'opacity-50 pe-none' : '' }}" style="transition: all 0.4s ease;">
             <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="dynamicLibraryForm" class="library-card-box">
-                @csrf
+                @csrf <x-bot-trap />
                 
                 {{-- অপ্টিমাইজড ফটো বেস৬৪ ডাটা --}}
                 <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">

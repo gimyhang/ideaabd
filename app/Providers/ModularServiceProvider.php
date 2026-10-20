@@ -29,7 +29,9 @@ class ModularServiceProvider extends ServiceProvider
 
             // ২. API রাউটস অটো-লোড (api.php)
             $apiRoute = "{$module}/Routes/api.php";
-            if (File::exists($apiRoute)) {
+            // These modules are unfinished (their controllers return views that do not exist) and their own provider
+            // already registers the same routes, so loading them here only added broken /api/api/... duplicates.
+            if (File::exists($apiRoute) && !in_array($moduleName, ['BulkOrder', 'KidsZone', 'Tag'], true)) {
                 Route::middleware('api')->prefix('api')->group($apiRoute);
             }
 

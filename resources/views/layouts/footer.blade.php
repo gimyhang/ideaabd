@@ -168,7 +168,7 @@
                 <div class="footer-newsletter-box">
                     <label class="small text-white fw-semibold mb-1.5 d-block">নতুন বই ও অফারের আপডেট পেতে:</label>
                     <form action="{{ route('newsletter.subscribe') }}" method="POST">
-                        @csrf
+                        @csrf <x-bot-trap />
                         <div class="input-group input-group-sm">
                             <input type="email" name="email" class="form-control footer-email-input text-white" placeholder="আপনার ইমেইল ঠিকানা..." required>
                             <button class="btn btn-primary footer-email-btn" type="submit" title="যুক্ত হোন">

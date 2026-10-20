@@ -59,7 +59,7 @@
     ];
 @endphp
 <script type="application/ld+json">
-{!! json_encode($contactSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+{!! json_encode($contactSchema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_HEX_TAG | JSON_HEX_AMP) !!}
 </script>
 @endsection
 
@@ -279,7 +279,7 @@
                         @endif
 
                         <form action="{{ route('contact.submit') }}" method="POST" id="mainContactForm" class="modern-contact-form">
-                            @csrf
+                            @csrf <x-bot-trap />
 
                             <div class="row g-3 g-md-3.5">
                                 {{-- Full Name --}}

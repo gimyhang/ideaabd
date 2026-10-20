@@ -19,6 +19,7 @@
     $totalPosts = $categories->sum('posts_count');
     $keep = fn (array $except = []) => request()->except(array_merge(['page'], $except));
     $sideFeatured = $featured->reject(fn ($p) => $heroPost && $p->id === $heroPost->id)->take(3);
+    $heroSlides = collect([$heroPost])->filter()->merge($sideFeatured)->unique('id')->take(4)->values();
 @endphp
 
 @section('title', 'আইডিয়াপত্র — মুক্তচিন্তার অসীম আকাশ (Ideapatra)')
@@ -103,32 +104,41 @@
 
     <main class="container bl-main">
 
-        {{-- Hero: top story + 3 highlights --}}
+        {{-- Featured posts carousel --}}
         @if(!$filtered && $heroPost && (int) request('page', 1) === 1)
-            <section class="bl-hero">
-                <a href="{{ route('blog.show', $heroPost->slug) }}" class="bl-hero__main">
-                    @if($heroImg)<img src="{{ $heroImg }}" alt="" width="900" height="560" decoding="async" fetchpriority="high">@else<span class="bl-hero__ph"></span>@endif
-                    <span class="bl-hero__shade"></span>
-                    <span class="bl-hero__text">
-                        @if($heroPost->category)<em>{{ $heroPost->category->name }}</em>@endif
-                        <strong>{{ $heroPost->title }}</strong>
-                        <small>{{ $heroPost->author_name ?: 'সম্পাদকীয়' }} · {{ optional($heroPost->published_at)->format('d M Y') }}</small>
-                    </span>
-                </a>
-                @if($sideFeatured->isNotEmpty())
-                    <div class="bl-hero__side">
-                        @foreach($sideFeatured as $f)
-                            @php $fi = $imgOf($f); @endphp
-                            <a href="{{ route('blog.show', $f->slug) }}" class="bl-mini">
-                                <span class="bl-mini__img">@if($fi)<img src="{{ $fi }}" alt="" width="160" height="160" loading="lazy" decoding="async">@endif</span>
-                                <span class="bl-mini__text">
-                                    @if($f->category)<em>{{ $f->category->name }}</em>@endif
-                                    <strong>{{ $f->title }}</strong>
-                                    <small>{{ $f->author_name ?: 'সম্পাদকীয়' }}</small>
+            <section id="blogFeaturedCarousel" class="bl-hero carousel slide" aria-label="Featured posts" data-bs-ride="carousel" data-bs-interval="5500" data-bs-pause="hover">
+                <div class="carousel-inner">
+                    @foreach($heroSlides as $slideIndex => $slidePost)
+                        @php $slideImage = $imgOf($slidePost); @endphp
+                        <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
+                            <a href="{{ route('blog.show', $slidePost->slug) }}" class="bl-hero__main">
+                                @if($slideImage)
+                                    <img src="{{ $slideImage }}" alt="" width="1200" height="560" @if($loop->first) fetchpriority="high" @else loading="lazy" @endif decoding="async">
+                                @else
+                                    <span class="bl-hero__ph"></span>
+                                @endif
+                                <span class="bl-hero__shade"></span>
+                                <span class="bl-hero__text">
+                                    @if($slidePost->category)<em>{{ $slidePost->category->name }}</em>@endif
+                                    <strong>{{ $slidePost->title }}</strong>
+                                    <small>{{ $slidePost->author_name ?: 'সম্পাদকীয়' }} · {{ optional($slidePost->published_at)->format('d M Y') }}</small>
                                 </span>
                             </a>
+                        </div>
+                    @endforeach
+                </div>
+                @if($heroSlides->count() > 1)
+                    <div class="carousel-indicators">
+                        @foreach($heroSlides as $slideIndex => $slidePost)
+                            <button type="button" data-bs-target="#blogFeaturedCarousel" data-bs-slide-to="{{ $slideIndex }}" class="{{ $loop->first ? 'active' : '' }}" @if($loop->first) aria-current="true" @endif aria-label="Go to featured post {{ $slideIndex + 1 }}"></button>
                         @endforeach
                     </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#blogFeaturedCarousel" data-bs-slide="prev" aria-label="Previous featured post">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#blogFeaturedCarousel" data-bs-slide="next" aria-label="Next featured post">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    </button>
                 @endif
             </section>
         @endif
@@ -152,7 +162,7 @@
                             <a href="{{ route('blog.category', $sec->slug) }}" class="dz-shopall">All</a>
                         </div>
                     </div>
-                    <div class="idea-book-slider dz-track bl-track" id="blRow{{ $sec->id }}">
+                    <div class="idea-book-slider dz-track bl-track" id="blRow{{ $sec->id }}" data-autoplay="1">
                         @foreach($sec->posts as $p)
                             <div class="idea-slider-item bl-item">@include('blog::partials.post-card', ['post' => $p, 'imageUrl' => $imgOf($p)])</div>
                         @endforeach
@@ -160,11 +170,33 @@
                 </section>
             @endforeach
         @elseif($posts->count())
-            <div class="bl-grid">
+            <section class="dz-row bl-results-row">
+                <div class="dz-row__head">
+                    <h2 class="dz-row__title">
+                        @if(request()->filled('search'))
+                            Search results
+                        @elseif($curCat)
+                            {{ $curCat->name }}
+                        @elseif($curSort === 'popular')
+                            Popular posts
+                        @else
+                            All posts
+                        @endif
+                        <small>{{ number_format($posts->total()) }}</small>
+                    </h2>
+                    <div class="dz-row__tools">
+                        <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('blResultsTrack', -1)" aria-label="Previous posts"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button type="button" class="dz-arrow" onclick="scrollIdeaSlider('blResultsTrack', 1)" aria-label="Next posts"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="idea-book-slider dz-track bl-track" id="blResultsTrack" data-autoplay="1">
                 @foreach($posts as $p)
-                    @include('blog::partials.post-card', ['post' => $p, 'imageUrl' => $imgOf($p)])
+                    <div class="idea-slider-item bl-item">
+                        @include('blog::partials.post-card', ['post' => $p, 'imageUrl' => $imgOf($p)])
+                    </div>
                 @endforeach
-            </div>
+                </div>
+            </section>
             @if($posts->hasPages())<div class="bl-pager">{{ $posts->links() }}</div>@endif
         @else
             <div class="sf-empty"><strong>No posts</strong><a href="{{ route('blog.index') }}" class="dz-shopall">Reset</a></div>

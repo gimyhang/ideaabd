@@ -417,15 +417,15 @@ class AdminDashboardService
                 $feed[] = [
                     'id'          => $order->id,
                     'type'        => 'web_order',
-                    'channel'     => 'ই-কমার্স অর্ডার',
+                    'channel'     => 'Online',
                     'channel_icon'=> 'fa-cart-shopping',
                     'badge_bg'    => 'bg-primary-subtle text-primary',
-                    'customer'    => $order->user?->name ?? ($order->customer_name ?? 'সম্মানিত ক্রেতা'),
+                    'customer'    => $order->user?->name ?? ($order->customer_name ?? 'Customer'),
                     'amount'      => (float) ($order->total_amount ?? 0),
                     'status'      => $order->status ?? 'pending',
-                    'status_label'=> ['pending' => 'পেন্ডিং', 'processing' => 'প্রসেসিং', 'shipped' => 'শিপড', 'delivered' => 'ডেলিভার্ড'][$order->status ?? ''] ?? ucfirst($order->status ?? 'Active'),
+                    'status_label'=> ['pending' => 'Pending', 'processing' => 'Processing', 'shipped' => 'Shipped', 'delivered' => 'Delivered'][$order->status ?? ''] ?? ucfirst($order->status ?? 'Active'),
                     'created_at'  => $order->created_at,
-                    'time_ago'    => $order->created_at ? $order->created_at->diffForHumans() : 'এইমাত্র',
+                    'time_ago'    => $order->created_at ? $order->created_at->diffForHumans() : 'Now',
                 ];
             }
         }
@@ -437,15 +437,15 @@ class AdminDashboardService
                 $feed[] = [
                     'id'          => $bill->id,
                     'type'        => 'pos_bill',
-                    'channel'     => 'বইমেলা / শোরুম POS',
+                    'channel'     => 'POS',
                     'channel_icon'=> 'fa-cash-register',
                     'badge_bg'    => 'bg-success-subtle text-success',
-                    'customer'    => $bill->customer_name ?: 'কাউন্টার ক্রেতা',
+                    'customer'    => $bill->customer_name ?: 'Walk-in',
                     'amount'      => (float) ($bill->net_amount ?: $bill->total_amount),
                     'status'      => $bill->payment_status ?: 'paid',
-                    'status_label'=> $bill->payment_status === 'paid' ? 'পেইড' : 'বাকি',
+                    'status_label'=> $bill->payment_status === 'paid' ? 'Paid' : 'Due',
                     'created_at'  => $bill->created_at,
-                    'time_ago'    => $bill->created_at ? $bill->created_at->diffForHumans() : 'এইমাত্র',
+                    'time_ago'    => $bill->created_at ? $bill->created_at->diffForHumans() : 'Now',
                 ];
             }
         }
@@ -657,7 +657,7 @@ class AdminDashboardService
             $uniques = [];
 
             if (!$this->hasTable('visitor_logs')) {
-                return ['labels' => ['আজকে'], 'views' => [0], 'uniques' => [0]];
+                return ['labels' => ['Today'], 'views' => [0], 'uniques' => [0]];
             }
 
             if ($period === 'monthly') {
@@ -844,12 +844,12 @@ class AdminDashboardService
         }
 
         return match ($period) {
-            'today' => [now()->startOfDay(), now()->endOfDay(), 'আজকের দিন (' . Bn::date(now()) . ')'],
-            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay(), 'গতকাল (' . Bn::date(now()->subDay()) . ')'],
-            'week'  => [now()->subDays(7)->startOfDay(), now()->endOfDay(), 'বিগত ৭ দিন'],
-            'month' => [now()->startOfMonth(), now()->endOfMonth(), 'চলতি মাস (' . now()->translatedFormat('F Y') . ')'],
-            'year'  => [now()->startOfYear(), now()->endOfYear(), 'চলতি বছর (' . Bn::num(now()->year) . ')'],
-            default => [null, null, 'সর্বমোট সার্বিক সময় (All Time)'],
+            'today' => [now()->startOfDay(), now()->endOfDay(), 'Today'],
+            'yesterday' => [now()->subDay()->startOfDay(), now()->subDay()->endOfDay(), 'Yesterday'],
+            'week'  => [now()->subDays(7)->startOfDay(), now()->endOfDay(), 'Week'],
+            'month' => [now()->startOfMonth(), now()->endOfMonth(), 'Month'],
+            'year'  => [now()->startOfYear(), now()->endOfYear(), 'Year'],
+            default => [null, null, 'Lifetime'],
         };
     }
 
@@ -888,6 +888,7 @@ class AdminDashboardService
                      'key'         => 'digital_marketing',
                      'title'       => 'Digital Marketing',
                      'title_bn'    => 'ডিজিটাল মার্কেটিং',
+                     'short'       => 'Marketing',
                      'icon'        => 'fa-solid fa-bullhorn',
                      'color'       => '#2563eb',
                      'bg_light'    => '#eff6ff',
@@ -902,6 +903,7 @@ class AdminDashboardService
                      'key'         => 'content_editorial',
                      'title'       => 'Content & Editorial',
                      'title_bn'    => 'কনটেন্ট ও সম্পাদকীয়',
+                     'short'       => 'Editorial',
                      'icon'        => 'fa-solid fa-feather-pointed',
                      'color'       => '#ca8a04',
                      'bg_light'    => '#fefce8',
@@ -916,6 +918,7 @@ class AdminDashboardService
                      'key'         => 'technical_it',
                      'title'       => 'Technical & IT',
                      'title_bn'    => 'টেকনিক্যাল ও আইটি',
+                     'short'       => 'Technical',
                      'icon'        => 'fa-solid fa-laptop-code',
                      'color'       => '#16a34a',
                      'bg_light'    => '#f0fdf4',
@@ -930,6 +933,7 @@ class AdminDashboardService
                      'key'         => 'operations_support',
                      'title'       => 'Operations & Support',
                      'title_bn'    => 'অপারেশন্স ও কাস্টমার সাপোর্ট',
+                     'short'       => 'Operations',
                      'icon'        => 'fa-solid fa-headset',
                      'color'       => '#ea580c',
                      'bg_light'    => '#fff7ed',
@@ -944,6 +948,7 @@ class AdminDashboardService
                      'key'         => 'press_artisans',
                      'title'       => 'Press & Production Artisans',
                      'title_bn'    => 'ছাপাখানা ও বাঁধাই কারিগর',
+                     'short'       => 'Press',
                      'icon'        => 'fa-solid fa-book-bookmark',
                      'color'       => '#7e22ce',
                      'bg_light'    => '#f3e8ff',
@@ -985,7 +990,7 @@ class AdminDashboardService
                     ? round(($data['count'] / $totalEmployees) * 100, 1) 
                     : 0;
 
-                $chartLabels[] = $data['title_bn'] . ' (' . $data['title'] . ')';
+                $chartLabels[] = $data['short'];
                 $chartCounts[] = $data['count'];
                 $chartPayrolls[] = $data['payroll'];
                 $chartColors[] = $data['color'];

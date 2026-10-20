@@ -4803,6 +4803,15 @@ class IdeaAccountingController extends Controller
     /**
      * Salary Payments & Disbursement Ledger.
      */
+    /** Printable wage slip for one salary payment (linked from the salary list). */
+    public function salarySlip(int|string $salary): View
+    {
+        $salary = IdeaSalaryPayment::with('employee')->findOrFail($salary);
+        $invoiceSettings = self::getInvoiceSettings();
+
+        return view('admin.accounting.salary.slip', compact('salary', 'invoiceSettings'));
+    }
+
     public function salaryDisbursements(Request $request): View
     {
         $search = $request->input('search');

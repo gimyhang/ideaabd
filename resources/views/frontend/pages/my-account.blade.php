@@ -508,8 +508,35 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-dark">মোবাইল ফোন নম্বর *</label>
-                        <input type="text" name="phone" class="form-control" value="{{ old('phone', $user->phone) }}" required>
+                        <input type="text" name="phone" id="profilePhone" class="form-control" value="{{ old('phone', $user->phone) }}" data-original="{{ $user->phone }}" required>
+                        @error('phone')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div>
+                    <div class="mb-3" id="phoneOtpBox" style="display: none;">
+                        <label class="form-label fw-semibold small text-dark">নতুন নম্বরের যাচাই কোড *</label>
+                        <div class="input-group">
+                            <input type="text" name="phone_otp" class="form-control" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+                            <button type="button" class="btn btn-outline-secondary" id="phoneOtpSend" data-url="{{ route('my-account.phone.send-otp') }}" data-token="{{ csrf_token() }}">কোড পাঠান</button>
+                        </div>
+                        <small class="text-muted" id="phoneOtpMsg" style="font-size: 11px;">নম্বর বদলাতে নতুন নম্বরে পাঠানো ৬ সংখ্যার কোড লাগবে।</small>
+                    </div>
+                    <script>
+                        (function () {
+                            var phone = document.getElementById('profilePhone'), box = document.getElementById('phoneOtpBox');
+                            var send = document.getElementById('phoneOtpSend'), msg = document.getElementById('phoneOtpMsg');
+                            if (!phone || !box) return;
+                            var digits = function (v) { return String(v || '').replace(/\D/g, '').slice(-10); };
+                            var toggle = function () { box.style.display = digits(phone.value) !== digits(phone.dataset.original) ? '' : 'none'; };
+                            phone.addEventListener('input', toggle); toggle();
+                            send.addEventListener('click', function () {
+                                send.disabled = true;
+                                var fd = new FormData(); fd.append('_token', send.dataset.token); fd.append('phone', phone.value);
+                                fetch(send.dataset.url, { method: 'POST', body: fd, headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                                    .then(function (r) { return r.json().then(function (j) { msg.textContent = j.message || ''; }); })
+                                    .catch(function () { msg.textContent = 'কোড পাঠানো যায়নি, আবার চেষ্টা করুন।'; })
+                                    .then(function () { setTimeout(function () { send.disabled = false; }, 30000); });
+                            });
+                        })();
+                    </script>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-dark">ইমেইল ঠিকানা</label>
                         <input type="email" name="email" class="form-control" value="{{ old('email', str_contains($user->email ?? '', '@buyer.ideaabd.com') ? '' : $user->email) }}">

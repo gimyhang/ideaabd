@@ -249,22 +249,22 @@ class PaymentController extends Controller
                 ->orWhere('transaction_id', $order_id)
                 ->first();
 
-            if ($order) {
+            if ($order && $order->payment_status !== 'paid') {
+                // The redirect carries nothing a customer could not type into the address bar, so it is not proof of payment.
+                // The order is parked for the administrator to confirm against the Nagad merchant statement.
                 $order->update([
-                    'payment_status' => 'paid',
-                    'status'         => 'processing',
+                    'payment_status' => 'pending',
                     'transaction_id' => $request->input('payment_ref_id', $order_id),
+                    'admin_notes'    => trim(($order->admin_notes ?? '') . ' | Nagad redirect received, awaiting confirmation (ref: ' . $request->input('payment_ref_id') . ')'),
                 ]);
 
-                Log::channel('audit')->info('Nagad Payment Successful', [
+                Log::channel('audit')->warning('Nagad payment awaiting admin confirmation', [
                     'order_id' => $order->id,
                     'trx_id'   => $request->input('payment_ref_id'),
                 ]);
 
-                \App\Services\RoyaltyService::processOrderRoyalties($order);
-
                 return redirect()->route('payment.success')->with([
-                    'message'      => 'নগদ পেমেন্ট সফল হয়েছে!',
+                    'message'      => 'আপনার নগদ পেমেন্টের তথ্য পাওয়া গেছে। যাচাই শেষে অর্ডার নিশ্চিত করা হবে।',
                     'order_number' => $order->order_number,
                 ]);
             }
@@ -376,6 +376,16 @@ class PaymentController extends Controller
             ->orWhere('transaction_id', $tran_id)
             ->first();
 
+        if ($order && $order->payment_status === 'paid') {
+            return redirect()->route('payment.success')->with(['message' => 'পেমেন্ট ইতিমধ্যে সম্পন্ন হয়েছে।', 'order_number' => $order->order_number]);
+        }
+
+        if ($order && !$this->sslcommerzPaymentIsGenuine($order, $val_id)) {
+            Log::channel('audit')->warning('SSLCommerz success callback rejected (not confirmed by gateway)', ['order' => $order->id, 'ip' => $request->ip()]);
+
+            return redirect()->route('payment.fail')->with('error', 'পেমেন্ট যাচাই করা যায়নি। টাকা কেটে থাকলে আমাদের সাথে যোগাযোগ করুন।');
+        }
+
         if ($order) {
             $order->update([
                 'payment_status' => 'paid',
@@ -403,7 +413,8 @@ class PaymentController extends Controller
             ->orWhere('payment_id', $tran_id)
             ->orWhere('transaction_id', $tran_id)
             ->first();
-        if ($order) {
+        // A "fail" request must never be able to undo a payment that was already confirmed.
+        if ($order && $order->payment_status !== 'paid') {
             $order->update(['payment_status' => 'unpaid']);
         }
 
@@ -425,7 +436,7 @@ class PaymentController extends Controller
                 ->orWhere('payment_id', $tran_id)
                 ->orWhere('transaction_id', $tran_id)
                 ->first();
-            if ($order) {
+            if ($order && $order->payment_status !== 'paid' && $this->sslcommerzPaymentIsGenuine($order, $request->input('val_id'))) {
                 $order->update([
                     'payment_status' => 'paid',
                     'status'         => 'processing',
@@ -456,5 +467,44 @@ class PaymentController extends Controller
     public function cancel()
     {
         return view('payment.fail')->with('error', 'পেমেন্ট বাতিল করা হয়েছে।');
+    }
+
+    /**
+     * Asks SSLCommerz itself whether this payment is real. The browser/IPN request alone proves nothing, because anyone
+     * can post a fake "success" to our public URL. A payment counts only when the gateway says VALID/VALIDATED for the
+     * same transaction and the amount matches the order.
+     */
+    private function sslcommerzPaymentIsGenuine(Order $order, ?string $valId): bool
+    {
+        $valId = trim((string) $valId);
+        $config = $this->getSslcommerzConfig();
+
+        if ($valId === '' || empty($config['store_id']) || empty($config['store_passwd'])) {
+            return false;
+        }
+
+        $base = $config['sandbox'] ? 'https://sandbox.sslcommerz.com' : 'https://securepay.sslcommerz.com';
+
+        try {
+            $res = Http::timeout(15)->get($base . '/validator/api/validationserverAPI.php', [
+                'val_id'       => $valId,
+                'store_id'     => $config['store_id'],
+                'store_passwd' => $config['store_passwd'],
+                'format'       => 'json',
+            ]);
+            $data = $res->json();
+        } catch (\Throwable $e) {
+            Log::warning('SSLCommerz validation request failed: ' . $e->getMessage());
+            return false;
+        }
+
+        if (!is_array($data) || !in_array($data['status'] ?? '', ['VALID', 'VALIDATED'], true)) {
+            return false;
+        }
+
+        $sameTransaction = in_array((string) ($data['tran_id'] ?? ''), array_filter([(string) $order->order_number, (string) $order->payment_id, (string) $order->transaction_id]), true);
+        $paid = (float) ($data['currency_amount'] ?? $data['amount'] ?? 0);
+
+        return $sameTransaction && abs($paid - (float) $order->total_amount) < 0.01;
     }
 }
