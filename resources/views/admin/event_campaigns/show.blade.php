@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', $campaign->title . ' — Participants Dashboard')
+@section('title', $campaign->title . ' — Entries')
 @section('hide_header', true)
 
 @push('styles')
@@ -421,27 +421,27 @@
     <ul class="nav form-studio-nav-tabs mt-4" id="campaignMainTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'participants' ? 'active' : '' }}" id="tab-participants-nav" data-bs-toggle="tab" data-bs-target="#tab-participants" type="button" role="tab" aria-controls="tab-participants" aria-selected="{{ $currentTab === 'participants' ? 'true' : 'false' }}">
-                অংশগ্রহণকারী
+                Entries
                 <span class="badge bg-primary rounded-pill ms-1">{{ $totalRegistrations }}</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'geo' ? 'active' : '' }}" id="tab-geo-database-nav" data-bs-toggle="tab" data-bs-target="#tab-geo-database" type="button" role="tab" aria-controls="tab-geo-database" aria-selected="{{ $currentTab === 'geo' ? 'true' : 'false' }}">
-                বিভাগ ও জেলা
+                Geo
                 <span class="badge bg-teal-subtle text-dark border rounded-pill ms-1" style="background-color: #ccfbf1;">{{ $totalGeoDistricts }} জেলা</span>
             </button>
         </li>
         @if(!$isScholarship && ($isWriter || $totalLittleMagCount > 0))
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'littlemag' ? 'active' : '' }}" id="tab-littlemag-nav" data-bs-toggle="tab" data-bs-target="#tab-littlemag" type="button" role="tab" aria-controls="tab-littlemag" aria-selected="{{ $currentTab === 'littlemag' ? 'true' : 'false' }}">
-                লিটিলম্যাগ
+                Magazines
                 <span class="badge bg-warning text-dark rounded-pill ms-1">{{ $totalLittleMagCount }}</span>
             </button>
         </li>
         @endif
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $currentTab === 'form-studio' ? 'active' : '' }}" id="tab-form-studio-nav" data-bs-toggle="tab" data-bs-target="#tab-form-studio" type="button" role="tab" aria-controls="tab-form-studio" aria-selected="{{ $currentTab === 'form-studio' ? 'true' : 'false' }}">
-                ফর্ম স্টুডিও
+                Form
                 <span class="badge bg-warning text-dark rounded-pill ms-1">ডিজাইন</span>
             </button>
         </li>
@@ -849,12 +849,12 @@
         </form>
     </div>
 
-    {{-- MAIN PARTICIPANTS TABLE CARD --}}
+    {{-- MAIN ENTRIES TABLE CARD --}}
     <div class="aec-table-card">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="d-flex align-items-center gap-2">
                 <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5">
-                    <i class="fa-solid fa-users-line text-primary"></i> <span>অংশগ্রহণকারী</span>
+                    <i class="fa-solid fa-users-line text-primary"></i> <span>Entries</span>
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace px-2.5 py-0.5">{{ $registrations->total() }}</span>
                 </h6>
                 <span class="badge bg-light text-secondary border font-monospace">{{ $perPage }} / page</span>

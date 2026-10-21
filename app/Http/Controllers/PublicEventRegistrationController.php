@@ -165,14 +165,37 @@ class PublicEventRegistrationController extends Controller
      *
      * @return array{0: array<string, mixed>, 1: array<string, string>}
      */
+    /**
+     * Fields the built-in scholarship form already renders. Admin-defined custom fields with the
+     * same name would be duplicate inputs (and break the form), so they are never rendered or validated.
+     */
+    public const SCHOLARSHIP_BUILTIN_FIELDS = [
+        'group', 'admission_roll', 'merit_position', 'college_name', 'college_code', 'assigned_subject',
+        'previous_subject', 'subject_choice', 'scholarship_degree', 'admission_fee', 'monthly_fee', 'hostel_cost',
+        'father_name', 'mother_name', 'father_income', 'mother_income', 'guardian_income', 'father_phone', 'mother_phone',
+        'guardian_name', 'guardian_phone', 'gender', 'religion', 'nationality', 'birth_date', 'marital_status',
+        'annual_income', 'guardian_income', 'tuition_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
+        'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa',
+        'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa',
+        'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa',
+        'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa',
+        'perm_division', 'permanent_district', 'perm_city_corporation', 'perm_municipality', 'perm_upazila', 'perm_post_office', 'perm_postcode', 'perm_village', 'permanent_address',
+        'pres_division', 'present_district', 'pres_city_corporation', 'pres_municipality', 'pres_upazila', 'pres_post_office', 'pres_postcode', 'pres_village', 'present_address',
+        'scholarship_reason',
+    ];
+
     protected function customFieldRules(EventCampaign $campaign): array
     {
         $rules = [];
         $attributes = [];
+        $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
 
         foreach ((array) ($campaign->custom_fields ?? []) as $i => $field) {
             $name = $field['name'] ?? null;
             if (!$name || !preg_match('/^[A-Za-z0-9_]{1,60}$/', (string) $name)) {
+                continue;
+            }
+            if ($isScholarship && in_array($name, self::SCHOLARSHIP_BUILTIN_FIELDS, true)) {
                 continue;
             }
             // Never let a custom key shadow a built-in column of the form.
@@ -254,6 +277,13 @@ class PublicEventRegistrationController extends Controller
 
         $isScholarship = ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
 
+        // Bengali digits must not fail numeric/date validation.
+        $digitKeys = ['father_income', 'mother_income', 'guardian_income', 'annual_income', 'admission_fee', 'monthly_fee', 'hostel_cost', 'tuition_fee', 'amount_paid', 'birth_date'];
+        $request->merge(collect($digitKeys)
+            ->filter(fn ($k) => is_string($request->input($k)))
+            ->mapWithKeys(fn ($k) => [$k => $this->normalizeBnToEn(trim($request->input($k)))])
+            ->all());
+
         $rules = [
             'name'                 => 'required|string|max:255',
             'country_code'         => 'nullable|string|max:10',
@@ -271,6 +301,22 @@ class PublicEventRegistrationController extends Controller
             'student_photo'        => 'nullable|max:25600',
             'optimized_photo_data' => 'nullable|string',
             'scholarship_reason'   => 'nullable|string|max:2000',
+            'prev_scholarships'    => 'nullable|array|max:5',
+            'prev_scholarships.*.year'   => 'nullable|string|max:20',
+            'prev_scholarships.*.times'  => 'nullable|string|max:20',
+            'prev_scholarships.*.amount' => 'nullable|string|max:30',
+            'admission_fee'        => 'nullable|numeric|min:0',
+            'hostel_cost'          => 'nullable|numeric|min:0',
+            'father_income'        => 'nullable|numeric|min:0',
+            'mother_income'        => 'nullable|numeric|min:0',
+            'guardian_income'      => 'nullable|numeric|min:0',
+            'father_phone'         => 'nullable|string|max:20',
+            'mother_phone'         => 'nullable|string|max:20',
+            'scholarship_degree'   => 'nullable|string|max:20',
+            'birth_date'           => 'nullable|date|after_or_equal:1970-01-01|before_or_equal:' . now()->subYears(10)->toDateString(),
+            'monthly_fee'          => 'nullable|numeric|min:0',
+            'other_scholarship'    => 'nullable|string|max:10',
+            'other_scholarship_details' => 'nullable|string|max:255',
         ];
 
         $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
@@ -436,9 +482,9 @@ class PublicEventRegistrationController extends Controller
             'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa', 
             'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa',
             'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa',
-            'perm_division', 'permanent_district', 'perm_upazila', 'perm_post_office', 'perm_village', 'permanent_address',
-            'pres_division', 'present_district', 'pres_upazila', 'pres_post_office', 'pres_village', 'present_address', 
-            'scholarship_reason',
+            'perm_division', 'permanent_district', 'perm_city_corporation', 'perm_municipality', 'perm_upazila', 'perm_post_office', 'perm_postcode', 'perm_village', 'permanent_address',
+            'pres_division', 'present_district', 'pres_city_corporation', 'pres_municipality', 'pres_upazila', 'pres_post_office', 'pres_postcode', 'pres_village', 'present_address',
+            'scholarship_reason', 'scholarship_degree', 'father_income', 'mother_income', 'father_phone', 'mother_phone', 'admission_fee', 'hostel_cost', 'monthly_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
             // International / Abroad Address Fields
             'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
             // Writer & Cultural Artist Specific Fields
@@ -457,9 +503,12 @@ class PublicEventRegistrationController extends Controller
                     if (str_contains($key, 'phone')) {
                         $pNorm = \App\Support\PhoneNormalizer::normalize($val);
                         $val = $pNorm['local_phone'];
-                    } elseif (str_contains($key, 'roll') || str_contains($key, 'year') || str_contains($key, 'count')) {
+                    } elseif (preg_match('/roll|year|count|fee|income|cost|gpa|postcode/', $key)) {
                         $val = $this->normalizeBnToEn($val);
                     }
+                }
+                if ($key === 'prev_scholarships' && is_array($val)) {
+                    $val = collect($val)->map(fn ($r) => array_map(fn ($x) => $this->normalizeBnToEn(is_string($x) ? trim($x) : ''), (array) $r))->values()->all();
                 }
                 $customFieldAnswers[$key] = $val;
             }
@@ -832,7 +881,7 @@ class PublicEventRegistrationController extends Controller
             'isPdf'        => true,
         ]);
 
-        $pdf->setPaper('a4', 'portrait');
+        $pdf->setPaper('letter', 'portrait');
         $pdf->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled'      => true,

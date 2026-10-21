@@ -1,572 +1,438 @@
 @extends('layouts.admin')
 
-@section('title', 'ইউজার নিরাপত্তা ও আইপি ব্লকলিস্ট — User Security')
-@section('heading', 'ইউজার নিরাপত্তা, ওয়ানটাইম পাসওয়ার্ড ও আইপি ব্লকলিস্ট')
+@section('title', 'Security')
+@section('heading', 'Security')
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">ইউজার ম্যানেজমেন্ট</a></li>
-    <li class="breadcrumb-item active">নিরাপত্তা ও ওয়ানটাইম পাসওয়ার্ড</li>
+    <li class="breadcrumb-item"><a href="{{ route('admin.users') }}">Users</a></li>
+    <li class="breadcrumb-item active">Security</li>
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/admin-security.css') }}?v={{ @filemtime(public_path('css/admin-security.css')) }}">
+@endpush
+
 @section('actions')
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#manualBlockIpModal">
-            <i class="fa-solid fa-ban me-1"></i> আইপি ব্লক
-        </button>
-        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#quickOtpModal">
-            <i class="fa-solid fa-shield-halved me-1"></i> ওয়ানটাইম OTP
-        </button>
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3.5 fw-bold shadow-xs" data-bs-toggle="modal" data-bs-target="#autoPasswordModal">
-            <i class="fa-solid fa-key me-1"></i> অটো পাসওয়ার্ড জেনারেটর
-        </button>
-    </div>
+    <button type="button" class="sec-btn danger" data-bs-toggle="modal" data-bs-target="#manualBlockIpModal"><i class="fa-solid fa-ban"></i> Block IP</button>
+    <button type="button" class="sec-btn" data-bs-toggle="modal" data-bs-target="#forceLogoutModal"><i class="fa-solid fa-right-from-bracket"></i> Force logout</button>
+    <button type="button" class="sec-btn" data-bs-toggle="modal" data-bs-target="#quickOtpModal"><i class="fa-solid fa-shield-halved"></i> One-time password</button>
+    <button type="button" class="sec-btn primary" onclick="openAutoPasswordModal()"><i class="fa-solid fa-key"></i> Password generator</button>
 @endsection
 
 @section('content')
-<div class="d-flex flex-column gap-4">
+@php
+    $circ = 2 * M_PI * 54;
+    $threatTotal = max(1, array_sum($threats));
+    $tabs = [
+        'requests' => ['label' => 'Reset requests', 'icon' => 'fa-key', 'badge' => $stats['pending_requests']],
+        'ips'      => ['label' => 'IP addresses', 'icon' => 'fa-network-wired', 'badge' => $stats['total_blocked_ips']],
+        'issues'   => ['label' => 'Flagged', 'icon' => 'fa-triangle-exclamation', 'badge' => $stats['security_issues']],
+        'activity' => ['label' => 'Activity', 'icon' => 'fa-clock-rotate-left', 'badge' => 0],
+    ];
+    $activeTab = $tab === 'blocked' ? 'ips' : $tab;
+    $iconFor = fn ($t) => match (true) {
+        str_contains($t, 'unblock') => ['fa-lock-open', 'ok'],
+        str_contains($t, 'block') => ['fa-ban', 'danger'],
+        in_array($t, ['terminate_sessions', 'force_logout'], true) => ['fa-right-from-bracket', 'warn'],
+        default => ['fa-key', ''],
+    };
+    $gradeLabel = ['strong' => 'Strong protection', 'fair' => 'Fairly protected', 'weak' => 'At risk'];
+@endphp
 
-    <!-- Flash Messages -->
+<div class="sec d-flex flex-column gap-4" id="secRoot" data-live-url="{{ route('admin.users.security.live-stats') }}">
+
+    {{-- Flash --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fa-solid fa-circle-check me-2 text-success fs-5"></i>
-            <div class="fw-semibold">{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-success alert-dismissible fade show rounded-4 mb-0" role="alert"><i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
-
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-xs" role="alert">
-            <i class="fa-solid fa-triangle-exclamation me-2 text-danger fs-5"></i>
-            <div class="fw-semibold">{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-0" role="alert"><i class="fa-solid fa-triangle-exclamation me-2"></i>{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    @endif
+    @if($errors->any())
+        <div class="alert alert-danger rounded-4 mb-0"><ul class="mb-0 ps-3">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
     @endif
 
-    <!-- Auto-Generated Password Alert Banner with Instant Copy & WhatsApp -->
+    {{-- One-time secrets --}}
     @if(session('success_generated_password'))
         @php $pData = session('success_generated_password'); @endphp
-        <div class="card border-0 rounded-4 shadow-sm bg-dark text-white p-4 mb-2" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <span class="badge bg-success rounded-pill px-2.5 py-1 text-white">
-                            <i class="fa-solid fa-shield-check me-1"></i> পাসওয়ার্ড অ্যাক্টিভ
-                        </span>
-                        <h5 class="fw-bold mb-0 text-white">নতুন স্ট্রং পাসওয়ার্ড তৈরি সম্পন্ন!</h5>
-                    </div>
-                    <p class="mb-0 text-white-50 small">
-                        ইউজার: <strong class="text-white">{{ $pData['user_name'] }}</strong> ({{ $pData['user_email'] ?: $pData['user_phone'] }}) | প্রথম লগইনে পাসওয়ার্ড পরিবর্তনের অনুরোধ: <span class="badge bg-warning text-dark">{{ $pData['force_change'] ? 'হ্যাঁ (বাধ্যতামূলক)' : 'না' }}</span>
-                    </p>
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <div class="bg-white text-dark font-monospace fw-bold fs-5 px-3 py-1.5 rounded-3 border shadow-xs d-flex align-items-center gap-2" id="generatedPasswordBox">
-                        <span id="genPassText">{{ $pData['password'] }}</span>
-                    </div>
-                    <button type="button" class="btn btn-primary rounded-pill px-3 fw-bold" onclick="copyText('{{ $pData['password'] }}', 'পাসওয়ার্ড কপি হয়েছে!')">
-                        <i class="fa-solid fa-copy me-1"></i> কপি করুন
-                    </button>
-                    @if(!empty($pData['user_phone']))
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $pData['user_phone']) }}?text={{ urlencode('প্রিয় ' . $pData['user_name'] . ', আপনার আইডিয়া প্রকাশন অ্যাকাউন্টের নতুন পাসওয়ার্ড: ' . $pData['password'] . ' । লগইন লিংক: ' . $pData['login_url']) }}" 
-                           target="_blank" class="btn btn-success rounded-pill px-3 fw-bold">
-                            <i class="fab fa-whatsapp me-1"></i> হোয়াটসঅ্যাপে পাঠান
-                        </a>
-                    @endif
-                </div>
+        <div class="sec-secret">
+            <div>
+                <div class="fw-bold mb-1"><i class="fa-solid fa-shield-check me-1 text-success"></i> New password generated</div>
+                <div class="small opacity-75">{{ $pData['user_name'] }} · {{ $pData['user_email'] ?: $pData['user_phone'] }}@if($pData['force_change']) · must change at first login @endif</div>
+                <div class="small mt-1 text-warning"><i class="fa-solid fa-eye-slash me-1"></i> Shown only once — copy it now</div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <code>{{ $pData['password'] }}</code>
+                <button type="button" class="sec-btn" onclick="copyText(@js($pData['password']), 'Password copied!')"><i class="fa-solid fa-copy"></i> Copy</button>
+                @if(!empty($pData['user_phone']))
+                    <a class="sec-btn ok" target="_blank" rel="noopener" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $pData['user_phone']) }}?text={{ urlencode('Hello ' . $pData['user_name'] . ', your new Idea Prokashon password is: ' . $pData['password'] . ' — please change it after signing in.') }}"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                @endif
             </div>
         </div>
     @endif
 
-    <!-- OTP Generated Alert Banner with Copy Option -->
     @if(session('success_otp'))
         @php $otpData = session('success_otp'); @endphp
-        <div class="card border-0 rounded-4 shadow-sm bg-primary text-white p-4 mb-2">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <i class="fa-solid fa-shield-halved fs-4 text-warning"></i>
-                        <h5 class="fw-bold mb-0 text-white">ওয়ানটাইম পাসওয়ার্ড (OTP) সফলভাবে তৈরি হয়েছে!</h5>
-                    </div>
-                    <p class="mb-0 text-white-50 small">
-                        ব্যবহারকারী: <strong>{{ $otpData['user_name'] }}</strong> ({{ $otpData['user_email'] ?: $otpData['user_phone'] }}) | মেয়াদ: {{ $otpData['expires_at'] }}
-                    </p>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-white text-dark font-monospace fw-bold fs-4 px-3.5 py-1.5 rounded-3 border shadow-xs" id="generatedOtpBadge">
-                        {{ $otpData['otp'] }}
-                    </div>
-                    <button type="button" class="btn btn-light rounded-pill px-3 fw-bold" onclick="copyText('{{ $otpData['otp'] }}', 'OTP কপি হয়েছে!')">
-                        <i class="fa-solid fa-copy me-1"></i> কপি করুন
-                    </button>
-                    @if(!empty($otpData['user_phone']))
-                        <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $otpData['user_phone']) }}?text={{ urlencode('প্রিয় ' . $otpData['user_name'] . ', আপনার আইডিয়া প্রকাশন অ্যাকাউন্টের ওয়ানটাইম পাসওয়ার্ড (OTP): ' . $otpData['otp'] . ' । এটি দিয়ে লগইন করে অবিলম্বে আপনার নতুন পাসওয়ার্ড সেট করুন।') }}" 
-                           target="_blank" class="btn btn-success rounded-pill px-3 fw-bold">
-                            <i class="fab fa-whatsapp me-1"></i> হোয়াটসঅ্যাপে পাঠান
-                        </a>
-                    @endif
-                </div>
+        <div class="sec-secret" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">
+            <div>
+                <div class="fw-bold mb-1"><i class="fa-solid fa-shield-halved me-1 text-warning"></i> One-time password generated</div>
+                <div class="small opacity-75">{{ $otpData['user_name'] }} · {{ $otpData['user_email'] ?: $otpData['user_phone'] }} · expires {{ $otpData['expires_at'] }}</div>
+                <div class="small mt-1 text-warning"><i class="fa-solid fa-eye-slash me-1"></i> Shown only once — copy it now</div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <code>{{ $otpData['otp'] }}</code>
+                <button type="button" class="sec-btn" onclick="copyText(@js($otpData['otp']), 'OTP copied!')"><i class="fa-solid fa-copy"></i> Copy</button>
+                @if(!empty($otpData['user_phone']))
+                    <a class="sec-btn ok" target="_blank" rel="noopener" href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $otpData['user_phone']) }}?text={{ urlencode('Hello ' . $otpData['user_name'] . ', your one-time password is: ' . $otpData['otp'] . ' (valid for 24 hours)') }}"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                @endif
             </div>
         </div>
     @endif
 
-    <!-- Security KPI Cards -->
-    <div class="row g-3">
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-warning h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-semibold">পেন্ডিং রিসেট রিকুয়েস্ট</span>
-                    <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                    </div>
-                </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['pending_requests']) }} টি</h3>
-                <p class="text-muted small mb-0">যেসব ইউজার লিংকে রিসেট করতে পারেননি</p>
+    {{-- Hero: score + checks --}}
+    <div class="sec-hero">
+        <div class="sec-card sec-card-pad sec-score">
+            <div class="sec-ring" data-score="{{ $health['score'] }}" data-grade="{{ $health['grade'] }}">
+                <svg viewBox="0 0 120 120" aria-hidden="true">
+                    <circle class="track" cx="60" cy="60" r="54" fill="none" stroke-width="10"/>
+                    <circle class="bar" cx="60" cy="60" r="54" fill="none" stroke-width="10" stroke-dasharray="{{ $circ }}" stroke-dashoffset="{{ $circ }}"/>
+                </svg>
+                <div class="sec-ring-num"><b>{{ $health['score'] }}</b><small>/ 100</small></div>
+            </div>
+            <div>
+                <span class="sec-grade {{ $health['grade'] }}">
+                    <i class="fa-solid {{ $health['grade'] === 'strong' ? 'fa-shield-check' : ($health['grade'] === 'fair' ? 'fa-shield-halved' : 'fa-shield-exclamation') }}"></i>
+                    {{ $gradeLabel[$health['grade']] }}
+                </span>
+                <h5 class="fw-bold mb-1">Security score</h5>
+                <p class="muted small mb-2">Calculated from site configuration and admin account checks.</p>
+                <div class="sec-live" id="secLive"><span>Live</span></div>
             </div>
         </div>
 
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-danger h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-semibold">ফ্ল্যাগড সিকিউরিটি ইস্যু</span>
-                    <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div class="sec-card sec-card-pad">
+            <div class="fw-bold mb-3">Protection checklist</div>
+            <div class="sec-checks">
+                @foreach($health['checks'] as $c)
+                    <div class="sec-check {{ $c['state'] }}">
+                        <div class="sec-dot"><i class="fa-solid {{ $c['state'] === 'ok' ? 'fa-check' : ($c['state'] === 'warn' ? 'fa-exclamation' : 'fa-xmark') }}"></i></div>
+                        <div><b>{{ $c['label'] }}</b><span>{{ $c['detail'] }}</span></div>
                     </div>
-                </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['security_issues']) }} টি</h3>
-                <p class="text-muted small mb-0">৩+ বার ভুল পাসওয়ার্ড ও ভিজ্যুয়াল চ্যালেঞ্জ সক্রিয়</p>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-dark h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-semibold">অটো-ব্লক করা আইপি</span>
-                    <div class="rounded-circle bg-dark-subtle text-dark p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fa-solid fa-ban"></i>
-                    </div>
-                </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['total_blocked_ips']) }} টি</h3>
-                <p class="text-muted small mb-0">৫ বার ভুল পাসওয়ার্ড দেওয়ার কারণে সম্পূর্ণ ব্লক</p>
-            </div>
-        </div>
-
-        <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card bg-white rounded-4 shadow-sm border-0 p-3.5 border-start border-4 border-info h-100">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="small text-muted fw-semibold">১০ মিনিট সাময়িক লক</span>
-                    <div class="rounded-circle bg-info-subtle text-info p-2 d-flex align-items-center justify-content-center" style="width:36px;height:36px;">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
-                </div>
-                <h3 class="text-dark fs-4 fw-bold mb-1">{{ number_format($stats['locked_10min_ips']) }} টি</h3>
-                <p class="text-muted small mb-0">৩ বার চেষ্টার পর সাময়িক বিরতিতে আছে</p>
+                @endforeach
             </div>
         </div>
     </div>
 
-    <!-- Main Navigation Card -->
-    <div class="card bg-white rounded-4 shadow-sm border-0 overflow-hidden">
-        <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-3 py-3 px-4 border-bottom">
-            <ul class="nav nav-pills gap-2" id="securityTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link {{ $tab === 'requests' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
-                       href="{{ route('admin.users.security.index', ['tab' => 'requests']) }}">
-                        <i class="fa-solid fa-key me-1.5 text-warning"></i> ১. পাসওয়ার্ড রিসেট রিকুয়েস্ট
-                        @if($stats['pending_requests'] > 0)
-                            <span class="badge bg-danger rounded-pill ms-1">{{ $stats['pending_requests'] }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link {{ $tab === 'ips' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
-                       href="{{ route('admin.users.security.index', ['tab' => 'ips']) }}">
-                        <i class="fa-solid fa-shield-virus me-1.5 text-danger"></i> ২. সকল আইপি ও ট্র্যাকার
-                        @if($stats['total_blocked_ips'] > 0)
-                            <span class="badge bg-danger rounded-pill ms-1">{{ $stats['total_blocked_ips'] }}</span>
-                        @endif
-                    </a>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link {{ $tab === 'issues' ? 'active' : '' }} rounded-pill fw-semibold py-1.5 px-3" 
-                       href="{{ route('admin.users.security.index', ['tab' => 'issues']) }}">
-                        <i class="fa-solid fa-triangle-exclamation me-1.5 text-danger"></i> ৩. ফ্ল্যাগড সিকিউরিটি ইস্যু
-                        @if($stats['security_issues'] > 0)
-                            <span class="badge bg-danger rounded-pill ms-1">{{ $stats['security_issues'] }}</span>
-                        @endif
-                    </a>
-                </li>
-            </ul>
+    {{-- KPIs --}}
+    <div class="sec-kpis">
+        @foreach([
+            ['pending_requests', 'Pending requests', 'fa-envelope-open-text', '#d97706', 'Password reset help'],
+            ['security_issues', 'Flagged', 'fa-triangle-exclamation', '#dc2626', '3+ failed attempts'],
+            ['total_blocked_ips', 'Blocked IPs', 'fa-ban', '#7f1d1d', 'Auto or manual block'],
+            ['locked_10min_ips', 'Temporarily locked', 'fa-clock', '#0891b2', '10-minute cooldown'],
+            ['forced_changes', 'Password change due', 'fa-key', '#2563eb', 'Force-change enabled'],
+        ] as [$key, $label, $icon, $color, $sub])
+            <div class="sec-card sec-kpi" style="--kpi: {{ $color }}">
+                <div class="lbl"><i class="fa-solid {{ $icon }} me-1"></i>{{ $label }}</div>
+                <div class="num" data-stat="{{ $key }}">{{ number_format($stats[$key]) }}</div>
+                <div class="sub">{{ $sub }}</div>
+            </div>
+        @endforeach
+    </div>
 
-            <form action="{{ route('admin.users.security.clean-expired') }}" method="POST" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="সমস্ত মেয়াদোত্তীর্ণ ১০ মিনিটের লক ক্লিন করুন">
-                    <i class="fa-solid fa-broom me-1"></i> মেয়াদোত্তীর্ণ লক ক্লিন
-                </button>
-            </form>
+    {{-- Threat distribution --}}
+    <div class="sec-card sec-card-pad">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="fw-bold">IPs by threat level</div>
+            <span class="muted small">{{ array_sum($threats) }} tracked</span>
+        </div>
+        <div class="sec-threat">
+            <i class="c" style="width: {{ $threats['critical'] / $threatTotal * 100 }}%"></i>
+            <i class="h" style="width: {{ $threats['high'] / $threatTotal * 100 }}%"></i>
+            <i class="m" style="width: {{ $threats['medium'] / $threatTotal * 100 }}%"></i>
+            <i class="l" style="width: {{ $threats['low'] / $threatTotal * 100 }}%"></i>
+        </div>
+        <div class="sec-legend">
+            <span>● Critical <b data-threat="critical">{{ $threats['critical'] }}</b></span>
+            <span>● High <b data-threat="high">{{ $threats['high'] }}</b></span>
+            <span>● Medium <b data-threat="medium">{{ $threats['medium'] }}</b></span>
+            <span>● Low <b data-threat="low">{{ $threats['low'] }}</b></span>
+        </div>
+    </div>
+
+    {{-- Main panel --}}
+    <div class="sec-card" style="overflow:hidden">
+        <div class="sec-bar">
+            <div class="sec-tabs">
+                @foreach($tabs as $key => $t)
+                    <a class="sec-tab {{ $activeTab === $key ? 'active' : '' }}" href="{{ route('admin.users.security.index', ['tab' => $key]) }}">
+                        <i class="fa-solid {{ $t['icon'] }}"></i> {{ $t['label'] }}
+                        @if($t['badge'] > 0)<span class="pill">{{ $t['badge'] }}</span>@endif
+                    </a>
+                @endforeach
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                @if(in_array($tab, ['ips', 'issues', 'blocked'], true))
+                    <a class="sec-btn" href="{{ route('admin.users.security.export', array_filter(['tab' => $tab, 'q' => $q, 'status' => $status])) }}"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+                @endif
+                <form action="{{ route('admin.users.security.clean-expired') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="sec-btn" title="Delete expired temporary locks"><i class="fa-solid fa-broom"></i> Clean expired locks</button>
+                </form>
+            </div>
         </div>
 
-        <div class="card-body p-0">
-            @if($tab === 'requests')
-                <!-- =========================================================================
-                     TAB 1: PASSWORD RESET REQUESTS
-                     ========================================================================= -->
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4 py-2.5">ইউজারের নাম ও পরিচয়</th>
-                                <th class="py-2.5">ইমেইল / মোবাইল নম্বর</th>
-                                <th class="py-2.5">রিকুয়েস্ট বার্তা / নোট</th>
-                                <th class="py-2.5">আইপি ও সময়</th>
-                                <th class="py-2.5 text-center">স্ট্যাটাস</th>
-                                <th class="text-end pe-4 py-2.5">অ্যাকশন</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($requests as $req)
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width:34px;height:34px;">
-                                                {{ mb_substr($req->user_name ?? ($req->user?->name ?? 'U'), 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-dark">{{ $req->user_name ?: ($req->user?->name ?? 'অজ্ঞাত ব্যবহারকারী') }}</div>
-                                                @if($req->user)
-                                                    <span class="badge bg-light text-secondary border px-1.5 py-0.5 text-capitalize" style="font-size:10px;">{{ $req->user->role }}</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="font-monospace fw-semibold text-dark">{{ $req->identity }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="text-muted small" style="max-width: 250px;">{{ $req->reason_notes ?: 'লিংকে পাসওয়ার্ড রিসেট করতে ব্যর্থ।' }}</div>
-                                        @if($req->otp_code)
-                                            <div class="mt-1">
-                                                <span class="badge bg-primary-subtle text-primary font-monospace fw-bold px-2 py-0.5">OTP: {{ $req->otp_code }}</span>
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="small font-monospace text-muted">{{ $req->user_ip ?: '—' }}</div>
-                                        <div class="small text-muted" style="font-size: 11px;">{{ $req->created_at->diffForHumans() }}</div>
-                                    </td>
-                                    <td class="text-center">
-                                        @if($req->status === 'resolved')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                <i class="fa-solid fa-circle-check me-1"></i> ওয়ানটাইম পাসওয়ার্ড প্রেরিত
-                                            </span>
-                                        @elseif($req->status === 'rejected')
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                প্রত্যাখ্যাত
-                                            </span>
-                                        @else
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1 fw-semibold">
-                                                <i class="fa-solid fa-hourglass-half me-1"></i> অপেক্ষমান
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                            <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="request_id" value="{{ $req->id }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" title="৬ ডিজিটের ওটিপি তৈরি">
-                                                    <i class="fa-solid fa-key me-1"></i> OTP তৈরি
-                                                </button>
-                                            </form>
-                                            @if($req->user)
-                                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" 
-                                                        onclick="openAutoPasswordModal('{{ $req->user->id }}', '{{ $req->user->name }}', '{{ $req->identity }}')">
-                                                    <i class="fa-solid fa-lock me-1"></i> পাসওয়ার্ড জেনারেটর
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fa-solid fa-key fs-2 mb-2 text-secondary"></i>
-                                        <div>এখনো কোনো পাসওয়ার্ড রিসেট সহায়তার আবেদন জমা পড়েনি।</div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+        <form method="GET" id="secFilters" class="sec-bar" style="border-bottom:1px solid var(--sec-line)">
+            <input type="hidden" name="tab" value="{{ $tab }}">
+            <div class="sec-filters">
+                <div class="sec-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" name="q" value="{{ $q }}" class="sec-input" placeholder="{{ $tab === 'requests' ? 'Name, email, phone or IP' : ($tab === 'activity' ? 'Description or IP' : 'IP or username') }}" autocomplete="off">
                 </div>
-
-                @if($requests->hasPages())
-                    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-                        <span class="small text-muted">মোট {{ $requests->total() }} টির মধ্যে {{ $requests->firstItem() }} - {{ $requests->lastItem() }} টি দেখানো হচ্ছে</span>
-                        {{ $requests->links() }}
-                    </div>
+                @if($tab === 'requests')
+                    <select name="status" class="sec-select">
+                        <option value="">All statuses</option>
+                        @foreach(['pending' => 'Pending', 'resolved' => 'Resolved', 'rejected' => 'Rejected'] as $v => $l)
+                            <option value="{{ $v }}" @selected($status === $v)>{{ $l }}</option>
+                        @endforeach
+                    </select>
+                @elseif($tab !== 'activity')
+                    <select name="status" class="sec-select">
+                        <option value="">All states</option>
+                        @foreach(['blocked' => 'Blocked', 'locked' => 'Locked', 'issue' => 'Flagged', 'critical' => 'Critical', 'high' => 'High', 'medium' => 'Medium', 'low' => 'Low'] as $v => $l)
+                            <option value="{{ $v }}" @selected($status === $v)>{{ $l }}</option>
+                        @endforeach
+                    </select>
                 @endif
+                @if($q !== '' || $status !== '')
+                    <a href="{{ route('admin.users.security.index', ['tab' => $tab]) }}" class="sec-btn sm"><i class="fa-solid fa-xmark"></i> Reset</a>
+                @endif
+            </div>
+            <span class="muted small">Your IP: <span class="mono">{{ $myIp }}</span></span>
+        </form>
 
+        {{-- ============ REQUESTS ============ --}}
+        @if($tab === 'requests')
+            <div class="sec-table-wrap">
+                <table class="sec-table">
+                    <thead><tr><th>User</th><th>Identity</th><th>Message</th><th>IP &amp; time</th><th class="c">Status</th><th class="r">Actions</th></tr></thead>
+                    <tbody>
+                    @forelse($requests as $req)
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="sec-avatar">{{ mb_substr($req->user_name ?? ($req->user?->name ?? 'U'), 0, 1) }}</div>
+                                    <div>
+                                        <div class="fw-bold">{{ $req->user_name ?: ($req->user?->name ?? 'Unknown') }}</div>
+                                        @if($req->user)<span class="sec-chip mute">{{ $req->user->role }}</span>@endif
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="mono fw-semibold">{{ $req->identity }}</td>
+                            <td style="max-width:260px"><div class="muted small">{{ $req->reason_notes ?: 'Could not reset the password by link' }}</div>
+                                @if($req->otp_code)<span class="sec-chip info mono mt-1">OTP {{ $req->otp_code }}</span>@endif
+                            </td>
+                            <td><div class="mono small">{{ $req->user_ip ?: '—' }}</div><div class="muted" style="font-size:11px" title="{{ $req->created_at }}">{{ $req->created_at->locale('en')->diffForHumans() }}</div></td>
+                            <td class="c">
+                                @if($req->status === 'resolved')<span class="sec-chip ok"><i class="fa-solid fa-circle-check"></i> OTP sent</span>
+                                @elseif($req->status === 'rejected')<span class="sec-chip bad">Rejected</span>
+                                @else<span class="sec-chip warn"><i class="fa-solid fa-hourglass-half"></i> Pending</span>@endif
+                            </td>
+                            <td class="r">
+                                <div class="d-inline-flex gap-1">
+                                    <form action="{{ route('admin.users.security.generate-otp') }}" method="POST">@csrf
+                                        <input type="hidden" name="request_id" value="{{ $req->id }}">
+                                        <button class="sec-btn sm"><i class="fa-solid fa-key"></i> OTP</button>
+                                    </form>
+                                    @if($req->user)
+                                        <button type="button" class="sec-btn sm primary" onclick='openAutoPasswordModal(@json($req->user->id), @json($req->user->name), @json($req->identity))'><i class="fa-solid fa-lock"></i> Password</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6"><div class="sec-empty"><i class="fa-solid fa-inbox"></i>No requests found.</div></td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($requests->hasPages())<div class="p-3 d-flex justify-content-between align-items-center"><span class="muted small">{{ $requests->total() }} total</span>{{ $requests->links() }}</div>@endif
+
+        {{-- ============ ACTIVITY ============ --}}
+        @elseif($tab === 'activity')
+            @if($activity && $activity->count())
+                <ul class="sec-timeline">
+                    @foreach($activity as $a)
+                        @php [$ic, $tone] = $iconFor($a->action_type); @endphp
+                        <li>
+                            <span class="dot {{ $tone }}"><i class="fa-solid {{ $ic }}"></i></span>
+                            <div class="d-flex justify-content-between gap-3 flex-wrap">
+                                <div>{{ $a->description }}</div>
+                                <span class="muted small" title="{{ $a->created_at }}">{{ $a->created_at->locale('en')->diffForHumans() }}</span>
+                            </div>
+                            <div class="muted small mt-1"><i class="fa-solid fa-user-shield me-1"></i>{{ $a->user?->name ?? 'System' }} · <span class="mono">{{ $a->ip_address ?: '—' }}</span></div>
+                        </li>
+                    @endforeach
+                </ul>
+                @if($activity->hasPages())<div class="p-3">{{ $activity->links() }}</div>@endif
             @else
-                <!-- =========================================================================
-                     TAB 2 & 3: BLOCKED, LOCKED & SECURITY ISSUES IPS
-                     ========================================================================= -->
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13.5px;">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4 py-2.5">আইপি অ্যাড্রেস (IP Address)</th>
-                                <th class="py-2.5">সর্বশেষ ব্যবহৃত ইউজারনেম/ইমেইল</th>
-                                <th class="py-2.5 text-center">ব্যর্থ চেষ্টা কাউন্ট</th>
-                                <th class="py-2.5 text-center">নিরাপত্তা স্ট্যাটাস ও থ্রেট লেভেল</th>
-                                <th class="py-2.5">সর্বশেষ চেষ্টার সময়</th>
-                                <th class="text-end pe-4 py-2.5">অ্যাকশন</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($blockedLogs as $log)
-                                @php
-                                    $is10MinLocked = !$log->is_blocked && $log->locked_until && \Carbon\Carbon::now()->lt($log->locked_until);
-                                @endphp
-                                <tr>
-                                    <td class="ps-4 font-monospace fw-bold text-dark">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-network-wired text-muted"></i>
-                                            <span>{{ $log->ip_address }}</span>
-                                            @if($log->is_security_issue)
-                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 rounded-pill px-2 py-0.5" style="font-size: 10px;">
-                                                    <i class="fa-solid fa-triangle-exclamation me-0.5"></i> Security Issue
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="text-dark small fw-semibold">{{ $log->last_username ?: '—' }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge {{ $log->attempt_count >= 5 ? 'bg-danger' : ($log->attempt_count >= 3 ? 'bg-warning text-dark' : 'bg-light text-dark border') }} font-monospace px-2.5 py-1">
-                                            {{ $log->attempt_count }} বার
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        @if($log->is_blocked)
-                                            <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fa-solid fa-ban me-1"></i> ৫ বার ব্যর্থ — অটো ব্লকড
-                                            </span>
-                                        @elseif($is10MinLocked)
-                                            <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fa-solid fa-clock me-1"></i> ৩ বার ব্যর্থ — ১০ মিনিট লক
-                                            </span>
-                                        @elseif($log->is_security_issue)
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold">
-                                                <i class="fa-solid fa-shield-halved me-1"></i> সাইন ভেরিফিকেশন সক্রিয়
-                                            </span>
-                                        @else
-                                            <span class="badge bg-light text-secondary border rounded-pill px-2 py-0.5">
-                                                স্বাভাবিক অবস্থা
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="small text-dark">{{ $log->updated_at->format('d M, Y h:i A') }}</div>
-                                        <small class="text-muted" style="font-size: 11px;">{{ $log->updated_at->diffForHumans() }}</small>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <div class="d-flex align-items-center justify-content-end gap-1.5">
-                                            <form action="{{ route('admin.users.security.unblock-ip') }}" method="POST" class="d-inline"
-                                                  data-confirm="আপনি কি এই আইপি ({{ $log->ip_address }}) এর নিরাপত্তা ব্লক ও ব্যর্থ লগইন কাউন্টার ক্লিন করে আনব্লক করতে চান?"
-                                                  data-confirm-title="আইপি আনব্লক ও সিকিউরিটি ক্লিন"
-                                                  data-confirm-icon="question"
-                                                  data-confirm-btn="<i class='fa-solid fa-lock-open me-1'></i> হ্যাঁ, আনব্লক করুন">
-                                                @csrf
-                                                <input type="hidden" name="ip_address" value="{{ $log->ip_address }}">
-                                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
-                                                    <i class="fa-solid fa-lock-open me-1"></i> আনব্লক ও ক্লিন
-                                                </button>
-                                            </form>
-                                            @if($log->last_username)
-                                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-2.5 fw-bold" 
-                                                        onclick="openAutoPasswordModal('', '', '{{ $log->last_username }}')" title="ইউজারের পাসওয়ার্ড পরিবর্তন">
-                                                    <i class="fa-solid fa-key"></i>
-                                                </button>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fa-solid fa-shield-check fs-2 mb-2 text-success"></i>
-                                        <div>বর্তমানে কোনো নিরাপত্তা সমস্যা বা আইপি ব্লক নেই। সিস্টেম সম্পূর্ণ সুরক্ষিত!</div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                @if($blockedLogs->hasPages())
-                    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-                        <span class="small text-muted">মোট {{ $blockedLogs->total() }} টির মধ্যে {{ $blockedLogs->firstItem() }} - {{ $blockedLogs->lastItem() }} টি দেখানো হচ্ছে</span>
-                        {{ $blockedLogs->links() }}
-                    </div>
-                @endif
+                <div class="sec-empty"><i class="fa-solid fa-clock-rotate-left" style="color:var(--sec-muted)"></i>No security activity yet.</div>
             @endif
-        </div>
+
+        {{-- ============ IPS ============ --}}
+        @else
+            <div class="sec-table-wrap">
+                <table class="sec-table">
+                    <thead><tr>
+                        <th style="width:36px"><input type="checkbox" id="secCheckAll" class="form-check-input" aria-label="Select all"></th>
+                        <th>IP</th><th>Last username</th><th class="c">Failed attempts</th><th class="c">State</th><th>Last attempt</th><th class="r">Actions</th>
+                    </tr></thead>
+                    <tbody>
+                    @forelse($blockedLogs as $log)
+                        @php
+                            $locked = !$log->is_blocked && $log->locked_until && \Carbon\Carbon::now()->lt($log->locked_until);
+                            $att = (int) $log->attempt_count;
+                            $lvl = $log->threat_level ?: 'low';
+                        @endphp
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input sec-row-check" value="{{ $log->ip_address }}" @disabled($log->ip_address === $myIp) aria-label="{{ $log->ip_address }}"></td>
+                            <td>
+                                <div class="mono fw-bold">{{ $log->ip_address }}@if($log->ip_address === $myIp) <span class="sec-chip info">You</span>@endif</div>
+                                @if($log->is_blocked && $log->block_reason)<div class="muted" style="font-size:11.5px;max-width:240px">{{ $log->block_reason }}</div>@endif
+                            </td>
+                            <td class="fw-semibold">{{ $log->last_username ?: '—' }}</td>
+                            <td class="c">
+                                <span class="sec-attempts" title="{{ $att }}">@for($i = 1; $i <= 5; $i++)<i class="{{ $i <= $att ? ($att >= 5 ? 'hot' : 'on') : '' }}"></i>@endfor</span>
+                                <div class="muted" style="font-size:11px">{{ $att }}</div>
+                            </td>
+                            <td class="c">
+                                @if($log->is_blocked)<span class="sec-chip bad"><i class="fa-solid fa-ban"></i> Blocked</span>
+                                @elseif($locked)<span class="sec-chip warn"><i class="fa-solid fa-clock"></i> Locked · {{ $log->locked_until->locale('en')->diffForHumans(null, true) }}</span>
+                                @elseif($log->is_security_issue)<span class="sec-chip bad"><i class="fa-solid fa-shield-halved"></i> Flagged</span>
+                                @else<span class="sec-chip mute">Normal</span>@endif
+                                <div class="mt-1"><span class="sec-chip {{ in_array($lvl, ['critical', 'high']) ? 'bad' : ($lvl === 'medium' ? 'warn' : 'mute') }}" style="font-size:10.5px">{{ strtoupper($lvl) }}</span></div>
+                            </td>
+                            <td><div class="small">{{ $log->updated_at->format('d M, h:i A') }}</div><div class="muted" style="font-size:11px">{{ $log->updated_at->locale('en')->diffForHumans() }}</div></td>
+                            <td class="r">
+                                <div class="d-inline-flex gap-1">
+                                    @if($log->is_blocked || $locked || $log->is_security_issue)
+                                        <form action="{{ route('admin.users.security.unblock-ip') }}" method="POST"
+                                              data-confirm="Unblock and clean {{ $log->ip_address }}?" data-confirm-title="Unblock IP" data-confirm-icon="question"
+                                              data-confirm-btn="Yes, unblock" data-cancel-btn="Cancel">@csrf
+                                            <input type="hidden" name="ip_address" value="{{ $log->ip_address }}">
+                                            <button class="sec-btn sm ok"><i class="fa-solid fa-lock-open"></i> Unblock</button>
+                                        </form>
+                                    @endif
+                                    @if(!$log->is_blocked && $log->ip_address !== $myIp)
+                                        <form action="{{ route('admin.users.security.block-ip') }}" method="POST"
+                                              data-confirm="Block {{ $log->ip_address }}?" data-confirm-title="Block IP" data-confirm-icon="warning"
+                                              data-confirm-btn="Yes, block" data-cancel-btn="Cancel">@csrf
+                                            <input type="hidden" name="ip_address" value="{{ $log->ip_address }}">
+                                            <button class="sec-btn sm danger icon" title="Block"><i class="fa-solid fa-ban"></i></button>
+                                        </form>
+                                    @endif
+                                    @if($log->last_username)
+                                        <button type="button" class="sec-btn sm icon" title="Password generator" onclick='openAutoPasswordModal("", "", @json($log->last_username))'><i class="fa-solid fa-key"></i></button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7"><div class="sec-empty"><i class="fa-solid fa-shield-check"></i>No IP addresses found — all clear.</div></td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($blockedLogs->hasPages())<div class="p-3 d-flex justify-content-between align-items-center"><span class="muted small">{{ $blockedLogs->total() }} total</span>{{ $blockedLogs->links() }}</div>@endif
+        @endif
     </div>
 
-</div>
+    <form id="secBulkForm" action="{{ route('admin.users.security.bulk') }}" method="POST" class="d-none">@csrf<input type="hidden" name="action" value=""></form>
+    <div class="sec-bulk" id="secBulk">
+        <b><span id="secBulkCount">0</span> selected</b>
+        <button type="button" class="sec-btn sm ok" data-bulk="unblock"><i class="fa-solid fa-lock-open"></i> Unblock</button>
+        <button type="button" class="sec-btn sm danger" data-bulk="block"><i class="fa-solid fa-ban"></i> Block</button>
+    </div>
 
-<!-- Auto-Generate Strong Password Modal -->
-<div class="modal fade" id="autoPasswordModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header border-bottom py-3 px-4 bg-dark text-white rounded-top-4">
-                <h6 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
-                    <i class="fa-solid fa-key text-warning"></i>
-                    <span>পাসওয়ার্ড অটো-জেনারেটর ও অ্যাকাউন্ট রিকভারি</span>
-                </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('admin.users.security.auto-generate-password') }}" method="POST">
-                @csrf
-                <input type="hidden" name="user_id" id="modalAutoPassUserId" value="">
-                
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ইউজারের পরিচয় (ইমেইল / মোবাইল / ইউজারনেম)</label>
-                        <input type="text" name="identity" id="modalAutoPassIdentity" class="form-control rounded-3 font-monospace" 
-                               placeholder="e.g. user@gmail.com বা 01XXXXXXXXX" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <label class="form-label small fw-bold text-dark mb-0">অটো-জেনারেটেড স্ট্রং পাসওয়ার্ড প্রিভিউ</label>
-                            <button type="button" class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold" onclick="generateRandomPassString()">
-                                <i class="fa-solid fa-rotate me-1"></i> নতুন তৈরি করুন
-                            </button>
+    {{-- ===== Modals ===== --}}
+    <div class="modal fade" id="autoPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow-lg">
+                <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-key text-warning me-2"></i>Password generator</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <form action="{{ route('admin.users.security.auto-generate-password') }}" method="POST" autocomplete="off">@csrf
+                    <input type="hidden" name="user_id" id="modalAutoPassUserId" data-pick-id>
+                    <div class="modal-body">
+                        <label class="form-label small fw-bold">User (name, email or phone)</label>
+                        <div class="sec-pick mb-3">
+                            <input type="text" name="identity" id="modalAutoPassIdentity" class="form-control mono" data-sec-pick="{{ route('admin.users.security.lookup') }}" placeholder="Start typing to search…" required>
+                            <div class="sec-pick-list"></div>
                         </div>
+                        <div class="d-flex justify-content-between"><label class="form-label small fw-bold mb-1">New password</label>
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="generateRandomPassString()"><i class="fa-solid fa-rotate me-1"></i>Regenerate</button></div>
                         <div class="input-group">
-                            <input type="text" name="custom_password" id="modalAutoPassString" class="form-control font-monospace fw-bold text-primary bg-light" 
-                                   value="" placeholder="Click to generate...">
-                            <button type="button" class="btn btn-outline-secondary" onclick="copyText(document.getElementById('modalAutoPassString').value, 'পাসওয়ার্ড কপি হয়েছে!')" title="কপি করুন">
-                                <i class="fa-solid fa-copy"></i>
-                            </button>
+                            <input type="text" name="custom_password" id="modalAutoPassString" class="form-control mono fw-bold" minlength="10" maxlength="100">
+                            <button type="button" class="btn btn-outline-secondary" title="Copy" onclick="copyText(document.getElementById('modalAutoPassString').value, 'Password copied!')"><i class="fa-solid fa-copy"></i></button>
                         </div>
-                        <small class="text-muted" style="font-size: 11px;">আন্তর্জাতিক মানের ক্রিপ্টোগ্রাফিক ১২-ডিজিটের স্ট্রং পাসওয়ার্ড</small>
-                    </div>
-
-                    <div class="mb-3 p-3 bg-light rounded-3 border">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" name="force_change" value="1" id="forceChangeToggle" checked>
-                            <label class="form-check-label small fw-semibold text-dark" for="forceChangeToggle">
-                                প্রথম লগইনে পাসওয়ার্ড পরিবর্তন বাধ্যতামূলক করুন (Recommended)
-                            </label>
+                        <div class="sec-meter" id="modalPassMeter"><i></i></div>
+                        <div class="d-flex justify-content-between small muted mt-1"><span>At least 10 characters, with letters and numbers</span><b id="modalPassMeterLbl"></b></div>
+                        <div class="form-check form-switch mt-3 p-3 rounded-3" style="background:var(--sec-soft)">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" name="force_change" value="1" id="forceChangeToggle" checked>
+                            <label class="form-check-label small fw-semibold" for="forceChangeToggle">Require a password change at first login</label>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer border-top py-2.5 px-4 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
-                        <i class="fa-solid fa-check me-1"></i> পাসওয়ার্ড সেট ও আনব্লক করুন
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Quick OTP Modal -->
-<div class="modal fade" id="quickOtpModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-dark"><i class="fa-solid fa-shield-halved text-primary me-2"></i> যেকোনো ইউজারের জন্য ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div class="modal-footer"><button type="button" class="sec-btn" data-bs-dismiss="modal">Cancel</button><button class="sec-btn primary"><i class="fa-solid fa-check"></i> Set password &amp; unblock</button></div>
+                </form>
             </div>
-            <form action="{{ route('admin.users.security.generate-otp') }}" method="POST">
-                @csrf
-                <div class="modal-body p-4">
-                    <p class="text-muted small mb-3">
-                        ব্যবহারকারীর ইমেইল বা মোবাইল নম্বর দিন। সিস্টেম তাৎক্ষণিক একটি অস্থায়ী ৬-সংখ্যার ওয়ানটাইম পাসওয়ার্ড (OTP) তৈরি করবে।
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ইউজারের ইমেইল অথবা মোবাইল নম্বর</label>
-                        <input type="text" name="identity" class="form-control rounded-3 font-monospace" placeholder="e.g. user@gmail.com বা 01XXXXXXXXX" required>
-                    </div>
-                </div>
-                <div class="modal-footer border-top py-2.5 px-4">
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">OTP পাসওয়ার্ড তৈরি করুন</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<!-- Manual Block IP Modal -->
-<div class="modal fade" id="manualBlockIpModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 border-0 shadow-lg">
-            <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-danger"><i class="fa-solid fa-ban text-danger me-2"></i> ম্যানুয়ালি আইপি ব্লক করুন</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('admin.users.security.block-ip') }}" method="POST">
-                @csrf
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">আইপি অ্যাড্রেস (IPv4 / IPv6)</label>
-                        <input type="text" name="ip_address" class="form-control rounded-3 font-monospace" placeholder="e.g. 103.205.71.12" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-dark">ব্লক করার কারণ (ঐচ্ছিক)</label>
-                        <input type="text" name="block_reason" class="form-control rounded-3" placeholder="যেমন: সন্দেহজনক আক্রমণ / বোট অ্যাক্টিভিটি">
-                    </div>
+    <div class="modal fade" id="quickOtpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-shield-halved text-primary me-2"></i>One-time password</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('admin.users.security.generate-otp') }}" method="POST" autocomplete="off">@csrf
+                <input type="hidden" name="user_id" data-pick-id>
+                <div class="modal-body">
+                    <p class="muted small">Creates an OTP valid for 24 hours. The user must set a new password at their next login.</p>
+                    <div class="sec-pick"><input type="text" name="identity" class="form-control mono" data-sec-pick="{{ route('admin.users.security.lookup') }}" placeholder="Email, phone or name" required><div class="sec-pick-list"></div></div>
                 </div>
-                <div class="modal-footer border-top py-2.5 px-4">
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold">আইপি ব্লক নিশ্চিত করুন</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="sec-btn" data-bs-dismiss="modal">Cancel</button><button class="sec-btn primary">Generate OTP</button></div>
             </form>
-        </div>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="forceLogoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header"><h6 class="modal-title fw-bold"><i class="fa-solid fa-right-from-bracket text-warning me-2"></i>Force logout</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('admin.users.security.force-logout') }}" method="POST" autocomplete="off">@csrf
+                <div class="modal-body">
+                    <p class="muted small">Signs the selected user out of every device and "remember me" session. Use it if an account may be compromised.</p>
+                    <div class="sec-pick"><input type="text" class="form-control" data-sec-pick="{{ route('admin.users.security.lookup') }}" placeholder="Search and pick a user" required><input type="hidden" name="user_id" data-pick-id><div class="sec-pick-list"></div></div>
+                    <small class="muted">Pick the user from the list.</small>
+                </div>
+                <div class="modal-footer"><button type="button" class="sec-btn" data-bs-dismiss="modal">Cancel</button><button class="sec-btn danger"><i class="fa-solid fa-right-from-bracket"></i> Sign out everywhere</button></div>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="manualBlockIpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header"><h6 class="modal-title fw-bold text-danger"><i class="fa-solid fa-ban me-2"></i>Block IP</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <form action="{{ route('admin.users.security.block-ip') }}" method="POST">@csrf
+                <div class="modal-body">
+                    <label class="form-label small fw-bold">IP address (IPv4 or IPv6)</label>
+                    <input type="text" name="ip_address" class="form-control mono mb-3" placeholder="103.205.71.12" required>
+                    <label class="form-label small fw-bold">Reason (optional)</label>
+                    <input type="text" name="block_reason" class="form-control" maxlength="255" placeholder="Suspicious activity">
+                    <div class="small muted mt-2"><i class="fa-solid fa-circle-info me-1"></i> Your current IP ({{ $myIp }}) cannot be blocked.</div>
+                </div>
+                <div class="modal-footer"><button type="button" class="sec-btn" data-bs-dismiss="modal">Cancel</button><button class="sec-btn danger">Block IP</button></div>
+            </form>
+        </div></div>
     </div>
 </div>
-
-<script>
-function copyText(text, successMsg = 'কপি হয়েছে!') {
-    navigator.clipboard.writeText(text).then(() => {
-        alert(successMsg + '\n' + text);
-    });
-}
-
-function generateRandomPassString() {
-    const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
-    let pass = 'Idea#';
-    for (let i = 0; i < 7; i++) {
-        pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    const input = document.getElementById('modalAutoPassString');
-    if (input) input.value = pass;
-    return pass;
-}
-
-function openAutoPasswordModal(userId = '', userName = '', identity = '') {
-    const userField = document.getElementById('modalAutoPassUserId');
-    const identityField = document.getElementById('modalAutoPassIdentity');
-    
-    if (userField) userField.value = userId;
-    if (identityField) identityField.value = identity;
-
-    generateRandomPassString();
-
-    const modalEl = document.getElementById('autoPasswordModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    generateRandomPassString();
-});
-</script>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/admin-security.js') }}?v={{ @filemtime(public_path('js/admin-security.js')) }}" defer></script>
+@endpush

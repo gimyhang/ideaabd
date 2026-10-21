@@ -73,7 +73,7 @@ class ConvertImagesToWebpCommand extends Command
             'blog_posts' => ['featured_image'],
             'publishers' => ['logo'],
             'event_campaigns' => ['banner_image', 'card_bg_image', 'card_logo_image', 'card_event_logo_image'],
-            'event_registrations' => ['photo', 'student_photo', 'receipt_photo'],
+            'entries' => ['photo', 'student_photo', 'receipt_photo'],
             'site_settings' => ['value'],
         ];
 

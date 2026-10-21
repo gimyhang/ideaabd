@@ -1297,7 +1297,7 @@ class EventCampaignAdminController extends Controller
         }
 
         $updateData = ['form_data' => $formData];
-        if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+        if (\Illuminate\Support\Facades\Schema::hasColumn('entries', 'division')) {
             $updateData['division'] = $expectedDiv;
         }
 
@@ -1341,7 +1341,7 @@ class EventCampaignAdminController extends Controller
                     $formData['division'] = $expectedDiv;
                 }
                 $updateData = ['form_data' => $formData];
-                if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+                if (\Illuminate\Support\Facades\Schema::hasColumn('entries', 'division')) {
                     $updateData['division'] = $expectedDiv;
                 }
                 $reg->update($updateData);
@@ -1585,7 +1585,7 @@ class EventCampaignAdminController extends Controller
                             $fd['division'] = $expectedDiv;
                         }
                         $updateData = ['form_data' => $fd];
-                        if (\Illuminate\Support\Facades\Schema::hasColumn('event_registrations', 'division')) {
+                        if (\Illuminate\Support\Facades\Schema::hasColumn('entries', 'division')) {
                             $updateData['division'] = $expectedDiv;
                         }
                         $reg->update($updateData);
@@ -1947,7 +1947,7 @@ class EventCampaignAdminController extends Controller
             'isPdf'        => true,
         ]);
 
-        $pdf->setPaper('a4', 'portrait');
+        $pdf->setPaper('letter', 'portrait');
         $pdf->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled'      => true,
@@ -2950,4 +2950,3 @@ class EventCampaignAdminController extends Controller
         ]);
     }
 }
-

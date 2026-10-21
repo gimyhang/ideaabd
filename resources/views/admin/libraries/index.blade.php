@@ -1,8 +1,9 @@
 @extends('layouts.admin')
 
-@section('title', 'পাঠাগার ড্যাশবোর্ড ও বই অনুদান — ideaabd')
+@section('title', 'Libraries & Book Grants — ideaabd')
 
 @push('styles')
+<link rel="stylesheet" href="{{ asset('css/admin-libraries.css') }}?v={{ @filemtime(public_path('css/admin-libraries.css')) }}">
 <style>
     :root {
         --lib-theme: {{ $formSettings['theme_color'] ?? '#047857' }};
@@ -147,409 +148,128 @@
 @endpush
 
 @section('content')
-<div class="container-fluid px-3 px-md-4 py-4">
+<div class="container-fluid px-3 px-md-4 py-4 lib" id="libRoot"
+     data-url="{{ route('admin.libraries.index') }}"
+     data-bulk-url="{{ route('admin.libraries.bulk') }}"
+     data-export-url="{{ route('admin.libraries.export') }}">
 
-    {{-- Breadcrumb & Title --}}
+    {{-- Header --}}
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-1 small">
                     <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none text-muted">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.event-campaigns.index') }}" class="text-decoration-none text-muted">Campaigns</a></li>
-                    <li class="breadcrumb-item active fw-semibold text-success" aria-current="page">পাঠাগার ড্যাশবোর্ড ও বই অনুদান</li>
+                    <li class="breadcrumb-item active fw-semibold text-success" aria-current="page">Libraries</li>
                 </ol>
             </nav>
-            <h1 class="h3 fw-bold mb-0 text-gray-900 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-book-open-reader text-success"></i> পাঠাগার ড্যাশবোর্ড ও বই অনুদান ব্যবস্থাপনা
-            </h1>
-            <p class="text-muted small mb-0 mt-1">কেন্দ্রীয় পাঠাগার ডাটাবেজ, ফরম ও প্রিন্ট সেটিংস কাস্টমাইজেশন, কোড জেনারেটর এবং বই বিতরণ ট্র্যাকিং।</p>
+            <h1 class="h3 fw-bold mb-0">Libraries &amp; Book Grants</h1>
+            <p class="text-muted small mb-0 mt-1">Review applications, allocate books, confirm receipts and customise the printed form.</p>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2">
-            {{-- 1. Customizer & Code Generator Modal Trigger --}}
-            <button type="button" class="btn btn-primary rounded-pill px-3.5 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#formCustomizerModal">
-                <i class="fa-solid fa-palette"></i> ফরম ও কোড কাস্টমাইজার <span class="badge bg-white text-primary rounded-pill px-2 py-0.5 small">CSS/JS/PHP</span>
-            </button>
-
-            {{-- 2. CSV Export --}}
-            <a href="{{ route('admin.libraries.export') }}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-file-csv text-success"></i> CSV Export
-            </a>
-
-            {{-- 3. Public Apply Form Link --}}
-            <a href="{{ url('/pathagar') }}" target="_blank" class="btn btn-success rounded-pill px-3.5 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
-                <i class="fa-solid fa-plus"></i> আবেদন ফরম দেখুন <i class="fa-solid fa-arrow-up-right-from-square small opacity-75"></i>
-            </a>
+            <button type="button" class="btn btn-primary rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#formCustomizerModal"><i class="fa-solid fa-sliders me-1"></i> Form &amp; print settings</button>
+            <a href="#" id="libExport" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold"><i class="fa-solid fa-file-csv text-success me-1"></i> Export CSV</a>
+            <a href="{{ url('/pathagar') }}" target="_blank" rel="noopener" class="btn btn-success rounded-pill px-3 fw-semibold">Public form <i class="fa-solid fa-arrow-up-right-from-square small ms-1"></i></a>
         </div>
     </div>
 
-    {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show rounded-4 shadow-2xs border-0 p-3 mb-4 d-flex align-items-center gap-2" role="alert">
-            <i class="fa-solid fa-circle-check fs-5 text-success"></i>
-            <div class="fw-semibold">{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 mb-4" role="alert"><i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
-    {{-- 6 HIGH-IMPACT KPI STATS CARDS --}}
-    <div class="row g-3 mb-4">
-        {{-- 1. Total Libraries --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">মোট পাঠাগার</span>
-                    <div class="kpi-icon-box bg-primary-subtle text-primary">
-                        <i class="fa-solid fa-landmark"></i>
+    {{-- KPI cards (live) --}}
+    <div class="row g-3 mb-4" id="libKpis">
+        @foreach([
+            ['total', 'Libraries', 'fa-landmark', 'primary', 'Registered institutions'],
+            ['approved', 'Approved', 'fa-circle-check', 'success', 'Selected for the grant'],
+            ['allocated', 'Books allocated', 'fa-boxes-stacked', 'info', 'Dispatched or allocated'],
+            ['acknowledged', 'Receipts', 'fa-signature', 'success', null],
+            ['pending', 'Pending review', 'fa-hourglass-half', 'warning', 'Awaiting a decision'],
+            ['readers', 'Readers', 'fa-users', 'secondary', null],
+        ] as [$key, $label, $icon, $tone, $sub])
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card-custom">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted fw-semibold text-uppercase" style="font-size: 11px;">{{ $label }}</span>
+                        <div class="kpi-icon-box bg-{{ $tone }}-subtle text-{{ $tone }}"><i class="fa-solid {{ $icon }}"></i></div>
                     </div>
+                    <h3 class="fw-bold mb-0" data-kpi="{{ $key }}">{{ number_format($stats[$key]) }}</h3>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px;" @if($key === 'acknowledged') data-kpi-sub="received" @elseif($key === 'readers') data-kpi-sub="districts" @endif>
+                        @if($key === 'acknowledged'){{ number_format($stats['received']) }} books delivered
+                        @elseif($key === 'readers'){{ $stats['districts'] }} districts covered
+                        @else{{ $sub }}@endif
+                    </small>
                 </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalLibraries) }}</h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">নিবন্ধিত প্রতিষ্ঠান</small>
             </div>
-        </div>
-
-        {{-- 2. Approved Libraries --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">অনুমোদিত</span>
-                    <div class="kpi-icon-box bg-success-subtle text-success">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-0 text-success">{{ number_format($approvedLibraries) }}</h3>
-                <small class="text-success d-block mt-1" style="font-size: 11px;">অনুদানের জন্য নির্বাচিত</small>
-            </div>
-        </div>
-
-        {{-- 3. Total Books Allocated --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">মোট বই বরাদ্দ</span>
-                    <div class="kpi-icon-box bg-info-subtle text-info">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalBooksAllocated) }} <span class="fs-6 fw-normal text-muted">টি</span></h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">প্রেরিত / বরাদ্দকৃত বই</small>
-            </div>
-        </div>
-
-        {{-- 4. Acknowledged / Received --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">প্রাপ্তিস্বীকার</span>
-                    <div class="kpi-icon-box bg-emerald-subtle text-success" style="background-color: #ecfdf5; color: #047857;">
-                        <i class="fa-solid fa-signature"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-0 text-success">{{ number_format($acknowledgedCount) }} <span class="fs-6 fw-normal text-muted">পাঠাগার</span></h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ number_format($totalBooksReceived) }} টি বই পৌঁছানো সম্পন্ন</small>
-            </div>
-        </div>
-
-        {{-- 5. Pending Review --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">যাচাই অপেক্ষায়</span>
-                    <div class="kpi-icon-box bg-warning-subtle text-warning">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-0 text-warning">{{ number_format($pendingReview) }}</h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">পেন্ডিং আবেদন</small>
-            </div>
-        </div>
-
-        {{-- 6. Readers & District Coverage --}}
-        <div class="col-6 col-md-4 col-xl-2">
-            <div class="kpi-card-custom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-semibold text-uppercase" style="font-size: 11px;">পাঠক ও জেলা</span>
-                    <div class="kpi-icon-box bg-purple-subtle text-purple" style="background: #f3e8ff; color: #7e22ce;">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                </div>
-                <h3 class="fw-bold mb-0 text-dark">{{ number_format($totalReadersCount) }} <span class="fs-6 fw-normal text-muted">পাঠক</span></h3>
-                <small class="text-muted d-block mt-1" style="font-size: 11px;">{{ $uniqueDistricts }} টি জেলায় বিস্তৃত</small>
-            </div>
-        </div>
+        @endforeach
     </div>
 
-    {{-- DIVISION ANALYTICS & QUICK FILTER PILLS --}}
-    <div class="card border-0 shadow-2xs rounded-4 mb-4 bg-white p-3">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-            <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
-                <i class="fa-solid fa-chart-pie text-success"></i> বিভাগভিত্তিক আবেদন বিন্যাস (Division Distribution):
-            </span>
-            <span class="text-muted small">মোট বিদ্যমান বই ভাণ্ডার: <strong>{{ number_format($totalExistingBooks) }}</strong> টি</span>
-        </div>
-        <div class="d-flex flex-wrap gap-2">
-            @foreach($divisionStats as $divName => $divCount)
-                <a href="{{ route('admin.libraries.index', array_merge(request()->query(), ['division' => $divName])) }}" 
-                   class="div-stat-pill text-decoration-none {{ request('division') == $divName ? 'bg-success text-white border-success' : '' }}">
-                    <span>{{ $divName }}</span>
-                    <span class="badge {{ request('division') == $divName ? 'bg-white text-success' : 'bg-light text-dark' }} rounded-pill">{{ $divCount }}</span>
-                </a>
-            @endforeach
-        </div>
-    </div>
-
-    {{-- FILTER BAR --}}
-    <div class="card border-0 shadow-2xs rounded-4 mb-4 bg-white">
+    {{-- Filters (apply instantly, no reload) --}}
+    <div class="card border-0 shadow-2xs rounded-4 mb-3 bg-white">
         <div class="card-body p-3">
-            <form action="{{ route('admin.libraries.index') }}" method="GET" class="row g-2 align-items-center">
+            <form id="libFilters" class="row g-2 align-items-center" autocomplete="off">
                 <div class="col-12 col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
-                        <input type="text" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Search by library name, phone, rep, or Reg ID..." value="{{ request('search') }}">
+                        <input type="search" name="search" class="form-control bg-light border-start-0 ps-0" placeholder="Library, phone, representative or reg. no." value="{{ request('search') }}">
                     </div>
                 </div>
-
-                <div class="col-6 col-md-2">
-                    <select name="division" class="form-select bg-light">
-                        <option value="">All Divisions</option>
-                        @foreach(['Rangpur' => 'রংপুর', 'Dhaka' => 'ঢাকা', 'Chattogram' => 'চট্টগ্রাম', 'Rajshahi' => 'রাজশাহী', 'Khulna' => 'খুলনা', 'Barishal' => 'বরিশাল', 'Sylhet' => 'সিলেট', 'Mymensingh' => 'ময়মনসিংহ'] as $engDiv => $bngDiv)
-                            <option value="{{ $bngDiv }}" {{ request('division') == $bngDiv ? 'selected' : '' }}>{{ $engDiv }} ({{ $bngDiv }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 <div class="col-6 col-md-2">
                     <select name="status" class="form-select bg-light">
-                        <option value="">All Approvals</option>
-                        <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Approved</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        <option value="">All approvals</option>
+                        <option value="confirmed" @selected(request('status') === 'confirmed')>Approved</option>
+                        <option value="pending" @selected(request('status') === 'pending')>Pending</option>
+                        <option value="rejected" @selected(request('status') === 'rejected')>Rejected</option>
                     </select>
                 </div>
-
                 <div class="col-6 col-md-2">
                     <select name="ack_status" class="form-select bg-light">
-                        <option value="">All Receipt Status</option>
-                        <option value="acknowledged" {{ request('ack_status') == 'acknowledged' ? 'selected' : '' }}>✅ Acknowledged</option>
-                        <option value="dispatched" {{ request('ack_status') == 'dispatched' ? 'selected' : '' }}>📦 Dispatched (Pending)</option>
-                        <option value="pending" {{ request('ack_status') == 'pending' ? 'selected' : '' }}>⏳ Not Allocated</option>
+                        <option value="">All receipts</option>
+                        <option value="acknowledged" @selected(request('ack_status') === 'acknowledged')>Received</option>
+                        <option value="dispatched" @selected(request('ack_status') === 'dispatched')>Dispatched</option>
+                        <option value="pending" @selected(request('ack_status') === 'pending')>Not allocated</option>
                     </select>
                 </div>
-
-                <div class="col-6 col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-success rounded-pill px-3 fw-semibold flex-grow-1">
-                        <i class="fa-solid fa-filter me-1"></i> Filter
-                    </button>
-                    @if(request()->hasAny(['search', 'division', 'status', 'ack_status']))
-                        <a href="{{ route('admin.libraries.index') }}" class="btn btn-light rounded-pill px-3 border" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></a>
-                    @endif
+                <div class="col-6 col-md-2">
+                    <select name="sort" class="form-select bg-light">
+                        <option value="">Newest first</option>
+                        <option value="oldest" @selected(request('sort') === 'oldest')>Oldest first</option>
+                        <option value="name" @selected(request('sort') === 'name')>Name A–Z</option>
+                    </select>
                 </div>
+                <div class="col-6 col-md-2 d-flex gap-2">
+                    <select name="per_page" class="form-select bg-light" title="Rows per page">
+                        @foreach([10, 25, 50, 100, 250] as $n)<option value="{{ $n }}" @selected($perPage === $n)>{{ $n }} / page</option>@endforeach
+                    </select>
+                    <button type="button" class="btn btn-light border rounded-pill px-3" id="libReset" title="Reset filters"><i class="fa-solid fa-rotate-left"></i></button>
+                </div>
+                <input type="hidden" name="division" value="{{ request('division') }}">
             </form>
+
+            {{-- Division quick filter --}}
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-3" id="libDivisions">
+                <span class="small text-muted fw-semibold me-1">Division:</span>
+                <button type="button" class="div-stat-pill {{ request('division') ? '' : 'active' }}" data-division="">All <span class="badge rounded-pill" data-div-count="all">{{ number_format($stats['total']) }}</span></button>
+                @foreach($divisions as $eng => $bng)
+                    <button type="button" class="div-stat-pill {{ request('division') === $bng ? 'active' : '' }}" data-division="{{ $bng }}">{{ $eng }} <span class="badge rounded-pill" data-div-count="{{ $bng }}">{{ $stats['divisions'][$bng] ?? 0 }}</span></button>
+                @endforeach
+                <span class="ms-auto small text-muted">Existing book stock: <strong data-kpi="existing">{{ number_format($stats['existing']) }}</strong></span>
+            </div>
         </div>
     </div>
 
-    {{-- LIBRARIES DATA TABLE --}}
-    <div class="card border-0 shadow-2xs rounded-4 bg-white overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 table-lib-custom">
-                <thead>
-                    <tr>
-                        <th class="ps-3" style="width: 45px;">#</th>
-                        <th>Library & Institution</th>
-                        <th>Representative & Contact</th>
-                        <th>Location & Address</th>
-                        <th>Readers / Books</th>
-                        <th>📦 Allocation & Dispatch</th>
-                        <th>✍️ Acknowledgment</th>
-                        <th>Approval</th>
-                        <th class="pe-3 text-end" style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($libraries as $lib)
-                        @php
-                            $fd = $lib->form_data ?? [];
-                            $isApproved = in_array($lib->status, ['confirmed', 'selected', 'approved'], true);
-                            $allocated = intval($fd['books_allocated'] ?? 0);
-                            $dispatchedDate = $fd['dispatched_date'] ?? null;
-                            $receivedCount = intval($fd['received_books_count'] ?? 0);
-                            $receivedDate = $fd['received_date'] ?? null;
-                            $ackStatus = $lib->acknowledgment_status;
-                            $libName = $lib->institution_or_org ?: ($fd['library_name'] ?? 'Library');
-                            $libType = $fd['library_type'] ?? ($lib->designation_or_class ?: 'Public Library');
-                            $bookItems = $fd['allocated_books_list'] ?? [];
-                        @endphp
-                        <tr id="row-lib-{{ $lib->id }}">
-                            <td class="ps-3 text-muted fw-bold">{{ $lib->id }}</td>
+    {{-- Bulk actions --}}
+    <div class="lib-bulk" id="libBulk" hidden>
+        <b><span id="libBulkCount">0</span> selected</b>
+        <button type="button" class="btn btn-sm btn-success rounded-pill" data-bulk="approve"><i class="fa-solid fa-circle-check me-1"></i> Approve</button>
+        <button type="button" class="btn btn-sm btn-warning rounded-pill" data-bulk="pending"><i class="fa-solid fa-hourglass-half me-1"></i> Mark pending</button>
+        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill bg-white" data-bulk="reject"><i class="fa-solid fa-ban me-1"></i> Reject</button>
+        <button type="button" class="btn btn-sm btn-link text-white" id="libBulkClear">Clear</button>
+    </div>
 
-                            {{-- Library Name & Type --}}
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="rounded-3 bg-success-subtle text-success p-2 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                                        <i class="fa-solid fa-landmark"></i>
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold text-dark" style="font-size: 14px;">{{ $libName }}</div>
-                                        <div class="d-flex align-items-center gap-1.5 flex-wrap mt-0.5">
-                                            <span class="badge bg-light text-secondary border px-1.5 py-0.5" style="font-size: 10.5px;">{{ $libType }}</span>
-                                            @if(!empty($fd['established_year']))
-                                                <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">Est: {{ $fd['established_year'] }}</span>
-                                            @endif
-                                            <span class="text-muted small font-monospace" style="font-size: 11px;">#{{ $lib->registration_number }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-
-                            {{-- Representative & Contact --}}
-                            <td>
-                                <div class="fw-semibold text-dark">{{ $lib->name }}</div>
-                                <div class="small">
-                                    <a href="tel:{{ $lib->phone }}" class="text-decoration-none text-muted hover-success fw-medium">
-                                        <i class="fa-solid fa-phone me-1 text-success small"></i>{{ $lib->phone }}
-                                    </a>
-                                </div>
-                                @if($lib->email)
-                                    <div class="text-muted small" style="font-size: 11px;">{{ $lib->email }}</div>
-                                @endif
-                            </td>
-
-                            {{-- Location & Address --}}
-                            <td>
-                                <div class="fw-semibold text-dark small">
-                                    {{ $lib->district ?? '—' }}{{ $lib->thana ? ', ' . $lib->thana : '' }}
-                                </div>
-                                <div class="text-muted small text-truncate" style="max-width: 180px; font-size: 11.5px;" title="{{ $lib->address }}">
-                                    {{ $fd['division'] ? $fd['division'] . ' • ' : '' }}{{ $lib->address }}
-                                </div>
-                            </td>
-
-                            {{-- Readers / Current Books --}}
-                            <td>
-                                <div class="small">
-                                    <span class="text-muted">পাঠক:</span> <span class="fw-semibold text-dark">{{ $fd['reader_count'] ?? '—' }}</span>
-                                </div>
-                                <div class="small text-muted" style="font-size: 11.5px;">
-                                    বর্তমান বই: <span class="fw-medium text-dark">{{ $fd['current_book_count'] ?? '—' }}</span>
-                                </div>
-                                @php
-                                    $hasPrev = ($fd['has_previous_books'] ?? '') === 'হ্যাঁ' || ($fd['has_previous_books'] ?? '') === 'yes' || (!empty($lib->has_previous_books) && $lib->has_previous_books !== 'না');
-                                @endphp
-                                <div class="mt-1">
-                                    @if($hasPrev)
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5" style="font-size: 10px;" title="ইতোপূর্বে বই প্রাপ্ত পাঠাগার">
-                                            পূর্বের বই: <strong>{{ $fd['previous_books_count'] ?? ($lib->previous_books_count ?? '—') }}</strong> টি ({{ $fd['previous_books_year'] ?? ($lib->previous_books_year ?? '') }})
-                                        </span>
-                                    @else
-                                        <span class="badge bg-light text-muted border px-1.5 py-0.5" style="font-size: 10px;">
-                                            পূর্বে বই পায়নি
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-
-                            {{-- Allocation & Dispatch Info --}}
-                            <td>
-                                @if($allocated > 0)
-                                    <div class="fw-bold text-success fs-6">
-                                        {{ $allocated }} <span class="small fw-normal text-muted">Books</span>
-                                        @if(count($bookItems) > 0)
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1" style="font-size: 10px;">{{ count($bookItems) }} titles</span>
-                                        @endif
-                                    </div>
-                                    <div class="text-muted small" style="font-size: 11px;">
-                                        <i class="fa-regular fa-calendar-check me-1"></i>{{ $dispatchedDate ? date('d M, Y', strtotime($dispatchedDate)) : 'No date' }}
-                                    </div>
-                                    @if(!empty($fd['dispatch_tracking_no']))
-                                        <span class="badge bg-light text-muted border px-1.5 py-0.5 mt-0.5" style="font-size: 10px;">Trk: {{ $fd['dispatch_tracking_no'] }}</span>
-                                    @endif
-                                @else
-                                    <span class="badge bg-light text-muted border">Not Allocated</span>
-                                @endif
-                            </td>
-
-                            {{-- Acknowledgment Info --}}
-                            <td>
-                                @if($ackStatus === 'acknowledged')
-                                    <span class="badge-ack-received d-inline-flex align-items-center gap-1 mb-1">
-                                        <i class="fa-solid fa-circle-check text-success"></i> Received ({{ $receivedCount ?: $allocated }} Books)
-                                    </span>
-                                    @if($receivedDate)
-                                        <div class="text-muted small" style="font-size: 11px;">
-                                            {{ date('d M, Y', strtotime($receivedDate)) }}
-                                        </div>
-                                    @endif
-                                @elseif($allocated > 0)
-                                    <span class="badge-ack-dispatched d-inline-flex align-items-center gap-1">
-                                        <i class="fa-solid fa-truck-fast"></i> Dispatched (Pending)
-                                    </span>
-                                @else
-                                    <span class="badge-ack-pending">Pending Allocation</span>
-                                @endif
-                            </td>
-
-                            {{-- Approval Status --}}
-                            <td>
-                                <button type="button" class="btn btn-sm rounded-pill px-2.5 py-1 fw-semibold {{ $isApproved ? 'btn-success-subtle text-success border-success-subtle' : 'btn-warning-subtle text-warning border-warning-subtle' }}"
-                                        onclick="toggleApproval('{{ $lib->id }}', this)" title="Click to toggle status">
-                                    <i class="fa-solid {{ $isApproved ? 'fa-circle-check' : 'fa-hourglass-half' }} me-1"></i>
-                                    <span>{{ $isApproved ? 'Approved' : 'Pending' }}</span>
-                                </button>
-                            </td>
-
-                            {{-- Action Buttons --}}
-                            <td class="pe-3 text-end">
-                                <div class="d-inline-flex align-items-center gap-1">
-                                    {{-- 1. Dispatch Modal Button (Itemized Books Entry) --}}
-                                    <button type="button" class="btn btn-sm btn-outline-success btn-action-icon" title="Allocate & Itemize Books"
-                                            onclick='openDispatchModal("{{ $lib->id }}", "{{ addslashes($libName) }}", "{{ $allocated }}", "{{ $dispatchedDate }}", "{{ addslashes($fd['dispatch_tracking_no'] ?? '') }}", "{{ addslashes($fd['dispatch_notes'] ?? '') }}", {{ json_encode($bookItems) }})'>
-                                        <i class="fa-solid fa-boxes-stacked"></i>
-                                    </button>
-
-                                    {{-- 2. Acknowledgment Button --}}
-                                    <button type="button" class="btn btn-sm btn-outline-primary btn-action-icon" title="Receipt Acknowledgment & Verify"
-                                            onclick='openAckModal("{{ $lib->id }}", "{{ addslashes($libName) }}", "{{ $allocated }}", "{{ $receivedCount ?: $allocated }}", "{{ $receivedDate }}", "{{ addslashes($fd['acknowledgment_notes'] ?? '') }}")'>
-                                        <i class="fa-solid fa-signature"></i>
-                                    </button>
-
-                                    {{-- 3. Print / Preview Application Form (PDF View) --}}
-                                    <a href="{{ route('admin.libraries.print', $lib->id) }}" target="_blank" class="btn btn-sm btn-outline-success btn-action-icon" title="Preview Official Form / Print">
-                                        <i class="fa-solid fa-file-invoice"></i>
-                                    </a>
-
-                                    {{-- 4. Direct Download PDF --}}
-                                    <a href="{{ route('admin.libraries.pdf', $lib->id) }}" class="btn btn-sm btn-outline-danger btn-action-icon" title="Download Official PDF">
-                                        <i class="fa-solid fa-file-pdf"></i>
-                                    </a>
-
-                                    {{-- 5. Details Modal --}}
-                                    <button type="button" class="btn btn-sm btn-light border btn-action-icon" title="View Full Profile & Book List"
-                                            onclick="openDetailsModal({{ json_encode($lib) }})">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
-                                <i class="fa-solid fa-book-open-reader fs-1 text-secondary mb-3 d-block opacity-50"></i>
-                                <div class="fw-semibold fs-6">No library applications found.</div>
-                                <small class="text-muted">Reset filters or create a new library registration.</small>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($libraries->hasPages())
-            <div class="card-footer bg-white border-top p-3 d-flex align-items-center justify-content-between">
-                <div class="small text-muted">
-                    Showing {{ $libraries->firstItem() }} to {{ $libraries->lastItem() }} of {{ $libraries->total() }} libraries
-                </div>
-                <div>{{ $libraries->links('pagination::bootstrap-5') }}</div>
-            </div>
-        @endif
+    {{-- Table (replaced by AJAX) --}}
+    <div id="libTable" class="lib-table-wrap">
+        @include('admin.libraries._table')
     </div>
 </div>
 
@@ -1128,6 +848,7 @@ function toggleApproval(id, btn) {
     .then(res => res.json())
     .then(data => {
         btn.disabled = false;
+        if (window.LibDyn && data.stats) { LibDyn.applyStats(data.stats); }
         if (data.approved) {
             btn.className = "btn btn-sm rounded-pill px-2.5 py-1 fw-semibold btn-success-subtle text-success border-success-subtle";
             btn.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i><span>Approved</span>';
@@ -1475,5 +1196,8 @@ document.getElementById('formCustomizerForm').addEventListener('submit', functio
     });
 });
 </script>
+@endpush
+@push('scripts')
+<script src="{{ asset('js/admin-libraries.js') }}?v={{ @filemtime(public_path('js/admin-libraries.js')) }}"></script>
 @endpush
 @endsection

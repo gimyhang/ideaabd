@@ -12,8 +12,138 @@ use Illuminate\Support\Facades\Log;
 
 class LibraryRegistrationAdminController extends Controller
 {
+    /** English label => canonical (Bangla) division name used in the data. */
+    private const DIVISIONS = [
+        'Dhaka' => 'ঢাকা', 'Rangpur' => 'রংপুর', 'Rajshahi' => 'রাজশাহী', 'Chattogram' => 'চট্টগ্রাম',
+        'Khulna' => 'খুলনা', 'Barishal' => 'বরিশাল', 'Sylhet' => 'সিলেট', 'Mymensingh' => 'ময়মনসিংহ',
+    ];
+
+    private const APPROVED = ['confirmed', 'selected', 'approved'];
+
+    /** Every registration that belongs to a library grant (any library campaign). */
+    private function libraryScope()
+    {
+        return EventRegistration::query()->where(function ($q) {
+            $q->whereHas('campaign', function ($cq) {
+                $cq->where('type', 'library')->orWhere('slug', 'pathagar');
+            })
+            ->orWhereNotNull('form_data->library_name')
+            ->orWhereNotNull('form_data->reader_count');
+        });
+    }
+
+    /** Search / status / division / district / receipt filters shared by the page, AJAX refresh, bulk and CSV. */
+    private function applyFilters($query, Request $request)
+    {
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%")
+                  ->orWhere('institution_or_org', 'like', "%{$s}%")
+                  ->orWhere('registration_number', 'like', "%{$s}%")
+                  ->orWhere('district', 'like', "%{$s}%")
+                  ->orWhere('thana', 'like', "%{$s}%")
+                  ->orWhere('form_data->reg_no', 'like', "%{$s}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $request->status === 'confirmed'
+                ? $query->whereIn('status', self::APPROVED)
+                : $query->where('status', $request->status);
+        }
+
+        if ($request->filled('division')) {
+            $rawDiv = trim($request->division);
+            $variants = BangladeshGeo::getVariants(BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv);
+            $query->where(function ($q) use ($variants) {
+                foreach ($variants as $v) {
+                    $q->orWhere('form_data->division', $v);
+                }
+            });
+        }
+
+        if ($request->filled('district')) {
+            $rawDist = trim($request->district);
+            $variants = BangladeshGeo::getVariants(BangladeshGeo::normalizeDistrict($rawDist) ?: $rawDist);
+            $query->where(function ($q) use ($variants) {
+                $q->whereIn('district', $variants)->orWhere(function ($sq) use ($variants) {
+                    foreach ($variants as $v) {
+                        $sq->orWhere('form_data->district', $v);
+                    }
+                });
+            });
+        }
+
+        if ($request->filled('ack_status')) {
+            if ($request->ack_status === 'acknowledged') {
+                $query->where(function ($q) {
+                    $q->where('form_data->acknowledgment_status', 'acknowledged')
+                      ->orWhereNotNull('form_data->received_date')
+                      ->orWhereNotNull('form_data->received_books_count');
+                });
+            } elseif ($request->ack_status === 'dispatched') {
+                $query->whereNotNull('form_data->books_allocated')->whereNull('form_data->received_date');
+            } elseif ($request->ack_status === 'pending') {
+                $query->whereNull('form_data->books_allocated');
+            }
+        }
+
+        match ($request->input('sort')) {
+            'oldest' => $query->oldest(),
+            'name'   => $query->orderBy('institution_or_org'),
+            default  => $query->latest(),
+        };
+
+        return $query;
+    }
+
+    /** KPI + division numbers (whole registry, not the filtered view). */
+    private function computeStats(): array
+    {
+        $all = $this->libraryScope();
+
+        $stats = [
+            'total'    => (clone $all)->count(),
+            'approved' => (clone $all)->whereIn('status', self::APPROVED)->count(),
+            'pending'  => (clone $all)->where('status', 'pending')->count(),
+            'rejected' => (clone $all)->where('status', 'rejected')->count(),
+            'allocated' => 0, 'received' => 0, 'acknowledged' => 0, 'readers' => 0, 'existing' => 0,
+        ];
+
+        $divisionStats = array_fill_keys(self::DIVISIONS, 0);
+        $districtSet = [];
+
+        foreach ((clone $all)->select('id', 'district', 'form_data')->get() as $row) {
+            $fd = $row->form_data ?? [];
+            $stats['allocated'] += (int) ($fd['books_allocated'] ?? 0);
+            $stats['received']  += (int) ($fd['received_books_count'] ?? 0);
+            $stats['readers']   += (int) ($fd['reader_count'] ?? 0);
+            $stats['existing']  += (int) ($fd['current_book_count'] ?? 0);
+
+            if (!empty($fd['received_date']) || !empty($fd['is_acknowledged']) || ($fd['acknowledgment_status'] ?? '') === 'acknowledged') {
+                $stats['acknowledged']++;
+            }
+
+            $canonDist = BangladeshGeo::normalizeDistrict(trim($row->district ?: ($fd['district'] ?? '')));
+            if ($canonDist) {
+                $districtSet[$canonDist] = true;
+            }
+            $canonDiv = BangladeshGeo::normalizeDivision($fd['division'] ?? '') ?: BangladeshGeo::getDivisionForDistrict($canonDist);
+            if ($canonDiv && isset($divisionStats[$canonDiv])) {
+                $divisionStats[$canonDiv]++;
+            }
+        }
+
+        $stats['districts'] = count($districtSet);
+        $stats['divisions'] = $divisionStats;
+
+        return $stats;
+    }
+
     /**
-     * Dedicated Dashboard & Registry for Library Book Grants (পাঠাগার ব্যবস্থাপনা ও বই অনুদান).
+     * Library registry: filterable, sortable, refreshes via AJAX without a page reload.
      */
     public function index(Request $request)
     {
@@ -28,194 +158,82 @@ class LibraryRegistrationAdminController extends Controller
                 'slug'                => 'pathagar',
                 'type'                => 'library',
                 'badge_text'          => 'পাঠাগার বই অনুদান ২০২৬',
-                'short_description'   => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
-                'description'         => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় দেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
+                'short_description'   => 'বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
+                'description'         => 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া-এর বাৎসরিক বিনামূল্যে বই বিতরণ কর্মসূচির আওতায় দেশের বিভিন্ন প্রান্তের সাধারণ পাঠাগার, ক্লাব লাইব্রেরি ও শিক্ষা প্রতিষ্ঠানসমূহে বিনামূল্যে বই প্রদান করা হবে। ফরমটি যথাযথভাবে পূরণ করে নিবন্ধন সম্পন্ন করুন।',
                 'theme_color'         => '#047857',
                 'has_fee_or_donation' => false,
                 'fee_amount'          => 0.00,
                 'is_active'           => true,
-                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! আমাদের প্রতিনিধি আপনার সাথে দ্রুত যোগাযোগ করবে এবং যাচাই শেষে বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
+                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! আমাদের প্রতিনিধি আপনার সাথে দ্রুত যোগাযোগ করবে এবং যাচাই শেষে বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
                 'custom_fields'       => [],
                 'form_settings'       => ['is_library_form' => true, 'requires_approval' => true],
             ]);
         }
 
-        // Query all library registrations across any library campaign
-        $query = EventRegistration::with(['campaign', 'user'])
-            ->where(function ($q) {
-                $q->whereHas('campaign', function ($cq) {
-                    $cq->where('type', 'library')->orWhere('slug', 'pathagar');
-                })
-                ->orWhereNotNull('form_data->library_name')
-                ->orWhereNotNull('form_data->reader_count');
-            })
-            ->latest();
-
-        // Search Filter
-        if ($request->filled('search')) {
-            $s = trim($request->search);
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                  ->orWhere('phone', 'like', "%{$s}%")
-                  ->orWhere('institution_or_org', 'like', "%{$s}%")
-                  ->orWhere('registration_number', 'like', "%{$s}%")
-                  ->orWhere('district', 'like', "%{$s}%")
-                  ->orWhere('thana', 'like', "%{$s}%")
-                  ->orWhere('form_data->reg_no', 'like', "%{$s}%");
-            });
-        }
-
-        // Status Filter
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Division Filter (bilingual support)
-        if ($request->filled('division')) {
-            $rawDiv = trim($request->division);
-            $canonicalDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: $rawDiv;
-            $variants = BangladeshGeo::getVariants($canonicalDiv);
-            $query->where(function ($q) use ($variants) {
-                foreach ($variants as $v) {
-                    $q->orWhere('form_data->division', $v);
-                }
-            });
-        }
-
-        // District Filter (bilingual support)
-        if ($request->filled('district')) {
-            $rawDist = trim($request->district);
-            $canonicalDist = BangladeshGeo::normalizeDistrict($rawDist) ?: $rawDist;
-            $variants = BangladeshGeo::getVariants($canonicalDist);
-            $query->where(function ($q) use ($variants) {
-                $q->whereIn('district', $variants)
-                  ->orWhere(function ($sq) use ($variants) {
-                      foreach ($variants as $v) {
-                          $sq->orWhere('form_data->district', $v);
-                      }
-                  });
-            });
-        }
-
-        // Acknowledgment Status Filter
-        if ($request->filled('ack_status')) {
-            if ($request->ack_status === 'acknowledged') {
-                $query->where(function ($q) {
-                    $q->where('form_data->acknowledgment_status', 'acknowledged')
-                      ->orWhereNotNull('form_data->received_date')
-                      ->orWhereNotNull('form_data->received_books_count');
-                });
-            } elseif ($request->ack_status === 'dispatched') {
-                $query->where(function ($q) {
-                    $q->whereNotNull('form_data->books_allocated')
-                      ->whereNull('form_data->received_date');
-                });
-            } elseif ($request->ack_status === 'pending') {
-                $query->whereNull('form_data->books_allocated');
-            }
-        }
-
-        $perPage = intval($request->input('per_page', 25));
+        $perPage = (int) $request->input('per_page', 25);
         if (!in_array($perPage, [10, 25, 50, 100, 250], true)) {
             $perPage = 25;
         }
 
-        $libraries = $query->paginate($perPage)->withQueryString();
+        $libraries = $this->applyFilters($this->libraryScope()->with(['campaign', 'user']), $request)
+            ->paginate($perPage)
+            ->withQueryString();
 
-        // High-level KPI Stats Calculation
-        $allLibrariesQuery = EventRegistration::where(function ($q) {
-            $q->whereHas('campaign', function ($cq) {
-                $cq->where('type', 'library')->orWhere('slug', 'pathagar');
-            })
-            ->orWhereNotNull('form_data->library_name')
-            ->orWhereNotNull('form_data->reader_count');
-        });
+        $divisions = self::DIVISIONS;
 
-        $totalLibraries = (clone $allLibrariesQuery)->count();
-        $approvedLibraries = (clone $allLibrariesQuery)->whereIn('status', ['confirmed', 'selected', 'approved'])->count();
-        $pendingReview = (clone $allLibrariesQuery)->where('status', 'pending')->count();
-        $rejectedCount = (clone $allLibrariesQuery)->where('status', 'rejected')->count();
-
-        // Calculate total books allocated & acknowledged, readers, and existing books
-        $allRecords = (clone $allLibrariesQuery)->select('id', 'district', 'thana', 'status', 'form_data')->get();
-        $totalBooksAllocated = 0;
-        $totalBooksReceived = 0;
-        $acknowledgedCount = 0;
-        $totalReadersCount = 0;
-        $totalExistingBooks = 0;
-        $divisionStats = [
-            'ঢাকা' => 0, 'রংপুর' => 0, 'রাজশাহী' => 0, 'চট্টগ্রাম' => 0,
-            'খুলনা' => 0, 'বরিশাল' => 0, 'সিলেট' => 0, 'ময়মনসিংহ' => 0
-        ];
-        $districtSet = [];
-
-        foreach ($allRecords as $row) {
-            $fd = $row->form_data ?? [];
-            $alloc = intval($fd['books_allocated'] ?? 0);
-            $recv = intval($fd['received_books_count'] ?? 0);
-            $readers = intval($fd['reader_count'] ?? 0);
-            $curBooks = intval($fd['current_book_count'] ?? 0);
-
-            $totalBooksAllocated += $alloc;
-            $totalBooksReceived += $recv;
-            $totalReadersCount += $readers;
-            $totalExistingBooks += $curBooks;
-
-            if (!empty($fd['received_date']) || !empty($fd['is_acknowledged']) || ($fd['acknowledgment_status'] ?? '') === 'acknowledged') {
-                $acknowledgedCount++;
-            }
-
-            $rawDist = trim($row->district ?: ($fd['district'] ?? ''));
-            $canonDist = BangladeshGeo::normalizeDistrict($rawDist);
-            if ($canonDist) {
-                $districtSet[$canonDist] = true;
-            }
-
-            $rawDiv = $fd['division'] ?? '';
-            $canonDiv = BangladeshGeo::normalizeDivision($rawDiv) ?: BangladeshGeo::getDivisionForDistrict($canonDist);
-            if ($canonDiv && isset($divisionStats[$canonDiv])) {
-                $divisionStats[$canonDiv]++;
-            }
+        // AJAX refresh: table + pagination + fresh KPIs, no page reload
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'table' => view('admin.libraries._table', compact('libraries'))->render(),
+                'stats' => $this->computeStats(),
+                'total' => $libraries->total(),
+            ]);
         }
 
-        $uniqueDistricts = count($districtSet);
+        $stats = $this->computeStats();
 
         // Form & Print Customizer Settings
         $formSettings = array_merge([
             'logo_url'            => asset('images/logo.png'),
             'logo_size'           => 24,
-            'brand_name'          => 'আইডিয়া পাঠাগার',
+            'brand_name'          => 'আইডিয়া পাঠাগার',
             'sub_title'           => 'বই অনুদান আবেদন ফরম',
             'session_text'        => '',
-            'brand_tag'           => "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com",
+            'brand_tag'           => "প্রধান কার্যালয়: ঢাকা, বাংলাদেশ\nwww.ideaabd.com",
             'banner_title'        => 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন আবেদন ফরম',
             'grant_session'       => '২০২৬ অনুদান কর্মসূচি',
             'officer_name'        => 'সাকিল মাসুদ',
-            'officer_designation' => 'তত্বাবধায়ক ও প্রতিষ্ঠাতা',
-            'officer_org'         => 'আইডিয়া পাঠাগার ও প্রকাশন',
-            'declaration_text'    => 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।',
+            'officer_designation' => 'তত্বাবধায়ক ও প্রতিষ্ঠাতা',
+            'officer_org'         => 'আইডিয়া পাঠাগার ও প্রকাশন',
+            'declaration_text'    => 'আইডিয়া পাঠাগার নিজ উদ্যোগে বই বিতরণ করে। বই প্রদানের ক্ষেত্রে যে কোনো সিদ্ধান্ত গ্রহণের ক্ষমতা সংরক্ষণ করে।',
             'theme_color'         => '#047857',
             'custom_css'          => '',
             'custom_js'           => '',
         ], $campaign->form_settings ?? []);
 
-        return view('admin.libraries.index', compact(
-            'libraries',
-            'campaign',
-            'totalLibraries',
-            'approvedLibraries',
-            'pendingReview',
-            'rejectedCount',
-            'totalBooksAllocated',
-            'totalBooksReceived',
-            'acknowledgedCount',
-            'totalReadersCount',
-            'totalExistingBooks',
-            'uniqueDistricts',
-            'divisionStats',
-            'formSettings',
-            'perPage'
-        ));
+        return view('admin.libraries.index', compact('libraries', 'campaign', 'stats', 'divisions', 'formSettings', 'perPage'));
+    }
+
+    /**
+     * Approve / mark pending / reject many registrations at once.
+     */
+    public function bulk(Request $request)
+    {
+        $data = $request->validate([
+            'action' => 'required|in:approve,pending,reject',
+            'ids'    => 'required|array|min:1|max:500',
+            'ids.*'  => 'integer',
+        ]);
+
+        $status = ['approve' => 'confirmed', 'pending' => 'pending', 'reject' => 'rejected'][$data['action']];
+
+        // Only touch rows that really are library registrations
+        $ids = $this->libraryScope()->whereIn('id', $data['ids'])->pluck('id');
+        $count = EventRegistration::whereIn('id', $ids)->update(['status' => $status]);
+
+        $msg = "{$count} librar" . ($count === 1 ? 'y' : 'ies') . " marked " . ($status === 'confirmed' ? 'approved' : $status) . '.';
+
+        return response()->json(['success' => true, 'updated' => $count, 'message' => $msg, 'stats' => $this->computeStats()]);
     }
 
     /**
@@ -262,7 +280,7 @@ class LibraryRegistrationAdminController extends Controller
             'theme_color'   => $validated['theme_color'] ?? $campaign->theme_color,
         ]);
 
-        $msg = 'পাঠাগার ফরম ও প্রিন্ট সেটিংস সফলভাবে সেভ করা হয়েছে।';
+        $msg = 'Library form and print settings saved.';
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -421,8 +439,8 @@ class LibraryRegistrationAdminController extends Controller
         }
 
         $msg = $newStatus === 'confirmed'
-            ? "'{$registration->institution_or_org}' পাঠাগারটি অনুমোদিত হয়েছে।"
-            : "'{$registration->institution_or_org}' পেন্ডিং তালিকায় রাখা হয়েছে।";
+            ? "'{$registration->institution_or_org}' was approved."
+            : "'{$registration->institution_or_org}' moved back to pending.";
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -430,6 +448,7 @@ class LibraryRegistrationAdminController extends Controller
                 'status'   => $newStatus,
                 'approved' => ($newStatus === 'confirmed'),
                 'message'  => $msg,
+                'stats'    => $this->computeStats(),
             ]);
         }
 
@@ -480,15 +499,9 @@ class LibraryRegistrationAdminController extends Controller
     /**
      * Export all Library Grant data to CSV.
      */
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
-        $libraries = EventRegistration::where(function ($q) {
-            $q->whereHas('campaign', function ($cq) {
-                $cq->where('type', 'library')->orWhere('slug', 'pathagar');
-            })
-            ->orWhereNotNull('form_data->library_name')
-            ->orWhereNotNull('form_data->reader_count');
-        })->latest()->get();
+        $libraries = $this->applyFilters($this->libraryScope(), $request)->get();
 
         $filename = "library_book_grants_" . date('Y-m-d') . ".csv";
         $headers = [

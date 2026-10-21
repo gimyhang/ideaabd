@@ -231,19 +231,127 @@ class AdminSeoController extends Controller
         $sitemapUrl = url('/sitemap.xml');
         $robotsUrl = url('/robots.txt');
         $robotsContent = $this->sitemapService->generateRobotsTxt();
+        $snapshot = $this->sitemapSnapshot();
 
-        return view('seo::admin.sitemap', compact('sitemapUrl', 'robotsUrl', 'robotsContent'));
+        return view('seo::admin.sitemap', compact('sitemapUrl', 'robotsUrl', 'robotsContent', 'snapshot'));
+    }
+
+    /**
+     * Live numbers for the sitemap page (also used by the AJAX refresh).
+     */
+    public function sitemapData(): \Illuminate\Http\JsonResponse
+    {
+        return response()->json($this->sitemapSnapshot());
+    }
+
+    /**
+     * Rebuild every sitemap file without leaving the page.
+     */
+    public function regenerateSitemap(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            \App\Http\Controllers\SitemapController::regenerateStaticSitemap();
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json(['success' => false, 'message' => 'Could not rebuild the sitemaps: ' . $e->getMessage()], 500);
+        }
+
+        $snapshot = $this->sitemapSnapshot();
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Sitemaps rebuilt — ' . number_format($snapshot['stats']['urls']) . ' URLs in ' . $snapshot['stats']['files'] . ' files.',
+            'snapshot' => $snapshot,
+        ]);
+    }
+
+    /**
+     * Read every generated sitemap file: type, URL count, size, age, validity.
+     *
+     * @return array{files: array<int, array<string, mixed>>, stats: array<string, mixed>}
+     */
+    private function sitemapSnapshot(): array
+    {
+        $paths = array_merge([public_path('sitemap.xml')], glob(public_path('sitemaps/*.xml')) ?: []);
+        $files = [];
+        $urls = 0;
+        $latest = null;
+        $invalid = 0;
+
+        foreach ($paths as $path) {
+            if (! is_file($path)) {
+                continue;
+            }
+
+            $prev = libxml_use_internal_errors(true);
+            $xml = simplexml_load_file($path);
+            libxml_clear_errors();
+            libxml_use_internal_errors($prev);
+
+            $valid = $xml !== false;
+            $isIndex = $valid && $xml->getName() === 'sitemapindex';
+            $count = $valid ? ($isIndex ? count($xml->sitemap) : count($xml->url)) : 0;
+            $modified = \Carbon\Carbon::createFromTimestamp(filemtime($path));
+            $rel = str_replace(public_path() . DIRECTORY_SEPARATOR, '', $path);
+            $rel = str_replace('\\', '/', $rel);
+
+            if (! $valid) {
+                $invalid++;
+            }
+            if (! $isIndex) {
+                $urls += $count;
+            }
+            if (! $latest || $modified->gt($latest)) {
+                $latest = $modified;
+            }
+
+            $files[] = [
+                'name'     => basename($path),
+                'url'      => url('/' . $rel),
+                'kind'     => $isIndex ? 'Index' : 'URLs',
+                'count'    => $count,
+                'size'     => round(filesize($path) / 1024, 1),
+                'modified' => $modified->locale('en')->diffForHumans(),
+                'valid'    => $valid,
+            ];
+        }
+
+        // sitemap.xml may be a copy of the index: list it first, then the rest A–Z
+        usort($files, fn ($a, $b) => [$a['name'] !== 'sitemap.xml', $a['name']] <=> [$b['name'] !== 'sitemap.xml', $b['name']]);
+
+        return [
+            'files' => $files,
+            'stats' => [
+                'files'    => count($files),
+                'urls'     => $urls,
+                'invalid'  => $invalid,
+                'updated'  => $latest ? $latest->locale('en')->diffForHumans() : 'never',
+                'in_robots' => str_contains($this->sitemapService->generateRobotsTxt(), url('/sitemap.xml')),
+            ],
+        ];
     }
 
     /**
      * Instant Search Engine Pinger (Google, Bing, IndexNow)
      */
-    public function pingSearchEngines(Request $request, \Modules\SEO\Services\InstantIndexingService $indexingService): RedirectResponse
+    public function pingSearchEngines(Request $request, \Modules\SEO\Services\InstantIndexingService $indexingService)
     {
         $results = $indexingService->pingAllSearchEngines();
 
-        $successCount = count(array_filter($results, fn($r) => $r['success']));
-        $message = "গুগল, বিং ও IndexNow-এ ইনস্ট্যান্ট পিং পাঠানো হয়েছে! ({$successCount}/৩টি সার্ভিস সক্রিয় প্রতিক্রিয়া জানিয়েছে)";
+        // Report what the engine really answered, not a hard-coded "sent".
+        foreach ($results as $engine => &$r) {
+            if (! $r['success']) {
+                $r['message'] = ucfirst($engine) . ' answered HTTP ' . $r['status'] . ($r['status'] === 404 || $r['status'] === 410 ? ' — this ping endpoint is retired' : '');
+            }
+        }
+        unset($r);
+
+        $successCount = count(array_filter($results, fn ($r) => $r['success']));
+        $message = "{$successCount}/" . count($results) . ' services accepted the ping.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => $successCount > 0, 'message' => $message, 'results' => $results]);
+        }
 
         return back()->with('success', $message);
     }

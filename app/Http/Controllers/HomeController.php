@@ -9,13 +9,16 @@ class HomeController extends Controller
 {
     public function index(Request $request)
     {
-        $canUseBooks = \Illuminate\Support\Facades\Cache::remember('db_has_books_tables', 86400, function () {
+        $bookTablesCacheKey = 'db_has_books_tables_v2';
+        $canUseBooks = \Illuminate\Support\Facades\Cache::get($bookTablesCacheKey);
+        if (!is_bool($canUseBooks)) {
             try {
-                return DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
+                $canUseBooks = DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
             } catch (\Throwable) {
-                return false;
+                $canUseBooks = false;
             }
-        });
+            \Illuminate\Support\Facades\Cache::put($bookTablesCacheKey, $canUseBooks, $canUseBooks ? 86400 : 60);
+        }
 
         $books = collect();
         $recentlySold = collect();
@@ -124,6 +127,13 @@ class HomeController extends Controller
 
         if ($canUseBooks) {
             try {
+                $availableBooks = fn () => \Modules\Book\Models\Book::query()
+                    ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->whereNull('stock_status')
+                            ->orWhere('stock_status', '!=', 'pre_order');
+                    });
+
                 $books = \Modules\Book\Models\Book::query()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
@@ -133,50 +143,40 @@ class HomeController extends Controller
                     ->take(12)
                     ->get();
 
-                $recentlySold = \Modules\Book\Models\Book::query()
+                $recentlySold = $availableBooks()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->where('is_active', true)
                     ->orderByDesc('sales_count')
                     ->latest('id')
                     ->take(12)
                     ->get();
-                if ($recentlySold->isEmpty()) {
-                    $recentlySold = $books;
-                }
 
-                $bestSellerEbooks = \Modules\Book\Models\Book::query()
+                $bestSellerEbooks = $availableBooks()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->where('is_active', true)
                     ->where('format', 'ebook')
                     ->orderByDesc('sales_count')
                     ->latest('id')
                     ->take(12)
                     ->get();
 
-                $flashSales = \Modules\Book\Models\Book::query()
+                $flashSales = $availableBooks()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->where('is_active', true)
                     ->whereNotNull('discount_price')
                     ->where('discount_price', '>', 0)
                     ->whereColumn('discount_price', '<', 'price')
                     ->latest('id')
                     ->take(12)
                     ->get();
-                if ($flashSales->isEmpty()) {
-                    $flashSales = $books->slice(0, 8);
-                }
 
-                $ideaSpecialBooks = \Modules\Book\Models\Book::query()
+                $ideaSpecialBooks = $availableBooks()
                     ->with(['category', 'authors', 'publisher'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->where('is_active', true)
                     ->where(function($q) {
                         $q->whereHas('publisher', fn($pq) => $pq->where('name', 'LIKE', '%আইডিয়া%')->orWhere('name', 'LIKE', '%Idea%'))
                           ->orWhere('author_name', 'LIKE', '%আইডিয়া%');
@@ -184,9 +184,6 @@ class HomeController extends Controller
                     ->latest('id')
                     ->take(12)
                     ->get();
-                if ($ideaSpecialBooks->isEmpty()) {
-                    $ideaSpecialBooks = $books->slice(2, 8);
-                }
 
                 $recentlyViewedIds = session()->get('recently_viewed_books', []);
                 if (!empty($recentlyViewedIds)) {
@@ -235,31 +232,12 @@ class HomeController extends Controller
                     ->take(12)
                     ->get();
 
-                if ($preOrderBooks->count() < 4) {
-                    $existingIds = $preOrderBooks->pluck('id')->toArray();
-                    $extraPreOrders = \Modules\Book\Models\Book::query()
-                        ->with(['category', 'authors', 'publisher'])
-                        ->withAvg('reviews', 'rating')
-                        ->withCount('reviews')
-                        ->where('is_active', true)
-                        ->whereNotIn('id', $existingIds)
-                        ->latest('id')
-                        ->take(8 - $preOrderBooks->count())
-                        ->get();
-
-                    foreach ($extraPreOrders as $eb) {
-                        $eb->stock_status = 'pre_order';
-                    }
-                    $preOrderBooks = $preOrderBooks->concat($extraPreOrders);
-                }
-
-                $topSeller = \Modules\Book\Models\Book::query()
+                $topSeller = $availableBooks()
                     ->with(['authors', 'category'])
                     ->withAvg('reviews', 'rating')
                     ->withCount('reviews')
-                    ->where('is_active', true)
                     ->orderByDesc('sales_count')
-                    ->first() ?? $books->first();
+                    ->first();
 
                 // Map books by category for instant on-page tab switching
                 $categoryBooks = [];
@@ -269,11 +247,7 @@ class HomeController extends Controller
                         ->withAvg('reviews', 'rating')
                         ->withCount('reviews')
                         ->where('is_active', true)
-                        ->where(function($q) use ($cat) {
-                            $q->where('category_id', $cat->id)
-                              ->orWhere('sub_category_name', 'LIKE', "%{$cat->name}%")
-                              ->orWhere('genre_category', 'LIKE', "%{$cat->name}%");
-                        })
+                        ->where('category_id', $cat->id)
                         ->latest('id')
                         ->take(12)
                         ->get();
@@ -317,11 +291,7 @@ class HomeController extends Controller
                         ->withAvg('reviews', 'rating')
                         ->withCount('reviews')
                         ->where('is_active', true)
-                        ->where(function($q) use ($cat) {
-                            $q->where('category_id', $cat->id)
-                              ->orWhere('sub_category_name', 'LIKE', "%{$cat->name}%")
-                              ->orWhere('genre_category', 'LIKE', "%{$cat->name}%");
-                        })
+                        ->where('category_id', $cat->id)
                         ->latest('id')
                         ->take(12)
                         ->get();

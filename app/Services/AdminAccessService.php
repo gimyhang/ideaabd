@@ -128,7 +128,8 @@ class AdminAccessService
             // Keep admin role permissions intact
             $allPermIds = DB::table('admin_permissions')->pluck('id')->toArray();
             
-            DB::table('role_has_permissions')->truncate();
+            // delete(), not truncate(): TRUNCATE commits implicitly on MySQL and defeats the transaction
+            DB::table('role_has_permissions')->delete();
 
             // Always grant all to admin
             foreach ($allPermIds as $pId) {
@@ -145,7 +146,7 @@ class AdminAccessService
                     continue; // Already assigned all
                 }
 
-                foreach ((array) $permIds as $pId) {
+                foreach (array_unique(array_map('intval', (array) $permIds)) as $pId) {
                     if ((int) $pId > 0) {
                         DB::table('role_has_permissions')->insert([
                             'role'          => (string) $roleSlug,

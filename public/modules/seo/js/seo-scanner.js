@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         function update() {
             const len = (input.value || '').length;
-            counter.textContent = `${len} অক্ষর`;
+            counter.textContent = `${len} chars`;
             counter.className = 'char-counter-pill ';
             if (len >= minLen && len <= maxLen) {
                 counter.className += 'char-good';
@@ -40,12 +40,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (titleInput && serpTitle) {
             titleInput.addEventListener('input', () => {
-                serpTitle.textContent = titleInput.value || 'পৃষ্ঠার মেটা টাইটেল...';
+                serpTitle.textContent = titleInput.value || 'Page title';
             });
         }
         if (descInput && serpDesc) {
             descInput.addEventListener('input', () => {
-                serpDesc.textContent = descInput.value || 'গুগল সার্চে প্রদর্শিত সংক্ষিপ্ত মেটা বিবরণ...';
+                serpDesc.textContent = descInput.value || 'Search result description.';
             });
         }
     }
@@ -62,7 +62,7 @@ function runLiveSeoScan(type, id, urlPath, focusKeyword) {
     const scanBtn = document.getElementById('scanSubmitBtn');
     if (scanBtn) {
         scanBtn.disabled = true;
-        scanBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> স্ক্যান ও অডিট চলছে...';
+        scanBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Scanning...';
     }
 
     fetch('/admin/seo/scan-ajax', {
@@ -86,24 +86,24 @@ function runLiveSeoScan(type, id, urlPath, focusKeyword) {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'success',
-                    title: 'স্ক্যান সফল!',
+                    title: 'Scan complete',
                     text: data.message,
                     timer: 2500,
                     showConfirmButton: false
                 });
             }
         } else {
-            alert(data.message || 'স্ক্যান সম্পন্ন করা যায়নি।');
+            alert(data.message || 'Scan failed.');
         }
     })
     .catch(err => {
         console.error('Scan Error:', err);
-        alert('সার্ভার যোগাযোগে ত্রুটি হয়েছে।');
+        alert('Server error.');
     })
     .finally(() => {
         if (scanBtn) {
             scanBtn.disabled = false;
-            scanBtn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i> স্ক্যান ও ট্যাগ তৈরি করুন';
+            scanBtn.innerHTML = '<i class="fa-solid fa-bolt me-1"></i> Scan';
         }
     });
 }

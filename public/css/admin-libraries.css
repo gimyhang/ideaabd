@@ -1,0 +1,35 @@
+/* Admin › Libraries — dynamic registry */
+.lib .div-stat-pill {
+    display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px;
+    border: 1px solid #e5eaf2; background: #fff; color: #334155; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; transition: .15s;
+}
+.lib .div-stat-pill:hover { border-color: #10b981; color: #047857; }
+.lib .div-stat-pill .badge { background: #f1f5f9; color: #0f172a; font-weight: 700; }
+.lib .div-stat-pill.active { background: #047857; border-color: #047857; color: #fff; }
+.lib .div-stat-pill.active .badge { background: #fff; color: #047857; }
+
+.lib-table-wrap { position: relative; transition: opacity .15s; }
+.lib-table-wrap.is-loading { opacity: .45; pointer-events: none; }
+.lib-table-wrap.is-loading::after {
+    content: ""; position: absolute; top: 18px; left: 50%; width: 26px; height: 26px; margin-left: -13px;
+    border: 3px solid #cbd5e1; border-top-color: #047857; border-radius: 50%; animation: lib-spin .7s linear infinite;
+}
+@keyframes lib-spin { to { transform: rotate(360deg); } }
+
+.lib [data-kpi].flash { animation: lib-flash .5s; }
+@keyframes lib-flash { 40% { transform: scale(1.12); color: #047857; } }
+
+.lib-bulk {
+    position: sticky; top: 76px; z-index: 30; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 0 0 12px; padding: 10px 16px; border-radius: 14px; color: #fff; background: #0f172a;
+    box-shadow: 0 12px 28px -10px rgba(15, 23, 42, .5);
+}
+.lib-bulk[hidden] { display: none; }
+
+.lib .table-lib-custom tbody tr.is-selected { background: rgba(4, 120, 87, .07); }
+.lib .table-lib-custom tbody tr.row-flash { animation: lib-row .8s; }
+@keyframes lib-row { 0% { background: rgba(4, 120, 87, .25); } 100% { background: transparent; } }
+
+body.dark-mode .lib .div-stat-pill { background: #111a2c; border-color: #1f2b42; color: #cbd5e1; }
+body.dark-mode .lib .div-stat-pill .badge { background: #1f2b42; color: #e6ecf5; }

@@ -7,6 +7,7 @@ use App\Models\EventRegistration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class EventRegistrationTest extends TestCase
@@ -58,6 +59,13 @@ class EventRegistrationTest extends TestCase
             ->assertSee('<option value="M"', false)
             ->assertSee('name="age"', false)
             ->assertSee('name="bio"', false);
+    }
+
+    public function test_registration_storage_uses_the_entries_table(): void
+    {
+        $this->assertTrue(Schema::hasTable('entries'));
+        $this->assertFalse(Schema::hasTable('event_registrations'));
+        $this->assertSame('entries', (new EventRegistration)->getTable());
     }
 
     public function test_aliases_resolve_and_unknown_slug_is_404(): void
@@ -169,7 +177,13 @@ class EventRegistrationTest extends TestCase
     public function test_scholarship_and_library_pages_render(): void
     {
         EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], ['title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => false, 'fee_amount' => 0, 'custom_fields' => [['name' => 'extra', 'label' => 'Extra', 'type' => 'text']], 'form_settings' => ['is_scholarship_form' => true]]);
-        $this->get('/jshikkhabritti')->assertOk()->assertSee('event-register.js', false)->assertSee('name="extra"', false);
+        $this->get('/jshikkhabritti')
+            ->assertOk()
+            ->assertSee('event-register.js', false)
+            ->assertSee('name="extra"', false)
+            ->assertSee('data-wizard-step="4"', false)
+            ->assertSee('name="perm_city_corporation"', false)
+            ->assertSee('name="pres_municipality"', false);
         $this->get('/pathagar')->assertOk()->assertSee('event-register.js', false);
     }
 }

@@ -397,6 +397,12 @@
     font-weight: 600;
 }
 
+.terminal-preset-chip:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+}
+
 .terminal-preset-chip:hover {
     background: var(--cache-primary);
     color: #ffffff;
@@ -407,6 +413,47 @@
 
 .terminal-preset-chip i {
     font-size: 0.95rem;
+}
+
+.terminal-command-bar {
+    display: flex;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    border: 1px solid var(--cache-border);
+    box-shadow: var(--cache-shadow);
+}
+
+.terminal-command-bar .input-group-text {
+    border-radius: 0;
+}
+
+.terminal-command-select {
+    min-width: 0;
+    border: 0;
+    background-color: #f8fafc;
+    padding: 0.8rem 1rem;
+    box-shadow: none;
+}
+
+.terminal-command-select:focus {
+    background-color: #ffffff;
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.18);
+}
+
+.terminal-command-bar .btn-cache-action {
+    border-radius: 0;
+    white-space: nowrap;
+}
+
+.terminal-command-bar .btn-cache-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.terminal-security-note {
+    color: #64748b;
+    font-size: 0.8rem;
 }
 
 /* ========================================================================= */
@@ -549,5 +596,18 @@
     .btn-cache-action {
         padding: 0.7rem 1.25rem;
         font-size: 0.875rem;
+    }
+    .terminal-command-bar {
+        flex-wrap: wrap;
+    }
+    .terminal-command-bar .input-group-text {
+        flex: 1 0 100%;
+        padding: 0.65rem 0.9rem;
+    }
+    .terminal-command-select {
+        flex: 1 1 100%;
+    }
+    .terminal-command-bar .btn-cache-action {
+        flex: 1 1 100%;
     }
 }

@@ -22,13 +22,13 @@ class InstantIndexingService
             $results['google'] = [
                 'success' => $response->successful() || $response->status() === 200,
                 'status'  => $response->status(),
-                'message' => 'গুগলে সাইটম্যাপ পিং সফল হয়েছে।',
+                'message' => 'Google ping sent.',
             ];
         } catch (\Throwable $e) {
             $results['google'] = [
                 'success' => false,
                 'status'  => 500,
-                'message' => 'গুগল পিং ত্রুটি: ' . $e->getMessage(),
+                'message' => 'Google ping failed: ' . $e->getMessage(),
             ];
         }
 
@@ -39,13 +39,13 @@ class InstantIndexingService
             $results['bing'] = [
                 'success' => $response->successful() || $response->status() === 200,
                 'status'  => $response->status(),
-                'message' => 'বিং-এ সাইটম্যাপ পিং সফল হয়েছে।',
+                'message' => 'Bing ping sent.',
             ];
         } catch (\Throwable $e) {
             $results['bing'] = [
                 'success' => false,
                 'status'  => 500,
-                'message' => 'বিং পিং ত্রুটি: ' . $e->getMessage(),
+                'message' => 'Bing ping failed: ' . $e->getMessage(),
             ];
         }
 
@@ -68,13 +68,13 @@ class InstantIndexingService
             $results['indexnow'] = [
                 'success' => $response->successful() || in_array($response->status(), [200, 202], true),
                 'status'  => $response->status(),
-                'message' => 'IndexNow প্রোটোকলে পিং রিকোয়েস্ট গৃহীত হয়েছে।',
+                'message' => 'IndexNow request accepted.',
             ];
         } catch (\Throwable $e) {
             $results['indexnow'] = [
                 'success' => false,
                 'status'  => 500,
-                'message' => 'IndexNow ত্রুটি: ' . $e->getMessage(),
+                'message' => 'IndexNow failed: ' . $e->getMessage(),
             ];
         }
 

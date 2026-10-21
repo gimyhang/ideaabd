@@ -10,6 +10,8 @@ Route::post('/batch-scan', [AdminSeoController::class, 'batchScan'])->name('batc
 Route::get('/pages', [AdminSeoController::class, 'pages'])->name('pages');
 Route::post('/pages/update', [AdminSeoController::class, 'updatePage'])->name('pages.update');
 Route::get('/sitemap-manager', [AdminSeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap-data', [AdminSeoController::class, 'sitemapData'])->name('sitemap.data');
+Route::post('/sitemap-regenerate', [AdminSeoController::class, 'regenerateSitemap'])->middleware('throttle:6,1')->name('sitemap.regenerate');
 Route::post('/ping-search-engines', [AdminSeoController::class, 'pingSearchEngines'])->name('ping');
 Route::get('/redirects', [AdminSeoController::class, 'redirects'])->name('redirects');
 Route::post('/redirects/store', [AdminSeoController::class, 'storeRedirect'])->name('redirects.store');

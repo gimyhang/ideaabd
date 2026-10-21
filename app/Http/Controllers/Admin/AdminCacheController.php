@@ -14,9 +14,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 class AdminCacheController extends Controller
 {
+    /**
+     * Approved console commands: config/cache_console.php, filtered by the risk ceiling.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function allowedCommands(): array
+    {
+        $order = (array) config('cache_console.risk_order', ['none', 'low', 'medium', 'high']);
+        $ceiling = array_search(config('cache_console.max_risk', 'low'), $order, true);
+        $ceiling = $ceiling === false ? 1 : $ceiling;
+
+        return array_filter(
+            (array) config('cache_console.commands', []),
+            function ($meta) use ($order, $ceiling) {
+                $risk = array_search($meta['risk'] ?? 'high', $order, true);
+
+                return $risk !== false && $risk <= $ceiling;
+            }
+        );
+    }
+
     public function __construct(private readonly ?AdminAccessService $accessService = null)
     {
     }
@@ -28,8 +50,10 @@ class AdminCacheController extends Controller
     {
         $stats = $this->gatherCacheMetrics();
         $cachedKeys = $this->inspectKeyRegistry();
+        $artisanCommands = $this->allowedCommands();
+        $consoleGroups = (array) config('cache_console.groups', []);
 
-        return view('admin.cache-manage', compact('stats', 'cachedKeys'));
+        return view('admin.cache-manage', compact('stats', 'cachedKeys', 'artisanCommands', 'consoleGroups'));
     }
 
     /**
@@ -264,33 +288,39 @@ class AdminCacheController extends Controller
      */
     public function runArtisan(Request $request): JsonResponse
     {
-        $command = trim((string) $request->input('command'));
-        $allowed = [
-            'optimize'        => 'php artisan optimize',
-            'optimize:clear'  => 'php artisan optimize:clear',
-            'config:cache'    => 'php artisan config:cache',
-            'config:clear'    => 'php artisan config:clear',
-            'route:cache'     => 'php artisan route:cache',
-            'route:clear'     => 'php artisan route:clear',
-            'view:cache'      => 'php artisan view:cache',
-            'view:clear'      => 'php artisan view:clear',
-            'event:cache'     => 'php artisan event:cache',
-            'event:clear'     => 'php artisan event:clear',
-            'cache:clear'     => 'php artisan cache:clear',
-        ];
+        $validated = $request->validate([
+            'command' => ['required', 'string', 'max:64'],
+        ]);
+        $command = $validated['command'];
+
+        $allowed = $this->allowedCommands();
 
         if (!isset($allowed[$command])) {
             return response()->json([
                 'success' => false,
-                'message' => "Command '{$command}' is not in the allowed artisan whitelist.",
+                'message' => 'This command is not available in the restricted Artisan console.',
             ], 403);
         }
 
         try {
-            Artisan::call($command);
+            $exitCode = Artisan::call($command, (array) ($allowed[$command]['args'] ?? []));
             $output = trim(Artisan::output());
-            if (empty($output)) {
-                $output = "Command '{$command}' executed successfully with exit code 0.";
+            if (strlen($output) > 12000) {
+                $output = substr($output, 0, 12000) . "\n[Output truncated]";
+            }
+
+            if ($exitCode !== 0) {
+                Log::warning('Admin Artisan command returned a failure exit code.', [
+                    'command' => $command,
+                    'exit_code' => $exitCode,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'command' => $command,
+                    'output' => $output,
+                    'message' => "Artisan command failed with exit code {$exitCode}.",
+                ], 500);
             }
 
             $this->logAction('artisan_command_run', "Executed: php artisan {$command}");
@@ -298,16 +328,20 @@ class AdminCacheController extends Controller
             return response()->json([
                 'success'   => true,
                 'command'   => $command,
-                'output'    => $output,
+                'output'    => $output !== '' ? $output : "Command '{$command}' completed successfully.",
                 'timestamp' => now()->format('H:i:s'),
                 'message'   => "Artisan '{$command}' successfully executed!",
             ]);
         } catch (\Throwable $e) {
+            Log::error('Admin Artisan command threw an exception.', [
+                'command' => $command,
+                'exception' => $e,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'command' => $command,
-                'output'  => 'Error: ' . $e->getMessage(),
-                'message' => 'Command execution failed.',
+                'message' => 'Command execution failed. Check the application log for details.',
             ], 500);
         }
     }

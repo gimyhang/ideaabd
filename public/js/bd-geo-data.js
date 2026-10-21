@@ -178,6 +178,20 @@ window.BD_GEO_BN = {
         "জামালপুর": ["জামালপুর প্রধান ডাকঘর (২০০০)", "মেলান্দহ (২০২০)", "ইসলামপুর (২০৩০)", "দেওয়ানগঞ্জ (২০৪০)", "সরিষাবাড়ী (২০১০)", "মাদারগঞ্জ (২০৫০)", "বকশীগঞ্জ (২০৬০)"],
         "নেত্রকোণা": ["নেত্রকোণা প্রধান ডাকঘর (২৪০০)", "মোহনগঞ্জ (২৪১০)", "কেন্দুয়া (২৪২০)", "পূর্বধলা (২৪৩০)", "দুর্গাপুর (২৪৪০)", "বারহাট্টা (২৪৫০)", "কলমাকান্দা (২৪৬০)", "মদন (২৪৭০)"],
         "শেরপুর": ["শেরপুর প্রধান ডাকঘর (২১০০)", "নকলা (২১১০)", "নালিতাবাড়ী (২১২০)", "ঝিনাইগাতী (২১৩০)", "শ্রীবরদী (২১৪০)"]
+    },
+
+    cityCorporations: {
+        "ঢাকা": ["ঢাকা উত্তর সিটি কর্পোরেশন", "ঢাকা দক্ষিণ সিটি কর্পোরেশন"],
+        "গাজীপুর": ["গাজীপুর সিটি কর্পোরেশন"],
+        "নারায়ণগঞ্জ": ["নারায়ণগঞ্জ সিটি কর্পোরেশন"],
+        "চট্টগ্রাম": ["চট্টগ্রাম সিটি কর্পোরেশন"],
+        "কুমিল্লা": ["কুমিল্লা সিটি কর্পোরেশন"],
+        "খুলনা": ["খুলনা সিটি কর্পোরেশন"],
+        "রাজশাহী": ["রাজশাহী সিটি কর্পোরেশন"],
+        "বরিশাল": ["বরিশাল সিটি কর্পোরেশন"],
+        "সিলেট": ["সিলেট সিটি কর্পোরেশন"],
+        "রংপুর": ["রংপুর সিটি কর্পোরেশন"],
+        "ময়মনসিংহ": ["ময়মনসিংহ সিটি কর্পোরেশন"]
     }
 };
 
@@ -237,7 +251,7 @@ window.WORLD_COUNTRIES = [
  * ২. initAddressChaining(divId, distId, upaId, poId, vilId, defDiv, defDist)
  */
 function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
-    let divEl, distEl, upaEl, poEl, vilEl;
+    let divEl, distEl, upaEl, poEl, vilEl, cityCorpEl;
     let defaultDivision = defDiv || '';
     let defaultDistrict = defDist || '';
 
@@ -249,6 +263,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         upaEl = document.getElementById(prefix + 'Upazila') || document.getElementById(prefix + '_upazila') || document.getElementById(prefix + 'Thana');
         poEl = document.getElementById(prefix + 'PostOffice') || document.getElementById(prefix + '_post_office');
         vilEl = document.getElementById(prefix + 'Village') || document.getElementById(prefix + '_village');
+        cityCorpEl = document.getElementById(prefix + 'CityCorporation');
     } else {
         // ২. সরাসরি আইডি দ্বারা কল
         divEl = typeof arg1 === 'string' ? document.getElementById(arg1) : arg1;
@@ -273,6 +288,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
     const oldDist = getNormalizedBn(distEl.getAttribute('data-old') || distEl.value || defaultDistrict);
     const oldUpa = (upaEl ? (upaEl.getAttribute('data-old') || upaEl.value || '') : '').trim();
     const oldPo = (poEl ? (poEl.getAttribute('data-old') || poEl.value || '') : '').trim();
+    const oldCityCorp = (cityCorpEl ? (cityCorpEl.getAttribute('data-old') || cityCorpEl.value || '') : '').trim();
 
     // বিভাগ পপুলেট
     divEl.innerHTML = '<option value="">-- বিভাগ --</option>';
@@ -293,6 +309,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         distEl.innerHTML = '<option value="">-- জেলা --</option>';
         if (upaEl) upaEl.innerHTML = '<option value="">-- উপজেলা --</option>';
         if (poEl) poEl.innerHTML = '<option value="">-- পোস্টকোড --</option>';
+        if (cityCorpEl) cityCorpEl.innerHTML = '<option value="">-- Optional --</option>';
 
         const bnDiv = getNormalizedBn(selectedDiv);
         if (bnDiv && geo.divisions && geo.divisions[bnDiv]) {
@@ -307,6 +324,21 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
                 distEl.appendChild(opt);
             });
         }
+        populateCityCorporations(distEl.value, oldCityCorp);
+    }
+
+    function populateCityCorporations(selectedDist, selectedCity = '') {
+        if (!cityCorpEl) return;
+        cityCorpEl.innerHTML = '<option value="">-- Optional --</option>';
+        const district = getNormalizedBn(selectedDist);
+        const cities = geo.cityCorporations && geo.cityCorporations[district] ? geo.cityCorporations[district] : [];
+        cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city;
+            option.textContent = city;
+            option.selected = selectedCity === city;
+            cityCorpEl.appendChild(option);
+        });
     }
 
     // উপজেলা অনুযায়ী স্বয়ংক্রিয় ডাকঘর/পোস্টকোড ম্যাচিং হেল্পার
@@ -390,9 +422,6 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
                     poEl.value = selectedPo;
                 } else if (selectedUpa) {
                     autoMatchPostOffice(selectedUpa);
-                } else if (poEl.options.length > 1) {
-                    // ডিফল্ট হিসেবে প্রধান ডাকঘর বা প্রথমটি অটো-সিলেক্ট
-                    poEl.selectedIndex = 1;
                 }
             }
         }
@@ -410,6 +439,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
     });
 
     distEl.addEventListener('change', function () {
+        populateCityCorporations(this.value, '');
         populateUpazilasAndPostOffices(this.value, '', '');
         if (typeof formatWriterAddress === 'function') formatWriterAddress();
         if (typeof updateLivePreview === 'function') updateLivePreview();
@@ -436,6 +466,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
     if (divEl.value) {
         populateDistricts(divEl.value, oldDist);
         if (distEl.value) {
+            populateCityCorporations(distEl.value, oldCityCorp);
             populateUpazilasAndPostOffices(distEl.value, oldUpa, oldPo);
         }
     }

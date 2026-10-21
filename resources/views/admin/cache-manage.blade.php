@@ -464,17 +464,20 @@
     </div>
 
     {{-- ========================================================================= --}}
-    {{-- 4. INTERACTIVE ARTISAN CONSOLE TERMINAL                                    --}}
+    {{-- 4. RESTRICTED ARTISAN CONSOLE                                              --}}
     {{-- ========================================================================= --}}
-    <div id="sectionConsole" class="cache-section-card p-4">
+    <div id="sectionConsole" class="cache-section-card p-4" data-run-url="{{ route('admin.cache.run-artisan') }}">
         <div class="d-flex flex-wrap align-items-center justify-content-between pb-3.5 mb-4 border-bottom gap-3">
             <div>
                 <h5 class="cache-header-title">
-                    <i class="fa-solid fa-terminal text-warning"></i> Interactive Artisan Console
+                    <i class="fa-solid fa-terminal text-warning"></i> Restricted Artisan Console
                 </h5>
-                <p class="cache-header-subtitle">Execute optimization and cache maintenance commands in real-time with streaming output.</p>
+                <p class="cache-header-subtitle">Read-only checks and safe cache clears only. Commands that build caches, change data or run a shell are not available here.</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill bg-success-subtle border border-success-subtle text-success-emphasis px-3 py-2">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Allowlist protected
+                </span>
                 <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" onclick="copyTerminalOutput()">
                     <i class="fa-solid fa-copy me-1 text-primary"></i> Copy Log
                 </button>
@@ -484,18 +487,21 @@
             </div>
         </div>
 
-        {{-- Preset Command Chips --}}
-        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-            <span class="small text-muted fw-bold text-uppercase font-monospace me-1">Quick Presets:</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('optimize')"><i class="fa-solid fa-bolt-lightning text-primary"></i> php artisan optimize</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('view:clear')"><i class="fa-solid fa-desktop text-info"></i> php artisan view:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('route:clear')"><i class="fa-solid fa-signs-post text-warning"></i> php artisan route:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('config:clear')"><i class="fa-solid fa-sliders text-success"></i> php artisan config:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('cache:clear')"><i class="fa-solid fa-database text-danger"></i> php artisan cache:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('event:clear')"><i class="fa-solid fa-bell text-secondary"></i> php artisan event:clear</span>
-            <span class="terminal-preset-chip" onclick="runTerminalCommand('about')"><i class="fa-solid fa-circle-info text-info"></i> php artisan about</span>
-        </div>
-
+        {{-- Quick actions: one chip per approved command, grouped (config/cache_console.php) --}}
+        @foreach ($consoleGroups as $groupKey => $group)
+            @php $inGroup = collect($artisanCommands)->where('group', $groupKey); @endphp
+            @if ($inGroup->isNotEmpty())
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <span class="small text-muted fw-bold text-uppercase font-monospace me-1" style="min-width: 74px;"><i class="fa-solid {{ $group['icon'] }} me-1"></i>{{ $group['label'] }}</span>
+                    @foreach ($inGroup as $command => $meta)
+                        <button type="button" class="terminal-preset-chip" data-command="{{ $command }}" title="{{ $meta['desc'] }} — php artisan {{ $command }}">
+                            <i class="fa-solid {{ $meta['icon'] }} text-{{ $meta['tone'] }}"></i> {{ $meta['label'] }}
+                        </button>
+                    @endforeach
+                </div>
+            @endif
+        @endforeach
+        <div class="mb-3"></div>
         {{-- Terminal Window --}}
         <div class="terminal-window mb-3">
             <div class="terminal-header">
@@ -503,22 +509,34 @@
                     <span class="terminal-dot dot-red"></span>
                     <span class="terminal-dot dot-yellow"></span>
                     <span class="terminal-dot dot-green"></span>
-                    <span class="ms-2 small text-muted font-monospace">ideaabd-cache-runner@production:~</span>
+                    <span class="ms-2 small text-muted font-monospace">ideaabd · restricted maintenance</span>
                 </div>
                 <div class="small text-muted font-monospace" id="terminalClock">{{ now()->format('h:i:s A') }}</div>
             </div>
-            <pre class="terminal-screen mb-0" id="terminalOutput">// Ready for Artisan commands.
-ideaabd-cache-runner@production:~$ Click any preset chip above or type a command below.</pre>
+            <pre class="terminal-screen mb-0" id="terminalOutput">// Ready for Artisan maintenance commands.
+ideaabd-cache-runner@restricted:~$ Choose an approved command below or use a quick action.</pre>
         </div>
 
-        {{-- Custom Command Prompt Bar --}}
-        <div class="input-group">
-            <span class="input-group-text bg-dark text-white border-0 font-monospace px-3">$ php artisan</span>
-            <input type="text" id="customArtisanCmd" class="form-control font-monospace border-0 bg-light px-3" placeholder="e.g. optimize, view:clear, config:cache, route:list">
-            <button type="button" class="btn btn-cache-action btn-cache-primary px-4 fw-bold" onclick="runCustomTerminalCommand()">
-                <i class="fa-solid fa-play me-1.5"></i> Execute
+        <div class="terminal-command-bar">
+            <label class="input-group-text bg-dark text-white border-0 font-monospace px-3" for="artisanCommandSelect">$ php artisan</label>
+            <select id="artisanCommandSelect" class="form-select terminal-command-select font-monospace" aria-label="Approved Artisan command">
+                <option value="">Select an approved command...</option>
+                @foreach ($consoleGroups as $groupKey => $group)
+                    @php $inGroup = collect($artisanCommands)->where('group', $groupKey); @endphp
+                    @if ($inGroup->isNotEmpty())
+                        <optgroup label="{{ $group['label'] }}">
+                            @foreach ($inGroup as $command => $meta)
+                                <option value="{{ $command }}">{{ $command }} — {{ $meta['desc'] }}</option>
+                            @endforeach
+                        </optgroup>
+                    @endif
+                @endforeach
+            </select>
+            <button type="button" id="runArtisanCommand" class="btn btn-cache-action btn-cache-primary px-4 fw-bold" onclick="runCustomTerminalCommand()" disabled>
+                <i class="fa-solid fa-play me-1.5"></i> Run command
             </button>
         </div>
+        <p class="terminal-security-note mb-0 mt-2"><i class="fa-solid fa-lock me-1"></i> The list is generated from config/cache_console.php, re-checked on the server and limited to 10 requests per minute.</p>
     </div>
 
     {{-- ========================================================================= --}}

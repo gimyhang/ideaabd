@@ -4,6 +4,7 @@
  */
 
 let autoRefreshTimer = null;
+let terminalCommandRunning = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Initialize Table Search Filter
@@ -12,16 +13,24 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('input', filterCacheKeysTable);
     }
 
-    // 2. Initialize Terminal Input Enter Key
-    const cmdInput = document.getElementById('customArtisanCmd');
-    if (cmdInput) {
-        cmdInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
+    // 2. Enable execution only after selecting a server-approved command.
+    const commandSelect = document.getElementById('artisanCommandSelect');
+    const runCommandButton = document.getElementById('runArtisanCommand');
+    if (commandSelect && runCommandButton) {
+        commandSelect.addEventListener('change', function() {
+            runCommandButton.disabled = !commandSelect.value || terminalCommandRunning;
+        });
+    }
+
+    document.querySelectorAll('.terminal-preset-chip[data-command]').forEach(button => {
+        button.addEventListener('click', function() {
+            if (commandSelect) commandSelect.value = button.dataset.command;
+            if (commandSelect && runCommandButton) {
+                runCommandButton.disabled = !commandSelect.value || terminalCommandRunning;
                 runCustomTerminalCommand();
             }
         });
-    }
+    });
 
     // 3. Initialize Select All Checkboxes
     const selectAllModules = document.getElementById('selectAllModulesCb');
@@ -144,14 +153,27 @@ function purgeMultipleSelectedModules() {
  * 4. Run Artisan Console Command
  */
 function runTerminalCommand(cmd) {
-    if (!cmd) return;
+    const commandSelect = document.getElementById('artisanCommandSelect');
+    const runButton = document.getElementById('runArtisanCommand');
+    const allowedCommands = commandSelect ? Array.from(commandSelect.options).map(option => option.value) : [];
+    if (!cmd || !allowedCommands.includes(cmd) || terminalCommandRunning) return;
 
-    appendTerminalLine(`\n$ php artisan ${cmd}\n[EXECUTING...] Please wait...`);
+    terminalCommandRunning = true;
+    if (runButton) {
+        runButton.disabled = true;
+        runButton.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> Running...';
+    }
+    document.querySelectorAll('.terminal-preset-chip').forEach(button => button.disabled = true);
+    if (commandSelect) commandSelect.disabled = true;
+
+    appendTerminalLine(`\n$ php artisan ${cmd}\n[RUNNING] Please wait...`);
     const clock = document.getElementById('terminalClock');
+    const consoleSection = document.getElementById('sectionConsole');
+    const endpoint = consoleSection ? consoleSection.dataset.runUrl : '';
 
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
-    fetch('/admin/cache/run-artisan', {
+    fetch(endpoint, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': token,
@@ -161,14 +183,15 @@ function runTerminalCommand(cmd) {
         },
         body: JSON.stringify({ command: cmd })
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
+    .then(response => response.json().then(data => ({ response, data })))
+    .then(({ response, data }) => {
+        if (response.ok && data.success) {
             appendTerminalLine(data.output ? data.output.trim() : '[SUCCESS] Command completed successfully.');
-            appendTerminalLine(`--- [DONE in ${data.time || '0.12s'}] ---`);
+            appendTerminalLine(`--- [DONE at ${data.timestamp || 'now'}] ---`);
             showCacheAlert('success', `Artisan command "${cmd}" executed successfully!`);
             refreshCacheMetrics();
         } else {
+            if (data.output) appendTerminalLine(data.output.trim());
             appendTerminalLine(`[FAILED] ${data.message || 'Execution error.'}`);
             showCacheAlert('danger', data.message || 'Artisan command execution failed.');
         }
@@ -178,17 +201,23 @@ function runTerminalCommand(cmd) {
         appendTerminalLine(`[NETWORK ERROR] Could not execute $ php artisan ${cmd}`);
     })
     .finally(() => {
+        terminalCommandRunning = false;
+        if (runButton) {
+            runButton.innerHTML = '<i class="fa-solid fa-play me-1.5"></i> Run command';
+            runButton.disabled = !commandSelect || !commandSelect.value;
+        }
+        document.querySelectorAll('.terminal-preset-chip').forEach(button => button.disabled = false);
+        if (commandSelect) commandSelect.disabled = false;
         if (clock) clock.textContent = new Date().toLocaleTimeString();
     });
 }
 
 function runCustomTerminalCommand() {
-    const input = document.getElementById('customArtisanCmd');
-    if (!input) return;
-    const cmd = input.value.trim();
+    const select = document.getElementById('artisanCommandSelect');
+    if (!select) return;
+    const cmd = select.value;
     if (!cmd) return;
     runTerminalCommand(cmd);
-    input.value = '';
 }
 
 function appendTerminalLine(text) {
@@ -200,7 +229,7 @@ function appendTerminalLine(text) {
 
 function clearTerminalLog() {
     const term = document.getElementById('terminalOutput');
-    if (term) term.textContent = '// Terminal cleared.\nideaabd-cache-runner@production:~$ Ready for commands.';
+    if (term) term.textContent = '// Terminal cleared.\nideaabd-cache-runner@restricted:~$ Ready for approved commands.';
 }
 
 function copyTerminalOutput() {

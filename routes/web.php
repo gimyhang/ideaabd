@@ -797,6 +797,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/', 'index')->name('index');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::get('/export', 'exportCsv')->name('export');
+        Route::post('/bulk', 'bulk')->middleware('throttle:30,1')->name('bulk');
         Route::post('/{registration}/dispatch', 'updateDispatch')->name('dispatch');
         Route::post('/{registration}/acknowledgment', 'updateAcknowledgment')->name('acknowledgment');
         Route::match(['post', 'patch'], '/{registration}/toggle-approval', 'toggleApproval')->name('toggle-approval');
@@ -878,6 +879,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/system-settings', [AdminAccessController::class, 'systemSettings'])->name('system-settings');
     Route::post('/system-settings', [AdminAccessController::class, 'updateSystemSettings'])->name('system-settings.update');
     Route::post('/system-settings/clear-cache', [AdminAccessController::class, 'clearCache'])->name('system-settings.clear-cache');
+    Route::get('/system-settings/health', [AdminAccessController::class, 'health'])->name('system-settings.health');
+    Route::get('/system-settings/export', [AdminAccessController::class, 'exportSettings'])->middleware('throttle:10,1')->name('system-settings.export');
+    Route::post('/system-settings/import', [AdminAccessController::class, 'importSettings'])->middleware('throttle:10,1')->name('system-settings.import');
+    Route::get('/system-settings/history', [AdminAccessController::class, 'settingsHistory'])->name('system-settings.history');
+    Route::post('/system-settings/history/{id}/restore', [AdminAccessController::class, 'restoreSettings'])->middleware('throttle:10,1')->where('id', '[a-z0-9]{6,16}')->name('system-settings.restore');
     Route::post('/theme/update', [AdminAccessController::class, 'updateTheme'])->name('theme.update');
     Route::post('/theme/reset', [AdminAccessController::class, 'resetTheme'])->name('theme.reset');
 
@@ -899,7 +905,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::post('/inspect-key', 'inspectKey')->name('inspect-key');
         Route::get('/stats-json', 'statsJson')->name('stats-json');
         Route::post('/optimize', 'optimize')->name('optimize');
-        Route::post('/run-artisan', 'runArtisan')->name('run-artisan');
+        Route::post('/run-artisan', 'runArtisan')->middleware('throttle:10,1')->name('run-artisan');
     });
 
     // Enterprise Disaster Recovery & Master ZIP Backup Hub
@@ -943,11 +949,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // User Management Security, One-Time Password (OTP) & IP Block Cleaner
     Route::prefix('users/security')->name('users.security.')->controller(\App\Http\Controllers\Admin\UserSecurityAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/generate-otp', 'generateOtp')->name('generate-otp');
-        Route::post('/auto-generate-password', 'autoGeneratePassword')->name('auto-generate-password');
-        Route::post('/unblock-ip', 'unblockIp')->name('unblock-ip');
-        Route::post('/block-ip', 'blockIp')->name('block-ip');
-        Route::post('/clean-expired', 'cleanExpired')->name('clean-expired');
+        Route::get('/live-stats', 'liveStats')->name('live-stats');
+        Route::get('/lookup', 'lookup')->middleware('throttle:60,1')->name('lookup');
+        Route::get('/export', 'export')->middleware('throttle:10,1')->name('export');
+        Route::middleware('throttle:30,1')->group(function () {
+            Route::post('/generate-otp', 'generateOtp')->name('generate-otp');
+            Route::post('/auto-generate-password', 'autoGeneratePassword')->name('auto-generate-password');
+            Route::post('/unblock-ip', 'unblockIp')->name('unblock-ip');
+            Route::post('/block-ip', 'blockIp')->name('block-ip');
+            Route::post('/bulk', 'bulk')->name('bulk');
+            Route::post('/force-logout', 'forceLogout')->name('force-logout');
+            Route::post('/clean-expired', 'cleanExpired')->name('clean-expired');
+        });
     });
 
     // Multi-Currency & Global FX Exchange Rates
