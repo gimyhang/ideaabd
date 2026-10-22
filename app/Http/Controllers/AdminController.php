@@ -3370,12 +3370,32 @@ class AdminController extends Controller
                 'stock_quantity'           => 'nullable|integer|min:0',
                 'stock_status'             => 'nullable|string|in:in_stock,low,out,pre_order',
                 'is_active'                => 'nullable',
+                'isbn'                     => 'nullable|string|max:50',
                 'cover_theme'              => 'nullable|string|max:50',
                 'cover_image_file'         => 'nullable|image|max:5120',
                 'auto_cover_base64'        => 'nullable|string',
             ]);
 
             $title = trim($validated['title']);
+            $authorName = trim((string) $request->input('author_name'));
+            $authorId = $request->filled('author_id') ? (int) $request->input('author_id') : null;
+            if ($authorName === '' && $authorId) {
+                $authorName = (string) (\Modules\Author\Models\Author::find($authorId)?->name ?? '');
+            }
+            if ($authorName === '') {
+                $authorName = 'আইডিয়া প্রকাশন';
+            }
+
+            $duplicateCandidate = new \Modules\Book\Models\Book();
+            $duplicateCandidate->forceFill([
+                'title' => $title,
+                'isbn' => $validated['isbn'] ?? null,
+                'author_name' => $authorName,
+                'author_link_id' => $authorId,
+                'edition' => $validated['edition'] ?? null,
+            ]);
+            $duplicateCandidate->assertCatalogEntryIsUnique();
+
             $slugBase = \Illuminate\Support\Str::slug($title);
             if (empty($slugBase)) {
                 $slugBase = 'book-' . time() . '-' . rand(100, 999);
@@ -3421,18 +3441,6 @@ class AdminController extends Controller
             $nextId = (\Modules\Book\Models\Book::max('id') ?? 0) + 1;
             $sku = 'IP' . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
 
-            $authorName = $request->input('author_name');
-            $authorId = $request->filled('author_id') ? (int) $request->input('author_id') : null;
-            if (!$authorName && $authorId) {
-                $authorObj = \Modules\Author\Models\Author::find($authorId);
-                if ($authorObj) {
-                    $authorName = $authorObj->name;
-                }
-            }
-            if (!$authorName) {
-                $authorName = 'আইডিয়া প্রকাশন';
-            }
-
             $price = (float) $request->input('price', 0);
             $discountPrice = $request->filled('discount_price') && $request->input('discount_price') !== '' ? (float) $request->input('discount_price') : null;
             $costPrice = $request->filled('cost_price') && $request->input('cost_price') !== '' ? (float) $request->input('cost_price') : null;
@@ -3465,6 +3473,7 @@ class AdminController extends Controller
                 'author_name'              => $authorName,
                 'author_link_id'           => $authorId,
                 'publisher_id'             => $publisherId,
+                'isbn'                     => $validated['isbn'] ?? null,
                 'sku'                      => $sku,
                 'price'                    => $price,
                 'discount_price'           => $discountPrice,

@@ -1763,7 +1763,32 @@
 
 @push('scripts')
 <script>
-function syncCategorySelects(val) {
+// These names are also defined by books_form.blade.php (its markup, ids and price fields are the book page's).
+// Function declarations here used to overwrite those; now the generic versions only apply when no book form defined one.
+if (typeof window.addAuthorField !== 'function') { window.addAuthorField = addAuthorFieldGeneric; }
+if (typeof window.addCoverArtistField !== 'function') { window.addCoverArtistField = addCoverArtistFieldGeneric; }
+if (typeof window.addEditorField !== 'function') { window.addEditorField = addEditorFieldGeneric; }
+if (typeof window.addRewriterField !== 'function') { window.addRewriterField = addRewriterFieldGeneric; }
+if (typeof window.addTranslatorField !== 'function') { window.addTranslatorField = addTranslatorFieldGeneric; }
+if (typeof window.clearAdminFileInput !== 'function') { window.clearAdminFileInput = clearAdminFileInputGeneric; }
+if (typeof window.handleAdminBoimelaSelect !== 'function') { window.handleAdminBoimelaSelect = handleAdminBoimelaSelectGeneric; }
+if (typeof window.handleDropzoneDrop !== 'function') { window.handleDropzoneDrop = handleDropzoneDropGeneric; }
+if (typeof window.onAuthorNameTyped !== 'function') { window.onAuthorNameTyped = onAuthorNameTypedGeneric; }
+if (typeof window.onAuthorSelectRowChange !== 'function') { window.onAuthorSelectRowChange = onAuthorSelectRowChangeGeneric; }
+if (typeof window.onGenericContributorSelectChange !== 'function') { window.onGenericContributorSelectChange = onGenericContributorSelectChangeGeneric; }
+if (typeof window.previewAdminCoverInput !== 'function') { window.previewAdminCoverInput = previewAdminCoverInputGeneric; }
+if (typeof window.previewAdminMultiImages !== 'function') { window.previewAdminMultiImages = previewAdminMultiImagesGeneric; }
+if (typeof window.previewAdminPdfInput !== 'function') { window.previewAdminPdfInput = previewAdminPdfInputGeneric; }
+if (typeof window.removeRepeaterRow !== 'function') { window.removeRepeaterRow = removeRepeaterRowGeneric; }
+if (typeof window.resetAdminBoimelaToSelect !== 'function') { window.resetAdminBoimelaToSelect = resetAdminBoimelaToSelectGeneric; }
+if (typeof window.syncBookSizeCombined !== 'function') { window.syncBookSizeCombined = syncBookSizeCombinedGeneric; }
+if (typeof window.syncCategorySelects !== 'function') { window.syncCategorySelects = syncCategorySelectsGeneric; }
+if (typeof window.toggleAdminCustomBoimela !== 'function') { window.toggleAdminCustomBoimela = toggleAdminCustomBoimelaGeneric; }
+if (typeof window.updateGenericWordCount !== 'function') { window.updateGenericWordCount = updateGenericWordCountGeneric; }
+if (typeof window.updateHardcoverCalculations !== 'function') { window.updateHardcoverCalculations = updateHardcoverCalculationsGeneric; }
+if (typeof window.updateLiveMockupCard !== 'function') { window.updateLiveMockupCard = updateLiveMockupCardGeneric; }
+if (typeof window.updatePaperbackCalculations !== 'function') { window.updatePaperbackCalculations = updatePaperbackCalculationsGeneric; }
+function syncCategorySelectsGeneric(val) {
     const mainSel = document.getElementById('f-category_id');
     const sideSel = document.getElementById('f-category_id_sidebar');
     if (mainSel && mainSel.value !== val) mainSel.value = val;
@@ -2191,7 +2216,7 @@ function getAuthorDirectoryOptionsHtml() {
     return optionsHtml;
 }
 
-function addAuthorField() {
+function addAuthorFieldGeneric() {
     const tbody = document.getElementById('authorshipCreditsTableBody');
     const optionsHtml = getAuthorDirectoryOptionsHtml();
 
@@ -2249,7 +2274,7 @@ function addAuthorField() {
     if (typeof updateContributorSummary === 'function') updateContributorSummary();
 }
 
-function addTranslatorField() {
+function addTranslatorFieldGeneric() {
     const tbody = document.getElementById('authorshipCreditsTableBody');
     const optionsHtml = getAuthorDirectoryOptionsHtml();
 
@@ -2300,7 +2325,7 @@ function addTranslatorField() {
     container.appendChild(div);
 }
 
-function addEditorField() {
+function addEditorFieldGeneric() {
     const tbody = document.getElementById('authorshipCreditsTableBody');
     const optionsHtml = getAuthorDirectoryOptionsHtml();
 
@@ -2351,7 +2376,7 @@ function addEditorField() {
     container.appendChild(div);
 }
 
-function addRewriterField() {
+function addRewriterFieldGeneric() {
     const tbody = document.getElementById('authorshipCreditsTableBody');
     const optionsHtml = getAuthorDirectoryOptionsHtml();
 
@@ -2402,7 +2427,7 @@ function addRewriterField() {
     container.appendChild(div);
 }
 
-function addCoverArtistField() {
+function addCoverArtistFieldGeneric() {
     const tbody = document.getElementById('authorshipCreditsTableBody');
     const optionsHtml = getAuthorDirectoryOptionsHtml();
 
@@ -2453,7 +2478,7 @@ function addCoverArtistField() {
     container.appendChild(div);
 }
 
-function onGenericContributorSelectChange(select) {
+function onGenericContributorSelectChangeGeneric(select) {
     const row = select.closest('tr') || select.closest('.contributor-matrix-row');
     if (!row) return;
     const nameInp = row.querySelector('.contributor-name-input') || row.querySelector('input[type="text"]');
@@ -2470,7 +2495,7 @@ function onGenericContributorSelectChange(select) {
     if (typeof updateContributorSummary === 'function') updateContributorSummary();
 }
 
-function onAuthorSelectRowChange(select) {
+function onAuthorSelectRowChangeGeneric(select) {
     const row = select.closest('.author-field-row') || select.closest('tr');
     if (!row) return;
     const nameInp = row.querySelector('.author-name-input');
@@ -2489,7 +2514,7 @@ function onAuthorSelectRowChange(select) {
     if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
 }
 
-function onAuthorNameTyped(input) {
+function onAuthorNameTypedGeneric(input) {
     const row = input.closest('.author-field-row') || input.closest('tr');
     if (row) {
         const select = row.querySelector('.author-directory-select');
@@ -2509,7 +2534,7 @@ function onAuthorNameTyped(input) {
     if (typeof generateAutoBookCoverLive === 'function') generateAutoBookCoverLive();
 }
 
-function removeRepeaterRow(btn) {
+function removeRepeaterRowGeneric(btn) {
     const row = btn.closest('tr') || btn.closest('.input-group') || btn.closest('.author-field-row');
     if (row) {
         row.remove();
@@ -2520,7 +2545,7 @@ function removeRepeaterRow(btn) {
 }
 
 // Sync Book Height & Width cm to combined size
-function syncBookSizeCombined() {
+function syncBookSizeCombinedGeneric() {
     const h = document.getElementById('f-book_height_cm')?.value?.trim();
     const w = document.getElementById('f-book_width_cm')?.value?.trim();
     const hiddenSize = document.getElementById('f-book_size');
@@ -2603,7 +2628,7 @@ function onPaperbackSoldPercentChange() {
     updateLiveMockupCard();
 }
 
-function updatePaperbackCalculations() {
+function updatePaperbackCalculationsGeneric() {
     const price = parseFloat(document.getElementById('f-price')?.value) || 0;
     const soldPct = parseFloat(document.getElementById('f-sold_percent')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-cost_price')?.value) || 0;
@@ -2691,7 +2716,7 @@ function onHardcoverSoldPercentChange() {
     updateLiveMockupCard();
 }
 
-function updateHardcoverCalculations() {
+function updateHardcoverCalculationsGeneric() {
     const price = parseFloat(document.getElementById('f-hardcover_price')?.value) || 0;
     const soldPct = parseFloat(document.getElementById('f-hardcover_sold_percent')?.value) || 0;
     const cost = parseFloat(document.getElementById('f-hardcover_cost_price')?.value) || 0;
@@ -2755,7 +2780,7 @@ function toggleAdminPreOrderFields(stockStatus) {
 }
 
 // Preview Multi Images
-function previewAdminMultiImages(input) {
+function previewAdminMultiImagesGeneric(input) {
     const container = document.getElementById('multiImagesPreviewContainer');
     const summary = document.getElementById('multiImagesSummaryReport');
     const countText = document.getElementById('multiImagesCountText');
@@ -2801,7 +2826,7 @@ function clearAdminMultiImages() {
     if (summary) summary.classList.add('d-none');
 }
 
-function previewAdminCoverInput(input) {
+function previewAdminCoverInputGeneric(input) {
     const genInput = document.getElementById('f-generated_cover_data');
     if (genInput) genInput.value = '';
     const genFieldInput = document.getElementById('f-generated_cover_data_cover_image');
@@ -2809,11 +2834,11 @@ function previewAdminCoverInput(input) {
     previewAdminFileInput(input, 'preview-container-cover_image');
 }
 
-function previewAdminPdfInput(input) {
+function previewAdminPdfInputGeneric(input) {
     previewAdminFileInput(input, 'preview-container-sample_pdf_path');
 }
 
-function clearAdminFileInput(inputId, containerId, mockupImgId) {
+function clearAdminFileInputGeneric(inputId, containerId, mockupImgId) {
     const input = document.getElementById(inputId);
     if (input) input.value = '';
     const container = document.getElementById(containerId);
@@ -2831,7 +2856,7 @@ function clearAdminFileInput(inputId, containerId, mockupImgId) {
 }
 
 // Live Mockup Card Update
-function updateLiveMockupCard() {
+function updateLiveMockupCardGeneric() {
     const titleEl = document.getElementById('f-title');
     const authorSelect = document.getElementById('f-author_link_id');
     const authorCustom = document.getElementById('f-author_name');
@@ -2985,7 +3010,7 @@ function handleDropzoneDragLeave(e, dropzoneEl) {
     dropzoneEl.classList.remove('dragover');
 }
 
-function handleDropzoneDrop(e, dropzoneEl, inputId) {
+function handleDropzoneDropGeneric(e, dropzoneEl, inputId) {
     e.preventDefault();
     e.stopPropagation();
     dropzoneEl.classList.remove('dragover');
@@ -3000,7 +3025,7 @@ function handleDropzoneDrop(e, dropzoneEl, inputId) {
 }
 
 // Generic Word Counter for summary (400), description (400), author_bio (300)
-function updateGenericWordCount(textarea, maxWords, countId, badgeId, barId, warningId) {
+function updateGenericWordCountGeneric(textarea, maxWords, countId, badgeId, barId, warningId) {
     if (!textarea) return;
 
     const text = textarea.value.trim();
@@ -3869,7 +3894,7 @@ function renumberWebzineTocRows() {
 // ══════════════════════════════════════════════════════════════════════════════
 // DYNAMIC BOIMELA / EVENT SELECTOR HANDLERS
 // ══════════════════════════════════════════════════════════════════════════════
-function handleAdminBoimelaSelect(val) {
+function handleAdminBoimelaSelectGeneric(val) {
     if (val === '__custom__') {
         toggleAdminCustomBoimela(true);
     } else {
@@ -3882,7 +3907,7 @@ function handleAdminBoimelaSelect(val) {
     }
 }
 
-function toggleAdminCustomBoimela(show = null) {
+function toggleAdminCustomBoimelaGeneric(show = null) {
     const wrapper = document.getElementById('adminCustomBoimelaWrapper');
     const select = document.getElementById('f-ekushey_category_select');
     const customInput = document.getElementById('f-ekushey_category_custom');
@@ -3905,7 +3930,7 @@ function toggleAdminCustomBoimela(show = null) {
     }
 }
 
-function resetAdminBoimelaToSelect() {
+function resetAdminBoimelaToSelectGeneric() {
     const wrapper = document.getElementById('adminCustomBoimelaWrapper');
     const select = document.getElementById('f-ekushey_category_select');
     const hidden = document.getElementById('f-ekushey_category');
@@ -4052,7 +4077,7 @@ function toggleAutoCoverOptions() {
     }
 }
 
-function applyAutoCoverTheme(key) {
+function applyAutoCoverThemeGeneric(key) {
     const presets = {
         royal_blue: { bg: '#0f172a', title: '#ffffff', author: '#fde047' },
         deep_emerald: { bg: '#064e3b', title: '#ffffff', author: '#fef08a' },
@@ -4070,11 +4095,11 @@ function applyAutoCoverTheme(key) {
         if (titleInp) titleInp.value = presets[key].title;
         if (authorInp) authorInp.value = presets[key].author;
     }
-    generateAutoBookCoverLive();
+    window.generateAutoBookCoverLive && window.generateAutoBookCoverLive();
 }
 
 // Magic One-Click Designer Auto-Generator (Random harmonious designer palette & font)
-function magicAutoGenerateCover() {
+function magicAutoGenerateCoverGeneric() {
     const designerPalettes = [
         { key: 'royal_blue', bg: '#0f172a', title: '#ffffff', author: '#fde047', font: 'Hind Siliguri' },
         { key: 'deep_emerald', bg: '#064e3b', title: '#ffffff', author: '#fef08a', font: 'SolaimanLipi' },
@@ -4102,11 +4127,11 @@ function magicAutoGenerateCover() {
     if (fontInp) fontInp.value = pick.font;
     if (themeSelect) themeSelect.value = pick.key || 'custom';
 
-    generateAutoBookCoverLive();
+    window.generateAutoBookCoverLive && window.generateAutoBookCoverLive();
 }
 
 // Client-Side Real-Time Auto Book Cover Generator with Range Bars
-function generateAutoBookCoverLive() {
+function generateAutoBookCoverLiveGeneric() {
     const titleInput = document.getElementById('f-title');
     const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : 'বইয়ের নাম';
 
@@ -4419,9 +4444,12 @@ function generatePhotocardCover(fieldName = 'featured_image') {
 
 // Expose to window for inline onclick / oninput
 window.toggleAutoCoverOptions = toggleAutoCoverOptions;
-window.applyAutoCoverTheme = applyAutoCoverTheme;
-window.magicAutoGenerateCover = magicAutoGenerateCover;
-window.generateAutoBookCoverLive = generateAutoBookCoverLive;
+// Same rule as the generator above: the book form's own (guarded) versions win; these are only fallbacks.
+if (typeof window.applyAutoCoverTheme !== 'function') { window.applyAutoCoverTheme = applyAutoCoverThemeGeneric; }
+if (typeof window.magicAutoGenerateCover !== 'function') { window.magicAutoGenerateCover = magicAutoGenerateCoverGeneric; }
+// books_form.blade.php registers its own generator (it refuses to replace an existing cover).
+// Only fall back to the generic one when no such generator is on the page.
+if (typeof window.generateAutoBookCoverLive !== 'function') { window.generateAutoBookCoverLive = generateAutoBookCoverLiveGeneric; }
 window.generatePhotocardCover = generatePhotocardCover;
 
 function toggleBlogRoyaltyInputs(cb) {
@@ -4453,7 +4481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     generatePhotocardCover('featured_image');
                 }
             } else {
-                generateAutoBookCoverLive();
+                window.generateAutoBookCoverLive && window.generateAutoBookCoverLive();
             }
         });
     }
@@ -4472,7 +4500,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.author-name-input').forEach(el => {
         el.addEventListener('input', function() {
-            generateAutoBookCoverLive();
+            window.generateAutoBookCoverLive && window.generateAutoBookCoverLive();
         });
     });
 
@@ -4480,7 +4508,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
         const previewCont = document.getElementById('preview-container-cover_image');
         if (!previewCont || previewCont.classList.contains('d-none')) {
-            generateAutoBookCoverLive();
+            window.generateAutoBookCoverLive && window.generateAutoBookCoverLive();
         }
     }, 150);
 });

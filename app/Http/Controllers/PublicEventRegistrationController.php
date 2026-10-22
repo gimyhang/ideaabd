@@ -139,7 +139,8 @@ class PublicEventRegistrationController extends Controller
 
         // 2. Scholarship Forms
         if ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form'])) {
-            return view('frontend.events.scholarship_register', compact('campaign', 'user'));
+            $previewRegNumber = EventRegistration::generateRegNumber($campaign);
+            return view('frontend.events.scholarship_register', compact('campaign', 'user', 'previewRegNumber'));
         }
 
         // 3. Library & Book Grant Forms
@@ -175,6 +176,9 @@ class PublicEventRegistrationController extends Controller
         'father_name', 'mother_name', 'father_income', 'mother_income', 'guardian_income', 'father_phone', 'mother_phone',
         'guardian_name', 'guardian_phone', 'gender', 'religion', 'nationality', 'birth_date', 'marital_status',
         'annual_income', 'guardian_income', 'tuition_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
+        'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names',
+        'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'guardian_relation', 'current_year',
+        'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
         'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa',
         'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa',
         'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa',
@@ -278,11 +282,16 @@ class PublicEventRegistrationController extends Controller
         $isScholarship = ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
 
         // Bengali digits must not fail numeric/date validation.
-        $digitKeys = ['father_income', 'mother_income', 'guardian_income', 'annual_income', 'admission_fee', 'monthly_fee', 'hostel_cost', 'tuition_fee', 'amount_paid', 'birth_date'];
+        $digitKeys = ['father_income', 'mother_income', 'guardian_income', 'annual_income', 'admission_fee', 'monthly_fee', 'hostel_cost', 'tuition_fee', 'amount_paid', 'birth_date', 'national_id', 'pay_account_no', 'family_count', 'earning_count'];
         $request->merge(collect($digitKeys)
             ->filter(fn ($k) => is_string($request->input($k)))
             ->mapWithKeys(fn ($k) => [$k => $this->normalizeBnToEn(trim($request->input($k)))])
             ->all());
+        foreach (['national_id', 'pay_account_no'] as $k) {
+            if (is_string($request->input($k))) {
+                $request->merge([$k => preg_replace('/\D+/', '', $request->input($k))]);
+            }
+        }
 
         $rules = [
             'name'                 => 'required|string|max:255',
@@ -317,7 +326,80 @@ class PublicEventRegistrationController extends Controller
             'monthly_fee'          => 'nullable|numeric|min:0',
             'other_scholarship'    => 'nullable|string|max:10',
             'other_scholarship_details' => 'nullable|string|max:255',
+            'prev_joyee'           => 'nullable|in:Yes,No',
+            'books_read_count'     => 'nullable|integer|min:0|max:9999',
+            'reading_habit'        => 'nullable|string|max:30',
+            'books_read_names'     => 'nullable|string|max:1000',
+            'national_id'          => 'nullable|string|max:20',
+            'father_occupation'    => 'nullable|string|max:100',
+            'mother_occupation'    => 'nullable|string|max:100',
+            'family_count'         => 'nullable|integer|min:1|max:40',
+            'earning_count'        => 'nullable|integer|min:0|max:40',
+            'orphan_status'        => 'nullable|string|max:30',
+            'disability'           => 'nullable|in:Yes,No',
+            'disability_type'      => 'nullable|in:Visual,Hearing,Speech,Physical,Intellectual,Autism,Multiple,Other',
+            'father_status'        => 'nullable|in:Alive,Deceased',
+            'mother_status'        => 'nullable|in:Alive,Deceased',
+            'disability_details'   => 'nullable|string|max:255',
+            'guardian_relation'    => 'nullable|string|max:50',
+            'current_year'         => 'nullable|string|max:50',
+            'pay_method'           => 'nullable|string|max:20',
+            'pay_account_owner'    => 'nullable|string|max:20',
+            'pay_account_name'     => 'nullable|string|max:120',
+            'pay_account_no'       => 'nullable|string|max:30',
+            'pay_bank_name'        => 'nullable|string|max:120',
+            'pay_bank_branch'      => 'nullable|string|max:120',
         ];
+
+        if ($isScholarship) {
+            // Mandatory parts of the scholarship form (the page enforces the same rules in the browser)
+            $degree = strtoupper((string) $request->input('scholarship_degree'));
+            $levelsNeeded = ['HSC' => ['ssc'], 'HONOURS' => ['ssc', 'hsc'], 'MASTERS' => ['ssc', 'hsc', 'grad']][$degree] ?? ['ssc'];
+            foreach ($levelsNeeded as $lv) {
+                $rules["{$lv}_roll"]      = 'required|string|max:50';
+                $rules["{$lv}_board"]     = 'required|string|max:100';
+                $rules["{$lv}_institute"] = 'required|string|max:255';
+                $rules["{$lv}_year"]      = 'required|string|max:10';
+                $rules[$lv === 'ssc' ? 'ssc_gpa' : "{$lv}_gpa"] = 'required|string|max:10';
+            }
+            if (in_array('grad', $levelsNeeded, true)) {
+                unset($rules['grad_gpa']);
+                $rules['grad_cgpa'] = 'required|string|max:10';
+            }
+            $rules['guardian_phone']   = 'required|string|min:10|max:20';
+            $rules['prev_joyee']       = 'required|in:Yes,No';
+            $rules['other_scholarship'] = 'required|in:Yes,No';
+            $rules['other_scholarship_details'] = 'nullable|required_if:other_scholarship,Yes|string|max:255';
+            $rules['books_read_count'] = 'required|integer|min:0|max:9999';
+            $rules['reading_habit']    = 'required|in:I have read,I do not read';
+            $rules['books_read_names'] = ($request->integer('books_read_count') > 0 || $request->input('reading_habit') === 'I have read')
+                ? 'required|string|max:1000' : 'nullable|string|max:1000';
+            // Identity, family and payment details needed to decide on and pay a scholarship
+            $rules['national_id']        = ['required', 'regex:/^\d{10}$|^\d{13}$|^\d{17}$/'];   // NID (10/13/17 digits) or birth registration (17 digits)
+            $rules['father_status']      = 'required|in:Alive,Deceased';
+            $rules['mother_status']      = 'required|in:Alive,Deceased';
+            $rules['father_occupation']  = $request->input('father_status') === 'Deceased' ? 'nullable|string|max:100' : 'required|string|max:100';
+            $rules['mother_occupation']  = $request->input('mother_status') === 'Deceased' ? 'nullable|string|max:100' : 'required|string|max:100';
+            $rules['family_count']       = 'required|integer|min:1|max:40';
+            $rules['earning_count']      = 'required|integer|min:0|max:40|lte:family_count';
+            $rules['disability']         = 'required|in:Yes,No';
+            $rules['disability_type']    = 'nullable|required_if:disability,Yes|in:Visual,Hearing,Speech,Physical,Intellectual,Autism,Multiple,Other';
+            $rules['disability_details'] = $request->input('disability_type') === 'Other' ? 'required|string|max:255' : 'nullable|string|max:255';
+            $rules['guardian_relation']  = $request->filled('guardian_name') ? 'required|string|max:50' : 'nullable|string|max:50';
+            $rules['current_year']       = 'required|string|max:50';
+            $rules['pay_method']         = 'required|in:bKash,Nagad,Rocket,Bank';
+            $rules['pay_account_owner']  = 'required|in:Self,Father,Mother,Guardian';
+            $rules['pay_account_name']   = 'required|string|max:120';
+            $rules['pay_account_no']     = $request->input('pay_method') === 'Bank'
+                ? ['required', 'regex:/^\d{8,20}$/']
+                : ['required', 'regex:/^01\d{9}$/'];
+            $rules['pay_bank_name']      = 'nullable|required_if:pay_method,Bank|string|max:120';
+            $rules['pay_bank_branch']    = 'nullable|required_if:pay_method,Bank|string|max:120';
+            if ($request->input('prev_joyee') === 'Yes') {
+                $rules['prev_scholarships.0.year']   = 'required|string|max:20';
+                $rules['prev_scholarships.0.amount'] = 'required|string|max:30';
+            }
+        }
 
         $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
 
@@ -346,7 +428,7 @@ class PublicEventRegistrationController extends Controller
                 ->first();
             $existingPhoto = $priorRegistration ? 'registered' : null;
             if (!$hasPhotoData && empty($existingPhoto)) {
-                return back()->withInput()->with('error', 'নিবন্ধন সম্পন্ন করতে অনুগ্রহ করে পাসপোর্ট সাইজের ছবি আপলোড করুন (ছবি আপলোড বাধ্যতামূলক)।');
+                return back()->withInput()->with('error', 'Please upload a passport-size photo to complete the registration (photo is mandatory).');
             }
         }
 
@@ -485,6 +567,9 @@ class PublicEventRegistrationController extends Controller
             'perm_division', 'permanent_district', 'perm_city_corporation', 'perm_municipality', 'perm_upazila', 'perm_post_office', 'perm_postcode', 'perm_village', 'permanent_address',
             'pres_division', 'present_district', 'pres_city_corporation', 'pres_municipality', 'pres_upazila', 'pres_post_office', 'pres_postcode', 'pres_village', 'present_address',
             'scholarship_reason', 'scholarship_degree', 'father_income', 'mother_income', 'father_phone', 'mother_phone', 'admission_fee', 'hostel_cost', 'monthly_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
+            'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names',
+            'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'guardian_relation', 'current_year',
+        'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
             // International / Abroad Address Fields
             'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
             // Writer & Cultural Artist Specific Fields
@@ -503,7 +588,7 @@ class PublicEventRegistrationController extends Controller
                     if (str_contains($key, 'phone')) {
                         $pNorm = \App\Support\PhoneNormalizer::normalize($val);
                         $val = $pNorm['local_phone'];
-                    } elseif (preg_match('/roll|year|count|fee|income|cost|gpa|postcode/', $key)) {
+                    } elseif (preg_match('/roll|year|count|fee|income|cost|gpa|postcode|national_id|account_no/', $key)) {
                         $val = $this->normalizeBnToEn($val);
                     }
                 }
@@ -511,6 +596,22 @@ class PublicEventRegistrationController extends Controller
                     $val = collect($val)->map(fn ($r) => array_map(fn ($x) => $this->normalizeBnToEn(is_string($x) ? trim($x) : ''), (array) $r))->values()->all();
                 }
                 $customFieldAnswers[$key] = $val;
+            }
+        }
+
+        if ($isScholarship) {
+            // A deceased parent has no occupation, income or mobile; orphan status is derived, never trusted from the client
+            $dead = [];
+            foreach (['father', 'mother'] as $pk) {
+                $dead[$pk] = ($customFieldAnswers[$pk . '_status'] ?? '') === 'Deceased';
+                if ($dead[$pk]) {
+                    $customFieldAnswers[$pk . '_occupation'] = 'Nil';
+                    unset($customFieldAnswers[$pk . '_income'], $customFieldAnswers[$pk . '_phone']);
+                }
+            }
+            $customFieldAnswers['orphan_status'] = $dead['father'] && $dead['mother'] ? 'Both deceased' : ($dead['father'] ? 'Father deceased' : ($dead['mother'] ? 'Mother deceased' : 'None'));
+            if (($customFieldAnswers['disability'] ?? 'No') !== 'Yes') {
+                unset($customFieldAnswers['disability_type'], $customFieldAnswers['disability_details']);
             }
         }
 
@@ -594,7 +695,9 @@ class PublicEventRegistrationController extends Controller
                 return $already;
             }
 
-            $regNumber = EventRegistration::generateRegNumber($campaign->slug);
+            $regNumber = EventRegistration::generateRegNumber(
+                ($campaign->type === 'scholarship' || !empty($campaign->form_settings['is_scholarship_form'])) ? $campaign : $campaign->slug
+            );
 
             return EventRegistration::create([
             'event_campaign_id'    => $campaign->id,
@@ -672,6 +775,8 @@ class PublicEventRegistrationController extends Controller
             }
         } elseif ($isWriter) {
             $successNotice = 'ধন্যবাদ! রংপুর সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার তথ্য জমা হয়েছে। এডমিন অনুমোদন দিলে কার্ড ডাউনলোড করতে পারবেন।';
+        } elseif ($isScholarship) {
+            $successNotice = 'Thank you! Your application has been submitted.';
         } else {
             $successNotice = 'ধন্যবাদ! আপনার আবেদন সফলভাবে জমা হয়েছে।';
         }

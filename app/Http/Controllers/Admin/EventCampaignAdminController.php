@@ -100,7 +100,7 @@ class EventCampaignAdminController extends Controller
             'badge_text'           => 'nullable|string|max:50',
             'short_description'    => 'nullable|string|max:500',
             'description'          => 'nullable|string',
-            'banner_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp,avif|max:2048',
+            'banner_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp,avif|max:6144',
             'theme_color'          => 'nullable|string|max:30',
             'has_fee_or_donation'  => 'nullable|boolean',
             'fee_amount'           => 'nullable|numeric|min:0',
@@ -128,7 +128,7 @@ class EventCampaignAdminController extends Controller
         $validated['is_donation_flexible'] = !empty($request->is_donation_flexible);
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->is_active : true;
         $validated['slug'] = strtolower(trim($validated['slug']));
-        $validated['theme_color'] = $validated['theme_color'] ?: '#0284c7';
+        $validated['theme_color'] = ($validated['theme_color'] ?? null) ?: '#0284c7';
 
         if (!empty($request->custom_fields_json)) {
             $fields = json_decode($request->custom_fields_json, true);
@@ -616,7 +616,7 @@ class EventCampaignAdminController extends Controller
             'badge_text'           => 'nullable|string|max:50',
             'short_description'    => 'nullable|string|max:500',
             'description'          => 'nullable|string',
-            'banner_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp,avif|max:2048',
+            'banner_image'         => 'nullable|image|mimes:jpeg,png,jpg,webp,avif|max:6144',
             'theme_color'          => 'nullable|string|max:30',
             'has_fee_or_donation'  => 'nullable|boolean',
             'fee_amount'           => 'nullable|numeric|min:0',
@@ -634,20 +634,34 @@ class EventCampaignAdminController extends Controller
             'contact_email'        => 'nullable|email|max:100',
             'custom_fields_json'   => 'nullable|string',
             'form_settings_json'   => 'nullable|string',
+            'remove_banner'        => 'nullable|boolean',
+            'form_logo_image'      => 'nullable|file|mimes:jpeg,png,jpg,webp,svg,gif,bmp|max:8192',
+        ], [
+            'banner_image.max' => 'Banner is larger than 6 MB.',
+            'banner_image.uploaded' => 'Banner upload failed (file too large for the server). Pick a smaller image.',
+            'form_logo_image.max' => 'Logo is larger than 8 MB.',
+            'form_logo_image.uploaded' => 'Logo upload failed (file too large for the server). Pick a smaller image.',
         ]);
 
         if ($request->hasFile('banner_image')) {
+            // Store the new file first; the old one is removed only once the new one is safely saved.
+            $validated['banner_image'] = $request->file('banner_image')->store('campaigns', 'public');
             if ($campaign->banner_image && Storage::disk('public')->exists($campaign->banner_image)) {
                 Storage::disk('public')->delete($campaign->banner_image);
             }
-            $validated['banner_image'] = $request->file('banner_image')->store('campaigns', 'public');
+        } elseif ($request->boolean('remove_banner')) {
+            if ($campaign->banner_image && Storage::disk('public')->exists($campaign->banner_image)) {
+                Storage::disk('public')->delete($campaign->banner_image);
+            }
+            $validated['banner_image'] = null;
         }
+        unset($validated['remove_banner'], $validated['form_logo_image']);
 
         $validated['has_fee_or_donation'] = !empty($request->has_fee_or_donation);
         $validated['is_donation_flexible'] = !empty($request->is_donation_flexible);
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->is_active : true;
         $validated['slug'] = strtolower(trim($validated['slug']));
-        $validated['theme_color'] = $validated['theme_color'] ?: '#0284c7';
+        $validated['theme_color'] = ($validated['theme_color'] ?? null) ?: '#0284c7';
 
         if ($request->has('custom_fields_json')) {
             $fields = json_decode($request->custom_fields_json, true);
@@ -658,6 +672,9 @@ class EventCampaignAdminController extends Controller
         if ($request->has('form_settings_json')) {
             $decoded = json_decode($request->form_settings_json, true);
             if (is_array($decoded)) {
+                // The logo file path is owned by the server. The page's copy can be stale (e.g. the logo was
+                // changed from the campaign page meanwhile) and would point at a deleted file.
+                unset($decoded['logo_image']);
                 $fSettings = array_merge($fSettings, $decoded);
             }
         }
@@ -669,13 +686,11 @@ class EventCampaignAdminController extends Controller
             }
             unset($fSettings['logo_image']);
         } elseif ($request->hasFile('form_logo_image')) {
-            $request->validate([
-                'form_logo_image' => 'nullable|file|mimes:jpeg,png,jpg,webp,svg,gif,bmp|max:8192',
-            ]);
+            $newLogo = $request->file('form_logo_image')->store('campaigns/logos', 'public');
             if (!empty($fSettings['logo_image']) && Storage::disk('public')->exists($fSettings['logo_image'])) {
                 Storage::disk('public')->delete($fSettings['logo_image']);
             }
-            $fSettings['logo_image'] = $request->file('form_logo_image')->store('campaigns/logos', 'public');
+            $fSettings['logo_image'] = $newLogo;
         }
 
         if ($request->filled('form_logo_size')) {
@@ -1979,7 +1994,12 @@ class EventCampaignAdminController extends Controller
             return $this->exportGeoDatabase($request, $campaign, $targetDivision, $format ?: 'excel');
         }
 
-        // 3. Standard / General Participants Export
+        // 3. Scholarship applications: every answer needed to review and pay (default for scholarship campaigns)
+        if ($type === 'scholarship' || ($campaign->type === 'scholarship' && !$type)) {
+            return $this->exportScholarship($campaign);
+        }
+
+        // 4. Standard / General Participants Export
         $filename = "participants_{$campaign->slug}_" . date('Y-m-d') . ".csv";
         $regQuery = $campaign->registrations();
 
@@ -2042,6 +2062,103 @@ class EventCampaignAdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Scholarship applications as CSV: identity, family, academic, payment account and the statement.
+     */
+    protected function exportScholarship(EventCampaign $campaign)
+    {
+        $filename = "scholarship_applications_{$campaign->slug}_" . date('Y-m-d') . ".csv";
+        $registrations = $campaign->registrations()->orderBy('id')->get();
+
+        // Cells that start with = + - @ would run as formulas in Excel; numbers keep their leading zeros as text.
+        $safe = function ($v) {
+            $v = is_array($v) ? json_encode($v, JSON_UNESCAPED_UNICODE) : (string) $v;
+            return preg_match('/^[=+\-@\r]/', $v) ? "'" . $v : $v;
+        };
+        $text = fn ($v) => ((string) $v) === '' ? '' : "\t" . $v;
+
+        $columns = [
+            'Application No' => fn ($r, $d) => $r->registration_number,
+            'Status' => fn ($r, $d) => $r->status,
+            'Name' => fn ($r, $d) => $r->name,
+            'Mobile' => fn ($r, $d) => $text($r->phone),
+            'Email' => fn ($r, $d) => $d('email') ?: $r->email,
+            'NID / Birth Reg' => fn ($r, $d) => $text($d('national_id')),
+            'Gender' => fn ($r, $d) => $d('gender'),
+            'Birth Date' => fn ($r, $d) => $d('birth_date'),
+            'Father' => fn ($r, $d) => $d('father_name'),
+            'Father Status' => fn ($r, $d) => $d('father_status'),
+            'Father Occupation' => fn ($r, $d) => $d('father_occupation'),
+            'Father Income' => fn ($r, $d) => $d('father_income'),
+            'Father Mobile' => fn ($r, $d) => $text($d('father_phone')),
+            'Mother' => fn ($r, $d) => $d('mother_name'),
+            'Mother Status' => fn ($r, $d) => $d('mother_status'),
+            'Mother Occupation' => fn ($r, $d) => $d('mother_occupation'),
+            'Mother Income' => fn ($r, $d) => $d('mother_income'),
+            'Mother Mobile' => fn ($r, $d) => $text($d('mother_phone')),
+            'Guardian' => fn ($r, $d) => $d('guardian_name'),
+            'Guardian Relation' => fn ($r, $d) => $d('guardian_relation'),
+            'Guardian Income' => fn ($r, $d) => $d('guardian_income'),
+            'Guardian Contact' => fn ($r, $d) => $text($d('guardian_phone')),
+            'Annual Family Income' => fn ($r, $d) => $d('annual_income'),
+            'Family Members' => fn ($r, $d) => $d('family_count'),
+            'Earning Members' => fn ($r, $d) => $d('earning_count'),
+            'Orphan Status' => fn ($r, $d) => $d('orphan_status'),
+            'Disability' => fn ($r, $d) => $d('disability'),
+            'Disability Category' => fn ($r, $d) => $d('disability_type'),
+            'Disability Details' => fn ($r, $d) => $d('disability_details'),
+            'Degree Applied' => fn ($r, $d) => $d('scholarship_degree'),
+            'Current Year' => fn ($r, $d) => $d('current_year'),
+            'Institute' => fn ($r, $d) => $d('college_name') ?: $r->institution_or_org,
+            'Group' => fn ($r, $d) => $d('group'),
+            'Subject' => fn ($r, $d) => $d('assigned_subject'),
+            'Admission Roll' => fn ($r, $d) => $d('admission_roll'),
+            'Merit Position' => fn ($r, $d) => $d('merit_position'),
+            'Admission Fee' => fn ($r, $d) => $d('admission_fee'),
+            'Monthly Fee' => fn ($r, $d) => $d('monthly_fee'),
+            'Hostel Cost' => fn ($r, $d) => $d('hostel_cost'),
+            'SSC (year / GPA)' => fn ($r, $d) => trim($d('ssc_year') . ' / ' . $d('ssc_gpa'), ' /'),
+            'HSC (year / GPA)' => fn ($r, $d) => trim($d('hsc_year') . ' / ' . $d('hsc_gpa'), ' /'),
+            'Honours (year / CGPA)' => fn ($r, $d) => trim($d('grad_year') . ' / ' . $d('grad_cgpa'), ' /'),
+            'Masters (year / CGPA)' => fn ($r, $d) => trim($d('other_year') . ' / ' . $d('other_cgpa'), ' /'),
+            'Received Joyee Before' => fn ($r, $d) => $d('prev_joyee'),
+            'Previous Joyee Details' => fn ($r, $d) => collect($r->form_data['prev_scholarships'] ?? [])
+                ->filter(fn ($x) => is_array($x) && array_filter($x))->map(fn ($x) => ($x['year'] ?? '') . ' x' . ($x['times'] ?? '') . ' = ' . ($x['amount'] ?? ''))->implode('; '),
+            'Other Scholarship' => fn ($r, $d) => trim($d('other_scholarship') . ' ' . $d('other_scholarship_details')),
+            'Books Read' => fn ($r, $d) => $d('books_read_count'),
+            'Reading Habit' => fn ($r, $d) => $d('reading_habit'),
+            'Book Names' => fn ($r, $d) => str_replace(["\r\n", "\n"], '; ', $d('books_read_names')),
+            'Statement' => fn ($r, $d) => $d('scholarship_reason'),
+            'Pay Method' => fn ($r, $d) => $d('pay_method'),
+            'Account Owner' => fn ($r, $d) => $d('pay_account_owner'),
+            'Account Holder' => fn ($r, $d) => $d('pay_account_name'),
+            'Account / Wallet No' => fn ($r, $d) => $text($d('pay_account_no')),
+            'Bank' => fn ($r, $d) => $d('pay_bank_name'),
+            'Branch' => fn ($r, $d) => $d('pay_bank_branch'),
+            'Permanent Address' => fn ($r, $d) => $d('permanent_address') ?: $r->address,
+            'Present Address' => fn ($r, $d) => $d('present_address'),
+            'Viva Marks' => fn ($r, $d) => $d('viva_total'),
+            'Awarded' => fn ($r, $d) => ($r->status === 'selected' || !empty($r->form_data['is_scholarship_awarded'])) ? 'Yes' : '',
+            'Submitted At' => fn ($r, $d) => $r->created_at->format('Y-m-d H:i:s'),
+        ];
+
+        $callback = function () use ($registrations, $columns, $safe) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, array_keys($columns));
+            foreach ($registrations as $r) {
+                $d = fn ($k) => trim((string) (is_array($r->form_data[$k] ?? null) ? json_encode($r->form_data[$k], JSON_UNESCAPED_UNICODE) : ($r->form_data[$k] ?? '')));
+                fputcsv($handle, array_map(fn ($c) => $safe($c($r, $d)), $columns));
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
     }
 
     /**

@@ -309,6 +309,7 @@ class RoleMiddleware
         'admin.accounting.'                => ['accounting.view', 'accounting.ledger_manage'],
         'admin.reports.'                   => 'accounting.reports',
 
+        'admin.genres.'                    => ['catalog.view', 'catalog.edit'],
         'admin.blog-categories'            => 'editorial.view',
         'admin.blog.'                      => 'editorial.publish',
         'admin.content.'                   => ['editorial.view', 'editorial.publish'],

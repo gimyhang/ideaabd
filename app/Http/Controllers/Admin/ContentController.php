@@ -118,6 +118,22 @@ class ContentController extends Controller
 
         /** @var Model $record */
         $record = new $spec['model']();
+        if ($type === 'books') {
+            $authorNames = array_values(array_filter(array_map('trim', (array) $request->input('author_names', []))));
+            $authorName = implode(', ', $authorNames) ?: trim((string) $request->input('author_name'));
+            $authorIds = array_values(array_filter((array) $request->input('author_ids', []), 'is_numeric'));
+
+            $duplicateCandidate = new \Modules\Book\Models\Book();
+            $duplicateCandidate->forceFill([
+                'title' => $data['title'] ?? $request->input('title'),
+                'isbn' => $request->input('isbn'),
+                'author_name' => $authorName,
+                'author_link_id' => $authorIds[0] ?? $request->input('author_link_id'),
+                'edition' => $data['edition'] ?? $request->input('edition'),
+            ]);
+            $duplicateCandidate->assertCatalogEntryIsUnique();
+        }
+
         $attributes = $this->attributesFrom($request, $spec, $data, $record);
 
         $attributes['slug'] = $this->uniqueSlug(
@@ -360,7 +376,10 @@ class ContentController extends Controller
         }
 
         if (in_array($type, ['books', 'ebooks'], true) && empty($attributes['cover_image'])) {
-            if ($request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
+            // An auto-generated cover may only replace the current cover when the admin asked for a new one
+            // (regenerate_cover=1). Merely opening the form or retyping the title must never overwrite it.
+            $mayUseGenerated = empty($record->cover_image) || $request->boolean('regenerate_cover');
+            if ($mayUseGenerated && $request->filled('generated_cover_data') && str_starts_with((string)$request->input('generated_cover_data'), 'data:image')) {
                 $savedData = $this->saveImageOrBase64(null, $request->input('generated_cover_data'), 'books/covers');
                 if ($savedData) {
                     $attributes['cover_image'] = $savedData;
@@ -592,6 +611,12 @@ class ContentController extends Controller
             $attributes[$name] = $field['label'];
         }
 
+        // Genre comes from the genres table (the same list the publisher portal uses). The record's current
+        // value stays valid even if that genre was switched off later.
+        if (($spec['key'] ?? null) === 'books') {
+            $rules['genre_category']      = \Modules\Book\Models\Genre::rules($record->genre_category ?? null);
+            $attributes['genre_category'] = 'Genre';
+        }
         $rules['slug']         = ['nullable', 'string', 'max:255', 'regex:/^[\pL\pN\-_]+$/u'];
         $rules['owner_name']   = ['nullable', 'string', 'max:255'];
         $rules['owner_phone']  = ['nullable', 'string', 'max:30'];
@@ -1061,17 +1086,13 @@ class ContentController extends Controller
                 }
             }
 
-            if ($request->filled('sub_category_name')) {
-                $attributes['sub_category_name'] = $request->input('sub_category_name');
-            }
-            if ($request->filled('ekushey_category')) {
-                $attributes['ekushey_category'] = $request->input('ekushey_category');
-            }
-            if ($request->filled('genre_category')) {
-                $attributes['genre_category'] = $request->input('genre_category');
-            }
-            if ($request->filled('audience_category')) {
-                $attributes['audience_category'] = $request->input('audience_category');
+            // These fields are only sent by the book form. When the field IS present but empty the admin
+            // cleared it on purpose, so store null instead of silently keeping the old value.
+            foreach (['sub_category_name', 'ekushey_category', 'genre_category', 'audience_category'] as $classField) {
+                if ($request->has($classField)) {
+                    $value = trim((string) $request->input($classField));
+                    $attributes[$classField] = $value !== '' ? $value : null;
+                }
             }
             if ($request->filled('look_inside_type')) {
                 $attributes['look_inside_type'] = $request->input('look_inside_type');

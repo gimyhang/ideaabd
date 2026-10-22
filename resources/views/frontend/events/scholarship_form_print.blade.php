@@ -19,11 +19,25 @@
     }
 
     $collegeName = $fd('college_name') ?: ($registration->institution_or_org ?: '');
+    // Place names are stored in Bengali; print them with their English spelling when one is known.
+    $geoEn = \Illuminate\Support\Facades\Cache::rememberForever('geo_en_map_' . @filemtime(public_path('js/bd-geo-en.js')), function () {
+        $raw = @file_get_contents(public_path('js/bd-geo-en.js')) ?: '';
+        $json = trim(preg_replace('/^.*?window\.BD_GEO_EN\s*=\s*/s', '', $raw), " 
+	;");
+        return json_decode($json, true) ?: [];
+    });
     $permAddr = $fd('permanent_address') ?: (string) $registration->address;
     $presAddr = $fd('present_address');
+    foreach (['perm' => 'permAddr', 'pres' => 'presAddr'] as $pfx => $var) {
+        $city = $fd($pfx . '_city_corporation');
+        $city = $geoEn[$city] ?? $city;
+        if ($city !== '' && $$var !== '' && !str_contains($$var, $city)) { $$var = $city . ', ' . $$var; }
+    }
     $sameAddr = $presAddr === '' || $presAddr === $permAddr;
     $permDistrict = $fd('permanent_district') ?: (string) $registration->district;
     $presDistrict = $fd('present_district');
+    $permDistrict = $geoEn[$permDistrict] ?? $permDistrict;
+    $presDistrict = $geoEn[$presDistrict] ?? $presDistrict;
 
     $guardianPhone = $fd('guardian_phone');
     if ($guardianPhone === $registration->phone) {
@@ -32,16 +46,16 @@
 
     // Academic exam rows: label => [prefix, gpa key]
     $examRows = [
-        'SSC / সমমান'     => ['ssc', 'ssc_gpa', 'GPA'],
-        'HSC / সমমান'     => ['hsc', 'hsc_gpa', 'GPA'],
-        'স্নাতক / ডিগ্রি'    => ['grad', 'grad_cgpa', 'CGPA'],
-        'স্নাতকোত্তর / অন্যান্য' => ['other', 'other_cgpa', 'CGPA'],
+        'SSC'     => ['ssc', 'ssc_gpa', 'GPA'],
+        'HSC'     => ['hsc', 'hsc_gpa', 'GPA'],
+        'Honours' => ['grad', 'grad_cgpa', 'CGPA'],
+        'Masters' => ['other', 'other_cgpa', 'CGPA'],
     ];
     $prevSch = collect($formData['prev_scholarships'] ?? [])->filter(fn ($r) => is_array($r) && (trim($r['year'] ?? '') !== '' || trim($r['amount'] ?? '') !== ''))->values();
     $hasViva = !empty($formData['viva_total']);
 @endphp
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,7 +81,7 @@
         }
         body {
             font-family: 'Kalpurush', 'SolaimanLipi', Arial, sans-serif;
-            font-size: 11px;
+            font-size: 14px;
             line-height: 1.3;
             color: #000;
             background: #f4f6f9;
@@ -121,48 +135,57 @@
         .head-logo { width: 90px; text-align: left; }
         .head-logo img { max-height: 60px; max-width: 86px; }
         .head-title { text-align: center; }
-        .head-title .org { font-size: 13px; font-weight: bold; }
-        .head-title .form-title { font-size: 26px; font-weight: bold; letter-spacing: 3px; line-height: 1.15; text-transform: uppercase; }
-        .head-title .meta { font-size: 10px; margin-top: 2px; }
+        .head-title .org { font-size: 16px; font-weight: bold; }
+        .head-title .form-title { font-size: 29px; font-weight: bold; letter-spacing: 3px; line-height: 1.15; text-transform: uppercase; }
+        .head-title .meta { font-size: 13px; margin-top: 2px; }
         .head-photo { width: 98px; text-align: right; }
         .photo-box {
             width: 90px; height: 108px; border: 1.5px solid #000; display: inline-block;
-            overflow: hidden; text-align: center; font-size: 9px; color: #64748b;
+            overflow: hidden; text-align: center; font-size: 12px; color: #64748b;
         }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .photo-box .ph { padding-top: 44px; }
 
         /* Sections */
         .sec-title {
-            font-size: 11px; font-weight: bold; background: #e5e7eb; border: 1px solid #000;
-            border-bottom: none; padding: 2px 6px;
+            font-size: 14px; font-weight: bold; background: #e5e7eb; border: 1px solid #000;
+            border-bottom: none; padding: 3px 6px;
         }
-        .grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-        .grid td, .grid th { border: 1px solid #000; padding: 3px 5px; font-size: 10.5px; vertical-align: middle; }
-        .grid th { background: #f3f4f6; font-weight: bold; text-align: center; font-size: 10px; }
+        .grid { width: 100%; border-collapse: collapse; margin-bottom: 7px; page-break-inside: avoid; }
+        .grid tr { page-break-inside: avoid; }
+        .sec-title { page-break-after: avoid; }
+        .pb { page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0; }
+        .reason, .declaration, .remark-cols, .sig-table, .footer-line { page-break-inside: avoid; }
+        .grid td, .grid th { border: 1px solid #000; padding: 4px 5px; font-size: 13.5px; vertical-align: middle; }
+        .grid th { background: #f3f4f6; font-weight: bold; text-align: center; font-size: 13px; }
         .lbl { white-space: nowrap; width: 17%; }
         .val-b { font-weight: bold; }
 
         .reason { border: 1px solid #000; padding: 4px 7px; margin-bottom: 6px; min-height: 40px; }
-        .reason-body { text-align: justify; font-size: 10.5px; }
-        .declaration { font-size: 10px; text-align: justify; margin: 4px 0 0; }
+        .reason-body { text-align: justify; font-size: 13.5px; }
+        .declaration { font-size: 13px; text-align: justify; margin: 4px 0 0; }
 
         /* Signatures */
-        .sig-line { border-top: 1px solid #000; margin-top: 30px; padding-top: 2px; font-size: 10px; text-align: center; }
+        .sig-line { border-top: 1px solid #000; margin-top: 54px; padding-top: 2px; font-size: 13px; text-align: center; }
         .sig-table { width: 100%; border-collapse: collapse; }
         .sig-table td { vertical-align: bottom; }
 
         .remark-box { border: 1px solid #000; margin-top: 8px; }
-        .remark-head { padding: 3px 7px; font-size: 10.5px; font-weight: bold; border-bottom: 1px solid #000; background: #f3f4f6; }
+        .remark-head { padding: 3px 7px; font-size: 13.5px; font-weight: bold; border-bottom: 1px solid #000; background: #f3f4f6; }
         .remark-lines { height: 50px; padding: 0 7px; background-image: repeating-linear-gradient(transparent, transparent 15px, #9ca3af 15px, #9ca3af 16px); }
+        .remark-cols { width: 100%; border-collapse: collapse; border: 1px solid #000; margin-top: 8px; }
+        .remark-cols > tbody > tr > td, .remark-cols > tr > td { width: 50%; vertical-align: top; padding: 0; }
+        .remark-cols td + td { border-left: 1px solid #000; }
+        .remark-cols .remark-lines { height: 130px; }
+        .remark-sign { padding: 4px 8px 5px; font-size: 13px; border-top: 1px solid #000; }
         .remark-sigs { width: 100%; border-collapse: collapse; border-top: 1px solid #000; }
-        .remark-sigs td { width: 50%; padding: 4px 8px 5px; vertical-align: top; font-size: 10px; }
+        .remark-sigs td { width: 50%; padding: 4px 8px 5px; vertical-align: top; font-size: 13px; }
         .remark-sigs td + td { border-left: 1px solid #000; }
-        .sig-space { height: 34px; }
+        .sig-space { height: 64px; }
         .fill-line { border-bottom: 1px dotted #000; display: inline-block; width: 60%; height: 11px; vertical-align: bottom; }
-        .seal-box { float: right; width: 52px; height: 52px; border: 1px dashed #6b7280; border-radius: 50%; text-align: center; font-size: 8px; color: #6b7280; padding-top: 20px; }
+        .seal-box { float: right; width: 52px; height: 52px; border: 1px dashed #6b7280; border-radius: 50%; text-align: center; font-size: 11px; color: #6b7280; padding-top: 20px; }
 
-        .footer-line { border-top: 1px solid #000; margin-top: 8px; padding-top: 3px; font-size: 9px; }
+        .footer-line { border-top: 1px solid #000; margin-top: 8px; padding-top: 3px; font-size: 12px; }
         .footer-line .r { float: right; }
     </style>
 </head>
@@ -178,7 +201,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
             @if($registration->status === 'selected' || !empty($formData['is_scholarship_awarded']))
-                <span class="badge-selected-status">★ বৃত্তিপ্রাপ্ত</span>
+                <span class="badge-selected-status">★ Scholarship awarded</span>
             @endif
             <button type="button" onclick="window.print()" class="btn-action btn-print">Print</button>
             <a href="{{ route('event.registration.pdf', $registration->registration_number) }}" class="btn-action btn-pdf">Download PDF</a>
@@ -197,11 +220,12 @@
                 @endif
             </td>
             <td class="head-title">
-                <div class="org">জয়ী শিক্ষাবৃত্তি</div>
+                <div class="org">Joyee Shikkhabritti</div>
                 <div class="form-title">Scholarship</div>
+                <div class="meta" style="margin-bottom:2px;">Session 2027</div>
                 <div class="meta">
-                    আবেদন নং: <strong>{{ $registration->registration_number }}</strong>
-                    &nbsp;|&nbsp; তারিখ: {{ $registration->created_at->format('d/m/Y') }}
+                    Application No: <strong>{{ $registration->registration_number }}</strong>
+                    &nbsp;|&nbsp; Date: {{ $registration->created_at->format('d/m/Y') }}
                 </div>
             </td>
             <td class="head-photo">
@@ -209,92 +233,129 @@
                     @if($photoUrl)
                         <img src="{{ $photoUrl }}" alt="Photo">
                     @else
-                        <div class="ph">ছবি</div>
+                        <div class="ph">Photo</div>
                     @endif
                 </div>
             </td>
         </tr>
     </table>
 
-    {{-- Personal --}}
-    <div class="sec-title">ব্যক্তিগত তথ্য</div>
+    {{-- Applicant --}}
+    <div class="sec-title">1. Applicant</div>
     <table class="grid">
         <tr>
-            <td class="lbl">আবেদনকারীর নাম</td>
+            <td class="lbl">Name</td>
             <td class="val-b" style="width:33%;">{{ $up($registration->name) }}</td>
-            <td class="lbl">মোবাইল নম্বর</td>
+            <td class="lbl">Mobile</td>
             <td class="val-b">{{ $registration->phone }}</td>
         </tr>
         <tr>
-            <td class="lbl">পিতার নাম</td>
-            <td>{{ $up($fd('father_name')) }}@if($fd('father_income') !== '') <span style="white-space:nowrap;">(আয়: {{ $fd('father_income') }})</span>@endif @if($fd('father_phone')) <br>{{ $fd('father_phone') }}@endif</td>
-            <td class="lbl">মাতার নাম</td>
-            <td>{{ $up($fd('mother_name')) }}@if($fd('mother_income') !== '') <span style="white-space:nowrap;">(আয়: {{ $fd('mother_income') }})</span>@endif @if($fd('mother_phone')) <br>{{ $fd('mother_phone') }}@endif</td>
-        </tr>
-        <tr>
-            <td class="lbl">জন্ম তারিখ</td>
+            <td class="lbl">Date of Birth</td>
             <td>{{ $fd('birth_date') }}</td>
-            <td class="lbl">লিঙ্গ / ধর্ম</td>
+            <td class="lbl">Gender / Religion</td>
             <td>{{ trim($fd('gender') . ($fd('religion') ? ' / ' . $fd('religion') : ''), ' /') }}</td>
         </tr>
         <tr>
-            <td class="lbl">অভিভাবকের নাম</td>
-            <td>{{ $up($fd('guardian_name')) }}@if($fd('guardian_income') !== '') <span style="white-space:nowrap;">(আয়: {{ $fd('guardian_income') }})</span>@endif @if($guardianPhone) <span style="white-space:nowrap;">({{ $guardianPhone }})</span>@endif</td>
-            <td class="lbl">বার্ষিক পারিবারিক আয়</td>
-            <td>{{ $fd('annual_income') !== '' ? $fd('annual_income') . ' টাকা' : '' }}</td>
+            <td class="lbl">NID / Birth Reg.</td>
+            <td>{{ $fd('national_id') }}</td>
+            <td class="lbl">Email</td>
+            <td>{{ $fd('email') ?: $registration->email }}</td>
         </tr>
         @if($fd('marital_status') !== '' || $fd('nationality') !== '')
             <tr>
-                <td class="lbl">বৈবাহিক অবস্থা</td>
+                <td class="lbl">Marital Status</td>
                 <td>{{ $fd('marital_status') }}</td>
-                <td class="lbl">জাতীয়তা</td>
+                <td class="lbl">Nationality</td>
                 <td>{{ $up($fd('nationality')) }}</td>
+            </tr>
+        @endif
+        @if($fd('disability') !== '')
+            @php
+                $disabilityTypes = ['Visual' => 'Visual impairment', 'Hearing' => 'Hearing impairment', 'Speech' => 'Speech impairment', 'Physical' => 'Physical / Mobility', 'Intellectual' => 'Intellectual', 'Autism' => 'Autism / Neurodevelopmental', 'Multiple' => 'Multiple', 'Other' => 'Other'];
+            @endphp
+            <tr>
+                <td class="lbl">Disability</td>
+                <td colspan="3">{{ $fd('disability') }}@if($fd('disability') === 'Yes' && $fd('disability_type') !== '') — {{ $disabilityTypes[$fd('disability_type')] ?? $fd('disability_type') }}@endif @if($fd('disability_details') !== '') ({{ $fd('disability_details') }})@endif</td>
             </tr>
         @endif
     </table>
 
+    {{-- Parents & guardian --}}
+    <div class="sec-title">2. Parents &amp; Guardian</div>
+    <table class="grid">
+        @foreach(['father' => "Father", 'mother' => "Mother"] as $pk => $pl)
+            @php $gone = $fd($pk . '_status') === 'Deceased'; @endphp
+            <tr>
+                <td class="lbl">{{ $pl }}</td>
+                <td style="width:33%;">{{ $up($fd($pk . '_name')) }}@if($fd($pk . '_status') !== '') <span style="white-space:nowrap;">({{ $fd($pk . '_status') }})</span>@endif</td>
+                <td class="lbl">{{ $pl }} Occupation</td>
+                <td>{{ $gone ? 'Nil' : $fd($pk . '_occupation') }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">{{ $pl }} Income</td>
+                <td>{{ !$gone && $fd($pk . '_income') !== '' ? $fd($pk . '_income') . ' Tk' : ($gone ? 'Nil' : '') }}</td>
+                <td class="lbl">{{ $pl }} Mobile</td>
+                <td>{{ $gone ? 'Nil' : $fd($pk . '_phone') }}</td>
+            </tr>
+        @endforeach
+        <tr>
+            <td class="lbl">Guardian</td>
+            <td>{{ $up($fd('guardian_name')) }}@if($fd('guardian_relation') !== '') <span style="white-space:nowrap;">({{ $fd('guardian_relation') }})</span>@endif @if($fd('guardian_income') !== '') <span style="white-space:nowrap;">— Income: {{ $fd('guardian_income') }} Tk</span>@endif</td>
+            <td class="lbl">Guardian Contact</td>
+            <td>{{ $fd('guardian_phone') }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Annual Family Income</td>
+            <td>{{ $fd('annual_income') !== '' ? $fd('annual_income') . ' Tk' : '' }}</td>
+            <td class="lbl">Family / Earning Members</td>
+            <td>{{ $fd('family_count') }}@if($fd('earning_count') !== '') / {{ $fd('earning_count') }}@endif @if($fd('orphan_status') !== '' && $fd('orphan_status') !== 'None') — {{ $fd('orphan_status') }}@endif</td>
+        </tr>
+    </table>
     {{-- Academic (all in one place) --}}
-    <div class="sec-title">একাডেমিক তথ্য</div>
+    <div class="sec-title">3. Academic</div>
     <table class="grid">
         <tr>
-            <td class="lbl">প্রতিষ্ঠান</td>
+            <td class="lbl">Institute</td>
             <td colspan="3" class="val-b">
-                {{ $collegeName }}@if($fd('college_code')) <span style="font-weight:normal;">(কোড: {{ $fd('college_code') }})</span>@endif
+                {{ $collegeName }}@if($fd('college_code')) <span style="font-weight:normal;">(Code: {{ $fd('college_code') }})</span>@endif
             </td>
         </tr>
         <tr>
-            <td class="lbl">বিভাগ / গ্রুপ</td>
+            <td class="lbl">Group</td>
             <td style="width:33%;">{{ $up($fd('group')) }}</td>
-            <td class="lbl">ভর্তি রোল / মেধাক্রম</td>
+            <td class="lbl">Admission Roll / Merit</td>
             <td>{{ $fd('admission_roll') }}@if($fd('merit_position')) / {{ $fd('merit_position') }}@endif</td>
         </tr>
         <tr>
-            <td class="lbl">বৃত্তির জন্য ডিগ্রি</td>
+            <td class="lbl">Degree Applied For</td>
             <td>{{ $up($fd('scholarship_degree')) }}</td>
-            <td class="lbl">বিষয়</td>
+            <td class="lbl">Subject</td>
             <td>{{ $up($fd('assigned_subject')) }}</td>
         </tr>
         <tr>
-            <td class="lbl">ভর্তি ফি</td>
-            <td>{{ $fd('admission_fee') !== '' ? $fd('admission_fee') . ' টাকা' : ($fd('tuition_fee') !== '' ? $fd('tuition_fee') . ' টাকা' : '') }}</td>
-            <td class="lbl">মাসিক বেতন</td>
-            <td>{{ $fd('monthly_fee') !== '' ? $fd('monthly_fee') . ' টাকা' : '' }}</td>
+            <td class="lbl">Admission Fee</td>
+            <td>{{ $fd('admission_fee') !== '' ? $fd('admission_fee') . ' Tk' : ($fd('tuition_fee') !== '' ? $fd('tuition_fee') . ' Tk' : '') }}</td>
+            <td class="lbl">Monthly Fee</td>
+            <td>{{ $fd('monthly_fee') !== '' ? $fd('monthly_fee') . ' Tk' : '' }}</td>
         </tr>
-        @if($fd('hostel_cost') !== '')
+        @if($fd('hostel_cost') !== '' || $fd('current_year') !== '')
             <tr>
-                <td class="lbl">হোস্টেল খরচ</td>
-                <td colspan="3">{{ $fd('hostel_cost') }} টাকা</td>
+                <td class="lbl">Hostel Cost</td>
+                <td>{{ $fd('hostel_cost') !== '' ? $fd('hostel_cost') . ' Tk' : '' }}</td>
+                <td class="lbl">Current Year</td>
+                <td>{{ $fd('current_year') }}</td>
             </tr>
         @endif
     </table>
-    <table class="grid" style="margin-top:-5px;">
+    <div class="sec-title">4. Educational Qualification</div>
+    <table class="grid">
         <thead>
             <tr>
-                <th style="width:17%;">পরীক্ষা</th>
-                <th style="width:11%;">রোল</th>
-                <th style="width:14%;">বোর্ড / বিশ্ববিদ্যালয়</th>
-                <th>প্রতিষ্ঠান</th>
-                <th style="width:8%;">সাল</th>
+                <th style="width:17%;">Level</th>
+                <th style="width:11%;">Roll / Reg</th>
+                <th style="width:14%;">Board / University</th>
+                <th>Institute</th>
+                <th style="width:8%;">Year</th>
                 <th style="width:8%;">GPA</th>
             </tr>
         </thead>
@@ -304,7 +365,7 @@
                     $isCore = in_array($p, ['ssc', 'hsc'], true);
                     $inst = $fd($p . '_institute');
                     // HSC institute equals current college -> avoid repeating it
-                    if ($p === 'hsc' && $inst !== '' && $inst === $collegeName) { $inst = 'একই (উপরে উল্লিখিত)'; }
+                    if ($p === 'hsc' && $inst !== '' && $inst === $collegeName) { $inst = 'Same as above'; }
                     $rowHas = $fd($p . '_roll') !== '' || $fd($p . '_institute') !== '' || $fd($gpaKey) !== '';
                 @endphp
                 @if($isCore || $rowHas)
@@ -321,57 +382,112 @@
         </tbody>
     </table>
 
-    {{-- Scholarships --}}
-    <div class="sec-title">Scholarships</div>
-    <table class="grid">
-        <thead>
-            <tr><th>Year</th><th style="width:25%;">Times</th><th style="width:30%;">Amount</th></tr>
-        </thead>
-        <tbody>
-            @forelse($prevSch as $r)
-                <tr>
-                    <td style="text-align:center;">{{ $r['year'] ?? '' }}</td>
-                    <td style="text-align:center;">{{ $r['times'] ?? '' }}</td>
-                    <td style="text-align:center;">{{ $r['amount'] ?? '' }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="3" style="text-align:center;">—</td></tr>
-            @endforelse
-            <tr>
-                <td>অন্য প্রতিষ্ঠান থেকে বৃত্তি পান?</td>
-                <td colspan="2">{{ $fd('other_scholarship') ?: 'No' }}@if($fd('other_scholarship_details')) — {{ $fd('other_scholarship_details') }}@endif</td>
-            </tr>
-        </tbody>
-    </table>
     {{-- Address --}}
-    <div class="sec-title">ঠিকানা</div>
+    <div class="sec-title">5. Address</div>
     <table class="grid">
         <tr>
-            <td class="lbl">স্থায়ী ঠিকানা</td>
-            <td>{{ $permAddr }}@if($permDistrict) , জেলা: {{ $permDistrict }}@endif</td>
+            <td class="lbl">Permanent</td>
+            <td>{{ $permAddr }}@if($permDistrict) , District: {{ $permDistrict }}@endif</td>
         </tr>
         <tr>
-            <td class="lbl">বর্তমান ঠিকানা</td>
+            <td class="lbl">Present</td>
             <td>
                 @if($sameAddr)
-                    স্থায়ী ঠিকানার অনুরূপ
+                    Same as permanent address
                 @else
-                    {{ $presAddr }}@if($presDistrict) , জেলা: {{ $presDistrict }}@endif
+                    {{ $presAddr }}@if($presDistrict) , District: {{ $presDistrict }}@endif
                 @endif
             </td>
         </tr>
     </table>
 
+    {{-- Scholarships --}}
+    <div class="sec-title">6. Scholarships</div>
+    <table class="grid">
+        <tr>
+            <td class="lbl" style="width:46%;">Received Joyee Scholarship before?</td>
+            <td>{{ $fd('prev_joyee') ?: ($prevSch->isNotEmpty() ? 'Yes' : '—') }}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Scholarship from another organization?</td>
+            <td>{{ $fd('other_scholarship') ?: 'No' }}@if($fd('other_scholarship_details')) — {{ $fd('other_scholarship_details') }}@endif</td>
+        </tr>
+    </table>
+    @if($prevSch->isNotEmpty())
+        <table class="grid" style="margin-top:-5px;">
+            <thead>
+                <tr><th>Year</th><th style="width:25%;">Times</th><th style="width:30%;">Amount (Tk)</th></tr>
+            </thead>
+            <tbody>
+                @foreach($prevSch as $r)
+                    <tr>
+                        <td style="text-align:center;">{{ $r['year'] ?? '' }}</td>
+                        <td style="text-align:center;">{{ $r['times'] ?? '' }}</td>
+                        <td style="text-align:center;">{{ $r['amount'] ?? '' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
+    {{-- Page 2 starts here: 1-6 on the first sheet, 7 onwards on the second --}}
+    <div class="pb"></div>
+
+    {{-- Reading --}}
+    @if($fd('books_read_count') !== '' || $fd('reading_habit') !== '' || $fd('books_read_names') !== '')
+        <div class="sec-title">7. Reading</div>
+        <table class="grid">
+            <tr>
+                <td class="lbl">Original books read</td>
+                <td style="width:33%;">{{ $fd('books_read_count') }}</td>
+                <td class="lbl">Reading habit</td>
+                <td>{{ $fd('reading_habit') === 'I do not read' ? 'Does not read non-academic books' : ($fd('reading_habit') === 'I have read' ? 'Has read non-academic books' : $fd('reading_habit')) }}</td>
+            </tr>
+            @if($fd('books_read_names') !== '')
+                <tr>
+                    <td class="lbl">Book names</td>
+                    <td colspan="3">{!! nl2br(e($fd('books_read_names'))) !!}</td>
+                </tr>
+            @endif
+        </table>
+    @endif
     {{-- Reason --}}
     <div class="reason">
-        <div style="font-weight:bold;font-size:10.5px;">শিক্ষাবৃত্তির আবেদনের কারণ (অনধিক ৫০ শব্দ):</div>
+        <div style="font-weight:bold;font-size: 13.5px;">8. Statement (max 50 words):</div>
         <div class="reason-body">{{ $fd('scholarship_reason') }}</div>
     </div>
+
+    {{-- Payment account --}}
+    @if($fd('pay_method') !== '')
+        <div class="sec-title">9. Payment Account</div>
+        <table class="grid">
+            <tr>
+                <td class="lbl">Method</td>
+                <td style="width:33%;">{{ $fd('pay_method') === 'Bank' ? 'Bank Account' : $fd('pay_method') }}</td>
+                <td class="lbl">Account Owner</td>
+                <td>{{ $fd('pay_account_owner') }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Holder Name</td>
+                <td>{{ $up($fd('pay_account_name')) }}</td>
+                <td class="lbl">{{ $fd('pay_method') === 'Bank' ? 'Account No.' : 'Wallet No.' }}</td>
+                <td class="val-b">{{ $fd('pay_account_no') }}</td>
+            </tr>
+            @if($fd('pay_method') === 'Bank')
+                <tr>
+                    <td class="lbl">Bank</td>
+                    <td>{{ $fd('pay_bank_name') }}</td>
+                    <td class="lbl">Branch</td>
+                    <td>{{ $fd('pay_bank_branch') }}</td>
+                </tr>
+            @endif
+        </table>
+    @endif
 
     @if($hasViva)
         <table class="grid">
             <tr>
-                <td class="lbl">ভাইভা প্রাপ্ত নম্বর</td>
+                <td class="lbl">Viva Marks</td>
                 <td class="val-b">{{ $fd('viva_total') }} / 50</td>
             </tr>
         </table>
@@ -379,48 +495,51 @@
 
     {{-- Declaration + applicant signature --}}
     <div class="declaration">
-        আমি <strong>{{ $up($registration->name) }}</strong> ঘোষণা করছি যে, উপরে প্রদত্ত সকল তথ্য ও ছবি সঠিক। কোনো তথ্য মিথ্যা প্রমাণিত হলে শিক্ষাবৃত্তি কর্তৃপক্ষ আমার বৃত্তি বাতিল করার অধিকার সংরক্ষণ করে।
+        I, <strong>{{ $up($registration->name) }}</strong>, declare that all information and the photo provided above are correct. The scholarship authority reserves the right to cancel my scholarship if any information is found false.
     </div>
     <table class="sig-table">
         <tr>
             <td style="width:55%;"></td>
             <td style="width:45%;">
-                <div class="sig-line">আবেদনকারীর স্বাক্ষর ও তারিখ</div>
+                <div class="sig-line">Applicant signature &amp; date</div>
             </td>
         </tr>
     </table>
 
     {{-- Recommendation (50 words) + head of institution + public representative --}}
-    <div class="remark-box">
-        <div class="remark-head">মন্তব্য (অনধিক ৫০ শব্দ)</div>
-        <div class="remark-lines"></div>
-        <table class="remark-sigs">
-            <tr>
-                <td>
-                    <div class="seal-box">সিল</div>
+    <table class="remark-box remark-cols">
+        <tr>
+            <td>
+                <div class="remark-head">Remarks (max 50 words) for Head of institute</div>
+                <div class="remark-lines"></div>
+                <div class="remark-sign">
+                    <div class="seal-box">Seal</div>
                     <div class="sig-space"></div>
-                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">শিক্ষা প্রতিষ্ঠান প্রধানের স্বাক্ষর</div>
-                    <div style="margin-top:5px;">মোবাইল: <span class="fill-line"></span></div>
-                </td>
-                <td>
-                    <div class="seal-box">সিল</div>
+                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Head of institute — signature</div>
+                    <div style="margin-top:5px;">Mobile: <span class="fill-line"></span></div>
+                </div>
+            </td>
+            <td>
+                <div class="remark-head">Remarks (max 50 words) for Public representative</div>
+                <div class="remark-lines"></div>
+                <div class="remark-sign">
+                    <div class="seal-box">Seal</div>
                     <div class="sig-space"></div>
-                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">জনপ্রতিনিধির স্বাক্ষর</div>
-                    <div style="margin-top:5px;">মোবাইল: <span class="fill-line"></span></div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
+                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Public representative — signature</div>
+                    <div style="margin-top:5px;">Mobile: <span class="fill-line"></span></div>
+                </div>
+            </td>
+        </tr>
+    </table>
     {{-- Approval --}}
     <table class="sig-table" style="margin-top:6px;">
         <tr>
             <td style="width:42%;">
-                <div class="sig-line">পরিচালক<br><span style="font-size:9px;">জয়ী শিক্ষাবৃত্তি অনুমোদনকারী</span></div>
+                <div class="sig-line">Director<br><span style="font-size: 12px;">Joyee Shikkhabritti — approver</span></div>
             </td>
             <td style="width:16%;"></td>
             <td style="width:42%;">
-                <div class="sig-line">কোষাধ্যক্ষ<br><span style="font-size:9px;">জয়ী শিক্ষাবৃত্তি</span></div>
+                <div class="sig-line">Treasurer<br><span style="font-size: 12px;">Joyee Shikkhabritti</span></div>
             </td>
         </tr>
     </table>

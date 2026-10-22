@@ -19,9 +19,27 @@ class RecommendationEngine
      */
     public function getRelatedBooks(Book $book, int $limit = 6): Collection
     {
+        $genre = $book->genre_category ?: null;
+        $categoryId = $book->category_id ?: null;
+
+        // Nothing to match on: a book with neither category nor genre has no "related" books.
+        if (! $categoryId && ! $genre) {
+            return new Collection();
+        }
+
+        // Same category OR same genre. Books that share both come first, then the rest by sales;
+        // a newly added genre therefore starts producing related books without any other change.
         return Book::where('id', '!=', $book->id)
-            ->where('category_id', $book->category_id)
             ->where('is_active', true)
+            ->where(function ($q) use ($categoryId, $genre) {
+                if ($categoryId) {
+                    $q->where('category_id', $categoryId);
+                }
+                if ($genre) {
+                    $q->orWhere('genre_category', $genre);
+                }
+            })
+            ->orderByRaw('((CASE WHEN category_id = ? THEN 1 ELSE 0 END) + (CASE WHEN genre_category = ? THEN 1 ELSE 0 END)) DESC', [$categoryId, $genre])
             ->orderBy('sales_count', 'desc')
             ->take($limit)
             ->get();

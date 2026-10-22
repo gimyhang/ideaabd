@@ -574,4 +574,5 @@ document.getElementById('campaignForm').addEventListener('submit', function () {
 // Initial Render
 renderCustomFields();
 </script>
+@include('admin.event_campaigns.partials.image_shrink')
 @endsection

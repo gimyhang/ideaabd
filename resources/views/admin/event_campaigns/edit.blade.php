@@ -122,7 +122,13 @@
                             </div>
                         @endif
                         <input type="file" name="banner_image" id="bannerInput" class="form-control" accept="image/*" onchange="previewBanner(this)">
-                        <small class="text-muted" style="font-size: 11px;">Recommended: 1200x500px (JPG, PNG, WebP, max 2MB).</small>
+                        <small class="text-muted" style="font-size: 11px;">Recommended: 1200x500px (JPG, PNG, WebP). Large photos are shrunk automatically.</small>
+                        @if($campaign->banner_image)
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="remove_banner" value="1" id="removeBannerCheck">
+                                <label class="form-check-label small text-danger fw-semibold" for="removeBannerCheck">Remove banner</label>
+                            </div>
+                        @endif
                         <div id="bannerPreviewContainer" class="mt-2 d-none">
                             <img id="bannerPreviewImg" src="" alt="Preview" class="rounded-3 img-fluid border" style="max-height: 160px; object-fit: cover;">
                         </div>
@@ -669,4 +675,5 @@ document.getElementById('campaignForm').addEventListener('submit', function () {
 // Initial Render
 renderCustomFields();
 </script>
+@include('admin.event_campaigns.partials.image_shrink')
 @endsection

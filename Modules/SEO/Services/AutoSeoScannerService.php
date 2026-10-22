@@ -138,7 +138,7 @@ class AutoSeoScannerService
             case 'Book':
                 $title = trim($model->title ?? '');
                 $authorName = $model->author_name ?: ($model->author?->name ?? '');
-                $genre = $model->genre_category ?: ($model->category?->name ?? 'বই');
+                $genre = \Modules\Book\Models\Genre::nameFor($model->genre_category, 'bn') ?: ($model->category?->name ?? 'বই');
                 $price = $model->discount_price > 0 ? $model->discount_price : $model->price;
                 
                 $metaTitle = $title . ($authorName ? ' — ' . $authorName : '') . ' | ' . $siteName;

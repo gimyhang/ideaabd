@@ -57,6 +57,8 @@ class EventRegistration extends Model
     /**
      * Auto generate friendly registration number (Supports RSU sequential format RSU-2026-001)
      */
+    public const SCHOLARSHIP_SESSION = '2027';
+
     public static function generateRegNumber($slugOrCampaign = '', ?int $campaignId = null): string
     {
         $slug = '';
@@ -97,6 +99,16 @@ class EventRegistration extends Model
             }
 
             return $prefix . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+        }
+
+        // Scholarship applications: plain sequence per session — 2027-1, 2027-2, ...
+        if ($type === 'scholarship' || ($slugOrCampaign instanceof EventCampaign && !empty($slugOrCampaign->form_settings['is_scholarship_form'])) || in_array($cleanSlug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'], true)) {
+            $prefix = self::SCHOLARSHIP_SESSION . '-';
+            // withTrashed: a soft-deleted application still owns its number (the unique index covers deleted rows too)
+            $max = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%')->pluck('registration_number')
+                ->map(fn ($n) => preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $n, $mm) ? (int) $mm[1] : 0)
+                ->max() ?? 0;
+            return $prefix . ($max + 1);
         }
 
         $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $slug), 0, 4));

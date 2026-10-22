@@ -246,7 +246,7 @@ class PublisherPortalController extends Controller
             'category_id'              => 'required|exists:categories,id',
             'sub_category_name'        => 'nullable|string|max:255',
             'ekushey_category'         => 'nullable|string|max:100',
-            'genre_category'           => 'nullable|string|max:100',
+            'genre_category'           => \Modules\Book\Models\Genre::rules(),
             'audience_category'        => 'nullable|string|max:100',
             'author_id'                => 'nullable|exists:authors,id',
             'author_ids'               => 'nullable|array',
@@ -290,6 +290,17 @@ class PublisherPortalController extends Controller
                 ]);
             }
         }
+
+        $authorNames = array_values(array_filter(array_map('trim', (array) $request->input('author_names', []))));
+        $duplicateCandidate = new Book();
+        $duplicateCandidate->forceFill([
+            'title' => $validated['title'],
+            'isbn' => $validated['isbn'] ?? null,
+            'author_name' => implode(', ', $authorNames) ?: ($validated['author_name'] ?? null),
+            'author_link_id' => $validated['author_ids'][0] ?? ($validated['author_id'] ?? null),
+            'edition' => $validated['edition'] ?? null,
+        ]);
+        $duplicateCandidate->assertCatalogEntryIsUnique();
 
         try {
             // Handle Cover Image Upload (Convert to AVIF with fallback)
@@ -480,7 +491,7 @@ class PublisherPortalController extends Controller
             'category_id'              => 'required|exists:categories,id',
             'sub_category_name'        => 'nullable|string|max:255',
             'ekushey_category'         => 'nullable|string|max:100',
-            'genre_category'           => 'nullable|string|max:100',
+            'genre_category'           => \Modules\Book\Models\Genre::rules($book->genre_category ?? null),
             'audience_category'        => 'nullable|string|max:100',
             'author_id'                => 'nullable|exists:authors,id',
             'author_ids'               => 'nullable|array',

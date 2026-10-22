@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Validation\ValidationException;
 use Modules\Author\Models\Author;
 use Modules\Book\Models\Category;
 use Modules\Review\Models\Review;
@@ -117,6 +118,8 @@ class Book extends Model
     protected static function booted()
     {
         static::saving(function ($book) {
+            $book->assertCatalogEntryIsUnique();
+
             // Auto-generate Idea Prokashon serial number (IP-XXX) if Idea book and empty
             if ($book->is_idea_prokashon && empty(trim((string) $book->idea_serial_no))) {
                 $book->idea_serial_no = \App\Services\BarcodeService::generateNextIdeaSerial();
@@ -146,6 +149,84 @@ class Book extends Model
                 $book->authors()->syncWithoutDetaching([$book->author_link_id]);
             }
         });
+    }
+
+    public function assertCatalogEntryIsUnique(): void
+    {
+        if ($this->exists && ! $this->isDirty(['title', 'isbn', 'author_name', 'author_link_id', 'edition'])) {
+            return;
+        }
+
+        $title = trim((string) $this->title);
+        if ($title === '') {
+            return;
+        }
+
+        $ignoreId = $this->exists ? $this->getKey() : null;
+        $isbn = $this->normalizeCatalogIdentifier($this->isbn);
+
+        if ($isbn !== '') {
+            $duplicate = static::withTrashed()
+                ->where('id', '!=', $ignoreId ?? 0)
+                ->whereRaw("UPPER(REPLACE(REPLACE(REPLACE(TRIM(isbn), '-', ''), ' ', ''), '.', '')) = ?", [$isbn])
+                ->first();
+
+            if ($duplicate) {
+                throw ValidationException::withMessages([
+                    'isbn' => "এই ISBN-টি ইতিমধ্যে বই #{$duplicate->id} “{$duplicate->title}”-এ ব্যবহৃত হয়েছে।",
+                ]);
+            }
+        }
+
+        $normalizedTitle = mb_strtolower($title);
+        $query = static::withTrashed()
+            ->where('id', '!=', $ignoreId ?? 0)
+            ->whereRaw('LOWER(TRIM(title)) = ?', [$normalizedTitle]);
+
+        $authorId = $this->author_link_id;
+        $authorName = trim((string) $this->author_name);
+        if ($authorName === '' && $authorId) {
+            $authorName = trim((string) \Modules\Author\Models\Author::whereKey($authorId)->value('name'));
+        }
+
+        if ($authorId || $authorName !== '') {
+            $query->where(function ($authorQuery) use ($authorId, $authorName) {
+                if ($authorId) {
+                    $authorQuery->where('author_link_id', $authorId);
+                    if ($authorName !== '') {
+                        $authorQuery->orWhereRaw('LOWER(TRIM(author_name)) = ?', [mb_strtolower($authorName)]);
+                    }
+                } else {
+                    $authorQuery->whereRaw('LOWER(TRIM(author_name)) = ?', [mb_strtolower($authorName)]);
+                }
+            });
+        } else {
+            $query->whereNull('author_link_id')
+                ->where(function ($authorQuery) {
+                    $authorQuery->whereNull('author_name')->orWhereRaw("TRIM(author_name) = ''");
+                });
+        }
+
+        $edition = mb_strtolower(trim((string) $this->edition));
+        if ($edition !== '') {
+            $query->where(function ($editionQuery) use ($edition) {
+                $editionQuery->whereNull('edition')
+                    ->orWhereRaw("TRIM(edition) = ''")
+                    ->orWhereRaw('LOWER(TRIM(edition)) = ?', [$edition]);
+            });
+        }
+
+        $duplicate = $query->first();
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'title' => "এই শিরোনাম ও লেখকের বইটি ইতিমধ্যে ক্যাটালগে আছে (বই #{$duplicate->id})। বিদ্যমান বইটি সম্পাদনা করুন।",
+            ]);
+        }
+    }
+
+    private function normalizeCatalogIdentifier(?string $value): string
+    {
+        return strtoupper((string) preg_replace('/[\s.-]+/u', '', trim((string) $value)));
     }
 
     /**

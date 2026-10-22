@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ধন্যবাদ! নিবন্ধন সম্পন্ন হয়েছে — ' . $campaign->title)
+@section('title', ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' ? 'Application submitted — ' : 'ধন্যবাদ! নিবন্ধন সম্পন্ন হয়েছে — ') . $campaign->title)
 
 @push('styles')
 <style>
@@ -120,6 +120,11 @@
 @endpush
 
 @section('content')
+@php
+    $isSch = $campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']);
+    // scholarship applicants need time to download and read the instructions before the redirect
+    $redirectSecs = $isSch ? 120 : 6;
+@endphp
 <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
         <div class="col-lg-7 col-md-9">
@@ -131,35 +136,48 @@
                     <div class="celebrate-icon-wrap">
                         <i class="fa-solid fa-check"></i>
                     </div>
-                    <h1 class="thankyou-title">ধন্যবাদ!</h1>
+                    <h1 class="thankyou-title">{{ $isSch ? 'Thank you!' : 'ধন্যবাদ!' }}</h1>
                     <p class="thankyou-subtitle">
-                        <strong>{{ $campaign->title }}</strong>-এ আপনার নিবন্ধন সম্পন্ন হয়েছে।
+                        @if($isSch)
+                            Your application to <strong>{{ $campaign->title }}</strong> has been submitted.
+                        @else
+                            <strong>{{ $campaign->title }}</strong>-এ আপনার নিবন্ধন সম্পন্ন হয়েছে।
+                        @endif
                     </p>
                 </div>
 
                 <div class="p-4 p-md-5">
 
                     {{-- Respectful Welcome Greeting Notice --}}
-                    <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-center gap-3" style="background: #f0fdf4; border-color: #bbf7d0 !important; color: #166534;">
+                    @if($isSch)
+                        <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-start gap-3" style="background: #f0fdf4; border-color: #bbf7d0 !important; color: #166534;">
+                            <i class="fa-solid fa-file-signature fs-3 text-success flex-shrink-0"></i>
+                            <div style="font-size: 14px; line-height: 1.6; font-weight: 600;">
+                                <div class="mb-1">Download your application form.</div>
+                                <div>Get it signed by the head of your institute and your local councillor, and submit it on the day of the meeting.</div>
+                            </div>
+                        </div>
+                    @else                    <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-center gap-3" style="background: #f0fdf4; border-color: #bbf7d0 !important; color: #166534;">
                         <i class="fa-solid fa-envelope-open-text fs-3 text-success flex-shrink-0"></i>
                         <div style="font-size: 14px; line-height: 1.5; font-weight: 600;">
                             সাহিত্য উৎসব ও লিটিলম্যাগমেলায় আপনার অংশগ্রহণ আমাদের সম্মানিত করবে। নিচে আপনার আমন্ত্রণ কার্ড প্রস্তুত রয়েছে।
                         </div>
                     </div>
+                    @endif
 
                     {{-- Summary Box --}}
                     @if($summary)
                         <div class="info-summary-box mb-4">
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-hashtag me-1 text-muted"></i> রেজিস্ট্রেশন নম্বর:</span>
+                                <span class="info-label"><i class="fa-solid fa-hashtag me-1 text-muted"></i> {{ $isSch ? 'Application No:' : 'রেজিস্ট্রেশন নম্বর:' }}</span>
                                 <span class="info-val font-monospace text-primary fs-6">#{{ $summary['registration_number'] }}</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-user-pen me-1 text-muted"></i> নাম:</span>
+                                <span class="info-label"><i class="fa-solid fa-user-pen me-1 text-muted"></i> {{ $isSch ? 'Name:' : 'নাম:' }}</span>
                                 <span class="info-val">{{ $summary['name'] }}</span>
                             </div>
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-phone me-1 text-muted"></i> মোবাইল:</span>
+                                <span class="info-label"><i class="fa-solid fa-phone me-1 text-muted"></i> {{ $isSch ? 'Mobile:' : 'মোবাইল:' }}</span>
                                 <span class="info-val font-monospace">{{ $summary['phone'] }}</span>
                             </div>
                             @if(!empty($summary['category']))
@@ -169,7 +187,7 @@
                                 </div>
                             @endif
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> সময়:</span>
+                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> {{ $isSch ? 'Submitted:' : 'সময়:' }}</span>
                                 <span class="text-dark fw-semibold" style="font-size: 13px;">{{ $summary['created_at'] ?? now()->format('d M, Y - h:i A') }}</span>
                             </div>
                         </div>
@@ -179,10 +197,10 @@
                     @if(!empty($summary['registration_number']))
                         <div class="d-grid gap-2 d-sm-flex justify-content-center mb-4">
                             <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-warning btn-action-lg shadow-sm text-dark">
-                                <i class="fa-solid fa-id-card"></i> আমন্ত্রণ কার্ড ডাউনলোড
+                                <i class="fa-solid fa-id-card"></i> {{ $isSch ? 'Download Application Form' : 'আমন্ত্রণ কার্ড ডাউনলোড' }}
                             </a>
                             <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-outline-danger btn-action-lg">
-                                <i class="fa-solid fa-file-pdf"></i> কার্ড PDF
+                                <i class="fa-solid fa-file-pdf"></i> {{ $isSch ? 'Download PDF' : 'কার্ড PDF' }}
                             </a>
                         </div>
                     @endif
@@ -193,10 +211,10 @@
                     <div class="text-center p-3 rounded-4 bg-light border">
                         <div class="d-flex align-items-center justify-content-center gap-2 mb-1" style="font-size: 14px; font-weight: 600; color: #334155;">
                             <i class="fa-solid fa-arrows-rotate fa-spin text-success" id="countdownSpinner"></i>
-                            <span>স্বয়ংক্রিয়ভাবে হোমপেজ <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...</span>
+                            <span>@if($isSch)You will be taken to the homepage <strong class="text-primary">www.ideaabd.com</strong> when the timer ends. Download your form first.@elseস্বয়ংক্রিয়ভাবে হোমপেজ <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...@endif</span>
                         </div>
                         <div class="fw-bold text-dark font-monospace mb-2" style="font-size: 16px;">
-                            <span id="countdownSecs">6</span> সেকেন্ড বাকি
+                            <span id="countdownSecs">{{ $redirectSecs }}</span> {{ $isSch ? 'seconds left' : 'সেকেন্ড বাকি' }}
                         </div>
 
                         <div class="countdown-bar-wrap mb-3">
@@ -205,10 +223,10 @@
 
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" id="btnPauseCountdown" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" onclick="toggleCountdown()" style="font-size: 12.5px;">
-                                <i class="fa-solid fa-pause me-1"></i> রিডাইরেক্ট থামান
+                                <i class="fa-solid fa-pause me-1"></i> {{ $isSch ? 'Stop redirect' : 'রিডাইরেক্ট থামান' }}
                             </button>
                             <a href="{{ url('/') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold" style="font-size: 12.5px;">
-                                <i class="fa-solid fa-house me-1"></i> হোমপেজ
+                                <i class="fa-solid fa-house me-1"></i> {{ $isSch ? 'Homepage' : 'হোমপেজ' }}
                             </a>
                         </div>
                     </div>
@@ -223,8 +241,9 @@
 
 @push('scripts')
 <script>
-    let timeLeft = 6;
-    const totalTime = 6;
+    let timeLeft = {{ $redirectSecs }};
+    const totalTime = {{ $redirectSecs }};
+    const isSch = {{ $isSch ? 'true' : 'false' }};
     let isPaused = false;
     let timerInterval = null;
 
@@ -257,7 +276,7 @@
         isPaused = !isPaused;
         if (isPaused) {
             if (btnPause) {
-                btnPause.innerHTML = '<i class="fa-solid fa-play me-1"></i> রিডাইরেক্ট শুরু করুন';
+                btnPause.innerHTML = '<i class="fa-solid fa-play me-1"></i> ' + (isSch ? 'Resume redirect' : 'রিডাইরেক্ট শুরু করুন');
                 btnPause.classList.remove('btn-outline-secondary');
                 btnPause.classList.add('btn-success');
             }
@@ -266,7 +285,7 @@
             }
         } else {
             if (btnPause) {
-                btnPause.innerHTML = '<i class="fa-solid fa-pause me-1"></i> রিডাইরেক্ট থামান';
+                btnPause.innerHTML = '<i class="fa-solid fa-pause me-1"></i> ' + (isSch ? 'Stop redirect' : 'রিডাইরেক্ট থামান');
                 btnPause.classList.remove('btn-success');
                 btnPause.classList.add('btn-outline-secondary');
             }
@@ -278,6 +297,10 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         startTimer();
+        // the visitor is downloading: never redirect away mid-download
+        document.querySelectorAll('.btn-action-lg').forEach(a => a.addEventListener('click', () => {
+            if (!isPaused) toggleCountdown();
+        }));
     });
 </script>
 @endpush

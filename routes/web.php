@@ -946,6 +946,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::delete('/', 'destroy')->name('destroy');
     });
 
+    // Book genres: one list shared by the admin book form, the publisher portal and validation
+    Route::prefix('genres')->name('genres.')->controller(\App\Http\Controllers\Admin\GenreAdminController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->middleware('throttle:30,1')->name('store');
+        Route::post('/reorder', 'reorder')->middleware('throttle:60,1')->name('reorder');
+        Route::put('/{genre}', 'update')->middleware('throttle:60,1')->name('update');
+        Route::delete('/{genre}', 'destroy')->middleware('throttle:30,1')->name('destroy');
+    });
+
     // User Management Security, One-Time Password (OTP) & IP Block Cleaner
     Route::prefix('users/security')->name('users.security.')->controller(\App\Http\Controllers\Admin\UserSecurityAdminController::class)->group(function () {
         Route::get('/', 'index')->name('index');

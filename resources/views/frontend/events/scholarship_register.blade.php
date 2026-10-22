@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @php
-    $eventTitle = $campaign->title ?: 'শিক্ষা অনুদান ও মেধা বৃত্তি আবেদন ফরম ২০২৬';
-    $eventDesc  = $campaign->short_description ?: 'আইডিয়া প্রকাশন ও বুকস অব আইডিয়া শিক্ষা অনুদান ও মেধা বৃত্তি নিবন্ধন আবেদন ফরম।';
+    $eventTitle = $campaign->title ?: 'Scholarship Application Form 2026';
+    $eventDesc  = $campaign->short_description ?: 'Idea Prokashon and Books of Idea scholarship application form.';
     $eventCover = $campaign->banner_image ? asset('storage/' . $campaign->banner_image) : asset('images/og-banner.jpg');
     $wizardFields = [
         0 => ['name', 'gender', 'father_name', 'mother_name', 'religion', 'nationality', 'birth_date', 'phone', 'marital_status', 'annual_income', 'father_income', 'mother_income', 'guardian_income', 'guardian_name', 'guardian_phone'],
@@ -23,11 +23,11 @@
     }
 @endphp
 
-@section('title', $eventTitle . ' — আইডিয়া প্রকাশন')
+@section('title', $eventTitle . ' — Idea Prokashon')
 @section('meta_description', Str::limit(strip_tags($eventDesc), 180))
-@section('meta_keywords', 'শিক্ষা অনুদান, মেধা বৃত্তি, স্কলারশিপ আবেদন, শিক্ষার্থী বৃত্তি, আইডিয়া প্রকাশন, scholarship registration bangladesh')
+@section('meta_keywords', 'scholarship application, student scholarship, Idea Prokashon, scholarship registration bangladesh')
 @section('og_type', 'website')
-@section('og_title', $eventTitle . ' | আইডিয়া প্রকাশন')
+@section('og_title', $eventTitle . ' | Idea Prokashon')
 @section('og_description', Str::limit(strip_tags($eventDesc), 180))
 @section('og_image', $eventCover)
 @section('og_url', url('/scholarship'))
@@ -132,11 +132,14 @@
         font-weight: 600;
         color: #334155;
         white-space: nowrap;
-        width: 18%;
+        width: 1%;           /* label hugs its text; the value column takes the rest */
+        padding: 7px 8px;
     }
     .grid-table .val-col {
         padding: 5px 8px;
     }
+    /* four-column rows: the left value gets the room, the right value is just wide enough for an NID / mobile number */
+    .grid-table td.val-col:nth-child(4) { width: 25%; min-width: 190px; }
     .grid-input {
         width: 100%;
         border: 1px solid #cbd5e1;
@@ -280,6 +283,38 @@
         .scholarship-wizard { padding-inline: 10px; }
         .scholarship-wizard-step { font-size: 10px; }
     }
+    /* ---------- device friendly layout ---------- */
+    .grid-table [hidden] { display: none !important; }
+    #prevJoyeeBox { overflow-x: auto; }
+    #prevJoyeeBox .grid-table { min-width: 420px; }
+    .table-responsive .grid-table { min-width: 640px; }
+    .form-section-head.d-flex { flex-wrap: wrap; gap: 6px; }
+    .scholarship-wizard-controls { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+
+    /* tablets and phones: label above value, one field per line */
+    @media (max-width: 767.98px) {
+        .container.py-4 { padding-inline: 8px; padding-block: 10px !important; }
+        .grid-table:not(.text-center), .grid-table:not(.text-center) tbody,
+        .grid-table:not(.text-center) tr, .grid-table:not(.text-center) td { display: block; width: 100% !important; min-width: 0 !important; }
+        .grid-table:not(.text-center) tr { border-bottom: 1px solid #e2e8f0; padding: 4px 0 6px; }
+        .grid-table:not(.text-center) td { border: 0; }
+        .grid-table:not(.text-center) td.label-col { background: transparent; padding: 6px 10px 2px; white-space: normal; font-size: 12px; }
+        .grid-table:not(.text-center) td.val-col { padding: 2px 10px 6px; }
+        .grid-table:not(.text-center) td[rowspan] { padding: 10px; border-top: 1px solid #e2e8f0; }
+        /* 16px stops iOS from zooming into a focused field; taller targets for thumbs */
+        .grid-input, .form-select { font-size: 16px !important; min-height: 42px; padding: 8px 10px; }
+        textarea.grid-input { min-height: 84px; }
+        .parent-row + tr input, input[name$="_phone"] { max-width: none !important; }
+        .scholarship-wizard { padding-inline: 10px; }
+        .scholarship-wizard-controls { position: sticky; bottom: 0; z-index: 5; box-shadow: 0 -4px 12px rgba(15, 23, 42, .08); }
+        .scholarship-wizard-controls .btn { flex: 1; min-height: 44px; }
+        .btn-submit-app { width: 100%; min-height: 48px; }
+        .form-header-bar { flex-wrap: wrap; gap: 6px; }
+    }
+    @media (max-width: 399.98px) {
+        .scholarship-wizard-step { font-size: 9px; letter-spacing: -.2px; }
+        .scholarship-wizard-step span { width: 24px; height: 24px; }
+    }
 </style>
 
 <div class="container py-4">
@@ -292,8 +327,8 @@
                                             </div>
                     <div>
                         <div class="fw-bold text-dark" style="font-size: 13px;">
-                            <span>আপনি <strong>{{ auth()->user()->name }}</strong> হিসেবে সাইন-ইন আছেন</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">লগইনকৃত শিক্ষার্থী</span>
+                            <span>Signed in as <strong>{{ auth()->user()->name }}</strong></span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Student</span>
                         </div>
                         <div class="small text-muted font-monospace" style="font-size: 11.5px;">
                             {{ auth()->user()->phone ?? '—' }}
@@ -305,7 +340,7 @@
                 </div>
                 <div>
                     <a href="{{ route('logout') }}" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1.5" onclick="if(window.siteLogout){window.siteLogout(event);}else{event.preventDefault();document.getElementById('schLogoutForm').submit();}">
-                                                <span>লগআউট / অন্য একাউন্ট</span>
+                                                <span>Log out / switch account</span>
                     </a>
                     <form id="schLogoutForm" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf
@@ -340,7 +375,7 @@
             <div class="form-header-bar">
                 <div>
                     <h5 class="mb-0 fw-bold" style="font-size: 16px;">Scholarship</h5>
-                    <div style="font-size: 11px; opacity: 0.9;">Session: 2026-2027 | Higher Secondary & Bachelor's (Hons)</div>
+                    <div style="font-size: 11px; opacity: 0.9;">Session 2027 | HSC / Honours / Masters / Others</div>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-light text-dark fw-bold" style="font-size: 11px;">ENTRY</span>
@@ -361,24 +396,25 @@
             </nav>
 
             <section class="scholarship-step" data-wizard-step="0">
-            {{-- 1. APPLICANT DETAILS --}}
-            <div class="form-section-head">Applicant</div>
+            {{-- 1. APPLICANT --}}
+            <div class="form-section-head">1. Applicant</div>
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Name <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 48%;">
+                    <td class="val-col">
                         <input type="text" name="name" class="grid-input text-uppercase" placeholder="FULL NAME IN CAPITAL" value="{{ old('name', $user?->name) }}" required>
                     </td>
-                    <td rowspan="2" colspan="2" class="text-center" style="width: 34%; vertical-align: middle; background: #fafafa;">
+                    <td rowspan="3" colspan="2" class="text-center" style="width: 34%; vertical-align: middle; background: #fafafa;">
                         <div class="photo-cell-box" onclick="document.getElementById('rawPhotoInput').click()" title="Click to upload/optimize photo">
                             <img id="previewImg" class="photo-cell-img" alt="Student Photo">
                             <div id="uploadPrompt" class="p-2 text-center">
                                 <div style="font-size: 24px;">📷</div>
-                                <div style="font-size: 11px; font-weight: bold; color: #0f3a68;">Student Photo</div>
+                                <div style="font-size: 11px; font-weight: bold; color: #0f3a68;">Student Photo <span class="text-danger">*</span></div>
                                 <div style="font-size: 9.5px; color: #64748b;">Auto-Optimized</div>
                             </div>
                         </div>
                         <div id="optSizeBadge" class="opt-badge">✓ Auto-Optimized</div>
+                        <div id="photoError" class="text-danger small fw-semibold mt-1" hidden>Photo is required</div>
                         <input type="file" id="rawPhotoInput" name="student_photo" accept="image/*" class="d-none" onchange="handlePhotoOptimize(this)">
                     </td>
                 </tr>
@@ -393,20 +429,10 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Father <span class="text-danger">*</span></td>
+                    <td class="label-col">Birth <span class="text-danger">*</span></td>
                     <td class="val-col">
-                        <input type="text" name="father_name" class="grid-input text-uppercase" placeholder="FATHER'S FULL NAME" value="{{ old('father_name') }}" required>
+                        <input type="date" name="birth_date" id="birthDate" class="grid-input" min="1970-01-01" max="{{ now()->subYears(10)->toDateString() }}" value="{{ old('birth_date') }}" required>
                     </td>
-                    <td class="label-col">Income</td>
-                    <td class="val-col"><input type="number" min="0" name="father_income" class="grid-input font-monospace" placeholder="Tk" value="{{ old('father_income') }}"></td>
-                </tr>
-                <tr>
-                    <td class="label-col">Mother <span class="text-danger">*</span></td>
-                    <td class="val-col">
-                        <input type="text" name="mother_name" class="grid-input text-uppercase" placeholder="MOTHER'S FULL NAME" value="{{ old('mother_name') }}" required>
-                    </td>
-                    <td class="label-col">Income</td>
-                    <td class="val-col"><input type="number" min="0" name="mother_income" class="grid-input font-monospace" placeholder="Tk" value="{{ old('mother_income') }}"></td>
                 </tr>
                 <tr>
                     <td class="label-col">Religion <span class="text-danger">*</span></td>
@@ -425,10 +451,6 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label-col">Birth <span class="text-danger">*</span></td>
-                    <td class="val-col">
-                        <input type="date" name="birth_date" id="birthDate" class="grid-input" min="1970-01-01" max="{{ now()->subYears(10)->toDateString() }}" value="{{ old('birth_date') }}" required>
-                    </td>
                     <td class="label-col">Marital <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="marital_status" class="grid-input" required>
@@ -436,37 +458,101 @@
                             <option value="Married" {{ old('marital_status') === 'Married' ? 'selected' : '' }}>Married</option>
                         </select>
                     </td>
+                    <td class="label-col">NID / Birth Reg. <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <input type="text" name="national_id" class="grid-input font-monospace" placeholder="10, 13 or 17 digits" inputmode="numeric" maxlength="20" pattern="(\d{10}|\d{13}|\d{17})" title="NID (10/13/17 digits) or birth registration number (17 digits)" value="{{ old('national_id') }}" required>
+                    </td>
                 </tr>
                 <tr>
                     <td class="label-col">Mobile <span class="text-danger">*</span></td>
-                    <td colspan="3" class="val-col">
-                        <div class="d-flex align-items-stretch" style="max-width: 380px;">
+                    <td class="val-col">
+                        <div class="d-flex align-items-stretch">
                             <select name="country_code" class="form-select p-1 bg-light fw-bold" style="width: 90px; flex: 0 0 90px; font-size: 11px; border: 1px solid #94a3b8; border-right: 0;" aria-label="Country Code">
                                 @include('partials.country-code-options', ['selected' => old('country_code', '+880')])
                             </select>
                             <input type="tel" name="phone" id="studentPhone" class="grid-input font-monospace flex-grow-1" placeholder="017XXXXXXXX" inputmode="numeric" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="formatPhone(this)">
                         </div>
                     </td>
+                    <td class="label-col">Email</td>
+                    <td class="val-col"><input type="email" name="email" class="grid-input" placeholder="Optional" value="{{ old('email', $user?->email) }}"></td>
                 </tr>
+                <tr>
+                    <td class="label-col">Disability <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <select name="disability" class="grid-input" required>
+                            <option value="" {{ old('disability') ? '' : 'selected' }}>— Select —</option>
+                            <option value="No" {{ old('disability') === 'No' ? 'selected' : '' }}>No</option>
+                            <option value="Yes" {{ old('disability') === 'Yes' ? 'selected' : '' }}>Yes</option>
+                        </select>
+                    </td>
+                    <td class="label-col" id="disabilityTypeLabel" hidden>Category <span class="text-danger">*</span></td>
+                    <td class="val-col" id="disabilityTypeCell" hidden>
+                        <select name="disability_type" class="grid-input">
+                            @foreach(['' => '— Select —', 'Visual' => 'Visual impairment', 'Hearing' => 'Hearing impairment', 'Speech' => 'Speech impairment', 'Physical' => 'Physical / Mobility', 'Intellectual' => 'Intellectual', 'Autism' => 'Autism / Neurodevelopmental', 'Multiple' => 'Multiple', 'Other' => 'Other'] as $dv => $dl)
+                                <option value="{{ $dv }}" {{ (string) old('disability_type') === (string) $dv ? 'selected' : '' }}>{{ $dl }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                </tr>
+                <tr id="disabilityDetailsRow" hidden>
+                    <td class="label-col">Details <span class="text-danger" id="disabilityDetailsStar" hidden>*</span></td>
+                    <td colspan="3" class="val-col"><input type="text" name="disability_details" class="grid-input" placeholder="Describe the condition / support needed" maxlength="255" value="{{ old('disability_details') }}"></td>
+                </tr>
+            </table>
+
+            {{-- 2. PARENTS & GUARDIAN --}}
+            <div class="form-section-head">2. Parents &amp; Guardian</div>
+            <input type="hidden" name="orphan_status" id="orphanStatus" value="{{ old('orphan_status', 'None') }}">
+            <table class="grid-table">
+                @foreach(['father' => 'Father', 'mother' => 'Mother'] as $pk => $pl)
+                    <tr class="parent-row" data-parent="{{ $pk }}">
+                        <td class="label-col">{{ $pl }} <span class="text-danger">*</span></td>
+                        <td class="val-col">
+                            <input type="text" name="{{ $pk }}_name" class="grid-input text-uppercase" placeholder="{{ strtoupper($pl) }}'S FULL NAME" value="{{ old($pk.'_name') }}" required>
+                        </td>
+                        <td class="label-col">Status <span class="text-danger">*</span></td>
+                        <td class="val-col">
+                            <select name="{{ $pk }}_status" class="grid-input" required>
+                                <option value="Alive" {{ old($pk.'_status') !== 'Deceased' ? 'selected' : '' }}>Alive</option>
+                                <option value="Deceased" {{ old($pk.'_status') === 'Deceased' ? 'selected' : '' }}>Deceased</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr data-parent="{{ $pk }}">
+                        <td class="label-col">{{ $pl }} Occupation <span class="text-danger">*</span></td>
+                        <td class="val-col"><input type="text" name="{{ $pk }}_occupation" class="grid-input" placeholder="e.g. Farmer, Teacher" maxlength="100" value="{{ old($pk.'_occupation') }}" required></td>
+                        <td class="label-col">Income</td>
+                        <td class="val-col"><input type="number" min="0" name="{{ $pk }}_income" class="grid-input font-monospace" placeholder="Tk / month or year" value="{{ old($pk.'_income') }}"></td>
+                    </tr>
+                    <tr data-parent="{{ $pk }}">
+                        <td class="label-col">{{ $pl }} Mobile</td>
+                        <td colspan="3" class="val-col">
+                            <input type="tel" name="{{ $pk }}_phone" class="grid-input font-monospace" style="max-width: 290px;" placeholder="017XXXXXXXX" inputmode="numeric" maxlength="15" value="{{ old($pk.'_phone') }}" oninput="formatPhone(this)">
+                        </td>
+                    </tr>
+                @endforeach
                 <tr>
                     <td class="label-col">Guardian</td>
                     <td class="val-col">
                         <input type="text" name="guardian_name" class="grid-input text-uppercase" placeholder="NAME (if not parent)" value="{{ old('guardian_name') }}">
                     </td>
-                    <td class="label-col">Income</td>
-                    <td class="val-col"><input type="number" min="0" name="guardian_income" class="grid-input font-monospace" placeholder="Tk" value="{{ old('guardian_income') }}"></td>
+                    <td class="label-col">Relation</td>
+                    <td class="val-col"><input type="text" name="guardian_relation" class="grid-input" placeholder="e.g. Uncle" maxlength="50" value="{{ old('guardian_relation') }}"></td>
                 </tr>
                 <tr>
-                    <td class="label-col">Contact</td>
-                    <td colspan="3" class="val-col">
-                        <div class="d-flex align-items-stretch" style="max-width: 380px;">
-                            <select name="guardian_country_code" class="form-select p-1 bg-light fw-bold" style="width: 90px; flex: 0 0 90px; font-size: 11px; border: 1px solid #94a3b8; border-right: 0;" aria-label="Guardian Country Code">
-                                @include('partials.country-code-options', ['selected' => old('guardian_country_code', '+880')])
-                            </select>
-                            <input type="tel" name="guardian_phone" class="grid-input font-monospace flex-grow-1" placeholder="Parent / Guardian mobile" inputmode="numeric" value="{{ old('guardian_phone') }}" maxlength="15" oninput="formatPhone(this)">
-                        </div>
+                    <td class="label-col">Guardian Income</td>
+                    <td class="val-col"><input type="number" min="0" name="guardian_income" class="grid-input font-monospace" placeholder="Tk" value="{{ old('guardian_income') }}"></td>
+                    <td class="label-col">Guardian Contact <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <input type="tel" name="guardian_phone" class="grid-input font-monospace" placeholder="017XXXXXXXX" inputmode="numeric" value="{{ old('guardian_phone') }}" required minlength="10" maxlength="15" oninput="formatPhone(this)">
                         <input type="hidden" name="annual_income" id="totalIncome" value="{{ old('annual_income') }}">
                     </td>
+                </tr>
+                <tr>
+                    <td class="label-col">Family Members <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="number" min="1" max="40" name="family_count" class="grid-input font-monospace" placeholder="Total" value="{{ old('family_count') }}" required></td>
+                    <td class="label-col">Earning Members <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="number" min="0" max="40" name="earning_count" class="grid-input font-monospace" placeholder="Who earn" value="{{ old('earning_count') }}" required></td>
                 </tr>
             </table>
 
@@ -474,13 +560,13 @@
 
             <section class="scholarship-step" data-wizard-step="1">
             {{-- 2. ACADEMIC INFORMATION --}}
-            <div class="form-section-head">Academic</div>
+            <div class="form-section-head">3. Academic <span class="fw-normal" style="text-transform:none;">— for the degree you are applying for</span></div>
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Degree <span class="text-danger">*</span></td>
                     <td colspan="3" class="val-col">
                         <select name="scholarship_degree" class="grid-input" required>
-                            @foreach(['HSC' => 'HSC / Intermediate', 'HONOURS' => 'Honours / Bachelor', 'MASTERS' => 'Masters', 'DIPLOMA' => 'Diploma', 'OTHERS' => 'Others'] as $dv => $dl)
+                            @foreach(['HSC' => 'HSC', 'HONOURS' => 'Honours', 'MASTERS' => 'Masters', 'OTHERS' => 'Others'] as $dv => $dl)
                                 <option value="{{ $dv }}" {{ old('scholarship_degree') === $dv ? 'selected' : '' }}>{{ $dl }}</option>
                             @endforeach
                         </select>
@@ -488,7 +574,7 @@
                 </tr>
                 <tr>
                     <td class="label-col">Group <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
+                    <td class="val-col">
                         <select name="group" class="grid-input" required>
                             <option value="HUMANITIES" {{ old('group') === 'HUMANITIES' ? 'selected' : '' }}>HUMANITIES</option>
                             <option value="SCIENCE" {{ old('group') === 'SCIENCE' ? 'selected' : '' }}>SCIENCE</option>
@@ -497,7 +583,7 @@
                         </select>
                     </td>
                     <td class="label-col">Roll <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
+                    <td class="val-col">
                         <input type="text" name="admission_roll" class="grid-input" placeholder="e.g. 5288534" value="{{ old('admission_roll') }}" required>
                     </td>
                 </tr>
@@ -537,55 +623,42 @@
                         <input type="number" min="0" name="hostel_cost" class="grid-input font-monospace" placeholder="If any" value="{{ old('hostel_cost') }}">
                     </td>
                 </tr>
+                <tr>
+                    <td class="label-col">Current Year <span class="text-danger">*</span></td>
+                    <td colspan="3" class="val-col"><input type="text" name="current_year" class="grid-input" placeholder="e.g. 1st Year / 3rd Year / 2nd Semester" maxlength="50" value="{{ old('current_year') }}" required></td>
+                </tr>
 </table>
 
-            {{-- 3. EDUCATIONAL QUALIFICATIONS --}}
-            <div class="form-section-head">Qualifications</div>
+            {{-- 3. EDUCATIONAL QUALIFICATION: SSC up to Masters; rows below the chosen degree are mandatory --}}
+            <div class="form-section-head">4. Educational Qualification <span class="fw-normal" style="text-transform:none;">— fill every level you have completed, up to the degree you apply for</span></div>
             <div class="table-responsive">
                 <table class="grid-table text-center mb-0">
                     <thead>
                         <tr style="background: #f8fafc; font-size: 11px; font-weight: bold;">
-                            <th style="width: 20%; text-align: left;">Exam</th>
-                            <th style="width: 14%;">Roll</th>
-                            <th style="width: 16%;">Board</th>
-                            <th style="width: 28%;">Institute</th>
+                            <th style="width: 18%; text-align: left;">Level</th>
+                            <th style="width: 14%;">Roll / Reg</th>
+                            <th style="width: 16%;">Board / University</th>
+                            <th style="width: 27%;">Institute</th>
                             <th style="width: 11%;">Year</th>
-                            <th style="width: 11%;">GPA</th>
+                            <th style="width: 14%;">GPA / CGPA</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td style="text-align: left; font-weight: 600; font-size: 11.5px;">SSC <span class="text-danger">*</span></td>
-                            <td><input type="text" name="ssc_roll" class="grid-input text-center font-monospace" placeholder="Roll" value="{{ old('ssc_roll') }}" required></td>
-                            <td><input type="text" name="ssc_board" class="grid-input text-center text-uppercase" placeholder="e.g. DINAJPUR" value="{{ old('ssc_board') }}" required></td>
-                            <td><input type="text" name="ssc_institute" class="grid-input text-uppercase" placeholder="School Name" value="{{ old('ssc_institute') }}" required></td>
-                            <td><input type="number" name="ssc_year" class="grid-input text-center font-monospace" placeholder="2019" value="{{ old('ssc_year') }}" required></td>
-                            <td><input type="text" name="ssc_gpa" class="grid-input text-center font-monospace" placeholder="4.67" value="{{ old('ssc_gpa') }}" required></td>
-                        </tr>
-                        <tr data-qual-row="HSC">
-                            <td style="text-align: left; font-weight: 600; font-size: 11.5px;">HSC</td>
-                            <td><input type="text" name="hsc_roll" class="grid-input text-center font-monospace" placeholder="Roll" value="{{ old('hsc_roll') }}"></td>
-                            <td><input type="text" name="hsc_board" class="grid-input text-center text-uppercase" placeholder="e.g. DINAJPUR" value="{{ old('hsc_board') }}"></td>
-                            <td><input type="text" name="hsc_institute" class="grid-input text-uppercase" placeholder="College Name" value="{{ old('hsc_institute') }}"></td>
-                            <td><input type="number" name="hsc_year" class="grid-input text-center font-monospace" placeholder="2021" value="{{ old('hsc_year') }}"></td>
-                            <td><input type="text" name="hsc_gpa" class="grid-input text-center font-monospace" placeholder="4.67" value="{{ old('hsc_gpa') }}"></td>
-                        </tr>
-                        <tr data-qual-row="Graduation">
-                            <td style="text-align: left; font-weight: 600; font-size: 11.5px;">Graduation</td>
-                            <td><input type="text" name="grad_roll" class="grid-input text-center font-monospace" placeholder="Roll / Reg" value="{{ old('grad_roll') }}"></td>
-                            <td><input type="text" name="grad_board" class="grid-input text-center text-uppercase" placeholder="e.g. NU / DU" value="{{ old('grad_board') }}"></td>
-                            <td><input type="text" name="grad_institute" class="grid-input text-uppercase" placeholder="College / University" value="{{ old('grad_institute') }}"></td>
-                            <td><input type="number" name="grad_year" class="grid-input text-center font-monospace" placeholder="2025" value="{{ old('grad_year') }}"></td>
-                            <td><input type="text" name="grad_cgpa" class="grid-input text-center font-monospace" placeholder="3.50" value="{{ old('grad_cgpa') }}"></td>
-                        </tr>
-                        <tr data-qual-row="Masters">
-                            <td style="text-align: left; font-weight: 600; font-size: 11.5px;">Masters</td>
-                            <td><input type="text" name="other_roll" class="grid-input text-center font-monospace" placeholder="Roll / Reg" value="{{ old('other_roll') }}"></td>
-                            <td><input type="text" name="other_board" class="grid-input text-center text-uppercase" placeholder="Board / Univ" value="{{ old('other_board') }}"></td>
-                            <td><input type="text" name="other_institute" class="grid-input text-uppercase" placeholder="Institute / Dept" value="{{ old('other_institute') }}"></td>
-                            <td><input type="number" name="other_year" class="grid-input text-center font-monospace" placeholder="Year" value="{{ old('other_year') }}"></td>
-                            <td><input type="text" name="other_cgpa" class="grid-input text-center font-monospace" placeholder="CGPA" value="{{ old('other_cgpa') }}"></td>
-                        </tr>
+                        @foreach([
+                            ['key' => 'ssc',   'label' => 'SSC',     'prefix' => 'ssc',   'gpa' => 'ssc_gpa',    'board' => 'e.g. DINAJPUR', 'inst' => 'School Name',               'year' => '2019'],
+                            ['key' => 'hsc',   'label' => 'HSC',     'prefix' => 'hsc',   'gpa' => 'hsc_gpa',    'board' => 'e.g. DINAJPUR', 'inst' => 'College Name',              'year' => '2021'],
+                            ['key' => 'grad',  'label' => 'Honours', 'prefix' => 'grad',  'gpa' => 'grad_cgpa',  'board' => 'e.g. NU / DU',  'inst' => 'College / University',      'year' => '2025'],
+                            ['key' => 'other', 'label' => 'Masters', 'prefix' => 'other', 'gpa' => 'other_cgpa', 'board' => 'University',    'inst' => 'University / Department',  'year' => '2027'],
+                        ] as $q)
+                            <tr data-qual-row="{{ $q['key'] }}">
+                                <td style="text-align: left; font-weight: 600; font-size: 11.5px;">{{ $q['label'] }} <span class="text-danger qual-star" hidden>*</span></td>
+                                <td><input type="text" name="{{ $q['prefix'] }}_roll" class="grid-input text-center font-monospace" placeholder="Roll / Reg" value="{{ old($q['prefix'].'_roll') }}"></td>
+                                <td><input type="text" name="{{ $q['prefix'] }}_board" class="grid-input text-center text-uppercase" placeholder="{{ $q['board'] }}" value="{{ old($q['prefix'].'_board') }}"></td>
+                                <td><input type="text" name="{{ $q['prefix'] }}_institute" class="grid-input text-uppercase" placeholder="{{ $q['inst'] }}" value="{{ old($q['prefix'].'_institute') }}"></td>
+                                <td><input type="number" name="{{ $q['prefix'] }}_year" class="grid-input text-center font-monospace" placeholder="{{ $q['year'] }}" value="{{ old($q['prefix'].'_year') }}"></td>
+                                <td><input type="text" name="{{ $q['gpa'] }}" class="grid-input text-center font-monospace" placeholder="4.67" value="{{ old($q['gpa']) }}"></td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -595,7 +668,7 @@
             <section class="scholarship-step" data-wizard-step="2">
             {{-- 4. ADDRESS DETAILS --}}
             <div class="form-section-head d-flex justify-content-between align-items-center">
-                <span>Address</span>
+                <span>5. Address</span>
                 <label class="mb-0 fw-normal small text-dark d-flex align-items-center gap-1" style="text-transform: none; cursor: pointer;">
                     <input type="checkbox" id="syncAddressCheck" onchange="syncPermanentToPresent()"> <strong>Same as Permanent Address</strong>
                 </label>
@@ -614,11 +687,11 @@
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Division <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
-                        <select name="perm_division" id="permDivision" class="grid-input" data-old="{{ old('perm_division') }}" required></select>
+                    <td class="val-col">
+                        <select name="perm_division" id="permDivision" data-lang="en" class="grid-input" data-old="{{ old('perm_division') }}" required></select>
                     </td>
                     <td class="label-col">District <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
+                    <td class="val-col">
                         <select name="permanent_district" id="permDistrict" class="grid-input" data-old="{{ old('permanent_district') }}" required></select>
                     </td>
                 </tr>
@@ -659,11 +732,11 @@
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Division <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
-                        <select name="pres_division" id="presDivision" class="grid-input" data-old="{{ old('pres_division') }}" required></select>
+                    <td class="val-col">
+                        <select name="pres_division" id="presDivision" data-lang="en" class="grid-input" data-old="{{ old('pres_division') }}" required></select>
                     </td>
                     <td class="label-col">District <span class="text-danger">*</span></td>
-                    <td class="val-col" style="width: 32%;">
+                    <td class="val-col">
                         <select name="present_district" id="presDistrict" class="grid-input" data-old="{{ old('present_district') }}" required></select>
                     </td>
                 </tr>
@@ -700,38 +773,79 @@
             </section>
 
             <section class="scholarship-step" data-wizard-step="3">
-            {{-- SCHOLARSHIP HISTORY --}}
-            <div class="form-section-head">Scholarships</div>
-            <table class="grid-table text-center mb-3">
-                <tr style="background:#f8fafc;font-size:11px;font-weight:bold;">
-                    <th style="width:10%;">No</th>
-                    <th>Year</th>
-                    <th>Times</th>
-                    <th>Amount</th>
-                </tr>
-                @for($i = 0; $i < 3; $i++)
-                    <tr>
-                        <td>{{ $i + 1 }}</td>
-                        <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][year]" class="grid-input text-center font-monospace" placeholder="e.g. 2025" inputmode="numeric" value="{{ old('prev_scholarships.'.$i.'.year') }}"></td>
-                        <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][times]" class="grid-input text-center font-monospace" inputmode="numeric" value="{{ old('prev_scholarships.'.$i.'.times') }}"></td>
-                        <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][amount]" class="grid-input text-center font-monospace" inputmode="numeric" placeholder="Tk" value="{{ old('prev_scholarships.'.$i.'.amount') }}"></td>
-                    </tr>
-                @endfor
+            {{-- SCHOLARSHIP HISTORY (mandatory) --}}
+            <div class="form-section-head">6. Scholarships <span class="text-danger">*</span></div>
+            <table class="grid-table mb-0">
                 <tr>
-                    <td class="label-col" colspan="2" style="text-align:left;">Other</td>
+                    <td class="label-col">Received Joyee Scholarship before? <span class="text-danger">*</span></td>
                     <td class="val-col">
-                        <select name="other_scholarship" class="grid-input">
-                            <option value="No" {{ old('other_scholarship') !== 'Yes' ? 'selected' : '' }}>No</option>
+                        <select name="prev_joyee" id="prevJoyee" class="grid-input" required>
+                            <option value="" {{ old('prev_joyee') ? '' : 'selected' }}>— Select —</option>
+                            <option value="Yes" {{ old('prev_joyee') === 'Yes' ? 'selected' : '' }}>Yes</option>
+                            <option value="No" {{ old('prev_joyee') === 'No' ? 'selected' : '' }}>No</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <div id="prevJoyeeBox" hidden>
+                <div class="p-2 bg-light border-top border-bottom fw-bold small text-primary">If yes — how much, and in which years?</div>
+                <table class="grid-table text-center mb-0">
+                    <tr style="background:#f8fafc;font-size:11px;font-weight:bold;">
+                        <th style="width:10%;">No</th>
+                        <th>Year</th>
+                        <th>Times</th>
+                        <th>Amount (Tk)</th>
+                    </tr>
+                    @for($i = 0; $i < 3; $i++)
+                        <tr>
+                            <td>{{ $i + 1 }}</td>
+                            <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][year]" class="grid-input text-center font-monospace" placeholder="e.g. 2025" inputmode="numeric" value="{{ old('prev_scholarships.'.$i.'.year') }}"></td>
+                            <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][times]" class="grid-input text-center font-monospace" inputmode="numeric" value="{{ old('prev_scholarships.'.$i.'.times') }}"></td>
+                            <td class="val-col"><input type="text" name="prev_scholarships[{{ $i }}][amount]" class="grid-input text-center font-monospace" inputmode="numeric" placeholder="Tk" value="{{ old('prev_scholarships.'.$i.'.amount') }}"></td>
+                        </tr>
+                    @endfor
+                </table>
+            </div>
+            <table class="grid-table mb-3">
+                <tr>
+                    <td class="label-col">Receiving a scholarship from any other organization? <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <select name="other_scholarship" id="otherScholarship" class="grid-input" required>
+                            <option value="" {{ old('other_scholarship') ? '' : 'selected' }}>— Select —</option>
+                            <option value="No" {{ old('other_scholarship') === 'No' ? 'selected' : '' }}>No</option>
                             <option value="Yes" {{ old('other_scholarship') === 'Yes' ? 'selected' : '' }}>Yes</option>
                         </select>
                     </td>
-                    <td class="val-col"><input type="text" name="other_scholarship_details" class="grid-input" placeholder="Organization & amount" value="{{ old('other_scholarship_details') }}"></td>
+                    <td class="val-col"><input type="text" name="other_scholarship_details" id="otherScholarshipDetails" class="grid-input" placeholder="Organization & amount (if yes)" value="{{ old('other_scholarship_details') }}"></td>
+                </tr>
+            </table>
+
+            {{-- READING HABIT (mandatory) --}}
+            <div class="form-section-head">7. Reading <span class="text-danger">*</span></div>
+            <table class="grid-table mb-3">
+                <tr>
+                    <td class="label-col">Original (non-academic) books read <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="number" min="0" max="9999" name="books_read_count" id="booksReadCount" class="grid-input font-monospace" placeholder="Number of books" value="{{ old('books_read_count') }}" required></td>
+                </tr>
+                <tr>
+                    <td class="label-col">Reading habit <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <select name="reading_habit" id="readingHabit" class="grid-input" required>
+                            <option value="" {{ old('reading_habit') ? '' : 'selected' }}>— Select —</option>
+                            <option value="I have read" {{ old('reading_habit') === 'I have read' ? 'selected' : '' }}>I have read non-academic books</option>
+                            <option value="I do not read" {{ old('reading_habit') === 'I do not read' ? 'selected' : '' }}>I do not read non-academic books</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">Names of the books <span class="text-danger" id="booksNamesStar" hidden>*</span></td>
+                    <td class="val-col"><textarea name="books_read_names" id="booksReadNames" rows="2" class="grid-input" maxlength="1000" placeholder="Book title, author (one per line)">{{ old('books_read_names') }}</textarea></td>
                 </tr>
             </table>
 
 {{-- 5. REASON FOR SCHOLARSHIP (50 WORDS MAX) --}}
             <div class="form-section-head d-flex justify-content-between align-items-center">
-                <span>Statement (Max 50 Words) <span class="text-danger">*</span></span>
+                <span>8. Statement (Max 50 Words) <span class="text-danger">*</span></span>
                 <span id="wordCounter" class="word-badge bg-secondary text-white">0 / 50 words</span>
             </div>
             <div class="p-3 bg-white">
@@ -740,6 +854,42 @@
                     ⚠ Exceeded 50 words limit. Extra words will be ignored.
                 </div>
             </div>
+
+            {{-- DISBURSEMENT (where an awarded scholarship is paid) --}}
+            <div class="form-section-head">9. Payment Account <span class="text-danger">*</span></div>
+            <table class="grid-table mb-1">
+                <tr>
+                    <td class="label-col">Method <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <select name="pay_method" id="payMethod" class="grid-input" required>
+                            @foreach(['' => '— Select —', 'bKash' => 'bKash', 'Nagad' => 'Nagad', 'Rocket' => 'Rocket', 'Bank' => 'Bank Account'] as $mv => $ml)
+                                <option value="{{ $mv }}" {{ (string) old('pay_method') === (string) $mv ? 'selected' : '' }}>{{ $ml }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td class="label-col">Account Owner <span class="text-danger">*</span></td>
+                    <td class="val-col">
+                        <select name="pay_account_owner" class="grid-input" required>
+                            @foreach(['' => '— Select —', 'Self' => 'Self', 'Father' => 'Father', 'Mother' => 'Mother', 'Guardian' => 'Guardian'] as $av => $al)
+                                <option value="{{ $av }}" {{ (string) old('pay_account_owner') === (string) $av ? 'selected' : '' }}>{{ $al }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-col">Holder Name <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="text" name="pay_account_name" class="grid-input text-uppercase" placeholder="Name on the account" maxlength="120" value="{{ old('pay_account_name') }}" required></td>
+                    <td class="label-col"><span id="payNoLabel">Wallet No.</span> <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="text" name="pay_account_no" id="payAccountNo" class="grid-input font-monospace" inputmode="numeric" maxlength="20" placeholder="01XXXXXXXXX" value="{{ old('pay_account_no') }}" required></td>
+                </tr>
+                <tr id="payBankRow" hidden>
+                    <td class="label-col">Bank <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="text" name="pay_bank_name" class="grid-input" placeholder="Bank name" maxlength="120" value="{{ old('pay_bank_name') }}"></td>
+                    <td class="label-col">Branch <span class="text-danger">*</span></td>
+                    <td class="val-col"><input type="text" name="pay_bank_branch" class="grid-input" placeholder="Branch name" maxlength="120" value="{{ old('pay_bank_branch') }}"></td>
+                </tr>
+            </table>
+            <div class="small text-muted px-2 mb-3" style="font-size:11px;">The account must belong to you or your parent/guardian. A wrong number can delay or lose the payment.</div>
 
             </section>
 
@@ -752,7 +902,7 @@
             </div>
 
             <div class="p-3 bg-light border-top text-center">
-                <div class="small fw-semibold text-danger mb-2">জমা দেওয়ার (Submit) পর আর সংশোধন করা যাবে না। অনুগ্রহ করে সব তথ্য ভালো করে দেখে নিন।</div>
+                <div class="small fw-semibold text-danger mb-2">Your application cannot be edited after submission. Please review all information carefully.</div>
                 <button type="button" id="previewEditBtn" class="btn btn-outline-primary rounded-pill px-4 mb-3">
                     Edit
                 </button>
@@ -809,7 +959,7 @@
             const postOffice = document.getElementById(prefix + 'PostOffice');
             const postcode = document.getElementById(prefix + 'Postcode');
             const fullAddress = document.getElementById(prefix + 'FullAddress');
-            const postcodeMatch = postOffice?.value.match(/\((\d{4})\)/);
+            const postcodeMatch = (postOffice?.value || '').replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d)).match(/\((\d{4})\)/);
             if (postcode) postcode.value = postcodeMatch ? postcodeMatch[1] : '';
             if (fullAddress) fullAddress.value = addressText(prefix);
         });
@@ -896,6 +1046,16 @@
                 
                 // Put in hidden input for instant upload
                 document.getElementById('optimizedPhotoData').value = dataUrl;
+                const pe = document.getElementById('photoError'); if (pe) pe.hidden = true;
+                // Upload only the optimized photo, not the original (which can be several MB)
+                canvas.toBlob(blob => {
+                    if (!blob) return;
+                    try {
+                        const dt = new DataTransfer();
+                        dt.items.add(new File([blob], 'photo.jpg', { type: 'image/jpeg' }));
+                        input.files = dt.files;
+                    } catch (e) { /* the optimized data URL is posted anyway */ }
+                }, 'image/jpeg', 0.85);
 
                 // Show preview
                 const preview = document.getElementById('previewImg');
@@ -952,7 +1112,7 @@
         let digits = val.replace(/[^0-9]/g, '');
         const form = input.form;
         const ccSelect = input.name === 'phone' ? form?.elements['country_code']
-            : (input.name === 'guardian_phone' ? form?.elements['guardian_country_code'] : null);
+            : null;
         if (ccSelect && ccSelect.value && ccSelect.value !== '+880') {
             // Foreign number: keep every digit, only strip a typed leading country code.
             const cc = ccSelect.value.replace(/\D/g, '');
@@ -981,6 +1141,7 @@
     });
 </script>
 <script src="{{ asset('js/bd-geo-data.js') }}"></script>
+<script src="{{ asset('js/bd-geo-en.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('dynamicScholarshipForm');
@@ -1004,23 +1165,128 @@
         ['father_income', 'mother_income', 'guardian_income'].forEach(n => form.elements[n]?.addEventListener('input', sumIncome));
         sumIncome();
 
-        // Show only the qualification rows that apply to the chosen degree
+        // Every level from SSC to Masters is shown; levels below the chosen degree are mandatory
+        const QUAL_REQUIRED = { HSC: ['ssc'], HONOURS: ['ssc', 'hsc'], MASTERS: ['ssc', 'hsc', 'grad'], DIPLOMA: ['ssc'], OTHERS: ['ssc'] };
         const toggleQualRows = () => {
-            const d = val('scholarship_degree');
-            const show = {
-                'HSC': d !== 'HSC',
-                'Graduation': ['MASTERS', 'DIPLOMA', 'OTHERS'].includes(d),
-                'Masters': ['MASTERS', 'OTHERS'].includes(d),
-            };
+            const need = QUAL_REQUIRED[val('scholarship_degree')] || ['ssc'];
             form.querySelectorAll('[data-qual-row]').forEach(tr => {
-                const on = show[tr.dataset.qualRow];
-                tr.hidden = !on;
-                tr.querySelectorAll('input').forEach(i => { i.disabled = !on; });
+                const on = need.includes(tr.dataset.qualRow);
+                tr.querySelectorAll('input').forEach(i => { i.required = on; });
+                const star = tr.querySelector('.qual-star');
+                if (star) star.hidden = !on;
             });
         };
         form.elements['scholarship_degree']?.addEventListener('change', toggleQualRows);
         toggleQualRows();
-        // Year / birth-date consistency (clears itself when fixed)
+
+        // Scholarship history: details become mandatory only when the answer is Yes
+        const syncScholarshipFields = () => {
+            const joyee = val('prev_joyee') === 'Yes';
+            const box = document.getElementById('prevJoyeeBox');
+            if (box) box.hidden = !joyee;
+            form.querySelectorAll('[name^="prev_scholarships"]').forEach(i => {
+                i.disabled = !joyee;
+                if (i.name === 'prev_scholarships[0][year]' || i.name === 'prev_scholarships[0][amount]') i.required = joyee;
+            });
+            const other = val('other_scholarship') === 'Yes';
+            const od = form.elements['other_scholarship_details'];
+            if (od) od.required = other;
+            const count = Number(val('books_read_count')) || 0;
+            const needNames = count > 0 || val('reading_habit') === 'I have read';
+            const names = form.elements['books_read_names'];
+            if (names) names.required = needNames;
+            const star = document.getElementById('booksNamesStar');
+            if (star) star.hidden = !needNames;
+        };
+        ['prev_joyee', 'other_scholarship', 'books_read_count', 'reading_habit'].forEach(n => {
+            form.elements[n]?.addEventListener('change', syncScholarshipFields);
+            form.elements[n]?.addEventListener('input', syncScholarshipFields);
+        });
+        syncScholarshipFields();
+
+        // Payment account: wallet = 11-digit mobile number, bank = account number + bank/branch
+        const syncPayment = () => {
+            const method = val('pay_method');
+            const bank = method === 'Bank';
+            const row = document.getElementById('payBankRow');
+            if (row) row.hidden = !bank;
+            ['pay_bank_name', 'pay_bank_branch'].forEach(n => { if (form.elements[n]) form.elements[n].required = bank; });
+            const no = form.elements['pay_account_no'];
+            const label = document.getElementById('payNoLabel');
+            if (label) label.textContent = bank ? 'Account No.' : (method ? method + ' No.' : 'Wallet No.');
+            if (no) {
+                no.placeholder = bank ? 'Bank account number' : '01XXXXXXXXX';
+                no.maxLength = bank ? 20 : 11;
+                no.pattern = bank ? '\\d{8,20}' : '01\\d{9}';
+                no.title = bank ? 'Account number: 8 to 20 digits' : 'Mobile wallet number: 11 digits starting with 01';
+            }
+        };
+        form.elements['pay_method']?.addEventListener('change', syncPayment);
+        form.elements['pay_account_no']?.addEventListener('input', e => {
+            const bn = '০১২৩৪৫৬৭৮৯';
+            e.target.value = e.target.value.replace(/[০-৯]/g, d => bn.indexOf(d)).replace(/\D+/g, '');
+        });
+        form.elements['national_id']?.addEventListener('input', e => {
+            const bn = '০১২৩৪৫৬৭৮৯';
+            e.target.value = e.target.value.replace(/[০-৯]/g, d => bn.indexOf(d)).replace(/\D+/g, '');
+        });
+        syncPayment();
+
+        // Parents: a deceased parent has no occupation ("Nil"), income or mobile; orphan status follows from both selects
+        const syncParents = () => {
+            const dead = {};
+            ['father', 'mother'].forEach(p => {
+                const isDead = val(p + '_status') === 'Deceased';
+                dead[p] = isDead;
+                const occ = form.elements[p + '_occupation'], inc = form.elements[p + '_income'], ph = form.elements[p + '_phone'];
+                if (occ) {
+                    if (isDead) { occ.dataset.prev = occ.dataset.prev ?? occ.value; occ.value = 'Nil'; occ.readOnly = true; occ.required = false; }
+                    else { if (occ.readOnly) { occ.value = occ.dataset.prev ?? ''; delete occ.dataset.prev; } occ.readOnly = false; occ.required = true; }
+                }
+                [inc, ph].forEach(i => { if (i) { if (isDead) i.value = ''; i.disabled = isDead; } });
+            });
+            const orphan = document.getElementById('orphanStatus');
+            if (orphan) orphan.value = dead.father && dead.mother ? 'Both deceased' : dead.father ? 'Father deceased' : dead.mother ? 'Mother deceased' : 'None';
+            sumIncome();
+        };
+        ['father_status', 'mother_status'].forEach(n => form.elements[n]?.addEventListener('change', syncParents));
+
+        // Disability: category (and details for "Other") only when the answer is Yes
+        const syncDisability = () => {
+            const yes = val('disability') === 'Yes';
+            ['disabilityTypeLabel', 'disabilityTypeCell'].forEach(id => { const e = document.getElementById(id); if (e) e.hidden = !yes; });
+            const row = document.getElementById('disabilityDetailsRow');
+            if (row) row.hidden = !yes;
+            const type = form.elements['disability_type'], det = form.elements['disability_details'];
+            if (type) { type.required = yes; if (!yes) type.value = ''; }
+            const other = yes && val('disability_type') === 'Other';
+            if (det) { det.required = other; if (!yes) det.value = ''; }
+            const star = document.getElementById('disabilityDetailsStar');
+            if (star) star.hidden = !other;
+        };
+        ['disability', 'disability_type'].forEach(n => form.elements[n]?.addEventListener('change', syncDisability));
+
+        // Family / guardian follow-ups
+        const syncFamily = () => {
+            const fam = Number(val('family_count')) || 0;
+            const earn = form.elements['earning_count'];
+            if (earn) {
+                earn.max = fam || 40;
+                earn.setCustomValidity(fam && Number(earn.value) > fam ? 'Earning members cannot exceed total family members' : '');
+            }
+            const gr = form.elements['guardian_relation'];
+            if (gr) gr.required = val('guardian_name') !== '';
+        };
+        ['family_count', 'earning_count', 'guardian_name'].forEach(n => {
+            form.elements[n]?.addEventListener('input', syncFamily);
+            form.elements[n]?.addEventListener('change', syncFamily);
+        });
+        syncFamily();
+        syncParents();
+        syncDisability();
+
+        // Honours/Masters years must not be earlier than HSC/Honours
+// Year / birth-date consistency (clears itself when fixed)
         function checkYears() {
             const birthYear = Number((val('birth_date') || '').slice(0, 4)) || 0;
             const ssc = Number(val('ssc_year')) || 0;
@@ -1029,94 +1295,128 @@
             const set = (name, msg) => { const f = form.elements[name]; if (f) f.setCustomValidity(msg); };
             ['ssc_year', 'hsc_year', 'grad_year', 'other_year'].forEach(n => {
                 const y = Number(val(n)) || 0;
-                set(n, y && (y < 1980 || y > thisYear + 1) ? 'সাল সঠিক নয় (1980–' + (thisYear + 1) + ')' : '');
+                set(n, y && (y < 1980 || y > thisYear + 1) ? 'Invalid year (1980–' + (thisYear + 1) + ')' : '');
             });
-            if (birthYear && ssc && ssc - birthYear < 10) set('ssc_year', 'SSC সাল জন্মসালের সাথে মিলছে না');
-            if (ssc && hsc && hsc <= ssc) set('hsc_year', 'HSC সাল SSC সালের পরে হতে হবে');
+            if (birthYear && ssc && ssc - birthYear < 10) set('ssc_year', 'SSC year does not match the birth year');
+            if (ssc && hsc && hsc <= ssc) set('hsc_year', 'HSC year must be after the SSC year');
             const bd = form.elements['birth_date'];
-            if (bd) bd.setCustomValidity(birthYear && (birthYear < 1970 || birthYear > thisYear - 10) ? 'জন্মসাল সঠিক নয়' : '');
+            if (bd) bd.setCustomValidity(birthYear && (birthYear < 1970 || birthYear > thisYear - 10) ? 'Invalid birth year' : '');
         }
         ['birth_date', 'ssc_year', 'hsc_year', 'grad_year', 'other_year'].forEach(n =>
             form.elements[n]?.addEventListener('input', checkYears));
         checkYears();
 
         // Re-normalise phone when country code changes
-        [['country_code', 'phone'], ['guardian_country_code', 'guardian_phone']].forEach(([c, p]) =>
+        [['country_code', 'phone']].forEach(([c, p]) =>
             form.elements[c]?.addEventListener('change', () => form.elements[p] && formatPhone(form.elements[p])));
 
         function buildPreview() {
             const g = {};
             Array.from(form.elements).forEach(f => { if (f.name && !(f.name in g)) g[f.name] = f.value; });
             const row = (a, b, c, d) => `<tr><td class="pv-lbl">${a}</td><td>${b}</td>` + (c !== undefined ? `<td class="pv-lbl">${c}</td><td>${d}</td>` : '') + '</tr>';
-            const taka = v => v ? esc(v) + ' টাকা' : '';
+            const taka = v => v ? esc(v) + ' Tk' : '';
             const photo = document.getElementById('previewImg');
-            const photoHtml = photo && photo.getAttribute('src') ? `<img src="${photo.src}" alt="">` : '<div style="padding-top:44px;">ছবি</div>';
-            const exams = [['SSC / সমমান', 'ssc', 'ssc_gpa'], ['HSC / সমমান', 'hsc', 'hsc_gpa'], ['স্নাতক / ডিগ্রি', 'grad', 'grad_cgpa'], ['স্নাতকোত্তর / অন্যান্য', 'other', 'other_cgpa']]
-                .filter(([, p, gp]) => p === 'ssc' || (!form.elements[p + '_roll']?.disabled && (val(p + '_roll') || val(p + '_institute') || val(gp))))
+            const photoSrc = document.getElementById('optimizedPhotoData')?.value || (photo && photo.getAttribute('src')) || '';
+            const photoHtml = photoSrc ? `<img src="${photoSrc}" alt="">` : '<div style="padding-top:44px;">Photo</div>';
+            const levels = [['SSC', 'ssc', 'ssc_gpa'], ['HSC', 'hsc', 'hsc_gpa'], ['Honours', 'grad', 'grad_cgpa'], ['Masters', 'other', 'other_cgpa']]
+                .filter(([, p, gp]) => p === 'ssc' || val(p + '_roll') || val(p + '_institute') || val(gp))
                 .map(([l, p, gp]) => `<tr><td>${l}</td><td align="center">${esc(val(p + '_roll'))}</td><td align="center">${up(val(p + '_board'))}</td><td>${up(val(p + '_institute'))}</td><td align="center">${esc(val(p + '_year'))}</td><td align="center"><b>${esc(val(gp))}</b></td></tr>`).join('');
-            const prev = [0, 1, 2].map(i => ({y: val(`prev_scholarships[${i}][year]`), t: val(`prev_scholarships[${i}][times]`), a: val(`prev_scholarships[${i}][amount]`)}))
+            const joyee = val('prev_joyee');
+            const prevRows = [0, 1, 2].map(i => ({y: val(`prev_scholarships[${i}][year]`), t: val(`prev_scholarships[${i}][times]`), a: val(`prev_scholarships[${i}][amount]`)}))
                 .filter(r => r.y || r.t || r.a)
-                .map(r => `<tr><td align="center">${esc(r.y)}</td><td align="center">${esc(r.t)}</td><td align="center">${esc(r.a)}</td></tr>`).join('')
-                || '<tr><td colspan="3" align="center">—</td></tr>';
+                .map(r => `<tr><td align="center">${esc(r.y)}</td><td align="center">${esc(r.t)}</td><td align="center">${esc(r.a)}</td></tr>`).join('');
+            const joyeeHtml = joyee === 'Yes' && prevRows
+                ? `<table><tr><th>Year</th><th>Times</th><th>Amount (Tk)</th></tr>${prevRows}</table>` : '';
             const perm = document.getElementById('permFullAddress')?.value || val('permanent_address');
             const pres = document.getElementById('presFullAddress')?.value || val('present_address');
             const phone = (form.elements['country_code']?.value || '') + ' ' + val('phone');
-            const parentIncome = (n) => val(n) ? ' <span style="white-space:nowrap">(আয়: ' + esc(val(n)) + ')</span>' : '';
-            const parentPhone = (n) => val(n) ? ' — ' + esc(val(n)) : '';
+            const parentIncome = (n) => val(n) ? ' <span style="white-space:nowrap">(Income: ' + esc(val(n)) + ')</span>' : '';
             const sig = t => `<td style="border:0;width:42%;padding-top:30px;"><div class="pv-sign">${t}</div></td>`;
+            const degreeText = form.elements['scholarship_degree']?.selectedOptions[0]?.text || '';
 
             document.getElementById('a4Preview').innerHTML = `
                 <table class="pv-head"><tr>
                     <td style="width:90px;"></td>
-                    <td align="center"><div style="font-weight:700;font-size:13px;">জয়ী শিক্ষাবৃত্তি</div>
+                    <td align="center"><div style="font-weight:700;font-size:13px;">Joyee Shikkhabritti</div>
                         <div style="font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1.15;">Scholarship</div>
-                        <div style="font-size:10px;">Session 2026-2027 &nbsp;|&nbsp; ${esc(form.elements['scholarship_degree']?.selectedOptions[0]?.text || '')}</div></td>
+                        <div style="font-size:10px;">Session 2027</div>
+                        <div style="font-size:11px;margin-top:2px;">Application No: <b>{{ $previewRegNumber ?? '' }}</b></div></td>
                     <td align="right" style="width:98px;"><div class="pv-photo">${photoHtml}</div></td>
                 </tr></table>
 
-                <div class="pv-sec">ব্যক্তিগত তথ্য</div>
+                <div class="pv-sec">1. Applicant</div>
                 <table>
-                    ${row('আবেদনকারীর নাম', '<b>' + up(val('name')) + '</b>', 'মোবাইল নম্বর', '<b>' + esc(phone) + '</b>')}
-                    ${row('পিতার নাম', up(val('father_name')) + parentIncome('father_income'), 'মাতার নাম', up(val('mother_name')) + parentIncome('mother_income'))}
-                    ${row('জন্ম তারিখ', esc(val('birth_date')), 'লিঙ্গ / ধর্ম', esc(val('gender') + ' / ' + val('religion')))}
-                    ${row('অভিভাবক', up(val('guardian_name')) + parentIncome('guardian_income') + (val('guardian_phone') ? ' (' + esc(val('guardian_phone')) + ')' : ''), 'পারিবারিক আয়', taka(val('annual_income')))}
+                    ${row('Name', '<b>' + up(val('name')) + '</b>', 'Mobile', '<b>' + esc(phone) + '</b>')}
+                    ${row('Date of Birth', esc(val('birth_date')), 'Gender / Religion', esc(val('gender') + ' / ' + val('religion')))}
+                    ${row('NID / Birth Reg.', esc(val('national_id')), 'Email', esc(val('email')))}
+                    ${row('Marital Status', esc(val('marital_status')), 'Nationality', up(val('nationality')))}
+                    ${row('Disability', esc(val('disability')) + (val('disability') === 'Yes' ? ' — ' + esc(form.elements['disability_type']?.selectedOptions[0]?.text || '') + (val('disability_details') ? ' (' + esc(val('disability_details')) + ')' : '') : ''), '', '')}
                 </table>
 
-                <div class="pv-sec">একাডেমিক তথ্য</div>
+                <div class="pv-sec">2. Parents &amp; Guardian</div>
                 <table>
-                    ${row('বৃত্তির জন্য ডিগ্রি', esc(form.elements['scholarship_degree']?.selectedOptions[0]?.text || ''), 'প্রতিষ্ঠান', '<b>' + up(val('college_name')) + '</b>' + (val('college_code') ? ' (' + esc(val('college_code')) + ')' : ''))}
-                    ${row('গ্রুপ', up(val('group')), 'ভর্তি রোল / মেধাক্রম', esc(val('admission_roll')) + (val('merit_position') ? ' / ' + esc(val('merit_position')) : ''))}
-                    ${row('বিষয়', up(val('assigned_subject')), 'ভর্তি ফি', taka(val('admission_fee')))}
-                    ${row('মাসিক বেতন', taka(val('monthly_fee')), 'হোস্টেল খরচ', taka(val('hostel_cost')))}
+                    ${['father', 'mother'].map(p => {
+                        const L = p === 'father' ? 'Father' : 'Mother', gone = val(p + '_status') === 'Deceased';
+                        return row(L, up(val(p + '_name')) + ' (' + esc(val(p + '_status')) + ')', L + ' Occupation', gone ? 'Nil' : esc(val(p + '_occupation')))
+                             + row(L + ' Income', gone ? 'Nil' : taka(val(p + '_income')), L + ' Mobile', gone ? 'Nil' : esc(val(p + '_phone')));
+                    }).join('')}
+                    ${row('Guardian', up(val('guardian_name')) + (val('guardian_relation') ? ' (' + esc(val('guardian_relation')) + ')' : '') + (val('guardian_income') ? ' — Income: ' + esc(val('guardian_income')) + ' Tk' : ''), 'Guardian Contact', esc(val('guardian_phone')))}
+                    ${row('Annual Family Income', taka(val('annual_income')), 'Family / Earning Members', esc(val('family_count')) + ' / ' + esc(val('earning_count')) + (val('orphan_status') && val('orphan_status') !== 'None' ? ' — ' + esc(val('orphan_status')) : ''))}
                 </table>
+                <div class="pv-sec">3. Academic</div>
                 <table>
-                    <tr><th>পরীক্ষা</th><th>রোল</th><th>বোর্ড</th><th>প্রতিষ্ঠান</th><th>সাল</th><th>GPA</th></tr>
-                    ${exams}
-                </table>
-
-                <div class="pv-sec">Scholarships</div>
-                <table>
-                    <tr><th>Year</th><th>Times</th><th>Amount</th></tr>${prev}
-                    <tr><td class="pv-lbl">অন্য প্রতিষ্ঠান থেকে বৃত্তি</td><td colspan="2">${esc(val('other_scholarship') || 'No')}${val('other_scholarship_details') ? ' — ' + esc(val('other_scholarship_details')) : ''}</td></tr>
-                </table>
-
-                <div class="pv-sec">ঠিকানা</div>
-                <table>
-                    <tr><td class="pv-lbl">স্থায়ী ঠিকানা</td><td>${esc(perm)}</td></tr>
-                    <tr><td class="pv-lbl">বর্তমান ঠিকানা</td><td>${pres && pres !== perm ? esc(pres) : 'স্থায়ী ঠিকানার অনুরূপ'}</td></tr>
+                    ${row('Degree Applied For', esc(degreeText), 'Institute', '<b>' + up(val('college_name')) + '</b>' + (val('college_code') ? ' (' + esc(val('college_code')) + ')' : ''))}
+                    ${row('Group', up(val('group')), 'Admission Roll / Merit', esc(val('admission_roll')) + (val('merit_position') ? ' / ' + esc(val('merit_position')) : ''))}
+                    ${row('Subject', up(val('assigned_subject')), 'Admission Fee', taka(val('admission_fee')))}
+                    ${row('Monthly Fee', taka(val('monthly_fee')), 'Hostel Cost', taka(val('hostel_cost')))}
+                    ${row('Current Year', esc(val('current_year')), '', '')}
                 </table>
 
-                <table><tr><td style="min-height:40px;"><b>আবেদনের কারণ (অনধিক ৫০ শব্দ):</b><br>${esc(val('scholarship_reason'))}</td></tr></table>
+                <div class="pv-sec">4. Educational Qualification</div>
+                <table>
+                    <tr><th>Level</th><th>Roll / Reg</th><th>Board / University</th><th>Institute</th><th>Year</th><th>GPA</th></tr>
+                    ${levels}
+                </table>
 
-                <div style="font-size:10px;text-align:justify;">আমি <b>${up(val('name'))}</b> ঘোষণা করছি যে, উপরে প্রদত্ত সকল তথ্য ও ছবি সঠিক। কোনো তথ্য মিথ্যা প্রমাণিত হলে বৃত্তি বাতিল হবে।</div>
-                <table style="margin-top:4px;"><tr><td style="border:0;width:55%;"></td>${sig('আবেদনকারীর স্বাক্ষর ও তারিখ').replace('42%', '45%')}</tr></table>
+                <div class="pv-sec">5. Address</div>
+                <table>
+                    <tr><td class="pv-lbl">Permanent</td><td>${esc(perm)}</td></tr>
+                    <tr><td class="pv-lbl">Present</td><td>${pres && pres !== perm ? esc(pres) : 'Same as permanent address'}</td></tr>
+                </table>
+
+                <div class="pv-sec">6. Scholarships</div>
+                <table>
+                    <tr><td class="pv-lbl">Received Joyee Scholarship before?</td><td>${esc(joyee || '—')}</td></tr>
+                    <tr><td class="pv-lbl">Scholarship from another organization?</td><td>${esc(val('other_scholarship') || '—')}${val('other_scholarship_details') ? ' — ' + esc(val('other_scholarship_details')) : ''}</td></tr>
+                </table>
+                ${joyeeHtml}
+
+                <div class="pv-sec">7. Reading</div>
+                <table>
+                    ${row('Original books read', esc(val('books_read_count')), 'Reading habit', esc(val('reading_habit')))}
+                    <tr><td class="pv-lbl">Book names</td><td colspan="3">${esc(val('books_read_names')).replace(/\n/g, '<br>')}</td></tr>
+                </table>
+
+                <div class="pv-sec">8. Statement (max 50 words)</div>
+                <table><tr><td style="min-height:40px;">${esc(val('scholarship_reason'))}</td></tr></table>
+
+                <div class="pv-sec">9. Payment Account</div>
+                <table>
+                    ${row('Method', esc(val('pay_method') === 'Bank' ? 'Bank Account' : val('pay_method')), 'Account Owner', esc(val('pay_account_owner')))}
+                    ${row('Holder Name', up(val('pay_account_name')), val('pay_method') === 'Bank' ? 'Account No.' : 'Wallet No.', esc(val('pay_account_no')))}
+                    ${val('pay_method') === 'Bank' ? row('Bank', esc(val('pay_bank_name')), 'Branch', esc(val('pay_bank_branch'))) : ''}
+                </table>
+
+
+                <div style="font-size:10px;text-align:justify;">I, <b>${up(val('name'))}</b>, declare that all information and the photo provided above are correct. The scholarship will be cancelled if any information is found false.</div>
+                <table style="margin-top:4px;"><tr><td style="border:0;width:55%;"></td>${sig('Applicant signature &amp; date').replace('42%', '45%')}</tr></table>
 
                 <table style="margin-top:8px;">
-                    <tr><th colspan="2" align="left" style="text-align:left;">মন্তব্য (অনধিক ৫০ শব্দ)</th></tr>
-                    <tr><td colspan="2" style="height:50px;"></td></tr>
-                    <tr><td style="height:70px;vertical-align:bottom;">শিক্ষা প্রতিষ্ঠান প্রধানের স্বাক্ষর, মোবাইল ও সিল</td><td style="vertical-align:bottom;">জনপ্রতিনিধির স্বাক্ষর, মোবাইল ও সিল</td></tr>
+                    <tr><th style="text-align:left;width:50%;">Remarks (max 50 words) for Head of institute</th><th style="text-align:left;">Remarks (max 50 words) for Public representative</th></tr>
+                    <tr><td style="height:50px;"></td><td></td></tr>
+                    <tr><td style="height:70px;vertical-align:bottom;">Head of institute: signature, mobile &amp; seal</td><td style="vertical-align:bottom;">Public representative: signature, mobile &amp; seal</td></tr>
                 </table>
-                <table style="margin-top:6px;"><tr>${sig('পরিচালক (অনুমোদনকারী)')}<td style="border:0;"></td>${sig('কোষাধ্যক্ষ')}</tr></table>`;
+                <table style="margin-top:6px;"><tr>${sig('Director (approver)')}<td style="border:0;"></td>${sig('Treasurer')}</tr></table>`;
             fitPreview();
         }
 
@@ -1162,7 +1462,17 @@
             if (activeStep === 2) updateAddressFields();
         }
 
+        const hasPhoto = () => !!(document.getElementById('optimizedPhotoData')?.value || form.elements['student_photo']?.files?.length);
         function validateStep(index) {
+            const photoError = document.getElementById('photoError');
+            if (index === 0) {
+                if (photoError) photoError.hidden = hasPhoto();
+                if (!hasPhoto()) {
+                    showStep(0);
+                    document.querySelector('.photo-cell-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
+            }
             const invalidField = Array.from(steps[index].querySelectorAll('input, select, textarea'))
                 .find(field => field.willValidate && !field.checkValidity());
             if (!invalidField) return true;

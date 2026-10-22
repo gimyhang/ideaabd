@@ -1223,7 +1223,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-dark fw-bold">৳</span>
                                 <input type="number" step="0.01" min="0" id="f-hardcover_cost_price" name="cost_price" 
-                                       value="{{ $val('hardcover_cost_price') }}"
+                                       value="{{ $val('hardcover_cost_price') ?: (($val('cover_type') === 'hardcover') ? $val('cost_price') : '') }}"
                                        class="form-control form-control-sm" oninput="onHardcoverCostChange()">
                             </div>
                         </div>
@@ -1314,16 +1314,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                     </label>
                     <select id="f-genre_category" name="genre_category" class="form-select form-select-sm" onchange="syncGenre(this.value)">
                         <option value="">— Genre —</option>
-                        <option value="novel" @selected(old('genre_category', $record->genre_category ?? '') === 'novel')>Novel</option>
-                        <option value="story" @selected(old('genre_category', $record->genre_category ?? '') === 'story')>Stories</option>
-                        <option value="poetry" @selected(old('genre_category', $record->genre_category ?? '') === 'poetry')>Poetry</option>
-                        <option value="essay_research" @selected(old('genre_category', $record->genre_category ?? '') === 'essay_research')>Essays</option>
-                        <option value="history_liberation" @selected(old('genre_category', $record->genre_category ?? '') === 'history_liberation')>History & Liberation</option>
-                        <option value="islamic" @selected(old('genre_category', $record->genre_category ?? '') === 'islamic')>Islamic</option>
-                        <option value="juvenile_comics" @selected(old('genre_category', $record->genre_category ?? '') === 'juvenile_comics')>Juvenile & Comics</option>
-                        <option value="scifi_thriller" @selected(old('genre_category', $record->genre_category ?? '') === 'scifi_thriller')>Sci-Fi & Thriller</option>
-                        <option value="motivation_selfhelp" @selected(old('genre_category', $record->genre_category ?? '') === 'motivation_selfhelp')>Motivation</option>
-                        <option value="translated" @selected(old('genre_category', $record->genre_category ?? '') === 'translated')>Translation</option>
+                        @include('partials.genre-options', ['selected' => old('genre_category', $record->genre_category ?? ''), 'lang' => 'en'])
                     </select>
                 </div>
 
@@ -1658,6 +1649,7 @@ body.dark-mode .adm-mobile-sticky-bar {
                 </button>
                 
                 <input type="hidden" name="generated_cover_data" id="f-generated_cover_data">
+                <input type="hidden" name="regenerate_cover" id="f-regenerate_cover" value="0">
                 <input type="hidden" name="auto_cover_theme" id="f-auto_cover_theme" value="royal_blue">
             </div>
 
@@ -2262,6 +2254,17 @@ body.dark-mode .adm-mobile-sticky-bar {
         updateLiveMockupCard();
     };
 
+    // Both pricing panels post a field called cost_price (there is no separate hardcover cost column).
+    // Only the panel that applies may be sent, otherwise the hidden one overwrites it with its own (often empty) value.
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        const pb = document.getElementById('f-cost_price'), hc = document.getElementById('f-hardcover_cost_price');
+        if (!pb || !hc || !form.contains(pb)) return;
+        const loser = (document.getElementById('f-cover_type')?.value === 'hardcover') ? pb : hc;
+        const wasDisabled = loser.disabled;
+        loser.disabled = true;
+        setTimeout(function () { loser.disabled = wasDisabled; }, 0);
+    }, true);
     window.applyPaperbackQuickDiscount = function(pct) {
         const soldInput = document.getElementById('f-sold_percent');
         if (soldInput) {
@@ -3166,7 +3169,7 @@ body.dark-mode .adm-mobile-sticky-bar {
     window.applyAutoCoverTheme = function(key) {
         if (!presets[key]) key = 'royal_blue';
         currentThemeKey = key;
-        userRequestedNewCover = true;
+        userRequestedNewCover = true; const regenFlag = document.getElementById('f-regenerate_cover'); if (regenFlag) regenFlag.value = '1';
         const themeInp = document.getElementById('f-auto_cover_theme');
         if (themeInp) themeInp.value = key;
 
@@ -3188,7 +3191,7 @@ body.dark-mode .adm-mobile-sticky-bar {
     window.magicAutoGenerateCover = function() {
         const keys = Object.keys(presets);
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
-        userRequestedNewCover = true;
+        userRequestedNewCover = true; const regenFlag = document.getElementById('f-regenerate_cover'); if (regenFlag) regenFlag.value = '1';
         applyAutoCoverTheme(randomKey);
     };
 

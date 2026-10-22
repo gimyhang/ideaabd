@@ -1590,17 +1590,8 @@
                                         </label>
                                         <select id="pubGenreCategory" name="genre_category" class="form-select pub-form-select">
                                             <option value="">— বিষয় ও ধারা নির্বাচন করুন —</option>
-                                            <option value="novel" @selected(old('genre_category', $editBook->genre_category ?? '') === 'novel')>উপন্যাস (Novel)</option>
-                                            <option value="story" @selected(old('genre_category', $editBook->genre_category ?? '') === 'story')>গল্পগ্রন্থ (Short Stories)</option>
-                                            <option value="poetry" @selected(old('genre_category', $editBook->genre_category ?? '') === 'poetry')>কবিতা (Poetry)</option>
-                                            <option value="essay_research" @selected(old('genre_category', $editBook->genre_category ?? '') === 'essay_research')>প্রবন্ধ ও গবেষণা (Essays & Research)</option>
-                                            <option value="history_liberation" @selected(old('genre_category', $editBook->genre_category ?? '') === 'history_liberation')>মুক্তিযুদ্ধ ও ইতিহাস (History & Liberation War)</option>
-                                            <option value="islamic" @selected(old('genre_category', $editBook->genre_category ?? '') === 'islamic')>ইসলামিক ও ধর্মীয় (Islamic & Religious)</option>
-                                            <option value="juvenile_comics" @selected(old('genre_category', $editBook->genre_category ?? '') === 'juvenile_comics')>শিশু-কিশোর ও কমিক্স (Juvenile & Comics)</option>
-                                            <option value="scifi_thriller" @selected(old('genre_category', $editBook->genre_category ?? '') === 'scifi_thriller')>সায়েন্স ফিকশন ও থ্রিলার (Sci-Fi & Thriller)</option>
-                                            <option value="motivation_selfhelp" @selected(old('genre_category', $editBook->genre_category ?? '') === 'motivation_selfhelp')>আত্মউন্নয়ন ও মোটিভেশন (Self-Help & Motivation)</option>
-                                            <option value="translated" @selected(old('genre_category', $editBook->genre_category ?? '') === 'translated')>অনুবাদ সাহিত্য (Translated Literature)</option>
-                                        </select>
+                        @include('partials.genre-options', ['selected' => old('genre_category', $editBook->genre_category ?? ''), 'lang' => 'both'])
+                    </select>
                                     </div>
 
                                     {{-- Row 5: ৫. বয়স ও পাঠক স্তর (Target Audience / Reader Level) --}}

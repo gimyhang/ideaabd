@@ -284,6 +284,12 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         return enMap[trimmed] || trimmed;
     }
 
+    // Forms that mark their division select with data-lang="en" get English placeholders.
+    const PH = { bn: { div: 'বিভাগ', dist: 'জেলা', upa: 'উপজেলা', po: 'পোস্টকোড' }, en: { div: 'Division', dist: 'District', upa: 'Upazila', po: 'Post Office' } };
+    const ph = k => (PH[divEl.dataset.lang === 'en' ? 'en' : 'bn'])[k];
+    // Option text in English when the form asks for it; the option value stays the Bengali name.
+    const label = t => (divEl.dataset.lang === 'en' && window.BD_GEO_EN && window.BD_GEO_EN[t]) || t;
+
     const oldDiv = getNormalizedBn(divEl.getAttribute('data-old') || divEl.value || defaultDivision);
     const oldDist = getNormalizedBn(distEl.getAttribute('data-old') || distEl.value || defaultDistrict);
     const oldUpa = (upaEl ? (upaEl.getAttribute('data-old') || upaEl.value || '') : '').trim();
@@ -291,12 +297,12 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
     const oldCityCorp = (cityCorpEl ? (cityCorpEl.getAttribute('data-old') || cityCorpEl.value || '') : '').trim();
 
     // বিভাগ পপুলেট
-    divEl.innerHTML = '<option value="">-- বিভাগ --</option>';
+    divEl.innerHTML = '<option value="">-- ' + ph('div') + ' --</option>';
     if (geo.divisions) {
         Object.keys(geo.divisions).forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
-            opt.textContent = d;
+            opt.textContent = label(d);
             if (oldDiv && (oldDiv === d || oldDiv.toLowerCase() === d.toLowerCase())) {
                 opt.selected = true;
             }
@@ -306,9 +312,9 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
 
     // জেলা পপুলেট ফাংশন
     function populateDistricts(selectedDiv, selectedDist = '') {
-        distEl.innerHTML = '<option value="">-- জেলা --</option>';
-        if (upaEl) upaEl.innerHTML = '<option value="">-- উপজেলা --</option>';
-        if (poEl) poEl.innerHTML = '<option value="">-- পোস্টকোড --</option>';
+        distEl.innerHTML = '<option value="">-- ' + ph('dist') + ' --</option>';
+        if (upaEl) upaEl.innerHTML = '<option value="">-- ' + ph('upa') + ' --</option>';
+        if (poEl) poEl.innerHTML = '<option value="">-- ' + ph('po') + ' --</option>';
         if (cityCorpEl) cityCorpEl.innerHTML = '<option value="">-- Optional --</option>';
 
         const bnDiv = getNormalizedBn(selectedDiv);
@@ -316,7 +322,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
             geo.divisions[bnDiv].forEach(dst => {
                 const opt = document.createElement('option');
                 opt.value = dst;
-                opt.textContent = dst;
+                opt.textContent = label(dst);
                 const matchDist = getNormalizedBn(selectedDist);
                 if (matchDist && (matchDist === dst || matchDist.toLowerCase() === dst.toLowerCase())) {
                     opt.selected = true;
@@ -335,13 +341,24 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         cities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
-            option.textContent = city;
+            option.textContent = label(city);
             option.selected = selectedCity === city;
             cityCorpEl.appendChild(option);
         });
     }
 
     // উপজেলা অনুযায়ী স্বয়ংক্রিয় ডাকঘর/পোস্টকোড ম্যাচিং হেল্পার
+    // An upazila such as "রংপুর সদর / সিটি" is the city corporation itself: select it so the address keeps it.
+    // Districts with several corporations (Dhaka) are left for the user to choose.
+    function autoSelectCityCorporation(selectedUpa) {
+        if (!cityCorpEl || !selectedUpa) return;
+        const options = Array.from(cityCorpEl.options).filter(o => o.value);
+        if (options.length === 1 && /সিটি/.test(selectedUpa)) {
+            cityCorpEl.value = options[0].value;
+            cityCorpEl.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+
     function autoMatchPostOffice(selectedUpa) {
         if (!poEl || !selectedUpa || poEl.options.length <= 1) return;
         const upa = selectedUpa.trim();
@@ -350,7 +367,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         // ১. সরাসরি উপজেলা নামে পোস্ট অফিস মিললে
         for (let i = 1; i < poEl.options.length; i++) {
             const optVal = poEl.options[i].value;
-            const optText = poEl.options[i].textContent;
+            const optText = poEl.options[i].value;
             if (optText.indexOf(upa) !== -1 || optVal.indexOf(upa) !== -1) {
                 matched = optVal;
                 break;
@@ -360,7 +377,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
         // ২. সদর / সিটি / কোতোয়ালী ইত্যাদি হলে প্রধান ডাকঘর মিলানো
         if (!matched && (upa.indexOf('সদর') !== -1 || upa.indexOf('সিটি') !== -1 || upa.indexOf('কোতোয়ালী') !== -1)) {
             for (let i = 1; i < poEl.options.length; i++) {
-                const optText = poEl.options[i].textContent;
+                const optText = poEl.options[i].value;
                 if (optText.indexOf('প্রধান') !== -1 || optText.indexOf('জিপিও') !== -1 || optText.indexOf('সদর') !== -1) {
                     matched = poEl.options[i].value;
                     break;
@@ -380,8 +397,8 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
 
     // উপজেলা ও পোস্ট অফিস পপুলেট ফাংশন
     function populateUpazilasAndPostOffices(selectedDist, selectedUpa = '', selectedPo = '') {
-        if (upaEl) upaEl.innerHTML = '<option value="">-- উপজেলা --</option>';
-        if (poEl) poEl.innerHTML = '<option value="">-- পোস্টকোড --</option>';
+        if (upaEl) upaEl.innerHTML = '<option value="">-- ' + ph('upa') + ' --</option>';
+        if (poEl) poEl.innerHTML = '<option value="">-- ' + ph('po') + ' --</option>';
 
         const bnDist = getNormalizedBn(selectedDist);
         if (bnDist) {
@@ -390,7 +407,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
                 geo.upazilas[bnDist].forEach(u => {
                     const opt = document.createElement('option');
                     opt.value = u;
-                    opt.textContent = u;
+                    opt.textContent = label(u);
                     if (selectedUpa && (selectedUpa === u || selectedUpa.toLowerCase() === u.toLowerCase())) {
                         opt.selected = true;
                     }
@@ -404,7 +421,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
                     geo.postOffices[bnDist].forEach(p => {
                         const opt = document.createElement('option');
                         opt.value = p;
-                        opt.textContent = p;
+                        opt.textContent = label(p);
                         if (selectedPo && (selectedPo === p || selectedPo.toLowerCase() === p.toLowerCase())) {
                             opt.selected = true;
                         }
@@ -413,7 +430,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
                 } else {
                     const opt = document.createElement('option');
                     opt.value = bnDist + ' সদর';
-                    opt.textContent = bnDist + ' সদর';
+                    opt.textContent = label(bnDist + ' সদর');
                     poEl.appendChild(opt);
                 }
 
@@ -448,6 +465,7 @@ function initAddressChaining(arg1, arg2, arg3, arg4, arg5, defDiv, defDist) {
 
     if (upaEl) {
         upaEl.addEventListener('change', function () {
+            autoSelectCityCorporation(this.value);
             autoMatchPostOffice(this.value);
             if (typeof formatWriterAddress === 'function') formatWriterAddress();
             if (typeof updateLivePreview === 'function') updateLivePreview();
