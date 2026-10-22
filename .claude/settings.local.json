@@ -19,7 +19,9 @@
       "Bash(python -)",
       "Bash(php -v)",
       "Bash(APP_ENV=local php artisan migrate --force)",
-      "Bash(php -r '$p=new PDO\\(\"mysql:host=127.0.0.1;dbname=ideaabd_db\",\"root\",\"\"\\);foreach\\($p->query\\(\"select migration,batch from migrations\"\\)->fetchAll\\(PDO::FETCH_NUM\\) as $r\\) echo implode\\(\" | \",$r\\).\"\\\\n\";')"
+      "Bash(php -r '$p=new PDO\\(\"mysql:host=127.0.0.1;dbname=ideaabd_db\",\"root\",\"\"\\);foreach\\($p->query\\(\"select migration,batch from migrations\"\\)->fetchAll\\(PDO::FETCH_NUM\\) as $r\\) echo implode\\(\" | \",$r\\).\"\\\\n\";')",
+      "Bash(php -m)",
+      "Bash(grep -i \"^gd$\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\idea\\ideaabd\\database"

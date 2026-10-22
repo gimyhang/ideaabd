@@ -592,7 +592,10 @@ class BookController extends Controller
             session()->put('recently_viewed_books', $recentlyViewed);
         }
 
-        return view('book::frontend.show', compact('book', 'frequentlyBoughtTogether', 'relatedBooks'));
+        $shareCount = \Modules\Book\Models\BookShare::where('book_id', $book->id)->count();
+        $inWishlist = auth()->check() && \Modules\Book\Models\Wishlist::isInWishlist(auth()->id(), $book->id);
+
+        return view('book::frontend.show', compact('book', 'frequentlyBoughtTogether', 'relatedBooks', 'shareCount', 'inWishlist'));
     }
 
     /**

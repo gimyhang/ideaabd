@@ -256,6 +256,11 @@ Route::prefix('books')->name('book.')->group(function () {
     Route::get('/{slug}', [BookController::class, 'show'])->name('show');
     Route::get('/{slug}/preview', [BookController::class, 'preview'])->name('preview');
     Route::get('/{id}/quick-view', [BookController::class, 'quickView'])->name('quick-view');
+    // Share sheet + wishlist button on the book page (JSON)
+    Route::get('/{slug}/share-card.jpg', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'shareCard'])->name('share-card');
+    Route::post('/wishlist/sync', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'syncWishlist'])->middleware(['auth', 'throttle:20,1'])->name('wishlist.sync');
+    Route::post('/{id}/share', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'share'])->whereNumber('id')->middleware('throttle:30,1')->name('share');
+    Route::post('/{id}/wishlist', [\Modules\Book\Http\Controllers\Frontend\BookEngagementController::class, 'toggleWishlist'])->whereNumber('id')->middleware('throttle:60,1')->name('wishlist.toggle');
 });
 
 // Category Friendly Canonical Routes

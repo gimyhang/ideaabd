@@ -16,6 +16,11 @@
         $coverUrl = asset('images/logo.svg');
     }
     $bookDesc = $book->summary ?: Str::limit(strip_tags($book->description), 180);
+    // landscape 1200x630 card for link previews when the cover is stored here; the plain cover otherwise
+    $shareImage = app(\Modules\Book\Services\ShareCardService::class)->coverPath($book)
+        ? route('book.share-card', $book->slug ?: $book->id)
+        : $coverUrl;
+    $shareUnitPrice = (float) ($book->discount_price && $book->discount_price < $book->price ? $book->discount_price : $book->price);
 @endphp
 
 @section('title', $book->title . ' — ' . $authorNames . ' | বই কেনাকাটা')
@@ -24,7 +29,16 @@
 @section('og_type', 'book')
 @section('og_title', $book->title . ' — ' . $authorNames . ' | আইডিয়া প্রকাশন')
 @section('og_description', $bookDesc ?: 'আইডিয়া প্রকাশনে বইটি অর্ডার করুন ও বিস্তারিত জানুন।')
-@section('og_image', $coverUrl)
+@section('og_image', $shareImage)
+@push('head')
+    <meta property="book:author" content="{{ $authorNames }}">
+    @if($book->isbn)<meta property="book:isbn" content="{{ $book->isbn }}">@endif
+    @if($shareUnitPrice > 0)
+        <meta property="product:price:amount" content="{{ number_format($shareUnitPrice, 2, '.', '') }}">
+        <meta property="product:price:currency" content="BDT">
+    @endif
+    @if(config('services.facebook.app_id'))<meta property="fb:app_id" content="{{ config('services.facebook.app_id') }}">@endif
+@endpush
 @section('og_url', route('book.show', $book->slug ?: $book->id))
 
 @section('schema_json')
@@ -207,19 +221,8 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons below cover -->
-                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                            <!-- Look Inside Reader Button (Always Available) -->
-                            <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#samplePreviewModal">
-                                <i class="fa-solid fa-book-open-reader"></i> একটু পড়ে দেখুন
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="shareBook('{{ $book->title }}', '{{ url()->current() }}')">
-                                <i class="fa-solid fa-share-nodes"></i> শেয়ার
-                            </button>
-                            <button type="button" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-xs" onclick="toggleWishlist({{ $book->id }}, '{{ addslashes($book->title) }}')">
-                                <i class="fa-regular fa-heart" id="wishlistIcon"></i> উইশলিস্ট
-                            </button>
-                        </div>
+                        <!-- Action Buttons below cover (look inside, share sheet, wishlist) -->
+                        @include('book::frontend.partials.book-actions')
                     </div>
 
                     <!-- Right: Book Info, Pricing & Buying Options -->
@@ -1424,7 +1427,12 @@
     </div>
 </div>
 
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/book-actions.css') }}?v={{ @filemtime(public_path('css/book-actions.css')) }}">
+@endpush
+
 @push('scripts')
+<script src="{{ asset('js/book-actions.js') }}?v={{ @filemtime(public_path('js/book-actions.js')) }}" defer></script>
 <script>
     let BOOK_PRICE = {{ $finalPrice }};
     let currentSelectedPrice = {{ $finalPrice }};
@@ -1636,32 +1644,6 @@
         let qty = parseInt(document.getElementById('bookQuantity')?.value || 1);
         if (typeof window.addToCartLive === 'function') {
             window.addToCartLive(id, title, price, image, qty);
-        }
-    }
-
-    function toggleWishlist(id, title) {
-        let icon = document.getElementById('wishlistIcon');
-        if (icon.classList.contains('fa-regular')) {
-            icon.classList.remove('fa-regular');
-            icon.classList.add('fa-solid', 'text-danger');
-            showToast('উইশলিস্টে যুক্ত হয়েছে', `"${title}" আপনার পছন্দের তালিকায় সংরক্ষিত হয়েছে।`);
-        } else {
-            icon.classList.remove('fa-solid', 'text-danger');
-            icon.classList.add('fa-regular');
-            showToast('উইশলিস্ট থেকে সরানো হয়েছে', `"${title}" সরানো হয়েছে।`);
-        }
-    }
-
-    function shareBook(title, url) {
-        if (navigator.share) {
-            navigator.share({
-                title: title,
-                text: `${title} — আইডিয়া প্রকাশন থেকে বইটি দেখুন`,
-                url: url
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(url);
-            showToast('লিংক কপি করা হয়েছে!', 'বইয়ের লিংকটি আপনার ক্লিপবোর্ডে কপি করা হয়েছে।');
         }
     }
 

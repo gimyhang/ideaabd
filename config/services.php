@@ -2,6 +2,12 @@
 
 return [
 
+    // Optional: lets the Messenger button work on desktop and enables Facebook insights for shared links.
+    'facebook' => [
+        'app_id' => env('FACEBOOK_APP_ID'),
+    ],
+
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

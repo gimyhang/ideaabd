@@ -150,9 +150,9 @@ class GenreAndCoverTest extends TestCase
         ])->assertSessionDoesntHaveErrors();
         $this->assertNotSame('storage/books/covers/original.webp', $withCover->fresh()->cover_image);
 
-        $noCover = $this->book(['cover_image' => null]);
+        $noCover = $this->book(['title' => 'Book Without Cover', 'cover_image' => null]);      // the catalogue refuses two books with the same title
         $admin->put(route('admin.content.update', ['type' => 'books', 'id' => $noCover->id]), [
-            ...$this->payload(['generated_cover_data' => self::PNG]),
+            ...$this->payload(['title' => 'Book Without Cover', 'generated_cover_data' => self::PNG]),
         ])->assertSessionDoesntHaveErrors();
         $this->assertNotEmpty($noCover->fresh()->cover_image);
     }
