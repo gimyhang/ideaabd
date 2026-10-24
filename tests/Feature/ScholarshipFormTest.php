@@ -497,4 +497,29 @@ class ScholarshipFormTest extends TestCase
         $pdf = $this->get($reg->scholarshipUrl('pdf'))->assertOk()->getContent();
         $this->assertSame(2, preg_match_all('/\/Type\s*\/Page[^s]/', $pdf), 'sections 1-6 on page one, the rest on page two');
     }
+    public function test_a_very_full_application_still_prints_on_two_pages(): void
+    {
+        EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
+            'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => true, 'fee_amount' => 150,
+            'form_settings' => ['is_scholarship_form' => true, 'form_org' => 'A Long Organization Name For The Header Line', 'form_venue' => 'Rangpur Zilla School Field', 'form_date' => '12 December 2026'],
+        ]);
+        $long = str_repeat('Very Long Institute Name ', 4);
+        $words = trim(str_repeat('word ', 50));
+        $this->post('/jshikkhabritti', $this->payload([
+            'ssc_institute' => $long, 'hsc_roll' => '1', 'hsc_board' => 'B', 'hsc_institute' => $long, 'hsc_year' => '2021', 'hsc_gpa' => '5',
+            'scholarship_degree' => 'MASTERS', 'grad_roll' => '9', 'grad_board' => 'NU', 'grad_institute' => $long, 'grad_year' => '2025', 'grad_cgpa' => '3.5',
+            'other_roll' => '7', 'other_board' => 'NU', 'other_institute' => $long, 'other_year' => '2027', 'other_cgpa' => '3.6',
+            'college_name' => $long, 'permanent_address' => str_repeat('Village Road House Upazila District Division ', 5), 'present_address' => str_repeat('Other Present Address Lane Block ', 5),
+            'guardian_name' => 'Guardian Name', 'guardian_relation' => 'Uncle', 'disability' => 'Yes', 'disability_type' => 'Other', 'disability_details' => str_repeat('Some detail ', 5),
+            'prev_joyee' => 'Yes', 'prev_scholarships' => [['year' => '2024', 'times' => '1', 'amount' => '5000'], ['year' => '2025', 'times' => '1', 'amount' => '6000'], ['year' => '2026', 'times' => '1', 'amount' => '7000']],
+            'other_scholarship' => 'Yes', 'other_scholarship_details' => str_repeat('Other Trust ', 4),
+            'books_read_count' => '40', 'reading_habit' => 'I have read', 'books_read_names' => str_repeat("A Book Title By Some Author\n", 8),
+            'scholarship_reason' => $words, 'payment_method' => 'bkash', 'transaction_id' => 'TRX123456',
+            'pay_method' => 'Bank', 'pay_account_no' => '1234567890123', 'pay_bank_name' => 'A Very Long Bank Name Limited', 'pay_bank_branch' => 'Main Branch Rangpur',
+        ]))->assertSessionHasNoErrors();
+        $reg = EventRegistration::firstOrFail();
+
+        $pdf = $this->get($reg->scholarshipUrl('pdf'))->assertOk()->getContent();
+        $this->assertSame(2, preg_match_all('/\/Type\s*\/Page[^s]/', $pdf), 'even the longest answers fit on two pages');
+    }
 }

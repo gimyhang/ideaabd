@@ -35,7 +35,18 @@
     $extraLines = max(0, (int) ceil(mb_strlen($permAddr) / 105) - 1) + ($sameAddr ? 0 : max(0, (int) ceil(mb_strlen($presAddr) / 105) - 1));
     foreach (['ssc', 'hsc', 'grad', 'other'] as $lv) { $extraLines += max(0, (int) ceil(mb_strlen($fd($lv . '_institute')) / 30) - 1); }
     $extraLines += max(0, (int) ceil(mb_strlen($collegeName) / 75) - 1);
-    $density = $extraLines >= 6 ? 'tight' : ($extraLines >= 3 ? 'compact' : 'normal');
+    $lines = fn (string $text, int $perLine) => max(0, (int) ceil(mb_strlen($text) / $perLine) - 1);
+    $extraLines += $lines($fd('disability_details'), 70) + $lines($fd('other_scholarship_details'), 60) + $lines($fd('guardian_name') . ' ' . $fd('guardian_relation'), 40);
+    $extraLines += collect($formData['prev_scholarships'] ?? [])->filter(fn ($r) => is_array($r) && (trim($r['year'] ?? '') !== '' || trim($r['amount'] ?? '') !== ''))->count() + 1;
+    $extraLines += $hdr['org'] !== '' || $hdr['subhead'] !== '' ? 1 : 0;
+    $density = $extraLines >= 10 ? 'tight' : ($extraLines >= 4 ? 'compact' : 'normal');
+
+    // page-2 estimate: reading list, statement, payment details and fee
+    $p2Extra = $lines($fd('scholarship_reason'), 95) + $lines($fd('books_read_names'), 95);
+    foreach (preg_split('/\R/', $fd('books_read_names')) ?: [] as $nameLine) { $p2Extra += 1; }
+    $p2Extra += $lines($fd('pay_bank_name') . ' ' . $fd('pay_bank_branch'), 40);
+    $p2Extra += ($registration->transaction_id && (float) $registration->amount_paid > 0) ? 3 : 0;
+    $density2 = $p2Extra >= 24 ? 'tight' : ($p2Extra >= 12 ? 'compact' : 'normal');
     $permDistrict = $fd('permanent_district') ?: (string) $registration->district;
     $presDistrict = $fd('present_district');
     $permDistrict = $geoEn[$permDistrict] ?? $permDistrict;
@@ -158,11 +169,24 @@
         .sec-title { page-break-after: avoid; }
         .pb { page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0; }
         .reason, .declaration, .remark-cols, .sig-table, .footer-line { page-break-inside: avoid; }
+        /* page 2: the signature and remark areas give way before a third sheet is needed */
+        .p2-compact .remark-cols .remark-lines { height: 90px; }
+        .p2-compact .sig-space { height: 40px; }
+        .p2-compact .sig-line { margin-top: 34px; }
+        .p2-compact .p2 .grid td, .p2-compact .p2 .grid th { padding: 3px 5px !important; }
+        .p2-tight .remark-cols .remark-lines { height: 56px; }
+        .p2-tight .sig-space { height: 22px; }
+        .p2-tight .sig-line { margin-top: 20px; }
+        .p2-tight .p2 .grid td, .p2-tight .p2 .grid th { padding: 1px 4px !important; font-size: 12px !important; }
+        .p2-tight .p2 .grid { margin-bottom: 3px; }
+        .p2-tight .declaration { font-size: 11.5px; }
         .density-compact .grid td, .density-compact .grid th { padding: 2px 4px !important; }
         .density-compact .grid { margin-bottom: 4px; }
-        .density-tight .grid td, .density-tight .grid th { padding: 1px 4px !important; font-size: 12.5px !important; }
+        .density-tight .grid td, .density-tight .grid th { padding: 1px 3px !important; font-size: 12px !important; }
         .density-tight .grid { margin-bottom: 3px; }
-        .density-tight .sec-title { font-size: 13px; }
+        .density-tight .sec-title { font-size: 12px; padding: 1px 6px; }
+        .density-tight .head-photo .photo-box { height: 96px; width: 80px; }
+        .density-tight .form-title { font-size: 24px; }
         .p2 .grid td, .p2 .grid th { padding: 5px 6px !important; font-size: 13.5px !important; }
         .grid td, .grid th { border: 1px solid #000; padding: 3px 5px; font-size: 13.5px; vertical-align: middle; }
         .grid th { background: #f3f4f6; font-weight: bold; text-align: center; font-size: 13px; }
@@ -197,7 +221,7 @@
         .footer-line .r { float: right; }
     </style>
 </head>
-<body class="density-{{ $density }}">
+<body class="density-{{ $density }} p2-{{ $density2 }}">
 
 @if(!$isPdf)
     <div class="action-bar no-print">
@@ -441,7 +465,8 @@
     @endif
 
     {{-- Page 2 starts here: 1-6 on the first sheet, 7 onwards on the second --}}
-    <div class="pb"></div>
+    {{-- Normal answers: sections 7+ start the second sheet. Very long answers flow on instead of leaving a near-empty sheet. --}}
+    @if($density !== 'tight')<div class="pb"></div>@endif
     <div class="p2">
 
     {{-- Reading --}}
