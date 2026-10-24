@@ -1084,6 +1084,10 @@ class EventCampaignAdminController extends Controller
             'perm_division', 'permanent_district', 'perm_upazila', 'perm_post_office', 'perm_village',
             'author_category', 'author_categories', 'art_medium', 'organization_name', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
             'father_name', 'mother_name', 'guardian_name', 'guardian_phone', 'gender', 'religion', 'birth_date', 'marital_status',
+            'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'father_income', 'mother_income', 'father_phone', 'mother_phone', 'guardian_relation', 'guardian_income',
+            'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'current_year',
+            'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
+            'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names', 'scholarship_reason',
             'library_name', 'library_type', 'established_year', 'reg_no', 'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
             'reader_count', 'current_book_count', 'preferred_genres'
         ];

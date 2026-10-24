@@ -312,4 +312,94 @@ class ScholarshipFormTest extends TestCase
 
         $this->assertSame(['2027-1', '2027-2'], EventRegistration::withTrashed()->orderBy('id')->pluck('registration_number')->all());
     }
+    public function test_campaign_form_settings_reach_the_scholarship_form(): void
+    {
+        EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
+            'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => false, 'fee_amount' => 0,
+            'badge_text' => 'OPEN', 'contact_phone' => '01711000000', 'contact_email' => 'help@example.test',
+            'form_settings' => [
+                'is_scholarship_form' => true, 'theme_color' => '#7c3aed', 'form_notice_active' => true, 'form_notice_text' => 'Apply before the 15th.', 'form_notice_type' => 'warning',
+                'form_subhead' => 'Merit award', 'logo_image' => 'campaigns/logos/x.png', 'logo_size' => 70,
+                'fields' => ['email' => ['label' => 'ইমেইল (Mail Address)', 'enabled' => true]],
+            ],
+        ]);
+        $html = preg_replace('/\s+/', ' ', $this->get('/jshikkhabritti')->assertOk()->getContent());
+
+        foreach (['--sch-theme: #7c3aed', 'Apply before the 15th.', 'alert-warning', 'Merit award', 'storage/campaigns/logos/x.png', '>OPEN<', 'help@example.test', 'Mail Address'] as $needle) {
+            $this->assertTrue(str_contains($html, $needle), "missing from the form: $needle");
+        }
+
+        // the e-mail question can be switched off in the form studio
+        $c = EventCampaign::where('slug', 'jshikkhabritti')->first();
+        $c->update(['form_settings' => array_merge($c->form_settings, ['fields' => ['email' => ['enabled' => false]]])]);
+        $page = $this->get('/jshikkhabritti')->getContent();
+        $form = substr($page, strpos($page, 'id="dynamicScholarshipForm"'));
+        $form = substr($form, 0, strpos($form, '</form>'));        // the footer newsletter box has its own email field
+        $this->assertFalse(str_contains($form, 'name="email"'));
+    }
+
+    public function test_an_application_fee_is_asked_for_checked_and_priced_by_the_campaign(): void
+    {
+        EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
+            'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => true, 'fee_amount' => 150,
+            'redirect_url' => 'https://example.test/thanks', 'success_message' => 'We will call you within 3 days.',
+            'form_settings' => ['is_scholarship_form' => true],
+        ]);
+        $page = $this->get('/jshikkhabritti')->assertOk()->getContent();
+        $this->assertTrue(str_contains($page, '10. Application Fee'));
+        $this->assertTrue(str_contains($page, 'name="transaction_id"'));
+
+        $this->post('/jshikkhabritti', $this->payload())->assertSessionHasErrors(['payment_method', 'transaction_id']);
+
+        $this->post('/jshikkhabritti', $this->payload(['payment_method' => 'bkash', 'transaction_id' => '9J3K8L2M', 'amount_paid' => '1']))->assertSessionHasNoErrors();
+        $reg = EventRegistration::firstOrFail();
+        $this->assertSame(150.0, (float) $reg->amount_paid);                       // not the 1 the browser sent
+        $this->assertSame('9J3K8L2M', $reg->transaction_id);
+
+        $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
+        $this->assertTrue(str_contains($print, '10. Application Fee'));
+        $this->assertTrue(str_contains($print, '9J3K8L2M'));
+
+        $success = $this->get(route('event.success', 'jshikkhabritti'))->assertOk()->getContent();
+        $this->assertTrue(str_contains($success, 'We will call you within 3 days.'));
+        $this->assertTrue(str_contains($success, 'https:\/\/example.test\/thanks'));    // redirect_url replaces the homepage
+    }
+
+    public function test_the_print_uses_the_campaign_logo_header_lines_copy_tag_and_signature_switch(): void
+    {
+        $dir = storage_path('app/public/campaigns/logos');
+        @mkdir($dir, 0775, true);
+        file_put_contents($dir . '/print-test.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='));
+        try {
+            $c = EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
+                'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => false, 'fee_amount' => 0,
+                'form_settings' => ['is_scholarship_form' => true, 'logo_image' => 'campaigns/logos/print-test.png', 'form_org' => 'Firiye Dekha', 'form_venue' => 'Rangpur', 'form_date' => '12 Dec 2026', 'form_copy_tag' => 'Applicant copy', 'enable_signature' => false],
+            ]);
+            $this->post('/jshikkhabritti', $this->payload())->assertSessionHasNoErrors();
+            $reg = EventRegistration::firstOrFail();
+
+            $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
+            foreach (['campaigns/logos/print-test.png', 'Firiye Dekha', 'Rangpur | 12 Dec 2026', 'Applicant copy'] as $needle) {
+                $this->assertTrue(str_contains($print, $needle), "missing from the print: $needle");
+            }
+            $this->assertFalse(str_contains($print, 'Applicant signature'), 'enable_signature=false hides the applicant signature');
+            $this->get(route('event.registration.pdf', $reg->registration_number))->assertOk();
+        } finally {
+            @unlink($dir . '/print-test.png');
+        }
+    }
+
+    public function test_server_errors_on_the_newer_fields_send_the_visitor_to_the_right_step(): void
+    {
+        $this->campaign();
+        $data = $this->payload();
+        unset($data['national_id']);
+        $html = $this->from('/jshikkhabritti')->followingRedirects()->post('/jshikkhabritti', $data)->getContent();
+        $this->assertTrue(str_contains($html, 'data-initial-step="0"'), 'a missing NID must open the first step');
+
+        $data = $this->payload();
+        unset($data['pay_account_no']);
+        $html = $this->from('/jshikkhabritti')->followingRedirects()->post('/jshikkhabritti', $data)->getContent();
+        $this->assertTrue(str_contains($html, 'data-initial-step="3"'), 'a missing payment account must open the fourth step');
+    }
 }

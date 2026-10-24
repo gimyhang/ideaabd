@@ -6,6 +6,16 @@
     $fd = fn ($key) => trim((string) ($formData[$key] ?? ''));
     $up = fn ($v) => strtoupper((string) $v);
 
+    $fs = is_array($campaign->form_settings ?? null) ? $campaign->form_settings : [];
+    $campaignLogo = null;
+    if (!empty($fs['logo_image'])) {
+        $lp = $fs['logo_image'];
+        if (file_exists(public_path('storage/' . $lp))) { $campaignLogo = $isPdf ? public_path('storage/' . $lp) : asset('storage/' . $lp); }
+        elseif (file_exists(storage_path('app/public/' . $lp))) { $campaignLogo = $isPdf ? storage_path('app/public/' . $lp) : asset('storage/' . $lp); }
+    }
+    $campaignLogoSize = max(30, min(120, (int) ($fs['logo_size'] ?? 60)));
+    $english = fn ($v) => is_string($v) && trim($v) !== '' && !preg_match('/\p{Bengali}/u', $v);
+    $showSignature = ($fs['enable_signature'] ?? true) !== false;
     $logoRel = file_exists(public_path('images/logo.png')) ? 'images/logo.png' : (file_exists(public_path('images/logo-mark.svg')) ? 'images/logo-mark.svg' : null);
 
     $photoUrl = null;
@@ -215,12 +225,16 @@
     <table class="head-table">
         <tr>
             <td class="head-logo">
-                @if($logoRel)
+                @if($campaignLogo)
+                    <img src="{{ $campaignLogo }}" alt="Logo" style="max-height: {{ $campaignLogoSize }}px; max-width: 86px;">
+                @elseif($logoRel)
                     <img src="{{ $isPdf ? public_path($logoRel) : asset($logoRel) }}" alt="Logo">
                 @endif
             </td>
             <td class="head-title">
                 <div class="org">Joyee Shikkhabritti</div>
+                @if($english($fs['form_org'] ?? null) || $english($fs['form_subhead'] ?? null))<div class="meta">{{ trim(($fs['form_org'] ?? '') . ' ' . ($fs['form_subhead'] ?? '')) }}</div>@endif
+                @if($english($fs['form_venue'] ?? null) || $english($fs['form_date'] ?? null))<div class="meta">{{ $english($fs['form_venue'] ?? null) ? $fs['form_venue'] : '' }}{{ $english($fs['form_venue'] ?? null) && $english($fs['form_date'] ?? null) ? ' | ' : '' }}{{ $english($fs['form_date'] ?? null) ? $fs['form_date'] : '' }}</div>@endif
                 <div class="form-title">Scholarship</div>
                 <div class="meta" style="margin-bottom:2px;">Session 2027</div>
                 <div class="meta">
@@ -484,6 +498,24 @@
         </table>
     @endif
 
+    @if(($registration->transaction_id || $fd('transaction_id')) && (float) $registration->amount_paid > 0)
+        <div class="sec-title">10. Application Fee</div>
+        <table class="grid">
+            <tr>
+                <td class="lbl">Amount</td>
+                <td style="width:33%;">{{ number_format((float) $registration->amount_paid, 0) }} Tk</td>
+                <td class="lbl">Method</td>
+                <td>{{ ucfirst((string) ($registration->payment_method ?: $fd('payment_method'))) }}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Transaction ID</td>
+                <td class="val-b">{{ $registration->transaction_id ?: $fd('transaction_id') }}</td>
+                <td class="lbl">Status</td>
+                <td>{{ ucfirst((string) $registration->payment_status) }}</td>
+            </tr>
+        </table>
+    @endif
+
     @if($hasViva)
         <table class="grid">
             <tr>
@@ -497,6 +529,7 @@
     <div class="declaration">
         I, <strong>{{ $up($registration->name) }}</strong>, declare that all information and the photo provided above are correct. The scholarship authority reserves the right to cancel my scholarship if any information is found false.
     </div>
+    @if($showSignature)
     <table class="sig-table">
         <tr>
             <td style="width:55%;"></td>
@@ -505,6 +538,7 @@
             </td>
         </tr>
     </table>
+    @endif
 
     {{-- Recommendation (50 words) + head of institution + public representative --}}
     <table class="remark-box remark-cols">
@@ -546,6 +580,7 @@
 
     <div class="footer-line">
         <span class="r">Ref: #{{ $registration->registration_number }}</span>
+        @if($english($fs['form_copy_tag'] ?? null)){{ $fs['form_copy_tag'] }} · @endif
         Generated: {{ now()->format('d/m/Y H:i') }}
     </div>
 </div>

@@ -661,6 +661,14 @@
         <i class="fa-brands fa-whatsapp"></i>
     </a>
 
+    <style>
+        /* phones: the chat bubble must never sit on top of an order button or the cart drawer's form */
+        body:has(.offcanvas.show) .floating-whatsapp-btn, body:has(dialog[open]) .floating-whatsapp-btn { display: none !important; }
+        @media (max-width: 575.98px) {
+            .floating-whatsapp-btn { width: 46px !important; height: 46px !important; bottom: 84px !important; right: 14px !important; opacity: .92; }
+        }
+    </style>
+
     {{-- Floating Copy Claim Notification Toast --}}
     <div id="copyClaimToast" style="position: fixed; bottom: 85px; right: 24px; z-index: 99999; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: #ffffff; padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.15); display: none; font-size: 13px; font-weight: 500; max-width: 380px; animation: slideInUp 0.3s ease;">
         <div class="d-flex align-items-center gap-2">

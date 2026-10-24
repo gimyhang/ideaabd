@@ -124,6 +124,9 @@
     $isSch = $campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']);
     // scholarship applicants need time to download and read the instructions before the redirect
     $redirectSecs = $isSch ? 120 : 6;
+    $redirectTo = ($campaign->redirect_url && filter_var($campaign->redirect_url, FILTER_VALIDATE_URL)) ? $campaign->redirect_url : url('/');
+    $customMessage = $isSch ? trim((string) $campaign->success_message) : '';
+    if ($customMessage !== '' && preg_match('/\p{Bengali}/u', $customMessage)) { $customMessage = ''; }
 @endphp
 <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
@@ -153,6 +156,7 @@
                         <div class="p-3.5 rounded-4 mb-4 border d-flex align-items-start gap-3" style="background: #f0fdf4; border-color: #bbf7d0 !important; color: #166534;">
                             <i class="fa-solid fa-file-signature fs-3 text-success flex-shrink-0"></i>
                             <div style="font-size: 14px; line-height: 1.6; font-weight: 600;">
+                                @if($customMessage !== '')<div class="mb-1">{{ $customMessage }}</div>@endif
                                 <div class="mb-1">Download your application form.</div>
                                 <div>Get it signed by the head of your institute and your local councillor, and submit it on the day of the meeting.</div>
                             </div>
@@ -267,7 +271,7 @@
 
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                window.location.href = "{{ url('/') }}";
+                window.location.href = @json($redirectTo);
             }
         }, 1000);
     }

@@ -199,6 +199,12 @@
                     <span>ডেলিভারি ও চেকআউট তথ্য</span>
                 </h5>
 
+                @if($errors->any())
+                    <div class="alert alert-danger small py-2 px-3 mb-3" role="alert">
+                        @foreach($errors->all() as $message)<div>{{ $message }}</div>@endforeach
+                    </div>
+                @endif
+
                 <form id="fullCartCheckoutForm" method="POST" action="{{ route('cart.checkout') }}">
                     @csrf
                     <input type="hidden" name="cart_items" id="fullCartItemsHidden">
@@ -214,7 +220,7 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-dark mb-1">মোবাইল নম্বর <span class="text-danger">*</span></label>
-                        <input type="tel" name="customer_phone" class="form-control rounded-3 font-monospace" 
+                        <input type="tel" name="customer_phone" class="form-control rounded-3 font-monospace" inputmode="numeric" autocomplete="tel" maxlength="20"
                                value="{{ auth()->user()?->phone ?? '' }}" placeholder="01XXXXXXXXX" required>
                     </div>
 
@@ -464,7 +470,8 @@
                     price: parsePrice(item.price),
                     image: item.image || '',
                     quantity: Math.max(1, parseInt(item.quantity || item.qty || 1, 10) || 1),
-                    format: item.format || 'paperback'
+                    type: item.type || '',
+                    format: item.format || (item.type ? '' : 'paperback')
                 }));
             } catch(e) {
                 return [];
@@ -942,6 +949,12 @@
             let toast = new bootstrap.Toast(toastEl, { delay: 3500 });
             toast.show();
         }
+
+        // coming back (browser back / bfcache) must not leave the order button stuck on "processing"
+        window.addEventListener('pageshow', function(ev) {
+            const btn = document.getElementById('fullCartSubmitBtn');
+            if (btn && ev.persisted) { btn.disabled = false; btn.innerHTML = '<span>অর্ডার নিশ্চিত করুন</span>'; }
+        });
 
         document.addEventListener('DOMContentLoaded', function() {
             renderFullCartPage();

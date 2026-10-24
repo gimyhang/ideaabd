@@ -10,6 +10,26 @@
         2 => ['perm_division', 'permanent_district', 'perm_upazila', 'perm_post_office', 'perm_village', 'pres_division', 'present_district', 'pres_upazila', 'pres_post_office', 'pres_village'],
         3 => ['scholarship_reason', 'other_scholarship', 'other_scholarship_details'],
     ];
+    $wizardFields[0] = array_merge($wizardFields[0], ['email', 'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'father_phone', 'mother_phone', 'guardian_phone', 'guardian_relation', 'guardian_name', 'guardian_income', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details']);
+    $wizardFields[1] = array_merge($wizardFields[1], ['current_year', 'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa', 'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa', 'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa', 'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa']);
+    $wizardFields[3] = array_merge($wizardFields[3], ['prev_joyee', 'prev_scholarships.0.year', 'prev_scholarships.0.amount', 'books_read_count', 'reading_habit', 'books_read_names', 'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch', 'payment_method', 'transaction_id', 'payment_phone']);
+
+    // Form settings from the campaign's "Form studio" / edit page
+    $fs = is_array($campaign->form_settings ?? null) ? $campaign->form_settings : [];
+    $schTheme = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($fs['theme_color'] ?? $campaign->theme_color ?? '')) ? ($fs['theme_color'] ?? $campaign->theme_color) : 'var(--sch-theme, #0f3a68)';
+    // admin labels often carry a Bengali part: keep the English one in brackets, else the default
+    $stdLabel = function (string $key, string $default) use ($fs) {
+        $label = trim((string) ($fs['fields'][$key]['label'] ?? ''));
+        if ($label === '') { return $default; }
+        if (preg_match('/\(([^)]*[A-Za-z][^)]*)\)/', $label, $m)) { return trim($m[1]); }
+        return preg_match('/\p{Bengali}/u', $label) ? $default : $label;
+    };
+    $stdEnabled = fn (string $key) => ($fs['fields'][$key]['enabled'] ?? true) !== false;
+    $feeAmount = (float) ($campaign->fee_amount ?? 0);
+    $hasFee = !empty($campaign->has_fee_or_donation) && $feeAmount > 0;
+    $logoPath = $fs['logo_image'] ?? null;
+    $logoUrl = $logoPath ? ((str_starts_with($logoPath, 'http') || str_starts_with($logoPath, '/')) ? $logoPath : asset('storage/' . $logoPath)) : null;
+    $logoSize = max(30, min(200, (int) ($fs['logo_size'] ?? 56)));
     $knownWizardFields = array_merge(...array_values($wizardFields));
     $initialWizardStep = 4;
     foreach ($wizardFields as $step => $fields) {
@@ -78,13 +98,13 @@
     }
     .form-table-card {
         background: #ffffff;
-        border: 1.5px solid #0f3a68;
+        border: 1.5px solid var(--sch-theme, #0f3a68);
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
         overflow: hidden;
     }
     .form-header-bar {
-        background: #0f3a68;
+        background: var(--sch-theme, #0f3a68);
         color: #ffffff;
         padding: 12px 20px;
         display: flex;
@@ -151,7 +171,7 @@
         transition: border-color 0.15s, box-shadow 0.15s;
     }
     .grid-input:focus {
-        border-color: #0f3a68;
+        border-color: var(--sch-theme, #0f3a68);
         outline: 0;
         box-shadow: 0 0 0 2px rgba(15, 58, 104, 0.15);
     }
@@ -175,7 +195,7 @@
         transition: all 0.2s;
     }
     .photo-cell-box:hover {
-        border-color: #0f3a68;
+        border-color: var(--sch-theme, #0f3a68);
         background: #f0fdf4;
     }
     .photo-cell-img {
@@ -201,7 +221,7 @@
         border-radius: 4px;
     }
     .btn-submit-app {
-        background: #0f3a68;
+        background: var(--sch-theme, #0f3a68);
         color: #ffffff;
         font-size: 15px;
         font-weight: 700;
@@ -246,13 +266,13 @@
     }
     .scholarship-wizard-step.active,
     .scholarship-wizard-step.complete {
-        color: #0f3a68;
+        color: var(--sch-theme, #0f3a68);
     }
     .scholarship-wizard-step.active span,
     .scholarship-wizard-step.complete span {
         color: #fff;
-        background: #0f3a68;
-        border-color: #0f3a68;
+        background: var(--sch-theme, #0f3a68);
+        border-color: var(--sch-theme, #0f3a68);
     }
     .scholarship-wizard-progress {
         height: 4px;
@@ -265,7 +285,7 @@
         display: block;
         width: 20%;
         height: 100%;
-        background: #0f3a68;
+        background: var(--sch-theme, #0f3a68);
         transition: width .2s ease;
     }
     .scholarship-step[hidden] {
@@ -318,7 +338,7 @@
 </style>
 
 <div class="container py-4">
-    <div class="scholarship-form-wrap">
+    <div class="scholarship-form-wrap" style="--sch-theme: {{ $schTheme }};">
 
         @auth
             <div class="card border-0 rounded-3 p-3 mb-3 shadow-xs d-flex flex-row align-items-center justify-content-between flex-wrap gap-2" style="background: #f0fdf4; border: 1px solid #86efac !important;">
@@ -371,16 +391,34 @@
             {{-- Hidden input for Client-Side Auto-Optimized Photo Blob (Base64) --}}
             <input type="hidden" name="optimized_photo_data" id="optimizedPhotoData">
 
+            @if($campaign->banner_image)
+                <img src="{{ asset('storage/' . $campaign->banner_image) }}" alt="" class="w-100 d-block" style="max-height: 200px; object-fit: cover;" loading="lazy">
+            @endif
+
             {{-- HEADER BAR --}}
             <div class="form-header-bar">
-                <div>
-                    <h5 class="mb-0 fw-bold" style="font-size: 16px;">Scholarship</h5>
-                    <div style="font-size: 11px; opacity: 0.9;">Session 2027 | HSC / Honours / Masters / Others</div>
+                <div class="d-flex align-items-center gap-2">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="" style="height: {{ min($logoSize, 56) }}px; width: auto; max-width: 90px; object-fit: contain; background: #fff; border-radius: 6px; padding: 2px;">
+                    @endif
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="font-size: 16px;">Scholarship</h5>
+                        <div style="font-size: 11px; opacity: 0.9;">Session 2027 | HSC / Honours / Masters / Others</div>
+                        @if(!empty($fs['form_subhead']) && !preg_match('/\p{Bengali}/u', $fs['form_subhead']))<div style="font-size: 11px; opacity: 0.9;">{{ $fs['form_subhead'] }}</div>@endif
+                    </div>
                 </div>
                 <div class="text-end">
-                    <span class="badge bg-light text-dark fw-bold" style="font-size: 11px;">ENTRY</span>
+                    <span class="badge bg-light text-dark fw-bold" style="font-size: 11px;">{{ $campaign->badge_text && !preg_match('/\p{Bengali}/u', $campaign->badge_text) ? $campaign->badge_text : 'ENTRY' }}</span>
                 </div>
             </div>
+
+            @if(!empty($fs['form_notice_active']) && !empty($fs['form_notice_text']))
+                <div class="alert alert-{{ in_array($fs['form_notice_type'] ?? 'info', ['info', 'warning', 'danger', 'success'], true) ? $fs['form_notice_type'] : 'info' }} rounded-0 py-2 px-3 mb-0 small">{!! nl2br(e($fs['form_notice_text'])) !!}</div>
+            @endif
+
+            @if($campaign->contact_phone || $campaign->contact_email)
+                <div class="px-3 py-1 small text-muted border-bottom">Need help? @if($campaign->contact_phone)<a href="tel:{{ preg_replace('/[^0-9+]/', '', $campaign->contact_phone) }}" class="fw-semibold">{{ $campaign->contact_phone }}</a>@endif @if($campaign->contact_email) · <a href="mailto:{{ $campaign->contact_email }}" class="fw-semibold">{{ $campaign->contact_email }}</a>@endif</div>
+            @endif
 
             <nav class="scholarship-wizard" aria-label="Application steps">
                 <div class="scholarship-wizard-steps">
@@ -409,7 +447,7 @@
                             <img id="previewImg" class="photo-cell-img" alt="Student Photo">
                             <div id="uploadPrompt" class="p-2 text-center">
                                 <div style="font-size: 24px;">📷</div>
-                                <div style="font-size: 11px; font-weight: bold; color: #0f3a68;">Student Photo <span class="text-danger">*</span></div>
+                                <div style="font-size: 11px; font-weight: bold; color: var(--sch-theme, #0f3a68);">Student Photo <span class="text-danger">*</span></div>
                                 <div style="font-size: 9.5px; color: #64748b;">Auto-Optimized</div>
                             </div>
                         </div>
@@ -473,8 +511,12 @@
                             <input type="tel" name="phone" id="studentPhone" class="grid-input font-monospace flex-grow-1" placeholder="017XXXXXXXX" inputmode="numeric" value="{{ old('phone', $user?->phone) }}" required maxlength="15" oninput="formatPhone(this)">
                         </div>
                     </td>
-                    <td class="label-col">Email</td>
+                    @if($stdEnabled('email'))
+                    <td class="label-col">{{ $stdLabel('email', 'Email') }}</td>
                     <td class="val-col"><input type="email" name="email" class="grid-input" placeholder="Optional" value="{{ old('email', $user?->email) }}"></td>
+                    @else
+                    <td class="label-col"></td><td class="val-col"></td>
+                    @endif
                 </tr>
                 <tr>
                     <td class="label-col">Disability <span class="text-danger">*</span></td>
@@ -891,6 +933,36 @@
             </table>
             <div class="small text-muted px-2 mb-3" style="font-size:11px;">The account must belong to you or your parent/guardian. A wrong number can delay or lose the payment.</div>
 
+            @if($hasFee)
+                {{-- 10. APPLICATION FEE (campaign setting) --}}
+                <div class="form-section-head">10. Application Fee <span class="text-danger">*</span></div>
+                <input type="hidden" name="amount_paid" value="{{ $feeAmount }}">
+                <table class="grid-table mb-1">
+                    <tr>
+                        <td class="label-col">Amount</td>
+                        <td colspan="3" class="val-col fw-bold">৳ {{ number_format($feeAmount, 0) }}</td>
+                    </tr>
+                    @if(!empty($campaign->payment_instructions) && !preg_match('/\p{Bengali}/u', $campaign->payment_instructions))
+                        <tr><td class="label-col">How to pay</td><td colspan="3" class="val-col small">{!! nl2br(e($campaign->payment_instructions)) !!}</td></tr>
+                    @endif
+                    <tr>
+                        <td class="label-col">Method <span class="text-danger">*</span></td>
+                        <td class="val-col">
+                            <select name="payment_method" class="grid-input" required>
+                                @foreach(['' => '— Select —', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket', 'bank' => 'Bank'] as $mv => $ml)
+                                    <option value="{{ $mv }}" {{ (string) old('payment_method') === (string) $mv ? 'selected' : '' }}>{{ $ml }}</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="label-col">Transaction ID <span class="text-danger">*</span></td>
+                        <td class="val-col"><input type="text" name="transaction_id" class="grid-input font-monospace text-uppercase" maxlength="100" value="{{ old('transaction_id') }}" required></td>
+                    </tr>
+                    <tr>
+                        <td class="label-col">Sender Number</td>
+                        <td colspan="3" class="val-col"><input type="text" name="payment_phone" class="grid-input font-monospace" inputmode="numeric" maxlength="30" placeholder="Number the money was sent from" value="{{ old('payment_phone') }}"></td>
+                    </tr>
+                </table>
+            @endif
             </section>
 
             <section class="scholarship-step" data-wizard-step="4">

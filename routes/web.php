@@ -120,6 +120,8 @@ Route::match(['get', 'post'], '/cart/checkout', function (\Illuminate\Http\Reque
 })->name('cart.checkout');
 Route::post('/cart/validate-coupon', [CartController::class, 'validateCoupon'])->name('cart.validate-coupon');
 Route::post('/cart/add', fn() => back())->name('cart.add');
+Route::get('/track-order', [\App\Http\Controllers\OrderTrackingController::class, 'show'])->name('order.track');
+Route::post('/track-order', [\App\Http\Controllers\OrderTrackingController::class, 'lookup'])->middleware('throttle:20,1')->name('order.track.lookup');
 Route::post('/newsletter/subscribe', fn() => back()->with('success', 'Subscribed successfully!'))->name('newsletter.subscribe');
 
 // --- Reviews & Comments (Dynamic, Registered & Guest Safe) -------------------

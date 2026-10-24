@@ -152,9 +152,19 @@ class CartController extends Controller
      */
     public function checkout(Request $request): RedirectResponse|JsonResponse
     {
+        // Bangla digits (০-৯) and separators typed on a phone keyboard must not break the order
+        foreach (['customer_phone', 'payment_phone', 'gift_recipient_phone'] as $phoneField) {
+            if (is_string($request->input($phoneField))) {
+                $digits = strtr($request->input($phoneField), ['০' => '0', '১' => '1', '২' => '2', '৩' => '3', '৪' => '4', '৫' => '5', '৬' => '6', '৭' => '7', '৮' => '8', '৯' => '9']);
+                $digits = preg_replace('/[\s\-().]+/', '', $digits);
+                $digits = preg_replace('/^(\+?88)(?=01)/', '', $digits);          // +8801XXXXXXXXX -> 01XXXXXXXXX
+                $request->merge([$phoneField => $digits]);
+            }
+        }
+
         $validated = $request->validate([
             'customer_name'          => 'required|string|max:255',
-            'customer_phone'         => 'required|string|max:25',
+            'customer_phone'         => ['required', 'string', 'regex:/^(01[3-9]\d{8}|\+?\d{8,15})$/'],
             'customer_email'         => 'nullable|email|max:255',
             'customer_address'       => 'required|string|max:1000',
             'district'               => 'required|string',
@@ -170,6 +180,11 @@ class CartController extends Controller
             'gift_recipient_address' => 'nullable|required_if:is_gift,1|string',
             'gift_message'           => 'nullable|string',
             'cart_items'             => 'required|string', // JSON array of items: [{id, title, price, qty/quantity}]
+        ], [
+            'customer_phone.regex'      => 'মোবাইল নম্বরটি সঠিক নয়। ১১ ডিজিটের নম্বর দিন (যেমন 01XXXXXXXXX)।',
+            'customer_phone.required'   => 'মোবাইল নম্বর দিন।',
+            'customer_name.required'    => 'আপনার নাম দিন।',
+            'customer_address.required' => 'ডেলিভারির সম্পূর্ণ ঠিকানা দিন।',
         ]);
 
         // Check user verification & approval status
@@ -441,7 +456,7 @@ class CartController extends Controller
             return app(PaymentController::class)->createSslcommerzPayment($payReq);
         }
 
-        $successMsg = "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার নম্বর: #{$order->order_number}। আমাদের প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবেন।";
+        $successMsg = "আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার নম্বর: #{$order->order_number}। আমাদের প্রতিনিধি শীঘ্রই আপনার সাথে যোগাযোগ করবেন। অর্ডারের অবস্থা দেখুন: " . route('order.track');
 
         if ($request->expectsJson()) {
             return response()->json([

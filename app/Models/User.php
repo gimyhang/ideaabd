@@ -169,6 +169,12 @@ class User extends Authenticatable
         }
 
         if ($this->isCustomer()) {
+            // Quick ordering: a customer never has to verify before buying. Verification is asked for at tracking time
+            // (OrderTrackingController); set shop.require_verified_customer_orders to true to bring the old rule back.
+            if (config('shop.require_verified_customer_orders', false) !== true) {
+                return ['can_order' => true, 'reason' => null];
+            }
+
             $phoneVerified = $this->isPhoneVerified();
             $emailVerified = $this->isEmailVerified();
 

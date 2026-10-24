@@ -2341,16 +2341,24 @@
 
                 if (!id) return;
 
+                // book page: the chosen binding (hardcover / paperback) and the quantity box travel with the item
+                let format = '';
+                if (!itemType) {
+                    try { if (typeof currentSelectedFormat !== 'undefined') format = String(currentSelectedFormat || ''); } catch (e) {}
+                    if (btn) { const q = parseInt(document.getElementById('bookQuantity')?.value || 1, 10); if (q > 0) qty = Math.min(99, q); }
+                }
+
                 let cart = JSON.parse(localStorage.getItem('idea_cart') || '[]');
                 const numPrice = Number(price) || 0;
-                const existing = cart.find(item => item.id == id && (!itemType || item.type === itemType));
+                const existing = cart.find(item => item.id == id && (!itemType || item.type === itemType) && (!format || !item.format || item.format === format));
                 
                 if (existing) {
                     existing.quantity = (existing.quantity || existing.qty || 1) + qty;
                     existing.qty = existing.quantity;
                     if (itemType && !existing.type) existing.type = itemType;
+                    if (format && !existing.format) existing.format = format;
                 } else {
-                    cart.push({ id, title, price: numPrice, image, quantity: qty, qty: qty, type: itemType });
+                    cart.push({ id, title, price: numPrice, image, quantity: qty, qty: qty, type: itemType, format });
                 }
 
                 localStorage.setItem('idea_cart', JSON.stringify(cart));
@@ -2406,18 +2414,22 @@
             try {
                 let cart = JSON.parse(localStorage.getItem('idea_cart') || '[]');
                 const numPrice = Number(price) || 0;
-                const existing = cart.find(item => item.id == id);
+                let format = '';
+                try { if (typeof currentSelectedFormat !== 'undefined') format = String(currentSelectedFormat || ''); } catch (e) {}
+                const buyQty = Math.min(99, Math.max(1, parseInt(document.getElementById('bookQuantity')?.value || 1, 10) || 1));
+                const existing = cart.find(item => item.id == id && (!format || !item.format || item.format === format));
                 if (existing) {
-                    existing.quantity = (existing.quantity || existing.qty || 1) + 1;
+                    existing.quantity = (existing.quantity || existing.qty || 1) + buyQty;
                     existing.qty = existing.quantity;
+                    if (format && !existing.format) existing.format = format;
                 } else {
-                    cart.push({ id, title, price: numPrice, image, quantity: 1, qty: 1 });
+                    cart.push({ id, title, price: numPrice, image, quantity: buyQty, qty: buyQty, format });
                 }
                 localStorage.setItem('idea_cart', JSON.stringify(cart));
                 updateHeaderCartBadge();
 
                 if (window.openCartDrawer) {
-                    window.openCartDrawer();
+                    window.openCartDrawer({ checkout: true });      // straight to the order form
                 } else if (slug) {
                     window.location.href = "{{ url('/books') }}/" + encodeURIComponent(slug) + "?buy_now=1";
                 } else {

@@ -375,6 +375,10 @@ class PublicEventRegistrationController extends Controller
             $rules['books_read_names'] = ($request->integer('books_read_count') > 0 || $request->input('reading_habit') === 'I have read')
                 ? 'required|string|max:1000' : 'nullable|string|max:1000';
             // Identity, family and payment details needed to decide on and pay a scholarship
+            if (!empty($campaign->has_fee_or_donation) && (float) $campaign->fee_amount > 0) {
+                $rules['payment_method'] = 'required|in:bkash,nagad,rocket,bank';
+                $rules['transaction_id'] = 'required|string|max:100';
+            }
             $rules['national_id']        = ['required', 'regex:/^\d{10}$|^\d{13}$|^\d{17}$/'];   // NID (10/13/17 digits) or birth registration (17 digits)
             $rules['father_status']      = 'required|in:Alive,Deceased';
             $rules['mother_status']      = 'required|in:Alive,Deceased';
@@ -665,6 +669,9 @@ class PublicEventRegistrationController extends Controller
         $district = $validated['district'] ?? ($request->input('state_or_city') ?: ($request->input('district') ?: ($request->input('present_district') ?: ($request->input('permanent_district') ?: null))));
 
         $amountPaid = floatval($validated['amount_paid'] ?? 0);
+        if ($isScholarship && !empty($campaign->has_fee_or_donation) && (float) $campaign->fee_amount > 0) {
+            $amountPaid = (float) $campaign->fee_amount;           // the fee is the campaign's, never the browser's
+        }
         $paymentStatus = 'free';
         if ($campaign->has_fee_or_donation) {
             $paymentStatus = !empty($validated['transaction_id']) ? 'pending' : 'unpaid';
