@@ -20,7 +20,7 @@
 @endphp
 
 <!-- Global Interactive Cart Drawer (Offcanvas) -->
-<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="siteCartDrawer" aria-labelledby="siteCartDrawerLabel" style="width: 100%; max-width: 440px; z-index: 1060;">
+<div class="offcanvas offcanvas-end shadow-lg border-0" tabindex="-1" id="siteCartDrawer" aria-labelledby="siteCartDrawerLabel" style="width: 100%; max-width: 440px; z-index: 2600 !important; height: 100dvh; max-height: 100dvh;">
     
     <!-- Drawer Header -->
     <div class="offcanvas-header bg-light border-bottom p-3.5 d-flex align-items-center justify-content-between">
@@ -483,7 +483,11 @@
             renderCartDrawer();
             restoreQuickCustomer();
             const drawerEl = document.getElementById('siteCartDrawer');
-            if (drawerEl) {
+            if (!drawerEl || typeof bootstrap === 'undefined' || !bootstrap.Offcanvas) {
+                window.location.href = "{{ route('cart') }}";      // no drawer available: the full cart page still takes the order
+                return;
+            }
+            {
                 const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(drawerEl);
                 offcanvas.show();
                 // "Buy now": show the order form straight away instead of one more tap

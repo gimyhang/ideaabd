@@ -439,7 +439,7 @@
                 @endauth
 
                 {{-- Cart Button with live counter --}}
-                <a href="{{ route('cart') }}" class="btn btn-primary rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 shadow-xs fw-bold text-decoration-none hover-shadow" title="কার্ট" data-bs-toggle="offcanvas" data-bs-target="#siteCartDrawer" onclick="if(window.openCartDrawer){ window.openCartDrawer(); }" style="min-height: 42px;">
+                <a href="{{ route('cart') }}" class="btn btn-primary rounded-pill px-3 py-2 d-inline-flex align-items-center gap-2 shadow-xs fw-bold text-decoration-none hover-shadow" title="কার্ট" onclick="if(window.openCartDrawer){ event.preventDefault(); window.openCartDrawer(); }" style="min-height: 42px;">
                     <i class="fa-solid fa-bag-shopping" style="font-size: 16px;"></i>
                     <span class="d-none d-sm-inline" style="font-size: 13px;">কার্ট</span>
                     <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5 fw-bold font-monospace" id="siteCartCount" style="font-size: 11px;">০</span>
