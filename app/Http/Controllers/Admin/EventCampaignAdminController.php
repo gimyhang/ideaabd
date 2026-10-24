@@ -635,6 +635,11 @@ class EventCampaignAdminController extends Controller
             'custom_fields_json'   => 'nullable|string',
             'form_settings_json'   => 'nullable|string',
             'remove_banner'        => 'nullable|boolean',
+            'sch_title'            => 'nullable|string|max:80',
+            'sch_heading'          => 'nullable|string|max:60',
+            'sch_session'          => 'nullable|string|max:60',
+            'sch_logo_side'        => 'nullable|in:left,center,hidden',
+            'number_prefix'        => ['nullable', 'regex:/^[A-Za-z0-9]{1,12}$/'],
             'form_logo_image'      => 'nullable|file|mimes:jpeg,png,jpg,webp,svg,gif,bmp|max:8192',
         ], [
             'banner_image.max' => 'Banner is larger than 6 MB.',
@@ -655,7 +660,7 @@ class EventCampaignAdminController extends Controller
             }
             $validated['banner_image'] = null;
         }
-        unset($validated['remove_banner'], $validated['form_logo_image']);
+        unset($validated['remove_banner'], $validated['form_logo_image'], $validated['sch_title'], $validated['sch_heading'], $validated['sch_session'], $validated['sch_logo_side'], $validated['number_prefix']);
 
         $validated['has_fee_or_donation'] = !empty($request->has_fee_or_donation);
         $validated['is_donation_flexible'] = !empty($request->is_donation_flexible);
@@ -691,6 +696,14 @@ class EventCampaignAdminController extends Controller
                 Storage::disk('public')->delete($fSettings['logo_image']);
             }
             $fSettings['logo_image'] = $newLogo;
+        }
+
+        // scholarship header & number prefix (kept only when filled; empty falls back to the defaults)
+        foreach (['sch_title', 'sch_heading', 'sch_session', 'sch_logo_side', 'number_prefix'] as $schKey) {
+            if ($request->has($schKey)) {
+                $v = trim((string) $request->input($schKey));
+                if ($v === '') { unset($fSettings[$schKey]); } else { $fSettings[$schKey] = $v; }
+            }
         }
 
         if ($request->filled('form_logo_size')) {
@@ -1565,7 +1578,7 @@ class EventCampaignAdminController extends Controller
                     $fd['scholarship_awarded_at'] = now()->toDateTimeString();
                     $r->update(['status' => 'selected', 'form_data' => $fd]);
                     try {
-                        $downloadUrl = url('/event-registration/print/' . $r->registration_number);
+                        $downloadUrl = $r->scholarshipUrl('print');
                         $smsText = "অভিনন্দন! '{$r->campaign->title}'-এ আপনি বৃত্তির জন্য প্রাথমিকভাবে নির্বাচিত হয়েছেন। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
                         \App\Services\SmsService::send($r->phone, $smsText);
                     } catch (\Throwable $e) {

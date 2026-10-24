@@ -177,6 +177,43 @@
                         </div>
                     </div>
 
+                    @php
+                        $isSchEdit = $campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']);
+                        $schHdr = $campaign->scholarshipHeader();
+                    @endphp
+                    @if($isSchEdit)
+                        {{-- Scholarship header & logo: used by the application page, its preview, the print, the PDF and the application number --}}
+                        <div class="mb-3 p-3 rounded-3 border" style="background:#f0fdf4;">
+                            <label class="form-label fw-bold text-dark small mb-2">Header</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted mb-1">Title line</label>
+                                    <input type="text" name="sch_title" maxlength="80" class="form-control form-control-sm" value="{{ old('sch_title', $schHdr['title']) }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted mb-1">Heading</label>
+                                    <input type="text" name="sch_heading" maxlength="60" class="form-control form-control-sm" value="{{ old('sch_heading', $schHdr['heading']) }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted mb-1">Session label</label>
+                                    <input type="text" name="sch_session" maxlength="60" class="form-control form-control-sm" value="{{ old('sch_session', $schHdr['session']) }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted mb-1">Number prefix</label>
+                                    <input type="text" name="number_prefix" maxlength="12" pattern="[A-Za-z0-9]{1,12}" class="form-control form-control-sm font-monospace" value="{{ old('number_prefix', $campaign->form_settings['number_prefix'] ?? '2027') }}" title="Letters and digits only, e.g. 2027 gives 2027-1, 2027-2">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted mb-1">Logo position</label>
+                                    <select name="sch_logo_side" class="form-select form-select-sm">
+                                        @foreach(['left' => 'Left', 'center' => 'Above title', 'hidden' => 'Hidden'] as $v => $l)
+                                            <option value="{{ $v }}" @selected(old('sch_logo_side', $schHdr['logo_side']) === $v)>{{ $l }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="small text-muted mt-2">Logo and size are set above. English only.</div>
+                        </div>
+                    @endif
                     {{-- Form Letterhead Header Details (স্থান, তারিখ, সহযোগিতা, কপি স্ট্যাম্প) --}}
                     <div class="mb-3 p-3 bg-light rounded-3 border">
                         <label class="form-label fw-bold text-dark small mb-2">

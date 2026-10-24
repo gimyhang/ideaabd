@@ -892,21 +892,32 @@ class AdminAccessController extends Controller
             );
 
             // 9. Invoice & Sender Settings
+            // Saved as a MERGE: the accounting screen keeps the logo, bank details, QR codes, receipt styling and document titles
+            // in the same record, and this tab must never wipe them.
+            $existingInvoice = AdminDashboardSetting::where('key', 'invoice_settings')->first()?->value;
+            if (is_string($existingInvoice)) { $existingInvoice = json_decode($existingInvoice, true); }
+            $existingInvoice = is_array($existingInvoice) ? $existingInvoice : [];
+            $pick = fn (string $field, string $key, $default) => $request->has($field) ? (string) $request->input($field) : ($existingInvoice[$key] ?? $default);
+            $senderFields = [
+                'sender_name' => $pick('invoice_sender_name', 'sender_name', 'আইডিয়া প্রকাশন'),
+                'sender_address' => $pick('invoice_sender_address', 'sender_address', 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ'),
+                'sender_phone' => $pick('invoice_sender_phone', 'sender_phone', '01558712870'),
+                'sender_email' => $pick('invoice_sender_email', 'sender_email', 'ideapbd@gmail.com'),
+                'sender_website' => $pick('invoice_sender_website', 'sender_website', 'www.ideaabd.com'),
+                'invoice_title' => $pick('invoice_title', 'invoice_title', 'ক্যাশ মেমো / ইনভয়েস'),
+                'invoice_terms' => $pick('invoice_terms', 'invoice_terms', 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন। কোনো ত্রুটি থাকলে ডেলিভারি ম্যানের সামনেই হেল্পলাইনে যোগাযোগ করুন।'),
+                'invoice_footer' => $pick('invoice_footer', 'invoice_footer', 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!'),
+            ];
+            $mergedInvoice = array_merge($existingInvoice, $senderFields, [
+                // the accounting documents (memo, challan, quotation) read these names: keep both spellings in step
+                'business_name' => $senderFields['sender_name'],
+                'address'       => $senderFields['sender_address'],
+                'phone'         => $senderFields['sender_phone'],
+                'email'         => $senderFields['sender_email'],
+            ]);
             AdminDashboardSetting::updateOrCreate(
                 ['key' => 'invoice_settings'],
-                [
-                    'value' => [
-                        'sender_name'    => $request->input('invoice_sender_name', 'আইডিয়া প্রকাশন'),
-                        'sender_address' => $request->input('invoice_sender_address', 'সেন্ট্রাল রোড, রংপুর ৫৪০০, বাংলাদেশ'),
-                        'sender_phone'   => $request->input('invoice_sender_phone', '01558712870'),
-                        'sender_email'   => $request->input('invoice_sender_email', 'ideapbd@gmail.com'),
-                        'sender_website' => $request->input('invoice_sender_website', 'www.ideaabd.com'),
-                        'invoice_title'  => $request->input('invoice_title', 'ক্যাশ মেমো / ইনভয়েস'),
-                        'invoice_terms'  => $request->input('invoice_terms', 'পণ্য গ্রহণের সময় অনুগ্রহ করে চেক করে নিন। কোনো ত্রুটি থাকলে ডেলিভারি ম্যানের সামনেই হেল্পলাইনে যোগাযোগ করুন।'),
-                        'invoice_footer' => $request->input('invoice_footer', 'বই পড়ার আনন্দ ছড়িয়ে পড়ুক সবার মাঝে। ideaabd-এর সাথে থাকার জন্য ধন্যবাদ!'),
-                    ],
-                    'updated_by' => auth()->id(),
-                ]
+                ['value' => $mergedInvoice, 'updated_by' => auth()->id()]
             );
 
             // 9.1 Editorial & Publisher Settings

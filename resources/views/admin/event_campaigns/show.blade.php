@@ -467,7 +467,7 @@
                 </a>
                 @if($isScholarship)
                     <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'selected'])) }}" class="aec-tab-btn {{ request('status') === 'selected' ? 'active' : '' }}">
-                        Selected (বৃত্তিপ্রাপ্ত)
+                        Selected
                     </a>
                 @endif
                 <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'pending'])) }}" class="aec-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}">
@@ -1236,32 +1236,32 @@
                                     @endif
 
                                     {{-- Print Form / Pass Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="আমন্ত্রণপত্র / কার্ড প্রিন্ট">
+                                    <a href="{{ route('admin.event-campaigns.registrations.print', $reg->id) }}" target="_blank" class="btn-action-icon btn-action-print" title="{{ $isScholarship ? 'Print' : 'আমন্ত্রণপত্র / কার্ড প্রিন্ট' }}">
                                         <i class="fa-solid fa-print"></i>
                                     </a>
 
                                     {{-- Download PDF Button --}}
-                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="PDF ফরম ডাউনলোড">
+                                    <a href="{{ route('admin.event-campaigns.registrations.pdf', $reg->id) }}" class="btn-action-icon btn-action-pdf" title="{{ $isScholarship ? 'PDF' : 'PDF ফরম ডাউনলোড' }}">
                                         <i class="fa-solid fa-file-pdf"></i>
                                     </a>
 
                                     {{-- Details Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-preview" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="পূর্ণ বিবরণ প্রিভিউ">
+                                    <button type="button" class="btn-action-icon btn-action-preview" data-bs-toggle="modal" data-bs-target="#viewDetailsModal{{ $reg->id }}" title="{{ $isScholarship ? 'Preview' : 'পূর্ণ বিবরণ প্রিভিউ' }}">
                                         <i class="fa-solid fa-eye"></i>
                                     </button>
 
                                     {{-- Edit Participant Modal Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="অংশগ্রহণকারী সম্পাদনা">
+                                    <button type="button" class="btn-action-icon btn-action-edit" data-bs-toggle="modal" data-bs-target="#editRegModal{{ $reg->id }}" title="{{ $isScholarship ? 'Edit' : 'অংশগ্রহণকারী সম্পাদনা' }}">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
 
                                     {{-- Send SMS Trigger --}}
-                                    <button type="button" class="btn-action-icon btn-action-sms" data-bs-toggle="modal" data-bs-target="#smsModal{{ $reg->id }}" title="মেসেজ পাঠান (কার্ড ডাউনলোড লিংক / নোটিশ)">
+                                    <button type="button" class="btn-action-icon btn-action-sms" data-bs-toggle="modal" data-bs-target="#smsModal{{ $reg->id }}" title="{{ $isScholarship ? 'SMS' : 'মেসেজ পাঠান (কার্ড ডাউনলোড লিংক / নোটিশ)' }}">
                                         <i class="fa-solid fa-paper-plane"></i>
                                     </button>
 
                                     {{-- Delete Participant Button --}}
-                                    <button type="button" class="btn-action-icon btn-action-delete btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="নিবন্ধন ডিলিট">
+                                    <button type="button" class="btn-action-icon btn-action-delete btn-delete-reg" data-id="{{ $reg->id }}" data-name="{{ $reg->name }}" data-url="{{ route('admin.event-campaigns.registrations.destroy', $reg->id) }}" title="{{ $isScholarship ? 'Delete' : 'নিবন্ধন ডিলিট' }}">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -1269,6 +1269,9 @@
                                 {{-- SMS Modal for Participant --}}
                                 @include('admin.event_campaigns.partials.sms_modal', ['item' => $reg, 'prefix' => ''])
 
+                                @if($isScholarship)
+                                    @include('admin.event_campaigns.partials.scholarship_preview', ['reg' => $reg, 'campaign' => $campaign, 'photoSrc' => $photoSrc ?? null])
+                                @else
                                 {{-- MODAL 1: VIEW FULL DETAILS & LIVE EDIT MODAL --}}
                                 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-xl text-start" style="max-width: 1080px;">
@@ -1947,6 +1950,8 @@
                                     </div>
                                 </div>
 
+                                @endif
+
                                 {{-- MODAL 2: VIVA ASSESSMENT MODAL (50 MARKS) --}}
                                 @if($isScholarship)
                                     <div class="modal fade" id="vivaModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
@@ -1957,7 +1962,7 @@
                                                     <div class="modal-header border-bottom py-3 bg-light">
                                                         <div>
                                                             <h6 class="modal-title fw-bold mb-0 text-dark">
-                                                                <i class="fa-solid fa-clipboard-check text-primary me-1"></i> Viva Assessment (ভাইভা মূল্যায়ন — ৫০ নম্বর)
+                                                                <i class="fa-solid fa-clipboard-check text-primary me-1"></i> Viva (50 marks)
                                                             </h6>
                                                             <small class="text-muted">#{{ $reg->registration_number }} — {{ $reg->name }}</small>
                                                         </div>
@@ -1967,52 +1972,52 @@
                                                         <table class="table table-bordered table-sm align-middle mb-3">
                                                             <thead class="table-light small fw-bold">
                                                                 <tr>
-                                                                    <th>মূল্যায়ন সূচক (Assessment Criteria)</th>
-                                                                    <th style="width: 25%;">পূর্ণমান</th>
-                                                                    <th style="width: 30%;">প্রাপ্ত নম্বর</th>
+                                                                    <th>Criteria</th>
+                                                                    <th style="width: 25%;">Max</th>
+                                                                    <th style="width: 30%;">Score</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 <tr>
-                                                                    <td>উপস্থিতি (Attendance)</td>
-                                                                    <td class="text-center font-monospace">১</td>
+                                                                    <td>Attendance</td>
+                                                                    <td class="text-center font-monospace">1</td>
                                                                     <td><input type="number" step="0.5" max="1" min="0" name="viva_attendance" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_attendance'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>কাগজপত্র (Documents Verification)</td>
-                                                                    <td class="text-center font-monospace">২</td>
+                                                                    <td>Documents</td>
+                                                                    <td class="text-center font-monospace">2</td>
                                                                     <td><input type="number" step="0.5" max="2" min="0" name="viva_documents" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_documents'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>পোশাক পরিচ্ছেদ (Attire & Decorum)</td>
-                                                                    <td class="text-center font-monospace">১০</td>
+                                                                    <td>Attire</td>
+                                                                    <td class="text-center font-monospace">10</td>
                                                                     <td><input type="number" step="0.5" max="10" min="0" name="viva_attire" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_attire'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>ফিউচার প্লান (Future Career Plan)</td>
-                                                                    <td class="text-center font-monospace">১০</td>
+                                                                    <td>Future plan</td>
+                                                                    <td class="text-center font-monospace">10</td>
                                                                     <td><input type="number" step="0.5" max="10" min="0" name="viva_future_plan" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_future_plan'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>পাঠ অভ্যাস (Reading Habits & Books)</td>
-                                                                    <td class="text-center font-monospace">১০</td>
+                                                                    <td>Reading</td>
+                                                                    <td class="text-center font-monospace">10</td>
                                                                     <td><input type="number" step="0.5" max="10" min="0" name="viva_reading_habit" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_reading_habit'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>স্বেচ্ছাসেবী অভিজ্ঞতা (Volunteer Exp.)</td>
-                                                                    <td class="text-center font-monospace">১০</td>
+                                                                    <td>Volunteering</td>
+                                                                    <td class="text-center font-monospace">10</td>
                                                                     <td><input type="number" step="0.5" max="10" min="0" name="viva_volunteer_exp" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_volunteer_exp'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td>উপস্থিত বুদ্ধিমত্তা (Presence of Mind / IQ)</td>
-                                                                    <td class="text-center font-monospace">৭</td>
+                                                                    <td>IQ</td>
+                                                                    <td class="text-center font-monospace">7</td>
                                                                     <td><input type="number" step="0.5" max="7" min="0" name="viva_iq" class="form-control form-control-sm font-monospace text-center viva-input-{{ $reg->id }}" value="{{ $reg->form_data['viva_iq'] ?? '' }}" oninput="calcVivaTotal({{ $reg->id }})"></td>
                                                                 </tr>
                                                                 <tr class="table-primary fw-bold">
-                                                                    <td>সর্বমোট প্রাপ্ত নম্বর (Total Score)</td>
-                                                                    <td class="text-center font-monospace">৫০</td>
+                                                                    <td>Total</td>
+                                                                    <td class="text-center font-monospace">50</td>
                                                                     <td class="text-center font-monospace fs-6 text-primary" id="vivaTotalDisplay{{ $reg->id }}">
-                                                                        {{ $reg->form_data['viva_total'] ?? 0 }} / ৫০
+                                                                        {{ $reg->form_data['viva_total'] ?? 0 }} / 50
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
@@ -2021,7 +2026,7 @@
                                                         <div class="form-check p-2 bg-light rounded border mb-3">
                                                             <input class="form-check-input ms-0 me-2" type="checkbox" name="is_awarded" id="awardCheck{{ $reg->id }}" value="1" {{ ($reg->status === 'selected' || !empty($reg->form_data['is_scholarship_awarded'])) ? 'checked' : '' }}>
                                                             <label class="form-check-label small fw-bold text-success" for="awardCheck{{ $reg->id }}">
-                                                                <i class="fa-solid fa-award me-1"></i> এই শিক্ষার্থীকে শিক্ষাবৃত্তি প্রদান (Selected for Scholarship) হিসেবে নির্বাচন করুন
+                                                                <i class="fa-solid fa-award me-1"></i> Selected for scholarship
                                                             </label>
                                                         </div>
 
@@ -2039,6 +2044,9 @@
                                 @endif
 
                                 {{-- MODAL 3: FULL EDIT PARTICIPANT MODAL --}}
+                                @if($isScholarship)
+                                    @include('admin.event_campaigns.partials.scholarship_edit', ['reg' => $reg])
+                                @else
                                 <div class="modal fade" id="editRegModal{{ $reg->id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered modal-lg text-start">
                                         <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
@@ -2102,6 +2110,7 @@
                                                                     <label class="form-label small fw-bold text-dark mb-1">ইমেইল</label>
                                                                     <input type="email" name="email" class="form-control form-control-sm" value="{{ $reg->email }}">
                                                                 </div>
+                                @endif
                                                                 @if($isWriter)
                                                                     <div class="col-12 col-sm-6">
                                                                         <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক ক্যাটাগরি</label>
@@ -4732,7 +4741,7 @@
             const actionLabels = {
                 'approve': 'অনুমোদন / কনফার্ম',
                 'mark_pending': 'পেন্ডিং মার্ক',
-                'select_scholarship': 'বৃত্তিপ্রাপ্ত নির্বাচন',
+                'select_scholarship': 'Select for scholarship',
                 'resolve_geo': 'বিভাগ-জেলা অমিল সংশোধন',
                 'delete': 'মুছে ফেলা'
             };

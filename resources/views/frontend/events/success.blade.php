@@ -173,7 +173,7 @@
                     @if($summary)
                         <div class="info-summary-box mb-4">
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-hashtag me-1 text-muted"></i> {{ $isSch ? 'Application No:' : 'রেজিস্ট্রেশন নম্বর:' }}</span>
+                                <span class="info-label"><i class="fa-solid fa-hashtag me-1 text-muted"></i> {{ $isSch ? 'Number:' : 'রেজিস্ট্রেশন নম্বর:' }}</span>
                                 <span class="info-val font-monospace text-primary fs-6">#{{ $summary['registration_number'] }}</span>
                             </div>
                             <div class="info-row">
@@ -191,7 +191,7 @@
                                 </div>
                             @endif
                             <div class="info-row">
-                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> {{ $isSch ? 'Submitted:' : 'সময়:' }}</span>
+                                <span class="info-label"><i class="fa-solid fa-clock me-1 text-muted"></i> {{ $isSch ? 'Date:' : 'সময়:' }}</span>
                                 <span class="text-dark fw-semibold" style="font-size: 13px;">{{ $summary['created_at'] ?? now()->format('d M, Y - h:i A') }}</span>
                             </div>
                         </div>
@@ -200,11 +200,11 @@
                     {{-- Card Download & Print Action Buttons --}}
                     @if(!empty($summary['registration_number']))
                         <div class="d-grid gap-2 d-sm-flex justify-content-center mb-4">
-                            <a href="{{ route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-warning btn-action-lg shadow-sm text-dark">
-                                <i class="fa-solid fa-id-card"></i> {{ $isSch ? 'Download Application Form' : 'আমন্ত্রণ কার্ড ডাউনলোড' }}
+                            <a href="{{ $formLinks['print'] ?? route('event.registration.print', $summary['registration_number']) }}" target="_blank" class="btn btn-warning btn-action-lg shadow-sm text-dark">
+                                <i class="fa-solid fa-id-card"></i> {{ $isSch ? 'Download' : 'আমন্ত্রণ কার্ড ডাউনলোড' }}
                             </a>
-                            <a href="{{ route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-outline-danger btn-action-lg">
-                                <i class="fa-solid fa-file-pdf"></i> {{ $isSch ? 'Download PDF' : 'কার্ড PDF' }}
+                            <a href="{{ $formLinks['pdf'] ?? route('event.registration.pdf', $summary['registration_number']) }}" class="btn btn-outline-danger btn-action-lg">
+                                <i class="fa-solid fa-file-pdf"></i> {{ $isSch ? 'PDF' : 'কার্ড PDF' }}
                             </a>
                         </div>
                     @endif
@@ -218,7 +218,7 @@
                             <span>@if($isSch)You will be taken to the homepage <strong class="text-primary">www.ideaabd.com</strong> when the timer ends. Download your form first.@elseস্বয়ংক্রিয়ভাবে হোমপেজ <strong class="text-primary">www.ideaabd.com</strong> এ নিয়ে যাওয়া হচ্ছে...@endif</span>
                         </div>
                         <div class="fw-bold text-dark font-monospace mb-2" style="font-size: 16px;">
-                            <span id="countdownSecs">{{ $redirectSecs }}</span> {{ $isSch ? 'seconds left' : 'সেকেন্ড বাকি' }}
+                            <span id="countdownSecs">{{ $redirectSecs }}</span> {{ $isSch ? 'seconds' : 'সেকেন্ড বাকি' }}
                         </div>
 
                         <div class="countdown-bar-wrap mb-3">
@@ -227,10 +227,10 @@
 
                         <div class="d-flex justify-content-center gap-2">
                             <button type="button" id="btnPauseCountdown" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" onclick="toggleCountdown()" style="font-size: 12.5px;">
-                                <i class="fa-solid fa-pause me-1"></i> {{ $isSch ? 'Stop redirect' : 'রিডাইরেক্ট থামান' }}
+                                <i class="fa-solid fa-pause me-1"></i> {{ $isSch ? 'Stop' : 'রিডাইরেক্ট থামান' }}
                             </button>
                             <a href="{{ url('/') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold" style="font-size: 12.5px;">
-                                <i class="fa-solid fa-house me-1"></i> {{ $isSch ? 'Homepage' : 'হোমপেজ' }}
+                                <i class="fa-solid fa-house me-1"></i> {{ $isSch ? 'Home' : 'হোমপেজ' }}
                             </a>
                         </div>
                     </div>
@@ -280,7 +280,7 @@
         isPaused = !isPaused;
         if (isPaused) {
             if (btnPause) {
-                btnPause.innerHTML = '<i class="fa-solid fa-play me-1"></i> ' + (isSch ? 'Resume redirect' : 'রিডাইরেক্ট শুরু করুন');
+                btnPause.innerHTML = '<i class="fa-solid fa-play me-1"></i> ' + (isSch ? 'Resume' : 'রিডাইরেক্ট শুরু করুন');
                 btnPause.classList.remove('btn-outline-secondary');
                 btnPause.classList.add('btn-success');
             }
@@ -289,7 +289,7 @@
             }
         } else {
             if (btnPause) {
-                btnPause.innerHTML = '<i class="fa-solid fa-pause me-1"></i> ' + (isSch ? 'Stop redirect' : 'রিডাইরেক্ট থামান');
+                btnPause.innerHTML = '<i class="fa-solid fa-pause me-1"></i> ' + (isSch ? 'Stop' : 'রিডাইরেক্ট থামান');
                 btnPause.classList.remove('btn-success');
                 btnPause.classList.add('btn-outline-secondary');
             }

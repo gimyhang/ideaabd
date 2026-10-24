@@ -7,26 +7,14 @@
     $up = fn ($v) => strtoupper((string) $v);
 
     $fs = is_array($campaign->form_settings ?? null) ? $campaign->form_settings : [];
-    $campaignLogo = null;
-    if (!empty($fs['logo_image'])) {
-        $lp = $fs['logo_image'];
-        if (file_exists(public_path('storage/' . $lp))) { $campaignLogo = $isPdf ? public_path('storage/' . $lp) : asset('storage/' . $lp); }
-        elseif (file_exists(storage_path('app/public/' . $lp))) { $campaignLogo = $isPdf ? storage_path('app/public/' . $lp) : asset('storage/' . $lp); }
-    }
-    $campaignLogoSize = max(30, min(120, (int) ($fs['logo_size'] ?? 60)));
+    $hdr = $campaign->scholarshipHeader();
+    $campaignLogo = $hdr['logo_side'] === 'hidden' ? null : (\App\Models\EventRegistration::imageDataUri($hdr['logo_image']) ?: \App\Models\EventRegistration::imageDataUri('images/logo.png'));
+    $campaignLogoSize = $hdr['logo_size'];
     $english = fn ($v) => is_string($v) && trim($v) !== '' && !preg_match('/\p{Bengali}/u', $v);
     $showSignature = ($fs['enable_signature'] ?? true) !== false;
     $logoRel = file_exists(public_path('images/logo.png')) ? 'images/logo.png' : (file_exists(public_path('images/logo-mark.svg')) ? 'images/logo-mark.svg' : null);
 
-    $photoUrl = null;
-    $photoPath = $fd('student_photo');
-    if ($photoPath) {
-        if (file_exists(public_path('storage/' . $photoPath))) {
-            $photoUrl = $isPdf ? public_path('storage/' . $photoPath) : asset('storage/' . $photoPath);
-        } elseif (file_exists(storage_path('app/public/' . $photoPath))) {
-            $photoUrl = $isPdf ? storage_path('app/public/' . $photoPath) : asset('storage/' . $photoPath);
-        }
-    }
+    $photoUrl = \App\Models\EventRegistration::imageDataUri($fd('student_photo'));
 
     $collegeName = $fd('college_name') ?: ($registration->institution_or_org ?: '');
     // Place names are stored in Bengali; print them with their English spelling when one is known.
@@ -44,6 +32,10 @@
         if ($city !== '' && $$var !== '' && !str_contains($$var, $city)) { $$var = $city . ', ' . $$var; }
     }
     $sameAddr = $presAddr === '' || $presAddr === $permAddr;
+    $extraLines = max(0, (int) ceil(mb_strlen($permAddr) / 105) - 1) + ($sameAddr ? 0 : max(0, (int) ceil(mb_strlen($presAddr) / 105) - 1));
+    foreach (['ssc', 'hsc', 'grad', 'other'] as $lv) { $extraLines += max(0, (int) ceil(mb_strlen($fd($lv . '_institute')) / 30) - 1); }
+    $extraLines += max(0, (int) ceil(mb_strlen($collegeName) / 75) - 1);
+    $density = $extraLines >= 6 ? 'tight' : ($extraLines >= 3 ? 'compact' : 'normal');
     $permDistrict = $fd('permanent_district') ?: (string) $registration->district;
     $presDistrict = $fd('present_district');
     $permDistrict = $geoEn[$permDistrict] ?? $permDistrict;
@@ -161,12 +153,18 @@
             font-size: 14px; font-weight: bold; background: #e5e7eb; border: 1px solid #000;
             border-bottom: none; padding: 3px 6px;
         }
-        .grid { width: 100%; border-collapse: collapse; margin-bottom: 7px; page-break-inside: avoid; }
+        .grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; page-break-inside: avoid; }
         .grid tr { page-break-inside: avoid; }
         .sec-title { page-break-after: avoid; }
         .pb { page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0; }
         .reason, .declaration, .remark-cols, .sig-table, .footer-line { page-break-inside: avoid; }
-        .grid td, .grid th { border: 1px solid #000; padding: 4px 5px; font-size: 13.5px; vertical-align: middle; }
+        .density-compact .grid td, .density-compact .grid th { padding: 2px 4px !important; }
+        .density-compact .grid { margin-bottom: 4px; }
+        .density-tight .grid td, .density-tight .grid th { padding: 1px 4px !important; font-size: 12.5px !important; }
+        .density-tight .grid { margin-bottom: 3px; }
+        .density-tight .sec-title { font-size: 13px; }
+        .p2 .grid td, .p2 .grid th { padding: 5px 6px !important; font-size: 13.5px !important; }
+        .grid td, .grid th { border: 1px solid #000; padding: 3px 5px; font-size: 13.5px; vertical-align: middle; }
         .grid th { background: #f3f4f6; font-weight: bold; text-align: center; font-size: 13px; }
         .lbl { white-space: nowrap; width: 17%; }
         .val-b { font-weight: bold; }
@@ -199,14 +197,14 @@
         .footer-line .r { float: right; }
     </style>
 </head>
-<body>
+<body class="density-{{ $density }}">
 
 @if(!$isPdf)
     <div class="action-bar no-print">
         <div>
-            <a href="{{ url('/') }}" class="btn-action btn-back">← Home</a>
+            <a href="{{ url('/') }}" class="btn-action btn-back">Home</a>
             @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'admin'))
-                <a href="{{ route('admin.event-campaigns.show', $campaign->id ?? 1) }}" class="btn-action btn-back">← Admin Panel</a>
+                <a href="{{ route('admin.event-campaigns.show', $campaign->id ?? 1) }}" class="btn-action btn-back">Admin</a>
             @endif
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -214,7 +212,7 @@
                 <span class="badge-selected-status">★ Scholarship awarded</span>
             @endif
             <button type="button" onclick="window.print()" class="btn-action btn-print">Print</button>
-            <a href="{{ route('event.registration.pdf', $registration->registration_number) }}" class="btn-action btn-pdf">Download PDF</a>
+            <a href="{{ $registration->scholarshipUrl('pdf', 60 * 24) }}" class="btn-action btn-pdf">PDF</a>
         </div>
     </div>
 @endif
@@ -225,18 +223,19 @@
     <table class="head-table">
         <tr>
             <td class="head-logo">
-                @if($campaignLogo)
-                    <img src="{{ $campaignLogo }}" alt="Logo" style="max-height: {{ $campaignLogoSize }}px; max-width: 86px;">
-                @elseif($logoRel)
-                    <img src="{{ $isPdf ? public_path($logoRel) : asset($logoRel) }}" alt="Logo">
+                @if($campaignLogo && $hdr['logo_side'] === 'left')
+                    <img src="{{ $campaignLogo }}" alt="" style="max-height: {{ $campaignLogoSize }}px; max-width: 86px;">
                 @endif
             </td>
             <td class="head-title">
-                <div class="org">Joyee Shikkhabritti</div>
-                @if($english($fs['form_org'] ?? null) || $english($fs['form_subhead'] ?? null))<div class="meta">{{ trim(($fs['form_org'] ?? '') . ' ' . ($fs['form_subhead'] ?? '')) }}</div>@endif
-                @if($english($fs['form_venue'] ?? null) || $english($fs['form_date'] ?? null))<div class="meta">{{ $english($fs['form_venue'] ?? null) ? $fs['form_venue'] : '' }}{{ $english($fs['form_venue'] ?? null) && $english($fs['form_date'] ?? null) ? ' | ' : '' }}{{ $english($fs['form_date'] ?? null) ? $fs['form_date'] : '' }}</div>@endif
-                <div class="form-title">Scholarship</div>
-                <div class="meta" style="margin-bottom:2px;">Session 2027</div>
+                @if($campaignLogo && $hdr['logo_side'] === 'center')
+                    <img src="{{ $campaignLogo }}" alt="" style="max-height: {{ $campaignLogoSize }}px; max-width: 160px; margin-bottom: 2px;"><br>
+                @endif
+                <div class="org">{{ $hdr['title'] }}</div>
+                @if($hdr['org'] !== '' || $hdr['subhead'] !== '')<div class="meta">{{ trim($hdr['org'] . ' ' . $hdr['subhead']) }}</div>@endif
+                @if($hdr['venue'] !== '' || $hdr['date'] !== '')<div class="meta">{{ $hdr['venue'] }}{{ $hdr['venue'] !== '' && $hdr['date'] !== '' ? ' | ' : '' }}{{ $hdr['date'] }}</div>@endif
+                <div class="form-title">{{ $hdr['heading'] }}</div>
+                <div class="meta" style="margin-bottom:2px;">{{ $hdr['session'] }}</div>
                 <div class="meta">
                     Application No: <strong>{{ $registration->registration_number }}</strong>
                     &nbsp;|&nbsp; Date: {{ $registration->created_at->format('d/m/Y') }}
@@ -245,7 +244,7 @@
             <td class="head-photo">
                 <div class="photo-box">
                     @if($photoUrl)
-                        <img src="{{ $photoUrl }}" alt="Photo">
+                        <img src="{{ $photoUrl }}" alt="">
                     @else
                         <div class="ph">Photo</div>
                     @endif
@@ -253,7 +252,6 @@
             </td>
         </tr>
     </table>
-
     {{-- Applicant --}}
     <div class="sec-title">1. Applicant</div>
     <table class="grid">
@@ -295,7 +293,7 @@
     </table>
 
     {{-- Parents & guardian --}}
-    <div class="sec-title">2. Parents &amp; Guardian</div>
+    <div class="sec-title">2. Parents</div>
     <table class="grid">
         @foreach(['father' => "Father", 'mother' => "Mother"] as $pk => $pl)
             @php $gone = $fd($pk . '_status') === 'Deceased'; @endphp
@@ -361,7 +359,7 @@
             </tr>
         @endif
     </table>
-    <div class="sec-title">4. Educational Qualification</div>
+    <div class="sec-title">4. Education</div>
     <table class="grid">
         <thead>
             <tr>
@@ -419,11 +417,9 @@
     <div class="sec-title">6. Scholarships</div>
     <table class="grid">
         <tr>
-            <td class="lbl" style="width:46%;">Received Joyee Scholarship before?</td>
-            <td>{{ $fd('prev_joyee') ?: ($prevSch->isNotEmpty() ? 'Yes' : '—') }}</td>
-        </tr>
-        <tr>
-            <td class="lbl">Scholarship from another organization?</td>
+            <td class="lbl">Received Joyee before?</td>
+            <td style="width:16%;">{{ $fd('prev_joyee') ?: ($prevSch->isNotEmpty() ? 'Yes' : '—') }}</td>
+            <td class="lbl">From another organization?</td>
             <td>{{ $fd('other_scholarship') ?: 'No' }}@if($fd('other_scholarship_details')) — {{ $fd('other_scholarship_details') }}@endif</td>
         </tr>
     </table>
@@ -446,6 +442,7 @@
 
     {{-- Page 2 starts here: 1-6 on the first sheet, 7 onwards on the second --}}
     <div class="pb"></div>
+    <div class="p2">
 
     {{-- Reading --}}
     @if($fd('books_read_count') !== '' || $fd('reading_habit') !== '' || $fd('books_read_names') !== '')
@@ -467,13 +464,13 @@
     @endif
     {{-- Reason --}}
     <div class="reason">
-        <div style="font-weight:bold;font-size: 13.5px;">8. Statement (max 50 words):</div>
+        <div style="font-weight:bold;font-size: 13.5px;">8. Statement</div>
         <div class="reason-body">{{ $fd('scholarship_reason') }}</div>
     </div>
 
     {{-- Payment account --}}
     @if($fd('pay_method') !== '')
-        <div class="sec-title">9. Payment Account</div>
+        <div class="sec-title">9. Payment</div>
         <table class="grid">
             <tr>
                 <td class="lbl">Method</td>
@@ -499,7 +496,7 @@
     @endif
 
     @if(($registration->transaction_id || $fd('transaction_id')) && (float) $registration->amount_paid > 0)
-        <div class="sec-title">10. Application Fee</div>
+        <div class="sec-title">10. Fee</div>
         <table class="grid">
             <tr>
                 <td class="lbl">Amount</td>
@@ -534,7 +531,7 @@
         <tr>
             <td style="width:55%;"></td>
             <td style="width:45%;">
-                <div class="sig-line">Applicant signature &amp; date</div>
+                <div class="sig-line">Applicant signature</div>
             </td>
         </tr>
     </table>
@@ -544,22 +541,22 @@
     <table class="remark-box remark-cols">
         <tr>
             <td>
-                <div class="remark-head">Remarks (max 50 words) for Head of institute</div>
+                <div class="remark-head">Remarks: Head</div>
                 <div class="remark-lines"></div>
                 <div class="remark-sign">
                     <div class="seal-box">Seal</div>
                     <div class="sig-space"></div>
-                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Head of institute — signature</div>
+                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Head signature</div>
                     <div style="margin-top:5px;">Mobile: <span class="fill-line"></span></div>
                 </div>
             </td>
             <td>
-                <div class="remark-head">Remarks (max 50 words) for Public representative</div>
+                <div class="remark-head">Remarks: Councillor</div>
                 <div class="remark-lines"></div>
                 <div class="remark-sign">
                     <div class="seal-box">Seal</div>
                     <div class="sig-space"></div>
-                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Public representative — signature</div>
+                    <div style="border-top:1px solid #000;padding-top:2px;width:62%;">Councillor signature</div>
                     <div style="margin-top:5px;">Mobile: <span class="fill-line"></span></div>
                 </div>
             </td>
@@ -569,18 +566,20 @@
     <table class="sig-table" style="margin-top:6px;">
         <tr>
             <td style="width:42%;">
-                <div class="sig-line">Director<br><span style="font-size: 12px;">Joyee Shikkhabritti — approver</span></div>
+                <div class="sig-line">Director<br><span style="font-size: 12px;">{{ $hdr['title'] }} </span></div>
             </td>
             <td style="width:16%;"></td>
             <td style="width:42%;">
-                <div class="sig-line">Treasurer<br><span style="font-size: 12px;">Joyee Shikkhabritti</span></div>
+                <div class="sig-line">Treasurer<br><span style="font-size: 12px;">{{ $hdr['title'] }}</span></div>
             </td>
         </tr>
     </table>
 
+    </div>{{-- /p2 --}}
+
     <div class="footer-line">
         <span class="r">Ref: #{{ $registration->registration_number }}</span>
-        @if($english($fs['form_copy_tag'] ?? null)){{ $fs['form_copy_tag'] }} · @endif
+        @if($hdr['copy_tag'] !== ''){{ $hdr['copy_tag'] }} · @endif
         Generated: {{ now()->format('d/m/Y H:i') }}
     </div>
 </div>

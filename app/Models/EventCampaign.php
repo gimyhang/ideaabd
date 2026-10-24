@@ -81,6 +81,31 @@ class EventCampaign extends Model
         return false;
     }
 
+    /**
+     * Header / logo settings of the scholarship form, with English-only text and safe defaults.
+     * One source for the application page, its A4 preview, the print, the PDF and the success page.
+     */
+    public function scholarshipHeader(): array
+    {
+        $fs = is_array($this->form_settings) ? $this->form_settings : [];
+        $en = fn ($v, string $default = '') => (is_string($v) && trim($v) !== '' && !preg_match('/\p{Bengali}/u', $v)) ? trim($v) : $default;
+        $side = in_array($fs['sch_logo_side'] ?? 'left', ['left', 'center', 'hidden'], true) ? ($fs['sch_logo_side'] ?? 'left') : 'left';
+
+        return [
+            'title'      => $en($fs['sch_title'] ?? null, 'Joyee Shikkhabritti'),
+            'heading'    => $en($fs['sch_heading'] ?? null, 'Scholarship'),
+            'session'    => $en($fs['sch_session'] ?? null, 'Session 2027'),
+            'org'        => $en($fs['form_org'] ?? null),
+            'subhead'    => $en($fs['form_subhead'] ?? null),
+            'venue'      => $en($fs['form_venue'] ?? null),
+            'date'       => $en($fs['form_date'] ?? null),
+            'copy_tag'   => $en($fs['form_copy_tag'] ?? null),
+            'logo_side'  => $side,
+            'logo_size'  => max(30, min(120, (int) ($fs['logo_size'] ?? 60))),
+            'logo_image' => $fs['logo_image'] ?? null,
+        ];
+    }
+
     public function canAcceptRegistrations(): bool
     {
         return $this->is_active && !$this->isExpired() && !$this->isFull();

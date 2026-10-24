@@ -3494,6 +3494,11 @@ class IdeaAccountingController extends Controller
             $settings['phone'] = $validated['phone'] ?? '';
             $settings['email'] = $validated['email'] ?? '';
             $settings['terms_and_conditions'] = $validated['terms_and_conditions'] ?? '';
+            // System settings > Invoice shows these under the sender_* names
+            $settings['sender_name'] = $settings['business_name'];
+            $settings['sender_address'] = $settings['address'];
+            $settings['sender_phone'] = $settings['phone'];
+            $settings['sender_email'] = $settings['email'];
             $settings['challan_recipient_name_size'] = $validated['challan_recipient_name_size'] ?? '13px';
             $settings['challan_recipient_phone_size'] = $validated['challan_recipient_phone_size'] ?? '12px';
             $settings['challan_recipient_address_size'] = $validated['challan_recipient_address_size'] ?? '11.5px';

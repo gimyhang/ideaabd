@@ -27,9 +27,10 @@
     $stdEnabled = fn (string $key) => ($fs['fields'][$key]['enabled'] ?? true) !== false;
     $feeAmount = (float) ($campaign->fee_amount ?? 0);
     $hasFee = !empty($campaign->has_fee_or_donation) && $feeAmount > 0;
-    $logoPath = $fs['logo_image'] ?? null;
+    $hdr = $campaign->scholarshipHeader();
+    $logoPath = $hdr['logo_side'] === 'hidden' ? null : ($fs['logo_image'] ?? null);
     $logoUrl = $logoPath ? ((str_starts_with($logoPath, 'http') || str_starts_with($logoPath, '/')) ? $logoPath : asset('storage/' . $logoPath)) : null;
-    $logoSize = max(30, min(200, (int) ($fs['logo_size'] ?? 56)));
+    $logoSize = $hdr['logo_size'];
     $knownWizardFields = array_merge(...array_values($wizardFields));
     $initialWizardStep = 4;
     foreach ($wizardFields as $step => $fields) {
@@ -71,7 +72,7 @@
         ],
         'organizer' => [
             '@type' => 'Organization',
-            'name' => 'আইডিয়া প্রকাশন (Idea Publication)',
+            'name' => 'Idea Prokashon',
             'url' => 'https://www.ideaabd.com',
         ],
         'offers' => [
@@ -303,6 +304,23 @@
         .scholarship-wizard { padding-inline: 10px; }
         .scholarship-wizard-step { font-size: 10px; }
     }
+    /* ---------- get my form / new application ---------- */
+    .sch-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; margin-bottom: 12px; background: #e2e8f0; border-radius: 999px; }
+    .sch-mode { border: 0; border-radius: 999px; padding: 9px 12px; background: transparent; color: #334155; font-weight: 700; font-size: 14px; cursor: pointer; transition: background-color .15s, color .15s, box-shadow .15s; }
+    .sch-mode.is-active { background: var(--sch-theme, #0f3a68); color: #fff; box-shadow: 0 2px 8px rgba(15, 23, 42, .2); }
+    .sch-mode:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+    .sch-lookup { background: #fff; border: 1px solid #cbd5e1; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .sch-lookup[hidden] { display: none; }
+    .sch-lookup-lead { margin: 0 0 12px; font-size: 14px; color: #475569; }
+    .sch-lookup label { display: block; margin: 8px 0 4px; font-size: 12px; font-weight: 700; color: #334155; }
+    .sch-lookup-result { margin-top: 14px; padding: 14px; border-radius: 12px; font-size: 14px; }
+    .sch-lookup-result[hidden] { display: none; }
+    .sch-lookup-result.is-found { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .sch-lookup-result.is-missing { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+    .sch-lookup-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .sch-lookup-actions a { flex: 1 1 140px; text-align: center; padding: 10px 14px; border-radius: 999px; font-weight: 700; text-decoration: none; background: var(--sch-theme, #0f3a68); color: #fff; }
+    .sch-lookup-actions a.is-light { background: #fff; color: var(--sch-theme, #0f3a68); border: 1px solid var(--sch-theme, #0f3a68); }
+    #dynamicScholarshipForm[hidden] { display: none; }
     /* ---------- device friendly layout ---------- */
     .grid-table [hidden] { display: none !important; }
     #prevJoyeeBox { overflow-x: auto; }
@@ -385,6 +403,24 @@
             </div>
         @endif
 
+        {{-- Already applied? Open the form again with name + mobile. New here? Register below. --}}
+        <div id="get-form" class="sch-modes" role="tablist" aria-label="Options">
+            <button type="button" class="sch-mode is-active" data-mode="new" role="tab" aria-selected="true">Apply</button>
+            <button type="button" class="sch-mode" data-mode="get" role="tab" aria-selected="false">Retrieve</button>
+        </div>
+
+        <section id="schLookupPanel" class="sch-lookup" hidden aria-live="polite">
+            <p class="sch-lookup-lead">Applied already? Enter your name and mobile.</p>
+            <form id="schLookupForm" action="{{ route('event.lookup', $campaign->slug) }}" method="POST" novalidate>
+                @csrf
+                <label for="schLookName">Name</label>
+                <input id="schLookName" name="name" type="text" class="grid-input text-uppercase" autocomplete="name" maxlength="120" required>
+                <label for="schLookPhone">Mobile</label>
+                <input id="schLookPhone" name="phone" type="tel" class="grid-input font-monospace" inputmode="numeric" autocomplete="tel" maxlength="20" placeholder="01XXXXXXXXX" required>
+                <button type="submit" class="btn-submit-app w-100 mt-2" id="schLookupBtn">Find</button>
+            </form>
+            <div id="schLookupResult" class="sch-lookup-result" hidden></div>
+        </section>
         <form action="{{ route('event.submit', $campaign->slug) }}" method="POST" enctype="multipart/form-data" id="dynamicScholarshipForm" class="form-table-card" data-initial-step="{{ $initialWizardStep }}" novalidate>
             @csrf <x-bot-trap />
             
@@ -402,8 +438,8 @@
                         <img src="{{ $logoUrl }}" alt="" style="height: {{ min($logoSize, 56) }}px; width: auto; max-width: 90px; object-fit: contain; background: #fff; border-radius: 6px; padding: 2px;">
                     @endif
                     <div>
-                        <h5 class="mb-0 fw-bold" style="font-size: 16px;">Scholarship</h5>
-                        <div style="font-size: 11px; opacity: 0.9;">Session 2027 | HSC / Honours / Masters / Others</div>
+                        <h5 class="mb-0 fw-bold" style="font-size: 16px;">{{ $hdr['heading'] }}</h5>
+                        <div style="font-size: 11px; opacity: 0.9;">{{ $hdr['session'] }} | HSC / Honours / Masters / Others</div>
                         @if(!empty($fs['form_subhead']) && !preg_match('/\p{Bengali}/u', $fs['form_subhead']))<div style="font-size: 11px; opacity: 0.9;">{{ $fs['form_subhead'] }}</div>@endif
                     </div>
                 </div>
@@ -522,7 +558,7 @@
                     <td class="label-col">Disability <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="disability" class="grid-input" required>
-                            <option value="" {{ old('disability') ? '' : 'selected' }}>— Select —</option>
+                            <option value="" {{ old('disability') ? '' : 'selected' }}>Select</option>
                             <option value="No" {{ old('disability') === 'No' ? 'selected' : '' }}>No</option>
                             <option value="Yes" {{ old('disability') === 'Yes' ? 'selected' : '' }}>Yes</option>
                         </select>
@@ -530,7 +566,7 @@
                     <td class="label-col" id="disabilityTypeLabel" hidden>Category <span class="text-danger">*</span></td>
                     <td class="val-col" id="disabilityTypeCell" hidden>
                         <select name="disability_type" class="grid-input">
-                            @foreach(['' => '— Select —', 'Visual' => 'Visual impairment', 'Hearing' => 'Hearing impairment', 'Speech' => 'Speech impairment', 'Physical' => 'Physical / Mobility', 'Intellectual' => 'Intellectual', 'Autism' => 'Autism / Neurodevelopmental', 'Multiple' => 'Multiple', 'Other' => 'Other'] as $dv => $dl)
+                            @foreach(['' => 'Select', 'Visual' => 'Visual impairment', 'Hearing' => 'Hearing impairment', 'Speech' => 'Speech impairment', 'Physical' => 'Physical / Mobility', 'Intellectual' => 'Intellectual', 'Autism' => 'Autism / Neurodevelopmental', 'Multiple' => 'Multiple', 'Other' => 'Other'] as $dv => $dl)
                                 <option value="{{ $dv }}" {{ (string) old('disability_type') === (string) $dv ? 'selected' : '' }}>{{ $dl }}</option>
                             @endforeach
                         </select>
@@ -543,7 +579,7 @@
             </table>
 
             {{-- 2. PARENTS & GUARDIAN --}}
-            <div class="form-section-head">2. Parents &amp; Guardian</div>
+            <div class="form-section-head">2. Parents</div>
             <input type="hidden" name="orphan_status" id="orphanStatus" value="{{ old('orphan_status', 'None') }}">
             <table class="grid-table">
                 @foreach(['father' => 'Father', 'mother' => 'Mother'] as $pk => $pl)
@@ -602,7 +638,7 @@
 
             <section class="scholarship-step" data-wizard-step="1">
             {{-- 2. ACADEMIC INFORMATION --}}
-            <div class="form-section-head">3. Academic <span class="fw-normal" style="text-transform:none;">— for the degree you are applying for</span></div>
+            <div class="form-section-head">3. Academic</div>
             <table class="grid-table">
                 <tr>
                     <td class="label-col">Degree <span class="text-danger">*</span></td>
@@ -672,7 +708,7 @@
 </table>
 
             {{-- 3. EDUCATIONAL QUALIFICATION: SSC up to Masters; rows below the chosen degree are mandatory --}}
-            <div class="form-section-head">4. Educational Qualification <span class="fw-normal" style="text-transform:none;">— fill every level you have completed, up to the degree you apply for</span></div>
+            <div class="form-section-head">4. Education</div>
             <div class="table-responsive">
                 <table class="grid-table text-center mb-0">
                     <thead>
@@ -822,7 +858,7 @@
                     <td class="label-col">Received Joyee Scholarship before? <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="prev_joyee" id="prevJoyee" class="grid-input" required>
-                            <option value="" {{ old('prev_joyee') ? '' : 'selected' }}>— Select —</option>
+                            <option value="" {{ old('prev_joyee') ? '' : 'selected' }}>Select</option>
                             <option value="Yes" {{ old('prev_joyee') === 'Yes' ? 'selected' : '' }}>Yes</option>
                             <option value="No" {{ old('prev_joyee') === 'No' ? 'selected' : '' }}>No</option>
                         </select>
@@ -853,7 +889,7 @@
                     <td class="label-col">Receiving a scholarship from any other organization? <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="other_scholarship" id="otherScholarship" class="grid-input" required>
-                            <option value="" {{ old('other_scholarship') ? '' : 'selected' }}>— Select —</option>
+                            <option value="" {{ old('other_scholarship') ? '' : 'selected' }}>Select</option>
                             <option value="No" {{ old('other_scholarship') === 'No' ? 'selected' : '' }}>No</option>
                             <option value="Yes" {{ old('other_scholarship') === 'Yes' ? 'selected' : '' }}>Yes</option>
                         </select>
@@ -873,7 +909,7 @@
                     <td class="label-col">Reading habit <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="reading_habit" id="readingHabit" class="grid-input" required>
-                            <option value="" {{ old('reading_habit') ? '' : 'selected' }}>— Select —</option>
+                            <option value="" {{ old('reading_habit') ? '' : 'selected' }}>Select</option>
                             <option value="I have read" {{ old('reading_habit') === 'I have read' ? 'selected' : '' }}>I have read non-academic books</option>
                             <option value="I do not read" {{ old('reading_habit') === 'I do not read' ? 'selected' : '' }}>I do not read non-academic books</option>
                         </select>
@@ -887,7 +923,7 @@
 
 {{-- 5. REASON FOR SCHOLARSHIP (50 WORDS MAX) --}}
             <div class="form-section-head d-flex justify-content-between align-items-center">
-                <span>8. Statement (Max 50 Words) <span class="text-danger">*</span></span>
+                <span>8. Statement <span class="text-danger">*</span></span>
                 <span id="wordCounter" class="word-badge bg-secondary text-white">0 / 50 words</span>
             </div>
             <div class="p-3 bg-white">
@@ -898,13 +934,13 @@
             </div>
 
             {{-- DISBURSEMENT (where an awarded scholarship is paid) --}}
-            <div class="form-section-head">9. Payment Account <span class="text-danger">*</span></div>
+            <div class="form-section-head">9. Payment <span class="text-danger">*</span></div>
             <table class="grid-table mb-1">
                 <tr>
                     <td class="label-col">Method <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="pay_method" id="payMethod" class="grid-input" required>
-                            @foreach(['' => '— Select —', 'bKash' => 'bKash', 'Nagad' => 'Nagad', 'Rocket' => 'Rocket', 'Bank' => 'Bank Account'] as $mv => $ml)
+                            @foreach(['' => 'Select', 'bKash' => 'bKash', 'Nagad' => 'Nagad', 'Rocket' => 'Rocket', 'Bank' => 'Bank Account'] as $mv => $ml)
                                 <option value="{{ $mv }}" {{ (string) old('pay_method') === (string) $mv ? 'selected' : '' }}>{{ $ml }}</option>
                             @endforeach
                         </select>
@@ -912,7 +948,7 @@
                     <td class="label-col">Account Owner <span class="text-danger">*</span></td>
                     <td class="val-col">
                         <select name="pay_account_owner" class="grid-input" required>
-                            @foreach(['' => '— Select —', 'Self' => 'Self', 'Father' => 'Father', 'Mother' => 'Mother', 'Guardian' => 'Guardian'] as $av => $al)
+                            @foreach(['' => 'Select', 'Self' => 'Self', 'Father' => 'Father', 'Mother' => 'Mother', 'Guardian' => 'Guardian'] as $av => $al)
                                 <option value="{{ $av }}" {{ (string) old('pay_account_owner') === (string) $av ? 'selected' : '' }}>{{ $al }}</option>
                             @endforeach
                         </select>
@@ -935,12 +971,12 @@
 
             @if($hasFee)
                 {{-- 10. APPLICATION FEE (campaign setting) --}}
-                <div class="form-section-head">10. Application Fee <span class="text-danger">*</span></div>
+                <div class="form-section-head">10. Fee <span class="text-danger">*</span></div>
                 <input type="hidden" name="amount_paid" value="{{ $feeAmount }}">
                 <table class="grid-table mb-1">
                     <tr>
                         <td class="label-col">Amount</td>
-                        <td colspan="3" class="val-col fw-bold">৳ {{ number_format($feeAmount, 0) }}</td>
+                        <td colspan="3" class="val-col fw-bold">{{ number_format($feeAmount, 0) }} Tk</td>
                     </tr>
                     @if(!empty($campaign->payment_instructions) && !preg_match('/\p{Bengali}/u', $campaign->payment_instructions))
                         <tr><td class="label-col">How to pay</td><td colspan="3" class="val-col small">{!! nl2br(e($campaign->payment_instructions)) !!}</td></tr>
@@ -949,7 +985,7 @@
                         <td class="label-col">Method <span class="text-danger">*</span></td>
                         <td class="val-col">
                             <select name="payment_method" class="grid-input" required>
-                                @foreach(['' => '— Select —', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket', 'bank' => 'Bank'] as $mv => $ml)
+                                @foreach(['' => 'Select', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket', 'bank' => 'Bank'] as $mv => $ml)
                                     <option value="{{ $mv }}" {{ (string) old('payment_method') === (string) $mv ? 'selected' : '' }}>{{ $ml }}</option>
                                 @endforeach
                             </select>
@@ -991,7 +1027,7 @@
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn-submit-app">
-                    Submit Scholarship Application
+                    Submit
                 </button>
             </div>
             </section>
@@ -1208,14 +1244,83 @@
         assembleFormattedAddress('perm');
         assembleFormattedAddress('pres');
         const btn = document.getElementById('submitBtn');
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Submitting...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending';
         btn.disabled = true;
     });
+</script>
+<script>
+    // New application <-> Get my form
+    (function () {
+        const modes = document.querySelectorAll('.sch-mode');
+        const panel = document.getElementById('schLookupPanel');
+        const formEl = document.getElementById('dynamicScholarshipForm');
+        const result = document.getElementById('schLookupResult');
+        if (!modes.length || !panel || !formEl) return;
+
+        function setMode(mode, focus) {
+            const get = mode === 'get';
+            modes.forEach(b => { const on = b.dataset.mode === mode; b.classList.toggle('is-active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+            panel.hidden = !get;
+            formEl.hidden = get;
+            if (focus) (get ? document.getElementById('schLookName') : formEl.querySelector('[name="name"]'))?.focus({ preventScroll: true });
+            if (get) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        modes.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode, true)));
+        if (location.hash === '#get-form') setMode('get', false);
+
+        const lookup = document.getElementById('schLookupForm');
+        lookup.addEventListener('submit', async ev => {
+            ev.preventDefault();
+            const btn = document.getElementById('schLookupBtn');
+            const name = lookup.elements['name'].value.trim();
+            const phone = lookup.elements['phone'].value.trim();
+            if (!name || !phone) { show('missing', 'Enter both your name and your mobile number.'); return; }
+            btn.disabled = true; btn.textContent = 'Searching';
+            try {
+                const res = await fetch(lookup.action, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ name, phone }),
+                    credentials: 'same-origin',
+                });
+                const data = await res.json().catch(() => null);
+                if (res.status === 429) { show('missing', 'Too many tries. Please wait a minute and try again.'); }
+                else if (data && data.found) { found(data); }
+                else if (data && data.message) {
+                    show('missing', data.message + ' Taking you to the application form…');
+                    setTimeout(() => { setMode('new', true); const n = formEl.elements['name']; if (n && !n.value) n.value = name.toUpperCase(); const p = formEl.elements['phone']; if (p && !p.value) p.value = phone; }, 1600);
+                }
+                else { show('missing', 'We could not check right now. Please try again.'); }
+            } catch (e) {
+                show('missing', 'Network problem. Check your connection and try again.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Find';
+            }
+        });
+
+        function show(kind, text) {
+            result.hidden = false;
+            result.className = 'sch-lookup-result ' + (kind === 'found' ? 'is-found' : 'is-missing');
+            result.textContent = text;
+        }
+        function found(d) {
+            show('found', '');
+            const strong = document.createElement('strong'); strong.textContent = d.name;
+            const info = document.createElement('div');
+            info.append('Application ', Object.assign(document.createElement('b'), { textContent: d.application_no }), ' · ', strong);
+            const actions = document.createElement('div'); actions.className = 'sch-lookup-actions';
+            const pdf = Object.assign(document.createElement('a'), { href: d.pdf_url, textContent: 'PDF' });
+            const print = Object.assign(document.createElement('a'), { href: d.print_url, target: '_blank', rel: 'noopener', textContent: 'Print', className: 'is-light' });
+            actions.append(pdf, print);
+            result.append(info, actions);
+        }
+    })();
 </script>
 <script src="{{ asset('js/bd-geo-data.js') }}"></script>
 <script src="{{ asset('js/bd-geo-en.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const SCH_HDR = {!! json_encode(['title' => $hdr['title'], 'heading' => $hdr['heading'], 'session' => $hdr['session']], JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!};
         const form = document.getElementById('dynamicScholarshipForm');
         const steps = Array.from(form.querySelectorAll('[data-wizard-step]'));
         const stepButtons = Array.from(form.querySelectorAll('[data-wizard-target]'));
@@ -1409,9 +1514,9 @@
             document.getElementById('a4Preview').innerHTML = `
                 <table class="pv-head"><tr>
                     <td style="width:90px;"></td>
-                    <td align="center"><div style="font-weight:700;font-size:13px;">Joyee Shikkhabritti</div>
-                        <div style="font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1.15;">Scholarship</div>
-                        <div style="font-size:10px;">Session 2027</div>
+                    <td align="center"><div style="font-weight:700;font-size:13px;">${esc(SCH_HDR.title)}</div>
+                        <div style="font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;line-height:1.15;">${esc(SCH_HDR.heading)}</div>
+                        <div style="font-size:10px;">${esc(SCH_HDR.session)}</div>
                         <div style="font-size:11px;margin-top:2px;">Application No: <b>{{ $previewRegNumber ?? '' }}</b></div></td>
                     <td align="right" style="width:98px;"><div class="pv-photo">${photoHtml}</div></td>
                 </tr></table>
@@ -1425,7 +1530,7 @@
                     ${row('Disability', esc(val('disability')) + (val('disability') === 'Yes' ? ' — ' + esc(form.elements['disability_type']?.selectedOptions[0]?.text || '') + (val('disability_details') ? ' (' + esc(val('disability_details')) + ')' : '') : ''), '', '')}
                 </table>
 
-                <div class="pv-sec">2. Parents &amp; Guardian</div>
+                <div class="pv-sec">2. Parents</div>
                 <table>
                     ${['father', 'mother'].map(p => {
                         const L = p === 'father' ? 'Father' : 'Mother', gone = val(p + '_status') === 'Deceased';
@@ -1444,7 +1549,7 @@
                     ${row('Current Year', esc(val('current_year')), '', '')}
                 </table>
 
-                <div class="pv-sec">4. Educational Qualification</div>
+                <div class="pv-sec">4. Education</div>
                 <table>
                     <tr><th>Level</th><th>Roll / Reg</th><th>Board / University</th><th>Institute</th><th>Year</th><th>GPA</th></tr>
                     ${levels}
@@ -1469,10 +1574,10 @@
                     <tr><td class="pv-lbl">Book names</td><td colspan="3">${esc(val('books_read_names')).replace(/\n/g, '<br>')}</td></tr>
                 </table>
 
-                <div class="pv-sec">8. Statement (max 50 words)</div>
+                <div class="pv-sec">8. Statement</div>
                 <table><tr><td style="min-height:40px;">${esc(val('scholarship_reason'))}</td></tr></table>
 
-                <div class="pv-sec">9. Payment Account</div>
+                <div class="pv-sec">9. Payment</div>
                 <table>
                     ${row('Method', esc(val('pay_method') === 'Bank' ? 'Bank Account' : val('pay_method')), 'Account Owner', esc(val('pay_account_owner')))}
                     ${row('Holder Name', up(val('pay_account_name')), val('pay_method') === 'Bank' ? 'Account No.' : 'Wallet No.', esc(val('pay_account_no')))}

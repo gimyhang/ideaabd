@@ -59,6 +59,55 @@ class EventRegistration extends Model
      */
     public const SCHOLARSHIP_SESSION = '2027';
 
+    /** Scholarship applications hold ID and payment details: their forms are never reachable by guessing a number. */
+    public function isScholarship(): bool
+    {
+        $c = $this->campaign;
+
+        return $c && ($c->type === 'scholarship' || $c->slug === 'jshikkhabritti' || !empty($c->form_settings['is_scholarship_form']));
+    }
+
+    /** Time-limited signed link to this application's printable form or PDF. */
+    public function scholarshipUrl(string $kind = 'pdf', int $minutes = 60 * 24 * 30): string
+    {
+        return \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            $kind === 'print' ? 'event.registration.print' : 'event.registration.pdf',
+            now()->addMinutes($minutes),
+            ['registrationNumber' => $this->registration_number]
+        );
+    }
+
+    /**
+     * Reads an uploaded image from wherever this server keeps it and returns it as a data: URI, so the PDF engine
+     * never depends on storage symlinks, document roots or remote fetching.
+     */
+    public static function imageDataUri(?string $relative): ?string
+    {
+        $relative = trim((string) $relative);
+        if ($relative === '') {
+            return null;
+        }
+        $rel = ltrim(preg_replace('#^/?(public/)?storage/#', '', $relative), '/');
+        $candidates = [
+            storage_path('app/public/' . $rel),
+            public_path('storage/' . $rel),
+            public_path($rel),
+            base_path('storage/app/public/' . $rel),
+        ];
+        foreach ($candidates as $path) {
+            if (is_file($path) && is_readable($path)) {
+                $mime = @mime_content_type($path) ?: 'image/jpeg';
+                if (!str_starts_with($mime, 'image/')) {
+                    continue;
+                }
+
+                return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+            }
+        }
+
+        return null;
+    }
+
     public static function generateRegNumber($slugOrCampaign = '', ?int $campaignId = null): string
     {
         $slug = '';
@@ -103,7 +152,8 @@ class EventRegistration extends Model
 
         // Scholarship applications: plain sequence per session — 2027-1, 2027-2, ...
         if ($type === 'scholarship' || ($slugOrCampaign instanceof EventCampaign && !empty($slugOrCampaign->form_settings['is_scholarship_form'])) || in_array($cleanSlug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'], true)) {
-            $prefix = self::SCHOLARSHIP_SESSION . '-';
+            $custom = ($slugOrCampaign instanceof EventCampaign) ? (string) ($slugOrCampaign->form_settings['number_prefix'] ?? '') : '';
+            $prefix = (preg_match('/^[A-Za-z0-9]{1,12}$/', $custom) ? $custom : self::SCHOLARSHIP_SESSION) . '-';
             // withTrashed: a soft-deleted application still owns its number (the unique index covers deleted rows too)
             $max = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%')->pluck('registration_number')
                 ->map(fn ($n) => preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $n, $mm) ? (int) $mm[1] : 0)

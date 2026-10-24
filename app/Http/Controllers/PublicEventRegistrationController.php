@@ -896,6 +896,65 @@ class PublicEventRegistrationController extends Controller
         }
     }
 
+    /** Staff, the signed-in owner, or a valid signed link may open a scholarship form. */
+    protected function mayOpenScholarshipForm(EventRegistration $registration): bool
+    {
+        if (request()->hasValidSignature()) {
+            return true;
+        }
+        $user = auth()->user();
+
+        return $user && ($user->isSubAdmin() || (int) $registration->user_id === (int) $user->id);
+    }
+
+    protected function scholarshipLinkExpired(EventCampaign $campaign)
+    {
+        return redirect('/' . $campaign->slug . '#get-form')
+            ->with('error', 'This link has expired or is not valid. Enter your name and mobile number under "Get my form" to open your application again.');
+    }
+
+    /**
+     * "Already applied?" box on the scholarship page: name + mobile -> signed links to the applicant's own form.
+     */
+    public function lookup(Request $request, string $slug)
+    {
+        $campaign = EventCampaign::where('slug', $slug)->first()
+            ?: EventCampaign::where('type', 'scholarship')->first();
+        abort_unless($campaign, 404);
+
+        $data = $request->validate([
+            'name'  => ['required', 'string', 'min:2', 'max:120'],
+            'phone' => ['required', 'string', 'max:25'],
+        ]);
+
+        $norm = fn (string $v) => preg_replace('/\s+/u', ' ', mb_strtolower(trim($v)));
+        $phones = \App\Support\PhoneNormalizer::normalize($data['phone'], $request->input('country_code'))['query_phones'];
+
+        $match = EventRegistration::where('event_campaign_id', $campaign->id)
+            ->whereIn('phone', $phones)->orderBy('id')->get()
+            ->first(function ($reg) use ($norm, $data) {
+                similar_text($norm($reg->name), $norm($data['name']), $percent);
+
+                return $norm($reg->name) === $norm($data['name']) || $percent >= 88;      // a typo or a missing middle letter is fine
+            });
+
+        // same answer whether the number or the name was wrong: nobody can probe who has applied
+        if (!$match) {
+            return response()->json(['found' => false, 'message' => 'No application found for this name and mobile number. Please register below.']);
+        }
+
+        $match->setRelation('campaign', $campaign);
+
+        return response()->json([
+            'found'          => true,
+            'application_no' => $match->registration_number,
+            'name'           => $match->name,
+            'status'         => $match->status,
+            'pdf_url'        => $match->scholarshipUrl('pdf', 60 * 6),
+            'print_url'      => $match->scholarshipUrl('print', 60 * 6),
+        ]);
+    }
+
     /**
      * Show registration success confirmation screen.
      */
@@ -920,7 +979,16 @@ class PublicEventRegistrationController extends Controller
 
         $summary = session('recent_event_registration');
 
-        return view('frontend.events.success', compact('campaign', 'summary'));
+        // scholarship forms open through signed links only (they carry ID and payment details)
+        $formLinks = null;
+        if (!empty($summary['registration_number'])) {
+            $reg = EventRegistration::with('campaign')->where('registration_number', $summary['registration_number'])->first();
+            if ($reg && $reg->isScholarship()) {
+                $formLinks = ['print' => $reg->scholarshipUrl('print', 60 * 24), 'pdf' => $reg->scholarshipUrl('pdf', 60 * 24)];
+            }
+        }
+
+        return view('frontend.events.success', compact('campaign', 'summary', 'formLinks'));
     }
 
     /**
@@ -934,6 +1002,9 @@ class PublicEventRegistrationController extends Controller
 
         $campaign = $registration->campaign;
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        if ($isScholarship && !$this->mayOpenScholarshipForm($registration)) {
+            return $this->scholarshipLinkExpired($campaign);
+        }
         $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
         $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
         $requiresApproval = !empty($campaign->form_settings['requires_approval']);
@@ -970,6 +1041,9 @@ class PublicEventRegistrationController extends Controller
 
         $campaign = $registration->campaign;
         $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        if ($isScholarship && !$this->mayOpenScholarshipForm($registration)) {
+            return $this->scholarshipLinkExpired($campaign);
+        }
         $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
 
         // Check Admin Approval for Event Cards

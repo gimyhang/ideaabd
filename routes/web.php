@@ -1105,6 +1105,7 @@ Route::controller(\App\Http\Controllers\PublicEventRegistrationController::class
     Route::get('/v/{registrationNumber}', 'verifyAttendance')->name('event.attendance.short');
 
     Route::get('/event-confirmed/{slug}', 'success')->name('event.success');
+    Route::post('/event-lookup/{slug}', 'lookup')->middleware('throttle:12,1')->name('event.lookup')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::get('/{slug}', 'show')->name('event.show')->where('slug', '[a-zA-Z0-9\-_]+');
     Route::post('/{slug}', 'submit')->name('event.submit')->where('slug', '[a-zA-Z0-9\-_]+');
 });

@@ -45,7 +45,7 @@ class ScholarshipFormTest extends TestCase
         $this->campaign();
         $html = $this->get('/jshikkhabritti')->assertOk()->getContent();
 
-        foreach (['Educational Qualification', 'name="prev_joyee"', 'name="books_read_count"', 'name="books_read_names"', 'name="hsc_roll"', 'name="grad_roll"', 'name="other_roll"'] as $needle) {
+        foreach (['Education', 'name="prev_joyee"', 'name="books_read_count"', 'name="books_read_names"', 'name="hsc_roll"', 'name="grad_roll"', 'name="other_roll"'] as $needle) {
             $this->assertStringContainsString($needle, $html);
         }
         $this->assertMatchesRegularExpression('/name="guardian_phone"[^>]*\srequired/', $html);
@@ -98,7 +98,7 @@ class ScholarshipFormTest extends TestCase
         $this->assertSame(2, (int) $reg->form_data['books_read_count']);
 
         $html = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
-        foreach (['1. Applicant', '3. Academic', 'Received Joyee Scholarship before?', 'Original books read', 'Book A', '8. Statement (max 50 words)', 'Permanent'] as $needle) {
+        foreach (['1. Applicant', '3. Academic', 'Received Joyee before?', 'Original books read', 'Book A', '8. Statement', 'Permanent'] as $needle) {
             if ($needle !== '') $this->assertStringContainsString($needle, $html);
         }
         $this->assertStringContainsString('Rangpur City Corporation', $html);   // city corporation is kept in the address, in English
@@ -182,7 +182,7 @@ class ScholarshipFormTest extends TestCase
         $this->assertSame('3000', $reg->form_data['mother_income']);
 
         $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
-        foreach (['NID / Birth Reg.', '1234567890', 'Family / Earning Members', 'Father deceased', 'Visual impairment', 'Low vision', 'Mother Mobile', '01711000888', 'Nil', 'Payment Account', 'Wallet No.', '01711222333', 'Current Year', 'Guardian Contact', '(Uncle)'] as $needle) {
+        foreach (['NID / Birth Reg.', '1234567890', 'Family / Earning Members', 'Father deceased', 'Visual impairment', 'Low vision', 'Mother Mobile', '01711000888', 'Nil', 'Payment', 'Wallet No.', '01711222333', 'Current Year', 'Guardian Contact', '(Uncle)'] as $needle) {
             $this->assertStringContainsString($needle, $print);
         }
 
@@ -201,7 +201,7 @@ class ScholarshipFormTest extends TestCase
     public function test_section_titles_run_in_the_same_serial_on_the_form_the_preview_and_the_print(): void
     {
         $this->campaign();
-        $titles = ['1. Applicant', '2. Parents', '3. Academic', '4. Educational Qualification', '5. Address', '6. Scholarships', '7. Reading', '8. Statement', '9. Payment Account'];
+        $titles = ['1. Applicant', '2. Parents', '3. Academic', '4. Education', '5. Address', '6. Scholarships', '7. Reading', '8. Statement', '9. Payment'];
 
         $form = $this->get('/jshikkhabritti')->assertOk()->getContent();
         $form = substr($form, strpos($form, 'id="dynamicScholarshipForm"'));
@@ -253,8 +253,8 @@ class ScholarshipFormTest extends TestCase
         $reg = EventRegistration::firstOrFail();
         foreach ([route('event.registration.print', $reg->registration_number)] as $url) {
             $print = $this->get($url)->assertOk()->getContent();
-            $left = strpos($print, 'Remarks (max 50 words) for Head of institute');
-            $right = strpos($print, 'Remarks (max 50 words) for Public representative');
+            $left = strpos($print, 'Remarks: Head');
+            $right = strpos($print, 'Remarks: Councillor');
             $this->assertNotFalse($left);
             $this->assertGreaterThan($left, $right);                         // head of institute left, public representative right
             $this->assertStringContainsString('remark-cols', $print);
@@ -268,7 +268,7 @@ class ScholarshipFormTest extends TestCase
         $html = $this->get(route('event.success', 'jshikkhabritti'))->assertOk()->getContent();
         $flat = preg_replace('/\s+/', ' ', $html);
 
-        foreach (['Thank you!', 'Download your application form.', 'Get it signed by the head of your institute and your local councillor, and submit it on the day of the meeting.', 'Download Application Form', 'Download PDF', 'Application No:', '2027-1'] as $needle) {
+        foreach (['Thank you!', 'Download your application form.', 'Get it signed by the head of your institute and your local councillor, and submit it on the day of the meeting.', 'Download', 'PDF', 'Number:', '2027-1'] as $needle) {
             $this->assertTrue(str_contains($flat, $needle), "success page is missing: $needle");
         }
         $this->assertStringContainsString('<span id="countdownSecs">120</span>', $html);        // two minutes before the homepage redirect
@@ -289,10 +289,10 @@ class ScholarshipFormTest extends TestCase
 
         $break = strpos($print, 'class="pb"');
         $this->assertNotFalse($break);
-        foreach (['1. Applicant', '2. Parents', '3. Academic', '4. Educational Qualification', '5. Address', '6. Scholarships'] as $t) {
+        foreach (['1. Applicant', '2. Parents', '3. Academic', '4. Education', '5. Address', '6. Scholarships'] as $t) {
             $this->assertLessThan($break, strpos($print, $t), "$t must be on page 1");
         }
-        foreach (['7. Reading', '8. Statement', '9. Payment Account', 'Remarks (max 50 words) for Head of institute'] as $t) {
+        foreach (['7. Reading', '8. Statement', '9. Payment', 'Remarks: Head'] as $t) {
             $this->assertGreaterThan($break, strpos($print, $t), "$t must be on page 2");
         }
 
@@ -346,7 +346,7 @@ class ScholarshipFormTest extends TestCase
             'form_settings' => ['is_scholarship_form' => true],
         ]);
         $page = $this->get('/jshikkhabritti')->assertOk()->getContent();
-        $this->assertTrue(str_contains($page, '10. Application Fee'));
+        $this->assertTrue(str_contains($page, '10. Fee'));
         $this->assertTrue(str_contains($page, 'name="transaction_id"'));
 
         $this->post('/jshikkhabritti', $this->payload())->assertSessionHasErrors(['payment_method', 'transaction_id']);
@@ -357,7 +357,7 @@ class ScholarshipFormTest extends TestCase
         $this->assertSame('9J3K8L2M', $reg->transaction_id);
 
         $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
-        $this->assertTrue(str_contains($print, '10. Application Fee'));
+        $this->assertTrue(str_contains($print, '10. Fee'));
         $this->assertTrue(str_contains($print, '9J3K8L2M'));
 
         $success = $this->get(route('event.success', 'jshikkhabritti'))->assertOk()->getContent();
@@ -379,7 +379,7 @@ class ScholarshipFormTest extends TestCase
             $reg = EventRegistration::firstOrFail();
 
             $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
-            foreach (['campaigns/logos/print-test.png', 'Firiye Dekha', 'Rangpur | 12 Dec 2026', 'Applicant copy'] as $needle) {
+            foreach (['data:image/png;base64,', 'Firiye Dekha', 'Rangpur | 12 Dec 2026', 'Applicant copy'] as $needle) {
                 $this->assertTrue(str_contains($print, $needle), "missing from the print: $needle");
             }
             $this->assertFalse(str_contains($print, 'Applicant signature'), 'enable_signature=false hides the applicant signature');
@@ -401,5 +401,100 @@ class ScholarshipFormTest extends TestCase
         unset($data['pay_account_no']);
         $html = $this->from('/jshikkhabritti')->followingRedirects()->post('/jshikkhabritti', $data)->getContent();
         $this->assertTrue(str_contains($html, 'data-initial-step="3"'), 'a missing payment account must open the fourth step');
+    }
+    public function test_a_scholarship_form_cannot_be_opened_by_guessing_the_application_number(): void
+    {
+        $this->campaign();
+        $this->post('/jshikkhabritti', $this->payload())->assertSessionHasNoErrors();
+        $reg = EventRegistration::firstOrFail();
+
+        // a stranger (not signed in, no signed link) is sent back to the scholarship page
+        auth()->logout();
+        $this->flushSession();
+        $this->get(route('event.registration.print', $reg->registration_number))->assertRedirect('/jshikkhabritti#get-form');
+        $this->get(route('event.registration.pdf', $reg->registration_number))->assertRedirect('/jshikkhabritti#get-form');
+        $this->get('/card/' . $reg->registration_number)->assertRedirect('/jshikkhabritti#get-form');
+
+        // the signed link works for anybody holding it, and stops working when tampered with or expired
+        $this->get($reg->scholarshipUrl('print'))->assertOk()->assertSee('1. Applicant');
+        $this->get($reg->scholarshipUrl('pdf'))->assertOk();
+        $this->get($reg->scholarshipUrl('print') . 'x')->assertRedirect('/jshikkhabritti#get-form');
+        $this->travel(2)->hours();
+        $this->get($reg->scholarshipUrl('print', 60))->assertOk();
+        $this->travel(3)->hours();
+        $this->get(\Illuminate\Support\Facades\URL::temporarySignedRoute('event.registration.print', now()->subHour(), ['registrationNumber' => $reg->registration_number]))->assertRedirect('/jshikkhabritti#get-form');
+    }
+
+    public function test_an_applicant_gets_their_form_back_with_name_and_mobile_and_a_new_one_is_told_to_register(): void
+    {
+        $this->campaign();
+        $this->post('/jshikkhabritti', $this->payload(['name' => 'Rina Akter', 'phone' => '01711222333']))->assertSessionHasNoErrors();
+        auth()->logout();
+        $this->flushSession();
+
+        // right name + mobile (Bangla digits, different case, a typo) -> signed links to own form
+        foreach ([['Rina Akter', '01711222333'], ['  rina   AKTER ', '০১৭১১২২২৩৩৩'], ['Rina Aktar', '+880 1711-222333']] as [$name, $phone]) {
+            $json = $this->postJson(route('event.lookup', 'jshikkhabritti'), ['name' => $name, 'phone' => $phone])->assertOk()->assertJson(['found' => true, 'application_no' => '2027-1'])->json();
+            $this->get($json['pdf_url'])->assertOk();
+            $this->get($json['print_url'])->assertOk();
+        }
+
+        // wrong name, wrong phone, nobody: the same refusal, no links
+        foreach ([['Someone Else', '01711222333'], ['Rina Akter', '01799999999']] as [$name, $phone]) {
+            $this->postJson(route('event.lookup', 'jshikkhabritti'), ['name' => $name, 'phone' => $phone])
+                ->assertOk()->assertJson(['found' => false])->assertJsonMissing(['pdf_url']);
+        }
+        $this->postJson(route('event.lookup', 'jshikkhabritti'), ['name' => '', 'phone' => ''])->assertUnprocessable();
+
+        // the page offers both ways in
+        $html = $this->get('/jshikkhabritti')->assertOk()->getContent();
+        $this->assertTrue(str_contains($html, 'id="get-form"'));
+        $this->assertTrue(str_contains($html, route('event.lookup', 'jshikkhabritti')));
+    }
+
+    public function test_header_and_logo_settings_drive_the_form_the_print_and_the_number_prefix(): void
+    {
+        EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
+            'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => false, 'fee_amount' => 0,
+            'form_settings' => ['is_scholarship_form' => true, 'sch_title' => 'Merit Award', 'sch_heading' => 'Grant', 'sch_session' => 'Session 2028', 'sch_logo_side' => 'center', 'number_prefix' => 'SCH28', 'logo_size' => 80],
+        ]);
+        $c = EventCampaign::where('slug', 'jshikkhabritti')->first();
+        $h = $c->scholarshipHeader();
+        $this->assertSame(['Merit Award', 'Grant', 'Session 2028', 'center', 80], [$h['title'], $h['heading'], $h['session'], $h['logo_side'], $h['logo_size']]);
+
+        $form = preg_replace('/\s+/', ' ', $this->get('/jshikkhabritti')->getContent());
+        $this->assertTrue(str_contains($form, 'Session 2028'));
+
+        $this->post('/jshikkhabritti', $this->payload())->assertSessionHasNoErrors();
+        $reg = EventRegistration::firstOrFail();
+        $this->assertSame('SCH28-1', $reg->registration_number);
+
+        $print = $this->get($reg->scholarshipUrl('print'))->assertOk()->getContent();
+        foreach (['Merit Award', 'Grant', 'Session 2028'] as $needle) {
+            $this->assertTrue(str_contains($print, $needle), "missing from the print: $needle");
+        }
+
+        // Bengali settings never leak into the English form: defaults are used instead
+        $c->update(['form_settings' => array_merge($c->form_settings, ['sch_title' => 'বৃত্তি'])]);
+        $this->assertSame('Joyee Shikkhabritti', $c->fresh()->scholarshipHeader()['title']);
+    }
+
+    public function test_the_pdf_embeds_the_photo_and_stays_on_two_pages_even_with_long_answers(): void
+    {
+        $this->campaign();
+        $long = str_repeat('Very Long Institute Name ', 4);
+        $this->post('/jshikkhabritti', $this->payload([
+            'ssc_institute' => $long, 'hsc_roll' => '1', 'hsc_board' => 'B', 'hsc_institute' => $long, 'hsc_year' => '2021', 'hsc_gpa' => '5',
+            'scholarship_degree' => 'HONOURS', 'grad_roll' => '9', 'grad_board' => 'NU', 'grad_institute' => $long, 'grad_year' => '2025', 'grad_cgpa' => '3.5',
+            'college_name' => $long, 'permanent_address' => str_repeat('Village Road House Upazila District Division ', 4),
+        ]))->assertSessionHasNoErrors();
+        $reg = EventRegistration::firstOrFail();
+
+        $html = $this->get($reg->scholarshipUrl('print'))->assertOk()->getContent();
+        $this->assertTrue(str_contains($html, 'density-'), 'the print adapts its density to long answers');
+        $this->assertTrue(str_contains($html, 'data:image/jpeg;base64,') || str_contains($html, 'data:image/png;base64,'), 'the photo is embedded');
+
+        $pdf = $this->get($reg->scholarshipUrl('pdf'))->assertOk()->getContent();
+        $this->assertSame(2, preg_match_all('/\/Type\s*\/Page[^s]/', $pdf), 'sections 1-6 on page one, the rest on page two');
     }
 }
