@@ -101,6 +101,7 @@ class ScholarshipFormTest extends TestCase
         foreach (['1. Applicant', '3. Academic', 'Received Joyee before?', 'Original books read', 'Book A', '8. Statement', 'Permanent'] as $needle) {
             if ($needle !== '') $this->assertStringContainsString($needle, $html);
         }
+        $this->assertStringNotContainsString('class="pb"', $html);
         $this->assertStringContainsString('Rangpur City Corporation', $html);   // city corporation is kept in the address, in English
         $this->assertStringContainsString('Session 2027', $html);
         $this->assertStringContainsString('Application No: <strong>2027-1</strong>', $html);
@@ -278,7 +279,7 @@ class ScholarshipFormTest extends TestCase
         $this->assertTrue(str_contains($flat, 'Thank you! Your application has been submitted.'));      // flash banner, English too
         $this->assertFalse(str_contains($html, 'আপনার আবেদন সফলভাবে'));
     }
-    public function test_the_printed_form_is_two_pages_with_sections_1_to_6_on_the_first(): void
+    public function test_the_printed_form_flows_sections_without_a_forced_break_and_stays_two_pages(): void
     {
         $this->campaign();
         $this->post('/jshikkhabritti', $this->payload())->assertSessionHasNoErrors();
@@ -287,14 +288,16 @@ class ScholarshipFormTest extends TestCase
         $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
         $this->assertFalse(str_contains($print, '@@'), 'a template marker leaked into the print');
 
-        $break = strpos($print, 'class="pb"');
-        $this->assertNotFalse($break);
-        foreach (['1. Applicant', '2. Parents', '3. Academic', '4. Education', '5. Address', '6. Scholarships'] as $t) {
-            $this->assertLessThan($break, strpos($print, $t), "$t must be on page 1");
+        $this->assertStringNotContainsString('class="pb"', $print, 'sections must flow without an artificial page break');
+        $sections = ['1. Applicant', '2. Parents', '3. Academic', '4. Education', '5. Address', '6. Scholarships', '7. Reading', '8. Statement', '9. Payment', 'Remarks: Head'];
+        foreach ($sections as $section) {
+            $this->assertStringContainsString($section, $print);
         }
-        foreach (['7. Reading', '8. Statement', '9. Payment', 'Remarks: Head'] as $t) {
-            $this->assertGreaterThan($break, strpos($print, $t), "$t must be on page 2");
-        }
+        $positions = array_map(fn ($section) => strpos($print, $section), $sections);
+        $this->assertSame($positions, array_values(array_unique($positions)));
+        $sortedPositions = $positions;
+        sort($sortedPositions);
+        $this->assertSame($sortedPositions, $positions, 'sections must stay in their intended order');
 
         // the PDF engine must end up with exactly two sheets (nothing spills onto a third)
         $pdf = $this->get(route('event.registration.pdf', $reg->registration_number))->assertOk()->getContent();

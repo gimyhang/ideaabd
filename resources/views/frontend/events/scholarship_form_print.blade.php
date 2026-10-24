@@ -166,7 +166,6 @@
         .grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; page-break-inside: avoid; }
         .grid tr { page-break-inside: avoid; }
         .sec-title { page-break-after: avoid; }
-        .pb { page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0; }
         .reason, .declaration, .remark-cols, .sig-table, .footer-line { page-break-inside: avoid; }
         /* page 2: the signature and remark areas give way before a third sheet is needed */
         .p2-compact .remark-cols .remark-lines { height: 90px; }
@@ -463,9 +462,7 @@
         </table>
     @endif
 
-    {{-- Page 2 starts here: 1-6 on the first sheet, 7 onwards on the second --}}
-    {{-- Normal answers: sections 7+ start the second sheet. Very long answers flow on instead of leaving a near-empty sheet. --}}
-    @if($density !== 'tight')<div class="pb"></div>@endif
+    {{-- Let the remaining sections flow naturally instead of forcing a new page. --}}
     <div class="p2">
 
     {{-- Reading --}}
