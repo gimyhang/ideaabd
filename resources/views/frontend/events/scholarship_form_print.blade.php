@@ -45,7 +45,6 @@
     $p2Extra = $lines($fd('scholarship_reason'), 95) + $lines($fd('books_read_names'), 95);
     foreach (preg_split('/\R/', $fd('books_read_names')) ?: [] as $nameLine) { $p2Extra += 1; }
     $p2Extra += $lines($fd('pay_bank_name') . ' ' . $fd('pay_bank_branch'), 40);
-    $p2Extra += ($registration->transaction_id && (float) $registration->amount_paid > 0) ? 3 : 0;
     $density2 = $p2Extra >= 24 ? 'tight' : ($p2Extra >= 12 ? 'compact' : 'normal');
     $permDistrict = $fd('permanent_district') ?: (string) $registration->district;
     $presDistrict = $fd('present_district');
@@ -517,24 +516,6 @@
                     <td>{{ $fd('pay_bank_branch') }}</td>
                 </tr>
             @endif
-        </table>
-    @endif
-
-    @if(($registration->transaction_id || $fd('transaction_id')) && (float) $registration->amount_paid > 0)
-        <div class="sec-title">10. Fee</div>
-        <table class="grid">
-            <tr>
-                <td class="lbl">Amount</td>
-                <td style="width:33%;">{{ number_format((float) $registration->amount_paid, 0) }} Tk</td>
-                <td class="lbl">Method</td>
-                <td>{{ ucfirst((string) ($registration->payment_method ?: $fd('payment_method'))) }}</td>
-            </tr>
-            <tr>
-                <td class="lbl">Transaction ID</td>
-                <td class="val-b">{{ $registration->transaction_id ?: $fd('transaction_id') }}</td>
-                <td class="lbl">Status</td>
-                <td>{{ ucfirst((string) $registration->payment_status) }}</td>
-            </tr>
         </table>
     @endif
 

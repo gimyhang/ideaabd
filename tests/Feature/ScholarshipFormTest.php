@@ -338,33 +338,37 @@ class ScholarshipFormTest extends TestCase
         $this->assertFalse(str_contains($form, 'name="email"'));
     }
 
-    public function test_an_application_fee_is_asked_for_checked_and_priced_by_the_campaign(): void
+    public function test_a_scholarship_never_asks_for_or_stores_an_application_payment(): void
     {
+        // even a campaign that still has a fee configured (it is shared with other events) must not charge a scholarship
         EventCampaign::updateOrCreate(['slug' => 'jshikkhabritti'], [
             'title' => 'Sch', 'type' => 'scholarship', 'is_active' => true, 'has_fee_or_donation' => true, 'fee_amount' => 150,
             'redirect_url' => 'https://example.test/thanks', 'success_message' => 'We will call you within 3 days.',
             'form_settings' => ['is_scholarship_form' => true],
         ]);
         $page = $this->get('/jshikkhabritti')->assertOk()->getContent();
-        $this->assertTrue(str_contains($page, '10. Fee'));
-        $this->assertTrue(str_contains($page, 'name="transaction_id"'));
+        $form = substr($page, strpos($page, 'id="dynamicScholarshipForm"'));
+        $form = substr($form, 0, strpos($form, '</form>'));
+        $this->assertFalse(str_contains($form, 'name="transaction_id"'));
+        $this->assertFalse(str_contains($form, 'name="payment_method"'));
+        $this->assertFalse(str_contains($form, 'name="amount_paid"'));
+        $this->assertFalse(str_contains($form, '10. Fee'));
+        $this->assertTrue(str_contains($form, 'name="pay_method"'), 'where to receive the award money is still asked');
 
-        $this->post('/jshikkhabritti', $this->payload())->assertSessionHasErrors(['payment_method', 'transaction_id']);
-
-        $this->post('/jshikkhabritti', $this->payload(['payment_method' => 'bkash', 'transaction_id' => '9J3K8L2M', 'amount_paid' => '1']))->assertSessionHasNoErrors();
+        // a payment sent anyway is ignored
+        $this->post('/jshikkhabritti', $this->payload(['payment_method' => 'bkash', 'transaction_id' => '9J3K8L2M', 'amount_paid' => '150']))->assertSessionHasNoErrors();
         $reg = EventRegistration::firstOrFail();
-        $this->assertSame(150.0, (float) $reg->amount_paid);                       // not the 1 the browser sent
-        $this->assertSame('9J3K8L2M', $reg->transaction_id);
+        $this->assertSame(0.0, (float) $reg->amount_paid);
+        $this->assertSame('free', $reg->payment_status);
 
-        $print = $this->get(route('event.registration.print', $reg->registration_number))->assertOk()->getContent();
-        $this->assertTrue(str_contains($print, '10. Fee'));
-        $this->assertTrue(str_contains($print, '9J3K8L2M'));
+        $print = $this->get($reg->scholarshipUrl('print'))->assertOk()->getContent();
+        $this->assertFalse(str_contains($print, '10. Fee'));
 
+        // the success page still honours the campaign's own message and redirect
         $success = $this->get(route('event.success', 'jshikkhabritti'))->assertOk()->getContent();
         $this->assertTrue(str_contains($success, 'We will call you within 3 days.'));
-        $this->assertTrue(str_contains($success, 'https:\/\/example.test\/thanks'));    // redirect_url replaces the homepage
+        $this->assertTrue(str_contains($success, 'https:\/\/example.test\/thanks'));
     }
-
     public function test_the_print_uses_the_campaign_logo_header_lines_copy_tag_and_signature_switch(): void
     {
         $dir = storage_path('app/public/campaigns/logos');

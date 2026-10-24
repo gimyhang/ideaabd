@@ -39,33 +39,13 @@
                             <label class="form-label small fw-bold mb-1">Institute</label>
                             <input type="text" name="institution_or_org" class="form-control form-control-sm" value="{{ $reg->institution_or_org ?: ($d['college_name'] ?? '') }}">
                         </div>
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-6">
                             <label class="form-label small fw-bold mb-1">Status</label>
                             <select name="status" class="form-select form-select-sm fw-bold">
                                 @foreach(['confirmed' => 'Confirmed', 'selected' => 'Selected', 'pending' => 'Pending', 'rejected' => 'Rejected'] as $v => $l)
                                     <option value="{{ $v }}" @selected($reg->status === $v)>{{ $l }}</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label small fw-bold mb-1">Paid</label>
-                            <input type="number" step="1" min="0" name="amount_paid" class="form-control form-control-sm font-monospace" value="{{ $reg->amount_paid }}">
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label small fw-bold mb-1">Payment</label>
-                            <select name="payment_status" class="form-select form-select-sm">
-                                @foreach(['free' => 'Free', 'pending' => 'Pending', 'verified' => 'Verified', 'waived' => 'Waived', 'refunded' => 'Refunded'] as $v => $l)
-                                    <option value="{{ $v }}" @selected($reg->payment_status === $v)>{{ $l }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label small fw-bold mb-1">Transaction</label>
-                            <input type="text" name="transaction_id" class="form-control form-control-sm font-monospace" value="{{ $reg->transaction_id }}">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label small fw-bold mb-1">Method</label>
-                            <input type="text" name="payment_method" class="form-control form-control-sm" value="{{ $reg->payment_method }}">
                         </div>
                         <div class="col-12">
                             <label class="form-label small fw-bold mb-1">Notes</label>

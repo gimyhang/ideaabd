@@ -26,7 +26,6 @@
     };
     $stdEnabled = fn (string $key) => ($fs['fields'][$key]['enabled'] ?? true) !== false;
     $feeAmount = (float) ($campaign->fee_amount ?? 0);
-    $hasFee = !empty($campaign->has_fee_or_donation) && $feeAmount > 0;
     $hdr = $campaign->scholarshipHeader();
     $logoPath = $hdr['logo_side'] === 'hidden' ? null : ($fs['logo_image'] ?? null);
     $logoUrl = $logoPath ? ((str_starts_with($logoPath, 'http') || str_starts_with($logoPath, '/')) ? $logoPath : asset('storage/' . $logoPath)) : null;
@@ -406,7 +405,7 @@
         {{-- Already applied? Open the form again with name + mobile. New here? Register below. --}}
         <div id="get-form" class="sch-modes" role="tablist" aria-label="Options">
             <button type="button" class="sch-mode is-active" data-mode="new" role="tab" aria-selected="true">Apply</button>
-            <button type="button" class="sch-mode" data-mode="get" role="tab" aria-selected="false">Retrieve</button>
+            <button type="button" class="sch-mode" data-mode="get" role="tab" aria-selected="false">Download</button>
         </div>
 
         <section id="schLookupPanel" class="sch-lookup" hidden aria-live="polite">
@@ -969,36 +968,6 @@
             </table>
             <div class="small text-muted px-2 mb-3" style="font-size:11px;">The account must belong to you or your parent/guardian. A wrong number can delay or lose the payment.</div>
 
-            @if($hasFee)
-                {{-- 10. APPLICATION FEE (campaign setting) --}}
-                <div class="form-section-head">10. Fee <span class="text-danger">*</span></div>
-                <input type="hidden" name="amount_paid" value="{{ $feeAmount }}">
-                <table class="grid-table mb-1">
-                    <tr>
-                        <td class="label-col">Amount</td>
-                        <td colspan="3" class="val-col fw-bold">{{ number_format($feeAmount, 0) }} Tk</td>
-                    </tr>
-                    @if(!empty($campaign->payment_instructions) && !preg_match('/\p{Bengali}/u', $campaign->payment_instructions))
-                        <tr><td class="label-col">How to pay</td><td colspan="3" class="val-col small">{!! nl2br(e($campaign->payment_instructions)) !!}</td></tr>
-                    @endif
-                    <tr>
-                        <td class="label-col">Method <span class="text-danger">*</span></td>
-                        <td class="val-col">
-                            <select name="payment_method" class="grid-input" required>
-                                @foreach(['' => 'Select', 'bkash' => 'bKash', 'nagad' => 'Nagad', 'rocket' => 'Rocket', 'bank' => 'Bank'] as $mv => $ml)
-                                    <option value="{{ $mv }}" {{ (string) old('payment_method') === (string) $mv ? 'selected' : '' }}>{{ $ml }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                        <td class="label-col">Transaction ID <span class="text-danger">*</span></td>
-                        <td class="val-col"><input type="text" name="transaction_id" class="grid-input font-monospace text-uppercase" maxlength="100" value="{{ old('transaction_id') }}" required></td>
-                    </tr>
-                    <tr>
-                        <td class="label-col">Sender Number</td>
-                        <td colspan="3" class="val-col"><input type="text" name="payment_phone" class="grid-input font-monospace" inputmode="numeric" maxlength="30" placeholder="Number the money was sent from" value="{{ old('payment_phone') }}"></td>
-                    </tr>
-                </table>
-            @endif
             </section>
 
             <section class="scholarship-step" data-wizard-step="4">

@@ -45,9 +45,6 @@
             ['Bank', trim($v('pay_bank_name') . ' ' . $v('pay_bank_branch'))],
         ],
     ];
-    if ((float) $reg->amount_paid > 0 || $reg->transaction_id) {
-        $sections['Fee'] = [['Amount', $money((string) $reg->amount_paid)], ['Method', ucfirst((string) $reg->payment_method)], ['Transaction', $reg->transaction_id], ['Status', ucfirst((string) $reg->payment_status)]];
-    }
 @endphp
 
 <div class="modal fade" id="viewDetailsModal{{ $reg->id }}" tabindex="-1" aria-hidden="true" aria-labelledby="schPreviewTitle{{ $reg->id }}">

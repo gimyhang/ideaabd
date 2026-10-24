@@ -85,4 +85,53 @@ class ScholarshipAdminTest extends TestCase
         // staff also open the public address directly
         $admin->get(route('event.registration.print', $reg->registration_number))->assertOk();
     }
+    public function test_the_scholarship_rows_show_only_the_english_modals_and_no_payment_controls(): void
+    {
+        $reg = $this->registration();
+        $campaign = $this->campaign();
+        $campaign->update(['has_fee_or_donation' => true, 'fee_amount' => 100]);
+        $html = $this->actingAs($this->admin())->get(route('admin.event-campaigns.show', $campaign->id))->assertOk()->getContent();
+
+        // exactly one edit modal and one preview modal per application, and they are the English ones
+        $this->assertSame(1, substr_count($html, 'id="editRegModal' . $reg->id . '"'));
+        $this->assertSame(1, substr_count($html, 'id="viewDetailsModal' . $reg->id . '"'));
+        $this->assertTrue(str_contains($html, 'id="schEditName' . $reg->id . '"'));
+
+        // nothing of the generic Bengali edit / preview modals leaks into a scholarship row
+        foreach (['অংশগ্রহণকারী সম্পাদনা', 'আপডেট সংরক্ষণ', 'ব্যক্তিগত ও যোগাযোগ'] as $bn) {
+            $this->assertFalse(str_contains($html, $bn), "Bengali generic modal text leaked: $bn");
+        }
+
+        // no payment fields, columns or filters for a scholarship
+        $edit = substr($html, strpos($html, 'id="editRegModal' . $reg->id . '"'));
+        $edit = substr($edit, 0, strpos($edit, '</form>'));
+        foreach (['name="payment_status"', 'name="transaction_id"', 'name="payment_method"', 'name="amount_paid"'] as $field) {
+            $this->assertFalse(str_contains($edit, $field), "payment field in the scholarship edit modal: $field");
+        }
+        foreach (['name="amount_paid"', 'name="transaction_id"'] as $field) {
+            $this->assertFalse(str_contains($html, $field), "payment field anywhere on a scholarship page (also the add-participant form): $field");
+        }
+        preg_match_all('/class="(col-(?:fee|payment)\b[^"]*)"/', $html, $cols);
+        $this->assertNotEmpty($cols[1]);
+        foreach ($cols[1] as $classes) {
+            $this->assertTrue(str_contains($classes, 'd-none'), "Fee / Payment column is visible: $classes");     // hidden for a scholarship
+        }
+        $this->assertFalse(str_contains($html, 'aec-btn-card-design aec-btn-hover-lift'), 'card design belongs to the other events');
+        $this->assertFalse(str_contains($html, 'Verified Paid'));
+        $this->assertFalse(str_contains($html, 'name="payment_status" class="form-select bg-light"'), 'no payment filter');
+    }
+
+    public function test_another_event_keeps_its_payment_controls(): void
+    {
+        $c = EventCampaign::create(['title' => 'Fest', 'slug' => 'fest-test', 'type' => 'event', 'is_active' => true, 'has_fee_or_donation' => true, 'fee_amount' => 100, 'form_settings' => []]);
+        $reg = EventRegistration::create(['event_campaign_id' => $c->id, 'registration_number' => 'FEST-1', 'name' => 'Guest One', 'phone' => '01711000111', 'status' => 'confirmed', 'payment_status' => 'pending', 'form_data' => []]);
+        $html = $this->actingAs($this->admin())->get(route('admin.event-campaigns.show', $c->id))->assertOk()->getContent();
+
+        preg_match_all('/class="(col-(?:fee|payment)\b[^"]*)"/', $html, $cols);
+        $this->assertTrue(collect($cols[1])->contains(fn ($c) => !str_contains($c, 'd-none')), 'other events show the Fee / Payment columns');
+        $this->assertTrue(str_contains($html, 'name="payment_status" class="form-select bg-light"'));
+        $this->assertTrue(str_contains($html, 'name="transaction_id"'));
+        $this->assertTrue(str_contains($html, 'aec-btn-card-design aec-btn-hover-lift'), 'other events keep the card design button');
+        $this->assertFalse(str_contains($html, 'id="schEditName' . $reg->id . '"'), 'the English scholarship modal is only for scholarships');
+    }
 }

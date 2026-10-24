@@ -135,6 +135,10 @@
     $density = $tableSettings['density'] ?? 'standard';
     $customFields = $campaign->custom_fields ?? [];
     $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+    if ($isScholarship) {
+        // a scholarship has no application payment: no Fee / Payment columns
+        $visibleCols = array_values(array_diff($visibleCols, ['fee', 'payment']));
+    }
     $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
     $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || $campaign->id === 3 || !empty($campaign->form_settings['is_library_form']));
 @endphp
@@ -261,9 +265,11 @@
                         @endif
                     </ul>
                 </div>
+                @unless($isScholarship)
                 <button type="button" class="btn aec-btn-card-design aec-btn-hover-lift d-inline-flex align-items-center" data-bs-toggle="modal" data-bs-target="#cardDesignModal" title="কার্ড ডিজাইন স্টুডিও ও ফটো এডিটর">
                     <span>কার্ড ডিজাইন</span>
                 </button>
+                @endunless
                 <a href="{{ route('admin.event-campaigns.edit', $campaign->id) }}" class="btn btn-outline-light rounded-pill px-3 py-2 small fw-bold aec-btn-hover-lift d-inline-flex align-items-center">
                     <span>All Settings</span>
                 </a>
@@ -473,7 +479,7 @@
                 <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['status' => 'pending'])) }}" class="aec-tab-btn {{ request('status') === 'pending' ? 'active' : '' }}">
                     Pending (<span id="filterPillPendingCount">{{ $pendingCount }}</span>)
                 </a>
-                @if($campaign->has_fee_or_donation)
+                @if($campaign->has_fee_or_donation && !$isScholarship)
                     <a href="{{ route('admin.event-campaigns.show', array_merge(['campaign' => $campaign->id], $baseFilters, ['payment_status' => 'verified'])) }}" class="aec-tab-btn {{ request('payment_status') === 'verified' ? 'active' : '' }}">
                         Verified Paid
                     </a>
@@ -816,6 +822,7 @@
             </div>
 
             {{-- Payment Status Filter --}}
+            @unless($isScholarship)
             <div class="col-6 col-md-2">
                 <select name="payment_status" class="form-select bg-light" onchange="document.getElementById('filterForm').submit()">
                     <option value="">পেমেন্ট (Payment: All)</option>
@@ -824,6 +831,8 @@
                     <option value="free" {{ request('payment_status') == 'free' ? 'selected' : '' }}>Free</option>
                 </select>
             </div>
+
+            @endunless
 
             {{-- Per Page --}}
             <div class="col-6 col-md-1">
@@ -2110,7 +2119,6 @@
                                                                     <label class="form-label small fw-bold text-dark mb-1">ইমেইল</label>
                                                                     <input type="email" name="email" class="form-control form-control-sm" value="{{ $reg->email }}">
                                                                 </div>
-                                @endif
                                                                 @if($isWriter)
                                                                     <div class="col-12 col-sm-6">
                                                                         <label class="form-label small fw-bold text-dark mb-1">সাহিত্যিক ক্যাটাগরি</label>
@@ -2253,6 +2261,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -4475,6 +4484,7 @@
                                 <option value="pending">⏳ Pending</option>
                             </select>
                         </div>
+                        @unless($isScholarship)
                         <div class="col-12 col-sm-4">
                             <label class="form-label small fw-bold text-dark mb-1">পরিশোধিত ফি (Amount ৳)</label>
                             <input type="number" step="1" min="0" name="amount_paid" class="form-control form-control-sm font-monospace" value="{{ $campaign->fee_amount ?: 0 }}">
@@ -4496,6 +4506,7 @@
                             <label class="form-label small fw-bold text-dark mb-1">পেমেন্ট মেথড</label>
                             <input type="text" name="payment_method" class="form-control form-control-sm" value="cash" placeholder="যেমন: cash, bkash, nagad">
                         </div>
+                        @endunless
                         <div class="col-12">
                             <label class="form-label small fw-bold text-dark mb-1">এডমিন নোট / মন্তব্য</label>
                             <textarea name="admin_notes" rows="2" class="form-control form-control-sm" placeholder="এডমিন কর্তৃক সরাসরি নিবন্ধিত">এডমিন কর্তৃক সরাসরি নিবন্ধিত</textarea>
