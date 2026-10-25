@@ -38,6 +38,22 @@ class AbuseGuardTest extends TestCase
         $this->withHeader('User-Agent', 'Mozilla/5.0')->get('/')->assertForbidden();
     }
 
+    public function test_downloading_a_backup_dump_is_not_a_probe_and_never_blocks_the_ip(): void
+    {
+        $h = ['User-Agent' => 'Mozilla/5.0'];
+
+        // more requests than the strike limit, for a file name that ends in .sql
+        for ($i = 0; $i < 8; $i++) {
+            $this->withHeaders($h)->get('/admin/backup/download/idea_anonymized_2026-10-25_15-44-38.sql')->assertRedirect(route('login'));
+        }
+
+        $this->assertFalse(Cache::has('abuse:block:127.0.0.1'));
+        $this->withHeaders($h)->get('/')->assertOk();
+
+        // a real probe for a dump in the web root still counts
+        $this->withHeaders($h)->get('/dump.sql')->assertNotFound();
+    }
+
     public function test_real_pages_are_not_mistaken_for_probes(): void
     {
         $this->withHeader('User-Agent', 'Mozilla/5.0')->get('/books')->assertOk();

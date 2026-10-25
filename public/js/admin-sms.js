@@ -38,7 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function initTabPersistence() {
     const mainTabBtns = document.querySelectorAll('#messagingHubTabs button[data-bs-toggle="pill"]');
-    const storedTab = localStorage.getItem('active_messaging_hub_tab');
+    // a #tab-xyz link (pagination, filters) wins over the remembered tab
+    const hashTab = window.location.hash && document.querySelector(`#messagingHubTabs button[data-bs-target="${window.location.hash}"]`)
+        ? window.location.hash : null;
+    let storedTab = hashTab;
+    if (!storedTab) {
+        try { storedTab = localStorage.getItem('active_messaging_hub_tab'); } catch (e) { storedTab = null; }
+    }
 
     if (storedTab) {
         const targetBtn = document.querySelector(`#messagingHubTabs button[data-bs-target="${storedTab}"]`);
@@ -51,7 +57,7 @@ function initTabPersistence() {
         btn.addEventListener('shown.bs.tab', function(e) {
             const target = e.target.getAttribute('data-bs-target');
             if (target) {
-                localStorage.setItem('active_messaging_hub_tab', target);
+                try { localStorage.setItem('active_messaging_hub_tab', target); } catch (err) { /* private mode */ }
             }
         });
     });
@@ -215,7 +221,7 @@ function updateCostEstimate(costBadgeId, targetGroupSelectId, partsCount) {
     else recipientCount = 1; // Custom
 
     const totalSmsCredits = recipientCount * partsCount;
-    const estCostBdt = (totalSmsCredits * 0.35).toFixed(2); // ৳0.35 per SMS part estimate
+    const estCostBdt = (totalSmsCredits * (window.smsCostPerSms || 0.35)).toFixed(2);
 
     badgeEl.innerHTML = `
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -313,7 +319,7 @@ function editTemplateModal(templateJson) {
 
         const modalEl = document.getElementById('templateFormModal');
         if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            new bootstrap.Modal(modalEl).show();
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
     } catch (e) {
         console.error('Error opening template modal:', e);
@@ -335,7 +341,7 @@ function openNewTemplateModal() {
 
     const modalEl = document.getElementById('templateFormModal');
     if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-        new bootstrap.Modal(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 }
 
@@ -390,48 +396,48 @@ function viewLogDetails(logJson) {
 
         const modalEl = document.getElementById('logDetailsModal');
         if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            new bootstrap.Modal(modalEl).show();
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
         }
     } catch (e) {
         console.error('Error opening log details modal:', e);
     }
 }
 
+/** Server and gateway texts go into the page as text, never as HTML. */
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+}
+
 /**
  * Refresh Live Gateway SMS Balance via AJAX
  */
 function refreshSmsBalance() {
-    const icon = document.getElementById('refreshIcon');
-    const balanceNumEl = document.getElementById('heroBalanceNum');
-    const pillBadge = document.getElementById('pillSmsBadge');
-    const statusTextEl = document.getElementById('heroBalanceStatus');
+    const icons = document.querySelectorAll('#refreshIcon, #refreshIconCard');
+    icons.forEach(i => i.classList.add('fa-spin'));
 
-    if (icon) icon.classList.add('fa-spin');
-
-    fetch('/admin/sms/balance', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
+    fetch('/admin/sms/balance?fresh=1', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
     })
     .then(r => r.json())
     .then(data => {
-        if (icon) icon.classList.remove('fa-spin');
-        if (data.balance !== null) {
-            const formatted = Number(data.balance).toLocaleString();
-            if (balanceNumEl) balanceNumEl.innerText = formatted;
-            if (pillBadge) pillBadge.innerText = formatted + ' SMS';
-            if (statusTextEl) {
-                statusTextEl.innerHTML = '<i class="fa-solid fa-circle-check text-success me-1"></i> অনলাইন ও সক্রিয়';
-            }
-        } else {
-            if (statusTextEl) {
-                statusTextEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> ${data.error || 'অপ্রাপ্য'}`;
-            }
-        }
+        icons.forEach(i => i.classList.remove('fa-spin'));
+        const ok = data.balance !== null && data.balance !== undefined;
+
+        document.querySelectorAll('[data-sms-balance]').forEach(el => {
+            el.textContent = ok ? Number(data.balance).toLocaleString() : '—';
+        });
+        document.querySelectorAll('[data-sms-balance-status]').forEach(el => {
+            el.innerHTML = ok
+                ? (Number(data.balance) < 100
+                    ? '<i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> ব্যালান্স কম, শীঘ্র রিচার্জ করুন'
+                    : '<i class="fa-solid fa-circle-check text-success me-1"></i> সক্রিয়')
+                : `<i class="fa-solid fa-triangle-exclamation text-danger me-1"></i> ${escapeHtml(data.error || 'অপ্রাপ্য')}`;
+        });
     })
     .catch(err => {
-        if (icon) icon.classList.remove('fa-spin');
+        icons.forEach(i => i.classList.remove('fa-spin'));
         console.error('Balance refresh error:', err);
     });
 }
@@ -475,11 +481,11 @@ function initAjaxDispatchers() {
                     resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
                     if (res.success) {
                         resultBox.classList.add('sms-result-success');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> টেস্ট এসএমএস সফল!</strong><div class="small mt-1">${res.message || 'গেটওয়ে রেসপন্স সম্পন্ন'}</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> টেস্ট এসএমএস সফল!</strong><div class="small mt-1">${escapeHtml(res.message || 'গেটওয়ে রেসপন্স সম্পন্ন')}</div>`;
                         refreshSmsBalance();
                     } else {
                         resultBox.classList.add('sms-result-error');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${res.message || res.error || 'অজানা সমস্যা'}</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${escapeHtml(res.message || res.error || 'অজানা সমস্যা')}</div>`;
                     }
                 }
             })
@@ -531,10 +537,10 @@ function initAjaxDispatchers() {
                     resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
                     if (res.success) {
                         resultBox.classList.add('sms-result-success');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ইমেইল পাঠানো সফল!</strong><div class="small mt-1">${res.message || 'সার্ভার রেসপন্স সম্পন্ন'}</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ইমেইল পাঠানো সফল!</strong><div class="small mt-1">${escapeHtml(res.message || 'সার্ভার রেসপন্স সম্পন্ন')}</div>`;
                     } else {
                         resultBox.classList.add('sms-result-error');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${res.message || 'ইমেইল সেন্ড ব্যর্থ'}</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> সমস্যা:</strong><div class="small mt-1">${escapeHtml(res.message || 'ইমেইল সেন্ড ব্যর্থ')}</div>`;
                     }
                 }
             })
@@ -586,10 +592,10 @@ function initAjaxDispatchers() {
                     resultBox.classList.remove('d-none', 'sms-result-success', 'sms-result-error');
                     if (res.success) {
                         resultBox.classList.add('sms-result-success');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ওটিপি টেস্ট সফল! [OTP: ${res.otp}]</strong><div class="small mt-1">চ্যানেল রেসপন্স সম্পন্ন হয়েছে।</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-circle-check me-1.5"></i> ওটিপি টেস্ট সফল! [OTP: ${escapeHtml(res.otp)}]</strong><div class="small mt-1">চ্যানেল রেসপন্স সম্পন্ন হয়েছে।</div>`;
                     } else {
                         resultBox.classList.add('sms-result-error');
-                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> ওটিপি পাঠানো ব্যর্থ:</strong><div class="small mt-1">গেটওয়ে সেটিংস চেক করুন।</div>`;
+                        resultBox.innerHTML = `<strong><i class="fa-solid fa-triangle-exclamation me-1.5"></i> ওটিপি পাঠানো ব্যর্থ:</strong><div class="small mt-1">${escapeHtml(res.message || 'গেটওয়ে সেটিংস চেক করুন।')}</div>`;
                     }
                 }
             })

@@ -81,7 +81,12 @@ class PasswordResetOtpController extends Controller
 
         // Send SMS via SmsService
         $resetUrl = route('password.reset-otp', ['phone' => $user->phone]);
-        \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
+        $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
+        if (empty($smsResult['success']) && !empty($smsResult['code'])) {
+            Cache::forget($cacheKey);
+
+            return back()->withInput()->withErrors(['phone' => $smsResult['message']]);
+        }
 
         return redirect()->route('password.reset-otp', ['phone' => $user->phone])
             ->with('status', "A 6-digit code was sent to {$user->phone}.")

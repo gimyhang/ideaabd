@@ -72,7 +72,9 @@ class AbuseGuard
                 return $this->strike($request, $ip, 'empty user agent on a write request');
             }
 
-            if (preg_match(config('security.probe_paths'), $request->path())) {
+            // Downloading a backup file (…/admin/backup/download/dump.sql) is not a probe, even though the name ends in .sql.
+            // The route is behind the admin login, so nothing is exposed by letting it through to the router.
+            if (!$request->is('admin/backup/download/*') && preg_match(config('security.probe_paths'), $request->path())) {
                 return $this->strike($request, $ip, 'probe ' . $request->path());
             }
 

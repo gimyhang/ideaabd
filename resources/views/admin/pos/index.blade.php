@@ -1320,7 +1320,7 @@ function holdCurrentSale() {
 
 function openHeldSalesModal() {
     renderHeldSalesList();
-    new bootstrap.Modal(document.getElementById('heldSalesModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('heldSalesModal')).show();
 }
 
 function renderHeldSalesList() {
@@ -1538,7 +1538,7 @@ function handleSearchKeydown(e) {
 let cameraScanCount = 0;
 
 function openCameraScannerModal() {
-    new bootstrap.Modal(document.getElementById('cameraScannerModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('cameraScannerModal')).show();
     cameraScanningActive = true;
     cameraScanCount = 0;
     document.getElementById('cameraScannedCounter').textContent = '0';
@@ -1661,7 +1661,7 @@ function voidSale(saleId, receiptNo) {
 }
 
 function openShiftReportModal() {
-    new bootstrap.Modal(document.getElementById('shiftReportModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('shiftReportModal')).show();
     const content = document.getElementById('shiftReportContent');
     content.innerHTML = `<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin fs-3 text-primary"></i></div>`;
 

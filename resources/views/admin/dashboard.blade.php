@@ -2922,7 +2922,7 @@ function openQuickStaffDetails(employeeId) {
     `;
     
     ledgerLink.href = `/admin/accounting/employees/${employeeId}/ledger`;
-    const bsModal = new bootstrap.Modal(modalEl);
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
 
     fetch(`/admin/accounting/employees/${employeeId}/quick-details`, {
@@ -3025,7 +3025,7 @@ function openQuickStockModal(bookId, title, currentStock) {
     document.getElementById('quickStockAlert').innerHTML = '';
 
     const modalEl = document.getElementById('quickStockModal');
-    new bootstrap.Modal(modalEl).show();
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function handleQuickStockSubmit(e) {

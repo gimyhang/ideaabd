@@ -46,51 +46,33 @@
         </div>
     @endif
 
-    {{-- Master Communication Tabs (5 Core Engines) --}}
-    <div class="sms-master-nav mb-4">
-        <ul class="nav nav-pills nav-fill gap-2" id="messagingHubTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active d-flex align-items-center justify-content-center gap-2" 
-                        id="tab-sms-btn" data-bs-toggle="pill" data-bs-target="#tab-sms" type="button" role="tab" aria-selected="true">
-                    <i class="fa-solid fa-comment-sms fs-5"></i>
-                    <span>১. বাল্ক এসএমএস (SMS Hub)</span>
-                    @if($balanceInfo['balance'] !== null)
-                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2.5 font-monospace ms-1" id="pillSmsBadge">{{ number_format((float)$balanceInfo['balance']) }} SMS</span>
-                    @endif
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center justify-content-center gap-2" 
-                        id="tab-email-btn" data-bs-toggle="pill" data-bs-target="#tab-email" type="button" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-envelope-open-text fs-5"></i>
-                    <span>২. বাল্ক ইমেইল (Email SMTP)</span>
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2.5 font-monospace ms-1">{{ number_format($emailCounts['total_users']) }} Users</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center justify-content-center gap-2" 
-                        id="tab-unified-btn" data-bs-toggle="pill" data-bs-target="#tab-unified" type="button" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-bolt-lightning fs-5"></i>
-                    <span>৩. ওটিপি ও ডুয়াল মার্কেটিং</span>
-                    <span class="badge bg-dark text-warning rounded-pill px-2">Dual Channel</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center justify-content-center gap-2" 
-                        id="tab-templates-btn" data-bs-toggle="pill" data-bs-target="#tab-templates" type="button" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-bookmark fs-5"></i>
-                    <span>৪. টেমপ্লেট বিল্ডার</span>
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2">{{ count($templates) }} Saved</span>
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link d-flex align-items-center justify-content-center gap-2" 
-                        id="tab-logs-btn" data-bs-toggle="pill" data-bs-target="#tab-logs" type="button" role="tab" aria-selected="false">
-                    <i class="fa-solid fa-clock-rotate-left fs-5"></i>
-                    <span>৫. হিস্ট্রি ও রিপোর্টস</span>
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2">{{ count($campaignLogs) }} Logs</span>
-                </button>
-            </li>
+    {{-- Main tabs: one word each --}}
+    @php
+        $hubTabs = [
+            ['sms',       'fa-comment-sms',       'এসএমএস'],
+            ['balance',   'fa-wallet',            'ব্যালান্স'],
+            ['email',     'fa-envelope',          'ইমেইল'],
+            ['unified',   'fa-key',               'ওটিপি'],
+            ['templates', 'fa-bookmark',          'টেমপ্লেট'],
+            ['logs',      'fa-clock-rotate-left', 'হিস্ট্রি'],
+            ['guard',     'fa-shield-halved',     'সুরক্ষা'],
+        ];
+    @endphp
+    <div class="sms-tabs-wrap mb-4">
+        <ul class="nav sms-tabs" id="messagingHubTabs" role="tablist">
+            @foreach($hubTabs as $i => [$key, $icon, $label])
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {{ $i === 0 ? 'active' : '' }}" id="tab-{{ $key }}-btn"
+                            data-bs-toggle="pill" data-bs-target="#tab-{{ $key }}" type="button" role="tab"
+                            aria-controls="tab-{{ $key }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
+                        <i class="fa-solid {{ $icon }}"></i>
+                        <span>{{ $label }}</span>
+                        @if($key === 'guard' && $restrictions->count() > 0)
+                            <span class="sms-count">{{ $restrictions->count() }}</span>
+                        @endif
+                    </button>
+                </li>
+            @endforeach
         </ul>
     </div>
 
@@ -102,120 +84,29 @@
         {{-- ========================================================================= --}}
         <div class="tab-pane fade show active" id="tab-sms" role="tabpanel" aria-labelledby="tab-sms-btn">
             
-            {{-- SMS Metric KPI Cards --}}
-            <div class="row g-3 mb-4">
-                {{-- 1. Live SMS Balance Card --}}
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="sms-metric-card sms-balance-hero d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-3 py-1.5 fw-semibold">
-                                <i class="fa-solid fa-bolt-lightning me-1 text-warning"></i> লাইভ গেটওয়ে ব্যালান্স
-                            </span>
-                            <button type="button" class="btn btn-sm btn-link text-white p-0 opacity-75 hover-opacity-100" onclick="refreshSmsBalance()" title="রিলোড করুন">
-                                <i class="fa-solid fa-rotate-right fs-5"></i>
-                            </button>
-                        </div>
-                        
-                        <div>
-                            @if($balanceInfo['balance'] !== null)
-                                <h1 class="display-5 fw-black text-white font-monospace mb-1 tracking-tight" id="heroBalanceNum">
-                                    {{ number_format((float)$balanceInfo['balance']) }}
-                                </h1>
-                                <div class="text-white text-opacity-80 small" id="heroBalanceStatus">
-                                    <i class="fa-solid fa-circle-check text-success me-1"></i> অনলাইন ও সক্রিয় গেটওয়ে ({{ strtoupper($credentials['provider'] ?? 'SMS4BD') }})
-                                </div>
-                            @else
-                                <h3 class="fw-bold text-white text-opacity-90 mb-1">ব্যালান্স অপ্রাপ্য</h3>
-                                <div class="text-white text-opacity-75 small">
-                                    <i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> {{ $balanceInfo['error'] ?? 'গেটওয়েতে কানেক্ট করা যায়নি' }}
-                                </div>
-                            @endif
-                        </div>
-
-                        <i class="fa-solid fa-comment-sms sms-hero-watermark"></i>
-                    </div>
+            {{-- At a glance --}}
+            <div class="sms-glance mb-4">
+                <a href="#tab-balance" class="sms-glance-item" onclick="switchMessagingTab('tab-balance-btn'); return false;">
+                    <span class="sms-label">ব্যালান্স</span>
+                    <strong data-sms-balance>{{ $balanceInfo['balance'] !== null ? number_format($balanceInfo['balance']) : '—' }}</strong>
+                    <small class="text-muted" data-sms-balance-status>{{ $balanceInfo['balance'] !== null ? 'SMS' : ($balanceInfo['error'] ?? 'অপ্রাপ্য') }}</small>
+                </a>
+                <div class="sms-glance-item">
+                    <span class="sms-label">আজ পাঠানো</span>
+                    <strong>{{ $stats ? number_format($stats['sent_today']) : '—' }}</strong>
+                    <small class="text-muted">SMS পার্ট</small>
                 </div>
-
-                {{-- 2. Target Audience Count Card --}}
-                <div class="col-12 col-md-6 col-xl-4">
-                    <div class="sms-metric-card d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1.5 fw-semibold">
-                                <i class="fa-solid fa-users me-1"></i> এসএমএস প্রাপক টার্গেট
-                            </span>
-                            <span class="text-muted small">সক্রিয় ফোন নম্বর</span>
-                        </div>
-
-                        <div class="row g-2 text-center my-auto">
-                            <div class="col-4">
-                                <div class="p-2 rounded-3 bg-light border">
-                                    <div class="fs-5 fw-bold text-primary">{{ number_format($counts['customers']) }}</div>
-                                    <div class="text-muted small fs-xs">গ্রাহক</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 rounded-3 bg-light border">
-                                    <div class="fs-5 fw-bold text-info">{{ number_format($counts['authors']) }}</div>
-                                    <div class="text-muted small fs-xs">লেখক</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 rounded-3 bg-light border">
-                                    <div class="fs-5 fw-bold text-warning">{{ number_format($counts['publishers']) }}</div>
-                                    <div class="text-muted small fs-xs">প্রকাশক</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 rounded-3 bg-light border">
-                                    <div class="fs-5 fw-bold text-success">{{ number_format($counts['libraries'] ?? 0) }}</div>
-                                    <div class="text-muted small fs-xs">নিবন্ধিত পাঠাগার</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 rounded-3 bg-light border">
-                                    <div class="fs-5 fw-bold text-dark">{{ number_format($counts['total_users']) }}</div>
-                                    <div class="text-muted small fs-xs">সর্বমোট নম্বর</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="small text-muted text-center mt-2">
-                            <i class="fa-solid fa-shield-halved text-success me-1"></i> ডুপ্লিকেট নম্বর অটো ফিল্টার হবে
-                        </div>
-                    </div>
+                <div class="sms-glance-item">
+                    <span class="sms-label">প্রাপক নম্বর</span>
+                    <strong>{{ number_format($counts['total_users']) }}</strong>
+                    <small class="text-muted">গ্রাহক {{ number_format($counts['customers']) }} · লেখক {{ number_format($counts['authors']) }} · প্রকাশক {{ number_format($counts['publishers']) }} · পাঠাগার {{ number_format($counts['libraries']) }}</small>
                 </div>
-
-                {{-- 3. Live Sender ID & Gateway Config Card --}}
-                <div class="col-12 col-md-12 col-xl-4">
-                    <div class="sms-metric-card d-flex flex-column justify-content-between">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1.5 fw-semibold">
-                                <i class="fa-solid fa-tower-broadcast me-1"></i> কনফিগারেশন স্ট্যাটাস
-                            </span>
-                            <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ $credentials['provider'] ?? 'SMS4BD' }}</span>
-                        </div>
-
-                        <div class="d-flex flex-column gap-2 my-auto">
-                            <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light border">
-                                <span class="text-muted small">Masking / Sender ID:</span>
-                                <span class="fw-bold font-monospace text-primary">{{ $credentials['sender_id'] ?? 'IDEA' }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light border">
-                                <span class="text-muted small">API Gateway URL:</span>
-                                <span class="text-truncate font-monospace small text-dark" style="max-width: 180px;">{{ $credentials['url'] ?? 'https://api.sms4bd.com' }}</span>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                            <span class="small text-muted"><i class="fa-solid fa-key me-1"></i> API Key সিকিউরড</span>
-                            <button class="btn btn-sm btn-link text-primary p-0 fw-semibold" onclick="document.getElementById('pills-sms-settings-tab').click();">
-                                সেটিংস এডিট করুন &rarr;
-                            </button>
-                        </div>
-                    </div>
+                <div class="sms-glance-item">
+                    <span class="sms-label">সেন্ডার আইডি</span>
+                    <strong class="font-monospace">{{ $credentials['sender_id'] ?? '—' }}</strong>
+                    <small class="text-muted">{{ strtoupper($credentials['provider'] ?? '') }}</small>
                 </div>
             </div>
-
             {{-- SMS Operational Sub-Tabs --}}
             <div class="sms-card mb-4">
                 <div class="sms-card-header">
@@ -259,7 +150,7 @@
                                             <label class="form-label fw-semibold text-dark small">প্রাপকের মোবাইল নম্বর <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-phone text-muted"></i></span>
-                                                <input type="text" name="phone" id="testPhone" class="form-control sms-form-control border-start-0" placeholder="01726976982" value="01726976982" required>
+                                                <input type="text" name="phone" id="testPhone" class="form-control sms-form-control border-start-0" placeholder="01712345678" value="{{ auth()->user()->phone ?? '' }}" required>
                                             </div>
                                         </div>
 
@@ -282,7 +173,7 @@
                                         </div>
 
                                         <div class="d-flex align-items-center gap-2">
-                                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold" id="btnSendTest">
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4" id="btnSendTest">
                                                 <i class="fa-solid fa-paper-plane me-1.5"></i> টেস্ট এসএমএস পাঠান
                                             </button>
                                         </div>
@@ -292,23 +183,11 @@
                                 </div>
 
                                 {{-- Live Smartphone Mockup Simulator --}}
-                                <div class="col-12 col-lg-5 text-center">
-                                    <div class="phone-mockup">
-                                        <div class="phone-notch"></div>
-                                        <div class="phone-screen">
-                                            <div class="phone-header">
-                                                <i class="fa-solid fa-tower-broadcast text-primary me-1"></i> {{ $credentials['sender_id'] ?? 'IDEA BD' }}
-                                            </div>
-                                            <div class="phone-body">
-                                                <div class="text-center my-1"><span class="badge bg-light text-muted px-2 py-1 font-monospace" style="font-size:0.65rem;">আজকের নোটিফিকেশন</span></div>
-                                                <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewQuick">
-                                                    আইডিয়া প্রকাশন টেস্ট এসএমএস: গেটওয়ে সফলভাবে কনফিগার ও সক্রিয় রয়েছে!
-                                                </div>
-                                            </div>
-                                            <div class="phone-footer">
-                                                <i class="fa-solid fa-shield-check text-success me-1"></i> আইডিয়া মেসেজিং সিকিউরড হাব
-                                            </div>
-                                        </div>
+                                <div class="col-12 col-lg-5">
+                                    <div class="sms-preview">
+                                        <span class="sms-label">লাইভ প্রিভিউ</span>
+                                        <div class="sms-preview-sender"><i class="fa-solid fa-tower-broadcast me-1"></i> {{ $credentials['sender_id'] ?? 'IDEA' }}</div>
+                                        <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewQuick">আইডিয়া প্রকাশন টেস্ট এসএমএস: গেটওয়ে সফলভাবে কনফিগার ও সক্রিয় রয়েছে!</div>
                                     </div>
                                 </div>
                             </div>
@@ -350,7 +229,7 @@
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                                         @foreach($templates as $t)
-                                                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate('{{ $t['id'] }}', 'bulk_sms')">{{ $t['title'] }}</a></li>
+                                                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate(@js($t['id']), 'bulk_sms')">{{ $t['title'] }}</a></li>
                                                         @endforeach
                                                     </ul>
                                                 </div>
@@ -373,30 +252,18 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-semibold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-bullhorn me-1.5"></i> বাল্ক ব্রডকাস্ট শুরু করুন
                                         </button>
                                     </div>
 
-                                    <div class="col-12 col-lg-5 text-center">
-                                        <div class="phone-mockup">
-                                            <div class="phone-notch"></div>
-                                            <div class="phone-screen">
-                                                <div class="phone-header">
-                                                    <i class="fa-solid fa-tower-broadcast text-primary me-1"></i> {{ $credentials['sender_id'] ?? 'IDEA BD' }}
-                                                </div>
-                                                <div class="phone-body">
-                                                    <div class="text-center my-1"><span class="badge bg-light text-muted px-2 py-1 font-monospace" style="font-size:0.65rem;">বাল্ক ক্যাম্পেইন প্রিভিউ</span></div>
-                                                    <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewBulk">
-                                                        এখানে মেসেজ টাইপ করলে লাইভ প্রিভিউ দেখতে পাবেন...
-                                                    </div>
-                                                </div>
-                                                <div class="phone-footer">
-                                                    <i class="fa-solid fa-shield-check text-success me-1"></i> আইডিয়া বাল্ক ইঞ্জিন
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="col-12 col-lg-5">
+                                    <div class="sms-preview">
+                                        <span class="sms-label">লাইভ প্রিভিউ</span>
+                                        <div class="sms-preview-sender"><i class="fa-solid fa-tower-broadcast me-1"></i> {{ $credentials['sender_id'] ?? 'IDEA' }}</div>
+                                        <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewBulk">এখানে মেসেজ টাইপ করলে লাইভ প্রিভিউ দেখতে পাবেন...</div>
                                     </div>
+                                </div>
                                 </div>
                             </form>
                         </div>
@@ -454,30 +321,18 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 shadow-sm fw-bold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-paper-plane me-1.5"></i> পার্সোনালাইজড ক্যাম্পেইন শুরু করুন
                                         </button>
                                     </div>
 
-                                    <div class="col-12 col-lg-5 text-center">
-                                        <div class="phone-mockup">
-                                            <div class="phone-notch"></div>
-                                            <div class="phone-screen">
-                                                <div class="phone-header">
-                                                    <i class="fa-solid fa-wand-magic-sparkles text-warning me-1"></i> পার্সোনালাইজড প্রিভিউ
-                                                </div>
-                                                <div class="phone-body">
-                                                    <div class="text-center my-1"><span class="badge bg-light text-muted px-2 py-1 font-monospace" style="font-size:0.65rem;">উদাহরণ: মো: রহিম (লেখক)</span></div>
-                                                    <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewMany">
-                                                        সম্মানিত {name}, আইডিয়া প্রকাশনে আপনার জন্য বিশেষ উপহার...
-                                                    </div>
-                                                </div>
-                                                <div class="phone-footer">
-                                                    <i class="fa-solid fa-user-check text-success me-1"></i> ইন্ডিভিজুয়াল টার্গেটেড
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="col-12 col-lg-5">
+                                    <div class="sms-preview">
+                                        <span class="sms-label">লাইভ প্রিভিউ</span>
+                                        <div class="sms-preview-sender"><i class="fa-solid fa-tower-broadcast me-1"></i> {{ $credentials['sender_id'] ?? 'IDEA' }}</div>
+                                        <div class="phone-sms-bubble brand-sender" id="phoneSimPreviewMany">সম্মানিত {name}, আইডিয়া প্রকাশনে আপনার জন্য বিশেষ উপহার...</div>
                                     </div>
+                                </div>
                                 </div>
                             </form>
                         </div>
@@ -488,6 +343,13 @@
                                 <div class="col-12 col-lg-6">
                                     <h5 class="fw-bold text-dark mb-1">এসএমএস গেটওয়ে এপিআই সেটিংস</h5>
                                     <p class="text-muted small mb-4">এসএমএস প্রোভাইডার ক্রেডেনশিয়ালস ও সেন্ডার আইডি কনফিগার করুন।</p>
+
+                                    @if($usingDefaultKey)
+                                        <div class="alert alert-warning small">
+                                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            এখন কোডে থাকা ডিফল্ট API Key ব্যবহার হচ্ছে। BulkSMSBD প্যানেল থেকে নতুন কী নিয়ে নিচে সংরক্ষণ করুন (বা <code>.env</code>-এ <code>SMS_GATEWAY_API_KEY</code> দিন)।
+                                        </div>
+                                    @endif
 
                                     <form action="{{ route('admin.sms.settings') }}" method="POST">
                                         @csrf
@@ -505,12 +367,13 @@
 
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold text-dark small">API Base URL <span class="text-danger">*</span></label>
-                                            <input type="url" name="url" class="form-control sms-form-control font-monospace" value="{{ $credentials['url'] ?? 'https://api.sms4bd.com' }}" required>
+                                            <input type="url" name="url" class="form-control sms-form-control font-monospace" value="{{ $credentials['url'] ?? 'https://bulksmsbd.net/api/smsapi' }}" pattern="https://.*" required>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label fw-semibold text-dark small">API Key / Token <span class="text-danger">*</span></label>
-                                            <input type="text" name="api_key" class="form-control sms-form-control font-monospace" value="{{ $credentials['api_key'] ?? '' }}" required>
+                                            <label class="form-label fw-semibold text-dark small">API Key / Token</label>
+                                            <input type="password" name="api_key" class="form-control sms-form-control font-monospace" autocomplete="new-password" placeholder="{{ $credentials['api_key_masked'] ?: 'API Key দিন' }}">
+                                            <div class="form-text">খালি রাখলে সংরক্ষিত কী-ই থাকবে। কী কখনো পেজে দেখানো হয় না।</div>
                                         </div>
 
                                         <div class="mb-4">
@@ -518,18 +381,18 @@
                                             <input type="text" name="sender_id" class="form-control sms-form-control font-monospace" value="{{ $credentials['sender_id'] ?? 'IDEA' }}" required>
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-floppy-disk me-1.5"></i> কনফিগারেশন সেভ করুন
                                         </button>
                                     </form>
                                 </div>
 
                                 <div class="col-12 col-lg-6">
-                                    <h5 class="fw-bold text-dark mb-1">Laravel & PHP API কোড স্নsnippet</h5>
+                                    <h5 class="fw-bold text-dark mb-1">API কোড স্যাম্পল</h5>
                                     <p class="text-muted small mb-4">ওয়েবসাইটের যেকোনো কন্ট্রোলারে এসএমএস পাঠানোর জন্য কোড ব্যবহার করুন।</p>
 
                                     <div class="sms-code-box">
-                                        <pre class="sms-code-pre"><code>{{ $codeSamples['laravel'] ?? "// Usage Example:\nSmsService::send('017XXXXXXXX', 'Hello World');" }}</code></pre>
+                                        <pre class="sms-code-pre"><code>{{ $codeSamples['laravel'] }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -538,6 +401,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- TAB: BALANCE & TRANSACTIONS --}}
+        <div class="tab-pane fade" id="tab-balance" role="tabpanel" aria-labelledby="tab-balance-btn">
+            @include('admin.sms.partials.balance')
+        </div>
+
+        {{-- TAB: NUMBER PROTECTION --}}
+        <div class="tab-pane fade" id="tab-guard" role="tabpanel" aria-labelledby="tab-guard-btn">
+            @include('admin.sms.partials.guard')
         </div>
 
         {{-- ========================================================================= --}}
@@ -683,7 +556,7 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm fw-semibold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-paper-plane me-1.5"></i> টেস্ট ইমেইল পাঠান
                                         </button>
                                     </form>
@@ -745,7 +618,7 @@
                                                     </button>
                                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                                         @foreach($templates as $t)
-                                                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate('{{ $t['id'] }}', 'email')">{{ $t['title'] }}</a></li>
+                                                            <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate(@js($t['id']), 'email')">{{ $t['title'] }}</a></li>
                                                         @endforeach
                                                     </ul>
                                                 </div>
@@ -764,7 +637,7 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm fw-semibold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-envelope-circle-check me-1.5"></i> বাল্ক ইমেইল ব্রডকাস্ট শুরু করুন
                                         </button>
                                     </div>
@@ -817,7 +690,7 @@
                                             </div>
                                             <div class="col-6">
                                                 <label class="form-label fw-semibold text-dark small">Password / Token</label>
-                                                <input type="password" name="password" class="form-control sms-form-control font-monospace" value="{{ $smtpSettings['password'] ?? '' }}">
+                                                <input type="password" name="password" class="form-control sms-form-control font-monospace" autocomplete="new-password" placeholder="{{ $smtpHasPassword ? '•••••••• (সংরক্ষিত)' : '' }}">
                                             </div>
                                         </div>
 
@@ -832,7 +705,7 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">
                                             <i class="fa-solid fa-floppy-disk me-1.5"></i> SMTP সেটিংস সংরক্ষণ করুন
                                         </button>
                                     </div>
@@ -854,9 +727,9 @@
                 {{-- Unified OTP Diagnostic --}}
                 <div class="col-12 col-lg-6">
                     <div class="sms-card h-100">
-                        <div class="sms-card-header bg-warning-subtle d-flex align-items-center justify-content-between">
-                            <span class="fw-bold text-dark"><i class="fa-solid fa-shield-halved text-warning me-2"></i> ইউনিফাইড ওটিপি (OTP) ডায়াগনস্টিক</span>
-                            <span class="badge bg-warning text-dark rounded-pill">Real-time</span>
+                        <div class="sms-card-header d-flex align-items-center justify-content-between">
+                            <span class="fw-bold text-dark"><i class="fa-solid fa-key text-primary me-2"></i> ইউনিফাইড ওটিপি (OTP) ডায়াগনস্টিক</span>
+                            
                         </div>
                         <div class="sms-card-body">
                             <p class="text-muted small mb-3">রেজিস্ট্রেশন, পাসওয়ার্ড রিসেট ও লগইন ২-এফএ ওটিপি ডেলিভারি টেস্ট করুন।</p>
@@ -876,7 +749,7 @@
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
                                         <label class="form-label fw-semibold text-dark small">টেস্ট মোবাইল নম্বর</label>
-                                        <input type="text" name="phone" class="form-control sms-form-control" placeholder="01726976982" value="01726976982">
+                                        <input type="text" name="phone" class="form-control sms-form-control" placeholder="01712345678" value="{{ auth()->user()->phone ?? '' }}">
                                     </div>
                                     <div class="col-6">
                                         <label class="form-label fw-semibold text-dark small">টেস্ট ইমেইল</label>
@@ -899,7 +772,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 shadow-sm fw-bold">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">
                                     <i class="fa-solid fa-bolt-lightning me-1.5"></i> ওটিপি টেস্ট ট্রিগার করুন
                                 </button>
                             </form>
@@ -912,9 +785,9 @@
                 {{-- Dual-Channel Marketing Broadcast --}}
                 <div class="col-12 col-lg-6">
                     <div class="sms-card h-100">
-                        <div class="sms-card-header bg-dark text-white d-flex align-items-center justify-content-between">
-                            <span class="fw-bold"><i class="fa-solid fa-paper-plane text-warning me-2"></i> ডুয়াল-চ্যানেল মার্কেটিং ক্যাম্পেইন</span>
-                            <span class="badge bg-warning text-dark rounded-pill">SMS + Email</span>
+                        <div class="sms-card-header d-flex align-items-center justify-content-between">
+                            <span class="fw-bold"><i class="fa-solid fa-paper-plane text-primary me-2"></i> ডুয়াল-চ্যানেল মার্কেটিং ক্যাম্পেইন</span>
+                            
                         </div>
                         <div class="sms-card-body">
                             <p class="text-muted small mb-3">একই সাথে এসএমএস এবং ইমেইল দুটো মাধ্যমেই ক্যাম্পেইন পরিচালনা করুন।</p>
@@ -946,7 +819,7 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                                 @foreach($templates as $t)
-                                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate('{{ $t['id'] }}', 'dual')">{{ $t['title'] }}</a></li>
+                                                    <li><a class="dropdown-item small" href="javascript:void(0)" onclick="applyTemplate(@js($t['id']), 'dual')">{{ $t['title'] }}</a></li>
                                                 @endforeach
                                             </ul>
                                         </div>
@@ -980,8 +853,8 @@
                                     </select>
                                 </div>
 
-                                <button type="submit" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold">
-                                    <i class="fa-solid fa-paper-plane me-1.5 text-warning"></i> ডুয়াল ক্যাম্পেইন রান করুন
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                    <i class="fa-solid fa-paper-plane me-1.5"></i> ডুয়াল ক্যাম্পেইন রান করুন
                                 </button>
                             </form>
                         </div>
@@ -1035,10 +908,10 @@
 
                                     <div class="d-flex align-items-center justify-content-between pt-2 border-top gap-2 flex-wrap">
                                         <div class="d-flex gap-1.5">
-                                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick="applyTemplate('{{ $tpl['id'] }}', 'bulk_sms')">
+                                            <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick="applyTemplate(@js($tpl['id']), 'bulk_sms')">
                                                 <i class="fa-solid fa-comment-sms me-1"></i> SMS এ বসান
                                             </button>
-                                            <button type="button" class="btn btn-xs btn-outline-danger rounded-pill" onclick="applyTemplate('{{ $tpl['id'] }}', 'email')">
+                                            <button type="button" class="btn btn-xs btn-outline-danger rounded-pill" onclick="applyTemplate(@js($tpl['id']), 'email')">
                                                 <i class="fa-solid fa-envelope me-1"></i> Email এ বসান
                                             </button>
                                         </div>
@@ -1175,7 +1048,7 @@
                                     <td><span class="badge bg-light text-dark border font-monospace">{{ strtoupper($log['target_group'] ?? 'CUSTOM') }}</span></td>
                                     <td>
                                         <span class="fw-bold text-dark">{{ number_format($log['total'] ?? 0) }}</span>
-                                        <div class="fs-xs text-muted">সফল: {{ $log['sent'] ?? 0 }} | ব্যর্থ: {{ $log['failed'] ?? 0 }}</div>
+                                        <div class="fs-xs text-muted">সফল: {{ $log['sent'] ?? 0 }} | ব্যর্থ: {{ $log['failed'] ?? 0 }}@if(!empty($log['refused'])) | বাদ: {{ $log['refused'] }}@endif</div>
                                     </td>
                                     <td>
                                         @if(($log['failed'] ?? 0) == 0)
@@ -1277,7 +1150,7 @@
 
                 <div class="modal-footer border-top px-4 py-3">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">বাতিল</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
                         <i class="fa-solid fa-floppy-disk me-1"></i> সংরক্ষণ করুন
                     </button>
                 </div>
@@ -1327,6 +1200,7 @@
     // Initialize Global Recipient Counts and Templates Cache
     window.messagingCounts = @json($counts);
     window.savedTemplates = @json($templates);
+    window.smsCostPerSms = {{ (float) $guard['cost'] }};
 </script>
 <script src="{{ asset('js/admin-sms.js') }}"></script>
 @endpush

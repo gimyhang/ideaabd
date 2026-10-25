@@ -218,7 +218,7 @@
 @push('scripts')
 <script>
 function openAdjustmentModal(authorId, authorName) {
-    const modal = new bootstrap.Modal(document.getElementById('manualAdjustmentModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('manualAdjustmentModal'));
     const select = document.getElementById('modal_author_id');
     if (select) {
         select.value = authorId;

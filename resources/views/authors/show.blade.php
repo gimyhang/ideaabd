@@ -824,11 +824,11 @@ function openShareAuthorModal() {
             url: "{{ route('authors.show', $author->slug ?: $author->id) }}"
         }).catch(err => {
             const modalEl = document.getElementById('shareAuthorModal');
-            if (modalEl) new bootstrap.Modal(modalEl).show();
+            if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
         });
     } else {
         const modalEl = document.getElementById('shareAuthorModal');
-        if (modalEl) new bootstrap.Modal(modalEl).show();
+        if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 }
 
@@ -847,7 +847,7 @@ function copyAuthorProfileLink() {
 
 function openAuthorContactModal() {
     const modalEl = document.getElementById('authorContactModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
 }
 
 function handleAuthorMessageSubmit(e) {

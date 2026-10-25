@@ -836,7 +836,7 @@ function openDocPreview(title, category, format, summary, checklist, docKey) {
     }
 
     const modalEl = document.getElementById('docPreviewModal');
-    const modal = new bootstrap.Modal(modalEl);
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.show();
 }
 

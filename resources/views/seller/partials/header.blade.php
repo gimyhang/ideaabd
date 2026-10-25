@@ -1,88 +1,48 @@
+{{-- Shared by the seller dashboard and the billing pages. The dashboard passes $shopName, $profile …; other pages fall back to the signed-in user. --}}
 @php
-    $sellerUser = auth()->user();
-    $isSellerAdmin = $sellerUser ? $sellerUser->isAdmin() : false;
-    $currentShopName = $shopName ?? ($sellerUser->reg_data['shop_name'] ?? ($sellerUser->name . ' - Bookshop'));
-    $currentShopAddress = $shopAddress ?? ($sellerUser->reg_data['address'] ?? ($sellerUser->address ?? 'বাংলাদেশ'));
-    $currentTradeLicense = $tradeLicense ?? ($sellerUser->reg_data['trade_license'] ?? null);
+    $me          = auth()->user();
+    $hasProfile  = array_key_exists('profile', get_defined_vars());   // the dashboard says whose shop this is (or null = all sellers)
+    $owner       = $hasProfile ? $profile : $me;
+    $shop        = $shopName ?? ($owner ? ($owner->reg_data['shop_name'] ?? ($owner->name . ' - বুকশপ')) : 'সকল বিক্রেতা');
+    $address     = $shopAddress ?? ($owner ? ($owner->reg_data['address'] ?? $owner->address ?? null) : null);
+    $license     = $tradeLicense ?? ($owner ? ($owner->reg_data['trade_license'] ?? null) : null);
+    $nav = [
+        ['subadmin.dashboard',     'fa-gauge-high',          'ড্যাশবোর্ড'],
+        ['subadmin.bills.create',  'fa-plus',                'নতুন বিল'],
+        ['subadmin.bills.index',   'fa-file-invoice-dollar', 'বিল তালিকা'],
+        ['subadmin.accounts',      'fa-wallet',              'হিসাব'],
+        ['my-account',             'fa-user',                'আমার অ্যাকাউন্ট'],
+    ];
 @endphp
+<link rel="stylesheet" href="{{ asset('css/seller-panel.css') }}?v={{ @filemtime(public_path('css/seller-panel.css')) ?: 1 }}">
 
-<div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden position-relative" 
-     style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #047857 100%);">
-    <div class="card-body p-3.5 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 position-relative z-1">
-        <div class="d-flex align-items-center gap-3">
-            <div class="position-relative flex-shrink-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center" 
-                 style="width: 70px; height: 70px; min-width: 70px;">
-                <div class="w-100 h-100 rounded-circle bg-success text-white fw-bold fs-2 d-flex align-items-center justify-content-center">
-                    <i class="fas fa-store"></i>
-                </div>
-                <span class="position-absolute bottom-0 end-0 bg-warning text-dark p-1 rounded-circle shadow-xs" title="অনুমোদিত বিক্রেতা" style="font-size: 10px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-check"></i>
-                </span>
-            </div>
-            <div>
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <h3 class="fw-bold mb-0 text-white fs-4 fs-md-3">{{ $currentShopName }}</h3>
-                    <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2.5 py-1 small fw-semibold">
-                        <i class="fas fa-circle-check text-warning me-1"></i>সেলার ও ডিলার পোর্টাল
-                    </span>
-                    @if($isSellerAdmin)
-                        <a href="{{ route('admin.dashboard') }}" class="badge bg-warning text-dark rounded-pill px-2.5 py-1 text-decoration-none fw-bold small">
-                            <i class="fas fa-gauge-high me-1"></i>অ্যাডমিন প্যানেল
-                        </a>
-                    @endif
-                </div>
-                <div class="small opacity-90 text-light d-flex flex-wrap align-items-center gap-3" style="font-size: 12px;">
-                    <span><i class="fas fa-user-circle me-1"></i>{{ $sellerUser->name }}</span>
-                    @if($sellerUser->phone)
-                        <span><i class="fas fa-phone me-1"></i>{{ $sellerUser->phone }}</span>
-                    @endif
-                    @if($currentShopAddress)
-                        <span><i class="fas fa-location-dot me-1"></i>{{ $currentShopAddress }}</span>
-                    @endif
-                    @if($currentTradeLicense)
-                        <span><i class="fas fa-id-card me-1"></i>লাইসেন্স: {{ $currentTradeLicense }}</span>
-                    @endif
-                </div>
+<header class="sp-head">
+    <div class="sp-head-top">
+        <div class="sp-logo"><i class="fas fa-store"></i></div>
+        <div class="me-auto min-w-0">
+            <h1 class="sp-shop text-truncate">{{ $shop }}</h1>
+            <div class="sp-meta">
+                @if($owner)
+                    <span><i class="fas fa-user me-1"></i>{{ $owner->name }}</span>
+                    @if($owner->phone)<span><i class="fas fa-phone me-1"></i>{{ $owner->phone }}</span>@endif
+                @endif
+                @if($address)<span><i class="fas fa-location-dot me-1"></i>{{ $address }}</span>@endif
+                @if($license)<span><i class="fas fa-id-card me-1"></i>লাইসেন্স {{ $license }}</span>@endif
             </div>
         </div>
-
-        {{-- Action Buttons Navigation --}}
-        <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
-            @if(!request()->routeIs('subadmin.dashboard'))
-                <button type="button" 
-                        onclick="if(window.history.length > 1 && document.referrer){ window.history.back(); } else { window.location.href='{{ route('subadmin.dashboard') }}'; }" 
-                        class="btn btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 shadow-sm" 
-                        title="পূর্ববর্তী পেজে ফিরে যান (Backspace বা Alt+Left)">
-                    <i class="fas fa-arrow-left-long text-warning"></i>
-                    <span>ফিরে যান</span>
-                    <kbd class="bg-white bg-opacity-25 text-white border-0 px-1 py-0 ms-0.5 d-none d-md-inline small" style="font-size: 0.65rem;">⌫</kbd>
-                </button>
+        <div class="d-flex flex-wrap gap-2">
+            @if($me && $me->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3"><i class="fas fa-gauge-high me-1"></i>অ্যাডমিন</a>
             @endif
-            <a href="{{ route('subadmin.dashboard') }}" 
-               class="btn {{ request()->routeIs('subadmin.dashboard') ? 'btn-light text-dark fw-bold' : 'btn-outline-light' }} rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm">
-                <i class="fas fa-gauge-high {{ request()->routeIs('subadmin.dashboard') ? 'text-primary' : '' }}"></i>
-                <span>ড্যাশবোর্ড</span>
-            </a>
-            <a href="{{ route('subadmin.bills.create') }}" 
-               class="btn {{ request()->routeIs('subadmin.bills.create') ? 'btn-warning text-dark fw-bold' : 'btn-outline-warning text-white' }} rounded-pill px-3.5 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm">
-                <i class="fas fa-plus-circle"></i>
-                <span>নতুন বিল (POS)</span>
-            </a>
-            <a href="{{ route('subadmin.bills.index') }}" 
-               class="btn {{ request()->routeIs('subadmin.bills.index') ? 'btn-light text-dark fw-bold' : 'btn-outline-light' }} rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm">
-                <i class="fas fa-file-invoice-dollar {{ request()->routeIs('subadmin.bills.index') ? 'text-primary' : '' }}"></i>
-                <span>বিল ও চালান তালিকা</span>
-            </a>
-            <a href="{{ route('subadmin.accounts') }}" 
-               class="btn {{ request()->routeIs('subadmin.accounts') ? 'btn-light text-dark fw-bold' : 'btn-outline-light' }} rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm">
-                <i class="fas fa-wallet {{ request()->routeIs('subadmin.accounts') ? 'text-primary' : '' }}"></i>
-                <span>হিসাব বিবরণী</span>
-            </a>
-            <a href="{{ route('my-account') }}" 
-               class="btn btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm" title="মাই একাউন্ট (প্রোফাইল ও অর্ডার)">
-                <i class="fas fa-user-circle text-warning"></i>
-                <span>মাই একাউন্ট</span>
-            </a>
+            <a href="{{ route('subadmin.bills.create') }}" class="btn btn-sm btn-success rounded-pill px-3"><i class="fas fa-plus me-1"></i>নতুন বিল</a>
         </div>
     </div>
-</div>
+
+    <nav class="sp-nav" aria-label="সেলার মেনু">
+        @foreach($nav as [$route, $icon, $label])
+            <a href="{{ route($route) }}" class="{{ request()->routeIs($route) ? 'active' : '' }}" @if(request()->routeIs($route)) aria-current="page" @endif>
+                <i class="fas {{ $icon }}"></i>{{ $label }}
+            </a>
+        @endforeach
+    </nav>
+</header>

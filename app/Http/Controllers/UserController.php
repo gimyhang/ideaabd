@@ -305,7 +305,12 @@ class UserController extends Controller
         ], now()->addMinutes(10));
 
         try {
-            \App\Services\SmsService::send($forms['canonical'], "Idea Prokashon: your phone change code is {$code}. Do not share it.");
+            $sms = \App\Services\SmsService::send($forms['canonical'], "Idea Prokashon: your phone change code is {$code}. Do not share it.", ['purpose' => 'otp']);
+            if (empty($sms['success']) && !empty($sms['code'])) {
+                \Illuminate\Support\Facades\Cache::forget('phone_change:' . $user->id);
+
+                return response()->json(['success' => false, 'message' => $sms['message']], 429);
+            }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Phone-change SMS failed: ' . $e->getMessage());
         }

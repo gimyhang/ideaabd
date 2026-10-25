@@ -216,7 +216,7 @@ function openEditTranslationModal(id, key, textBn, textEn, textAr) {
     document.getElementById('editTextEn').value = textEn;
     document.getElementById('editTextAr').value = textAr;
 
-    new bootstrap.Modal(document.getElementById('editTranslationModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editTranslationModal')).show();
 }
 
 function triggerAiTranslate(sourceId, targetId) {

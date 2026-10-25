@@ -127,7 +127,7 @@ function openBulkMoveModal() {
     if (selectedMediaPaths.length === 0) return;
     const modalEl = document.getElementById('bulkMoveModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -295,7 +295,7 @@ function openStudioModal(url, path, filename, width, height) {
 
         const modalEl = document.getElementById('mediaStudioModal');
         if (modalEl && typeof bootstrap !== 'undefined') {
-            const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
             m.show();
         }
     };
@@ -878,7 +878,7 @@ function openConvertWebpEngineModal(scope = 'auto') {
 
     const modalEl = document.getElementById('convertWebpEngineModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -1007,7 +1007,7 @@ function openRenameModal(path, currentName) {
 
     const modalEl = document.getElementById('renameFileModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -1105,7 +1105,7 @@ function openLightbox(url, filename, size, date, dimensions, folder) {
 
     const modalEl = document.getElementById('lightboxModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -1140,7 +1140,7 @@ function openLightboxByIndex(index) {
 
     const modalEl = document.getElementById('lightboxModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -1275,7 +1275,7 @@ function openReplaceModal(targetPath, filename) {
 
     const modalEl = document.getElementById('replaceMediaModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 }
@@ -1403,7 +1403,7 @@ function initGlobalDragAndPaste() {
 function handleDroppedFilesDirectly(files) {
     const modalEl = document.getElementById('uploadMediaModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const m = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const m = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         m.show();
     }
 

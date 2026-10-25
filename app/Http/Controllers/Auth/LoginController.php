@@ -733,6 +733,19 @@ class LoginController extends Controller
             \Illuminate\Support\Facades\Log::warning("Login OTP SMS Send Exception: " . $e->getMessage());
         }
 
+        // SmsGuard refused the number (fake, daily limit reached, or blocked): say so instead of promising a code that never comes
+        if (is_array($smsResult) && empty($smsResult['success']) && !empty($smsResult['code'])) {
+            \Illuminate\Support\Facades\Cache::forget('login_otp_' . $user->id);
+            \Illuminate\Support\Facades\Cache::forget('login_otp_' . $last10);
+            \Illuminate\Support\Facades\Cache::forget('pwd_reset_otp_' . $last10);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $smsResult['message'], 'retry_after' => $smsResult['retry_after'] ?? null], 429);
+            }
+
+            return back()->withErrors(['phone' => $smsResult['message']]);
+        }
+
         $maskedPhone = substr($targetPhone, 0, 3) . '****' . substr($targetPhone, -4);
         $msg = "A 6-digit OTP verification code has been sent to {$maskedPhone} (Valid for 2 minutes). Please enter the code and set your password.";
 

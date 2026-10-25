@@ -177,6 +177,7 @@ class PasswordResetController extends Controller
         // Determine effective delivery method
         $sentViaSms = false;
         $sentViaEmail = false;
+        $smsRefusal = null; // SmsGuard said no (fake number, daily limit, blocked)
         $maskedPhone = !empty($user->phone) ? substr($user->phone, 0, 3) . '****' . substr($user->phone, -4) : '';
         $maskedEmail = !empty($user->email) ? $this->maskEmail($user->email) : '';
 
@@ -185,6 +186,9 @@ class PasswordResetController extends Controller
             try {
                 $smsResult = \App\Services\SmsService::sendPasswordResetOtp($user->phone, $otpCode, $resetUrl);
                 $sentViaSms = !empty($smsResult['success']);
+                if (!$sentViaSms && !empty($smsResult['code'])) {
+                    $smsRefusal = $smsResult['message'] ?? null;
+                }
                 Log::info("Password reset SMS dispatch to {$user->phone}: " . json_encode($smsResult));
             } catch (\Throwable $smsEx) {
                 Log::warning("Password reset SMS error: " . $smsEx->getMessage());
@@ -224,6 +228,8 @@ class PasswordResetController extends Controller
             $msg = "A 6-digit verification code has been sent to your mobile ({$maskedPhone}). Please check your SMS and enter the code below.";
         } elseif ($sentViaEmail) {
             $msg = "A 6-digit verification code has been sent to your email ({$maskedEmail}). Please check your inbox and enter the code below.";
+        } elseif ($smsRefusal) {
+            return back()->withInput()->withErrors(['identity' => $smsRefusal]);
         } else {
             $phoneDisplay = $maskedPhone ?: 'your mobile number';
             $msg = "A 6-digit verification code has been sent to your mobile ({$phoneDisplay}). Please check your SMS and enter the code below.";

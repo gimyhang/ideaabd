@@ -2408,7 +2408,7 @@ window.handleCardAddToCart = function(btn) {
 window.openProductQuickView = function(id) {
     const modalEl = document.getElementById('productQuickViewModal');
     if (!modalEl) return;
-    const modal = new bootstrap.Modal(modalEl);
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
     const body = document.getElementById('qvContentBody');
     body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted small">লোড হচ্ছে...</div></div>';
     modal.show();

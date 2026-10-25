@@ -1149,7 +1149,7 @@ let modalCroppedDataUrl = null;
 function openPhotoStudioModal() {
     const modalEl = document.getElementById('authorPhotoStudioModal');
     if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
         setTimeout(() => {
             if (!modalCanvas) modalCanvas = document.getElementById('modalCropCanvas');
@@ -1162,7 +1162,7 @@ function openPhotoStudioModal() {
 function openBioEditModal() {
     const modalEl = document.getElementById('authorBioEditModal');
     if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 }

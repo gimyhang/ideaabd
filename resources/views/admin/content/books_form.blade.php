@@ -3068,7 +3068,7 @@ body.dark-mode .adm-mobile-sticky-bar {
             }
         }
 
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     };
 
@@ -3215,7 +3215,7 @@ body.dark-mode .adm-mobile-sticky-bar {
     window.openBookCoverStudioModal = function() {
         const modalEl = document.getElementById('bookCoverStudioModal');
         if (!modalEl) return;
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
         setTimeout(function() {
             renderStudioCanvas();

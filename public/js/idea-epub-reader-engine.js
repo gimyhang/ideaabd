@@ -216,7 +216,7 @@ class IdeaEpubReader {
         // Go To Page Jump Modal
         const btnOpenJump = document.getElementById('btn-open-jump-modal');
         if (btnOpenJump && d.jumpModalEl) {
-            const jumpModal = new bootstrap.Modal(d.jumpModalEl);
+            const jumpModal = bootstrap.Modal.getOrCreateInstance(d.jumpModalEl);
             btnOpenJump.addEventListener('click', () => {
                 if (d.jumpInput) d.jumpInput.value = this.currentLocation;
                 jumpModal.show();
@@ -1172,7 +1172,7 @@ class IdeaEpubReader {
         const noteModalEl = this.dom.noteModalEl;
         if (!noteModalEl) return;
 
-        const noteModal = new bootstrap.Modal(noteModalEl);
+        const noteModal = bootstrap.Modal.getOrCreateInstance(noteModalEl);
         const selectedQuoteEl = document.getElementById('note-selected-quote');
         const noteInput = document.getElementById('note-text-input');
         const btnSaveNote = document.getElementById('btn-save-note');

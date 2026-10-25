@@ -5433,7 +5433,7 @@
 
             const modalEl = document.getElementById('participantPhotoLightboxModal');
             if (modalEl && typeof bootstrap !== 'undefined') {
-                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl, { backdrop: true });
+                const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: true });
                 modal.show();
             }
         };

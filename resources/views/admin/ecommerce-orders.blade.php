@@ -641,7 +641,7 @@
 
         document.getElementById('modalViewInvoiceBtn').href = `/admin/ecommerce-orders/${order.id}/invoice`;
 
-        const modal = new bootstrap.Modal(document.getElementById('orderViewModal'));
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('orderViewModal'));
         modal.show();
     }
 
@@ -674,7 +674,7 @@
         document.getElementById('editTrackingCode').value = order.tracking_code || '';
         document.getElementById('editAdminNotes').value = order.admin_notes || '';
 
-        const modal = new bootstrap.Modal(document.getElementById('orderEditModal'));
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('orderEditModal'));
         modal.show();
     }
 

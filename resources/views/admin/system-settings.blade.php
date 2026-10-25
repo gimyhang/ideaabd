@@ -2299,7 +2299,7 @@
                 const imageEl = document.getElementById('cropperImageElement');
                 imageEl.src = e.target.result;
 
-                const cropModal = new bootstrap.Modal(document.getElementById('imageCropperModal'));
+                const cropModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('imageCropperModal'));
                 cropModal.show();
 
                 document.getElementById('imageCropperModal').addEventListener('shown.bs.modal', function onModalShown() {

@@ -535,7 +535,7 @@ function updateRequestStatus(id, newStatus, selectEl) {
 function openNotesModal(id, currentNotes) {
     document.getElementById('notesReqId').value = id;
     document.getElementById('notesTextarea').value = currentNotes || '';
-    new bootstrap.Modal(document.getElementById('notesModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('notesModal')).show();
 }
 
 function saveAdminNotes(e) {
@@ -573,7 +573,7 @@ function openViewModal(req) {
     document.getElementById('vCustomerEmail').textContent = req.customer_email || '-';
     document.getElementById('vAdditionalInfo').textContent = req.additional_info || 'No additional information';
     document.getElementById('vAdminNotes').textContent = req.admin_notes || 'No internal notes';
-    new bootstrap.Modal(document.getElementById('viewRequestModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('viewRequestModal')).show();
 }
 
 function toggleSelectAll(master) {

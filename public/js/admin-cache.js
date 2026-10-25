@@ -344,7 +344,7 @@ function inspectKeyPayload(keyName) {
     const modalEl = document.getElementById('keyInspectorModal');
     let bsModal = null;
     if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-        bsModal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        bsModal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         bsModal.show();
     }
 

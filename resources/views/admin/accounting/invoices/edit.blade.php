@@ -1230,7 +1230,7 @@
 
         const modalEl = document.getElementById('quickAddBookModal');
         if (modalEl) {
-            const modal = new bootstrap.Modal(modalEl);
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
         }
     }

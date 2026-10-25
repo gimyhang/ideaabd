@@ -1340,7 +1340,7 @@ function openPurchaseOrderModal() {
 
     const modalEl = document.getElementById('purchaseOrderModal');
     if (window.bootstrap) {
-        new bootstrap.Modal(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     } else {
         $(modalEl).modal('show');
     }
@@ -1473,7 +1473,7 @@ function printPurchaseOrderSlip() {
 function openMakePaymentModal() {
     const modalEl = document.getElementById('makePaymentModal');
     if (window.bootstrap) {
-        new bootstrap.Modal(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     } else {
         $(modalEl).modal('show');
     }
@@ -1519,7 +1519,7 @@ function handleMakePaymentSubmit(e) {
 function openEditPublisherModal(id) {
     const modalEl = document.getElementById('editPublisherModal');
     if (window.bootstrap) {
-        new bootstrap.Modal(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     } else {
         $(modalEl).modal('show');
     }

@@ -958,7 +958,7 @@ function openUniversalQuickPayModal(targetType, targetId, docNo, dueAmount, cust
     amountInput.value = dueAmount > 0 ? dueAmount.toFixed(2) : '';
     amountInput.max = dueAmount.toFixed(2);
 
-    const modal = new bootstrap.Modal(document.getElementById('universalQuickPayModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('universalQuickPayModal'));
     modal.show();
 }
 

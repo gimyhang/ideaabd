@@ -318,6 +318,7 @@ class RoleMiddleware
         'admin.event-campaigns.broadcast-sms' => 'support.broadcast',
         'admin.event-campaigns.'           => ['marketing.view', 'marketing.banners_manage'],
         'admin.sms.'                       => 'support.broadcast',
+        'admin.sms.restrictions.'          => 'settings.manage',   // blocking or releasing a number changes who can receive OTP
 
         'admin.profile'                    => self::STAFF_SELF,
     ];

@@ -2268,7 +2268,7 @@ function openBlogEditRequestModal(postId) {
 
         document.getElementById('btnModalEditManual').href = `/admin/content/blog/${postId}/edit`;
 
-        const modal = new bootstrap.Modal(document.getElementById('blogEditRequestModal'));
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('blogEditRequestModal'));
         modal.show();
     } catch (e) {
         console.error("Could not parse edit request payload:", e);

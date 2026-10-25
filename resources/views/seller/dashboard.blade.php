@@ -1,409 +1,160 @@
 @extends('layouts.app')
 
-@section('title', 'সেলার ড্যাশবোর্ড — ' . ($shopName ?? 'IDEA Seller Panel'))
+@section('title', 'ড্যাশবোর্ড — ' . $shopName)
 
 @section('content')
-<div class="container-fluid py-4 px-md-4" style="max-width: 1440px;">
+<div class="container-fluid py-4 px-md-4" style="max-width: 1280px;">
 
-    {{-- Flash alerts --}}
+    @include('seller.partials.header')
+
     @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-4 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-circle-check fs-5 me-2.5 text-success"></i>
-            <div class="fw-medium">{{ session('success') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="বন্ধ"></button></div>
     @endif
     @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-4 rounded-4 shadow-xs" role="alert">
-            <i class="fas fa-triangle-exclamation fs-5 me-2.5 text-danger"></i>
-            <div class="fw-medium">{{ session('error') }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="বন্ধ"></button></div>
     @endif
 
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 1. SELLER & SHOP HEADER BANNER                                            --}}
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    <div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden position-relative" 
-         style="background: linear-gradient(135deg, #0f172a 0%, #064e3b 50%, #047857 100%);">
-        <div class="card-body p-3.5 p-md-4 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 position-relative z-1">
-            <div class="d-flex align-items-center gap-3">
-                <div class="position-relative flex-shrink-0 bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center" 
-                     style="width: 76px; height: 76px; min-width: 76px;">
-                    <div class="w-100 h-100 rounded-circle bg-success text-white fw-bold fs-2 d-flex align-items-center justify-content-center">
-                        <i class="fas fa-store"></i>
-                    </div>
-                    <span class="position-absolute bottom-0 end-0 bg-warning text-dark p-1 rounded-circle shadow-xs" title="অনুমোদিত বিক্রেতা" style="font-size: 11px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check"></i>
-                    </span>
-                </div>
-                <div>
-                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                        <h3 class="fw-bold mb-0 text-white fs-4 fs-md-3">{{ $shopName }}</h3>
-                        <span class="badge bg-white bg-opacity-20 text-white rounded-pill px-2.5 py-1 small fw-semibold">
-                            <i class="fas fa-circle-check text-warning me-1"></i>সেলার ও ডিলার পোর্টাল
-                        </span>
-                    </div>
-                    <div class="small opacity-90 text-light d-flex flex-wrap align-items-center gap-3" style="font-size: 12px;">
-                        <span><i class="fas fa-user-circle me-1"></i>{{ $user->name }}</span>
-                        @if($user->phone)
-                            <span><i class="fas fa-phone me-1"></i>{{ $user->phone }}</span>
-                        @endif
-                        @if($user->email)
-                            <span><i class="fas fa-envelope me-1"></i>{{ $user->email }}</span>
-                        @endif
-                        @if($shopAddress)
-                            <span><i class="fas fa-location-dot me-1"></i>{{ $shopAddress }}</span>
-                        @endif
-                        @if($tradeLicense)
-                            <span><i class="fas fa-id-card me-1"></i>লাইসেন্স: {{ $tradeLicense }}</span>
-                        @endif
-                    </div>
-                </div>
-            </div>
+    {{-- Admin: look at one seller or at everyone --}}
+    @if($isAdmin && count($sellersList))
+        <form method="GET" action="{{ route('subadmin.dashboard') }}" class="d-flex align-items-center gap-2 mb-3">
+            <label for="sellerFilter" class="small fw-semibold text-muted mb-0">বিক্রেতা</label>
+            <select id="sellerFilter" name="seller_id" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                <option value="">সকল বিক্রেতা</option>
+                @foreach($sellersList as $id => $name)
+                    <option value="{{ $id }}" @selected($sellerId === $id)>{{ $name }}</option>
+                @endforeach
+            </select>
+            <noscript><button class="btn btn-sm btn-primary">দেখুন</button></noscript>
+        </form>
+    @endif
 
-            {{-- Action Buttons --}}
-            <div class="d-flex flex-wrap align-items-center gap-2 w-100 w-md-auto justify-content-start justify-content-md-end">
-                <a href="{{ route('subadmin.bills.create') }}" class="btn btn-warning text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center">
-                    <i class="fas fa-plus-circle fs-5"></i>
-                    <span>নতুন বিল (POS)</span>
-                </a>
-                <a href="{{ route('subadmin.bills.index') }}" class="btn btn-light text-dark rounded-pill px-3.5 py-2 fw-bold shadow-sm d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center">
-                    <i class="fas fa-file-invoice-dollar text-primary"></i>
-                    <span>বিল তালিকা</span>
-                </a>
-                <a href="{{ route('subadmin.accounts') }}" class="btn btn-outline-light rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center">
-                    <i class="fas fa-wallet"></i>
-                    <span>হিসাব বিবরণী</span>
-                </a>
-                <a href="{{ route('my-account') }}" class="btn btn-outline-light rounded-pill px-3.5 py-2 fw-semibold d-flex align-items-center gap-1.5 flex-grow-1 flex-md-grow-0 justify-content-center shadow-sm" title="মাই একাউন্ট (প্রোফাইল ও অর্ডার)">
-                    <i class="fas fa-user-circle text-warning"></i>
-                    <span>মাই একাউন্ট</span>
-                </a>
-            </div>
+    {{-- Numbers --}}
+    <div class="sp-grid">
+        <div class="sp-tile">
+            <span class="sp-label">মোট বিক্রি</span>
+            <span class="sp-value">৳@bn($stats->sales)</span>
+            <span class="sp-sub">@bn($stats->bills)টি বিল</span>
+        </div>
+        <div class="sp-tile">
+            <span class="sp-label">আদায়</span>
+            <span class="sp-value text-success">৳@bn($stats->paid)</span>
+            <span class="sp-sub">@bn($stats->paid_bills)টি পরিশোধিত বিল</span>
+        </div>
+        <div class="sp-tile">
+            <span class="sp-label">বকেয়া</span>
+            <span class="sp-value {{ $stats->due > 0 ? 'text-danger' : '' }}">৳@bn($stats->due)</span>
+            <span class="sp-sub">@bn($stats->open_bills)টি অপরিশোধিত বিল</span>
+        </div>
+        <div class="sp-tile">
+            <span class="sp-label">আজ</span>
+            <span class="sp-value">৳@bn($stats->today_sales)</span>
+            <span class="sp-sub">@bn($stats->today_bills)টি বিল</span>
+        </div>
+        <div class="sp-tile">
+            <span class="sp-label">এ মাস</span>
+            <span class="sp-value">৳@bn($stats->month_sales)</span>
+            <span class="sp-sub">চলতি মাস</span>
+        </div>
+        <div class="sp-tile">
+            <span class="sp-label">বিক্রিত কপি</span>
+            <span class="sp-value">@bn($itemsSold)</span>
+            <span class="sp-sub">সব বিল মিলিয়ে</span>
         </div>
     </div>
 
-    {{-- Admin Seller Switcher Filter (Only for Super Admin) --}}
-    @if($isAdmin && count($sellersList) > 0)
-        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-light">
-            <form method="GET" action="{{ route('subadmin.dashboard') }}" class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="fas fa-filter text-primary"></i>
-                    <strong class="text-dark small">Seller Filter:</strong>
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0">
-                    <select name="seller_id" class="form-select form-select-sm rounded-pill px-3 fw-semibold" onchange="this.form.submit()">
-                        <option value="">-- All Sellers / My Dashboard --</option>
-                        @foreach($sellersList as $sId => $sName)
-                            <option value="{{ $sId }}" {{ request('seller_id') == $sId ? 'selected' : '' }}>{{ $sName }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </form>
-        </div>
-    @endif
-
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 2. KPI METRICS CARDS                                                      --}}
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    <div class="row g-2.5 g-md-3 mb-4">
-        {{-- Metric 1: Total Sales Revenue --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-primary h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Total Sales</span>
-                        <span class="p-1 px-1.5 bg-primary-subtle text-primary rounded-2"><i class="fas fa-sack-dollar small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">৳{{ number_format($totalSales, 0) }}</h4>
-                </div>
-                <small class="text-muted mt-1" style="font-size: 11px;">Gross sales</small>
-            </div>
-        </div>
-
-        {{-- Metric 2: Settled / Paid Amount --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Paid / Settled</span>
-                        <span class="p-1 px-1.5 bg-success-subtle text-success rounded-2"><i class="fas fa-circle-check small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-success font-monospace fs-4">৳{{ number_format($totalPaid, 0) }}</h4>
-                </div>
-                <small class="text-success" style="font-size: 11px;">@bn($paidBillsCount) Paid Bills</small>
-            </div>
-        </div>
-
-        {{-- Metric 3: Pending Due Amount --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-danger h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Due Amount</span>
-                        <span class="p-1 px-1.5 bg-danger-subtle text-danger rounded-2"><i class="fas fa-clock small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-danger font-monospace fs-4">৳{{ number_format($totalDue, 0) }}</h4>
-                </div>
-                <small class="text-danger" style="font-size: 11px;">@bn($dueBillsCount) Due Bills</small>
-            </div>
-        </div>
-
-        {{-- Metric 4: Today's Sales --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-warning h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Today Sales</span>
-                        <span class="p-1 px-1.5 bg-warning-subtle text-warning-emphasis rounded-2"><i class="fas fa-calendar-day small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">৳{{ number_format($todaySales, 0) }}</h4>
-                </div>
-                <small class="text-muted" style="font-size: 11px;">@bn($todayBills) Invoices Today</small>
-            </div>
-        </div>
-
-        {{-- Metric 5: Total Bills Count --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-info h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Total Bills</span>
-                        <span class="p-1 px-1.5 bg-info-subtle text-info rounded-2"><i class="fas fa-file-invoice small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-info font-monospace fs-4">@bn($totalBills)</h4>
-                </div>
-                <small class="text-muted" style="font-size: 11px;">Total Invoices</small>
-            </div>
-        </div>
-
-        {{-- Metric 6: Total Items Sold --}}
-        <div class="col-6 col-lg-2 col-md-4">
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-secondary h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                        <span class="text-muted small fw-semibold text-truncate">Items Sold</span>
-                        <span class="p-1 px-1.5 bg-secondary-subtle text-secondary rounded-2"><i class="fas fa-boxes-stacked small"></i></span>
-                    </div>
-                    <h4 class="fw-bold mb-0 text-dark font-monospace fs-4">@bn($totalItemsSold)</h4>
-                </div>
-                <small class="text-muted" style="font-size: 11px;">Delivered copies</small>
-            </div>
-        </div>
-    </div>
-
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    {{-- 3. QUICK ACTIONS & RECENT INVOICES GRID                                    --}}
-    {{-- ═════════════════════════════════════════════════════════════════════════ --}}
-    <div class="row g-3 g-md-4 mb-4">
-        {{-- Left: Recent Invoices & Bills Table/List --}}
+    <div class="row g-3">
+        {{-- Latest bills --}}
         <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 p-md-4 h-100">
-                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                    <h5 class="fw-bold text-dark mb-0 fs-6 fs-md-5 d-flex align-items-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary rounded-circle p-1.5"><i class="fas fa-receipt"></i></span>
-                        <span>Recent Sales & Invoices</span>
-                    </h5>
-                    <a href="{{ route('subadmin.bills.index') }}" class="small text-primary text-decoration-none fw-semibold">
-                        All Bills (@bn($totalBills)) →
-                    </a>
+            <section class="sp-card h-100">
+                <div class="sp-card-head">
+                    <h2>সাম্প্রতিক বিল</h2>
+                    <a href="{{ route('subadmin.bills.index', $sellerId ? ['seller_id' => $sellerId] : []) }}" class="small text-decoration-none">সব বিল (@bn($stats->bills)) →</a>
                 </div>
 
-                {{-- Desktop Table (>= 768px) --}}
-                <div class="table-responsive d-none d-md-block">
-                    <table class="table table-hover align-middle mb-0 small">
-                        <thead class="table-light text-secondary">
-                            <tr>
-                                <th>Invoice #</th>
-                                <th>Customer</th>
-                                <th>Date</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($recentBills as $bill)
+                @if($recentBills->isEmpty())
+                    <div class="sp-empty">
+                        <i class="fas fa-file-invoice fs-3 d-block mb-2 opacity-50"></i>
+                        এখনো কোনো বিল নেই।
+                        <div class="mt-2"><a href="{{ route('subadmin.bills.create') }}" class="btn btn-sm btn-success rounded-pill px-3">প্রথম বিল তৈরি করুন</a></div>
+                    </div>
+                @else
+                    <div class="table-responsive">
+                        <table class="table sp-table align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="fw-bold text-decoration-none text-primary font-monospace">
-                                            #{{ $bill->bill_no }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;">{{ $bill->customer_name ?: 'Cash Customer' }}</div>
-                                        @if($bill->customer_phone)
-                                            <small class="text-muted d-block font-monospace">{{ $bill->customer_phone }}</small>
+                                    <th>বিল</th>
+                                    <th>গ্রাহক</th>
+                                    @if($isAdmin && !$sellerId)<th>বিক্রেতা</th>@endif
+                                    <th class="text-end">পরিমাণ</th>
+                                    <th>অবস্থা</th>
+                                    <th class="text-end">অ্যাকশন</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentBills as $bill)
+                                    @php
+                                        $tone  = match ($bill->payment_status) { 'paid' => ['success', 'পরিশোধিত'], 'partial' => ['warning', 'আংশিক'], default => ['danger', 'বকেয়া'] };
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="fw-semibold text-decoration-none font-monospace">{{ $bill->bill_no }}</a>
+                                            <small class="d-block text-muted">{{ $bill->created_at->format('d M Y') }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="text-truncate" style="max-width: 180px">{{ $bill->customer_name ?: 'নগদ গ্রাহক' }}</div>
+                                            @if($bill->customer_phone)<small class="text-muted font-monospace">{{ $bill->customer_phone }}</small>@endif
+                                        </td>
+                                        @if($isAdmin && !$sellerId)
+                                            <td class="text-muted">{{ $bill->seller?->name ?? '—' }}</td>
                                         @endif
-                                    </td>
-                                    <td class="text-muted">{{ $bill->created_at->format('d M, Y') }}</td>
-                                    <td>
-                                        <span class="fw-bold text-dark font-monospace">৳{{ number_format($bill->total, 2) }}</span>
-                                    </td>
-                                    <td>
-                                        @if($bill->payment_status === 'paid')
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">Paid</span>
-                                        @elseif($bill->payment_status === 'partial')
-                                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">Partial</span>
-                                        @else
-                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">Due</span>
-                                        @endif
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" class="btn btn-outline-secondary" title="Print Receipt">
-                                                <i class="fas fa-print"></i>
-                                            </a>
-                                            <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-outline-primary" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+                                        <td class="text-end">
+                                            <span class="fw-semibold">৳@bn($bill->total, 2)</span>
+                                            @if($bill->payment_status !== 'paid' && (float) $bill->due_amount > 0)
+                                                <small class="d-block text-danger">বাকি ৳@bn($bill->due_amount, 2)</small>
+                                            @endif
+                                        </td>
+                                        <td><span class="badge rounded-pill text-bg-{{ $tone[0] }}">{{ $tone[1] }}</span></td>
+                                        <td class="text-end text-nowrap">
+                                            <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-sm btn-light rounded-circle" title="দেখুন"><i class="fas fa-eye"></i></a>
+                                            <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" rel="noopener" class="btn btn-sm btn-light rounded-circle" title="রসিদ প্রিন্ট"><i class="fas fa-print"></i></a>
                                             @if($bill->payment_status !== 'paid')
-                                                <form action="{{ route('subadmin.bills.quick-pay', $bill->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Mark bill as paid?')">
+                                                <form action="{{ route('subadmin.bills.quick-pay', $bill->id) }}" method="POST" class="d-inline" onsubmit="return confirm('বিলটি পরিশোধিত হিসেবে চিহ্নিত করবেন?')">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-outline-success" title="Mark as Paid">
-                                                        <i class="fas fa-check"></i>
-                                                    </button>
+                                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-circle" title="পরিশোধিত করুন"><i class="fas fa-check"></i></button>
                                                 </form>
                                             @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
-                                        <i class="fas fa-file-invoice fs-3 opacity-25 d-block mb-1"></i>
-                                        No bills created yet.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                {{-- Mobile Card List (< 768px) --}}
-                <div class="d-flex flex-column gap-2.5 d-md-none">
-                    @forelse($recentBills as $bill)
-                        <div class="p-3 rounded-3 border bg-light bg-opacity-30">
-                            <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="fw-bold text-primary font-monospace text-decoration-none">
-                                    #{{ $bill->bill_no }}
-                                </a>
-                                @if($bill->payment_status === 'paid')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Paid</span>
-                                @elseif($bill->payment_status === 'partial')
-                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Partial</span>
-                                @else
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5" style="font-size: 10.5px;">Due</span>
-                                @endif
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <div>
-                                    <div class="fw-semibold text-dark small">{{ $bill->customer_name ?: 'Cash Customer' }}</div>
-                                    @if($bill->customer_phone)
-                                        <small class="text-muted font-monospace" style="font-size: 11px;">{{ $bill->customer_phone }}</small>
-                                    @endif
-                                </div>
-                                <div class="text-end">
-                                    <span class="fw-bold text-dark font-monospace fs-6">৳{{ number_format($bill->total, 2) }}</span>
-                                    <small class="text-muted d-block" style="font-size: 10.5px;">{{ $bill->created_at->format('d M, Y') }}</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between pt-2 border-top border-light-subtle">
-                                <span class="text-muted" style="font-size: 11px;">
-                                    <i class="fas fa-boxes-stacked me-1"></i>{{ is_array($bill->items) ? count($bill->items) : 0 }} items
-                                </span>
-                                <div class="d-flex gap-1.5">
-                                    <a href="{{ route('subadmin.bills.receipt', $bill->id) }}" target="_blank" class="btn btn-xs btn-outline-secondary rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                        <i class="fas fa-print me-1"></i> Receipt
-                                    </a>
-                                    <a href="{{ route('subadmin.bills.show', $bill->id) }}" class="btn btn-xs btn-primary rounded-pill px-2.5 py-1" style="font-size: 11px;">
-                                        <i class="fas fa-eye me-1"></i> View
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-4 text-muted small">
-                            <i class="fas fa-file-invoice fs-3 opacity-25 d-block mb-1"></i>
-                            No bills created yet.
-                        </div>
-                    @endforelse
-                </div>
-            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </section>
         </div>
 
-        {{-- Right: Quick POS Hub & Financial Overview --}}
+        {{-- Books --}}
         <div class="col-12 col-lg-4">
-            <div class="d-flex flex-column gap-3">
-                {{-- Quick POS Tile Banner --}}
-                <div class="card border-0 shadow-sm rounded-4 p-4 text-white" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%);">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fs-3 flex-shrink-0" style="width: 52px; height: 52px;">
-                            <i class="fas fa-cash-register"></i>
+            <section class="sp-card h-100">
+                <div class="sp-card-head">
+                    <h2>জনপ্রিয় বই</h2>
+                    <a href="{{ route('book.index') }}" target="_blank" rel="noopener" class="small text-decoration-none">সব বই →</a>
+                </div>
+                @forelse($popularBooks as $book)
+                    <div class="sp-book">
+                        <div class="min-w-0">
+                            <div class="fw-semibold text-truncate">{{ $book->title }}</div>
+                            <small class="text-muted">৳@bn($book->price)</small>
                         </div>
-                        <div>
-                            <h5 class="fw-bold mb-0 text-white">Quick POS Memo</h5>
-                            <small class="text-white-50">Instant Bill & Print</small>
-                        </div>
+                        <span class="badge rounded-pill text-bg-{{ $book->stock_quantity > 0 ? 'success' : 'danger' }} flex-shrink-0">
+                            {{ $book->stock_quantity > 0 ? 'স্টক ' . \App\Support\Bn::num($book->stock_quantity) : 'স্টক নেই' }}
+                        </span>
                     </div>
-                    <a href="{{ route('subadmin.bills.create') }}" class="btn btn-warning btn-lg rounded-pill fw-bold text-dark w-100 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Create Bill</span>
-                    </a>
-                </div>
-
-                {{-- Financial Ledger Overview Card --}}
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 bg-white">
-                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fas fa-wallet text-success"></i>
-                            <span>Financial Ledger</span>
-                        </h6>
-                        <a href="{{ route('subadmin.accounts') }}" class="small text-primary text-decoration-none fw-semibold">Ledger →</a>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-muted">This Month Sales:</span>
-                        <strong class="text-dark font-monospace">৳{{ number_format($thisMonthSales, 2) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 small">
-                        <span class="text-muted">Collected Cash:</span>
-                        <strong class="text-success font-monospace">৳{{ number_format($totalPaid, 2) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
-                        <span class="fw-bold text-dark">Total Due:</span>
-                        <strong class="text-danger font-monospace fs-6">৳{{ number_format($totalDue, 2) }}</strong>
-                    </div>
-                </div>
-
-                {{-- Popular Books / Storefront Stock Link --}}
-                <div class="card border-0 shadow-sm rounded-4 p-3.5 bg-white">
-                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
-                            <i class="fas fa-book-bookmark text-primary"></i>
-                            <span>Popular Books & Stock</span>
-                        </h6>
-                        <a href="{{ route('book.index') }}" target="_blank" class="small text-primary text-decoration-none fw-semibold">Storefront →</a>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2">
-                        @foreach($popularBooks as $pb)
-                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 border bg-light bg-opacity-40 small">
-                                <div class="text-truncate me-2" style="max-width: 180px;">
-                                    <span class="fw-semibold text-dark d-block text-truncate">{{ $pb->title }}</span>
-                                    <small class="text-muted font-monospace">৳{{ number_format($pb->price, 0) }}</small>
-                                </div>
-                                <span class="badge {{ $pb->stock_quantity > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger' }} rounded-pill px-2 py-0.5" style="font-size: 10px;">
-                                    {{ $pb->stock_quantity > 0 ? $pb->stock_quantity . ' pcs' : 'Out of stock' }}
-                                </span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+                @empty
+                    <div class="sp-empty">কোনো বই নেই।</div>
+                @endforelse
+            </section>
         </div>
     </div>
-
 </div>
 @endsection

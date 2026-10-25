@@ -742,7 +742,7 @@ function openAddPublisherModal() {
     document.getElementById('quickAddPublisherForm').reset();
     document.getElementById('addPubLogoPreview').src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='14' font-family='sans-serif'%3ELogo%3C/text%3E%3C/svg%3E";
     document.getElementById('addPubAlertBox').innerHTML = '';
-    new bootstrap.Modal(document.getElementById('quickAddPublisherModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('quickAddPublisherModal')).show();
 }
 
 function previewAddPubLogo(input) {
@@ -812,7 +812,7 @@ function openEditPublisherModal(pubId) {
     document.getElementById('editPubLogoPreview').src = pub.logo_url || ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Crect width='90' height='90' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='28' font-family='sans-serif'%3E" + encodeURIComponent(pub.name ? pub.name.substring(0, 1) : 'P') + "%3C/text%3E%3C/svg%3E");
     document.getElementById('editPubAlertBox').innerHTML = '';
 
-    new bootstrap.Modal(document.getElementById('quickEditPublisherModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('quickEditPublisherModal')).show();
 }
 
 function previewEditPubLogo(input) {
@@ -875,7 +875,7 @@ function openQuickPaymentModal(pubId, pubName, dueAmount) {
     document.getElementById('payAmountInput').value = dueAmount > 0 ? dueAmount : '';
     document.getElementById('payPubAlertBox').innerHTML = '';
 
-    new bootstrap.Modal(document.getElementById('quickPaymentModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('quickPaymentModal')).show();
 }
 
 function handleQuickPaymentSubmit(e) {

@@ -172,7 +172,7 @@ function populateSeoModal(seo) {
     // Open Bootstrap Modal
     const modalEl = document.getElementById('seoEditModal');
     if (modalEl && typeof bootstrap !== 'undefined') {
-        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 }

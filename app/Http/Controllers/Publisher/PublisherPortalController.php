@@ -19,15 +19,24 @@ class PublisherPortalController extends Controller
     /**
      * Get or create publisher record for current authenticated user.
      */
-    private function getPublisher()
+    private function getPublisher(?Request $request = null)
     {
         $user = auth()->user();
         if (!$user) {
             abort(401);
         }
 
-        // If admin is viewing, allow selecting or use first active publisher
+        // An admin works as the publisher picked with ?publisher_id= (remembered in the session, so saving a book
+        // or the profile lands on the same publisher), else the first active one
         if ($user->isAdmin()) {
+            $request ??= request();
+            if ($request->filled('publisher_id')) {
+                session(['admin_publisher_id' => (int) $request->input('publisher_id')]);
+            }
+            if (($id = session('admin_publisher_id')) && ($picked = Publisher::find($id))) {
+                return $picked;
+            }
+
             return Publisher::where('is_active', true)->first() ?: (Publisher::first() ?: Publisher::create([
                 'name' => 'আইডিয়া প্রকাশন',
                 'slug' => 'idea-prokashon',
@@ -62,34 +71,49 @@ class PublisherPortalController extends Controller
         return $publisher;
     }
 
+    /** The tabs of the dashboard. Anything else in ?tab= falls back to the overview. */
+    private const TABS = ['overview', 'today-purchases', 'books', 'add-book', 'orders', 'settings'];
+
+    /** The Idea Prokashon account keeps its own serial numbers and sorts by them. */
+    private function isIdeaPublisher(Publisher $publisher): bool
+    {
+        return (int) $publisher->id === (int) config('idea.publisher_id', 2) || $publisher->slug === 'ideaprokashon';
+    }
+
     /**
      * Publisher main dashboard & catalog view.
      */
     public function dashboard(Request $request)
     {
-        $user = auth()->user();
-        $publisher = $this->getPublisher();
+        $user      = auth()->user();
+        $publisher = $this->getPublisher($request);
+        $isAdmin   = $user->isAdmin();
+        $isIdeaPub = $this->isIdeaPublisher($publisher);
 
-        $search = $request->string('search')->trim()->value();
-        $categoryId = $request->input('category_id');
+        $search      = $request->string('search')->trim()->value();
+        $categoryId  = $request->integer('category_id') ?: null;
         $stockFilter = $request->string('stock')->trim()->value();
-        $sort = $request->string('sort')->trim()->value() ?: 'latest';
-        $activeTab = $request->string('tab')->trim()->value() ?: 'overview';
-        $purchaseDateFilter = $request->string('date_filter')->trim()->value() ?: 'all';
-        $selectedDate = $request->string('date')->trim()->value() ?: now()->format('Y-m-d');
+        $sort        = $request->string('sort')->trim()->value() ?: ($isIdeaPub ? 'idea_serial_asc' : 'latest');
+        $dateFilter  = in_array($request->input('date_filter'), ['all', 'today', 'yesterday', 'custom'], true) ? $request->input('date_filter') : 'all';
+        $selectedDate = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $request->input('date')) ? $request->input('date') : now()->format('Y-m-d');
 
-        // Publisher's Books Query
+        // The book being edited (only one of this publisher's own books)
+        $editBook = $request->filled('edit_id')
+            ? Book::where('publisher_id', $publisher->id)->where('id', $request->integer('edit_id'))->first()
+            : null;
+
+        $activeTab = $editBook ? 'add-book' : (in_array($request->input('tab'), self::TABS, true) ? $request->input('tab') : 'overview');
+
+        // ── Books ────────────────────────────────────────────────────────────
         $booksQuery = Book::where('publisher_id', $publisher->id)
-            ->with(['category', 'authorLink', 'authors'])
-            ->when($search, function ($q, $term) {
-                $like = '%' . $term . '%';
+            ->with(['category', 'authorLink'])
+            ->when($search !== '', function ($q) use ($search) {
+                // % and _ typed by the user are plain text (ESCAPE '!' behaves the same on MySQL and SQLite)
+                $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search) . '%';
                 $q->where(function ($w) use ($like) {
-                    $w->where('title', 'like', $like)
-                      ->orWhere('subtitle', 'like', $like)
-                      ->orWhere('isbn', 'like', $like)
-                      ->orWhere('sku', 'like', $like)
-                      ->orWhere('idea_serial_no', 'like', $like)
-                      ->orWhere('author_name', 'like', $like);
+                    foreach (['title', 'subtitle', 'isbn', 'sku', 'idea_serial_no', 'author_name'] as $col) {
+                        $w->orWhereRaw("{$col} LIKE ? ESCAPE '!'", [$like]);
+                    }
                 });
             })
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
@@ -98,112 +122,100 @@ class PublisherPortalController extends Controller
             ->when($stockFilter === 'out', fn ($q) => $q->where('stock_quantity', '<=', 0))
             ->when($stockFilter === 'in_stock', fn ($q) => $q->where('stock_quantity', '>', 5));
 
-        $isIdeaPub = ($publisher->id == 2 || $publisher->slug === 'ideaprokashon');
+        // Idea Prokashon serials look like "IDP-0042": sort by the number inside (needs REGEXP_REPLACE: MySQL 8 / MariaDB 10).
+        $serialNumber = in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)
+            ? "CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END"
+            : 'id';
 
-        if ($isIdeaPub) {
-            match ($sort) {
-                'oldest'           => $booksQuery->oldest('id'),
-                'latest'           => $booksQuery->latest('id'),
-                'title_asc'        => $booksQuery->orderBy('title', 'asc'),
-                'title_desc'       => $booksQuery->orderBy('title', 'desc'),
-                'price_low'        => $booksQuery->orderBy('price', 'asc'),
-                'price_high'       => $booksQuery->orderBy('price', 'desc'),
-                'stock_low'        => $booksQuery->orderBy('stock_quantity', 'asc'),
-                'stock_high'       => $booksQuery->orderByDesc('stock_quantity'),
-                'idea_serial_desc' => $booksQuery->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END DESC"),
-                default            => $booksQuery->orderByRaw("CASE WHEN idea_serial_no IS NOT NULL AND idea_serial_no != '' THEN CAST(REGEXP_REPLACE(idea_serial_no, '[^0-9]', '') AS UNSIGNED) ELSE id END ASC"),
-            };
-        } else {
-            match ($sort) {
-                'oldest'     => $booksQuery->oldest('id'),
-                'title_asc'  => $booksQuery->orderBy('title', 'asc'),
-                'title_desc' => $booksQuery->orderBy('title', 'desc'),
-                'price_low'  => $booksQuery->orderBy('price', 'asc'),
-                'price_high' => $booksQuery->orderBy('price', 'desc'),
-                'stock_low'  => $booksQuery->orderBy('stock_quantity', 'asc'),
-                'stock_high' => $booksQuery->orderByDesc('stock_quantity'),
-                default      => $booksQuery->latest('id'),
-            };
-        }
+        match (true) {
+            $sort === 'oldest'                          => $booksQuery->oldest('id'),
+            $sort === 'title_asc'                       => $booksQuery->orderBy('title'),
+            $sort === 'title_desc'                      => $booksQuery->orderByDesc('title'),
+            $sort === 'price_low'                       => $booksQuery->orderBy('price'),
+            $sort === 'price_high'                      => $booksQuery->orderByDesc('price'),
+            $sort === 'stock_low'                       => $booksQuery->orderBy('stock_quantity'),
+            $sort === 'stock_high'                      => $booksQuery->orderByDesc('stock_quantity'),
+            $isIdeaPub && $sort === 'idea_serial_desc'  => $booksQuery->orderByRaw("{$serialNumber} DESC"),
+            $isIdeaPub && $sort === 'idea_serial_asc'   => $booksQuery->orderByRaw("{$serialNumber} ASC"),
+            default                                     => $booksQuery->latest('id'),
+        };
 
-        $books = $booksQuery->paginate(15)->withQueryString();
+        $books = $booksQuery->paginate(15, ['*'], 'page')->withQueryString()->appends(['tab' => 'books']);
 
-        // Summary Statistics
-        $totalBooks = Book::where('publisher_id', $publisher->id)->count();
-        $activeBooks = Book::where('publisher_id', $publisher->id)->where('is_active', true)->count();
-        $preOrderBooks = Book::where('publisher_id', $publisher->id)->where('stock_status', 'pre_order')->count();
-        $lowStockBooks = Book::where('publisher_id', $publisher->id)->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0)->count();
-        $outStockBooks = Book::where('publisher_id', $publisher->id)->where('stock_quantity', '<=', 0)->count();
-        $totalStockUnits = Book::where('publisher_id', $publisher->id)->sum('stock_quantity');
+        // One query for every number about the catalogue.
+        $bookStats = Book::where('publisher_id', $publisher->id)->toBase()->selectRaw(
+            "COUNT(*) AS total,
+             COALESCE(SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END), 0) AS active,
+             COALESCE(SUM(CASE WHEN stock_status = 'pre_order' THEN 1 ELSE 0 END), 0) AS pre_order,
+             COALESCE(SUM(CASE WHEN stock_quantity <= 5 AND stock_quantity > 0 THEN 1 ELSE 0 END), 0) AS low,
+             COALESCE(SUM(CASE WHEN stock_quantity <= 0 THEN 1 ELSE 0 END), 0) AS out_of_stock,
+             COALESCE(SUM(stock_quantity), 0) AS units"
+        )->first();
 
-        // All Purchases Query
-        $purchasesQuery = PublisherPurchase::where('publisher_id', $publisher->id)
-            ->with(['items.book', 'payments']);
+        $lowStockItems = Book::where('publisher_id', $publisher->id)
+            ->where('stock_quantity', '<=', 5)
+            ->where(fn ($q) => $q->whereNull('stock_status')->orWhere('stock_status', '!=', 'pre_order'))
+            ->orderBy('stock_quantity')
+            ->take(6)
+            ->get(['id', 'title', 'price', 'hardcover_price', 'stock_quantity']);
 
-        $allPurchases = (clone $purchasesQuery)->latest('purchase_date')->paginate(15, ['*'], 'purchase_page');
+        // ── Purchases (supply orders from the shop) ─────────────────────────
+        // A purchase's amount is its grand total (after discount); old rows may only have total_amount.
+        $amount = 'CASE WHEN grand_total > 0 THEN grand_total ELSE total_amount END';
+        $purchaseStats = PublisherPurchase::where('publisher_id', $publisher->id)->toBase()->selectRaw(
+            "COUNT(*) AS orders,
+             COALESCE(SUM({$amount}), 0) AS total,
+             COALESCE(SUM(paid_amount), 0) AS paid,
+             COALESCE(SUM(CASE WHEN ({$amount}) > paid_amount THEN ({$amount}) - paid_amount ELSE 0 END), 0) AS due,
+             COALESCE(SUM(CASE WHEN purchase_date = ? THEN ({$amount}) ELSE 0 END), 0) AS today_amount,
+             COALESCE(SUM(CASE WHEN purchase_date = ? THEN 1 ELSE 0 END), 0) AS today_orders",
+            [now()->toDateString(), now()->toDateString()]
+        )->first();
 
-        // Today's Purchase Orders (Company Panel Style)
-        $todayDate = now()->toDateString();
-        $todayPurchasesQuery = PublisherPurchase::where('publisher_id', $publisher->id)
-            ->with(['items.book', 'payments'])
-            ->when($purchaseDateFilter === 'today', fn($q) => $q->whereDate('purchase_date', $todayDate))
-            ->when($purchaseDateFilter === 'yesterday', fn($q) => $q->whereDate('purchase_date', now()->subDay()->toDateString()))
-            ->when($purchaseDateFilter === 'custom' && $selectedDate, fn($q) => $q->whereDate('purchase_date', $selectedDate));
+        $purchaseScope = fn () => PublisherPurchase::where('publisher_id', $publisher->id)->with('items');
 
-        $todayPurchases = $todayPurchasesQuery->latest('purchase_date')->get();
+        // "Orders" tab: filterable by day, paginated (it used to load every purchase at once)
+        $dayList = $purchaseScope()
+            ->when($dateFilter === 'today', fn ($q) => $q->whereDate('purchase_date', now()->toDateString()))
+            ->when($dateFilter === 'yesterday', fn ($q) => $q->whereDate('purchase_date', now()->subDay()->toDateString()))
+            ->when($dateFilter === 'custom', fn ($q) => $q->whereDate('purchase_date', $selectedDate))
+            ->latest('purchase_date')->latest('id')
+            ->paginate(20, ['*'], 'order_page')->withQueryString()->appends(['tab' => 'today-purchases']);
 
-        // If no purchase recorded for today specifically in filter, get recent purchase items for display
-        $recentPurchases = (clone $purchasesQuery)->latest('purchase_date')->take(10)->get();
+        // "Bills" tab and the overview
+        $allPurchases    = $purchaseScope()->latest('purchase_date')->latest('id')->paginate(15, ['*'], 'purchase_page')->withQueryString()->appends(['tab' => 'orders']);
+        $recentPurchases = $purchaseScope()->latest('purchase_date')->latest('id')->take(5)->get();
+        $payments        = PublisherPayment::where('publisher_id', $publisher->id)->latest('payment_date')->latest('id')->take(10)->get();
 
-        $totalPurchasesAmount = PublisherPurchase::where('publisher_id', $publisher->id)->sum('total_amount');
-        $totalPaidAmount = PublisherPurchase::where('publisher_id', $publisher->id)->sum('paid_amount');
-        $totalDueAmount = max(0, $totalPurchasesAmount - $totalPaidAmount);
-
-        $todayPurchasesAmount = PublisherPurchase::where('publisher_id', $publisher->id)->whereDate('purchase_date', $todayDate)->sum('total_amount');
-        $todayItemsCount = \App\Models\PublisherPurchaseItem::whereHas('purchase', function($q) use ($publisher, $todayDate) {
-            $q->where('publisher_id', $publisher->id)->whereDate('purchase_date', $todayDate);
-        })->sum('quantity');
-
-        $payments = PublisherPayment::where('publisher_id', $publisher->id)->latest('payment_date')->take(15)->get();
-
-        // Form Select Data
+        // ── Form data ────────────────────────────────────────────────────────
         $categories = Category::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
-        $authors = Author::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
+        $authors    = Author::where('is_active', true)->orderBy('name')->pluck('name', 'id')->all();
 
-        // Edit Book if edit_id is present
-        $editBook = null;
-        if ($request->filled('edit_id')) {
-            $editBook = Book::where('publisher_id', $publisher->id)->where('id', $request->edit_id)->first();
-        }
+        $publishers = $isAdmin ? Publisher::orderBy('name')->pluck('name', 'id')->all() : [];
 
-        return view('publisher.dashboard', compact(
-            'user',
-            'publisher',
-            'books',
-            'totalBooks',
-            'activeBooks',
-            'preOrderBooks',
-            'lowStockBooks',
-            'outStockBooks',
-            'totalStockUnits',
-            'allPurchases',
-            'todayPurchases',
-            'recentPurchases',
-            'totalPurchasesAmount',
-            'totalPaidAmount',
-            'totalDueAmount',
-            'todayPurchasesAmount',
-            'todayItemsCount',
-            'payments',
-            'categories',
-            'authors',
-            'editBook',
-            'activeTab',
-            'purchaseDateFilter',
-            'selectedDate'
-        ));
+        return view('publisher.dashboard', [
+            'user'           => $user,
+            'isAdmin'        => $isAdmin,
+            'isIdeaPub'      => $isIdeaPub,
+            'publisher'      => $publisher,
+            'publishers'     => $publishers,
+            'books'          => $books,
+            'bookStats'      => $bookStats,
+            'lowStockItems'  => $lowStockItems,
+            'purchaseStats'  => $purchaseStats,
+            'dayList'        => $dayList,
+            'allPurchases'   => $allPurchases,
+            'recentPurchases' => $recentPurchases,
+            'payments'       => $payments,
+            'categories'     => $categories,
+            'authors'        => $authors,
+            'editBook'       => $editBook,
+            'activeTab'      => $activeTab,
+            'sort'           => $sort,
+            'dateFilter'     => $dateFilter,
+            'selectedDate'   => $selectedDate,
+        ]);
     }
-
     /**
      * View / Print Challan for a specific purchase order.
      */

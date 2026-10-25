@@ -85,7 +85,11 @@ class Bill extends Model
                     'quotation' => 'QUO',
                     default     => 'BILL',
                 };
-                $bill->bill_no = $prefix . '-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+                // 6 random characters, checked against every bill (deleted ones too) so two bills can never share a number
+                do {
+                    $number = $prefix . '-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+                } while (static::withTrashed()->where('bill_no', $number)->exists());
+                $bill->bill_no = $number;
             }
             if (empty($bill->bill_date)) {
                 $bill->bill_date = now();

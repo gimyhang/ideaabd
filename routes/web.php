@@ -841,16 +841,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Bulk SMS & Email Management, Live Gateway Balance & Messaging Hub
     Route::prefix('sms')->name('sms.')->controller(\App\Http\Controllers\Admin\AdminSmsController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('/balance', 'getBalance')->name('balance');
-        Route::post('/send-test', 'sendTest')->name('send-test');
-        Route::post('/broadcast', 'broadcast')->name('broadcast');
-        Route::post('/broadcast-many', 'broadcastMany')->name('broadcast-many');
+        Route::get('/balance', 'getBalance')->middleware('throttle:30,1')->name('balance');
+        Route::post('/send-test', 'sendTest')->middleware('throttle:10,1')->name('send-test');
+        Route::post('/broadcast', 'broadcast')->middleware('throttle:6,1')->name('broadcast');
+        Route::post('/broadcast-many', 'broadcastMany')->middleware('throttle:6,1')->name('broadcast-many');
         Route::post('/settings', 'updateSettings')->name('settings');
-        Route::post('/send-email-test', 'sendEmailTest')->name('send-email-test');
-        Route::post('/broadcast-email', 'broadcastEmail')->name('broadcast-email');
+        Route::post('/send-email-test', 'sendEmailTest')->middleware('throttle:10,1')->name('send-email-test');
+        Route::post('/broadcast-email', 'broadcastEmail')->middleware('throttle:6,1')->name('broadcast-email');
         Route::post('/smtp-settings', 'updateSmtpSettings')->name('smtp-settings');
-        Route::post('/send-otp-test', 'sendOtpTest')->name('send-otp-test');
-        Route::post('/broadcast-dual', 'broadcastDual')->name('broadcast-dual');
+        Route::post('/send-otp-test', 'sendOtpTest')->middleware('throttle:10,1')->name('send-otp-test');
+        Route::post('/broadcast-dual', 'broadcastDual')->middleware('throttle:6,1')->name('broadcast-dual');
+        Route::get('/transactions/export', 'exportTransactions')->name('transactions.export');
+        Route::post('/restrictions/release', 'releaseNumber')->name('restrictions.release');
+        Route::post('/restrictions/block', 'blockNumber')->name('restrictions.block');
         Route::post('/templates', 'storeTemplate')->name('templates.store');
         Route::delete('/templates/{id}', 'deleteTemplate')->name('templates.delete');
         Route::post('/logs/clear', 'clearLogs')->name('logs.clear');
@@ -918,9 +921,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Enterprise Disaster Recovery & Master ZIP Backup Hub
     Route::prefix('backup')->name('backup.')->controller(\App\Http\Controllers\Admin\AdminBackupController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/create', 'create')->name('create');
-        Route::post('/upload', 'upload')->name('upload');
-        Route::post('/optimize', 'optimize')->name('optimize');
+        Route::post('/create', 'create')->middleware('throttle:6,1')->name('create');
+        Route::post('/upload', 'upload')->middleware('throttle:10,1')->name('upload');
+        Route::post('/optimize', 'optimize')->middleware('throttle:6,1')->name('optimize');
         Route::post('/integrity-check', 'integrityCheck')->name('integrity');
         Route::post('/settings', 'updateSettings')->name('settings');
         Route::post('/bulk-delete', 'bulkDelete')->name('bulk-delete');
@@ -928,11 +931,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
         Route::get('/inspect/{filename}', 'inspect')->name('inspect');
         Route::get('/diff/{filename}', 'diff')->name('diff');
         Route::post('/dry-run/{filename}', 'dryRun')->name('dry-run');
-        Route::post('/selective-restore/{filename}', 'selectiveRestore')->name('selective-restore');
-        Route::post('/export-anonymized', 'exportAnonymized')->name('export-anonymized');
-        Route::post('/test-notification', 'testNotification')->name('test-notification');
-        Route::post('/email/{filename}', 'sendEmail')->name('email');
-        Route::post('/restore/{filename}', 'restore')->name('restore');
+        Route::post('/selective-restore/{filename}', 'selectiveRestore')->middleware('throttle:5,1')->name('selective-restore');
+        Route::post('/export-anonymized', 'exportAnonymized')->middleware('throttle:4,1')->name('export-anonymized');
+        Route::post('/test-notification', 'testNotification')->middleware('throttle:10,1')->name('test-notification');
+        Route::post('/email/{filename}', 'sendEmail')->middleware('throttle:6,1')->name('email');
+        Route::post('/restore/{filename}', 'restore')->middleware('throttle:5,1')->name('restore');
         Route::get('/download/{filename}', 'download')->name('download');
         Route::delete('/{filename}', 'destroy')->name('destroy');
     });

@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 3. Consolidated Dynamic Quick Edit Modal Handler
     const quickModalEl = document.getElementById('quickEditCampaignModal');
-    const quickModal = quickModalEl ? new bootstrap.Modal(quickModalEl) : null;
+    const quickModal = quickModalEl ? bootstrap.Modal.getOrCreateInstance(quickModalEl) : null;
     const quickForm = document.getElementById('quickEditCampaignForm');
     const inputTitle = document.getElementById('quickEditInputTitle');
     const inputBadge = document.getElementById('quickEditInputBadge');

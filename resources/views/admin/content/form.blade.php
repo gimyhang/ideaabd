@@ -3364,7 +3364,7 @@ function openBlogLivePreviewModal(targetTextareaId) {
     // Show modal
     const modalEl = document.getElementById('blogLivePreviewModal');
     if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
 }

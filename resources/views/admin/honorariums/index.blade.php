@@ -381,7 +381,7 @@ function openAuthorPasswordResetModal(authorId, authorName, identity) {
     generateRandomAuthorPassword();
     document.getElementById('resetResultCard').classList.add('d-none');
     
-    const modal = new bootstrap.Modal(document.getElementById('resetAuthorPasswordModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('resetAuthorPasswordModal'));
     modal.show();
 }
 

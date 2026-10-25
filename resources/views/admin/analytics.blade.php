@@ -782,7 +782,7 @@ function openSessionDetailModal(log) {
         refWrap.style.display = 'none';
     }
 
-    const modal = new bootstrap.Modal(document.getElementById('visitorDetailModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('visitorDetailModal'));
     modal.show();
 }
 

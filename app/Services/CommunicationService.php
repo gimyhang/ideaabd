@@ -251,7 +251,7 @@ class CommunicationService
 
         if (($channel === 'both' || $channel === 'sms' || $channel === 'auto') && !empty($phone)) {
             $smsMessage = "{$siteName} — আপনার অর্ডার #{$orderNumber} {$statusText}। ট্র্যাকিং: " . ($trackingUrl ?: url('/track-order'));
-            $results['sms'] = SmsService::send($phone, $smsMessage);
+            $results['sms'] = SmsService::send($phone, $smsMessage, ['purpose' => 'order', 'once_key' => 'order-status:' . $orderNumber . ':' . $statusText]);
         }
 
         if (($channel === 'both' || $channel === 'email' || $channel === 'auto') && !empty($email)) {

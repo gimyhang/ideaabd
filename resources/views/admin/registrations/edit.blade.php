@@ -586,7 +586,7 @@ let studioCroppedDataUrl = null;
 function openAdminPhotoStudio() {
     const modalEl = document.getElementById('adminAvatarStudioModal');
     if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
         setTimeout(() => {
             if (!studioCanvas) studioCanvas = document.getElementById('adminCropCanvas');

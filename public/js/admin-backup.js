@@ -1,1325 +1,338 @@
 /**
- * ============================================================================
- * Enterprise Disaster Recovery & Master Backup Hub — Client Engine
- * Idea Publication (ideaabd.com)
- * ============================================================================
+ * Backup hub (/admin/backup). Buttons carry data-backup / data-act, so there is no inline JavaScript in the page.
+ * Everything that comes from the server is put into the page as text, never as HTML.
  */
+(function () {
+    'use strict';
 
-document.addEventListener('DOMContentLoaded', () => {
-    initDragAndDrop();
-    initLiveSearch();
-    initBulkSelection();
-    initQuickCategoryTabs();
-    initViewSwitcher();
-    initStorageGrowthChart();
-    initSchemaTableSearch();
-});
+    const B = window.BACKUP || { routes: {}, tables: [], timeline: {} };
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const esc = (v) => { const d = document.createElement('div'); d.textContent = v == null ? '' : String(v); return d.innerHTML; };
+    const url = (path, file) => B.routes.base + '/' + path + (file ? '/' + encodeURIComponent(file) : '');
+    const modal = (id) => bootstrap.Modal.getOrCreateInstance(document.getElementById(id));
+    const bn = (n) => String(n).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
 
-/* ── 0.1 Schema Explorer Live Table Search ── */
-function initSchemaTableSearch() {
-    const searchInput = document.getElementById('schemaSearchInput');
-    if (!searchInput) return;
-
-    searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase().trim();
-        const rows = document.querySelectorAll('#schemaTablesBody tr.schema-table-row');
-        let visibleCount = 0;
-
-        rows.forEach(row => {
-            const tblName = (row.dataset.tablename || '').toLowerCase();
-            if (!query || tblName.includes(query)) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
+    async function api(method, target, body) {
+        const res = await fetch(target, {
+            method,
+            headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+            body: body ? JSON.stringify(body) : undefined,
         });
+        let data = {};
+        try { data = await res.json(); } catch (e) { data = { success: false, message: 'সার্ভার থেকে সঠিক উত্তর আসেনি (' + res.status + ')' }; }
+        if (!res.ok && data.success === undefined) data.success = false;
+        data._status = res.status;
+        return data;
+    }
 
-        const badge = document.getElementById('schemaTableCountBadge');
-        if (badge) {
-            badge.textContent = `${visibleCount} Tables`;
+    function toast(type, message) {
+        const box = $('#toastBox');
+        if (!box) return;
+        const el = document.createElement('div');
+        el.className = 'alert alert-' + type + ' alert-dismissible fade show mb-0';
+        el.setAttribute('role', 'alert');
+        el.textContent = message;
+        const close = document.createElement('button');
+        close.type = 'button'; close.className = 'btn-close'; close.setAttribute('data-bs-dismiss', 'alert');
+        el.appendChild(close);
+        box.replaceChildren(el);
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function ask(title, text, okLabel) {
+        if (window.SwalConfirm) {
+            return window.SwalConfirm({ title, text, icon: 'warning', confirmButtonText: okLabel, cancelButtonText: 'বাতিল' }).then((r) => r.isConfirmed);
         }
-    });
-}
+        return Promise.resolve(window.confirm(text));
+    }
 
-/* ── 0. Smart Quick Category Tabs & View Switcher ── */
-let currentActiveCategory = 'all';
-
-function initQuickCategoryTabs() {
-    const tabs = document.querySelectorAll('.btn-filter-tab');
-    if (!tabs || tabs.length === 0) return;
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentActiveCategory = tab.dataset.category || 'all';
-
-            // Sync with format dropdown if exists
-            const formatSelect = document.getElementById('backupFormatFilter');
-            if (formatSelect) {
-                if (currentActiveCategory === 'master_zip') formatSelect.value = 'zip';
-                else if (currentActiveCategory === 'sql_dump') formatSelect.value = 'sql';
-                else formatSelect.value = 'all';
-            }
-
-            applyUnifiedFilter();
-        });
-    });
-}
-
-function initViewSwitcher() {
-    const btnTable = document.getElementById('btnViewTable');
-    const btnGrid = document.getElementById('btnViewGrid');
-    const tableView = document.getElementById('backupTableViewContainer');
-    const gridView = document.getElementById('backupGridViewContainer');
-
-    if (!btnTable || !btnGrid) return;
-
-    const savedView = localStorage.getItem('idea_backup_view_pref') || 'table';
-    setViewMode(savedView);
-
-    btnTable.addEventListener('click', () => setViewMode('table'));
-    btnGrid.addEventListener('click', () => setViewMode('grid'));
-
-    function setViewMode(mode) {
-        if (mode === 'grid') {
-            btnTable.classList.remove('active');
-            btnGrid.classList.add('active');
-            if (tableView) tableView.style.display = 'none';
-            if (gridView) gridView.style.display = 'grid';
-            localStorage.setItem('idea_backup_view_pref', 'grid');
+    // ------------------------------------------------------------ create
+    async function createBackup(mode) {
+        $('#progressTitle').textContent = mode === 'db_only' ? 'ডাটাবেজ ব্যাকআপ হচ্ছে' : 'ডাটাবেজ + মিডিয়া ব্যাকআপ হচ্ছে';
+        modal('progressModal').show();
+        const res = await api('POST', B.routes.create, { mode });
+        if (res.success) {
+            toast('success', res.message);
+            setTimeout(() => location.reload(), 700);
         } else {
-            btnGrid.classList.remove('active');
-            btnTable.classList.add('active');
-            if (gridView) gridView.style.display = 'none';
-            if (tableView) tableView.style.display = 'block';
-            localStorage.setItem('idea_backup_view_pref', 'table');
+            modal('progressModal').hide();
+            toast('danger', res.message || 'ব্যাকআপ ব্যর্থ হয়েছে');
         }
     }
-}
 
-/* ── Storage Growth Trend Chart (Chart.js Integration) ── */
-function initStorageGrowthChart() {
-    const ctx = document.getElementById('storageGrowthChartCanvas');
-    if (!ctx || typeof Chart === 'undefined') return;
-
-    const chartData = window.STORAGE_TIMELINE_DATA || {
-        labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep'],
-        backup_sizes_mb: [10, 15, 20, 25, 30],
-        archive_counts: [2, 3, 4, 5, 6]
-    };
-
-    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 160);
-    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.35)');
-    gradient.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartData.labels,
-            datasets: [{
-                label: 'Total Backup Size (MB)',
-                data: chartData.backup_sizes_mb,
-                borderColor: '#4f46e5',
-                borderWidth: 2.5,
-                backgroundColor: gradient,
-                fill: true,
-                tension: 0.38,
-                pointBackgroundColor: '#4f46e5',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: '#0f172a',
-                    titleFont: { size: 12, family: 'monospace', weight: 'bold' },
-                    bodyFont: { size: 11, family: 'monospace' },
-                    padding: 10,
-                    cornerRadius: 8,
-                    callbacks: {
-                        label: function(context) {
-                            return ' Backup Volume: ' + context.parsed.y + ' MB';
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 11, family: 'monospace' }, color: '#64748b' }
-                },
-                y: {
-                    grid: { color: 'rgba(226, 232, 240, 0.6)' },
-                    ticks: {
-                        font: { size: 10, family: 'monospace' },
-                        color: '#64748b',
-                        callback: function(value) { return value + ' MB'; }
-                    }
-                }
-            }
-        }
-    });
-}
-
-/* ── 1. Drag and Drop Upload Handler ── */
-function initDragAndDrop() {
-    const dropZone = document.getElementById('dropZone');
-    if (!dropZone) return;
-
-    ['dragenter', 'dragover'].forEach(name => {
-        dropZone.addEventListener(name, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropZone.classList.add('dragover');
-        }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(name => {
-        dropZone.addEventListener(name, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            dropZone.classList.remove('dragover');
-        }, false);
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const files = dt ? dt.files : null;
-        if (files && files.length > 0) {
-            handleDynamicUpload(files);
-        }
-    });
-}
-
-function handleDynamicUpload(files) {
-    if (!files || files.length === 0) return;
-    const file = files[0];
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const formData = new FormData();
-    formData.append('backup_file', file);
-    formData.append('_token', csrfToken);
-
-    // Show Progress UI
-    const prompt = document.getElementById('dropZonePrompt');
-    const progressSection = document.getElementById('uploadProgressSection');
-    const progressBar = document.getElementById('uploadProgressBar');
-    const percentText = document.getElementById('uploadPercentText');
-    const filenameText = document.getElementById('uploadFilenameText');
-
-    if (prompt) prompt.classList.add('d-none');
-    if (progressSection) progressSection.classList.remove('d-none');
-    if (filenameText) filenameText.textContent = `Uploading '${file.name}'...`;
-
-    const xhr = new XMLHttpRequest();
-    const uploadUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.upload : '/admin/backup/upload';
-    xhr.open('POST', uploadUrl, true);
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-
-    xhr.upload.onprogress = function(e) {
-        if (e.lengthComputable) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            if (progressBar) progressBar.style.width = percent + '%';
-            if (percentText) percentText.textContent = percent + '%';
-        }
-    };
-
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            try {
-                const res = JSON.parse(xhr.responseText);
-                if (filenameText) filenameText.textContent = 'Upload complete! Refreshing archive list...';
-                if (progressBar) {
-                    progressBar.classList.remove('bg-primary');
-                    progressBar.classList.add('bg-success');
-                }
-                showToast('success', res.message || 'Backup archive uploaded successfully!');
-                setTimeout(() => window.location.reload(), 600);
-            } catch(e) {
-                window.location.reload();
-            }
-        } else {
-            let err = 'Upload failed! Please check the archive file format and size.';
-            try {
-                const errRes = JSON.parse(xhr.responseText);
-                if (errRes.message) err = errRes.message;
-            } catch(e){}
-            showToast('danger', err);
-            resetUploadZone();
-        }
-    };
-
-    xhr.onerror = function() {
-        showToast('danger', 'Network error! Upload could not be completed.');
-        resetUploadZone();
-    };
-
-    xhr.send(formData);
-}
-
-function resetUploadZone() {
-    const prompt = document.getElementById('dropZonePrompt');
-    const progressSection = document.getElementById('uploadProgressSection');
-    const progressBar = document.getElementById('uploadProgressBar');
-    const input = document.getElementById('backupFileInput');
-
-    if (prompt) prompt.classList.remove('d-none');
-    if (progressSection) progressSection.classList.add('d-none');
-    if (progressBar) {
-        progressBar.style.width = '0%';
-        progressBar.classList.remove('bg-success');
-        progressBar.classList.add('bg-primary');
-    }
-    if (input) input.value = '';
-}
-
-/* ── 2. Unified Live Table & Grid Search & Category Filter ── */
-function applyUnifiedFilter() {
-    const searchInput = document.getElementById('backupSearchInput');
-    const formatSelect = document.getElementById('backupFormatFilter');
-    const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
-    const format = (formatSelect ? formatSelect.value : 'all').toLowerCase();
-
-    const tableRows = document.querySelectorAll('#backupsTableBody tr.table-custom-row');
-    const gridCards = document.querySelectorAll('#backupGridViewContainer .backup-file-card');
-
-    let visibleCount = 0;
-
-    function matchesFilter(element) {
-        const filename = (element.dataset.filename || '').toLowerCase();
-        const ext = (element.dataset.ext || '').toLowerCase();
-        const date = (element.dataset.date || '').toLowerCase();
-        const category = (element.dataset.category || '').toLowerCase();
-
-        // 1. Text Query Match
-        const matchQuery = !query || filename.includes(query) || date.includes(query);
-
-        // 2. Format Dropdown Match
-        const matchFormat = (format === 'all') || (format === ext) || (format === 'zip' && ext === 'zip');
-
-        // 3. Category Tab Match
-        let matchCategory = true;
-        if (currentActiveCategory === 'master_zip') {
-            matchCategory = (category === 'master_zip' || ext === 'zip');
-        } else if (currentActiveCategory === 'sql_dump') {
-            matchCategory = (category === 'sql_dump' || ext === 'sql' || ext === 'sqlite' || ext === 'gz');
-        } else if (currentActiveCategory === 'safety') {
-            matchCategory = (category === 'safety' || filename.includes('safety') || filename.includes('snapshot'));
-        } else if (currentActiveCategory === 'anonymized') {
-            matchCategory = (category === 'anonymized' || filename.includes('anonymized') || filename.includes('masked') || filename.includes('dev'));
-        }
-
-        return matchQuery && matchFormat && matchCategory;
+    // ------------------------------------------------------------ upload
+    function initUpload() {
+        const zone = $('#dropZone'), input = $('#backupFileInput');
+        if (!zone || !input) return;
+        const open = () => input.click();
+        zone.addEventListener('click', open);
+        $('#btnUpload')?.addEventListener('click', open);
+        input.addEventListener('change', () => input.files.length && upload(input.files[0]));
+        ['dragenter', 'dragover'].forEach((n) => zone.addEventListener(n, (e) => { e.preventDefault(); zone.classList.add('dragover'); }));
+        ['dragleave', 'drop'].forEach((n) => zone.addEventListener(n, (e) => { e.preventDefault(); zone.classList.remove('dragover'); }));
+        zone.addEventListener('drop', (e) => e.dataTransfer?.files?.length && upload(e.dataTransfer.files[0]));
     }
 
-    // Filter Table Rows
-    tableRows.forEach(row => {
-        if (matchesFilter(row)) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
-        }
-    });
+    function upload(file) {
+        if (file.size > B.uploadMaxMb * 1048576) return toast('danger', 'ফাইল ' + B.uploadMaxMb + ' MB-এর বেশি।');
+        const idle = $('#dropIdle'), busy = $('#dropBusy'), bar = $('#uploadBar'), pct = $('#uploadPct');
+        $('#uploadName').textContent = file.name;
+        idle.classList.add('d-none'); busy.classList.remove('d-none');
 
-    // Filter Grid Cards
-    let gridVisibleCount = 0;
-    gridCards.forEach(card => {
-        if (matchesFilter(card)) {
-            card.style.display = '';
-            gridVisibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
+        const form = new FormData();
+        form.append('backup_file', file);
+        form.append('_token', csrf);
 
-    // If grid is active, use its count or table count
-    const totalVisible = tableRows.length > 0 ? visibleCount : gridVisibleCount;
-
-    const countBadge = document.getElementById('backupCountBadge');
-    if (countBadge) {
-        countBadge.textContent = `${totalVisible} File${totalVisible === 1 ? '' : 's'}`;
-    }
-
-    const emptySearch = document.getElementById('emptySearchRow');
-    if (emptySearch) {
-        emptySearch.style.display = (visibleCount === 0 && tableRows.length > 0) ? '' : 'none';
-    }
-
-    const emptyGrid = document.getElementById('emptyGridState');
-    if (emptyGrid) {
-        emptyGrid.style.display = (gridVisibleCount === 0 && gridCards.length > 0) ? 'block' : 'none';
-    }
-}
-
-function initLiveSearch() {
-    const searchInput = document.getElementById('backupSearchInput');
-    const formatSelect = document.getElementById('backupFormatFilter');
-
-    if (searchInput) searchInput.addEventListener('input', applyUnifiedFilter);
-    if (formatSelect) formatSelect.addEventListener('change', () => {
-        applyUnifiedFilter();
-    });
-}
-
-/* ── 3. Bulk Selection & Batch Actions ── */
-function initBulkSelection() {
-    const selectAll = document.getElementById('selectAllBackups');
-    const bar = document.getElementById('bulkActionBar');
-    const selectedCountSpan = document.getElementById('bulkSelectedCount');
-
-    if (!selectAll) return;
-
-    selectAll.addEventListener('change', () => {
-        const checkboxes = document.querySelectorAll('.backup-select-cb:not(:disabled)');
-        checkboxes.forEach(cb => {
-            const row = cb.closest('tr');
-            if (row && row.style.display !== 'none') {
-                cb.checked = selectAll.checked;
-            }
-        });
-        updateBulkBar();
-    });
-
-    document.addEventListener('change', (e) => {
-        if (e.target && e.target.classList.contains('backup-select-cb')) {
-            updateBulkBar();
-        }
-    });
-
-    function updateBulkBar() {
-        const checked = document.querySelectorAll('.backup-select-cb:checked');
-        const count = checked.length;
-
-        if (bar) {
-            if (count > 0) {
-                bar.style.display = 'flex';
-                if (selectedCountSpan) selectedCountSpan.textContent = `${count} Selected`;
-            } else {
-                bar.style.display = 'none';
-            }
-        }
-    }
-}
-
-function deleteSelectedBackups() {
-    const checked = document.querySelectorAll('.backup-select-cb:checked');
-    if (checked.length === 0) {
-        showToast('warning', 'Please select at least one backup archive to delete.');
-        return;
-    }
-
-    const count = checked.length;
-    const msg = `Are you sure you want to permanently delete ${count} selected backup archive(s)? This cannot be undone.`;
-
-    if (window.SwalConfirm) {
-        window.SwalConfirm({
-            title: 'Delete Selected Backups',
-            text: msg,
-            icon: 'warning',
-            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Delete Selected',
-            cancelButtonText: 'Cancel'
-        }).then(result => {
-            if (result.isConfirmed) {
-                executeBulkDeleteSubmit(checked);
-            }
-        });
-    } else if (confirm(msg)) {
-        executeBulkDeleteSubmit(checked);
-    }
-}
-
-function executeBulkDeleteSubmit(checked) {
-    const filenames = Array.from(checked).map(cb => cb.value);
-    if (filenames.length === 0) return;
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const targetUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.bulkDelete : '/admin/backup/bulk-delete';
-
-    showToast('info', `Deleting ${filenames.length} selected backup archives...`);
-
-    fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ filenames: filenames })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast('success', data.message || 'Selected backups deleted successfully.');
-            filenames.forEach(fn => {
-                const escapedFn = fn.toLowerCase();
-                const row = document.querySelector(`tr[data-filename="${escapedFn}"]`);
-                if (row) row.remove();
-                const card = document.querySelector(`.backup-file-card[data-filename="${escapedFn}"]`);
-                if (card) card.remove();
-            });
-            const bulkBar = document.getElementById('bulkActionBar');
-            if (bulkBar) bulkBar.style.display = 'none';
-            const selectAll = document.getElementById('selectAllBackups');
-            if (selectAll) selectAll.checked = false;
-            applyUnifiedFilter();
-        } else {
-            showToast('danger', data.message || 'Failed to delete selected archives.');
-        }
-    })
-    .catch(() => {
-        // Fallback to standard form submit
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = targetUrl;
-
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-
-        filenames.forEach(fn => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'filenames[]';
-            input.value = fn;
-            form.appendChild(input);
-        });
-
-        document.body.appendChild(form);
-        form.submit();
-    });
-}
-
-function deleteSingleBackup(filename) {
-    if (!filename) return;
-
-    const msg = `Are you sure you want to permanently delete backup archive '${filename}'? This cannot be undone.`;
-
-    const runDelete = () => {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        const baseUrl = window.BACKUP_ROUTES && window.BACKUP_ROUTES.destroyBase ? window.BACKUP_ROUTES.destroyBase : '/admin/backup';
-        const targetUrl = baseUrl + '/' + encodeURIComponent(filename);
-
-        showToast('info', `Deleting '${filename}'...`);
-
-        fetch(targetUrl, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast('success', data.message || `Backup '${filename}' deleted successfully.`);
-                const escapedFn = filename.toLowerCase();
-                const row = document.querySelector(`tr[data-filename="${escapedFn}"]`);
-                if (row) {
-                    row.style.transition = 'all 0.3s ease';
-                    row.style.opacity = '0';
-                    row.style.transform = 'scale(0.95)';
-                    setTimeout(() => row.remove(), 300);
-                }
-                const card = document.querySelector(`.backup-file-card[data-filename="${escapedFn}"]`);
-                if (card) {
-                    card.style.transition = 'all 0.3s ease';
-                    card.style.opacity = '0';
-                    card.style.transform = 'scale(0.95)';
-                    setTimeout(() => card.remove(), 300);
-                }
-                setTimeout(() => {
-                    applyUnifiedFilter();
-                }, 350);
-            } else {
-                showToast('danger', data.message || 'Could not delete backup archive.');
-            }
-        })
-        .catch(() => {
-            executeSingleDeleteSubmit(filename);
-        });
-    };
-
-    if (window.SwalConfirm) {
-        window.SwalConfirm({
-            title: 'Delete Backup Archive',
-            text: msg,
-            icon: 'warning',
-            confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Yes, Delete Permanently',
-            cancelButtonText: 'Cancel'
-        }).then(result => {
-            if (result.isConfirmed) {
-                runDelete();
-            }
-        });
-    } else if (confirm(msg)) {
-        runDelete();
-    }
-}
-
-function executeSingleDeleteSubmit(filename) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const baseUrl = window.BACKUP_ROUTES && window.BACKUP_ROUTES.destroyBase ? window.BACKUP_ROUTES.destroyBase : '/admin/backup';
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = baseUrl + '/' + encodeURIComponent(filename);
-
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-
-    const methodInput = document.createElement('input');
-    methodInput.type = 'hidden';
-    methodInput.name = '_method';
-    methodInput.value = 'DELETE';
-    form.appendChild(methodInput);
-
-    document.body.appendChild(form);
-    form.submit();
-}
-
-/* ── Modal Instance Helper (Robust Bootstrap 5 & jQuery compatibility) ── */
-function getBsModal(element) {
-    if (!element) return null;
-    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-        return bootstrap.Modal.getOrCreateInstance(element);
-    } else if (typeof jQuery !== 'undefined' && jQuery(element).modal) {
-        return {
-            show: () => jQuery(element).modal('show'),
-            hide: () => jQuery(element).modal('hide')
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', B.routes.upload);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable) { const p = Math.round(e.loaded / e.total * 100); bar.style.width = p + '%'; pct.textContent = p + '%'; } };
+        const reset = () => { idle.classList.remove('d-none'); busy.classList.add('d-none'); bar.style.width = '0'; $('#backupFileInput').value = ''; };
+        xhr.onload = () => {
+            let res = {};
+            try { res = JSON.parse(xhr.responseText); } catch (e) { /* not json */ }
+            if (xhr.status === 200 && res.success) { toast('success', res.message); setTimeout(() => location.reload(), 600); }
+            else { toast('danger', res.message || (res.errors && Object.values(res.errors)[0][0]) || 'আপলোড ব্যর্থ হয়েছে'); reset(); }
         };
-    }
-    return null;
-}
-
-/* ── 4. Live AJAX 1-Click Backup Creation with Progress Modal ── */
-function triggerLiveBackup(mode, modeLabel) {
-    const modalEl = document.getElementById('backupProgressModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-
-    const titleEl = document.getElementById('backupProgressTitle');
-    const statusText = document.getElementById('backupProgressStatusText');
-    const progressBar = document.getElementById('backupCreationProgressBar');
-
-    if (titleEl) titleEl.textContent = modeLabel || 'Creating Backup Archive...';
-    if (statusText) statusText.textContent = 'Analyzing database tables & generating SQL dump...';
-    if (progressBar) {
-        progressBar.style.width = '30%';
-        progressBar.classList.add('progress-bar-animated');
+        xhr.onerror = () => { toast('danger', 'নেটওয়ার্ক সমস্যা'); reset(); };
+        xhr.send(form);
     }
 
-    // Step 2 timer animation
-    setTimeout(() => {
-        if (statusText) {
-            statusText.textContent = (mode === 'db_only')
-                ? 'Compressing database dump with high-ratio GZIP (.sql.gz)...'
-                : 'Packaging media files, book covers & documents...';
-        }
-        if (progressBar) progressBar.style.width = '65%';
-    }, 1200);
+    // ------------------------------------------------------------ list: filter, select
+    let category = 'all';
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const createUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.create : '/admin/backup/create';
-
-    fetch(createUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ mode: mode })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (statusText) statusText.textContent = 'Completed! Master archive saved successfully.';
-            if (progressBar) {
-                progressBar.style.width = '100%';
-                progressBar.classList.remove('bg-primary');
-                progressBar.classList.add('bg-success');
-            }
-            showToast('success', data.message || 'Backup completed successfully!');
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        } else {
-            if (modal) modal.hide();
-            showToast('danger', data.message || 'Error occurred while creating backup!');
-        }
-    })
-    .catch(err => {
-        if (modal) modal.hide();
-        // If JSON failed, fall back to native submit
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = createUrl;
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        const modeInput = document.createElement('input');
-        modeInput.type = 'hidden';
-        modeInput.name = 'mode';
-        modeInput.value = mode;
-        form.appendChild(modeInput);
-        document.body.appendChild(form);
-        form.submit();
-    });
-}
-
-/* ── 5. Inspect ZIP Archive Modal ── */
-function inspectZipArchive(filename) {
-    const fnEl = document.getElementById('inspectFilename');
-    if (fnEl) fnEl.textContent = filename;
-
-    const modalEl = document.getElementById('inspectModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-
-    const body = document.getElementById('inspectBody');
-    if (body) {
-        body.innerHTML = '<div class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Scanning archive contents...</div>';
-    }
-
-    const inspectUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.inspect : '/admin/backup/inspect') + '/' + encodeURIComponent(filename);
-
-    fetch(inspectUrl, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            let html = `
-                <div class="row g-2.5 mb-3">
-                    <div class="col-6 col-md-4">
-                        <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Files</small>
-                            <strong class="font-monospace text-primary fs-5">${data.files_count}</strong>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-4">
-                        <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Archive Size</small>
-                            <strong class="font-monospace text-success fs-5">${data.size}</strong>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 bg-light rounded-3 text-center border">
-                            <small class="text-muted d-block font-monospace" style="font-size: 11px;">Database Engine</small>
-                            <strong class="font-monospace text-dark fs-5">${data.manifest ? data.manifest.driver.toUpperCase() : 'MySQL'}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">Archive File Manifest:</h6>
-                    <span class="badge bg-light text-dark border font-monospace" style="font-size: 10px;">Preview Mode</span>
-                </div>
-                <div class="table-responsive rounded-3 border" style="max-height: 260px; overflow-y: auto;">
-                    <table class="table table-sm table-hover small mb-0 font-monospace">
-                        <thead class="table-light sticky-top">
-                            <tr>
-                                <th class="ps-3 py-2">File Path</th>
-                                <th class="text-end pe-3 py-2">Size</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-            (data.files || []).forEach(f => {
-                html += `
-                    <tr>
-                        <td class="ps-3 text-truncate" style="max-width: 380px;">${f.name}</td>
-                        <td class="text-end pe-3 text-muted">${f.size}</td>
-                    </tr>
-                `;
-            });
-            html += `</tbody></table></div>`;
-            if (body) body.innerHTML = html;
-        } else {
-            if (body) body.innerHTML = `<div class="alert alert-danger mb-0">${data.message}</div>`;
-        }
-    })
-    .catch(() => {
-        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">Failed to load archive preview.</div>`;
-    });
-}
-
-/* ── 6. Send to Email Modal ── */
-function openEmailModal(filename) {
-    const fnInput = document.getElementById('emailModalFilename');
-    const fnDisplay = document.getElementById('emailModalFilenameDisplay');
-    if (fnInput) fnInput.value = filename;
-    if (fnDisplay) fnDisplay.textContent = filename;
-
-    const modalEl = document.getElementById('emailDispatchModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-}
-
-function submitEmailDispatch() {
-    const filename = document.getElementById('emailModalFilename')?.value;
-    const email = document.getElementById('emailRecipientInput')?.value;
-    const btn = document.getElementById('btnSubmitEmail');
-
-    if (!filename || !email) {
-        alert('Please provide a valid recipient email address.');
-        return;
-    }
-
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Sending email...';
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const emailUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.email : '/admin/backup/email') + '/' + encodeURIComponent(filename);
-
-    fetch(emailUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ email: email })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send via Email';
-        }
-        const modalEl = document.getElementById('emailDispatchModal');
-        getBsModal(modalEl)?.hide();
-
-        if (data.success) {
-            showToast('success', data.message || 'Backup archive successfully sent to email!');
-        } else {
-            showToast('danger', data.message || 'Failed to dispatch email.');
-        }
-    })
-    .catch(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> Send via Email';
-        }
-        showToast('danger', 'Error occurred during email dispatch process.');
-    });
-}
-
-/* ── 7. Restore Confirmation ── */
-function confirmRestore(filename, isMasterZip) {
-    const fnDisplay = document.getElementById('restoreFilename');
-    if (fnDisplay) fnDisplay.textContent = filename;
-
-    const form = document.getElementById('restoreForm');
-    const restoreBase = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.restore : '/admin/backup/restore';
-    if (form) form.action = restoreBase + '/' + encodeURIComponent(filename);
-
-    const modalEl = document.getElementById('restoreModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-}
-
-/* ── 8. Global Dynamic Toast ── */
-function showToast(type, message) {
-    const container = document.getElementById('dynamicAlertContainer');
-    if (!container) return;
-
-    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center mb-0 rounded-4 shadow-sm border-0 border-start border-4 border-${type} bg-white py-3 px-3.5" role="alert">
-            <i class="fa-solid fa-${type === 'success' ? 'circle-check text-success' : 'triangle-exclamation text-danger'} fs-5 me-2.5"></i>
-            <div class="fw-semibold small text-dark">${message}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    `;
-    container.innerHTML = alertHtml;
-    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-/* ── 9. Database Diff & Analytics Modal ── */
-let currentDiffData = null;
-let currentDiffFilename = '';
-
-function openDiffModal(filename) {
-    currentDiffFilename = filename;
-    const fnEl = document.getElementById('diffModalFilename');
-    if (fnEl) fnEl.textContent = filename;
-
-    const modalEl = document.getElementById('diffModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-
-    const body = document.getElementById('diffModalBody');
-    if (body) {
-        body.innerHTML = `
-            <div class="text-center py-5 text-muted">
-                <div class="spinner-border text-info mb-2" role="status"></div>
-                <div class="fw-semibold font-monospace">Comparing backup schema and rows against live database...</div>
-            </div>
-        `;
-    }
-
-    const diffUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.diff : '/admin/backup/diff') + '/' + encodeURIComponent(filename);
-
-    fetch(diffUrl, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            currentDiffData = data;
-            renderDiffResults(data);
-        } else {
-            if (body) body.innerHTML = `<div class="alert alert-danger mb-0">${data.message}</div>`;
-        }
-    })
-    .catch(err => {
-        if (body) body.innerHTML = `<div class="alert alert-danger mb-0">Failed to load database diff analysis.</div>`;
-    });
-}
-
-function renderDiffResults(data) {
-    const body = document.getElementById('diffModalBody');
-    if (!body) return;
-
-    let html = `
-        <div class="row g-2.5 mb-3">
-            <div class="col-6 col-md-3">
-                <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Tables</small>
-                    <strong class="font-monospace text-primary fs-5">${data.total_tables}</strong>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Changes Detected</small>
-                    <strong class="font-monospace ${data.changed_tables_count > 0 ? 'text-warning' : 'text-success'} fs-5">${data.changed_tables_count} Table${data.changed_tables_count === 1 ? '' : 's'}</strong>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Live Rows</small>
-                    <strong class="font-monospace text-dark fs-5">${data.total_live_rows.toLocaleString()}</strong>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="p-3 bg-light rounded-3 text-center border">
-                    <small class="text-muted d-block font-monospace" style="font-size: 11px;">Total Backup Rows</small>
-                    <strong class="font-monospace text-dark fs-5">${data.total_backup_rows.toLocaleString()}</strong>
-                </div>
-            </div>
-        </div>
-
-        <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <h6 class="fw-bold small text-muted text-uppercase mb-0 font-monospace" style="font-size: 11px;">Table-by-Table Comparison:</h6>
-                <span class="badge ${data.changed_tables_count === 0 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} border rounded-pill px-2.5 py-0.5 font-monospace" style="font-size: 10px;">
-                    ${data.changed_tables_count === 0 ? '100% Exact Match' : `${data.changed_tables_count} Differences Found`}
-                </span>
-            </div>
-            <input type="search" id="diffSearchInput" class="form-control form-control-sm font-monospace" style="max-width: 220px;" placeholder="Filter tables..." oninput="filterDiffTable(this.value)">
-        </div>
-
-        <div class="table-responsive rounded-3 border" style="max-height: 350px; overflow-y: auto;">
-            <table class="table table-sm table-hover align-middle mb-0 font-monospace small" id="diffTable">
-                <thead class="table-light sticky-top">
-                    <tr>
-                        <th class="ps-3 py-2">Table Name</th>
-                        <th class="py-2 text-center">Live Records</th>
-                        <th class="py-2 text-center">Backup Records</th>
-                        <th class="py-2 text-center">Difference (Diff)</th>
-                        <th class="text-end pe-3 py-2">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="diffTableBody">
-    `;
-
-    (data.tables || []).forEach(row => {
-        let statusBadge = '';
-        let diffBadge = '';
-
-        if (row.status === 'equal') {
-            statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-check me-1"></i> Exact Match</span>';
-            diffBadge = '<span class="text-muted font-monospace">0</span>';
-        } else if (row.status === 'live_higher') {
-            statusBadge = '<span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-up me-1"></i> Higher in Live</span>';
-            diffBadge = `<span class="badge bg-primary text-white font-monospace">+${row.diff}</span>`;
-        } else if (row.status === 'backup_higher') {
-            statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5"><i class="fa-solid fa-arrow-down me-1"></i> Higher in Backup</span>';
-            diffBadge = `<span class="badge bg-warning text-dark font-monospace">${row.diff}</span>`;
-        } else if (row.status === 'only_in_live') {
-            statusBadge = '<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-0.5">Live Only</span>';
-            diffBadge = '<span class="text-info font-monospace">New</span>';
-        } else if (row.status === 'only_in_backup') {
-            statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-0.5">Backup Only</span>';
-            diffBadge = '<span class="text-danger font-monospace">Removed</span>';
-        }
-
-        html += `
-            <tr class="diff-table-row" data-tbl="${(row.table || '').toLowerCase()}">
-                <td class="ps-3 font-monospace fw-bold text-dark">${row.table}</td>
-                <td class="text-center font-monospace">${row.live_rows !== null ? row.live_rows.toLocaleString() : '—'}</td>
-                <td class="text-center font-monospace">${row.backup_rows !== null ? row.backup_rows.toLocaleString() : '—'}</td>
-                <td class="text-center font-monospace">${diffBadge}</td>
-                <td class="text-end pe-3">${statusBadge}</td>
-            </tr>
-        `;
-    });
-
-    html += `</tbody></table></div>`;
-    body.innerHTML = html;
-}
-
-function filterDiffTable(query) {
-    const q = (query || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('#diffTableBody tr.diff-table-row');
-    rows.forEach(r => {
-        const tbl = r.dataset.tbl || '';
-        r.style.display = (!q || tbl.includes(q)) ? '' : 'none';
-    });
-}
-
-function openSelectiveFromDiff() {
-    const diffModalEl = document.getElementById('diffModal');
-    getBsModal(diffModalEl)?.hide();
-
-    if (currentDiffFilename) {
-        openSelectiveRestoreModal(currentDiffFilename);
-    }
-}
-
-/* ── 10. Safe Dry-Run Simulation Modal ── */
-function runDryRunSimulation(filename) {
-    const modalEl = document.getElementById('dryRunModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-
-    const body = document.getElementById('dryRunModalBody');
-    if (body) {
-        body.innerHTML = `
-            <div class="text-center py-5">
-                <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-                <h6 class="fw-bold text-dark font-monospace mb-1">Running sandbox restore simulation...</h6>
-                <p class="text-muted small mb-0">Validating SQL syntax, foreign-key constraints & schema integrity without altering live data.</p>
-            </div>
-        `;
-    }
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const dryRunUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.dryRun : '/admin/backup/dry-run') + '/' + encodeURIComponent(filename);
-
-    fetch(dryRunUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success && data.status === 'passed') {
-            if (body) {
-                body.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="rounded-circle bg-success-subtle text-success p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
-                            <i class="fa-solid fa-circle-check fs-1"></i>
-                        </div>
-                        <h5 class="fw-bold text-dark mb-1 font-monospace">Dry-Run Passed with Zero Errors!</h5>
-                        <p class="text-muted small mb-3">${data.message}</p>
-                        
-                        <div class="row g-2 text-start p-3 bg-light rounded-3 border mb-3">
-                            <div class="col-6">
-                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">Simulation Latency:</small>
-                                <strong class="font-monospace text-primary">${data.execution_time_ms} ms</strong>
-                            </div>
-                            <div class="col-6">
-                                <small class="text-muted font-monospace d-block" style="font-size: 11px;">Database Safety:</small>
-                                <strong class="font-monospace text-success"><i class="fa-solid fa-shield-halved me-1"></i> 100% Uncommitted Sandbox</strong>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn-backup-gradient btn-gradient-emerald px-4" onclick="getBsModal(document.getElementById('dryRunModal'))?.hide(); confirmRestore('${filename}', true)">
-                                <i class="fa-solid fa-rotate-left"></i>
-                                <span>Confirm Live Restore</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
-        } else {
-            if (body) {
-                body.innerHTML = `
-                    <div class="text-center py-4">
-                        <div class="rounded-circle bg-danger-subtle text-danger p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow-xs" style="width: 68px; height: 68px;">
-                            <i class="fa-solid fa-triangle-exclamation fs-1"></i>
-                        </div>
-                        <h5 class="fw-bold text-danger mb-1 font-monospace">Dry-Run Failed! Issues Detected</h5>
-                        <p class="text-muted small mb-3">${data.message || 'Errors encountered in SQL statements or constraint checks.'}</p>
-                        ${data.error_details ? `<div class="p-3 bg-danger-subtle text-danger rounded-3 font-monospace small text-start border border-danger-subtle mb-3">${data.error_details}</div>` : ''}
-                    </div>
-                `;
-            }
-        }
-    })
-    .catch(err => {
-        if (body) {
-            body.innerHTML = `<div class="alert alert-danger mb-0">Network or server error occurred during dry-run simulation.</div>`;
-        }
-    });
-}
-
-/* ── 11. Selective Table Restore Modal & Handler ── */
-let currentSelectiveFilename = '';
-
-function openSelectiveRestoreModal(filename) {
-    currentSelectiveFilename = filename;
-    const fnEl = document.getElementById('selectiveModalFilename');
-    if (fnEl) fnEl.textContent = filename;
-
-    // Reset checkboxes
-    toggleAllSelectiveTables(false);
-
-    const modalEl = document.getElementById('selectiveRestoreModal');
-    const modal = getBsModal(modalEl);
-    if (modal) modal.show();
-
-    initSelectiveSearch();
-}
-
-function toggleAllSelectiveTables(check) {
-    const cbs = document.querySelectorAll('.selective-tbl-cb');
-    cbs.forEach(cb => {
-        const col = cb.closest('.selective-tbl-col');
-        if (col && col.style.display !== 'none') {
-            cb.checked = check;
-        }
-    });
-    updateSelectiveCount();
-}
-
-function updateSelectiveCount() {
-    const checked = document.querySelectorAll('.selective-tbl-cb:checked');
-    const badge = document.getElementById('selectiveSelectedBadge');
-    if (badge) {
-        badge.textContent = `${checked.length} Selected`;
-    }
-}
-
-function initSelectiveSearch() {
-    const input = document.getElementById('selectiveSearchInput');
-    if (!input) return;
-
-    input.value = '';
-    input.oninput = function() {
-        const q = (input.value || '').toLowerCase().trim();
-        const cols = document.querySelectorAll('.selective-tbl-col');
-        cols.forEach(col => {
-            const tbl = col.dataset.tbl || '';
-            col.style.display = (!q || tbl.includes(q)) ? '' : 'none';
+    function applyFilter() {
+        const q = ($('#backupSearch')?.value || '').toLowerCase().trim();
+        let shown = 0;
+        $$('#backupRows tr[data-name]').forEach((tr) => {
+            const ok = (category === 'all' || tr.dataset.cat === category) && (!q || tr.dataset.name.includes(q));
+            tr.classList.toggle('d-none', !ok);
+            if (ok) shown++;
         });
+        $('#shownCount').textContent = bn(shown) + 'টি';
+        $('#noMatchRow')?.classList.toggle('d-none', shown > 0 || !$('#backupRows tr[data-name]'));
+        updateBulk();
+    }
+
+    function updateBulk() {
+        const n = $$('.row-check:checked').length;
+        const bar = $('#bulkBar');
+        bar.style.display = n ? 'flex' : 'none';
+        $('#bulkCount').textContent = bn(n) + ' নির্বাচিত';
+    }
+
+    function initList() {
+        $$('#bkTabs [data-cat]').forEach((b) => b.addEventListener('click', () => {
+            $$('#bkTabs .nav-link').forEach((x) => x.classList.remove('active'));
+            b.classList.add('active');
+            category = b.dataset.cat;
+            applyFilter();
+        }));
+        $('#backupSearch')?.addEventListener('input', applyFilter);
+        $('#selectAll')?.addEventListener('change', (e) => {
+            $$('#backupRows tr[data-name]:not(.d-none) .row-check').forEach((c) => { c.checked = e.target.checked; });
+            updateBulk();
+        });
+        document.addEventListener('change', (e) => { if (e.target.classList?.contains('row-check')) updateBulk(); });
+
+        $('#schemaSearch')?.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            $$('#schemaTable tbody tr').forEach((tr) => tr.classList.toggle('d-none', q && !tr.dataset.name.includes(q)));
+        });
+    }
+
+    // ------------------------------------------------------------ row actions
+    const openInfo = (title, file, html, footer) => {
+        $('#infoTitle').textContent = title;
+        $('#infoFile').textContent = file || '';
+        $('#infoBody').innerHTML = html;
+        const f = $('#infoFooter');
+        f.innerHTML = footer || '';
+        f.classList.toggle('d-none', !footer);
+        modal('infoModal').show();
     };
-}
+    const loading = '<div class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2"></div>লোড হচ্ছে…</div>';
+    const stat = (label, value, tone) => '<div class="col-6 col-md"><div class="p-3 border rounded-3 text-center"><small class="text-muted d-block">' + esc(label) + '</small><strong class="fs-5 ' + (tone || '') + '">' + esc(value) + '</strong></div></div>';
 
-function submitSelectiveRestore() {
-    const checked = document.querySelectorAll('.selective-tbl-cb:checked');
-    if (checked.length === 0) {
-        alert('Please select at least one database table to restore.');
-        return;
+    async function preview(file) {
+        openInfo('প্রিভিউ', file, loading);
+        const d = await api('GET', url('inspect', file));
+        if (!d.success) return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message) + '</div>');
+        let html = '<div class="row g-2 mb-3">' + stat('ফাইল', d.files_count) + stat('সাইজ', d.size) + (d.manifest ? stat('ডাটাবেজ', (d.manifest.driver || '').toUpperCase()) + stat('মিডিয়া', d.manifest.media_files ?? 0) : '') + '</div>';
+        html += '<div class="table-responsive border rounded-3" style="max-height:320px"><table class="table table-sm mb-0 font-monospace small"><tbody>';
+        (d.files || []).forEach((f) => { html += '<tr><td class="text-truncate" style="max-width:420px">' + esc(f.name) + '</td><td class="text-end text-muted">' + esc(f.size) + '</td></tr>'; });
+        $('#infoBody').innerHTML = html + '</tbody></table></div>' + (d.files_count > 100 ? '<small class="text-muted">প্রথম ১০০টি দেখানো হয়েছে</small>' : '');
     }
 
-    const tables = Array.from(checked).map(cb => cb.value);
-    if (!confirm(`Are you sure you want to restore ${tables.length} selected table(s) (${tables.slice(0, 3).join(', ')}${tables.length > 3 ? '...' : ''})?`)) {
-        return;
+    async function verify(file) {
+        openInfo('যাচাই', file, loading);
+        const d = await api('POST', url('dry-run', file));
+        const checks = d.checks || [];
+        if (!checks.length) return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message || 'যাচাই করা যায়নি') + '</div>');
+        let html = '<div class="alert alert-' + (d.passed ? 'success' : 'danger') + ' py-2">' + (d.passed ? 'ঠিক আছে — রিস্টোর করা যাবে। লাইভ ডাটাবেজে কিছু বদলানো হয়নি।' : 'সমস্যা পাওয়া গেছে — এই ফাইল রিস্টোর করা যাবে না।') + '</div>';
+        checks.forEach((c) => {
+            html += '<div class="bkp-check"><i class="fa-solid ' + (c.ok ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger') + ' mt-1"></i><div><div>' + esc(c.label) + '</div>' + (c.detail ? '<small class="text-muted">' + esc(c.detail) + '</small>' : '') + '</div></div>';
+        });
+        if (d.stats) html += '<small class="text-muted d-block mt-3">' + bn(d.stats.statements) + ' স্টেটমেন্ট · ' + bn(d.stats.tables) + ' টেবিল · ' + bn(d.stats.rows) + ' রো · ' + bn(d.ms) + ' ms</small>';
+        $('#infoBody').innerHTML = html;
     }
 
-    const btn = document.getElementById('btnExecuteSelectiveRestore');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Restoring tables...';
+    const diffLabels = {
+        equal: ['মিল আছে', 'success'], live_higher: ['লাইভে বেশি', 'primary'], backup_higher: ['ব্যাকআপে বেশি', 'warning'],
+        only_in_live: ['শুধু লাইভে', 'info'], only_in_backup: ['শুধু ব্যাকআপে', 'danger'],
+    };
+
+    async function diff(file) {
+        openInfo('তুলনা', file, loading, '<button type="button" class="btn btn-outline-danger" data-act="selective" data-file="' + esc(file) + '" data-bs-dismiss="modal">টেবিল বাছাই করে রিস্টোর</button>');
+        const d = await api('GET', url('diff', file));
+        if (!d.success) { $('#infoFooter').classList.add('d-none'); return void ($('#infoBody').innerHTML = '<div class="alert alert-danger mb-0">' + esc(d.message) + '</div>'); }
+        let html = '<div class="row g-2 mb-3">' + stat('টেবিল', d.total_tables) + stat('পার্থক্য', d.changed_tables_count, d.changed_tables_count ? 'text-warning' : 'text-success') + stat('লাইভ রো', Number(d.total_live_rows).toLocaleString()) + stat('ব্যাকআপ রো', Number(d.total_backup_rows).toLocaleString()) + '</div>';
+        html += '<input type="search" class="form-control form-control-sm mb-2" id="diffSearch" placeholder="টেবিল খুঁজুন">';
+        html += '<div class="table-responsive border rounded-3" style="max-height:360px"><table class="table table-sm align-middle mb-0 small"><thead><tr><th>টেবিল</th><th class="text-end">লাইভ</th><th class="text-end">ব্যাকআপ</th><th class="text-end">অবস্থা</th></tr></thead><tbody id="diffBody">';
+        (d.tables || []).forEach((r) => {
+            const [label, tone] = diffLabels[r.status] || [r.status, 'secondary'];
+            html += '<tr data-name="' + esc(r.table.toLowerCase()) + '"><td class="font-monospace">' + esc(r.table) + '</td><td class="text-end">' + (r.live_rows ?? '—') + '</td><td class="text-end">' + (r.backup_rows ?? '—') + '</td><td class="text-end"><span class="badge rounded-pill text-bg-' + tone + '">' + esc(label) + '</span></td></tr>';
+        });
+        $('#infoBody').innerHTML = html + '</tbody></table></div>';
+        $('#diffSearch').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            $$('#diffBody tr').forEach((tr) => tr.classList.toggle('d-none', q && !tr.dataset.name.includes(q)));
+        });
     }
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const selectiveUrl = (window.BACKUP_ROUTES ? window.BACKUP_ROUTES.selectiveRestore : '/admin/backup/selective-restore') + '/' + encodeURIComponent(currentSelectiveFilename);
+    function restore(file) {
+        $('#restoreFile').textContent = file;
+        $('#restoreForm').action = url('restore', file);
+        modal('restoreModal').show();
+    }
 
-    fetch(selectiveUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({ tables: tables })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (btn) {
+    // ---- selective restore
+    let selectiveFile = '';
+    const picked = () => $$('.pick-check:checked').map((c) => c.value);
+    const updatePicked = () => { $('#selCount').textContent = bn(picked().length) + ' নির্বাচিত'; };
+
+    function selective(file) {
+        selectiveFile = file;
+        $('#selectiveFile').textContent = file;
+        $$('.pick-check').forEach((c) => { c.checked = false; });
+        $('#selSearch').value = '';
+        $$('.bkp-pick').forEach((p) => p.classList.remove('d-none'));
+        updatePicked();
+        modal('selectiveModal').show();
+    }
+
+    function initSelective() {
+        $('#selAll')?.addEventListener('click', () => { $$('.bkp-pick:not(.d-none) .pick-check').forEach((c) => { c.checked = true; }); updatePicked(); });
+        $('#selNone')?.addEventListener('click', () => { $$('.pick-check').forEach((c) => { c.checked = false; }); updatePicked(); });
+        $('#pickList')?.addEventListener('change', updatePicked);
+        $('#selSearch')?.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            $$('.bkp-pick').forEach((p) => p.classList.toggle('d-none', q && !p.dataset.name.includes(q)));
+        });
+        $('#selectiveRun')?.addEventListener('click', async () => {
+            const tables = picked();
+            if (!tables.length) return toast('warning', 'অন্তত একটি টেবিল বাছাই করুন।');
+            if (!(await ask('টেবিল রিস্টোর', bn(tables.length) + 'টি টেবিল ব্যাকআপ থেকে বদলে যাবে। এগোবেন?', 'রিস্টোর করুন'))) return;
+            const btn = $('#selectiveRun'); btn.disabled = true;
+            const res = await api('POST', url('selective-restore', selectiveFile), { tables });
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Restore Selected Tables</span>';
-        }
-        const modalEl = document.getElementById('selectiveRestoreModal');
-        getBsModal(modalEl)?.hide();
-
-        if (data.success) {
-            showToast('success', data.message || 'Selective restore completed successfully!');
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            showToast('danger', data.message || 'Selective restore encountered errors.');
-        }
-    })
-    .catch(err => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> <span>Restore Selected Tables</span>';
-        }
-        showToast('danger', 'Error occurred during selective restore execution.');
-    });
-}
-
-/* ── 12. Anonymized Developer Dump ── */
-function generateAnonymizedDump() {
-    if (!confirm('Do you want to export an anonymized database dump with sensitive customer data (passwords, emails, phone numbers) masked?')) {
-        return;
+            modal('selectiveModal').hide();
+            toast(res.success ? 'success' : 'danger', res.message || (res.errors && Object.values(res.errors)[0][0]) || 'রিস্টোর ব্যর্থ');
+            if (res.success) setTimeout(() => location.reload(), 900);
+        });
     }
 
-    showToast('info', 'Generating anonymized developer dump, please wait...');
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const exportUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.exportAnonymized : '/admin/backup/export-anonymized';
-
-    fetch(exportUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast('success', data.message || 'Anonymized dump generated successfully!');
-            if (data.download_url) {
-                const a = document.createElement('a');
-                a.href = data.download_url;
-                a.download = data.filename || 'anonymized_backup.sql';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-            setTimeout(() => window.location.reload(), 1200);
-        } else {
-            showToast('danger', data.message || 'Error occurred while generating anonymized dump!');
-        }
-    })
-    .catch(() => {
-        // Fallback to standard form download
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = exportUrl;
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        document.body.appendChild(form);
-        form.submit();
-    });
-}
-
-/* ── 13. Test Telegram Instant Alert Notification ── */
-function testTelegramNotification() {
-    const token = document.getElementById('telegramBotTokenInput')?.value;
-    const chatId = document.getElementById('telegramChatIdInput')?.value;
-
-    if (!token || !chatId) {
-        alert('Please provide both Telegram Bot Token and Chat ID.');
-        return;
+    // ---- email
+    let emailFile = '';
+    function email(file) {
+        emailFile = file;
+        $('#emailFile').textContent = file;
+        if (!$('#emailTo').value) $('#emailTo').value = B.email || '';
+        modal('emailModal').show();
     }
 
-    showToast('info', 'Sending test Telegram message...');
+    async function sendEmail() {
+        const to = $('#emailTo').value.trim();
+        if (!to) return toast('warning', 'ইমেইল ঠিকানা দিন।');
+        const btn = $('#emailSend'); btn.disabled = true;
+        const res = await api('POST', url('email', emailFile), { email: to });
+        btn.disabled = false;
+        modal('emailModal').hide();
+        toast(res.success ? 'success' : 'danger', res.message || (res.errors && Object.values(res.errors)[0][0]) || 'পাঠানো যায়নি');
+    }
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    const testUrl = window.BACKUP_ROUTES ? window.BACKUP_ROUTES.testNotification : '/admin/backup/test-notification';
+    // ---- delete
+    async function remove(file) {
+        if (!(await ask('ব্যাকআপ মুছুন', file + ' স্থায়ীভাবে মুছে যাবে।', 'মুছুন'))) return;
+        const res = await api('DELETE', B.routes.base + '/' + encodeURIComponent(file));
+        if (!res.success) return toast('danger', res.message || 'মোছা যায়নি');
+        const tr = $$('#backupRows tr[data-file]').find((r) => r.dataset.file === file);
+        tr?.remove();
+        toast('success', res.message);
+        applyFilter();
+    }
 
-    fetch(testUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            type: 'telegram',
-            telegram_bot_token: token,
-            telegram_chat_id: chatId
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast('success', data.message || 'Telegram test notification delivered successfully!');
-        } else {
-            showToast('danger', data.message || 'Failed to send Telegram test message.');
-        }
-    })
-    .catch(() => {
-        showToast('danger', 'Could not reach the Telegram notification server.');
+    async function bulkRemove() {
+        const files = $$('.row-check:checked').map((c) => c.value);
+        if (!files.length) return;
+        if (!(await ask('একসাথে মুছুন', bn(files.length) + 'টি ব্যাকআপ স্থায়ীভাবে মুছে যাবে।', 'মুছুন'))) return;
+        const res = await api('POST', B.routes.bulkDelete, { filenames: files });
+        if (!res.success) return toast('danger', res.message || 'মোছা যায়নি');
+        $$('#backupRows tr[data-file]').filter((r) => files.includes(r.dataset.file)).forEach((r) => r.remove());
+        $('#selectAll').checked = false;
+        toast('success', res.message);
+        applyFilter();
+    }
+
+    // ---- masked dump, telegram test
+    async function masked() {
+        if (!(await ask('মাস্কড ডাম্প', 'পাসওয়ার্ড, ইমেইল ও ফোন নম্বর বদলে দেওয়া একটি ডাম্প তৈরি হবে (ডেভেলপারদের জন্য)।', 'তৈরি করুন'))) return;
+        toast('info', 'ডাম্প তৈরি হচ্ছে…');
+        const res = await api('POST', B.routes.masked);
+        if (!res.success) return toast('danger', res.message || 'ডাম্প ব্যর্থ');
+        toast('success', res.message);
+        if (res.download_url) location.href = res.download_url;
+        setTimeout(() => location.reload(), 1500);
+    }
+
+    async function telegramTest() {
+        const token = $('#tgToken').value.trim(), chat = $('#tgChat').value.trim();
+        const res = await api('POST', B.routes.notify, { type: 'telegram', telegram_bot_token: token || undefined, telegram_chat_id: chat || undefined });
+        toast(res.success ? 'success' : 'danger', res.message || (res.errors && Object.values(res.errors)[0][0]) || 'পাঠানো যায়নি');
+    }
+
+    // ------------------------------------------------------------ chart
+    function initChart() {
+        const el = $('#usageChart');
+        if (!el || typeof Chart === 'undefined') return;
+        new Chart(el, {
+            type: 'bar',
+            data: { labels: B.timeline.labels, datasets: [{ data: B.timeline.backup_sizes_mb, backgroundColor: '#2563eb', borderRadius: 4, maxBarThickness: 36 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => c.parsed.y + ' MB · ' + bn(B.timeline.archive_counts[c.dataIndex]) + 'টি' } } },
+                scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { callback: (v) => v + ' MB' } } },
+            },
+        });
+    }
+
+    // ------------------------------------------------------------ wiring
+    const actions = { preview, verify, diff, restore, selective, email, delete: remove, masked, 'bulk-delete': bulkRemove };
+
+    document.addEventListener('click', (e) => {
+        const create = e.target.closest('[data-backup]');
+        if (create) return createBackup(create.dataset.backup);
+        const act = e.target.closest('[data-act]');
+        if (act && actions[act.dataset.act]) actions[act.dataset.act](act.dataset.file);
     });
-}
 
-/* ── Global Window Exports for Inline HTML onclick handlers ── */
-window.getBsModal = getBsModal;
-window.confirmRestore = confirmRestore;
-window.openDiffModal = openDiffModal;
-window.runDryRunSimulation = runDryRunSimulation;
-window.openSelectiveRestoreModal = openSelectiveRestoreModal;
-window.inspectZipArchive = inspectZipArchive;
-window.openEmailModal = openEmailModal;
-window.submitEmailDispatch = submitEmailDispatch;
-window.generateAnonymizedDump = generateAnonymizedDump;
-window.triggerLiveBackup = triggerLiveBackup;
-window.deleteSelectedBackups = deleteSelectedBackups;
-window.deleteSingleBackup = deleteSingleBackup;
-window.testTelegramNotification = testTelegramNotification;
-window.toggleAllSelectiveTables = toggleAllSelectiveTables;
-window.submitSelectiveRestore = submitSelectiveRestore;
-window.handleDynamicUpload = handleDynamicUpload;
-window.openSelectiveFromDiff = openSelectiveFromDiff;
-window.filterDiffTable = filterDiffTable;
-window.updateSelectiveCount = updateSelectiveCount;
-window.applyUnifiedFilter = applyUnifiedFilter;
-
+    document.addEventListener('DOMContentLoaded', () => {
+        initUpload(); initList(); initSelective(); initChart();
+        $('#emailSend')?.addEventListener('click', sendEmail);
+        $('#tgTest')?.addEventListener('click', telegramTest);
+        applyFilter();
+    });
+})();

@@ -491,7 +491,7 @@ function submitQuickCategory() {
             }
 
             const modalEl = document.getElementById('quickCategoryModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
             modalInstance.hide();
             nameInput.value = '';
         } else {

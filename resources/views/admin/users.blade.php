@@ -1064,7 +1064,7 @@ function rejectUserModal(id, name) {
     document.getElementById('rejectUserId').value = id;
     document.getElementById('rejectUserNameTitle').textContent = name;
     document.getElementById('rejectUserReason').value = '';
-    new bootstrap.Modal(document.getElementById('rejectUserModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectUserModal')).show();
 }
 
 async function submitRejectUser(e) {
@@ -1112,7 +1112,7 @@ function openQuickPasswordResetModal(userId, userName, identity, role) {
     document.getElementById('qResetSuccessBox').classList.add('d-none');
     document.getElementById('qBtnWhatsappShare').classList.add('d-none');
     generateNewStrongPass();
-    new bootstrap.Modal(document.getElementById('quickPasswordResetModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('quickPasswordResetModal')).show();
 }
 
 function generateNewStrongPass() {
@@ -1210,7 +1210,7 @@ function openAssignRoleModal(userId, userName, currentRole, customRoleId, regSta
 
     const modalEl = document.getElementById('assignRoleModal');
     if (modalEl) {
-        new bootstrap.Modal(modalEl).show();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }
 }
 </script>

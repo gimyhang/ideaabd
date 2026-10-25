@@ -801,7 +801,7 @@ function openEditEmployeeModal(emp) {
 
     document.getElementById('editEmployeeForm').action = `{{ url('/admin/accounting/employees') }}/${emp.id}`;
 
-    const modal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('editEmployeeModal'));
     modal.show();
 }
 
@@ -858,7 +858,7 @@ function openQuickStaffDetails(employeeId) {
     `;
     
     ledgerLink.href = `/admin/accounting/employees/${employeeId}/ledger`;
-    const bsModal = new bootstrap.Modal(modalEl);
+    const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
     bsModal.show();
 
     fetch(`/admin/accounting/employees/${employeeId}/quick-details`, {

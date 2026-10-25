@@ -226,7 +226,7 @@ function openEditTemplateModal(id, name, subject, content, isActive) {
     document.getElementById('editTmplContent').value = content;
     document.getElementById('editTmplActive').checked = isActive === 1;
 
-    new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editTemplateModal')).show();
 }
 
 function openTestSendModal(id, name, channel) {
@@ -234,7 +234,7 @@ function openTestSendModal(id, name, channel) {
     document.getElementById('testTmplName').textContent = name;
     document.getElementById('testRecipientLabel').textContent = channel === 'whatsapp' ? 'Recipient WhatsApp Number (with Country Code)' : 'Recipient Email Address';
 
-    new bootstrap.Modal(document.getElementById('testSendModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('testSendModal')).show();
 }
 </script>
 @endpush

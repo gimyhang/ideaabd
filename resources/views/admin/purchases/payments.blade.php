@@ -486,7 +486,7 @@
 
     function openPartyPaymentModal(partyType, publisherId, vendorName, displayName, dueAmount) {
         const modalEl = document.getElementById('newPaymentModal');
-        const modal = new bootstrap.Modal(modalEl);
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
 
         document.getElementById('targetSupplierAccount').checked = true;
         togglePaymentTarget('supplier_account');

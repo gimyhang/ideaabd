@@ -191,7 +191,7 @@ function openPayoutModal(affId, partnerName, balance) {
     document.getElementById('payoutAmount').value = balance;
     document.getElementById('payoutAmount').max = balance;
 
-    new bootstrap.Modal(document.getElementById('payoutModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('payoutModal')).show();
 }
 </script>
 @endpush

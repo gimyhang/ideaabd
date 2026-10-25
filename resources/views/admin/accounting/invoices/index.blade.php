@@ -1448,7 +1448,7 @@ function confirmBulkDelete() {
     if (ids.length === 0) return;
     const countSpan = document.getElementById('bulkDeleteCountText');
     if (countSpan) countSpan.textContent = ids.length;
-    const modal = new bootstrap.Modal(document.getElementById('bulkDeleteConfirmModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkDeleteConfirmModal'));
     modal.show();
 }
 
@@ -1499,7 +1499,7 @@ function openQuickPaymentModal(invoiceId, invoiceNo, dueAmount, customerName) {
     document.getElementById('quickPayRefInput').value = '';
     document.getElementById('quickPayNoteInput').value = `Payment for #${invoiceNo}`;
 
-    const modal = new bootstrap.Modal(document.getElementById('quickPaymentModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickPaymentModal'));
     modal.show();
 }
 
@@ -1587,7 +1587,7 @@ function openQuickSmsModal(invoiceId, invoiceNo, phone, customerName, total, due
     const preview = `Idea Publication: Dear ${name}, your invoice #${invoiceNo} (Total: BDT ${parseFloat(total).toFixed(2)}, Due: BDT ${parseFloat(due).toFixed(2)}) is ready. View: ${publicUrl}`;
     document.getElementById('quickSmsPreviewText').textContent = preview;
 
-    const modal = new bootstrap.Modal(document.getElementById('quickSmsModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('quickSmsModal'));
     modal.show();
 }
 

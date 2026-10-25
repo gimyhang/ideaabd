@@ -197,7 +197,7 @@ function openEditCurrencyModal(id, code, name, symbol, rate, isActive) {
     document.getElementById('editRate').value = rate;
     document.getElementById('editIsActive').checked = isActive === 1;
 
-    new bootstrap.Modal(document.getElementById('editCurrencyModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editCurrencyModal')).show();
 }
 </script>
 @endpush

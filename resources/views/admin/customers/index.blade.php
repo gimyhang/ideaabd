@@ -681,7 +681,7 @@ function openCustomerProfileModal(customer) {
         `;
     }
 
-    const modal = new bootstrap.Modal(document.getElementById('customerProfileModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('customerProfileModal'));
     modal.show();
 }
 </script>

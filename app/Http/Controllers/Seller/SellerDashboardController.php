@@ -11,102 +11,85 @@ use Modules\Book\Models\Book;
 
 class SellerDashboardController extends Controller
 {
+    /** Roles that can own bills. */
+    private const SELLER_ROLES = [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER];
+
     /**
-     * Display Seller / Subadmin Portal Dashboard.
+     * Seller / sub-admin portal dashboard.
+     * A seller sees their own bills. An admin sees all sellers, or one seller picked with ?seller_id=.
      */
     public function dashboard(Request $request): View
     {
-        $user = auth()->user();
+        $user    = $request->user();
         $isAdmin = $user->isAdmin();
-        
-        $sellerId = $isAdmin && $request->filled('seller_id') ? $request->input('seller_id') : ($isAdmin ? null : $user->id);
-        
-        $selectedSeller = null;
-        if ($sellerId) {
-            $selectedSeller = ($sellerId == $user->id) ? $user : User::find($sellerId);
-        }
 
-        $billsQuery = Bill::query()
-            ->when(!$isAdmin, fn($q) => $q->where('seller_id', $user->id))
-            ->when($isAdmin && $sellerId, fn($q) => $q->where('seller_id', $sellerId));
+        $request->validate(['seller_id' => 'nullable|integer']);
 
-        // Stats
-        $totalBills = (clone $billsQuery)->count();
-        $totalSales = (float) (clone $billsQuery)->sum('total');
-        $totalPaid = (float) (clone $billsQuery)->where('payment_status', 'paid')->sum('total');
-        $totalDue = (float) (clone $billsQuery)->where('payment_status', '!=', 'paid')->sum('total');
-        
-        $todayBills = (clone $billsQuery)->whereDate('created_at', today())->count();
-        $todaySales = (float) (clone $billsQuery)->whereDate('created_at', today())->sum('total');
-        
-        $thisMonthSales = (float) (clone $billsQuery)
-            ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-            ->sum('total');
+        $sellersList = $isAdmin
+            ? User::whereIn('role', self::SELLER_ROLES)->orderBy('name')->pluck('name', 'id')->all()
+            : [];
 
-        $paidBillsCount = (clone $billsQuery)->where('payment_status', 'paid')->count();
-        $dueBillsCount = (clone $billsQuery)->where('payment_status', '!=', 'paid')->count();
+        // Only an admin can pick a seller, and only one that really can own bills.
+        $sellerId = $isAdmin && $request->filled('seller_id') && isset($sellersList[(int) $request->input('seller_id')])
+            ? (int) $request->input('seller_id')
+            : null;
 
-        // Calculate total items sold across bills
-        $allBills = (clone $billsQuery)->get(['items']);
-        $totalItemsSold = 0;
-        foreach ($allBills as $b) {
-            if (is_array($b->items)) {
-                foreach ($b->items as $item) {
-                    $totalItemsSold += (int) ($item['quantity'] ?? $item['qty'] ?? 1);
+        $scope   = $isAdmin ? $sellerId : $user->id; // null = every seller (admin overview)
+        $profile = $isAdmin
+            ? ($sellerId ? User::find($sellerId) : null)
+            : $user;
+
+        $bills = Bill::query()->when($scope, fn ($q) => $q->where('seller_id', $scope));
+
+        // One query for every number on the cards.
+        $todayStart = now()->startOfDay()->toDateTimeString();
+        $monthStart = now()->startOfMonth()->toDateTimeString();
+        $stats = (clone $bills)->toBase()->selectRaw(
+            "COUNT(*) AS bills,
+             COALESCE(SUM(total), 0) AS sales,
+             COALESCE(SUM(paid_amount), 0) AS paid,
+             COALESCE(SUM(due_amount), 0) AS due,
+             COALESCE(SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END), 0) AS paid_bills,
+             COALESCE(SUM(CASE WHEN payment_status IS NULL OR payment_status <> 'paid' THEN 1 ELSE 0 END), 0) AS open_bills,
+             COALESCE(SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END), 0) AS today_bills,
+             COALESCE(SUM(CASE WHEN created_at >= ? THEN total ELSE 0 END), 0) AS today_sales,
+             COALESCE(SUM(CASE WHEN created_at >= ? THEN total ELSE 0 END), 0) AS month_sales",
+            [$todayStart, $todayStart, $monthStart]
+        )->first();
+
+        // Copies sold: read the items column a few hundred bills at a time instead of holding every bill in memory.
+        $itemsSold = 0;
+        (clone $bills)->select(['id', 'items'])->chunkById(500, function ($chunk) use (&$itemsSold) {
+            foreach ($chunk as $bill) {
+                foreach ((array) $bill->items as $item) {
+                    $itemsSold += max(0, (int) ($item['quantity'] ?? $item['qty'] ?? 1));
                 }
             }
-        }
+        });
 
-        // Recent 10 bills
-        $recentBills = (clone $billsQuery)->with('seller')->latest('id')->take(10)->get();
+        $recentBills = (clone $bills)->with('seller:id,name')->latest('id')->take(10)->get();
 
-        // Seller profile & shop details
-        if ($selectedSeller) {
-            $shopName = $selectedSeller->reg_data['shop_name'] ?? ($selectedSeller->name . ' - Bookshop');
-            $shopAddress = $selectedSeller->reg_data['address'] ?? ($selectedSeller->address ?? 'বাংলাদেশ');
-            $tradeLicense = $selectedSeller->reg_data['trade_license'] ?? null;
-            $nid = $selectedSeller->reg_data['nid'] ?? null;
-        } elseif ($isAdmin) {
-            $shopName = 'সকল বিক্রেতা ও কেন্দ্রীয় বিক্রয় প্যানেল (All Sellers Overview)';
-            $shopAddress = 'সকল সেলার ও বুকশপ আউটলেটের সমন্বিত বিক্রয় ও বিলিং হিসাব';
-            $tradeLicense = null;
-            $nid = null;
-        } else {
-            $shopName = $user->reg_data['shop_name'] ?? ($user->name . ' - Bookshop');
-            $shopAddress = $user->reg_data['address'] ?? ($user->address ?? 'বাংলাদেশ');
-            $tradeLicense = $user->reg_data['trade_license'] ?? null;
-            $nid = $user->reg_data['nid'] ?? null;
-        }
-
-        // Quick inventory / popular books preview
         $popularBooks = Book::where('is_active', true)
             ->orderByDesc('sales_count')
             ->take(6)
-            ->get(['id', 'title', 'price', 'stock_quantity', 'cover_image', 'slug']);
+            ->get(['id', 'title', 'price', 'stock_quantity', 'slug']);
 
-        $sellersList = $isAdmin ? User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_SUB_ADMIN, User::ROLE_SELLER])->orderBy('name')->pluck('name', 'id')->all() : [];
+        // Whose shop the banner describes: the seller (or the admin's own account), or nobody for the all-sellers view.
+        $owner = $profile ?? ($isAdmin ? null : $user);
 
-        return view('seller.dashboard', compact(
-            'user',
-            'isAdmin',
-            'sellerId',
-            'shopName',
-            'shopAddress',
-            'tradeLicense',
-            'nid',
-            'totalBills',
-            'totalSales',
-            'totalPaid',
-            'totalDue',
-            'todayBills',
-            'todaySales',
-            'thisMonthSales',
-            'paidBillsCount',
-            'dueBillsCount',
-            'totalItemsSold',
-            'recentBills',
-            'popularBooks',
-            'sellersList'
-        ));
+        return view('seller.dashboard', [
+            'user'         => $user,
+            'profile'      => $owner,
+            'isAdmin'      => $isAdmin,
+            'sellerId'     => $sellerId,
+            'sellersList'  => $sellersList,
+            'shopName'     => $owner ? ($owner->reg_data['shop_name'] ?? ($owner->name . ' - বুকশপ')) : 'সকল বিক্রেতা',
+            'shopAddress'  => $owner ? ($owner->reg_data['address'] ?? $owner->address ?? null) : null,
+            'tradeLicense' => $owner ? ($owner->reg_data['trade_license'] ?? null) : null,
+            'stats'        => $stats,
+            'itemsSold'    => $itemsSold,
+            'recentBills'  => $recentBills,
+            'popularBooks' => $popularBooks,
+        ]);
     }
 }

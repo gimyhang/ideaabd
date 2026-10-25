@@ -819,7 +819,7 @@ function openDispatchModal(id, name, allocated, date, tracking, notes, bookItems
     }
     
     recalcTotalCopies();
-    new bootstrap.Modal(document.getElementById('dispatchModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('dispatchModal')).show();
 }
 
 function openAckModal(id, name, allocated, received, date, notes) {
@@ -829,7 +829,7 @@ function openAckModal(id, name, allocated, received, date, notes) {
     document.getElementById('modalAckNotes').value = notes || '';
     document.getElementById('ackForm').action = "{{ url('/admin/libraries') }}/" + id + "/acknowledgment";
     
-    new bootstrap.Modal(document.getElementById('ackModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('ackModal')).show();
 }
 
 function toggleApproval(id, btn) {
@@ -974,7 +974,7 @@ function openDetailsModal(lib) {
         </a>
     `;
 
-    new bootstrap.Modal(document.getElementById('detailsModal')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('detailsModal')).show();
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

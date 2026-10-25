@@ -23,7 +23,7 @@ class EmailService
             'port'         => $settings['port'] ?? config('mail.mailers.smtp.port', 2525),
             'encryption'   => $settings['encryption'] ?? config('mail.mailers.smtp.encryption', 'tls'),
             'username'     => $settings['username'] ?? config('mail.mailers.smtp.username', ''),
-            'password'     => $settings['password'] ?? config('mail.mailers.smtp.password', ''),
+            'password'     => isset($settings['password']) ? \App\Support\Secret::open($settings['password']) : config('mail.mailers.smtp.password', ''),
             'from_address' => $settings['from_address'] ?? config('mail.from.address', 'info@ideaabd.com'),
             'from_name'    => $settings['from_name'] ?? (SiteSetting::name() ?: config('mail.from.name', 'আইডিয়া প্রকাশন')),
         ];
