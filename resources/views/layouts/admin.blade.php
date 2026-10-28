@@ -66,6 +66,28 @@
         }
     </style>
 
+    {{-- Some phone browsers (in-app browsers, private tabs, blocked site data) throw on any localStorage access, which
+         killed every script below it - including the menu button. Fall back to an in-memory store in that case. --}}
+    <script>
+        (function () {
+            try {
+                var k = '__adm_probe';
+                window.localStorage.setItem(k, '1');
+                window.localStorage.removeItem(k);
+            } catch (e) {
+                var mem = {};
+                var fake = {
+                    getItem: function (key) { return Object.prototype.hasOwnProperty.call(mem, key) ? mem[key] : null; },
+                    setItem: function (key, v) { mem[key] = String(v); },
+                    removeItem: function (key) { delete mem[key]; },
+                    clear: function () { mem = {}; },
+                    key: function (i) { return Object.keys(mem)[i] || null; }
+                };
+                try { Object.defineProperty(window, 'localStorage', { value: fake, configurable: true }); } catch (e2) {}
+            }
+        })();
+    </script>
+
     {{-- Immediate Pre-render Theme Application to prevent FOUC / Flicker --}}
     <script>
         (function() {

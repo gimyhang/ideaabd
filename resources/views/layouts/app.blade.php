@@ -12,6 +12,26 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Phone browsers that block site data throw on any localStorage access; fall back to an in-memory store so the scripts below keep running. --}}
+    <script>
+        (function () {
+            try {
+                window.localStorage.setItem('__probe', '1');
+                window.localStorage.removeItem('__probe');
+            } catch (e) {
+                var mem = {};
+                var fake = {
+                    getItem: function (key) { return Object.prototype.hasOwnProperty.call(mem, key) ? mem[key] : null; },
+                    setItem: function (key, v) { mem[key] = String(v); },
+                    removeItem: function (key) { delete mem[key]; },
+                    clear: function () { mem = {}; },
+                    key: function (i) { return Object.keys(mem)[i] || null; }
+                };
+                try { Object.defineProperty(window, 'localStorage', { value: fake, configurable: true }); } catch (e2) {}
+            }
+        })();
+    </script>
+
     {{-- Anti-FOUC Instant Theme Initialization --}}
     <script>
         (function() {

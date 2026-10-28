@@ -848,14 +848,6 @@ body.side-mini .adm-main {
 .chart-box { position: relative; height: 300px; }
 .chart-box--sm { height: 230px; }
 
-.adm-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(11, 37, 69, .45);
-    z-index: 1035;
-    display: none;
-}
-
 /* Quick-action grid */
 .quick {
     display: flex;
