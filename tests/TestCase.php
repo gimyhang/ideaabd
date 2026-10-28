@@ -15,6 +15,9 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->assertSafeDatabase();
+
+        // No test may reach a real SMS gateway, payment or mail API: a call that was not faked fails instead of going out.
+        \Illuminate\Support\Facades\Http::preventStrayRequests();
     }
 
     /**

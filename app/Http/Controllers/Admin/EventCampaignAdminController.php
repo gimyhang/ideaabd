@@ -96,7 +96,7 @@ class EventCampaignAdminController extends Controller
         $validated = $request->validate([
             'title'                => 'required|string|max:255',
             'slug'                 => 'required|string|max:100|alpha_dash|unique:event_campaigns,slug',
-            'type'                 => 'required|string|in:event,donation,scholarship,competition,workshop,library,book_grant',
+            'type'                 => 'required|string|in:event,donation,scholarship,competition,workshop,library,book_grant,writer',
             'badge_text'           => 'nullable|string|max:50',
             'short_description'    => 'nullable|string|max:500',
             'description'          => 'nullable|string',
@@ -612,7 +612,7 @@ class EventCampaignAdminController extends Controller
         $validated = $request->validate([
             'title'                => 'required|string|max:255',
             'slug'                 => 'required|string|max:100|alpha_dash|unique:event_campaigns,slug,' . $campaign->id,
-            'type'                 => 'required|string|in:event,donation,scholarship,competition,workshop,library,book_grant',
+            'type'                 => 'required|string|in:event,donation,scholarship,competition,workshop,library,book_grant,writer',
             'badge_text'           => 'nullable|string|max:50',
             'short_description'    => 'nullable|string|max:500',
             'description'          => 'nullable|string',
@@ -892,6 +892,17 @@ class EventCampaignAdminController extends Controller
         $cleanDigits = $pInfo['core'];
         $queryPhones = $pInfo['query_phones'];
 
+        // One registration per phone number per campaign, the same rule as the public form
+        $duplicate = EventRegistration::where('event_campaign_id', $campaign->id)->whereIn('phone', $queryPhones)->first();
+        if ($duplicate) {
+            $msg = "This mobile number is already registered in this campaign (#{$duplicate->registration_number} - {$duplicate->name}).";
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            return back()->withInput()->with('error', $msg);
+        }
+
         // Auto Create or Find User
         $user = User::where(function ($q) use ($queryPhones, $pInfo) {
             $q->whereIn('phone', $queryPhones);
@@ -973,6 +984,9 @@ class EventCampaignAdminController extends Controller
             if (preg_match('/^data:image\/(\w+);base64,/', $rawBase64, $type)) {
                 $rawBase64 = substr($rawBase64, strpos($rawBase64, ',') + 1);
                 $ext = strtolower($type[1]);
+                if (!in_array($ext, ['jpeg', 'jpg', 'png', 'webp', 'gif', 'avif'], true)) {
+                    $ext = 'jpg';
+                }
                 $imageContent = base64_decode($rawBase64);
                 if ($imageContent) {
                     $fileName = 'campaigns/participants/' . Str::random(24) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
@@ -988,7 +1002,7 @@ class EventCampaignAdminController extends Controller
         }
 
         // Generate Registration Number
-        $regNumber = EventRegistration::generateRegNumber($campaign->slug);
+        $regNumber = EventRegistration::generateRegNumber($campaign);
 
         $regStatus = $validated['status'] ?? 'confirmed';
         $payStatus = $validated['payment_status'] ?? ($campaign->has_fee_or_donation ? 'pending' : 'free');
@@ -1209,16 +1223,13 @@ class EventCampaignAdminController extends Controller
         // SMS notification on status transitions
         if (!in_array($oldStatus, ['confirmed', 'selected', 'approved'], true) && in_array($registration->status, ['confirmed', 'selected'], true)) {
             try {
-                $downloadUrl = url('/card/' . $registration->registration_number);
-                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
-                \App\Services\SmsService::send($registration->phone, $smsText);
+                $this->smsLater($registration->phone, $this->approvalSmsText($registration));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning("Update Registration Approval SMS error: " . $e->getMessage());
             }
         } elseif ($oldStatus !== 'rejected' && $registration->status === 'rejected') {
             try {
-                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
-                \App\Services\SmsService::send($registration->phone, $smsText);
+                $this->smsLater($registration->phone, $this->rejectionSmsText($registration));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning("Update Registration Rejection SMS error: " . $e->getMessage());
             }
@@ -1427,6 +1438,49 @@ class EventCampaignAdminController extends Controller
         return back()->with('success', $msg);
     }
 
+    /** SMS gateways can take many seconds per message; send after the admin already has the page back. */
+    protected function smsLater(string $phone, string $text): void
+    {
+        defer(function () use ($phone, $text) {
+            try {
+                \App\Services\SmsService::send($phone, $text);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Deferred SMS error: ' . $e->getMessage());
+            }
+        });
+    }
+    /** Approval SMS worded for the registration's own campaign (library, scholarship or event). */
+    protected function approvalSmsText(EventRegistration $registration): string
+    {
+        $registration->loadMissing('campaign');
+        $no = $registration->registration_number;
+
+        if ($registration->isLibrary()) {
+            return "আইডিয়া প্রকাশন — আপনার পাঠাগারের নিবন্ধন (#{$no}) অনুমোদিত হয়েছে। স্লিপ ডাউনলোড: " . url('/card/' . $no);
+        }
+        if ($registration->isScholarship()) {
+            return "আইডিয়া প্রকাশন — '{$registration->campaign->title}'-এ আপনার আবেদন (#{$no}) অনুমোদিত হয়েছে। ফরম: " . $registration->scholarshipUrl('print');
+        }
+
+        return "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: " . url('/card/' . $no) . " — আইডিয়া প্রকাশন";
+    }
+
+    /** Rejection SMS worded for the registration's own campaign. */
+    protected function rejectionSmsText(EventRegistration $registration): string
+    {
+        $registration->loadMissing('campaign');
+        $no = $registration->registration_number;
+
+        if ($registration->isLibrary()) {
+            return "আইডিয়া প্রকাশন — দুঃখিত, আপনার পাঠাগারের নিবন্ধন (#{$no}) অনুমোদন করা সম্ভব হয়নি। অনুসন্ধানে: 01726976982";
+        }
+        if ($registration->isScholarship()) {
+            return "আইডিয়া প্রকাশন — '{$registration->campaign->title}'-এ আপনার আবেদন (#{$no}) গৃহীত হয়নি। অনুসন্ধানে: 01726976982";
+        }
+
+        return "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
+    }
+
     /**
      * One-click Status Update (Approve, Reject, Pending) for Event/Writer Delegate Registrations.
      */
@@ -1451,9 +1505,7 @@ class EventCampaignAdminController extends Controller
         if ($newStatus === 'confirmed' || $newStatus === 'selected') {
             // SMS on approval
             try {
-                $downloadUrl = url('/card/' . $registration->registration_number);
-                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
-                \App\Services\SmsService::send($registration->phone, $smsText);
+                $this->smsLater($registration->phone, $this->approvalSmsText($registration));
             } catch (\Throwable $e) {
                 Log::warning("Approval SMS error: " . $e->getMessage());
             }
@@ -1479,8 +1531,7 @@ class EventCampaignAdminController extends Controller
         if ($newStatus === 'rejected') {
             // SMS on rejection / cancellation
             try {
-                $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
-                \App\Services\SmsService::send($registration->phone, $smsText);
+                $this->smsLater($registration->phone, $this->rejectionSmsText($registration));
             } catch (\Throwable $e) {
                 Log::warning("Rejection SMS error: " . $e->getMessage());
             }
@@ -1546,9 +1597,7 @@ class EventCampaignAdminController extends Controller
                 foreach ($regs as $r) {
                     $r->update(['status' => 'confirmed']);
                     try {
-                        $downloadUrl = url('/card/' . $r->registration_number);
-                        $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলায় আপনাকে স্বাগত। Download your card: {$downloadUrl} — আইডিয়া প্রকাশন";
-                        \App\Services\SmsService::send($r->phone, $smsText);
+                        $this->smsLater($r->phone, $this->approvalSmsText($r));
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning("Bulk Approval SMS error: " . $e->getMessage());
                     }
@@ -1561,8 +1610,7 @@ class EventCampaignAdminController extends Controller
                 foreach ($regs as $r) {
                     $r->update(['status' => 'rejected']);
                     try {
-                        $smsText = "রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬-এ আপনার নিবন্ধনটি বাতিল করা হয়েছে। অনুসন্ধানে: 01726976982 — আইডিয়া প্রকাশন";
-                        \App\Services\SmsService::send($r->phone, $smsText);
+                        $this->smsLater($r->phone, $this->rejectionSmsText($r));
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning("Bulk Rejection SMS error: " . $e->getMessage());
                     }
@@ -1580,7 +1628,7 @@ class EventCampaignAdminController extends Controller
                     try {
                         $downloadUrl = $r->scholarshipUrl('print');
                         $smsText = "অভিনন্দন! '{$r->campaign->title}'-এ আপনি বৃত্তির জন্য প্রাথমিকভাবে নির্বাচিত হয়েছেন। কার্ড ডাউনলোড লিংক: {$downloadUrl} — আইডিয়া প্রকাশন";
-                        \App\Services\SmsService::send($r->phone, $smsText);
+                        $this->smsLater($r->phone, $smsText);
                     } catch (\Throwable $e) {
                         \Illuminate\Support\Facades\Log::warning("Scholarship Selection SMS Error: " . $e->getMessage());
                     }
@@ -1948,11 +1996,18 @@ class EventCampaignAdminController extends Controller
     {
         $registration->load('campaign', 'user');
 
-        $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
-        $viewName = $isScholarship ? 'frontend.events.scholarship_form_print' : 'frontend.events.ticket_print';
+        $isScholarship = $registration->campaign->isScholarship();
+        if ($isScholarship) {
+            $viewName = 'frontend.events.scholarship_form_print';
+        } elseif ($registration->isLibrary()) {
+            $viewName = 'frontend.events.library_form_print';
+        } else {
+            $viewName = 'frontend.events.ticket_print';
+        }
 
         return view($viewName, [
             'registration' => $registration,
+            'campaign'     => $registration->campaign,
             'isPdf'        => false,
         ]);
     }
@@ -1964,7 +2019,7 @@ class EventCampaignAdminController extends Controller
     {
         $registration->load('campaign', 'user');
 
-        $isScholarship = ($registration->campaign->type === 'scholarship' || $registration->campaign->slug === 'jshikkhabritti' || !empty($registration->campaign->form_settings['is_scholarship_form']));
+        $isScholarship = $registration->campaign->isScholarship();
         
         if (!$isScholarship) {
             return redirect()->route('event.registration.print', [
@@ -2012,7 +2067,7 @@ class EventCampaignAdminController extends Controller
         }
 
         // 3. Scholarship applications: every answer needed to review and pay (default for scholarship campaigns)
-        if ($type === 'scholarship' || ($campaign->type === 'scholarship' && !$type)) {
+        if ($type === 'scholarship' || ($campaign->isScholarship() && !$type)) {
             return $this->exportScholarship($campaign);
         }
 

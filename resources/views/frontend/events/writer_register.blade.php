@@ -1729,6 +1729,21 @@ function handleSingleCategoryChange(val, isUserAction) {
         }
         if (rowBooks) rowBooks.style.display = '';
     }
+
+    // A row that is not shown must not send its fields: same-named inputs in hidden rows would overwrite
+    // the visible one (the last one wins on the server), and unrelated defaults would be saved.
+    var showLiterary = isWriter || isPublisher || isMagEditor;
+    var setOff = function (id, off) {
+        var el = document.getElementById(id);
+        if (el) el.disabled = off;
+    };
+    setOff('writerArtMedium', !isArtist);
+    setOff('writerArtistOrg', !isArtist);
+    setOff('writerOrgName', !isOrganizer);
+    setOff('publishedBooksInput', !showLiterary);
+    setOff('notableBooks', !showLiterary);
+    setOff('magazineName', !(isMagEditor || isPublisher));
+    setOff('magazineIssueCount', !(isMagEditor || isPublisher));
 }
 
 document.addEventListener('DOMContentLoaded', function () {

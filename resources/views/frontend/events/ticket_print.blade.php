@@ -133,7 +133,7 @@
     }
 
     // Author Category / Designation
-    $catList = $formData['author_categories'] ?? ($formData['author_category'] ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
+    $catList = $formData['author_categories'] ?? (!empty($formData['author_category']) ? (is_array($formData['author_category']) ? $formData['author_category'] : explode(', ', $formData['author_category'])) : []);
     if (!empty($catList) && is_array($catList)) {
         $designation = implode(' • ', array_slice($catList, 0, 2));
     } elseif (!empty($registration->designation_or_class)) {

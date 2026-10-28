@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EventCampaign;
 use App\Models\EventRegistration;
 use App\Models\User;
+use App\Support\PhoneNormalizer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,153 +15,52 @@ use Illuminate\Support\Str;
 class PublicEventRegistrationController extends Controller
 {
     /**
-     * Show the public registration form for a given slug (e.g. /jshikkhabritti, /rsutshab).
+     * Show the public registration form for a given slug (e.g. /jsb, /rsu, /pathagar).
+     * The campaign's own kind (scholarship / writer / library / event) picks the form - never the address typed.
      */
+    /** Statuses in which a card, slip or check-in is allowed. */
+    public const APPROVED_STATUSES = ['confirmed', 'approved', 'selected', 'attended'];
+
     public function show(string $slug)
     {
-        $campaign = EventCampaign::where('slug', $slug)->first();
-
-        // Check known aliases to support /rangpursutsab, /rsutshab, /rsu, /pathagar, /library, /boi-bitoron
-        if (!$campaign) {
-            if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
-                $campaign = EventCampaign::whereIn('slug', ['rangpursutsab', 'rsutshab', 'rsu'])
-                    ->orWhere('type', 'writer')
-                    ->first();
-            } elseif (in_array($slug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'])) {
-                $campaign = EventCampaign::where('slug', 'jshikkhabritti')
-                    ->orWhere('type', 'scholarship')
-                    ->first();
-            } elseif (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])) {
-                $campaign = EventCampaign::whereIn('slug', ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])
-                    ->orWhere('type', 'library')
-                    ->first();
-            }
-        }
-
-        // Auto-initialize jshikkhabritti if not present at all
-        if (!$campaign && $slug === 'jshikkhabritti') {
-            $campaign = EventCampaign::create([
-                'title'               => 'Joyee Shikkha Britti Application Form',
-                'slug'                => 'jshikkhabritti',
-                'type'                => 'scholarship',
-                'badge_text'          => 'Education Scholarship 2026',
-                'short_description'   => 'Higher Secondary & Bachelor\'s Education Scholarship Application Form',
-                'description'         => 'Higher Secondary and Bachelor\'s students can apply for the Joyee Shikkha Britti. Please provide accurate academic details. Max 50 words reason for scholarship.',
-                'theme_color'         => '#0f3a68',
-                'has_fee_or_donation' => false,
-                'fee_amount'          => 0.00,
-                'is_active'           => true,
-                'success_message'     => 'Your scholarship application has been successfully submitted! Please print or download your application form below.',
-                'custom_fields'       => [],
-                'form_settings'       => ['is_scholarship_form' => true],
-            ]);
-        }
-
-        // Auto-initialize rsu / writer campaign if not present at all
-        if (!$campaign && in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
-            $campaign = EventCampaign::create([
-                'title'               => 'রংপুর সাহিত্য উৎসব ও লেখক সমাবেশ ২০২৬',
-                'slug'                => $slug,
-                'type'                => 'event',
-                'badge_text'          => 'লেখক ও প্রতিনিধি নিবন্ধন',
-                'short_description'   => 'রংপুর সাহিত্য উৎসব ও লিটিলম্যাগ মেলা ২০২৬ এ লেখক নিবন্ধন ও আমন্ত্রণ কার্ড সংগ্রহ ফরম।',
-                'description'         => 'উত্তরবঙ্গের সর্ববৃহৎ সাহিত্য মিলনমেলায় অংশ নিতে লেখকবৃন্দকে এই ফরম পূরণ করার জন্য আমন্ত্রণ জানানো হচ্ছে।',
-                'theme_color'         => '#991b1b',
-                'has_fee_or_donation' => false,
-                'fee_amount'          => 0.00,
-                'is_active'           => true,
-                'success_message'     => 'আপনার লেখক নিবন্ধন সফলভাবে জমা হয়েছে! ২৪ ঘণ্টা পর আপনার মোবাইল নম্বর দিয়ে লগইন করে আমন্ত্রণ কার্ড ডাউনলোড করতে পারবেন।',
-                'custom_fields'       => [],
-                'form_settings'       => ['is_writer_form' => true, 'requires_approval' => true],
-            ]);
-        }
-
-        // Auto-initialize pathagar / Library campaign if not present at all
-        if (!$campaign && in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])) {
-            $campaign = EventCampaign::create([
-                'title'               => 'বিনামূল্যে বই বিতরণ কর্মসূচি ও পাঠাগার নিবন্ধন ২০২৬',
-                'slug'                => $slug === 'pathagar' ? 'pathagar' : $slug,
-                'type'                => 'library',
-                'badge_text'          => 'পাঠাগার বই অনুদান ২০২৬',
-                'short_description'   => 'বিনামূল্যে বই বিতরণ কর্মসূচিতে অংশ নিয়ে পাঠাগার ও শিক্ষা প্রতিষ্ঠানের জন্য বই অনুদান প্রাপ্তির নিবন্ধন ফরম।',
-                'description'         => 'আইডিয়া পাঠাগারের বিনামূল্যে বই বিতরণ কর্মসূচি, নিবন্ধন সম্পন্ন করুন।',
-                'theme_color'         => '#047857',
-                'has_fee_or_donation' => false,
-                'fee_amount'          => 0.00,
-                'is_active'           => true,
-                'success_message'     => 'আপনার পাঠাগারের নিবন্ধন সফলভাবে সম্পন্ন হয়েছে! বই অনুদানের তথ্য জানিয়ে দেওয়া হবে।',
-                'custom_fields'       => [],
-                'form_settings'       => ['is_library_form' => true, 'requires_approval' => true],
-            ]);
-        }
-
+        $campaign = EventCampaign::resolve($slug, create: true);
         if (!$campaign) {
             abort(404);
         }
 
-        if (!$campaign->is_active) {
-            return view('frontend.events.inactive', [
-                'campaign' => $campaign,
-                'message'  => 'This scholarship/registration program is currently closed.',
-            ]);
-        }
-
-        if ($campaign->isExpired()) {
-            return view('frontend.events.inactive', [
-                'campaign' => $campaign,
-                'message'  => 'The application deadline has passed.',
-            ]);
-        }
-
-        if ($campaign->isFull()) {
-            return view('frontend.events.inactive', [
-                'campaign' => $campaign,
-                'message'  => 'Sorry, the maximum application limit has been reached.',
-            ]);
+        $closed = match (true) {
+            !$campaign->is_active    => 'This scholarship/registration program is currently closed.',
+            $campaign->isExpired()   => 'The application deadline has passed.',
+            $campaign->isFull()      => 'Sorry, the maximum application limit has been reached.',
+            default                  => null,
+        };
+        if ($closed) {
+            return view('frontend.events.inactive', ['campaign' => $campaign, 'message' => $closed]);
         }
 
         $user = auth()->user();
 
-        // 1. Writer / Literary Conference Forms (RSU) take priority
-        $isWriterCampaign = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
-        if ($isWriterCampaign) {
-            $existingRegistration = null;
-            if ($user) {
-                $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
-                    ->where(function($q) use ($user) {
-                        $q->where('user_id', $user->id)
-                          ->orWhere('phone', $user->phone);
-                    })
-                    ->first();
-            }
-            $previewRegNumber = $existingRegistration ? $existingRegistration->registration_number : EventRegistration::generateRegNumber($campaign->slug, $campaign->id);
-            return view('frontend.events.writer_register', compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
-        }
-
-        // 2. Scholarship Forms
-        if ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form'])) {
+        if ($campaign->isScholarship()) {
             $previewRegNumber = EventRegistration::generateRegNumber($campaign);
             return view('frontend.events.scholarship_register', compact('campaign', 'user', 'previewRegNumber'));
         }
 
-        // 3. Library & Book Grant Forms
-        if (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form'])) {
+        if ($campaign->isLibrary()) {
             return view('frontend.events.library_register', compact('campaign', 'user'));
         }
 
+        // Writer and plain event forms show the visitor's own earlier registration (matched by their phone only)
         $existingRegistration = null;
-        if ($user) {
+        if ($user && $user->phone) {
             $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
-                ->where(function($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhere('phone', $user->phone);
-                })
+                ->whereIn('phone', PhoneNormalizer::normalize($user->phone)['query_phones'])
                 ->first();
         }
-        $previewRegNumber = $existingRegistration ? $existingRegistration->registration_number : EventRegistration::generateRegNumber($campaign->slug, $campaign->id);
-        return view('frontend.events.register', compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
-    }
+        $previewRegNumber = $existingRegistration?->registration_number ?? EventRegistration::generateRegNumber($campaign);
+        $view = $campaign->isWriter() ? 'frontend.events.writer_register' : 'frontend.events.register';
 
+        return view($view, compact('campaign', 'user', 'existingRegistration', 'previewRegNumber'));
+    }
     /**
      * Admin-defined custom fields -> Laravel rules (type, required, dropdown whitelist, length).
      *
@@ -188,11 +88,44 @@ class PublicEventRegistrationController extends Controller
         'scholarship_reason',
     ];
 
+    /** Every extra answer the built-in forms may send (scholarship, writer, library); only these reach form_data. */
+    public const EXTENDED_INPUT_KEYS = [
+            'group', 'admission_roll', 'merit_position', 'college_name', 'college_code',
+            'assigned_subject', 'previous_subject', 'subject_choice', 'father_name', 'mother_name',
+            'guardian_name', 'guardian_phone', 'gender', 'religion', 'nationality', 'birth_date',
+            'marital_status', 'annual_income', 
+            'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa',
+            'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa', 
+            'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa',
+            'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa',
+            'perm_division', 'permanent_district', 'perm_city_corporation', 'perm_municipality', 'perm_upazila', 'perm_post_office', 'perm_postcode', 'perm_village', 'permanent_address',
+            'pres_division', 'present_district', 'pres_city_corporation', 'pres_municipality', 'pres_upazila', 'pres_post_office', 'pres_postcode', 'pres_village', 'present_address',
+            'scholarship_reason', 'scholarship_degree', 'father_income', 'mother_income', 'father_phone', 'mother_phone', 'admission_fee', 'hostel_cost', 'monthly_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
+            'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names',
+            'national_id', 'nid', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'guardian_relation', 'current_year',
+        'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
+            // International / Abroad Address Fields
+            'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
+            // Writer & Cultural Artist Specific Fields
+            'author_category', 'author_categories', 'art_medium', 'organization_name', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
+            // Library & Book Grant Specific Fields
+            'library_name', 'library_type', 'established_year', 'reg_no', 
+            'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
+            'reader_count', 'current_book_count', 'preferred_genres', 'delivery_method', 'division', 'remarks', 'library_address',
+            'has_previous_books', 'previous_books_year', 'previous_books_count'
+        ];
+
+    /** Answers that arrive as a list (checkbox groups). */
+    public const LIST_INPUT_KEYS = ['author_categories', 'preferred_genres'];
+
+    /** Free-text answers that may be long. */
+    public const LONG_TEXT_KEYS = ['notable_books', 'remarks', 'foreign_address', 'library_address', 'permanent_address', 'present_address', 'books_read_names', 'scholarship_reason'];
+
     protected function customFieldRules(EventCampaign $campaign): array
     {
         $rules = [];
         $attributes = [];
-        $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        $isScholarship = $campaign->isScholarship();
 
         foreach ((array) ($campaign->custom_fields ?? []) as $i => $field) {
             $name = $field['name'] ?? null;
@@ -254,23 +187,7 @@ class PublicEventRegistrationController extends Controller
      */
     public function submit(Request $request, string $slug)
     {
-        $campaign = EventCampaign::where('slug', $slug)->first();
-        if (!$campaign) {
-            if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
-                $campaign = EventCampaign::whereIn('slug', ['rangpursutsab', 'rsutshab', 'rsu'])
-                    ->orWhere('type', 'writer')
-                    ->first();
-            } elseif (in_array($slug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'])) {
-                $campaign = EventCampaign::where('slug', 'jshikkhabritti')
-                    ->orWhere('type', 'scholarship')
-                    ->first();
-            } elseif (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])) {
-                $campaign = EventCampaign::whereIn('slug', ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon'])
-                    ->orWhere('type', 'library')
-                    ->first();
-            }
-        }
-
+        $campaign = EventCampaign::resolve($slug);
         if (!$campaign) {
             abort(404);
         }
@@ -279,10 +196,13 @@ class PublicEventRegistrationController extends Controller
             return back()->with('error', 'This application form is currently closed.');
         }
 
-        $isScholarship = ($campaign->type === 'scholarship' || $slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        $isScholarship = $campaign->isScholarship();
+        $isLibrary = $campaign->isLibrary();
+        $isWriter = $campaign->isWriter();
+        $requiresApproval = $campaign->requiresApproval();
 
         // Bengali digits must not fail numeric/date validation.
-        $digitKeys = ['father_income', 'mother_income', 'guardian_income', 'annual_income', 'admission_fee', 'monthly_fee', 'hostel_cost', 'tuition_fee', 'amount_paid', 'birth_date', 'national_id', 'pay_account_no', 'family_count', 'earning_count'];
+        $digitKeys = ['father_income', 'mother_income', 'guardian_income', 'annual_income', 'admission_fee', 'monthly_fee', 'hostel_cost', 'tuition_fee', 'amount_paid', 'birth_date', 'national_id', 'pay_account_no', 'family_count', 'earning_count', 'books_read_count'];
         $request->merge(collect($digitKeys)
             ->filter(fn ($k) => is_string($request->input($k)))
             ->mapWithKeys(fn ($k) => [$k => $this->normalizeBnToEn(trim($request->input($k)))])
@@ -307,8 +227,8 @@ class PublicEventRegistrationController extends Controller
             'payment_method'       => 'nullable|string|max:50',
             'transaction_id'       => 'nullable|string|max:100',
             'password'             => ['nullable', 'string', 'min:8', 'max:64', new \App\Rules\StrongPassword()],
-            'student_photo'        => 'nullable|max:25600',
-            'optimized_photo_data' => 'nullable|string',
+            'student_photo'        => 'nullable|file|mimes:jpeg,jpg,png,webp,gif|max:25600',
+            'optimized_photo_data' => ['nullable', 'string', 'max:14000000', 'regex:/^data:image\/(png|jpe?g|webp);base64,/'],
             'scholarship_reason'   => 'nullable|string|max:2000',
             'prev_scholarships'    => 'nullable|array|max:5',
             'prev_scholarships.*.year'   => 'nullable|string|max:20',
@@ -331,6 +251,7 @@ class PublicEventRegistrationController extends Controller
             'reading_habit'        => 'nullable|string|max:30',
             'books_read_names'     => 'nullable|string|max:1000',
             'national_id'          => 'nullable|string|max:20',
+            'nid'                  => 'nullable|string|max:30',
             'father_occupation'    => 'nullable|string|max:100',
             'mother_occupation'    => 'nullable|string|max:100',
             'family_count'         => 'nullable|integer|min:1|max:40',
@@ -401,8 +322,6 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
-
         if ($isLibrary) {
             $rules['institution_or_org']   = 'required|string|max:255';
             $rules['president_name']       = 'required|string|max:255';
@@ -415,19 +334,31 @@ class PublicEventRegistrationController extends Controller
             $rules['previous_books_count'] = 'nullable|string|max:30';
         }
 
+        // Every other answer a form can send gets a size limit, so nothing unbounded is stored.
+        foreach (self::EXTENDED_INPUT_KEYS as $k) {
+            if (isset($rules[$k]) || in_array($k, self::LIST_INPUT_KEYS, true)) {
+                continue;
+            }
+            $rules[$k] = 'nullable|string|max:' . (in_array($k, self::LONG_TEXT_KEYS, true) ? 1000 : 255);
+        }
+        foreach (self::LIST_INPUT_KEYS as $k) {
+            $rules[$k] = 'nullable|array|max:20';
+            $rules["{$k}.*"] = 'nullable|string|max:100';
+        }
+
         [$customRules, $customAttributes] = $this->customFieldRules($campaign);
         $validated = $request->validate($rules + $customRules, [], $customAttributes);
 
-        $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
-
-        // Mandatory Photo Check
-        if ($isWriter || $isScholarship) {
-            $hasPhotoData = $request->filled('optimized_photo_data') || $request->hasFile('student_photo') || $request->hasFile('photo');
-            $priorRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
-                ->whereIn('phone', \App\Support\PhoneNormalizer::normalize($validated['phone'], $request->input('country_code'))['query_phones'])
-                ->first();
-            $existingPhoto = $priorRegistration ? 'registered' : null;
-            if (!$hasPhotoData && empty($existingPhoto)) {
+        // Photo: mandatory for writers and scholarship applicants; whatever is sent must be a real, reasonably sized image.
+        $hasPhotoData = $request->filled('optimized_photo_data') || $request->hasFile('student_photo');
+        if ($hasPhotoData && !$this->photoIsReadable($request)) {
+            return back()->withInput()->with('error', 'The photo could not be read. Please choose a JPG, PNG or WebP picture.');
+        }
+        if (($isWriter || $isScholarship) && !$hasPhotoData) {
+            $hasEarlierEntry = EventRegistration::where('event_campaign_id', $campaign->id)
+                ->whereIn('phone', PhoneNormalizer::normalize($validated['phone'], $request->input('country_code'))['query_phones'])
+                ->exists();
+            if (!$hasEarlierEntry) {
                 return back()->withInput()->with('error', 'Please upload a passport-size photo to complete the registration (photo is mandatory).');
             }
         }
@@ -502,42 +433,18 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        // Check duplicate
+        // One registration per phone number per campaign. The signed-in account is NOT part of the check:
+        // a shared computer or a parent/teacher registering someone else must not be blocked by the previous person.
         $existingRegistration = EventRegistration::where('event_campaign_id', $campaign->id)
-            ->where(function ($q) use ($queryPhones, $user) {
-                $q->whereIn('phone', $queryPhones);
-                if ($user) {
-                    $q->orWhere('user_id', $user->id);
-                }
-            })
+            ->whereIn('phone', $queryPhones)
             ->first();
 
         if ($existingRegistration) {
-            $isWriter = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
-            $requiresApproval = !empty($campaign->form_settings['requires_approval']);
-            if ($isWriter && !$requiresApproval && $existingRegistration->status === 'pending') {
-                $existingRegistration->update(['status' => 'confirmed']);
-            }
-
-            session(['recent_event_registration' => [
-                'campaign_title'      => $campaign->title,
-                'campaign_slug'       => $campaign->slug,
-                'registration_number' => $existingRegistration->registration_number,
-                'name'                => $existingRegistration->name,
-                'phone'               => $existingRegistration->phone,
-                'category'            => $existingRegistration->designation_or_class,
-                'created_at'          => $existingRegistration->created_at ? $existingRegistration->created_at->format('d M, Y - h:i A') : now()->format('d M, Y - h:i A'),
-                'amount_paid'         => $existingRegistration->amount_paid,
-                'payment_status'      => $existingRegistration->payment_status,
-                'is_scholarship'      => $isScholarship,
-                'is_writer'           => $isWriter,
-                'status'              => $existingRegistration->status,
-            ]]);
+            $this->rememberRegistration($campaign, $existingRegistration);
 
             return redirect()->route('event.success', $campaign->slug)
-                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$existingRegistration->registration_number}");
+                ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$existingRegistration->registration_number}");
         }
-
         // Custom field answers & auto-optimized photo processing
         $customFieldAnswers = [];
 
@@ -554,41 +461,23 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
+        if (($isWriter || $isScholarship) && $hasPhotoData && empty($customFieldAnswers['student_photo'])) {
+            return back()->withInput()->with('error', 'The photo could not be saved. Please choose a JPG, PNG or WebP picture.');
+        }
+
         // 2. Extract scholarship, writer & library fields
-        $extendedInputKeys = [
-            'group', 'admission_roll', 'merit_position', 'college_name', 'college_code',
-            'assigned_subject', 'previous_subject', 'subject_choice', 'father_name', 'mother_name',
-            'guardian_name', 'guardian_phone', 'gender', 'religion', 'nationality', 'birth_date',
-            'marital_status', 'annual_income', 
-            'ssc_roll', 'ssc_board', 'ssc_institute', 'ssc_year', 'ssc_gpa',
-            'hsc_roll', 'hsc_board', 'hsc_institute', 'hsc_year', 'hsc_gpa', 
-            'grad_roll', 'grad_board', 'grad_institute', 'grad_year', 'grad_cgpa',
-            'other_roll', 'other_board', 'other_institute', 'other_year', 'other_cgpa',
-            'perm_division', 'permanent_district', 'perm_city_corporation', 'perm_municipality', 'perm_upazila', 'perm_post_office', 'perm_postcode', 'perm_village', 'permanent_address',
-            'pres_division', 'present_district', 'pres_city_corporation', 'pres_municipality', 'pres_upazila', 'pres_post_office', 'pres_postcode', 'pres_village', 'present_address',
-            'scholarship_reason', 'scholarship_degree', 'father_income', 'mother_income', 'father_phone', 'mother_phone', 'admission_fee', 'hostel_cost', 'monthly_fee', 'other_scholarship', 'other_scholarship_details', 'prev_scholarships',
-            'prev_joyee', 'books_read_count', 'reading_habit', 'books_read_names',
-            'national_id', 'father_occupation', 'mother_occupation', 'father_status', 'mother_status', 'family_count', 'earning_count', 'orphan_status', 'disability', 'disability_type', 'disability_details', 'guardian_relation', 'current_year',
-        'pay_method', 'pay_account_owner', 'pay_account_name', 'pay_account_no', 'pay_bank_name', 'pay_bank_branch',
-            // International / Abroad Address Fields
-            'resident_type', 'country_name', 'custom_country', 'state_or_city', 'zip_code', 'foreign_address',
-            // Writer & Cultural Artist Specific Fields
-            'author_category', 'author_categories', 'art_medium', 'organization_name', 'published_books_count', 'notable_books', 'magazine_name', 'magazine_issue_count',
-            // Library & Book Grant Specific Fields
-            'library_name', 'library_type', 'established_year', 'reg_no', 
-            'president_name', 'president_phone', 'secretary_name', 'secretary_phone',
-            'reader_count', 'current_book_count', 'preferred_genres', 'delivery_method', 'division', 'remarks', 'library_address',
-            'has_previous_books', 'previous_books_year', 'previous_books_count'
-        ];
+        $extendedInputKeys = self::EXTENDED_INPUT_KEYS;
 
         foreach ($extendedInputKeys as $key) {
             if ($request->has($key)) {
                 $val = $request->input($key);
                 if (is_string($val)) {
                     if (str_contains($key, 'phone')) {
-                        $pNorm = \App\Support\PhoneNormalizer::normalize($val);
+                        // president_phone -> president_country_code, etc.; fields without a selector default to +880
+                        $ccKey = str_replace('_phone', '_country_code', $key);
+                        $pNorm = \App\Support\PhoneNormalizer::normalize($val, $request->input($ccKey) ?: '+880');
                         $val = $pNorm['local_phone'];
-                    } elseif (preg_match('/roll|year|count|fee|income|cost|gpa|postcode|national_id|account_no/', $key)) {
+                    } elseif (preg_match('/roll|year|count|fee|income|cost|gpa|postcode|national_id|^nid$|account_no/', $key)) {
                         $val = $this->normalizeBnToEn($val);
                     }
                 }
@@ -656,8 +545,6 @@ class PublicEventRegistrationController extends Controller
             }
         }
 
-        $isLibrary = (in_array($slug, ['pathagar', 'library', 'boi-bitoron', 'library-grant', 'pathagar-nibondhon']) || $campaign->type === 'library' || !empty($campaign->form_settings['is_library_form']));
-
         $authorCatVal = is_array($request->input('author_categories')) ? implode(', ', $request->input('author_categories')) : $request->input('author_category');
         $institution = $validated['institution_or_org'] ?? ($request->input('organization_name') ?: ($request->input('library_name') ?: ($request->input('college_name') ?: ($request->input('magazine_name') ?: null))));
         $designation = $validated['designation_or_class'] ?? ($authorCatVal ?: ($request->input('art_medium') ?: ($request->input('library_type') ?: ($request->input('assigned_subject') ?: ($request->input('group') ?: null)))));
@@ -675,36 +562,34 @@ class PublicEventRegistrationController extends Controller
 
         $regNumber = null; // assigned inside the locked section below
 
-        $requiresApproval = (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']) || !empty($campaign->form_settings['requires_approval']));
         $initialStatus = $requiresApproval ? 'pending' : 'confirmed';
 
         $hasPrevBooks = $request->input('has_previous_books') ?: ($customFieldAnswers['has_previous_books'] ?? null);
         $prevYear = !empty($customFieldAnswers['previous_books_year']) ? $customFieldAnswers['previous_books_year'] : null;
         $prevCount = !empty($customFieldAnswers['previous_books_count']) ? intval($customFieldAnswers['previous_books_count']) : null;
 
-        $registration = \Illuminate\Support\Facades\DB::transaction(function () use ($campaign, $queryPhones, $user, $request, $validated, $localPhone, $email, $address, $district, $institution, $designation, $hasPrevBooks, $prevYear, $prevCount, $amountPaid, $paymentStatus, $customFieldAnswers, $initialStatus, &$regNumber) {
+        // Linked to the signed-in account only when it is that person's own number (a library keeps its manager's account).
+        $ownerId = ($user && ($isLibrary || array_intersect(PhoneNormalizer::normalize((string) $user->phone)['query_phones'], $queryPhones))) ? $user->id : null;
+
+        $registration = \Illuminate\Support\Facades\DB::transaction(function () use ($campaign, $queryPhones, $ownerId, $request, $validated, $localPhone, $email, $address, $district, $institution, $designation, $hasPrevBooks, $prevYear, $prevCount, $amountPaid, $paymentStatus, $customFieldAnswers, $initialStatus, &$regNumber) {
             // Serialise submissions per campaign so a double click or a retry can neither
             // create two registrations for one phone nor hand out the same number twice.
             EventCampaign::whereKey($campaign->id)->lockForUpdate()->first();
 
-            $already = EventRegistration::where('event_campaign_id', $campaign->id)
-                ->where(function ($q) use ($queryPhones, $user) {
-                    $q->whereIn('phone', $queryPhones);
-                    if ($user) {
-                        $q->orWhere('user_id', $user->id);
-                    }
-                })->first();
+            $already = EventRegistration::where('event_campaign_id', $campaign->id)->whereIn('phone', $queryPhones)->first();
             if ($already) {
                 return $already;
             }
 
-            $regNumber = EventRegistration::generateRegNumber(
-                ($campaign->type === 'scholarship' || !empty($campaign->form_settings['is_scholarship_form'])) ? $campaign : $campaign->slug
-            );
+            // the limit is checked again under the lock, so the last seats cannot be oversold
+            if ($campaign->max_participants && $campaign->registrations()->count() >= $campaign->max_participants) {
+                return null;
+            }
 
+            $regNumber = EventRegistration::generateRegNumber($campaign);
             return EventRegistration::create([
             'event_campaign_id'    => $campaign->id,
-            'user_id'              => $user?->id,
+            'user_id'              => $ownerId,
             'registration_number'  => $regNumber,
             'name'                 => $validated['name'],
             'phone'                => $localPhone,
@@ -727,8 +612,14 @@ class PublicEventRegistrationController extends Controller
             ]);
         });
 
+        if (!$registration) {
+            return back()->withInput()->with('error', 'Sorry, the maximum application limit has been reached.');
+        }
+
         // Lost the race to an identical submission: show that registration instead of a second one.
         if ($registration->wasRecentlyCreated === false) {
+            $this->rememberRegistration($campaign, $registration);
+
             return redirect()->route('event.success', $campaign->slug)
                 ->with('info', "মোবাইল নম্বরে ইতোমধ্যে নিবন্ধন সম্পন্ন হয়েছে! রেজিস্ট্রেশন রোল: #{$registration->registration_number}");
         }
@@ -747,28 +638,19 @@ class PublicEventRegistrationController extends Controller
             } else {
                 $smsText = "আইডিয়া প্রকাশন — '{$campaign->title}'-এ আপনার আবেদন সফল হয়েছে! Reg No: #{$regNumber}। কার্ড ডাউনলোড লিংক: {$downloadUrl} । www.ideaabd.com";
             }
-            \App\Services\SmsService::send($localPhone, $smsText);
+            // the SMS gateway can take many seconds: send after the visitor already has their page
+            defer(function () use ($localPhone, $smsText) {
+                try {
+                    \App\Services\SmsService::send($localPhone, $smsText);
+                } catch (\Throwable $e) {
+                    Log::warning("Event SMS error: " . $e->getMessage());
+                }
+            });
         } catch (\Throwable $e) {
             Log::warning("Event SMS error: " . $e->getMessage());
         }
 
-        $isWriter = in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab']) || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']);
-
-        session(['recent_event_registration' => [
-            'campaign_title'      => $campaign->title,
-            'campaign_slug'       => $campaign->slug,
-            'registration_number' => $regNumber,
-            'name'                => $registration->name,
-            'phone'               => $registration->phone,
-            'category'            => $designation,
-            'created_at'          => $registration->created_at->format('d M, Y - h:i A'),
-            'amount_paid'         => $registration->amount_paid,
-            'payment_status'      => $registration->payment_status,
-            'is_scholarship'      => $isScholarship,
-            'is_writer'           => $isWriter,
-            'is_library'          => $isLibrary,
-            'status'              => $registration->status,
-        ]]);
+        $this->rememberRegistration($campaign, $registration);
 
         if ($isLibrary) {
             $successNotice = 'ধন্যবাদ! আপনার পাঠাগার নিবন্ধন সম্পন্ন হয়েছে।';
@@ -788,6 +670,38 @@ class PublicEventRegistrationController extends Controller
             ->with('success', $successNotice);
     }
 
+    /** What the "thank you" page shows. Tied to its campaign, so another campaign's page never displays it. */
+    protected function rememberRegistration(EventCampaign $campaign, EventRegistration $registration): void
+    {
+        session(['recent_event_registration' => [
+            'campaign_title'      => $campaign->title,
+            'campaign_slug'       => $campaign->slug,
+            'registration_number' => $registration->registration_number,
+            'name'                => $registration->name,
+            'phone'               => $registration->phone,
+            'category'            => $registration->designation_or_class,
+            'created_at'          => ($registration->created_at ?? now())->format('d M, Y - h:i A'),
+            'amount_paid'         => $registration->amount_paid,
+            'payment_status'      => $registration->payment_status,
+            'is_scholarship'      => $campaign->isScholarship(),
+            'is_writer'           => $campaign->isWriter(),
+            'is_library'          => $campaign->isLibrary(),
+            'status'              => $registration->status,
+        ]]);
+    }
+
+    /** The photo that came with the form (canvas data or file) is a decodable image of sane size. */
+    protected function photoIsReadable(Request $request): bool
+    {
+        if ($request->filled('optimized_photo_data')) {
+            $raw = base64_decode(substr((string) strstr($request->input('optimized_photo_data'), ','), 1), true);
+            $info = $raw ? @getimagesizefromstring($raw) : false;
+        } else {
+            $info = @getimagesize($request->file('student_photo')->getRealPath());
+        }
+
+        return $info !== false && $info[0] > 0 && $info[1] > 0 && $info[0] <= 10000 && $info[1] <= 10000 && $info[0] * $info[1] <= 60_000_000;
+    }
     /**
      * Auto-crop, resize and compress student/author photo to clean 300x360 passport JPEG.
      */
@@ -826,10 +740,7 @@ class PublicEventRegistrationController extends Controller
 
             $src = @imagecreatefromstring($imgData);
             if (!$src) {
-                // Fallback: Save binary directly if GD cannot decode
-                @file_put_contents($fullPath, $imgData);
-                @file_put_contents($pubPath, $imgData);
-                return $filename;
+                return null;   // not an image: nothing is stored
             }
 
             // Correct EXIF orientation if uploaded file
@@ -884,10 +795,7 @@ class PublicEventRegistrationController extends Controller
 
             return $filename;
         } catch (\Throwable $e) {
-            Log::warning("Photo optimization fallback: " . $e->getMessage());
-            if ($file instanceof \Illuminate\Http\UploadedFile) {
-                return $file->store('scholarships/photos', 'public');
-            }
+            Log::warning("Photo optimization failed: " . $e->getMessage());
             return null;
         }
     }
@@ -914,9 +822,8 @@ class PublicEventRegistrationController extends Controller
      */
     public function lookup(Request $request, string $slug)
     {
-        $campaign = EventCampaign::where('slug', $slug)->first()
-            ?: EventCampaign::where('type', 'scholarship')->first();
-        abort_unless($campaign, 404);
+        $campaign = EventCampaign::resolve($slug);
+        abort_unless($campaign && $campaign->isScholarship(), 404);
 
         $data = $request->validate([
             'name'  => ['required', 'string', 'min:2', 'max:120'],
@@ -956,25 +863,16 @@ class PublicEventRegistrationController extends Controller
      */
     public function success(string $slug)
     {
-        $campaign = EventCampaign::where('slug', $slug)->first();
+        $campaign = EventCampaign::resolve($slug);
         if (!$campaign) {
-            if (in_array($slug, ['rsu', 'rsutshab', 'rangpursutsab'])) {
-                $campaign = EventCampaign::whereIn('slug', ['rangpursutsab', 'rsutshab', 'rsu'])
-                    ->orWhere('type', 'writer')
-                    ->first();
-            } elseif (in_array($slug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'])) {
-                $campaign = EventCampaign::where('slug', 'jshikkhabritti')
-                    ->orWhere('type', 'scholarship')
-                    ->first();
-            }
+            abort(404);
         }
 
-        if (!$campaign) {
-            $campaign = EventCampaign::latest()->firstOrFail();
-        }
-
+        // the summary belongs to the campaign it was made for; another campaign's page never shows it
         $summary = session('recent_event_registration');
-
+        if (($summary['campaign_slug'] ?? null) !== $campaign->slug) {
+            $summary = null;
+        }
         // scholarship forms open through signed links only (they carry ID and payment details)
         $formLinks = null;
         if (!empty($summary['registration_number'])) {
@@ -997,16 +895,15 @@ class PublicEventRegistrationController extends Controller
             ->firstOrFail();
 
         $campaign = $registration->campaign;
-        $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        abort_unless($campaign, 404);
+        $isScholarship = $campaign->isScholarship();
         if ($isScholarship && !$this->mayOpenScholarshipForm($registration)) {
             return $this->scholarshipLinkExpired($campaign);
         }
-        $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
-        $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
-        $requiresApproval = !empty($campaign->form_settings['requires_approval']);
+        $isLibrary = $registration->isLibrary();
 
         // Check Admin Approval for Event Cards & Library passes
-        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        $isApproved = in_array($registration->status, self::APPROVED_STATUSES, true);
         if (!$isApproved && !$isScholarship) {
             return view('frontend.events.pending_approval', compact('registration', 'campaign'));
         }
@@ -1036,14 +933,15 @@ class PublicEventRegistrationController extends Controller
             ->firstOrFail();
 
         $campaign = $registration->campaign;
-        $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+        abort_unless($campaign, 404);
+        $isScholarship = $campaign->isScholarship();
         if ($isScholarship && !$this->mayOpenScholarshipForm($registration)) {
             return $this->scholarshipLinkExpired($campaign);
         }
-        $isLibrary = ($registration->isLibrary() || $campaign->type === 'library' || $campaign->slug === 'pathagar' || !empty($campaign->form_settings['is_library_form']));
+        $isLibrary = $registration->isLibrary();
 
         // Check Admin Approval for Event Cards
-        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        $isApproved = in_array($registration->status, self::APPROVED_STATUSES, true);
         if (!$isApproved && !$isScholarship) {
             return redirect()->route('event.registration.print', $registration->registration_number)
                 ->with('error', 'এডমিন এপ্রুভাল ছাড়া ইভেন্ট কার্ড ডাউনলোড বা দেখা যাবে না। এডমিন অনুমোদন দিলে আপনাকে মেসেজে কার্ডের লিংক পাঠানো হবে।');
@@ -1099,6 +997,13 @@ class PublicEventRegistrationController extends Controller
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
+        if (!in_array($registration->status, self::APPROVED_STATUSES, true)) {
+            return back()->with('error', 'এই নিবন্ধনটি এখনও অনুমোদিত হয়নি।');
+        }
+        if ($registration->isAcknowledged()) {
+            return back()->with('error', 'প্রাপ্তিস্বীকার ইতিমধ্যে জমা দেওয়া হয়েছে।');
+        }
+
         $validated = $request->validate([
             'received_books_count' => 'required|integer|min:1',
             'received_date'        => 'required|date',
@@ -1145,7 +1050,7 @@ class PublicEventRegistrationController extends Controller
             ->where('registration_number', $registrationNumber)
             ->firstOrFail();
 
-        $isApproved = in_array($registration->status, ['confirmed', 'approved', 'selected', 'attended'], true);
+        $isApproved = in_array($registration->status, self::APPROVED_STATUSES, true);
         if (!$isApproved) {
             return view('frontend.events.pending_approval', [
                 'registration' => $registration,
@@ -1161,23 +1066,20 @@ class PublicEventRegistrationController extends Controller
      */
     public function verifyAttendance(Request $request, string $registrationNumber)
     {
-        $cleanRegNum = trim($registrationNumber);
+        $cleanRegNum = ltrim(trim($registrationNumber), '#');
+        // exact number only: a partial match could check in somebody else
         $registration = EventRegistration::with('campaign', 'user')
-            ->where('registration_number', $cleanRegNum)
-            ->orWhere('registration_number', '#' . $cleanRegNum)
-            ->orWhere('registration_number', ltrim($cleanRegNum, '#'))
+            ->whereIn('registration_number', [$cleanRegNum, '#' . $cleanRegNum])
             ->first();
 
         if (!$registration) {
-            $registration = EventRegistration::with('campaign', 'user')
-                ->where('registration_number', 'LIKE', '%' . $cleanRegNum . '%')
-                ->first();
+            abort(404, 'নিবন্ধন নম্বরটি সিস্টেমে পাওয়া যায়নি।');
         }
 
-        if (!$registration) {
-            abort(404, 'নিবন্ধন নম্বরটি সিস্টেমে পাওয়া যায়নি।');
+        // Only an approved entry can be checked in; a pending or rejected one never becomes "attended".
+        if (!in_array($registration->status, self::APPROVED_STATUSES, true)) {
+            abort(403, 'এই নিবন্ধনটি অনুমোদিত নয়, তাই উপস্থিতি নিশ্চিত করা যাবে না।');
         }
-
         $campaign = $registration->campaign;
         $alreadyAttended = ($registration->status === 'attended');
         $formData = $registration->form_data ?? [];

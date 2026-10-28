@@ -415,7 +415,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column gap-2 text-end">
-                                    <a href="{{ route('track-order', ['tracking_id' => $order->tracking_id ?? $order->order_number]) }}" class="amz-btn-gold">
+                                    <a href="{{ route('order.track', ['order_number' => $order->order_number]) }}" class="amz-btn-gold">
                                         ট্র্যাক পার্সেল
                                     </a>
                                     @if($order->book)

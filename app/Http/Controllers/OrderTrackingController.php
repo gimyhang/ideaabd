@@ -12,9 +12,12 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderTrackingController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
-        return view('frontend.pages.track-order');
+        // a "track parcel" link from My Account arrives with the order number already filled in
+        return view('frontend.pages.track-order', [
+            'query' => ['order_number' => (string) $request->query('order_number', '')],
+        ]);
     }
 
     public function lookup(Request $request)

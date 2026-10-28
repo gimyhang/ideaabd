@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' ? 'Application submitted — ' : 'ধন্যবাদ! নিবন্ধন সম্পন্ন হয়েছে — ') . $campaign->title)
+@section('title', ($campaign->isScholarship() ? 'Application submitted — ' : 'ধন্যবাদ! নিবন্ধন সম্পন্ন হয়েছে — ') . $campaign->title)
 
 @push('styles')
 <style>
@@ -121,7 +121,7 @@
 
 @section('content')
 @php
-    $isSch = $campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']);
+    $isSch = $campaign->isScholarship();
     // scholarship applicants need time to download and read the instructions before the redirect
     $redirectSecs = $isSch ? 120 : 6;
     $redirectTo = ($campaign->redirect_url && filter_var($campaign->redirect_url, FILTER_VALIDATE_URL)) ? $campaign->redirect_url : url('/');

@@ -222,9 +222,7 @@ class UserController extends Controller
                           ->orWhere('phone', $user->phone);
                     })
                     ->where(function ($q) {
-                        $q->whereHas('campaign', function ($cq) {
-                            $cq->where('type', 'library')->orWhere('slug', 'pathagar');
-                        })
+                        $q->whereIn('event_campaign_id', \App\Models\EventCampaign::all()->filter(fn ($c) => $c->isLibrary())->pluck('id'))
                         ->orWhereNotNull('form_data->library_name')
                         ->orWhereNotNull('form_data->reader_count');
                     })

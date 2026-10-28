@@ -579,6 +579,18 @@ class IdeaAccountingController extends Controller
      */
     protected function normalizeAccountingRecord(string $stream, mixed $item, array $syncedOrdersMap = []): object
     {
+        $record = $this->buildAccountingRecord($stream, $item, $syncedOrdersMap);
+
+        // only invoices carry a proposal status; the list view reads it from every row
+        if (!property_exists($record, 'proposal_status')) {
+            $record->proposal_status = null;
+        }
+
+        return $record;
+    }
+
+    protected function buildAccountingRecord(string $stream, mixed $item, array $syncedOrdersMap = []): object
+    {
         if ($stream === 'entry') {
             $isIncome = ($item->type === 'income');
             $date = $item->entry_date ? Carbon::parse($item->entry_date) : ($item->created_at ? Carbon::parse($item->created_at) : null);

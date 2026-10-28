@@ -62,9 +62,7 @@ class EventRegistration extends Model
     /** Scholarship applications hold ID and payment details: their forms are never reachable by guessing a number. */
     public function isScholarship(): bool
     {
-        $c = $this->campaign;
-
-        return $c && ($c->type === 'scholarship' || $c->slug === 'jshikkhabritti' || !empty($c->form_settings['is_scholarship_form']));
+        return $this->campaign?->isScholarship() ?? false;
     }
 
     /** Time-limited signed link to this application's printable form or PDF. */
@@ -110,62 +108,42 @@ class EventRegistration extends Model
 
     public static function generateRegNumber($slugOrCampaign = '', ?int $campaignId = null): string
     {
-        $slug = '';
-        $type = '';
-        if ($slugOrCampaign instanceof EventCampaign) {
-            $slug = $slugOrCampaign->slug;
-            $campaignId = $slugOrCampaign->id;
-            $type = $slugOrCampaign->type ?? '';
-        } else {
-            $slug = (string) $slugOrCampaign;
-        }
+        // Always judge by the campaign itself; a bare slug is only for old callers and means "the campaign this address stood for".
+        $campaign = $slugOrCampaign instanceof EventCampaign ? $slugOrCampaign : EventCampaign::resolve((string) $slugOrCampaign);
+        $slug = $campaign?->slug ?? (string) $slugOrCampaign;
+        $kind = $campaign?->kind() ?? EventCampaign::KIND_EVENT;
+        $fs = is_array($campaign?->form_settings) ? $campaign->form_settings : [];
 
-        $cleanSlug = strtolower(trim($slug));
-        if (in_array($cleanSlug, ['rsu', 'rsutshab', 'rangpursutsab', 'writer']) || $type === 'writer') {
-            $year = '2026';
-            $prefix = 'RSU-' . $year . '-';
-
-            $latest = static::where('registration_number', 'LIKE', $prefix . '%')
-                ->orWhere(function($q) use ($campaignId) {
-                    if ($campaignId) {
-                        $q->where('event_campaign_id', $campaignId);
-                    }
-                })
-                ->orderBy('id', 'desc')
-                ->value('registration_number');
-
-            $nextNum = 1;
-            if ($latest && preg_match('/(?:RSU-\d+-|#RSU-\d+-)?(\d+)$/i', $latest, $matches)) {
-                $nextNum = intval($matches[1]) + 1;
-            } else {
-                $count = static::where(function($q) use ($prefix, $campaignId) {
-                    $q->where('registration_number', 'LIKE', $prefix . '%');
-                    if ($campaignId) {
-                        $q->orWhere('event_campaign_id', $campaignId);
-                    }
-                })->count();
-                $nextNum = $count + 1;
-            }
-
-            return $prefix . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
-        }
-
-        // Scholarship applications: plain sequence per session — 2027-1, 2027-2, ...
-        if ($type === 'scholarship' || ($slugOrCampaign instanceof EventCampaign && !empty($slugOrCampaign->form_settings['is_scholarship_form'])) || in_array($cleanSlug, ['jshikkhabritti', 'scholarship', 'shikkhabritti'], true)) {
-            $custom = ($slugOrCampaign instanceof EventCampaign) ? (string) ($slugOrCampaign->form_settings['number_prefix'] ?? '') : '';
-            $prefix = (preg_match('/^[A-Za-z0-9]{1,12}$/', $custom) ? $custom : self::SCHOLARSHIP_SESSION) . '-';
-            // withTrashed: a soft-deleted application still owns its number (the unique index covers deleted rows too)
+        // withTrashed: a soft-deleted entry still owns its number (the unique index covers deleted rows too)
+        $nextInSequence = function (string $prefix): int {
             $max = static::withTrashed()->where('registration_number', 'LIKE', $prefix . '%')->pluck('registration_number')
                 ->map(fn ($n) => preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $n, $mm) ? (int) $mm[1] : 0)
                 ->max() ?? 0;
-            return $prefix . ($max + 1);
+
+            return $max + 1;
+        };
+
+        if ($kind === EventCampaign::KIND_WRITER) {
+            $year = preg_match('/^\d{4}$/', (string) ($fs['number_year'] ?? '')) ? $fs['number_year'] : '2026';
+            $prefix = 'RSU-' . $year . '-';
+
+            return $prefix . str_pad((string) $nextInSequence($prefix), 3, '0', STR_PAD_LEFT);
         }
 
-        $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $slug), 0, 4));
-        if (empty($prefix)) {
-            $prefix = 'EVT';
+        // Scholarship applications: plain sequence per session - 2027-1, 2027-2, ...
+        if ($kind === EventCampaign::KIND_SCHOLARSHIP) {
+            $custom = (string) ($fs['number_prefix'] ?? '');
+            $prefix = (preg_match('/^[A-Za-z0-9]{1,12}$/', $custom) ? $custom : self::SCHOLARSHIP_SESSION) . '-';
+
+            return $prefix . $nextInSequence($prefix);
         }
-        return $prefix . '-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+
+        $prefix = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $slug), 0, 4)) ?: 'EVT';
+        do {
+            $number = $prefix . '-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+        } while (static::withTrashed()->where('registration_number', $number)->exists());
+
+        return $number;
     }
 
     /**
@@ -173,7 +151,7 @@ class EventRegistration extends Model
      */
     public function isLibrary(): bool
     {
-        return ($this->campaign && ($this->campaign->type === 'library' || $this->campaign->slug === 'pathagar' || !empty($this->campaign->form_settings['is_library_form'])))
+        return ($this->campaign?->isLibrary() ?? false)
             || !empty($this->form_data['library_name'])
             || !empty($this->form_data['is_library_grant']);
     }

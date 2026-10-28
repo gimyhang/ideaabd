@@ -676,7 +676,7 @@ class AdminSmsController extends Controller
     /** @return int[] */
     private function libraryCampaignIds(): array
     {
-        return EventCampaign::where('slug', 'pathagar')->orWhere('type', 'library')->pluck('id')->all();
+        return EventCampaign::all()->filter(fn (EventCampaign $c) => $c->isLibrary())->pluck('id')->all();
     }
 
     /** Number of users per audience that have a phone number / an email address. */

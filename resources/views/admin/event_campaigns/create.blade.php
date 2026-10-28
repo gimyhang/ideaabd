@@ -77,6 +77,7 @@
                                 <option value="donation" {{ old('type') == 'donation' ? 'selected' : '' }}>Donation</option>
                                 <option value="competition" {{ old('type') == 'competition' ? 'selected' : '' }}>Competition</option>
                                 <option value="workshop" {{ old('type') == 'workshop' ? 'selected' : '' }}>Workshop</option>
+                                <option value="writer" {{ old('type') == 'writer' ? 'selected' : '' }}>Writer / Literary Festival</option>
                             </select>
                         </div>
                         <div class="col-md-6">

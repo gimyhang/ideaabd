@@ -4,5 +4,45 @@
     <title>আইডিয়া প্রকাশন — Google Merchant Product Feed</title>
     <link>https://www.ideaabd.com</link>
     <description>অ্যাডমিন প্যানেল</description>
+    <item>
+      <g:id>BOOK-2</g:id>
+      <g:title>Smoke Book 2 — আইডিয়া প্রকাশন</g:title>
+      <g:description>Smoke Book 2 — আইডিয়া প্রকাশন</g:description>
+      <g:link>https://www.ideaabd.com/books/smoke-book-2</g:link>
+      <g:image_link>http://127.0.0.1:8000/images/logo.png</g:image_link>
+      <g:availability>in_stock</g:availability>
+      <g:price>400.00 BDT</g:price>
+      <g:sale_price>300.00 BDT</g:sale_price>
+      <g:google_product_category>Media &gt; Books &gt; Print Books</g:google_product_category>
+      <g:product_type>Books &gt; Cat</g:product_type>
+      <g:brand>Pub</g:brand>
+      <g:condition>new</g:condition>
+      <g:identifier_exists>no</g:identifier_exists>
+      <g:shipping>
+        <g:country>BD</g:country>
+        <g:service>Standard Delivery</g:service>
+        <g:price>60.00 BDT</g:price>
+      </g:shipping>
+    </item>
+    <item>
+      <g:id>BOOK-1</g:id>
+      <g:title>Smoke Book 1 — আইডিয়া প্রকাশন</g:title>
+      <g:description>Smoke Book 1 — আইডিয়া প্রকাশন</g:description>
+      <g:link>https://www.ideaabd.com/books/smoke-book-1</g:link>
+      <g:image_link>http://127.0.0.1:8000/images/logo.png</g:image_link>
+      <g:availability>in_stock</g:availability>
+      <g:price>400.00 BDT</g:price>
+      <g:sale_price>300.00 BDT</g:sale_price>
+      <g:google_product_category>Media &gt; Books &gt; Print Books</g:google_product_category>
+      <g:product_type>Books &gt; Cat</g:product_type>
+      <g:brand>Pub</g:brand>
+      <g:condition>new</g:condition>
+      <g:identifier_exists>no</g:identifier_exists>
+      <g:shipping>
+        <g:country>BD</g:country>
+        <g:service>Standard Delivery</g:service>
+        <g:price>60.00 BDT</g:price>
+      </g:shipping>
+    </item>
   </channel>
 </rss>

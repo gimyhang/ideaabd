@@ -16,8 +16,8 @@
     $studioLogoOffsetY = intval($campaign->form_settings['logo_offset_y'] ?? 0);
     $studioLogoBg = $campaign->form_settings['logo_bg'] ?? 'transparent';
 
-    $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
-    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || $campaign->id === 3 || !empty($campaign->form_settings['is_library_form']));
+    $isScholarship = $campaign->isScholarship();
+    $isLibrary = $campaign->isLibrary();
 
     $defaultSubhead = $isScholarship
         ? 'জয়ী শিক্ষাবৃত্তি কর্মসূচি'

@@ -19,6 +19,8 @@ class TrackVisitor
 
         // Only track GET web requests, ignore static assets, API calls, and Admin routes to keep stats accurate
         if ($request->isMethod('GET') && !$request->ajax() && !$request->is('admin*', 'storage*', 'css*', 'js*', 'images*', 'vendor*', 'favicon*', 'api*')) {
+            // Counted after the page has been sent: a slow or broken stats table never delays (or breaks) a visitor's page.
+            defer(function () use ($request) {
             try {
                 if (\Illuminate\Support\Facades\Cache::remember('schema_has_visitor_logs', 86400, fn () => Schema::hasTable('visitor_logs'))) {
                     $userAgent = (string) ($request->userAgent() ?? '');
@@ -239,6 +241,7 @@ class TrackVisitor
             } catch (\Throwable $e) {
                 // Fail silently so visitor experience is never affected
             }
+            });
         }
 
         return $response;

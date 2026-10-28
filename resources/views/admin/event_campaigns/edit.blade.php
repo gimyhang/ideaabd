@@ -96,6 +96,7 @@
                                 <option value="donation" {{ old('type', $campaign->type) == 'donation' ? 'selected' : '' }}>Donation</option>
                                 <option value="competition" {{ old('type', $campaign->type) == 'competition' ? 'selected' : '' }}>Competition</option>
                                 <option value="workshop" {{ old('type', $campaign->type) == 'workshop' ? 'selected' : '' }}>Workshop</option>
+                                <option value="writer" {{ old('type', $campaign->type) == 'writer' ? 'selected' : '' }}>Writer / Literary Festival</option>
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -178,7 +179,7 @@
                     </div>
 
                     @php
-                        $isSchEdit = $campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']);
+                        $isSchEdit = $campaign->isScholarship();
                         $schHdr = $campaign->scholarshipHeader();
                     @endphp
                     @if($isSchEdit)

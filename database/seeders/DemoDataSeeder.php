@@ -106,9 +106,14 @@ class DemoDataSeeder extends Seeder
         ];
 
         foreach ($publishers as $publisher) {
+            // the publishers table keeps the town in `address` and needs a unique slug
+            $city = $publisher['city'];
+            unset($publisher['city']);
             DB::table('publishers')->updateOrInsert(
                 ['email' => $publisher['email']],
                 array_merge($publisher, [
+                    'slug' => Str::slug(explode('@', $publisher['email'])[0]),
+                    'address' => $city,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ])

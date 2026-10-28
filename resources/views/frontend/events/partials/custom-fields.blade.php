@@ -3,7 +3,7 @@
     $dynFields = collect((array) ($campaign->custom_fields ?? []))
         ->filter(fn ($f) => !empty($f['name']) && preg_match('/^[A-Za-z0-9_]{1,60}$/', (string) $f['name'])
             && !in_array($f['name'], ['name', 'phone', 'email', 'password', 'address', 'district', 'thana', 'amount_paid', 'transaction_id', 'payment_method', 'student_photo', 'optimized_photo_data'], true))
-        ->reject(fn ($f) => ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']))
+        ->reject(fn ($f) => $campaign->isScholarship()
             && in_array($f['name'], \App\Http\Controllers\PublicEventRegistrationController::SCHOLARSHIP_BUILTIN_FIELDS, true))
         ->values();
     $dynSaved = (array) (($existingRegistration ?? null)?->form_data ?? []);

@@ -134,13 +134,13 @@
     $showDistrictCol = in_array('district', $visibleCols, true) || (!isset($tableSettings['columns']) || in_array('location', $visibleCols, true));
     $density = $tableSettings['density'] ?? 'standard';
     $customFields = $campaign->custom_fields ?? [];
-    $isScholarship = ($campaign->type === 'scholarship' || $campaign->slug === 'jshikkhabritti' || !empty($campaign->form_settings['is_scholarship_form']));
+    $isScholarship = $campaign->isScholarship();
     if ($isScholarship) {
         // a scholarship has no application payment: no Fee / Payment columns
         $visibleCols = array_values(array_diff($visibleCols, ['fee', 'payment']));
     }
-    $isWriter = ($campaign->slug === 'rsu' || $campaign->slug === 'rsutshab' || $campaign->slug === 'rangpursutsab' || $campaign->type === 'writer' || !empty($campaign->form_settings['is_writer_form']));
-    $isLibrary = ($campaign->type === 'library' || $campaign->slug === 'pathagar' || $campaign->id === 3 || !empty($campaign->form_settings['is_library_form']));
+    $isWriter = $campaign->isWriter();
+    $isLibrary = $campaign->isLibrary();
 @endphp
 
 <div class="container-fluid px-3 px-md-4 py-4 pb-5 mb-5">
