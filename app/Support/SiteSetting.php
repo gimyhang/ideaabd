@@ -15,7 +15,7 @@ class SiteSetting
     {
         return Cache::remember(self::CACHE_KEY, 3600, function () {
             try {
-                if (! Schema::hasTable('admin_dashboard_settings')) {
+                if (! SchemaCache::has('admin_dashboard_settings')) {
                     return [];
                 }
 
@@ -427,6 +427,54 @@ class SiteSetting
         return is_array($saved) ? array_merge($default, $saved) : $default;
     }
 
+
+    /** URL of an image that really exists on this server (public/ or storage), or null. Local files get ?v=<time> so a replaced file shows at once. */
+    protected static function existingImageUrl(string $path): ?string
+    {
+        $clean = trim($path, '"\' ');
+        if (preg_match('#^(https?:)?//#', $clean) || str_starts_with($clean, 'data:image/')) {
+            return $clean;
+        }
+
+        $rel = ltrim($clean, '/');
+        $storageRel = str_starts_with($rel, 'storage/') ? substr($rel, 8) : $rel;
+        $withoutExt = preg_replace('/\.[^.\/]+$/', '', $storageRel);
+
+        $candidates = [[public_path($rel), $rel], [public_path('storage/' . $storageRel), 'storage/' . $storageRel]];
+        foreach (['.webp', '.png', '.jpg', '.jpeg', '.svg'] as $ext) {
+            $candidates[] = [public_path('storage/' . $withoutExt . $ext), 'storage/' . $withoutExt . $ext];
+            $candidates[] = [public_path($withoutExt . $ext), $withoutExt . $ext];
+        }
+
+        foreach ($candidates as [$file, $url]) {
+            if (is_file($file)) {
+                return asset($url) . '?v=' . (@filemtime($file) ?: 1);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The logo printed on bills, challans, quotations and receipts: the one saved in the bill settings, otherwise the
+     * site logo, otherwise the stock logo. A saved logo whose file has gone missing no longer shows a broken image.
+     */
+    public static function billLogoUrl(?string $logo = null): string
+    {
+        $logo = trim((string) $logo, '"\' ');
+        $isStock = $logo === '' || ltrim($logo, '/') === 'images/logo.png';
+
+        if (! $isStock && ($url = self::existingImageUrl($logo))) {
+            return $url;
+        }
+
+        $site = (string) (self::get('site_logo') ?: config('brand.logo'));
+        if ($site !== '' && ($url = self::existingImageUrl($site))) {
+            return $url;
+        }
+
+        return asset('images/logo.png');
+    }
 
     public static function resolveImageUrl(?string $path, ?string $fallbackAsset = null): ?string
     {

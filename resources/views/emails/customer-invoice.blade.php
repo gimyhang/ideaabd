@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $invoice->type_label ?? 'ইনভয়েস' }} #{{ $invoice->invoice_no }}</title>
+    <title>{{ $invoice->type_label ?? 'Invoice' }} #{{ $invoice->invoice_no }}</title>
     <style>
         body { font-family: 'Segoe UI', 'Nikosh', 'Kalpurush', Roboto, Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #1e293b; margin: 0; padding: 20px; line-height: 1.6; }
         .email-container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
@@ -36,7 +36,7 @@
         </div>
         <div class="content">
             <div style="text-align: center;">
-                <span class="badge-type">{{ $invoice->type_label ?? 'ইনভয়েস' }} #{{ $invoice->invoice_no }}</span>
+                <span class="badge-type">{{ $invoice->type_label ?? 'Invoice' }} #{{ $invoice->invoice_no }}</span>
             </div>
             
             <h2 style="font-size: 18px; color: #0f172a; margin-top: 0;">
@@ -44,9 +44,9 @@
             </h2>
             <p style="font-size: 14px; color: #334155; margin-bottom: 10px;">
                 @if(!empty($settings['email_intro_text']))
-                    {{ str_replace(['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}'], [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $invoice->type_label ?? 'ইনভয়েস', $invoice->invoice_no], $settings['email_intro_text']) }}
+                    {{ str_replace(['{customer_name}', '{business_name}', '{doc_type}', '{invoice_no}'], [$invoice->customer_name ?? '', $settings['business_name'] ?? 'আইডিয়া প্রকাশন', $invoice->type_label ?? 'Invoice', $invoice->invoice_no], $settings['email_intro_text']) }}
                 @else
-                    {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label ?? 'ইনভয়েস' }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
+                    {{ $settings['business_name'] ?? 'আইডিয়া প্রকাশন' }} থেকে আপনার অর্ডারের <strong>{{ $invoice->type_label ?? 'Invoice' }}</strong> প্রস্তুত করা হয়েছে। নিচে সংক্ষিপ্ত বিবরণ দেওয়া হলো:
                 @endif
             </p>
 
@@ -59,31 +59,31 @@
             <div class="invoice-card">
                 <table class="invoice-table">
                     <tr>
-                        <td style="color: #64748b;">দলিল নম্বর:</td>
+                        <td style="color: #64748b;">No:</td>
                         <td><strong>#{{ $invoice->invoice_no }}</strong></td>
                     </tr>
                     <tr>
-                        <td style="color: #64748b;">তারিখ:</td>
+                        <td style="color: #64748b;">Date:</td>
                         <td><strong>{{ $invDateStr }}</strong></td>
                     </tr>
                     @if($invoice->customer_org)
                     <tr>
-                        <td style="color: #64748b;">প্রতিষ্ঠান / সংস্থা:</td>
+                        <td style="color: #64748b;">Organization:</td>
                         <td><strong>{{ $invoice->customer_org }}</strong></td>
                     </tr>
                     @endif
                     <tr>
-                        <td style="color: #64748b;">সর্বমোট বিল:</td>
+                        <td style="color: #64748b;">Total:</td>
                         <td style="color: #0d6efd; font-weight: bold; font-size: 15px;">৳{{ number_format((float)$invoice->grand_total, 2) }}</td>
                     </tr>
                     @if(in_array($invoice->type, ['invoice', 'challan']))
                     <tr>
-                        <td style="color: #64748b;">পরিশোধিত টাকা:</td>
+                        <td style="color: #64748b;">Paid:</td>
                         <td style="color: #15803d; font-weight: bold;">৳{{ number_format((float)$invoice->paid_amount, 2) }}</td>
                     </tr>
                     @if($invoice->due_amount > 0)
                     <tr>
-                        <td style="color: #64748b;">অবশিষ্ট বকেয়া:</td>
+                        <td style="color: #64748b;">Due:</td>
                         <td style="color: #dc2626; font-weight: bold;">৳{{ number_format((float)$invoice->due_amount, 2) }}</td>
                     </tr>
                     @endif
@@ -97,7 +97,7 @@
 
             <div style="text-align: center; margin: 25px 0;">
                 <a href="{{ $invoice->public_url }}" class="btn-primary" target="_blank">
-                    📄 বিল ও চালান দেখুন / PDF ডাউনলোড
+                    📄 View / Download PDF
                 </a>
             </div>
 

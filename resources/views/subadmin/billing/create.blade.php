@@ -572,7 +572,7 @@ function attachAutocomplete(row) {
                 .then(r => r.json())
                 .then(data => {
                     if (!data || data.length === 0) {
-                        menu.innerHTML = '<div class="dropdown-item text-muted small py-2">কোনো বই পাওয়া যায়নি (কাস্টম নাম হিসেবে যোগ হবে)</div>';
+                        menu.innerHTML = '<div class="dropdown-item text-muted small py-2">No match (added as a custom item)</div>';
                         menu.classList.add('show');
                         return;
                     }
@@ -587,11 +587,11 @@ function attachAutocomplete(row) {
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <div class="fw-bold text-dark small">${b.title}</div>
-                                    <div class="text-muted" style="font-size: 11px;">${b.author_name ? b.author_name : 'আইডিয়া প্রকাশন'} | স্টক: ${b.stock_quantity} টি</div>
+                                    <div class="text-muted" style="font-size: 11px;">${b.author_name ? b.author_name : 'আইডিয়া প্রকাশন'} | Stock: ${b.stock_quantity}</div>
                                 </div>
                                 <div class="text-end">
                                     <span class="fw-bold text-primary small">৳${b.selling_price}</span>
-                                    ${b.discount_pct > 0 ? `<span class="badge bg-success-subtle text-success ms-1" style="font-size: 10px;">${b.discount_pct}% ছাড়</span>` : ''}
+                                    ${b.discount_pct > 0 ? `<span class="badge bg-success-subtle text-success ms-1" style="font-size: 10px;">${b.discount_pct}% off</span>` : ''}
                                 </div>
                             </div>
                         </a>
@@ -641,7 +641,7 @@ document.getElementById('itemsBody').addEventListener('click', function(e) {
     if (btn) {
         const rows = document.querySelectorAll('.item-row');
         if (rows.length <= 1) {
-            alert('কমপক্ষে একটি আইটেম রাখা আবশ্যক!');
+            alert('Keep at least one item.');
             return;
         }
         btn.closest('.item-row').remove();

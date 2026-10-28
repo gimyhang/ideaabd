@@ -1,7 +1,7 @@
 @php
     $modalSettings = $settings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $modalBizLogo = $modalSettings['logo'] ?? '/images/logo.png';
-    $modalLogoSrc = \App\Support\SiteSetting::resolveImageUrl($modalBizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $modalLogoSrc = \App\Support\SiteSetting::billLogoUrl($modalBizLogo);
 @endphp
 
 {{-- Global Branding & Letterhead Settings Modal --}}

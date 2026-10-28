@@ -1019,7 +1019,7 @@ class IdeaAccountingController extends Controller
             $due = max(0.0, $total - $paid);
             $slip = [
                 'type'             => 'pos',
-                'type_badge'       => 'স্টল মেমো / POS',
+                'type_badge'       => 'POS Memo',
                 'doc_no'           => $pos->receipt_no ?: ('POS-' . $pos->id),
                 'date'             => $pos->created_at ? Carbon::parse($pos->created_at)->format('d M, Y') : date('d M, Y'),
                 'customer_name'    => $pos->customer_name ?: 'কাউন্টার ক্রেতা',
@@ -1045,7 +1045,7 @@ class IdeaAccountingController extends Controller
             $sellerName = $bill->seller?->name ?? 'সেলার স্টোর';
             $slip = [
                 'type'             => 'bill',
-                'type_badge'       => 'বিক্রয় বিল / BILL',
+                'type_badge'       => 'Sales Bill',
                 'doc_no'           => $bill->bill_no ?: ('BILL-' . $bill->id),
                 'date'             => $bill->bill_date ? Carbon::parse($bill->bill_date)->format('d M, Y') : date('d M, Y'),
                 'customer_name'    => $bill->customer_name ?: 'সম্মানিত ক্রেতা',
@@ -1156,7 +1156,7 @@ class IdeaAccountingController extends Controller
 
         if ((float) $order->shipping_cost > 0) {
             $items[] = [
-                'title'            => 'ডেলিভারি চার্জ (Shipping Cost)',
+                'title'            => 'Shipping Cost',
                 'author_name'      => '',
                 'item_type'        => 'Service',
                 'unit'             => 'Trip',
@@ -1920,7 +1920,7 @@ class IdeaAccountingController extends Controller
                 'phone'         => $inv->customer_phone ?? '',
                 'email'         => $inv->customer_email ?? '',
                 'address'       => $inv->customer_address ?? '',
-                'source'        => 'পূর্বের ইনভয়েস / চালান (Invoice History)',
+                'source'        => 'Invoice History',
                 'source_type'   => 'invoice',
                 'due_amount'    => $clientDue,
                 'due_formatted' => number_format($clientDue, 2),
@@ -2016,7 +2016,7 @@ class IdeaAccountingController extends Controller
                     'phone'         => $bill->customer_phone ?? '',
                     'email'         => $bill->customer_email ?? '',
                     'address'       => $bill->customer_address ?? '',
-                    'source'        => 'সেলার বিক্রয় বিল (POS/Bill)',
+                    'source'        => 'Seller Bill',
                     'source_type'   => 'bill',
                     'due_amount'    => 0,
                     'due_formatted' => '0.00',
@@ -3526,10 +3526,10 @@ class IdeaAccountingController extends Controller
             $settings['quotation_default_subject'] = $validated['quotation_default_subject'] ?? '';
             $settings['quotation_default_notes'] = $validated['quotation_default_notes'] ?? '';
             $settings['quotation_default_terms'] = $validated['quotation_default_terms'] ?? '';
-            $settings['quotation_title_bn'] = $validated['quotation_title_bn'] ?? 'মূল্য কোটেশন (PRICE QUOTATION)';
-            $settings['tender_title_bn'] = $validated['tender_title_bn'] ?? 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)';
-            $settings['invoice_title_bn'] = $validated['invoice_title_bn'] ?? 'ক্যাশ মেমো / বিল (INVOICE / BILL)';
-            $settings['challan_title_bn'] = $validated['challan_title_bn'] ?? 'ডেলিভারি চালান (DELIVERY CHALLAN)';
+            $settings['quotation_title_bn'] = $validated['quotation_title_bn'] ?? 'Quotation';
+            $settings['tender_title_bn'] = $validated['tender_title_bn'] ?? 'Tender';
+            $settings['invoice_title_bn'] = $validated['invoice_title_bn'] ?? 'Invoice';
+            $settings['challan_title_bn'] = $validated['challan_title_bn'] ?? 'Challan';
             $settings['digit_language'] = $validated['digit_language'] ?? 'bn';
             $settings['default_vat_rate'] = $validated['default_vat_rate'] ?? '7.5';
             $settings['default_tax_rate'] = $validated['default_tax_rate'] ?? '5.0';
@@ -3570,7 +3570,15 @@ class IdeaAccountingController extends Controller
                         }
                         @file_put_contents($storageDir . '/' . $filename, $decoded);
 
-                        $settings['logo'] = 'images/settings/' . $filename;
+                        // Never save a logo path whose file was not written (a read-only folder used to fail silently
+                        // and the old logo kept showing while the page said "saved").
+                        if (is_file($targetDir . '/' . $filename)) {
+                            $settings['logo'] = 'images/settings/' . $filename;
+                        } elseif (is_file($storageDir . '/' . $filename) && is_dir(public_path('storage'))) {
+                            $settings['logo'] = 'storage/settings/' . $filename;
+                        } else {
+                            throw new \RuntimeException('Logo file could not be written. Make public/images/settings writable and try again.');
+                        }
                     }
                 }
             } elseif ($request->hasFile('logo_file')) {
@@ -3671,6 +3679,9 @@ class IdeaAccountingController extends Controller
             if ($userId && !\Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->exists()) {
                 $userId = null;
             }
+
+            // company_* / office_* are read-only aliases of business_name / tagline / address / phone / email: never stored
+            unset($settings['company_name'], $settings['company_tagline'], $settings['office_address'], $settings['office_phone'], $settings['office_email']);
 
             \Illuminate\Support\Facades\DB::table('admin_dashboard_settings')->updateOrInsert(
                 ['key' => 'invoice_settings'],
@@ -3949,10 +3960,10 @@ class IdeaAccountingController extends Controller
             'quotation_default_subject'      => 'বই প্রকাশনা, মুদ্রণ ও সরবরাহ প্রসঙ্গে',
             'quotation_default_notes'        => '১. ভ্যাট যুক্ত করা হয়নি। ২. কোটেশনের মেয়াদ ৩০ দিন পর্যন্ত কার্যকর থাকবে।',
             'quotation_default_terms'        => "১. কার্যাদেশ পাওয়ার পর নির্ধারিত সময়ের মধ্যে ডেলিভারি প্রদান করা হবে।\n২. কাজের পরিধি ও স্পেসিফিকেশন পরিবর্তন হলে দর সমন্বয়যোগ্য।",
-            'quotation_title_bn'             => 'মূল্য কোটেশন (PRICE QUOTATION)',
-            'tender_title_bn'                => 'দরপত্র প্রস্তাবনা (TENDER PROPOSAL)',
-            'invoice_title_bn'               => 'ক্যাশ মেমো / বিল (INVOICE / BILL)',
-            'challan_title_bn'               => 'ডেলিভারি চালান (DELIVERY CHALLAN)',
+            'quotation_title_bn'             => 'Quotation',
+            'tender_title_bn'                => 'Tender',
+            'invoice_title_bn'               => 'Invoice',
+            'challan_title_bn'               => 'Challan',
             'digit_language'                 => 'bn',
             'default_vat_rate'               => '7.5',
             'default_tax_rate'               => '5.0',
@@ -3987,10 +3998,25 @@ class IdeaAccountingController extends Controller
                 $stored = [];
             }
 
-            return array_merge($default, $stored);
+            return self::withHeaderAliases(array_merge($default, $stored));
         } catch (\Throwable $e) {
-            return $default;
+            return self::withHeaderAliases($default);
         }
+    }
+
+    /**
+     * The seller bill pages and receipts read the header as company_name / company_tagline / office_address /
+     * office_phone / office_email, while the settings form saves business_name / tagline / address / phone / email.
+     * Both spellings now carry the same saved value, so an edit shows on every bill.
+     */
+    private static function withHeaderAliases(array $s): array
+    {
+        foreach (['company_name' => 'business_name', 'company_tagline' => 'tagline', 'office_address' => 'address', 'office_phone' => 'phone', 'office_email' => 'email'] as $alias => $saved) {
+            // always follows the saved value, so an old copy of the alias kept in the database can never go stale
+            $s[$alias] = $s[$saved] ?? ($s[$alias] ?? '');
+        }
+
+        return $s;
     }
 
     /**

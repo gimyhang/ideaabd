@@ -30,10 +30,10 @@
 <body onload="window.print()">
     <div class="no-print text-center my-1" style="margin-bottom: 15px;">
         <button onclick="window.print()" style="padding: 6px 15px; font-weight: bold; cursor: pointer; background: #0066cc; color: #fff; border: 0; border-radius: 4px;">
-            🖨️ প্রিন্ট করুন
+            🖨️ Print
         </button>
         <button onclick="window.close()" style="padding: 6px 12px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 4px; margin-left: 5px;">
-            বন্ধ করুন
+            Close
         </button>
     </div>
 
@@ -45,7 +45,7 @@
         <div><strong>{{ strtoupper($bill->type_label) }}</strong></div>
         <div>Memo: #{{ $bill->bill_no }}</div>
         <div>Date: {{ ($bill->bill_date ?? $bill->created_at)->format('d/m/Y h:i A') }}</div>
-        <div>Seller: {{ $bill->seller->name ?? 'সেলার' }}</div>
+        <div>Seller: {{ $bill->seller->name ?? 'Seller' }}</div>
         @if($bill->customer_name)
             <div>Customer: {{ $bill->customer_name }}</div>
             @if($bill->customer_org) <div>Org: {{ $bill->customer_org }}</div> @endif
@@ -57,9 +57,9 @@
     <table>
         <thead>
             <tr class="border-bottom">
-                <th align="left">বইয়ের নাম</th>
-                <th align="center">পরিমাণ</th>
-                <th align="right">মূল্য (৳)</th>
+                <th align="left">Item</th>
+                <th align="center">Qty</th>
+                <th align="right">Price</th>
             </tr>
         </thead>
         <tbody>
@@ -72,9 +72,9 @@
                 @endphp
                 <tr>
                     <td style="padding: 3px 0;">
-                        {{ $item['title'] ?? 'বই' }}
+                        {{ $item['title'] ?? 'Item' }}
                         @if($disc > 0)
-                            <br><small style="font-size: 10px; color: #555;">(ছাড়: {{ $disc }}%)</small>
+                            <br><small style="font-size: 10px; color: #555;">(Disc: {{ $disc }}%)</small>
                         @endif
                     </td>
                     <td align="center" style="vertical-align: top; padding: 3px 0;">{{ $qty }}</td>
@@ -88,42 +88,42 @@
 
     <table>
         <tr>
-            <td>সাবটোটাল:</td>
+            <td>Subtotal:</td>
             <td align="right">৳{{ number_format($bill->subtotal, 2) }}</td>
         </tr>
         @if($bill->discount > 0)
         <tr>
-            <td>মোট ছাড়:</td>
+            <td>Discount:</td>
             <td align="right">-৳{{ number_format($bill->discount, 2) }}</td>
         </tr>
         @endif
         <tr class="fw-bold" style="font-size: 13px;">
-            <td style="padding-top: 4px;">সর্বমোট (Net):</td>
+            <td style="padding-top: 4px;">Total:</td>
             <td align="right" style="padding-top: 4px;">৳{{ number_format($bill->total, 2) }}</td>
         </tr>
         <tr>
-            <td>পরিশোধিত (Paid):</td>
+            <td>Paid:</td>
             <td align="right">৳{{ number_format($bill->paid_amount ?? $bill->total, 2) }}</td>
         </tr>
         @if($bill->due_amount > 0)
         <tr style="color: #c00; font-weight: bold;">
-            <td>বকেয়া (Due):</td>
+            <td>Due:</td>
             <td align="right">৳{{ number_format($bill->due_amount, 2) }}</td>
         </tr>
         @endif
         <tr>
-            <td>পেমেন্ট মেথড:</td>
+            <td>Payment:</td>
             <td align="right">{{ strtoupper($bill->payment_method ?? 'CASH') }}</td>
         </tr>
         <tr>
-            <td>পেমেন্ট স্ট্যাটাস:</td>
+            <td>Status:</td>
             <td align="right">
                 @if($bill->payment_status === 'paid')
-                    [ PAID / পরিশোধিত ]
+                    [ PAID ]
                 @elseif($bill->payment_status === 'partial')
-                    [ PARTIAL / আংশিক ]
+                    [ PARTIAL ]
                 @else
-                    [ UNPAID / বকেয়া ]
+                    [ UNPAID ]
                 @endif
             </td>
         </tr>
@@ -131,8 +131,8 @@
 
     <div class="border-top my-1"></div>
     <div class="text-center" style="font-size: 10px; margin-top: 8px;">
-        *** ধন্যবাদ, আবার আসবেন ***<br>
-        {{ $invoiceSettings['company_name'] ?? 'আইডিয়া প্রকাশন' }} — জ্ঞান ও চিন্তার মেলবন্ধন
+        *** Thank you ***<br>
+        {{ $invoiceSettings['company_name'] ?? 'আইডিয়া প্রকাশন' }}
     </div>
 </body>
 </html>

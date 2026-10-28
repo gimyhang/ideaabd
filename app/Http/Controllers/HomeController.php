@@ -13,7 +13,7 @@ class HomeController extends Controller
         $canUseBooks = \Illuminate\Support\Facades\Cache::get($bookTablesCacheKey);
         if (!is_bool($canUseBooks)) {
             try {
-                $canUseBooks = DB::getSchemaBuilder()->hasTable('books') && DB::getSchemaBuilder()->hasTable('categories');
+                $canUseBooks = \App\Support\SchemaCache::has('books') && \App\Support\SchemaCache::has('categories');
             } catch (\Throwable) {
                 $canUseBooks = false;
             }
@@ -41,7 +41,7 @@ class HomeController extends Controller
         $categoryGridCards = collect();
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('blog_posts')) {
+            if (\App\Support\SchemaCache::has('blog_posts')) {
                 $blogBaseQuery = fn() => \Modules\Blog\Models\BlogPost::query()
                     ->with(['category', 'author'])
                     ->where(function($q) {
@@ -88,7 +88,7 @@ class HomeController extends Controller
                 }
 
                 // Column 3: Category with articles
-                if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
+                if (\App\Support\SchemaCache::has('blog_categories')) {
                     $blogCategories = \Modules\Blog\Models\BlogCategory::query()
                         ->whereHas('posts', function($sq) {
                             $sq->where('status', 'published')
@@ -115,7 +115,7 @@ class HomeController extends Controller
 
         $ebooks = collect();
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('ebooks')) {
+            if (\App\Support\SchemaCache::has('ebooks')) {
                 $ebooks = \Modules\Ebook\Models\Ebook::query()
                     ->with(['category', 'author'])
                     ->where('is_active', true)
@@ -317,7 +317,7 @@ class HomeController extends Controller
         $electronicsProducts = collect();
         $stationeryProducts = collect();
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('products')) {
+            if (\App\Support\SchemaCache::has('products')) {
                 $electronicsProducts = \App\Models\Product::electronics()
                     ->active()
                     ->with('category')

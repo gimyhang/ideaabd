@@ -11,7 +11,7 @@
 
     $settings = $settings ?? $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
-    $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $logoSrc = \App\Support\SiteSetting::billLogoUrl($bizLogo);
 
     $purchaseUrl = route('admin.purchases.show', $purchase->id);
     $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=4&data=" . urlencode($purchaseUrl);

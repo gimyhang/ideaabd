@@ -200,7 +200,7 @@ class SellerDashboardTest extends TestCase
 
         $this->actingAs($seller)->get('/seller/dashboard')->assertOk()->assertSee('রহিম বুকশপ');
         foreach (['/seller/bills', '/seller/bills/create', '/seller/accounts', "/seller/bills/{$bill->id}"] as $url) {
-            $this->actingAs($seller)->get($url)->assertOk()->assertSee('সেলার মেনু', false);
+            $this->actingAs($seller)->get($url)->assertOk()->assertSee('Seller menu', false);
         }
 
         $empty = $this->user('seller', 'নতুন');

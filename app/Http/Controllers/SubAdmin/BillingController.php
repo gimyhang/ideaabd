@@ -98,7 +98,7 @@ class BillingController extends Controller
             'due_amount'     => 0,
         ]);
 
-        return back()->with('success', "বিল #{$bill->bill_no} পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
+        return back()->with('success', "Bill #{$bill->bill_no} marked as Paid.");
     }
 
     /**
@@ -207,7 +207,7 @@ class BillingController extends Controller
         $billIds = (array) $request->input('bill_ids', []);
 
         if (empty($billIds)) {
-            return back()->with('error', 'কোনো বিল নির্বাচন করা হয়নি।');
+            return back()->with('error', 'No bills selected.');
         }
 
         $isAdmin = auth()->user()->isAdmin();
@@ -220,10 +220,10 @@ class BillingController extends Controller
                 'due_amount'     => 0,
                 'paid_amount'    => DB::raw('total'),
             ]);
-            return back()->with('success', "{$count} টি বিলকে সফলভাবে পরিশোধিত (Paid) হিসেবে চিহ্নিত করা হয়েছে।");
+            return back()->with('success', "{$count} bill(s) marked as Paid.");
         } elseif ($action === 'delete') {
             $count = $query->delete();
-            return back()->with('success', "{$count} টি বিল মুছে ফেলা হয়েছে।");
+            return back()->with('success', "{$count} bill(s) deleted.");
         }
 
         return back();
@@ -256,7 +256,7 @@ class BillingController extends Controller
         $bill = Bill::create($billData);
 
         return redirect()->route('subadmin.bills.show', $bill)
-            ->with('success', "{$bill->type_label} #{$bill->bill_no} সফলভাবে তৈরি হয়েছে।");
+            ->with('success', "{$bill->type_label} #{$bill->bill_no} created.");
     }
 
     public function show(Bill $bill)
@@ -291,7 +291,7 @@ class BillingController extends Controller
         $bill->update($billData);
 
         return redirect()->route('subadmin.bills.show', $bill)
-            ->with('success', "{$bill->type_label} #{$bill->bill_no} সফলভাবে আপডেট করা হয়েছে।");
+            ->with('success', "{$bill->type_label} #{$bill->bill_no} updated.");
     }
 
     public function destroy(Bill $bill)
@@ -304,7 +304,7 @@ class BillingController extends Controller
         $bill->delete();
 
         return redirect()->route('subadmin.bills.index')
-            ->with('success', "বিল #{$billNo} সফলভাবে মুছে ফেলা হয়েছে।");
+            ->with('success', "Bill #{$billNo} deleted.");
     }
 
     public function searchBooks(Request $request): JsonResponse

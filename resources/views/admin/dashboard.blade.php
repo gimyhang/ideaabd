@@ -977,18 +977,18 @@
     @endphp
     <div class="card border shadow-sm rounded-4 overflow-hidden bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
         {{-- Executive Header --}}
-        <div class="card-header bg-white py-3.5 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-bottom: 1px solid #f1f5f9 !important;">
+        <div class="card-header bg-white py-3 px-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-3" style="border-bottom: 1px solid #f1f5f9 !important;">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1.5 flex-wrap">
-                    <span class="badge bg-gradient text-white rounded-pill px-3 py-1 small fw-bold shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                    <span class="badge bg-gradient text-white rounded-pill px-3 py-1 small fw-bold shadow-2xs" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 0.375rem 1rem !important;">
                         <i class="fa-solid fa-crown me-1 text-warning"></i> Team & HR Hub
                     </span>
-                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 small fw-semibold" style="padding: 0.375rem 0.625rem !important;">
                         <i class="fa-solid fa-circle-check me-1"></i> Active
                     </span>
                 </div>
                 <h5 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6"><i class="fa-solid fa-sitemap"></i></span>
+                    <span class="badge bg-primary-subtle text-primary p-2 rounded-circle fs-6" style="padding: 0.5rem !important;"><i class="fa-solid fa-sitemap"></i></span>
                     <span>Staff & Departments</span>
                 </h5>
             </div>
@@ -1005,15 +1005,15 @@
             </div>
         </div>
 
-        <div class="card-body p-3.5 p-md-4">
+        <div class="card-body p-3 p-md-4">
             
             {{-- 1. Five Responsive Departmental Cards --}}
-            <div class="row g-3 g-xl-3.5 mb-4">
+            <div class="row g-3 g-xl-4 mb-4">
                 
                 {{-- 1. Digital Marketing --}}
                 @php $dm = $empDepts['digital_marketing'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                    <div class="p-3 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
                          style="background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%); border: 1px solid #bfdbfe !important; border-top: 2px solid #2563eb !important;">
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
@@ -1022,7 +1022,7 @@
                                 </span>
                                 <span class="badge bg-white text-primary border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #dbeafe !important;">{{ $dm['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Marketing</h6>
+                            <h6 class="fw-bold text-dark mb-1 dashboard-department-title">Marketing</h6>
                             
                             <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold text-primary font-monospace mb-0">{{ $dm['count'] }}</h4>
@@ -1043,7 +1043,7 @@
                 {{-- 2. Content & Editorial --}}
                 @php $ce = $empDepts['content_editorial'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                    <div class="p-3 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
                          style="background: linear-gradient(135deg, #fefce8 0%, #ffffff 100%); border: 1px solid #fef08a !important; border-top: 2px solid #ca8a04 !important;">
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
@@ -1052,7 +1052,7 @@
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fef08a !important;">{{ $ce['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Content & Editorial</h6>
+                            <h6 class="fw-bold text-dark mb-1 dashboard-department-title">Content & Editorial</h6>
                             
                             <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ca8a04;">{{ $ce['count'] }}</h4>
@@ -1073,7 +1073,7 @@
                 {{-- 3. Technical & IT --}}
                 @php $ti = $empDepts['technical_it'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                    <div class="p-3 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
                          style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 1px solid #bbf7d0 !important; border-top: 2px solid #16a34a !important;">
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
@@ -1082,7 +1082,7 @@
                                 </span>
                                 <span class="badge bg-white text-success border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #bbf7d0 !important;">{{ $ti['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Technical & IT</h6>
+                            <h6 class="fw-bold text-dark mb-1 dashboard-department-title">Technical & IT</h6>
                             
                             <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold text-success font-monospace mb-0">{{ $ti['count'] }}</h4>
@@ -1103,7 +1103,7 @@
                 {{-- 4. Operations & Support --}}
                 @php $os = $empDepts['operations_support'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                    <div class="p-3 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
                          style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 1px solid #fed7aa !important; border-top: 2px solid #ea580c !important;">
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
@@ -1112,7 +1112,7 @@
                                 </span>
                                 <span class="badge bg-white text-danger border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #fed7aa !important;">{{ $os['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Operations & Support</h6>
+                            <h6 class="fw-bold text-dark mb-1 dashboard-department-title">Operations & Support</h6>
                             
                             <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #ea580c;">{{ $os['count'] }}</h4>
@@ -1133,7 +1133,7 @@
                 {{-- 5. Press & Production Artisans --}}
                 @php $pa = $empDepts['press_artisans'] ?? ['count' => 0, 'active' => 0, 'payroll' => 0, 'share_percent' => 0]; @endphp
                 <div class="col-12 col-sm-6 col-xl">
-                    <div class="p-3.5 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
+                    <div class="p-3 p-xl-4 rounded-4 border h-100 d-flex flex-column justify-content-between position-relative overflow-hidden transition-all shadow-2xs hover-shadow" 
                          style="background: linear-gradient(135deg, #faf5ff 0%, #ffffff 100%); border: 1px solid #e9d5ff !important; border-top: 2px solid #9333ea !important;">
                         <div class="d-flex flex-column gap-2 mb-3">
                             <div class="d-flex align-items-center justify-content-between">
@@ -1142,7 +1142,7 @@
                                 </span>
                                 <span class="badge bg-white text-dark border rounded-pill small font-monospace px-2 py-0.5" style="border-color: #e9d5ff !important;">{{ $pa['share_percent'] }}%</span>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1">Press & Production</h6>
+                            <h6 class="fw-bold text-dark mb-1 dashboard-department-title">Press & Production</h6>
                             
                             <div class="d-flex align-items-baseline gap-2">
                                 <h4 class="fw-bold font-monospace mb-0" style="color: #9333ea;">{{ $pa['count'] }}</h4>
@@ -2555,6 +2555,14 @@
     margin: 0 !important;
     overflow: hidden;
 }
+.dashboard-department-title {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    margin: 0.25rem 0 !important;
+    line-height: 1.25;
+}
+
 #pendingActionTabs .nav-link {
     transition: all 0.2s ease;
     border: 1px solid transparent;

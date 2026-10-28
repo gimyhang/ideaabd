@@ -1,7 +1,7 @@
 @php
     $modalSettings = $settings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $modalBizLogo = $modalSettings['logo'] ?? '/images/logo.png';
-    $modalLogoSrc = \App\Support\SiteSetting::resolveImageUrl($modalBizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $modalLogoSrc = \App\Support\SiteSetting::billLogoUrl($modalBizLogo);
     $mRecipientNameSize = $modalSettings['challan_recipient_name_size'] ?? '13px';
     $mRecipientPhoneSize = $modalSettings['challan_recipient_phone_size'] ?? '12px';
     $mRecipientAddressSize = $modalSettings['challan_recipient_address_size'] ?? '11.5px';

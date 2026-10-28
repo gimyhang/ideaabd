@@ -7,7 +7,7 @@
     $bizPhone = $settings['phone'] ?? '+8801700000000';
     $bizEmail = $settings['email'] ?? 'ideaprokashon@gmail.com';
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
-    $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $logoSrc = \App\Support\SiteSetting::billLogoUrl($bizLogo);
 
     $purchase = $payment->purchase;
     $amount = (float) $payment->amount;

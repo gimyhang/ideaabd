@@ -115,7 +115,7 @@
     {{-- Screen Action Toolbar --}}
     <div class="actions-bar no-print">
         <button type="button" class="btn-action btn-print" onclick="window.print()">
-            <i class="fa-solid fa-print"></i> প্রিন্ট করুন
+            <i class="fa-solid fa-print"></i> Print
         </button>
         @php
             $waMsg = urlencode("আইডিয়া প্রকাশন — ক্যাশ মেমো #{$sale->receipt_no}\nমোট টাকা: ৳" . number_format($sale->total, 2) . "\nবিস্তারিত দেখুন: " . route('admin.pos.receipt', $sale->id));
@@ -126,14 +126,14 @@
             $waUrl = $waPhone ? "https://wa.me/{$waPhone}?text={$waMsg}" : "https://wa.me/?text={$waMsg}";
         @endphp
         <a href="{{ $waUrl }}" target="_blank" class="btn-action btn-whatsapp">
-            <i class="fab fa-whatsapp"></i> হোয়াটসঅ্যাপে পাঠান
+            <i class="fab fa-whatsapp"></i> WhatsApp
         </a>
     </div>
 
     @if($sale->isVoided())
         <div class="void-banner">
-            ⚠️ বাতিলকৃত মেমো (VOID / CANCELLED)<br>
-            <span style="font-size: 11px; font-weight: normal;">কারণ: {{ $sale->void_reason }}</span>
+            ⚠️ VOID / CANCELLED<br>
+            <span style="font-size: 11px; font-weight: normal;">Reason: {{ $sale->void_reason }}</span>
         </div>
     @endif
 
@@ -143,33 +143,33 @@
         <div style="font-size: 12px; font-weight: 600;">{{ $sale->register->name ?? 'অমর একুশে বইমেলা স্টল' }}</div>
         <div style="font-size: 11px; color: #475569;">{{ $sale->register->location ?? 'সোহরাওয়ার্দী উদ্যান, ঢাকা' }}</div>
         <div class="border-top-dash my-1"></div>
-        <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px;">ক্যাশ মেমো / CASH RECEIPT</div>
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px;">Cash Receipt</div>
         <div class="border-bottom-dash my-1"></div>
     </div>
 
     {{-- Metadata --}}
     <table style="font-size: 11.5px; margin-bottom: 4px;">
         <tr>
-            <td>মেমো নং:</td>
+            <td>Receipt No:</td>
             <td class="text-right font-mono fw-bold">#{{ $sale->receipt_no }}</td>
         </tr>
         <tr>
-            <td>তারিখ ও সময়:</td>
+            <td>Date:</td>
             <td class="text-right font-mono">{{ $sale->created_at->format('d/m/Y h:i A') }}</td>
         </tr>
         <tr>
-            <td>ক্যাশিয়ার:</td>
+            <td>Cashier:</td>
             <td class="text-right">{{ $sale->cashier->name ?? 'স্টল স্টাফ' }}</td>
         </tr>
         @if($sale->customer_name && $sale->customer_name !== 'ওয়াক-ইন ক্রেতা (Walk-in)')
             <tr>
-                <td>ক্রেতার নাম:</td>
+                <td>Customer:</td>
                 <td class="text-right fw-semibold">{{ $sale->customer_name }}</td>
             </tr>
         @endif
         @if($sale->customer_phone)
             <tr>
-                <td>মোবাইল:</td>
+                <td>Mobile:</td>
                 <td class="text-right font-mono">{{ $sale->customer_phone }}</td>
             </tr>
         @endif
@@ -181,9 +181,9 @@
     <table>
         <thead>
             <tr class="border-bottom-dash">
-                <th class="text-left" style="width: 58%;">বইয়ের নাম</th>
-                <th class="text-center" style="width: 17%;">সংখ্যা</th>
-                <th class="text-right" style="width: 25%;">মূল্য (৳)</th>
+                <th class="text-left" style="width: 58%;">Item</th>
+                <th class="text-center" style="width: 17%;">Qty</th>
+                <th class="text-right" style="width: 25%;">Price</th>
             </tr>
         </thead>
         <tbody>
@@ -205,29 +205,29 @@
     {{-- Financial Summary --}}
     <table style="font-size: 12.5px;">
         <tr>
-            <td>মোট বই সংখ্যা:</td>
-            <td class="text-right font-mono fw-bold">{{ $sale->totalItemCount() }} টি</td>
+            <td>Total qty:</td>
+            <td class="text-right font-mono fw-bold">{{ $sale->totalItemCount() }} pcs</td>
         </tr>
         <tr>
-            <td>উপ-মোট (Subtotal):</td>
+            <td>Subtotal:</td>
             <td class="text-right font-mono">৳{{ number_format($sale->subtotal, 2) }}</td>
         </tr>
         @if($sale->discount > 0)
             <tr style="color: #b91c1c;">
-                <td>মেলা বিশেষ ছাড় @if($sale->discount_percent > 0)({{ number_format($sale->discount_percent, 0) }}%)@endif:</td>
+                <td>Discount @if($sale->discount_percent > 0)({{ number_format($sale->discount_percent, 0) }}%)@endif:</td>
                 <td class="text-right font-mono">-৳{{ number_format($sale->discount, 2) }}</td>
             </tr>
         @endif
         <tr class="border-top-dash fw-bold" style="font-size: 14px;">
-            <td>পরিশোধযোগ্য সর্বমোট:</td>
+            <td>Total:</td>
             <td class="text-right font-mono">৳{{ number_format($sale->total, 2) }}</td>
         </tr>
         
         <tr>
-            <td class="py-1">পরিশোধের মাধ্যম:</td>
+            <td class="py-1">Payment:</td>
             <td class="text-right font-mono fw-semibold text-uppercase py-1">
                 @if($sale->payment_method === 'split')
-                    স্প্লিট (ক্যাশ ৳{{ number_format($sale->paid_cash, 0) }} + অনলাইন ৳{{ number_format($sale->paid_online, 0) }})
+                    Split (Cash ৳{{ number_format($sale->paid_cash, 0) }} + Online ৳{{ number_format($sale->paid_online, 0) }})
                 @else
                     {{ $sale->payment_method }}
                 @endif
@@ -236,19 +236,19 @@
 
         @if($sale->trx_id)
             <tr>
-                <td>ট্রানজেকশন আইডি:</td>
+                <td>Txn ID:</td>
                 <td class="text-right font-mono fw-semibold">{{ $sale->trx_id }}</td>
             </tr>
         @endif
 
         @if($sale->tendered_amount > 0)
             <tr>
-                <td>নগদ গ্রহণ (Tendered):</td>
+                <td>Tendered:</td>
                 <td class="text-right font-mono">৳{{ number_format($sale->tendered_amount, 2) }}</td>
             </tr>
             @if($sale->change_amount > 0)
                 <tr class="fw-bold" style="color: #15803d;">
-                    <td>ফেরত টাকা (Change):</td>
+                    <td>Change:</td>
                     <td class="text-right font-mono">৳{{ number_format($sale->change_amount, 2) }}</td>
                 </tr>
             @endif

@@ -61,9 +61,9 @@ class Bill extends Model
     public function getTypeLabelAttribute(): string
     {
         return match ($this->type) {
-            'challan'   => 'ডেলিভারি চালান',
-            'quotation' => 'কোটেশন / প্রফর্মা',
-            default     => 'ক্যাশ মেমো / ইনভয়েস',
+            'challan'   => 'Challan',
+            'quotation' => 'Quotation',
+            default     => 'Invoice',
         };
     }
 

@@ -3,7 +3,7 @@
 @php
     $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
-    $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $logoSrc = \App\Support\SiteSetting::billLogoUrl($bizLogo);
 
     $isChallan = ($bill->type === 'challan');
     $isQuotation = ($bill->type === 'quotation');
@@ -39,19 +39,19 @@
 
             <div class="d-flex flex-wrap gap-2">
                 <button class="btn btn-primary rounded-pill px-3.5 shadow-sm fw-semibold" onclick="window.print()">
-                    <i class="fas fa-print me-1.5"></i> প্রিন্ট / PDF
+                    <i class="fas fa-print me-1.5"></i> Print / PDF
                 </button>
                 <a href="{{ route('subadmin.bills.receipt', $bill) }}" target="_blank" class="btn btn-outline-secondary rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-receipt me-1"></i> রিসিট প্রিন্ট (POS)
+                    <i class="fas fa-receipt me-1"></i> POS Receipt
                 </a>
                 <a href="{{ route('subadmin.bills.edit', $bill) }}" class="btn btn-warning text-dark rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-pen-to-square me-1"></i> এডিট করুন
+                    <i class="fas fa-pen-to-square me-1"></i> Edit
                 </a>
                 <a href="{{ route('subadmin.bills.create') }}" class="btn btn-success rounded-pill px-3 fw-semibold">
-                    <i class="fas fa-plus-circle me-1"></i> নতুন বিল
+                    <i class="fas fa-plus-circle me-1"></i> New Bill
                 </a>
                 <a href="{{ route('subadmin.bills.index') }}" class="btn btn-light border rounded-pill px-3">
-                    <i class="fas fa-list me-1"></i> সব বিল
+                    <i class="fas fa-list me-1"></i> All Bills
                 </a>
             </div>
         </div>
@@ -83,15 +83,15 @@
                     <div class="text-sm-end">
                         <div class="d-inline-block p-2 px-3 rounded-3 text-white fw-bold {{ $isChallan ? 'bg-info' : ($isQuotation ? 'bg-warning text-dark' : 'bg-primary') }} mb-2">
                             <span class="fs-6 text-uppercase">
-                                @if($isChallan) ডেলিভারি চালান (DELIVERY CHALLAN)
-                                @elseif($isQuotation) কোটেশন (PROFORMA QUOTATION)
-                                @else ক্যাশ মেমো ও ইনভয়েস (CASH MEMO) @endif
+                                @if($isChallan) Challan
+                                @elseif($isQuotation) Quotation
+                                @else Invoice @endif
                             </span>
                         </div>
                         <div class="font-monospace fw-bold text-dark fs-6">#{{ $bill->bill_no }}</div>
-                        <div class="small text-muted">তারিখ: <strong>{{ ($bill->bill_date ?? $bill->created_at)->format('d F, Y') }}</strong></div>
+                        <div class="small text-muted">Date: <strong>{{ ($bill->bill_date ?? $bill->created_at)->format('d F, Y') }}</strong></div>
                         @if($bill->reference_no)
-                            <div class="small text-muted">স্মারক / Ref: <strong>{{ $bill->reference_no }}</strong></div>
+                            <div class="small text-muted">Ref: <strong>{{ $bill->reference_no }}</strong></div>
                         @endif
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                 {{-- Subject Banner if provided --}}
                 @if($bill->subject)
                     <div class="p-2.5 px-3 bg-light rounded-3 border mb-4">
-                        <span class="fw-bold text-dark small"><i class="fas fa-bookmark text-primary me-1.5"></i>বিষয়:</span>
+                        <span class="fw-bold text-dark small"><i class="fas fa-bookmark text-primary me-1.5"></i>Subject:</span>
                         <span class="text-dark small fw-semibold">{{ $bill->subject }}</span>
                     </div>
                 @endif
@@ -110,7 +110,7 @@
                     <div class="col-12 col-sm-6">
                         <div class="p-3 bg-light rounded-3 border h-100">
                             <div class="small text-muted text-uppercase fw-bold mb-2 pb-1 border-bottom">
-                                <i class="fas fa-user-check text-primary me-1"></i>প্রাপক / বিল গ্রাহকের বিবরণ:
+                                <i class="fas fa-user-check text-primary me-1"></i>Bill to:
                             </div>
                             <h6 class="fw-bold text-dark mb-1">{{ $bill->customer_name }}</h6>
                             @if($bill->customer_org)
@@ -135,26 +135,26 @@
                     <div class="col-12 col-sm-6">
                         <div class="p-3 bg-light rounded-3 border h-100 text-sm-end">
                             <div class="small text-muted text-uppercase fw-bold mb-2 pb-1 border-bottom">
-                                <i class="fas fa-shield-check text-success me-1"></i>প্রস্তুতকারক ও স্ট্যাটাস:
+                                <i class="fas fa-shield-check text-success me-1"></i>Issued by:
                             </div>
                             <p class="text-dark small mb-1">
-                                সেলার / প্রস্তুতকারক: <strong>{{ $bill->seller->name ?? 'আইডিয়া সেলস পয়েন্ট' }}</strong>
+                                Seller: <strong>{{ $bill->seller->name ?? 'আইডিয়া সেলস পয়েন্ট' }}</strong>
                             </p>
                             <p class="text-muted small mb-2">
-                                পেমেন্ট মেথড: <strong>{{ ['cash'=>'নগদ (Cash)','bkash'=>'বিকাশ (bKash)','nagad'=>'নগদ (Nagad)','card'=>'ব্যাংক / কার্ড'][$bill->payment_method] ?? $bill->payment_method }}</strong>
+                                Payment: <strong>{{ ['cash'=>'Cash','bkash'=>'bKash','nagad'=>'Nagad','card'=>'Card'][$bill->payment_method] ?? $bill->payment_method }}</strong>
                             </p>
                             <div>
                                 @if($bill->payment_status === 'paid')
                                     <span class="badge bg-success text-white px-3 py-1.5 fs-7 rounded-pill">
-                                        <i class="fas fa-check-circle me-1"></i>সম্পূর্ণ পরিশোধিত (Paid)
+                                        <i class="fas fa-check-circle me-1"></i>Paid
                                     </span>
                                 @elseif($bill->payment_status === 'partial')
                                     <span class="badge bg-warning text-dark px-3 py-1.5 fs-7 rounded-pill">
-                                        <i class="fas fa-clock me-1"></i>আংশিক পরিশোধ (Partial)
+                                        <i class="fas fa-clock me-1"></i>Partial
                                     </span>
                                 @else
                                     <span class="badge bg-danger text-white px-3 py-1.5 fs-7 rounded-pill">
-                                        <i class="fas fa-triangle-exclamation me-1"></i>বকেয়া (Unpaid)
+                                        <i class="fas fa-triangle-exclamation me-1"></i>Unpaid
                                     </span>
                                 @endif
                             </div>
@@ -167,16 +167,16 @@
                     <table class="table table-bordered align-middle mb-0">
                         <thead class="table-light text-center small fw-bold text-dark">
                             <tr>
-                                <th style="width: 45px;">ক্রম</th>
-                                <th class="text-start">বই ও পণ্যের বিবরণ</th>
-                                <th class="text-start" style="width: 160px;">লেখক</th>
-                                <th style="width: 90px;">পরিমাণ</th>
+                                <th style="width: 45px;">#</th>
+                                <th class="text-start">Item</th>
+                                <th class="text-start" style="width: 160px;">Author</th>
+                                <th style="width: 90px;">Qty</th>
                                 @if(!$isChallan)
-                                    <th class="text-end" style="width: 120px;">একক মূল্য</th>
-                                    <th style="width: 90px;">ছাড় (%)</th>
-                                    <th class="text-end" style="width: 130px;">মোট (৳)</th>
+                                    <th class="text-end" style="width: 120px;">Rate</th>
+                                    <th style="width: 90px;">Disc %</th>
+                                    <th class="text-end" style="width: 130px;">Total</th>
                                 @else
-                                    <th style="width: 150px;">মন্তব্য / অবস্থা</th>
+                                    <th style="width: 150px;">Note</th>
                                 @endif
                             </tr>
                         </thead>
@@ -193,7 +193,7 @@
                             <tr>
                                 <td class="text-center text-muted fw-bold">@bn($i + 1)</td>
                                 <td>
-                                    <div class="fw-bold text-dark">{{ $item['title'] ?? 'বই' }}</div>
+                                    <div class="fw-bold text-dark">{{ $item['title'] ?? 'Item' }}</div>
                                 </td>
                                 <td class="small text-muted">{{ $item['author'] ?? '—' }}</td>
                                 <td class="text-center fw-bold text-dark">@bn($qty)</td>
@@ -208,7 +208,7 @@
                                     </td>
                                     <td class="text-end fw-bold text-dark font-monospace">৳{{ number_format($lineTotal, 2) }}</td>
                                 @else
-                                    <td class="text-center small text-success fw-semibold"><i class="fas fa-check-circle me-1"></i>উত্তম কপি</td>
+                                    <td class="text-center small text-success fw-semibold"><i class="fas fa-check-circle me-1"></i>Good</td>
                                 @endif
                             </tr>
                             @endforeach
@@ -216,35 +216,35 @@
                         <tfoot class="table-light">
                             @if(!$isChallan)
                                 <tr>
-                                    <td colspan="3" class="text-end fw-semibold">বইগুলোর সর্বমোট পরিমাণ ও গায়ের মূল্য:</td>
-                                    <td class="text-center fw-bold">@bn($totalQty) টি</td>
-                                    <td colspan="2" class="text-end fw-semibold">উপমোট (Subtotal):</td>
+                                    <td colspan="3" class="text-end fw-semibold">Total qty</td>
+                                    <td class="text-center fw-bold">@bn($totalQty) pcs</td>
+                                    <td colspan="2" class="text-end fw-semibold">Subtotal</td>
                                     <td class="text-end fw-bold font-monospace">৳{{ number_format($bill->subtotal, 2) }}</td>
                                 </tr>
                                 @if($bill->discount > 0)
                                 <tr>
-                                    <td colspan="6" class="text-end text-danger fw-semibold">সর্বমোট ছাড় (Discount):</td>
+                                    <td colspan="6" class="text-end text-danger fw-semibold">Discount</td>
                                     <td class="text-end text-danger fw-bold font-monospace">- ৳{{ number_format($bill->discount, 2) }}</td>
                                 </tr>
                                 @endif
                                 <tr class="table-active">
-                                    <td colspan="6" class="text-end fw-bold fs-6 text-dark">সর্বমোট প্রদেয় বিল (Grand Total):</td>
+                                    <td colspan="6" class="text-end fw-bold fs-6 text-dark">Total</td>
                                     <td class="text-end fw-bold fs-5 text-primary font-monospace">৳{{ number_format($bill->total, 2) }}</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="6" class="text-end text-success fw-semibold">পরিশোধিত / নগদ জমা (Paid):</td>
+                                    <td colspan="6" class="text-end text-success fw-semibold">Paid</td>
                                     <td class="text-end text-success fw-bold font-monospace">৳{{ number_format($bill->paid_amount ?? $bill->total, 2) }}</td>
                                 </tr>
                                 @if($bill->due_amount > 0)
                                 <tr class="bg-danger-subtle bg-opacity-25">
-                                    <td colspan="6" class="text-end text-danger fw-bold fs-6">অবশিষ্ট বকেয়া (Due Amount):</td>
+                                    <td colspan="6" class="text-end text-danger fw-bold fs-6">Due</td>
                                     <td class="text-end text-danger fw-bold fs-6 font-monospace">৳{{ number_format($bill->due_amount, 2) }}</td>
                                 </tr>
                                 @endif
                             @else
                                 <tr>
-                                    <td colspan="3" class="text-end fw-bold">ডেলিভারিকৃত মোট বইয়ের সংখ্যা:</td>
-                                    <td class="text-center fw-bold fs-6 text-primary">@bn($totalQty) টি</td>
+                                    <td colspan="3" class="text-end fw-bold">Delivered qty</td>
+                                    <td class="text-center fw-bold fs-6 text-primary">@bn($totalQty) pcs</td>
                                     <td></td>
                                 </tr>
                             @endif
@@ -255,7 +255,7 @@
                 {{-- Amount in words (For Invoices/Quotations) --}}
                 @if(!$isChallan)
                     <div class="p-3 bg-light rounded-3 border mb-4">
-                        <div class="small text-muted fw-semibold">কথায় (টাকা):</div>
+                        <div class="small text-muted fw-semibold">In words:</div>
                         <div class="fw-bold text-dark fs-6 text-capitalize">
                             @takaInWords($bill->total) মাত্র (@takaInWordsEn($bill->total) Only)
                         </div>
@@ -268,7 +268,7 @@
                         @if($bill->notes)
                             <div class="col-12 col-md-6">
                                 <div class="p-3 bg-light rounded-3 border h-100">
-                                    <div class="small fw-bold text-dark mb-1"><i class="fas fa-note-sticky text-primary me-1"></i>মন্তব্য / রেফারেন্স:</div>
+                                    <div class="small fw-bold text-dark mb-1"><i class="fas fa-note-sticky text-primary me-1"></i>Notes:</div>
                                     <p class="small text-muted mb-0">{{ $bill->notes }}</p>
                                 </div>
                             </div>
@@ -276,7 +276,7 @@
                         @if($bill->terms_conditions)
                             <div class="col-12 col-md-6">
                                 <div class="p-3 bg-light rounded-3 border h-100">
-                                    <div class="small fw-bold text-dark mb-1"><i class="fas fa-circle-info text-primary me-1"></i>শর্তাবলী:</div>
+                                    <div class="small fw-bold text-dark mb-1"><i class="fas fa-circle-info text-primary me-1"></i>Terms:</div>
                                     <p class="small text-muted mb-0">{{ $bill->terms_conditions }}</p>
                                 </div>
                             </div>
@@ -288,20 +288,20 @@
                 <div class="row g-4 pt-5 mt-4 border-top">
                     <div class="col-4 text-center">
                         <div class="border-top border-dark pt-2 mx-auto" style="width: 140px;">
-                            <p class="small fw-bold text-dark mb-0">{{ $bill->seller->name ?? 'সেলার' }}</p>
-                            <p class="text-muted" style="font-size: 11px;">প্রস্তুতকারকের স্বাক্ষর</p>
+                            <p class="small fw-bold text-dark mb-0">{{ $bill->seller->name ?? 'Seller' }}</p>
+                            <p class="text-muted" style="font-size: 11px;">Prepared by</p>
                         </div>
                     </div>
                     <div class="col-4 text-center">
                         <div class="border-top border-dark pt-2 mx-auto" style="width: 140px;">
                             <p class="small fw-bold text-dark mb-0">{{ $bill->customer_name }}</p>
-                            <p class="text-muted" style="font-size: 11px;">গ্রহীতার স্বাক্ষর</p>
+                            <p class="text-muted" style="font-size: 11px;">Received by</p>
                         </div>
                     </div>
                     <div class="col-4 text-center">
                         <div class="border-top border-dark pt-2 mx-auto" style="width: 140px;">
-                            <p class="small fw-bold text-dark mb-0">{{ $settings['default_creator_name'] ?? 'কর্তৃপক্ষ' }}</p>
-                            <p class="text-muted" style="font-size: 11px;">অনুমোদিত স্বাক্ষর</p>
+                            <p class="small fw-bold text-dark mb-0">{{ $settings['default_creator_name'] ?? 'Authority' }}</p>
+                            <p class="text-muted" style="font-size: 11px;">Authorized by</p>
                         </div>
                     </div>
                 </div>

@@ -549,7 +549,7 @@
 @php
     $settings = $invoiceSettings ?? \App\Http\Controllers\Admin\IdeaAccountingController::getInvoiceSettings();
     $bizLogo = $settings['logo'] ?? '/images/logo.png';
-    $logoSrc = \App\Support\SiteSetting::resolveImageUrl($bizLogo, 'images/logo.png') ?: asset('images/logo.png');
+    $logoSrc = \App\Support\SiteSetting::billLogoUrl($bizLogo);
 
     $creatorName = !empty($settings['default_creator_name']) ? $settings['default_creator_name'] : ($invoice->creator_name ?? 'Idea Publication Authority');
     $creatorDesignation = !empty($settings['default_creator_designation']) ? $settings['default_creator_designation'] : ($invoice->creator_designation_en ?? ($invoice->creator_designation ?? 'Authorized Signatory / Billing In-Charge'));

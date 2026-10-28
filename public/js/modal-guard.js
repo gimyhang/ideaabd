@@ -41,6 +41,14 @@
         document.body.style.removeProperty('padding-right');
     }
 
+    // Keep modals outside positioned application shells so they stack above Bootstrap's body-level backdrop.
+    document.addEventListener('show.bs.modal', function (e) {
+        var modal = e.target;
+        if (!e.defaultPrevented && modal && modal.classList && modal.classList.contains('modal') && modal.parentElement !== document.body) {
+            document.body.appendChild(modal);
+        }
+    });
+
     // Right after a modal closes (Bootstrap removes its own backdrop first, so wait one tick).
     document.addEventListener('hidden.bs.modal', function () {
         setTimeout(function () {

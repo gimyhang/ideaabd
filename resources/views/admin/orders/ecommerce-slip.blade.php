@@ -808,9 +808,9 @@
         <!-- Dynamic Format Selector & Print Trigger -->
         <div class="slip-actions-group">
             <div class="format-selector" title="Select print format">
-                <button type="button" class="format-pill {{ $currentFormat === 'half' ? 'active' : '' }}" onclick="switchFormat('half', this)">হাফ সাইজ (ডিফল্ট)</button>
-                <button type="button" class="format-pill {{ $currentFormat === 'pos' ? 'active' : '' }}" onclick="switchFormat('pos', this)">পজ (80mm)</button>
-                <button type="button" class="format-pill {{ $currentFormat === 'full' ? 'active' : '' }}" onclick="switchFormat('full', this)">ফুল পেইজ (A4)</button>
+                <button type="button" class="format-pill {{ $currentFormat === 'half' ? 'active' : '' }}" onclick="switchFormat('half', this)">Half (default)</button>
+                <button type="button" class="format-pill {{ $currentFormat === 'pos' ? 'active' : '' }}" onclick="switchFormat('pos', this)">POS (80mm)</button>
+                <button type="button" class="format-pill {{ $currentFormat === 'full' ? 'active' : '' }}" onclick="switchFormat('full', this)">Full (A4)</button>
             </div>
 
             <button type="button" onclick="window.print()" class="btn-clean btn-clean-primary" title="Print slip (Ctrl + P)">

@@ -26,7 +26,7 @@
     // Category mega-menu & dropdown dynamically fetched and cached for high performance
     $headerCategories = \Illuminate\Support\Facades\Cache::remember('site_header_categories_v3', 1800, function() {
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('categories')) {
+            if (\App\Support\SchemaCache::has('categories')) {
                 $cats = \Modules\Book\Models\Category::query()
                     ->where('is_active', true)
                     ->whereNull('parent_id')
@@ -53,7 +53,7 @@
     // Popular authors for hover dropdown cached for performance
     $headerAuthors = \Illuminate\Support\Facades\Cache::remember('site_header_authors_v3', 1800, function() {
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('authors')) {
+            if (\App\Support\SchemaCache::has('authors')) {
                 return \Modules\Author\Models\Author::query()
                     ->withCount('books')
                     ->orderByDesc('books_count')
@@ -67,7 +67,7 @@
     // Ideapatra / Blog categories for hover dropdown cached for performance
     $headerBlogCats = \Illuminate\Support\Facades\Cache::remember('site_header_blog_cats_v3', 1800, function() {
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('blog_categories')) {
+            if (\App\Support\SchemaCache::has('blog_categories')) {
                 return \Modules\Blog\Models\BlogCategory::query()
                     ->where('is_active', true)
                     ->withCount(['posts' => fn($q) => $q->where('status', 'published')])

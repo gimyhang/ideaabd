@@ -165,7 +165,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('js/modal-guard.js') }}"></script>
+<script src="{{ asset('js/modal-guard.js') }}?v={{ @filemtime(public_path('js/modal-guard.js')) ?: 1 }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js"></script>
 <script>
     // Global SweetAlert2 World-Class Confirmation Helper
